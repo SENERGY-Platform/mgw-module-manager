@@ -21,25 +21,6 @@ import (
 	"io/fs"
 )
 
-// EXPOSE MODULE-MANAGER (FOR SUB DEPLOYMENTS) TO OTHER CONTAINERS VIA CORE API GATEWAY
-// GUI IS ADD-ON MODULE EXPOSED VIA API GATEWAY
-
-// versioning | golang creates folders like "go-service-base@v0.5.1" | how to version images? version tags?
-
-// github handler -> implements module source handler itf -> get, check, ...
-
-// module-manager names containers and sets name as domain name (alias)
-
-// =vX.X.X pin
-// >vX.X.X greater than
-// <vX.X.X less than
-// >=vX.X.X greater than or equal
-// <=vX.X.X less than or equal
-// >vX.X.X;<vX.X.X greater than and less than
-// >=vX.X.X;<vX.X.X greater than or equal and less than
-// >vX.X.X;<=vX.X.X greater than and less than or equal
-// >=vX.X.X;<=vX.X.X greater than or equal and less than or equal
-
 type ModuleID string
 
 type ModuleType string
