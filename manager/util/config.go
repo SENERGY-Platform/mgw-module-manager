@@ -21,14 +21,23 @@ import (
 	"github.com/y-du/go-log-level/level"
 )
 
+type ModuleFileHandlerConfig struct {
+	WorkdirPath string `json:"workdir_path" env_var:"MFH_WORKDIR_PATH"`
+	Delimiter   string `json:"delimiter" env_var:"MFH_DELIMITER"`
+}
+
 type Config struct {
-	ServerPort int                   `json:"server_port" env_var:"SERVER_PORT"`
-	WorkDir    string                `json:"work_dir" env_var:"WORK_DIR"`
-	Logger     srv_base.LoggerConfig `json:"logger" env_var:"LOGGER_CONFIG"`
+	ServerPort        int                     `json:"server_port" env_var:"SERVER_PORT"`
+	ModuleFileHandler ModuleFileHandlerConfig `json:"module_file_handler" env_var:"MFH_CONFIG"`
+	Logger            srv_base.LoggerConfig   `json:"logger" env_var:"LOGGER_CONFIG"`
 }
 
 func NewConfig(path *string) (*Config, error) {
 	cfg := Config{
+		ModuleFileHandler: ModuleFileHandlerConfig{
+			WorkdirPath: "/opt/modules",
+			Delimiter:   "_",
+		},
 		Logger: srv_base.LoggerConfig{
 			Level:        level.Warning,
 			Utc:          true,
