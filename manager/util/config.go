@@ -41,9 +41,8 @@ func NewConfig(path *string) (*Config, error) {
 		Logger: srv_base.LoggerConfig{
 			Level:        level.Warning,
 			Utc:          true,
-			Path:         "/var/log/",
-			FileName:     "mgw-deployment-manager",
 			Microseconds: true,
+			Terminal:     true,
 		},
 	}
 	err := srv_base.LoadConfig(path, &cfg, nil, nil, nil)
