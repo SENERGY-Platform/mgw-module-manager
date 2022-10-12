@@ -102,6 +102,7 @@ func read(mPath string) (itf.Module, error) {
 	if err != nil {
 		return module, err
 	}
+	defer mf.Close()
 	jd := json.NewDecoder(mf)
 	if err := jd.Decode(&module); err != nil {
 		return module, err
