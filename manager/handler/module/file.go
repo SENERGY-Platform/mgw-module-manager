@@ -25,6 +25,7 @@ import (
 	"module-manager/manager/itf"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 )
@@ -88,6 +89,11 @@ func (h *FileHandler) Delete(id string) error {
 		return srv_base_types.NewError(code, "deleting module failed", removeStrFromErr(err, h.WorkdirPath))
 	}
 	return nil
+}
+
+func (h *FileHandler) Copy(id string, dstPath string) error {
+	cmd := exec.Command("cp", "-R", "--no-dereference", "--preserve=mode,timestamps", "--no-preserve=context,links,xattr", path.Join(h.WorkdirPath, idToDir(id, h.Delimiter)), dstPath)
+	return cmd.Run()
 }
 
 func read(mPath string) (itf.Module, error) {
