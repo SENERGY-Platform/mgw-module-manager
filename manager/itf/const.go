@@ -56,19 +56,3 @@ var MountResourceTypeMap = map[string]ResourceType{
 var LinkResourceTypeMap = map[string]ResourceType{
 	string(NetworkNodeResource): NetworkNodeResource,
 }
-
-const (
-	Greater      VersionOperator = ">"
-	Less         VersionOperator = "<"
-	Equal        VersionOperator = "="
-	GreaterEqual VersionOperator = ">="
-	LessEqual    VersionOperator = "<="
-)
-
-var OperatorMap = map[string]VersionOperator{
-	string(Greater):      Greater,
-	string(Less):         Less,
-	string(Equal):        Equal,
-	string(GreaterEqual): GreaterEqual,
-	string(LessEqual):    LessEqual,
-}
