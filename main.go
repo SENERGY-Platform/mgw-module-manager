@@ -64,7 +64,7 @@ func main() {
 	apiEngine.Use(gin_mw.LoggerHandler(srv_base.Logger), gin_mw.ErrorHandler, gin.Recovery())
 	apiEngine.UseRawPath = true
 
-	moduleStorageHandler, err := module.NewFileHandler(config.WorkDir)
+	moduleStorageHandler, err := module.NewFileHandler(config.ModuleFileHandler.WorkdirPath, config.ModuleFileHandler.Delimiter)
 	if err != nil {
 		srv_base.Logger.Error(err)
 		return
