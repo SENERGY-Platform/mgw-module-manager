@@ -78,10 +78,6 @@ func (h *FileHandler) Read(id string) (itf.Module, error) {
 	return m, nil
 }
 
-func (h *FileHandler) Update() error {
-	return nil
-}
-
 func (h *FileHandler) Delete(id string) error {
 	err := os.RemoveAll(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter)))
 	if err != nil {
