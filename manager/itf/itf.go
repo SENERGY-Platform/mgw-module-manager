@@ -20,6 +20,6 @@ type ModuleStorageHandler interface {
 	List() ([]Module, error)
 	Create() error
 	Read(id string) (Module, error)
-	Update() error
 	Delete(id string) error
+	Copy(id string, dstPath string) error
 }
