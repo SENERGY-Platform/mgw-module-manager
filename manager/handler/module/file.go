@@ -68,11 +68,14 @@ func (h *FileHandler) Create() error {
 
 func (h *FileHandler) Read(id string) (itf.Module, error) {
 	m, err := read(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter), itf.ModFile))
-	code := http.StatusInternalServerError
-	if os.IsNotExist(err) {
-		code = http.StatusNotFound
+	if err != nil {
+		code := http.StatusInternalServerError
+		if os.IsNotExist(err) {
+			code = http.StatusNotFound
+		}
+		return m, srv_base_types.NewError(code, fmt.Sprintf("reading module '%s' failed", id), removeStrFromErr(err, h.WorkdirPath))
 	}
-	return m, srv_base_types.NewError(code, fmt.Sprintf("reading module '%s' failed", id), removeStrFromErr(err, h.WorkdirPath))
+	return m, nil
 }
 
 func (h *FileHandler) Update() error {
@@ -81,11 +84,14 @@ func (h *FileHandler) Update() error {
 
 func (h *FileHandler) Delete(id string) error {
 	err := os.RemoveAll(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter)))
-	code := http.StatusInternalServerError
-	if os.IsNotExist(err) {
-		code = http.StatusNotFound
+	if err != nil {
+		code := http.StatusInternalServerError
+		if os.IsNotExist(err) {
+			code = http.StatusNotFound
+		}
+		return srv_base_types.NewError(code, "deleting module failed", removeStrFromErr(err, h.WorkdirPath))
 	}
-	return srv_base_types.NewError(code, "deleting module failed", removeStrFromErr(err, h.WorkdirPath))
+	return nil
 }
 
 func read(mPath string) (itf.Module, error) {
