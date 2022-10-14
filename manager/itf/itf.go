@@ -18,7 +18,7 @@ package itf
 
 type ModuleStorageHandler interface {
 	List() ([]Module, error)
-	Create() error
+	Create(srcPath string) error
 	Read(id string) (Module, error)
 	Delete(id string) error
 	Copy(id string, dstPath string) error
