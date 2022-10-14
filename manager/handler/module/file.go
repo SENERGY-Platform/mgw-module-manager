@@ -84,7 +84,7 @@ func (h *FileHandler) Create(srcPath string) error {
 	} else {
 		return srv_base_types.NewError(http.StatusBadRequest, "creating module failed", fmt.Errorf("'%s' already exists", m.ID))
 	}
-	cmd = exec.Command("cp", "-R", "--no-dereference", "--preserve=mode,timestamps", "--no-preserve=context,links,xattr", srcPath+"/sd", dstPath)
+	cmd = exec.Command("cp", "-R", "--no-dereference", "--preserve=mode,timestamps", "--no-preserve=context,links,xattr", srcPath, dstPath)
 	err = cmd.Run()
 	if err != nil {
 		if e := os.RemoveAll(dstPath); e != nil {
