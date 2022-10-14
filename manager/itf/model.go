@@ -38,6 +38,7 @@ type Module struct {
 	Version        util.SemVersion `json:"version"`
 	Name           string          `json:"name"`
 	Description    string          `json:"description"`
+	License        string          `json:"license"`
 	Services       []Service       `json:"services"`
 	Dependencies   []Dependency    `json:"dependencies"`    // must be installed and deployed before module deployment
 	DeploymentType DeploymentType  `json:"deployment_type"` // if MultipleDeployment the module can't be used as dependency
