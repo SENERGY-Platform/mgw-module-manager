@@ -63,7 +63,35 @@ func (h *FileHandler) List() ([]itf.Module, error) {
 	return modules, nil
 }
 
-func (h *FileHandler) Create() error {
+func (h *FileHandler) Create(srcPath string) error {
+	cmd := exec.Command("find", srcPath, "-not", "-type", "d", "-not", "-type", "f")
+	out, err := cmd.Output()
+	if err != nil {
+		return srv_base_types.NewError(http.StatusInternalServerError, "creating module failed: find returned", removeStrFromErr(err, srcPath))
+	}
+	if len(out) > 0 {
+		return srv_base_types.NewError(http.StatusBadRequest, "creating module failed", fmt.Errorf("includes files with illigal types: %s", strings.TrimSuffix(strings.Replace(strings.Replace(string(out), srcPath, "", -1), "\n", ", ", -1), ", ")))
+	}
+	m, err := read(path.Join(srcPath, itf.ModFile))
+	if err != nil {
+		return srv_base_types.NewError(http.StatusBadRequest, "creating module failed", removeStrFromErr(err, srcPath))
+	}
+	dstPath := path.Join(h.WorkdirPath, idToDir(string(m.ID), h.Delimiter))
+	if _, err := os.Stat(dstPath); err != nil {
+		if !os.IsNotExist(err) {
+			return srv_base_types.NewError(http.StatusInternalServerError, "creating module failed", removeStrFromErr(err, h.WorkdirPath))
+		}
+	} else {
+		return srv_base_types.NewError(http.StatusBadRequest, "creating module failed", fmt.Errorf("'%s' already exists", m.ID))
+	}
+	cmd = exec.Command("cp", "-R", "--no-dereference", "--preserve=mode,timestamps", "--no-preserve=context,links,xattr", srcPath+"/sd", dstPath)
+	err = cmd.Run()
+	if err != nil {
+		if e := os.RemoveAll(dstPath); e != nil {
+			srv_base.Logger.Errorf("cleanup failed: ", e)
+		}
+		return srv_base_types.NewError(http.StatusInternalServerError, "creating module failed: cp returned", err)
+	}
 	return nil
 }
 
