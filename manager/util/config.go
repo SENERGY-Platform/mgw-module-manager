@@ -35,7 +35,7 @@ type Config struct {
 func NewConfig(path *string) (*Config, error) {
 	cfg := Config{
 		ModuleFileHandler: ModuleFileHandlerConfig{
-			WorkdirPath: "/opt/modules",
+			WorkdirPath: "/opt/manager",
 			Delimiter:   "_",
 		},
 		Logger: srv_base.LoggerConfig{
