@@ -111,8 +111,7 @@ func read(mPath string) (itf.Module, error) {
 }
 
 func removeStrFromErr(err error, str string) error {
-	s := strings.Replace(err.Error(), str, "", -1)
-	return errors.New(s)
+	return errors.New(strings.Replace(err.Error(), str, "", -1))
 }
 
 func idToDir(id string, delimiter string) string {
