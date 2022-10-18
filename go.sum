@@ -2,8 +2,8 @@ github.com/SENERGY-Platform/gin-middleware v0.0.3 h1:4nHTazmr0nwaH07GNxePD5Cx+dS
 github.com/SENERGY-Platform/gin-middleware v0.0.3/go.mod h1:dQhrVQLWQ+o1mcjp8492amf5ISsdxDRI5UnHBmDBMcA=
 github.com/SENERGY-Platform/go-service-base v0.5.1 h1:uSWeF4TaYd2RJwDpd0bkUf9um1KloKFOg/uCHRn5sik=
 github.com/SENERGY-Platform/go-service-base v0.5.1/go.mod h1:MzMs3X4xFg9GxYoC1JrRXyKpN6lh3NgWTuwpk6P2Qzs=
-github.com/SENERGY-Platform/mgw-container-engine-manager-lib v0.2.0 h1:oY4RDceZfywla3wX3q02SaE+GnWfPGvLcrUWaCwn0R4=
-github.com/SENERGY-Platform/mgw-container-engine-manager-lib v0.2.0/go.mod h1:l0vQAg7Wd6Kbuo+OjOQdp8YfuDjTe2aN1rRPuuHOcCc=
+github.com/SENERGY-Platform/mgw-container-engine-manager-lib v0.3.0 h1:EgMSj/UhK8tLnvFMrIhg7Tn0+p/8WSx6Jlh9K7+Cbyw=
+github.com/SENERGY-Platform/mgw-container-engine-manager-lib v0.3.0/go.mod h1:l0vQAg7Wd6Kbuo+OjOQdp8YfuDjTe2aN1rRPuuHOcCc=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
