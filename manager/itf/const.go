@@ -16,6 +16,8 @@
 
 package itf
 
+import "github.com/SENERGY-Platform/mgw-container-engine-manager-lib/cem-lib"
+
 const ModFile = "Modfile"
 
 const (
@@ -39,20 +41,25 @@ var DeploymentTypeMap = map[string]DeploymentType{
 }
 
 const (
-	SerialPortResource  ResourceType = "serial-port"
-	UdsSocketResource   ResourceType = "uds-socket"
-	CertFileResource    ResourceType = "cert-file"
-	KeyFileResource     ResourceType = "key-file"
-	NetworkNodeResource ResourceType = "network-node"
+	RunningCondition = SrvDepCondition(cem_lib.RunningState)
+	StoppedCondition = SrvDepCondition(cem_lib.StoppedState)
 )
 
-var MountResourceTypeMap = map[string]ResourceType{
-	string(SerialPortResource): SerialPortResource,
-	string(UdsSocketResource):  UdsSocketResource,
-	string(CertFileResource):   CertFileResource,
-	string(KeyFileResource):    KeyFileResource,
+var SrvDepConditionMap = map[string]SrvDepCondition{
+	string(RunningCondition): RunningCondition,
+	string(StoppedCondition): StoppedCondition,
 }
 
-var LinkResourceTypeMap = map[string]ResourceType{
-	string(NetworkNodeResource): NetworkNodeResource,
+const (
+	TextData  DataType = "https://schema.org/Text"
+	BoolData  DataType = "https://schema.org/Boolean"
+	IntData   DataType = "https://schema.org/Integer"
+	FloatData DataType = "https://schema.org/Float"
+)
+
+var DataTypeMap = map[string]DataType{
+	string(TextData):  TextData,
+	string(BoolData):  BoolData,
+	string(IntData):   IntData,
+	string(FloatData): FloatData,
 }

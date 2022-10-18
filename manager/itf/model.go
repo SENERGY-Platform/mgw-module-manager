@@ -28,33 +28,39 @@ type ModuleType string
 
 type DeploymentType string
 
+type DataType string
+
+type SrvDepCondition string
+
 type ResourceType string
 
 // Modfile ------------------------------------->
 
 type Module struct {
-	ID             ModuleID        `json:"id"` // url without scheme
-	Type           ModuleType      `json:"type"`
-	Version        util.SemVersion `json:"version"`
-	Name           string          `json:"name"`
-	Description    string          `json:"description"`
-	License        string          `json:"license"`
-	Services       []Service       `json:"services"`
-	Dependencies   []Dependency    `json:"dependencies"`    // must be installed and deployed before module deployment
-	DeploymentType DeploymentType  `json:"deployment_type"` // if MultipleDeployment the module can't be used as dependency
+	ID             ModuleID           `json:"id"`
+	Type           ModuleType         `json:"type"`
+	Version        util.SemVersion    `json:"version"`
+	Name           string             `json:"name"`
+	Description    string             `json:"description"`
+	License        string             `json:"license"`
+	Services       []Service          `json:"services"`
+	Dependencies   []ModuleDependency `json:"dependencies"`
+	DeploymentType DeploymentType     `json:"deployment_type"` // if MultipleDeployment the module can't be used as dependency
+	UserInputs     UserInputs         `json:"user_inputs"`
 }
 
 type Service struct {
-	Name             string            `json:"name"`
-	Image            string            `json:"image"`
-	Include          []BindMount       `json:"include"`       // files or dirs from module repo
-	VolumeMounts     []string          `json:"volume_mounts"` // mount points
-	TmpfsMounts      []TmpfsMount      `json:"tmpfs_mounts"`
-	HttpApis         []HttpApi         `json:"http_apis"`
-	PortBindings     []PortBinding     `json:"port_bindings"`
-	RequiredServices []RequiredService `json:"required_services"`
-	RunConfig        cem_lib.RunConfig `json:"run_config"`
-	UserConfig       UserConfig        `json:"user_config"`
+	Name         string              `json:"name"`
+	Image        string              `json:"image"`
+	Include      []BindMount         `json:"include"` // files or dirs from module repo
+	VolumeMounts []VolumeMount       `json:"volume_mounts"`
+	TmpfsMounts  []TmpfsMount        `json:"tmpfs_mounts"`
+	HttpApis     []HttpApi           `json:"http_apis"`
+	PortBindings []PortBinding       `json:"port_bindings"`
+	RunConfig    cem_lib.RunConfig   `json:"run_config"`
+	Dependencies []ServiceDependency `json:"dependencies"`
+	Environment  []EnvVar            `json:"environment"`
+	Resources    []Resource          `json:"resources"`
 }
 
 type BindMount struct {
@@ -63,47 +69,87 @@ type BindMount struct {
 	ReadOnly   bool   `json:"read_only"`
 }
 
+type VolumeMount struct {
+	MountPoint string  `json:"mount_point"`
+	Name       *string `json:"name"` // prefixed by module-manager
+}
+
 type TmpfsMount struct {
 	MountPoint string      `json:"mount_point"`
 	Size       int64       `json:"size"`
 	Mode       fs.FileMode `json:"mode"`
 }
 
-type Dependency struct {
+type ModuleDependency struct {
 	ModuleID      ModuleID             `json:"module_id"`
 	ModuleVersion util.SemVersionRange `json:"module_version"`
+	Services      []RequiredService    `json:"services"`
 }
 
 type RequiredService struct {
-	ModuleID ModuleID `json:"module_id"`
-	Name     string   `json:"name"`
-	RefVar   string   `json:"ref_var"` // env var name for container domain name provided by module-manager during deployment
+	Name       string             `json:"name"`
+	RequiredBy []DependentService `json:"required_by"`
+}
+
+type DependentService struct {
+	Name   string `json:"name"`
+	EnvVar string `json:"env_var"` // container domain name provided by module-manager during deployment
+}
+
+type ServiceDependency struct {
+	Name      string          `json:"name"`
+	Condition SrvDepCondition `json:"condition"`
+	EnvVar    string          `json:"env_var"` // container domain name provided by module-manager during deployment
 }
 
 type PortBinding struct {
-	Name       string           `json:"name"`
+	Name       *string          `json:"name"`
 	Port       int              `json:"port"`
 	TargetPort int              `json:"target_port"` // can be overridden by module-manager during deployment to avoid collisions
 	Protocol   cem_lib.PortType `json:"protocol"`
 }
 
 type HttpApi struct {
-	Name string `json:"name"`
-	Port int    `json:"port"`
-	Path string `json:"path"`
+	Name *string `json:"name"`
+	Port int     `json:"port"`
+	Path string  `json:"path"`
 }
 
-type UserConfig struct {
-	EnvVars   map[string]string `json:"env_vars"`  // Template with defaults
-	Resources []Resource        `json:"resources"` // Define type, mount point or ref var | resources listed by host-manager and selected via gui or app
+type EnvVar struct {
+	Name     string  `json:"name"`
+	Value    *string `json:"value"`
+	InputRef *string `json:"input_ref"`
 }
 
 type Resource struct {
-	ID         string       `json:"id"` // set by user during deployment (via host-manager)
-	Type       ResourceType `json:"type"`
-	MountPoint string       `json:"mount_point"` // required by mount resources
-	ReadOnly   bool         `json:"read_only"`   // only applies to mount resources
-	RefVar     string       `json:"ref_var"`     // required by link resources
+	ID         *string  `json:"id"` // either set to known resource or set by user during deployment
+	Name       *string  `json:"name"`
+	Type       string   `json:"type"` // via type map linking type to endpoint for ID | types: host, secret, ... | type map provided via service config
+	MountPoint string   `json:"mount_point"`
+	ReadOnly   bool     `json:"read_only"`
+	Tags       []string `json:"tags"`
+	InputRef   *string  `json:"input_ref"`
+}
+
+type InputGroup struct {
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	GroupRef    *string `json:"group_ref"`
+}
+
+type Input struct {
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Type        DataType `json:"type"`
+	Value       any      `json:"value"` // populate with default on GET
+	GroupRef    *string  `json:"group_ref"`
+}
+
+type UserInputs struct {
+	InputGroups    map[string]InputGroup `json:"input_groups"`
+	EnvVarInputs   map[string]Input      `json:"env_var_inputs"`
+	ResourceInputs map[string]Input      `json:"resource_inputs"`
+	SecretInputs   map[string]Input      `json:"secret_inputs"`
 }
 
 // <------------------------------------- Modfile

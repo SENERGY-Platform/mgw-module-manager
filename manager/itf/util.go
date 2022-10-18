@@ -48,31 +48,6 @@ func (d *DeploymentType) UnmarshalJSON(b []byte) (err error) {
 	return
 }
 
-func (r *ResourceType) UnmarshalJSON(b []byte) (err error) {
-	var s string
-	if err = json.Unmarshal(b, &s); err != nil {
-		return
-	}
-	if t, ok := MountResourceTypeMap[s]; ok {
-		*r = t
-	} else if t, ok = LinkResourceTypeMap[s]; ok {
-		*r = t
-	} else {
-		err = fmt.Errorf("unknown resurce type '%s'", s)
-	}
-	return
-}
-
-func (r *ResourceType) IsMount() bool {
-	_, ok := MountResourceTypeMap[string(*r)]
-	return ok
-}
-
-func (r *ResourceType) IsLink() bool {
-	_, ok := LinkResourceTypeMap[string(*r)]
-	return ok
-}
-
 func (i *ModuleID) UnmarshalJSON(b []byte) (err error) {
 	var s string
 	if err = json.Unmarshal(b, &s); err != nil {
