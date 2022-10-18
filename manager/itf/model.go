@@ -46,7 +46,8 @@ type Module struct {
 	Services       []Service          `json:"services"`
 	Dependencies   []ModuleDependency `json:"dependencies"`
 	DeploymentType DeploymentType     `json:"deployment_type"` // if MultipleDeployment the module can't be used as dependency
-	UserInputs     *UserInputs        `json:"user_inputs"`
+	Configs        []ConfigOption     `json:"configs"`
+	Resources      []Resource         `json:"resources"`
 }
 
 type Service struct {
@@ -59,8 +60,6 @@ type Service struct {
 	PortBindings []PortBinding       `json:"port_bindings"`
 	RunConfig    cem_lib.RunConfig   `json:"run_config"`
 	Dependencies []ServiceDependency `json:"dependencies"`
-	Environment  []EnvVar            `json:"environment"`
-	Resources    []Resource          `json:"resources"`
 }
 
 type BindMount struct {
@@ -115,24 +114,34 @@ type HttpApi struct {
 	Path string  `json:"path"`
 }
 
-type EnvVar struct {
-	Name     string  `json:"name"`
-	Value    *string `json:"value"`
-	InputRef *string `json:"input_ref"`
+type Input struct {
+	Name        string     `json:"name"`
+	Description *string    `json:"description"`
+	Value       InputValue `json:"value"`
+	GroupRef    *string    `json:"group_ref"`
+}
+
+type ConfigOption struct {
+	Input
+	Services []ConfigTarget `json:"services"`
+}
+
+type ConfigTarget struct {
+	Name   string `json:"name"`
+	EnvVar string `json:"env_var"`
 }
 
 type Resource struct {
-	ID         *string `json:"id"` // either set to known resource or set by user during deployment
-	Name       *string `json:"name"`
-	MountPoint string  `json:"mount_point"`
-	ReadOnly   bool    `json:"read_only"`
-	Meta       Meta    `json:"meta"`
-	InputRef   *string `json:"input_ref"`
+	Input
+	Type     string           `json:"type"` // via type map linking type to endpoint for ID | types: host-resource, secret-resource, ... | type map provided via service config
+	Tags     []string         `json:"tags"`
+	Services []ResourceTarget `json:"services"`
 }
 
-type Meta struct {
-	Type string   `json:"type"` // via type map linking type to endpoint for ID | types: host-resource, secret-resource, ... | type map provided via service config
-	Tags []string `json:"tags"`
+type ResourceTarget struct {
+	Name       string `json:"name"`
+	MountPoint string `json:"mount_point"`
+	ReadOnly   bool   `json:"read_only"`
 }
 
 type InputGroup struct {
@@ -142,25 +151,9 @@ type InputGroup struct {
 	ParentGroupRef *string `json:"group_ref"`
 }
 
-type Input struct {
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	Reference   string     `json:"reference"`
-	Value       InputValue `json:"value"` // populate with default on GET
-	Meta        *Meta      `json:"meta"`  // populate on GET
-	GroupRef    *string    `json:"group_ref"`
-}
-
 type InputValue struct {
 	Type DataType `json:"type"`
 	Data any      `json:"value"` // populate with default on GET
-}
-
-type UserInputs struct {
-	InputGroups    []InputGroup `json:"input_groups"`
-	EnvVarInputs   []Input      `json:"env_var_inputs"`
-	ResourceInputs []Input      `json:"resource_inputs"`
-	SecretInputs   []Input      `json:"secret_inputs"`
 }
 
 // <------------------------------------- Modfile
