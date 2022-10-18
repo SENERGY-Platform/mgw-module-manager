@@ -122,13 +122,17 @@ type EnvVar struct {
 }
 
 type Resource struct {
-	ID         *string  `json:"id"` // either set to known resource or set by user during deployment
-	Name       *string  `json:"name"`
-	Type       string   `json:"type"` // via type map linking type to endpoint for ID | types: host, secret, ... | type map provided via service config
-	MountPoint string   `json:"mount_point"`
-	ReadOnly   bool     `json:"read_only"`
-	Tags       []string `json:"tags"`
-	InputRef   *string  `json:"input_ref"`
+	ID         *string `json:"id"` // either set to known resource or set by user during deployment
+	Name       *string `json:"name"`
+	MountPoint string  `json:"mount_point"`
+	ReadOnly   bool    `json:"read_only"`
+	Meta       Meta    `json:"meta"`
+	InputRef   *string `json:"input_ref"`
+}
+
+type Meta struct {
+	Type string   `json:"type"` // via type map linking type to endpoint for ID | types: host-resource, secret-resource, ... | type map provided via service config
+	Tags []string `json:"tags"`
 }
 
 type InputGroup struct {
@@ -138,11 +142,16 @@ type InputGroup struct {
 }
 
 type Input struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Type        DataType `json:"type"`
-	Value       any      `json:"value"` // populate with default on GET
-	GroupRef    *string  `json:"group_ref"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	Value       InputValue `json:"value"` // populate with default on GET
+	Meta        *Meta      `json:"meta"`  // populate on GET
+	GroupRef    *string    `json:"group_ref"`
+}
+
+type InputValue struct {
+	Type DataType `json:"type"`
+	Data any      `json:"value"` // populate with default on GET
 }
 
 type UserInputs struct {
