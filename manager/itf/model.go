@@ -136,14 +136,16 @@ type Meta struct {
 }
 
 type InputGroup struct {
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	GroupRef    *string `json:"group_ref"`
+	Name           string  `json:"name"`
+	Description    string  `json:"description"`
+	Reference      string  `json:"reference"`
+	ParentGroupRef *string `json:"group_ref"`
 }
 
 type Input struct {
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
+	Reference   string     `json:"reference"`
 	Value       InputValue `json:"value"` // populate with default on GET
 	Meta        *Meta      `json:"meta"`  // populate on GET
 	GroupRef    *string    `json:"group_ref"`
@@ -155,10 +157,10 @@ type InputValue struct {
 }
 
 type UserInputs struct {
-	InputGroups    map[string]InputGroup `json:"input_groups"`
-	EnvVarInputs   map[string]Input      `json:"env_var_inputs"`
-	ResourceInputs map[string]Input      `json:"resource_inputs"`
-	SecretInputs   map[string]Input      `json:"secret_inputs"`
+	InputGroups    []InputGroup `json:"input_groups"`
+	EnvVarInputs   []Input      `json:"env_var_inputs"`
+	ResourceInputs []Input      `json:"resource_inputs"`
+	SecretInputs   []Input      `json:"secret_inputs"`
 }
 
 // <------------------------------------- Modfile
