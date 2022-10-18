@@ -46,7 +46,7 @@ type Module struct {
 	Services       []Service          `json:"services"`
 	Dependencies   []ModuleDependency `json:"dependencies"`
 	DeploymentType DeploymentType     `json:"deployment_type"` // if MultipleDeployment the module can't be used as dependency
-	UserInputs     UserInputs         `json:"user_inputs"`
+	UserInputs     *UserInputs        `json:"user_inputs"`
 }
 
 type Service struct {
