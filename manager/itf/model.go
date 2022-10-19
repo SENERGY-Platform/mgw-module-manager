@@ -59,6 +59,7 @@ type Service struct {
 	HttpApis     []HttpApi           `json:"http_apis"`
 	PortBindings []PortBinding       `json:"port_bindings"`
 	Dependencies []ServiceDependency `json:"dependencies"`
+	RunConfig    cem_lib.RunConfig   `json:"run_config"`
 }
 
 type BindMount struct {
