@@ -153,7 +153,7 @@ type InputGroup struct {
 
 type InputValue struct {
 	Type DataType `json:"type"`
-	Data any      `json:"value"` // populate with default on GET
+	Data any      `json:"data"` // populate with default on GET
 }
 
 // <------------------------------------- Modfile
