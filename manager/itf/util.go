@@ -19,6 +19,7 @@ package itf
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -58,5 +59,53 @@ func (i *ModuleID) UnmarshalJSON(b []byte) (err error) {
 	} else {
 		*i = ModuleID(s)
 	}
+	return
+}
+
+func (d *DataType) UnmarshalJSON(b []byte) (err error) {
+	var s string
+	if err = json.Unmarshal(b, &s); err != nil {
+		return
+	}
+	if t, ok := DataTypeMap[s]; ok {
+		*d = t
+	} else {
+		err = fmt.Errorf("unknown data type '%s'", s)
+	}
+	return
+}
+
+type TmpInputValue InputValue
+
+func (v *InputValue) UnmarshalJSON(b []byte) (err error) {
+	var iv TmpInputValue
+	if err = json.Unmarshal(b, &iv); err != nil {
+		return
+	}
+	errFmt := "invalid type: value must be of '%s'"
+	switch iv.Type {
+	case TextData:
+		if _, ok := iv.Data.(string); !ok {
+			return fmt.Errorf(errFmt, TextData)
+		}
+	case BoolData:
+		if _, ok := iv.Data.(bool); !ok {
+			return fmt.Errorf(errFmt, BoolData)
+		}
+	case IntData:
+		if _, ok := iv.Data.(float64); !ok {
+			return fmt.Errorf(errFmt, IntData)
+		}
+		i, f := math.Modf(iv.Data.(float64))
+		if f > 0 {
+			return fmt.Errorf(errFmt, IntData)
+		}
+		iv.Data = i
+	case FloatData:
+		if _, ok := iv.Data.(float64); !ok {
+			return fmt.Errorf(errFmt, FloatData)
+		}
+	}
+	*v = InputValue(iv)
 	return
 }
