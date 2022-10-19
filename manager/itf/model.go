@@ -48,13 +48,13 @@ type Module struct {
 	DeploymentType DeploymentType     `json:"deployment_type"` // if MultipleDeployment the module can't be used as dependency
 	Configs        []ConfigOption     `json:"configs"`
 	Resources      []Resource         `json:"resources"`
+	Volumes        []Volume           `json:"volumes"`
 }
 
 type Service struct {
 	Name         string              `json:"name"`
 	Image        string              `json:"image"`
 	Include      []BindMount         `json:"include"` // files or dirs from module repo
-	VolumeMounts []VolumeMount       `json:"volume_mounts"`
 	TmpfsMounts  []TmpfsMount        `json:"tmpfs_mounts"`
 	HttpApis     []HttpApi           `json:"http_apis"`
 	PortBindings []PortBinding       `json:"port_bindings"`
@@ -68,9 +68,14 @@ type BindMount struct {
 	ReadOnly   bool   `json:"read_only"`
 }
 
-type VolumeMount struct {
-	MountPoint string  `json:"mount_point"`
-	Name       *string `json:"name"` // prefixed by module-manager
+type Volume struct {
+	Name     *string        `json:"name"`
+	Services []VolumeTarget `json:"services"`
+}
+
+type VolumeTarget struct {
+	Name       string `json:"name"`
+	MountPoint string `json:"mount_point"`
 }
 
 type TmpfsMount struct {
