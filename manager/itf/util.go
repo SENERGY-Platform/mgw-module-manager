@@ -62,6 +62,19 @@ func (i *ModuleID) UnmarshalJSON(b []byte) (err error) {
 	return
 }
 
+func (c *SrvDepCondition) UnmarshalJSON(b []byte) (err error) {
+	var s string
+	if err = json.Unmarshal(b, &s); err != nil {
+		return
+	}
+	if t, ok := SrvDepConditionMap[s]; ok {
+		*c = t
+	} else {
+		err = fmt.Errorf("unknown condition type '%s'", s)
+	}
+	return
+}
+
 func (d *DataType) UnmarshalJSON(b []byte) (err error) {
 	var s string
 	if err = json.Unmarshal(b, &s); err != nil {
