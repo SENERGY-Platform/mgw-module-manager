@@ -115,10 +115,10 @@ type HttpApi struct {
 }
 
 type Input struct {
-	Name        string     `json:"name"`
-	Description *string    `json:"description"`
-	Value       InputValue `json:"value"`
-	GroupRef    *string    `json:"group_ref"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	Value       Value   `json:"value"`
+	GroupRef    *string `json:"group_ref"`
 }
 
 type ConfigOption struct {
@@ -151,9 +151,9 @@ type InputGroup struct {
 	ParentGroupRef *string `json:"group_ref"`
 }
 
-type InputValue struct {
+type Value struct {
 	Type DataType `json:"type"`
-	Data any      `json:"data"` // populate with default on GET
+	Data any      `json:"data"`
 }
 
 // <------------------------------------- Modfile

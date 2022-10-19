@@ -75,10 +75,10 @@ func (d *DataType) UnmarshalJSON(b []byte) (err error) {
 	return
 }
 
-type TmpInputValue InputValue
+type TmpValue Value
 
-func (v *InputValue) UnmarshalJSON(b []byte) (err error) {
-	var iv TmpInputValue
+func (v *Value) UnmarshalJSON(b []byte) (err error) {
+	var iv TmpValue
 	if err = json.Unmarshal(b, &iv); err != nil {
 		return
 	}
@@ -106,6 +106,6 @@ func (v *InputValue) UnmarshalJSON(b []byte) (err error) {
 			return fmt.Errorf(errFmt, FloatData)
 		}
 	}
-	*v = InputValue(iv)
+	*v = Value(iv)
 	return
 }
