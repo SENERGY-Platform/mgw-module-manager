@@ -38,17 +38,17 @@ type ResourceType string
 
 type Module struct {
 	ID             ModuleID           `json:"id"`
-	Type           ModuleType         `json:"type"`
-	Version        util.SemVersion    `json:"version"`
 	Name           string             `json:"name"`
 	Description    string             `json:"description"`
 	License        string             `json:"license"`
-	Services       []Service          `json:"services"`
-	Dependencies   []ModuleDependency `json:"dependencies"`
+	Type           ModuleType         `json:"type"`
+	Version        util.SemVersion    `json:"version"`
 	DeploymentType DeploymentType     `json:"deployment_type"` // if MultipleDeployment the module can't be used as dependency
+	Services       []Service          `json:"services"`
+	Volumes        []Volume           `json:"volumes"`
+	Dependencies   []ModuleDependency `json:"dependencies"`
 	Configs        []ConfigOption     `json:"configs"`
 	Resources      []Resource         `json:"resources"`
-	Volumes        []Volume           `json:"volumes"`
 }
 
 type Service struct {
@@ -58,7 +58,6 @@ type Service struct {
 	TmpfsMounts  []TmpfsMount        `json:"tmpfs_mounts"`
 	HttpApis     []HttpApi           `json:"http_apis"`
 	PortBindings []PortBinding       `json:"port_bindings"`
-	RunConfig    cem_lib.RunConfig   `json:"run_config"`
 	Dependencies []ServiceDependency `json:"dependencies"`
 }
 
