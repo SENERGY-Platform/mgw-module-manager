@@ -41,6 +41,7 @@ type Module struct {
 	Name           string             `json:"name"`
 	Description    string             `json:"description"`
 	License        string             `json:"license"`
+	Author         string             `json:"author"`
 	Version        util.SemVersion    `json:"version"`
 	Type           ModuleType         `json:"type"`
 	DeploymentType DeploymentType     `json:"deployment_type"` // if MultipleDeployment the module can't be used as dependency
