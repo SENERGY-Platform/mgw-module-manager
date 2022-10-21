@@ -134,7 +134,7 @@ func (v *ConfigValue) UnmarshalJSON(b []byte) (err error) {
 		return
 	}
 	validator := dataTypeValidatorMap[tcv.Type]
-	if tcv.Data != nil && !validator(tcv.Data) {
+	if tcv.Value != nil && !validator(tcv.Value) {
 		return fmt.Errorf("invalid type: config 'data' must be of '%s'", tcv.Type)
 	}
 	if tcv.Options != nil && len(tcv.Options) > 0 {
@@ -144,37 +144,13 @@ func (v *ConfigValue) UnmarshalJSON(b []byte) (err error) {
 			}
 		}
 	}
-	if tcv.Constraints != nil {
-		if tcv.Type == BoolData {
-			return fmt.Errorf("type '%s' does not support constraints", tcv.Type)
-		}
-		errFmt := "invalid type: config value constraint '%s' must be of '%s'"
-		if !validator(tcv.Constraints.Max) {
-			return fmt.Errorf(errFmt, "max", tcv.Type)
-		}
-		if !validator(tcv.Constraints.Min) {
-			return fmt.Errorf(errFmt, "min", tcv.Type)
-		}
-		if tcv.Constraints.Step != nil {
-			if !validator(tcv.Constraints.Step) {
-				return fmt.Errorf(errFmt, "step", tcv.Type)
-			}
-		}
-	}
 	if tcv.Type == IntData {
-		if tcv.Data != nil {
-			tcv.Data = toInt(tcv.Data)
+		if tcv.Value != nil {
+			tcv.Value = toInt(tcv.Value)
 		}
 		if tcv.Options != nil && len(tcv.Options) > 0 {
 			for i := 0; i < len(tcv.Options); i++ {
 				tcv.Options[i] = toInt(tcv.Options[i])
-			}
-		}
-		if tcv.Constraints != nil {
-			tcv.Constraints.Min = toInt(tcv.Constraints.Min)
-			tcv.Constraints.Max = toInt(tcv.Constraints.Max)
-			if tcv.Constraints.Step != nil {
-				tcv.Constraints.Step = toInt(tcv.Constraints.Step)
 			}
 		}
 	}

@@ -133,18 +133,11 @@ type ResourceTarget struct {
 }
 
 type ConfigValue struct {
-	Data        any            `json:"data"`    // nil or default value
-	Options     []any          `json:"options"` // possible values
-	Type        DataType       `json:"type"`
-	Constraints *Constraints   `json:"constraints"`
-	Services    []ConfigTarget `json:"services"`
-	UserInput   *UserInput     `json:"user_input"`
-}
-
-type Constraints struct {
-	Min  any `json:"min"`
-	Max  any `json:"max"`
-	Step any `json:"step"`
+	Value     any            `json:"value"`   // nil or default value
+	Options   []any          `json:"options"` // possible values
+	Type      DataType       `json:"type"`
+	Services  []ConfigTarget `json:"services"`
+	UserInput *UserInput     `json:"user_input"`
 }
 
 type ConfigTarget struct {
@@ -153,7 +146,9 @@ type ConfigTarget struct {
 }
 
 type UserInput struct {
-	Name        string  `json:"name"`
-	Description *string `json:"description"`
-	Type        string  `json:"type"` // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#input_types
+	Name        string         `json:"name"`
+	Description *string        `json:"description"`
+	Type        string         `json:"type"` // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#input_types
+	Constraints map[string]any `json:"constraints"`
+	Required    bool           `json:"required"`
 }
