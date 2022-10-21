@@ -88,37 +88,96 @@ func (d *DataType) UnmarshalJSON(b []byte) (err error) {
 	return
 }
 
-type TmpValue Value
+type TmpConfigValue ConfigValue
 
-func (v *Value) UnmarshalJSON(b []byte) (err error) {
-	var iv TmpValue
-	if err = json.Unmarshal(b, &iv); err != nil {
+func (v *ConfigValue) UnmarshalJSON(b []byte) (err error) {
+	var tcv TmpConfigValue
+	if err = json.Unmarshal(b, &tcv); err != nil {
 		return
 	}
-	errFmt := "invalid type: value must be of '%s'"
-	switch iv.Type {
-	case TextData:
-		if _, ok := iv.Data.(string); !ok {
-			return fmt.Errorf(errFmt, TextData)
-		}
-	case BoolData:
-		if _, ok := iv.Data.(bool); !ok {
-			return fmt.Errorf(errFmt, BoolData)
-		}
-	case IntData:
-		if _, ok := iv.Data.(float64); !ok {
-			return fmt.Errorf(errFmt, IntData)
-		}
-		i, f := math.Modf(iv.Data.(float64))
-		if f > 0 {
-			return fmt.Errorf(errFmt, IntData)
-		}
-		iv.Data = i
-	case FloatData:
-		if _, ok := iv.Data.(float64); !ok {
-			return fmt.Errorf(errFmt, FloatData)
+	validator := dataTypeValidatorMap[tcv.Type]
+	if tcv.Data != nil && !validator(tcv.Data) {
+		return fmt.Errorf("invalid type: config 'data' must be of '%s'", tcv.Type)
+	}
+	if tcv.Options != nil && len(tcv.Options) > 0 {
+		for _, option := range tcv.Options {
+			if !validator(option) {
+				return fmt.Errorf("invalid type: config 'options' must contain values of '%s'", tcv.Type)
+			}
 		}
 	}
-	*v = Value(iv)
+	if tcv.Constraints != nil {
+		if tcv.Type == BoolData {
+			return fmt.Errorf("type '%s' does not support constraints", tcv.Type)
+		}
+		errFmt := "invalid type: config value constraint '%s' must be of '%s'"
+		if !validator(tcv.Constraints.Max) {
+			return fmt.Errorf(errFmt, "max", tcv.Type)
+		}
+		if !validator(tcv.Constraints.Min) {
+			return fmt.Errorf(errFmt, "min", tcv.Type)
+		}
+		if tcv.Constraints.Step != nil {
+			if !validator(tcv.Constraints.Step) {
+				return fmt.Errorf(errFmt, "step", tcv.Type)
+			}
+		}
+	}
+	if tcv.Type == IntData {
+		if tcv.Data != nil {
+			tcv.Data = toInt(tcv.Data)
+		}
+		if tcv.Options != nil && len(tcv.Options) > 0 {
+			for i := 0; i < len(tcv.Options); i++ {
+				tcv.Options[i] = toInt(tcv.Options[i])
+			}
+		}
+		if tcv.Constraints != nil {
+			tcv.Constraints.Min = toInt(tcv.Constraints.Min)
+			tcv.Constraints.Max = toInt(tcv.Constraints.Max)
+			if tcv.Constraints.Step != nil {
+				tcv.Constraints.Step = toInt(tcv.Constraints.Step)
+			}
+		}
+	}
+	*v = ConfigValue(tcv)
 	return
+}
+
+func toInt(i any) int64 {
+	return int64(i.(float64))
+}
+
+type dataTypeValidator func(i any) bool
+
+var textDataValidator dataTypeValidator = func(i any) (ok bool) {
+	_, ok = i.(string)
+	return
+}
+
+var boolDataValidator dataTypeValidator = func(i any) (ok bool) {
+	_, ok = i.(bool)
+	return
+}
+
+var intDataValidator dataTypeValidator = func(i any) bool {
+	if _, ok := i.(float64); !ok {
+		return false
+	}
+	if _, f := math.Modf(i.(float64)); f > 0 {
+		return false
+	}
+	return true
+}
+
+var floatDataValidator dataTypeValidator = func(i any) (ok bool) {
+	_, ok = i.(float64)
+	return
+}
+
+var dataTypeValidatorMap = map[DataType]dataTypeValidator{
+	TextData:  textDataValidator,
+	BoolData:  boolDataValidator,
+	IntData:   intDataValidator,
+	FloatData: floatDataValidator,
 }

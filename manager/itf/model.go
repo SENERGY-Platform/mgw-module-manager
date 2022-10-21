@@ -120,16 +120,25 @@ type HttpApi struct {
 	Path string  `json:"path"`
 }
 
-type Input struct {
+type UserInput struct {
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
-	Value       Value   `json:"value"`
-	GroupRef    *string `json:"group_ref"`
+	Type        string  `json:"type"` // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#input_types
 }
 
-type ConfigOption struct {
-	Input
-	Services []ConfigTarget `json:"services"`
+type ConfigValue struct {
+	Data        any            `json:"data"`    // nil or default value
+	Options     []any          `json:"options"` // possible values
+	Type        DataType       `json:"type"`
+	Constraints *Constraints   `json:"constraints"`
+	Services    []ConfigTarget `json:"services"`
+	UserInput   *UserInput     `json:"user_input"`
+}
+
+type Constraints struct {
+	Min  any `json:"min"`
+	Max  any `json:"max"`
+	Step any `json:"step"`
 }
 
 type ConfigTarget struct {
@@ -138,28 +147,17 @@ type ConfigTarget struct {
 }
 
 type Resource struct {
-	Input
-	Type     string           `json:"type"` // via type map linking type to endpoint for ID | types: host-resource, secret-resource, ... | type map provided via service config
-	Tags     []string         `json:"tags"`
-	Services []ResourceTarget `json:"services"`
+	ID        *string          `json:"id"`   // nil or known ID
+	Type      string           `json:"type"` // via type-map linking type to endpoint for ID | types: host-resource, secret-resource, ... | type map provided via module-manager config?
+	Tags      []string         `json:"tags"`
+	Services  []ResourceTarget `json:"services"`
+	UserInput *UserInput       `json:"user_input"`
 }
 
 type ResourceTarget struct {
 	Name       string `json:"name"`
 	MountPoint string `json:"mount_point"`
 	ReadOnly   bool   `json:"read_only"`
-}
-
-type InputGroup struct {
-	Name           string  `json:"name"`
-	Description    string  `json:"description"`
-	Reference      string  `json:"reference"`
-	ParentGroupRef *string `json:"group_ref"`
-}
-
-type Value struct {
-	Type DataType `json:"type"`
-	Data any      `json:"data"`
 }
 
 // <------------------------------------- Modfile
