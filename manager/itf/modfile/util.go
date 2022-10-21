@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package itf
+package modfile
 
 import (
 	"encoding/json"
@@ -22,6 +22,46 @@ import (
 	"math"
 	"strings"
 )
+
+type tmpConfigValue ConfigValue
+
+type dataTypeValidator func(i any) bool
+
+var dataTypeValidatorMap = map[DataType]dataTypeValidator{
+	TextData:  textDataValidator,
+	BoolData:  boolDataValidator,
+	IntData:   intDataValidator,
+	FloatData: floatDataValidator,
+}
+
+var textDataValidator dataTypeValidator = func(i any) (ok bool) {
+	_, ok = i.(string)
+	return
+}
+
+var boolDataValidator dataTypeValidator = func(i any) (ok bool) {
+	_, ok = i.(bool)
+	return
+}
+
+var intDataValidator dataTypeValidator = func(i any) bool {
+	if _, ok := i.(float64); !ok {
+		return false
+	}
+	if _, f := math.Modf(i.(float64)); f > 0 {
+		return false
+	}
+	return true
+}
+
+var floatDataValidator dataTypeValidator = func(i any) (ok bool) {
+	_, ok = i.(float64)
+	return
+}
+
+func toInt(i any) int64 {
+	return int64(i.(float64))
+}
 
 func (m *ModuleType) UnmarshalJSON(b []byte) (err error) {
 	var s string
@@ -88,10 +128,8 @@ func (d *DataType) UnmarshalJSON(b []byte) (err error) {
 	return
 }
 
-type TmpConfigValue ConfigValue
-
 func (v *ConfigValue) UnmarshalJSON(b []byte) (err error) {
-	var tcv TmpConfigValue
+	var tcv tmpConfigValue
 	if err = json.Unmarshal(b, &tcv); err != nil {
 		return
 	}
@@ -142,42 +180,4 @@ func (v *ConfigValue) UnmarshalJSON(b []byte) (err error) {
 	}
 	*v = ConfigValue(tcv)
 	return
-}
-
-func toInt(i any) int64 {
-	return int64(i.(float64))
-}
-
-type dataTypeValidator func(i any) bool
-
-var textDataValidator dataTypeValidator = func(i any) (ok bool) {
-	_, ok = i.(string)
-	return
-}
-
-var boolDataValidator dataTypeValidator = func(i any) (ok bool) {
-	_, ok = i.(bool)
-	return
-}
-
-var intDataValidator dataTypeValidator = func(i any) bool {
-	if _, ok := i.(float64); !ok {
-		return false
-	}
-	if _, f := math.Modf(i.(float64)); f > 0 {
-		return false
-	}
-	return true
-}
-
-var floatDataValidator dataTypeValidator = func(i any) (ok bool) {
-	_, ok = i.(float64)
-	return
-}
-
-var dataTypeValidatorMap = map[DataType]dataTypeValidator{
-	TextData:  textDataValidator,
-	BoolData:  boolDataValidator,
-	IntData:   intDataValidator,
-	FloatData: floatDataValidator,
 }
