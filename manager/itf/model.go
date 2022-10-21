@@ -48,8 +48,8 @@ type Module struct {
 	Services       []Service          `json:"services"`
 	Volumes        []Volume           `json:"volumes"`
 	Dependencies   []ModuleDependency `json:"dependencies"`
-	Configs        []ConfigOption     `json:"configs"`
 	Resources      []Resource         `json:"resources"`
+	Configs        []ConfigValue      `json:"configs"`
 }
 
 type Service struct {
