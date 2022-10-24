@@ -47,6 +47,7 @@ type Module struct {
 	Volumes        []Volume           `json:"volumes"`
 	Dependencies   []ModuleDependency `json:"dependencies"`
 	Resources      []Resource         `json:"resources"`
+	Secrets        []Secret           `json:"secrets"`
 	Configs        []ConfigValue      `json:"configs"`
 }
 
