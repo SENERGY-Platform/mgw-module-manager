@@ -35,134 +35,134 @@ type SrvDepCondition string
 type ResourceType string
 
 type Module struct {
-	ID             ModuleID           `json:"id"`
-	Name           string             `json:"name"`
-	Description    string             `json:"description"`
-	License        string             `json:"license"`
-	Author         string             `json:"author"`
-	Version        util.SemVersion    `json:"version"`
-	Type           ModuleType         `json:"type"`
-	DeploymentType DeploymentType     `json:"deployment_type"` // if MultipleDeployment the module can't be used as dependency
-	Services       []Service          `json:"services"`
-	Volumes        []Volume           `json:"volumes"`
-	Dependencies   []ModuleDependency `json:"dependencies"`
-	Resources      []Resource         `json:"resources"`
-	Secrets        []Secret           `json:"secrets"`
-	Configs        []ConfigValue      `json:"configs"`
+	ID             ModuleID           `json:"id" yaml:"id"`
+	Name           string             `json:"name" yaml:"name"`
+	Description    string             `json:"description" yaml:"description"`
+	License        string             `json:"license" yaml:"license"`
+	Author         string             `json:"author" yaml:"author"`
+	Version        util.SemVersion    `json:"version" yaml:"version"`
+	Type           ModuleType         `json:"type" yaml:"type"`
+	DeploymentType DeploymentType     `json:"deployment_type" yaml:"deploymentType"` // if MultipleDeployment the module can't be used as dependency
+	Services       map[string]Service `json:"services" yaml:"services"`
+	Volumes        []Volume           `json:"volumes" yaml:"volumes"`
+	Dependencies   []ModuleDependency `json:"dependencies" yaml:"dependencies"`
+	Resources      []Resource         `json:"resources" yaml:"resources"`
+	Secrets        []Secret           `json:"secrets" yaml:"secrets"`
+	Configs        []ConfigValue      `json:"configs" yaml:"configs"`
 }
 
 type Service struct {
-	Name         string              `json:"name"`
-	Image        string              `json:"image"`
-	Include      []BindMount         `json:"include"` // files or dirs from module repo
-	TmpfsMounts  []TmpfsMount        `json:"tmpfs_mounts"`
-	HttpApis     []HttpApi           `json:"http_apis"`
-	PortBindings []PortBinding       `json:"port_bindings"`
-	Dependencies []ServiceDependency `json:"dependencies"`
-	RunConfig    cem_lib.RunConfig   `json:"run_config"`
+	Name         string              `json:"name" yaml:"name"`
+	Image        string              `json:"image" yaml:"image"`
+	Include      []BindMount         `json:"include" yaml:"include"` // files or dirs from module repo
+	TmpfsMounts  []TmpfsMount        `json:"tmpfs_mounts" yaml:"tmpfsMounts"`
+	HttpApis     []HttpApi           `json:"http_apis" yaml:"httpApis"`
+	PortBindings []PortBinding       `json:"port_bindings" yaml:"portBindings"`
+	Dependencies []ServiceDependency `json:"dependencies" yaml:"dependencies"`
+	RunConfig    cem_lib.RunConfig   `json:"run_config" yaml:"runConfig"`
 }
 
 type BindMount struct {
-	MountPoint string `json:"mount_point"`
-	Source     string `json:"source"` // relative path in module dir | prevent mounting of Modfile | must exist
-	ReadOnly   bool   `json:"read_only"`
+	MountPoint string `json:"mount_point" yaml:"mountPoint"`
+	Source     string `json:"source" yaml:"source"` // relative path in module dir | prevent mounting of Modfile | must exist
+	ReadOnly   bool   `json:"read_only" yaml:"readOnly"`
 }
 
 type TmpfsMount struct {
-	MountPoint string      `json:"mount_point"`
-	Size       int64       `json:"size"`
-	Mode       fs.FileMode `json:"mode"`
+	MountPoint string      `json:"mount_point" yaml:"mountPoint"`
+	Size       int64       `json:"size" yaml:"size"`
+	Mode       fs.FileMode `json:"mode" yaml:"mode"`
 }
 
 type HttpApi struct {
-	Name *string `json:"name"`
-	Port int     `json:"port"`
-	Path string  `json:"path"`
+	Name *string `json:"name" yaml:"name"`
+	Port int     `json:"port" yaml:"port"`
+	Path string  `json:"path" yaml:"path"`
 }
 
 type PortBinding struct {
-	Name       *string          `json:"name"`
-	Port       int              `json:"port"`
-	TargetPort int              `json:"target_port"` // can be overridden by module-manager during deployment to avoid collisions
-	Protocol   cem_lib.PortType `json:"protocol"`
+	Name       *string          `json:"name" yaml:"name"`
+	Port       int              `json:"port" yaml:"port"`
+	TargetPort int              `json:"target_port" yaml:"targetPort"` // can be overridden by module-manager during deployment to avoid collisions
+	Protocol   cem_lib.PortType `json:"protocol" yaml:"protocol"`
 }
 
 type ServiceDependency struct {
-	Name      string          `json:"name"`
-	Condition SrvDepCondition `json:"condition"`
-	EnvVar    string          `json:"env_var"` // container domain name provided by module-manager during deployment
+	Name      string          `json:"name" yaml:"name"`
+	Condition SrvDepCondition `json:"condition" yaml:"condition"`
+	EnvVar    string          `json:"env_var" yaml:"envVar"` // container domain name provided by module-manager during deployment
 }
 
 type Volume struct {
-	Name     *string        `json:"name"`
-	Services []VolumeTarget `json:"services"`
+	Name     *string        `json:"name" yaml:"name"`
+	Services []VolumeTarget `json:"services" yaml:"services"`
 }
 
 type VolumeTarget struct {
-	Name       string `json:"name"`
-	MountPoint string `json:"mount_point"`
+	Name       string `json:"name" yaml:"name"`
+	MountPoint string `json:"mount_point" yaml:"mountPoint"`
 }
 
 type ModuleDependency struct {
-	ModuleID      ModuleID             `json:"module_id"`
-	ModuleVersion util.SemVersionRange `json:"module_version"`
-	Services      []RequiredService    `json:"services"`
+	ModuleID      ModuleID             `json:"module_id" yaml:"moduleID"`
+	ModuleVersion util.SemVersionRange `json:"module_version" yaml:"moduleVersion"`
+	Services      []RequiredService    `json:"services" yaml:"services"`
 }
 
 type RequiredService struct {
-	Name       string             `json:"name"`
-	RequiredBy []DependentService `json:"required_by"`
+	Name       string             `json:"name" yaml:"name"`
+	RequiredBy []DependentService `json:"required_by" yaml:"requiredBy"`
 }
 
 type DependentService struct {
-	Name   string `json:"name"`
-	EnvVar string `json:"env_var"` // container domain name provided by module-manager during deployment
+	Name   string `json:"name" yaml:"name"`
+	EnvVar string `json:"env_var" yaml:"envVar"` // container domain name provided by module-manager during deployment
 }
 
 type ResourceBase struct {
-	ID       *string          `json:"id"`
-	Tags     []string         `json:"tags"`
-	Services []ResourceTarget `json:"services"`
+	ID       *string          `json:"id" yaml:"id"`
+	Tags     []string         `json:"tags" yaml:"tags"`
+	Services []ResourceTarget `json:"services" yaml:"services"`
 }
 
 type ResourceTarget struct {
-	Name       string `json:"name"`
-	MountPoint string `json:"mount_point"`
-	ReadOnly   bool   `json:"read_only"`
+	Name       string `json:"name" yaml:"name"`
+	MountPoint string `json:"mount_point" yaml:"mountPoint"`
+	ReadOnly   bool   `json:"read_only" yaml:"readOnly"`
 }
 
 type Resource struct {
-	ResourceBase
-	Type      string         `json:"type"` // via type-map linking type to endpoint for ID | types: serial-port, uds-port, etc. | type map provided via module-manager config?
-	UserInput *UserInputBase `json:"user_input"`
+	ResourceBase `yaml:",inline"`
+	Type         string         `json:"type" yaml:"type"` // via type-map linking type to endpoint for ID | types: serial-port, uds-port, etc. | type map provided via module-manager config?
+	UserInput    *UserInputBase `json:"user_input" yaml:"userInput"`
 }
 
 type Secret struct {
-	ResourceBase
-	UserInput *UserInput `json:"user_input"`
+	ResourceBase `yaml:",inline"`
+	UserInput    *UserInput `json:"user_input" yaml:"userInput"`
 }
 
 type ConfigValue struct {
-	Value     any            `json:"value"`   // nil or default value
-	Options   []any          `json:"options"` // possible values
-	Type      DataType       `json:"type"`
-	Services  []ConfigTarget `json:"services"`
-	UserInput *UserInput     `json:"user_input"`
+	Value     any            `json:"value" yaml:"value"`     // nil or default value
+	Options   []any          `json:"options" yaml:"options"` // possible values
+	Type      DataType       `json:"type" yaml:"type"`
+	Services  []ConfigTarget `json:"services" yaml:"services"`
+	UserInput *UserInput     `json:"user_input" yaml:"userInput"`
 }
 
 type ConfigTarget struct {
-	Name   string `json:"name"`
-	EnvVar string `json:"env_var"`
+	Name   string `json:"name" yaml:"name"`
+	EnvVar string `json:"env_var" yaml:"envVar"`
 }
 
 type UserInputBase struct {
-	Name        string  `json:"name"`
-	Description *string `json:"description"`
-	Required    bool    `json:"required"`
+	Name        string  `json:"name" yaml:"name"`
+	Description *string `json:"description" yaml:"description"`
+	Required    bool    `json:"required" yaml:"required"`
 }
 
 type UserInput struct {
-	UserInputBase
-	Type        string         `json:"type"`
-	Constraints map[string]any `json:"constraints"`
+	UserInputBase `yaml:",inline"`
+	Type          string         `json:"type" yaml:"type"`
+	Constraints   map[string]any `json:"constraints" yaml:"constraints"`
 }
