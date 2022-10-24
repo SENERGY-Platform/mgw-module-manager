@@ -119,18 +119,27 @@ type DependentService struct {
 	EnvVar string `json:"env_var"` // container domain name provided by module-manager during deployment
 }
 
-type Resource struct {
-	ID        *string          `json:"id"`   // nil or known ID
-	Type      string           `json:"type"` // via type-map linking type to endpoint for ID | types: host-resource, secret-resource, ... | type map provided via module-manager config?
-	Tags      []string         `json:"tags"`
-	Services  []ResourceTarget `json:"services"`
-	UserInput *UserInput       `json:"user_input"`
+type ResourceBase struct {
+	ID       *string          `json:"id"`
+	Tags     []string         `json:"tags"`
+	Services []ResourceTarget `json:"services"`
 }
 
 type ResourceTarget struct {
 	Name       string `json:"name"`
 	MountPoint string `json:"mount_point"`
 	ReadOnly   bool   `json:"read_only"`
+}
+
+type Resource struct {
+	ResourceBase
+	Type      string         `json:"type"` // via type-map linking type to endpoint for ID | types: serial-port, uds-port, etc. | type map provided via module-manager config?
+	UserInput *UserInputBase `json:"user_input"`
+}
+
+type Secret struct {
+	ResourceBase
+	UserInput *UserInput `json:"user_input"`
 }
 
 type ConfigValue struct {
@@ -146,10 +155,14 @@ type ConfigTarget struct {
 	EnvVar string `json:"env_var"`
 }
 
+type UserInputBase struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	Required    bool    `json:"required"`
+}
+
 type UserInput struct {
-	Name        string         `json:"name"`
-	Description *string        `json:"description"`
-	Type        string         `json:"type"` // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#input_types
+	UserInputBase
+	Type        string         `json:"type"`
 	Constraints map[string]any `json:"constraints"`
-	Required    bool           `json:"required"`
 }
