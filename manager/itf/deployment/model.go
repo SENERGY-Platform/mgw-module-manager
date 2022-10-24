@@ -30,11 +30,17 @@ type Base struct {
 type Deployment struct {
 	ID string `json:"id"`
 	Base
-	//Resources []Resource    `json:"resources"`
-	Configs []ConfigValue `json:"configs"`
+	Resources []Resource `json:"resources"`
+	Secrets   []Resource `json:"secrets"`
+	Configs   []Value    `json:"configs"`
 }
 
-type ConfigValue struct {
+type Resource struct {
+	Ref string  `json:"ref"`
+	ID  *string `json:"id"`
+}
+
+type Value struct {
 	Ref   string `json:"ref"`
 	Value any    `json:"value"`
 }
@@ -43,16 +49,26 @@ type ConfigValue struct {
 
 type Template struct {
 	Base
-	//Resources []ResourceInput `json:"resources"`
-	Configs []ConfigInput `json:"configs"`
+	Resources []ResourceInput `json:"resources"`
+	Secrets   []SecretInput   `json:"secrets"`
+	Configs   []ConfigInput   `json:"configs"`
+}
+
+type ResourceInput struct {
+	Resource
+	UserInput  modfile.UserInputBase `json:"user_input"`
+	OptionsSrc string                `json:"options_src"`
+}
+
+type SecretInput struct {
+	Resource
+	Value      any               `json:"value"`      // for input if secret does not exist
+	UserInput  modfile.UserInput `json:"user_input"` // for input if secret does not exist
+	OptionsSrc string            `json:"options_src"`
 }
 
 type ConfigInput struct {
-	ConfigValue
-	UserInput UserInput `json:"user_input"`
-}
-
-type UserInput struct {
-	modfile.UserInput
-	Options []any `json:"options"`
+	Value
+	UserInput modfile.UserInput `json:"user_input"`
+	Options   []any             `json:"options"`
 }
