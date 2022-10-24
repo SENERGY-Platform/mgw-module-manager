@@ -9,6 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/y-du/go-log-level v0.2.2
 	golang.org/x/mod v0.5.1
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
