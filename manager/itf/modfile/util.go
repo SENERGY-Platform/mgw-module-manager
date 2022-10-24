@@ -19,6 +19,7 @@ package modfile
 import (
 	"encoding/json"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"math"
 	"strings"
 )
@@ -63,17 +64,38 @@ func toInt(i any) int64 {
 	return int64(i.(float64))
 }
 
+func (m *ModuleType) parse(s string) error {
+	if t, ok := ModuleTypeMap[s]; ok {
+		*m = t
+	} else {
+		return fmt.Errorf("unknown module type '%s'", s)
+	}
+	return nil
+}
+
 func (m *ModuleType) UnmarshalJSON(b []byte) (err error) {
 	var s string
 	if err = json.Unmarshal(b, &s); err != nil {
 		return
 	}
-	if t, ok := ModuleTypeMap[s]; ok {
-		*m = t
-	} else {
-		err = fmt.Errorf("unknown module type '%s'", s)
+	return m.parse(s)
+}
+
+func (m *ModuleType) UnmarshalYAML(yn *yaml.Node) (err error) {
+	var s string
+	if err = yn.Decode(&s); err != nil {
+		return
 	}
-	return
+	return m.parse(s)
+}
+
+func (d *DeploymentType) parse(s string) error {
+	if t, ok := DeploymentTypeMap[s]; ok {
+		*d = t
+	} else {
+		return fmt.Errorf("unknown deployment type '%s'", s)
+	}
+	return nil
 }
 
 func (d *DeploymentType) UnmarshalJSON(b []byte) (err error) {
@@ -81,12 +103,24 @@ func (d *DeploymentType) UnmarshalJSON(b []byte) (err error) {
 	if err = json.Unmarshal(b, &s); err != nil {
 		return
 	}
-	if t, ok := DeploymentTypeMap[s]; ok {
-		*d = t
-	} else {
-		err = fmt.Errorf("unknown deployment type '%s'", s)
+	return d.parse(s)
+}
+
+func (d *DeploymentType) UnmarshalYAML(yn *yaml.Node) (err error) {
+	var s string
+	if err = yn.Decode(&s); err != nil {
+		return
 	}
-	return
+	return d.parse(s)
+}
+
+func (i *ModuleID) parse(s string) error {
+	if !strings.Contains(s, "/") || strings.Contains(s, "//") || strings.HasPrefix(s, "/") {
+		return fmt.Errorf("invalid module ID format '%s'", s)
+	} else {
+		*i = ModuleID(s)
+	}
+	return nil
 }
 
 func (i *ModuleID) UnmarshalJSON(b []byte) (err error) {
@@ -94,12 +128,24 @@ func (i *ModuleID) UnmarshalJSON(b []byte) (err error) {
 	if err = json.Unmarshal(b, &s); err != nil {
 		return
 	}
-	if !strings.Contains(s, "/") || strings.Contains(s, "//") || strings.HasPrefix(s, "/") {
-		err = fmt.Errorf("invalid module ID format '%s'", s)
-	} else {
-		*i = ModuleID(s)
+	return i.parse(s)
+}
+
+func (i *ModuleID) UnmarshalYAML(yn *yaml.Node) (err error) {
+	var s string
+	if err = yn.Decode(&s); err != nil {
+		return
 	}
-	return
+	return i.parse(s)
+}
+
+func (c *SrvDepCondition) parse(s string) error {
+	if t, ok := SrvDepConditionMap[s]; ok {
+		*c = t
+	} else {
+		return fmt.Errorf("unknown condition type '%s'", s)
+	}
+	return nil
 }
 
 func (c *SrvDepCondition) UnmarshalJSON(b []byte) (err error) {
@@ -107,12 +153,24 @@ func (c *SrvDepCondition) UnmarshalJSON(b []byte) (err error) {
 	if err = json.Unmarshal(b, &s); err != nil {
 		return
 	}
-	if t, ok := SrvDepConditionMap[s]; ok {
-		*c = t
-	} else {
-		err = fmt.Errorf("unknown condition type '%s'", s)
+	return c.parse(s)
+}
+
+func (c *SrvDepCondition) UnmarshalYAML(yn *yaml.Node) (err error) {
+	var s string
+	if err = yn.Decode(&s); err != nil {
+		return
 	}
-	return
+	return c.parse(s)
+}
+
+func (d *DataType) parse(s string) error {
+	if t, ok := DataTypeMap[s]; ok {
+		*d = t
+	} else {
+		return fmt.Errorf("unknown data type '%s'", s)
+	}
+	return nil
 }
 
 func (d *DataType) UnmarshalJSON(b []byte) (err error) {
@@ -120,19 +178,18 @@ func (d *DataType) UnmarshalJSON(b []byte) (err error) {
 	if err = json.Unmarshal(b, &s); err != nil {
 		return
 	}
-	if t, ok := DataTypeMap[s]; ok {
-		*d = t
-	} else {
-		err = fmt.Errorf("unknown data type '%s'", s)
-	}
-	return
+	return d.parse(s)
 }
 
-func (v *ConfigValue) UnmarshalJSON(b []byte) (err error) {
-	var tcv tmpConfigValue
-	if err = json.Unmarshal(b, &tcv); err != nil {
+func (d *DataType) UnmarshalYAML(yn *yaml.Node) (err error) {
+	var s string
+	if err = yn.Decode(&s); err != nil {
 		return
 	}
+	return d.parse(s)
+}
+
+func (v *ConfigValue) parse(tcv tmpConfigValue) error {
 	validator := dataTypeValidatorMap[tcv.Type]
 	if tcv.Value != nil && !validator(tcv.Value) {
 		return fmt.Errorf("invalid type: config 'data' must be of '%s'", tcv.Type)
@@ -155,5 +212,21 @@ func (v *ConfigValue) UnmarshalJSON(b []byte) (err error) {
 		}
 	}
 	*v = ConfigValue(tcv)
-	return
+	return nil
+}
+
+func (v *ConfigValue) UnmarshalJSON(b []byte) (err error) {
+	var tcv tmpConfigValue
+	if err = json.Unmarshal(b, &tcv); err != nil {
+		return
+	}
+	return v.parse(tcv)
+}
+
+func (v *ConfigValue) UnmarshalYAML(yn *yaml.Node) (err error) {
+	var tcv tmpConfigValue
+	if err = yn.Decode(&tcv); err != nil {
+		return
+	}
+	return v.parse(tcv)
 }
