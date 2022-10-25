@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/SENERGY-Platform/gin-middleware v0.0.3
 	github.com/SENERGY-Platform/go-service-base v0.5.1
-	github.com/SENERGY-Platform/mgw-container-engine-manager-lib v0.3.0
+	github.com/SENERGY-Platform/mgw-container-engine-manager-lib v0.5.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/y-du/go-log-level v0.2.2
 	golang.org/x/mod v0.5.1

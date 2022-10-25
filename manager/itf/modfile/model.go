@@ -18,7 +18,6 @@ package modfile
 
 import (
 	"github.com/SENERGY-Platform/mgw-container-engine-manager-lib/cem-lib"
-	"io/fs"
 	"module-manager/manager/util"
 )
 
@@ -69,9 +68,9 @@ type BindMount struct {
 }
 
 type TmpfsMount struct {
-	MountPoint string      `json:"mount_point" yaml:"mountPoint"`
-	Size       int64       `json:"size" yaml:"size"`
-	Mode       fs.FileMode `json:"mode" yaml:"mode"`
+	MountPoint string            `json:"mount_point" yaml:"mountPoint"`
+	Size       int64             `json:"size" yaml:"size"`
+	Mode       *cem_lib.FileMode `json:"mode" yaml:"mode"`
 }
 
 type HttpApi struct {
