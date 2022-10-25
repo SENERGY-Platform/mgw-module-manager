@@ -27,6 +27,8 @@ type ModuleType string
 
 type DeploymentType string
 
+type Port string
+
 type DataType string
 
 type SrvDepCondition string
@@ -79,11 +81,11 @@ type HttpApi struct {
 	Path string  `json:"path" yaml:"path"`
 }
 
-type PortBinding struct {
-	Name       *string          `json:"name" yaml:"name"`
-	Port       int              `json:"port" yaml:"port"`
-	TargetPort int              `json:"target_port" yaml:"targetPort"` // can be overridden by module-manager during deployment to avoid collisions
-	Protocol   cem_lib.PortType `json:"protocol" yaml:"protocol"`
+type PortMapping struct {
+	Name     *string           `json:"name" yaml:"name"`
+	Port     Port              `json:"port" yaml:"port"`
+	HostPort *Port             `json:"host_port" yaml:"hostPort"` // set by module-manager if empty or can be overridden by module-manager during deployment to avoid collisions
+	Protocol *cem_lib.PortType `json:"protocol" yaml:"protocol"`
 }
 
 type ServiceDependency struct {
