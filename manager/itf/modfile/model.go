@@ -65,7 +65,7 @@ type Service struct {
 
 type BindMount struct {
 	MountPoint string `json:"mount_point" yaml:"mountPoint"`
-	Source     string `json:"source" yaml:"source"` // relative path in module dir | prevent mounting of Modfile | must exist
+	Source     string `json:"source" yaml:"source"` // relative path in module repo
 	ReadOnly   bool   `json:"read_only" yaml:"readOnly"`
 }
 
