@@ -3,6 +3,7 @@ module module-manager
 go 1.19
 
 require (
+	code.cloudfoundry.org/bytefmt v0.0.0-20211005130812-5bb3c17173e5
 	github.com/SENERGY-Platform/gin-middleware v0.0.3
 	github.com/SENERGY-Platform/go-service-base v0.5.1
 	github.com/SENERGY-Platform/mgw-container-engine-manager-lib v0.5.0
@@ -27,7 +28,7 @@ require (
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/y-du/go-env-loader v0.5.0 // indirect
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
-	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect
+	golang.org/x/net v0.0.0-20210428140749-89ef3d95e781 // indirect
 	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
 	golang.org/x/text v0.3.6 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
