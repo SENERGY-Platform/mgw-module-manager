@@ -27,6 +27,8 @@ type ModuleType string
 
 type DeploymentType string
 
+type ByteFmt uint64
+
 type Port string
 
 type DataType string
@@ -71,7 +73,7 @@ type BindMount struct {
 
 type TmpfsMount struct {
 	MountPoint string            `json:"mount_point" yaml:"mountPoint"`
-	Size       int64             `json:"size" yaml:"size"`
+	Size       ByteFmt           `json:"size" yaml:"size"`
 	Mode       *cem_lib.FileMode `json:"mode" yaml:"mode"`
 }
 

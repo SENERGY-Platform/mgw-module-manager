@@ -17,6 +17,7 @@
 package modfile
 
 import (
+	"code.cloudfoundry.org/bytefmt"
 	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v3"
@@ -297,4 +298,41 @@ func (p *Port) UnmarshalYAML(yn *yaml.Node) (err error) {
 		return
 	}
 	return p.parse(itf)
+}
+
+func (fb *ByteFmt) parse(itf any) error {
+	switch v := itf.(type) {
+	case int:
+		*fb = ByteFmt(v)
+	case float64:
+		if _, f := math.Modf(v); f > 0 {
+			return fmt.Errorf("invalid size: %v", v)
+		}
+		*fb = ByteFmt(v)
+	case string:
+		bytes, err := bytefmt.ToBytes(v)
+		if err != nil {
+			return fmt.Errorf("invalid size: %s", err)
+		}
+		*fb = ByteFmt(bytes)
+	default:
+		return fmt.Errorf("invalid size: %v", v)
+	}
+	return nil
+}
+
+func (fb *ByteFmt) UnmarshalJSON(b []byte) (err error) {
+	var itf any
+	if err = json.Unmarshal(b, &itf); err != nil {
+		return
+	}
+	return fb.parse(itf)
+}
+
+func (fb *ByteFmt) UnmarshalYAML(yn *yaml.Node) (err error) {
+	var itf any
+	if err = yn.Decode(&itf); err != nil {
+		return
+	}
+	return fb.parse(itf)
 }
