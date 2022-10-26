@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"math"
+	"strconv"
 	"strings"
 )
 
@@ -229,4 +230,71 @@ func (v *ConfigValue) UnmarshalYAML(yn *yaml.Node) (err error) {
 		return
 	}
 	return v.parse(tcv)
+}
+
+func (p *Port) parse(itf any) error {
+	switch v := itf.(type) {
+	case float64:
+		if _, f := math.Modf(v); f > 0 {
+			return fmt.Errorf("invlid port: %v", v)
+		}
+		*p = Port(strconv.FormatInt(int64(v), 10))
+	case string:
+		parts := strings.Split(v, "-")
+		if len(parts) > 2 {
+			return fmt.Errorf("invalid port range: %s", v)
+		}
+		for i := 0; i < len(parts); i++ {
+			_, err := strconv.ParseInt(parts[i], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid port: %s", v)
+			}
+		}
+		*p = Port(v)
+	default:
+		return fmt.Errorf("invlid port: %v", v)
+	}
+	return nil
+}
+
+func (p *Port) IsRange() bool {
+	if strings.Contains(string(*p), "-") {
+		return true
+	}
+	return false
+}
+
+func (p *Port) Range() (ports []int) {
+	parts := strings.Split(string(*p), "-")
+	start, _ := strconv.ParseInt(parts[0], 10, 64)
+	if len(parts) > 1 {
+		end, _ := strconv.ParseInt(parts[1], 10, 64)
+		for i := start; i <= end; i++ {
+			ports = append(ports, int(i))
+		}
+	} else {
+		ports = append(ports, int(start))
+	}
+	return
+}
+
+func (p *Port) Int() int {
+	i, _ := strconv.ParseInt(string(*p), 10, 64)
+	return int(i)
+}
+
+func (p *Port) UnmarshalJSON(b []byte) (err error) {
+	var itf any
+	if err = json.Unmarshal(b, &itf); err != nil {
+		return
+	}
+	return p.parse(itf)
+}
+
+func (p *Port) UnmarshalYAML(yn *yaml.Node) (err error) {
+	var itf any
+	if err = yn.Decode(&itf); err != nil {
+		return
+	}
+	return p.parse(itf)
 }
