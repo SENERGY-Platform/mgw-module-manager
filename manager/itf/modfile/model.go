@@ -152,7 +152,7 @@ type ConfigTarget struct {
 }
 
 type UserInputBase struct {
-	Name        string  `json:"name" yaml:"name"`               // user input name (e.g. used as a label for input field)
+	Name        string  `json:"name" yaml:"name"`               // input name (e.g. used as a label for input field)
 	Description *string `json:"description" yaml:"description"` // short text describing the input
 	Required    bool    `json:"required" yaml:"required"`       // if true a user interaction is required
 }
