@@ -112,26 +112,30 @@ type DependentService struct {
 }
 
 type ResourceBase struct {
-	ID       *string          `json:"id" yaml:"id"`
-	Tags     []string         `json:"tags" yaml:"tags"`
-	Services []ResourceTarget `json:"services" yaml:"services"`
+	Type string   `json:"type" yaml:"type"`
+	Tags []string `json:"tags" yaml:"tags"`
+}
+
+type ResourceTargetBase struct {
+	Service    *string `json:"service" yaml:"service"`
+	MountPoint string  `json:"mount_point" yaml:"mountPoint"`
 }
 
 type ResourceTarget struct {
-	Service    *string `json:"service" yaml:"service"` // if empty use mount point for every service | allow for exceptions
-	MountPoint string  `json:"mount_point" yaml:"mountPoint"`
-	ReadOnly   bool    `json:"read_only" yaml:"readOnly"`
+	ResourceTargetBase `yaml:",inline"`
+	ReadOnly           bool `json:"read_only" yaml:"readOnly"`
 }
 
 type Resource struct {
 	ResourceBase `yaml:",inline"`
-	Type         string         `json:"type" yaml:"type"` // via type-map linking type to endpoint for ID | types: serial-port, uds-port, etc. | type map provided via module-manager config?
-	UserInput    *UserInputBase `json:"user_input" yaml:"userInput"`
+	Services     []ResourceTarget `json:"services" yaml:"services"`
+	UserInput    *UserInputBase   `json:"user_input" yaml:"userInput"`
 }
 
 type Secret struct {
 	ResourceBase `yaml:",inline"`
-	UserInput    *UserInput `json:"user_input" yaml:"userInput"`
+	Services     []ResourceTargetBase `json:"services" yaml:"services"`
+	UserInput    *UserInput           `json:"user_input" yaml:"userInput"`
 }
 
 type ConfigValue struct {
