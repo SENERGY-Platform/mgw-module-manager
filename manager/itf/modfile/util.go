@@ -235,6 +235,8 @@ func (v *ConfigValue) UnmarshalYAML(yn *yaml.Node) (err error) {
 
 func (p *Port) parse(itf any) error {
 	switch v := itf.(type) {
+	case int:
+		*p = Port(strconv.FormatInt(int64(v), 10))
 	case float64:
 		if _, f := math.Modf(v); f > 0 {
 			return fmt.Errorf("invlid port: %v", v)
