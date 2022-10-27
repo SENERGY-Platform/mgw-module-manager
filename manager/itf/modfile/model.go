@@ -46,13 +46,13 @@ type Module struct {
 	Version        util.SemVersion               `json:"version" yaml:"version"`                // module version (must be prefixed with 'v' and adhere to the semantic versioning guidelines, see https://semver.org/ for details)
 	Type           ModuleType                    `json:"type" yaml:"type"`                      // module type (e.g. device-connector specifies a module for integrating devices)
 	DeploymentType DeploymentType                `json:"deployment_type" yaml:"deploymentType"` // specifies whether a module can only be deployed once or multiple times
-	Services       map[string]Service            `json:"services" yaml:"services"`              // map depicting the services the module consists of (keys serve as unique identifiers and can be reused elsewhere in the modfile to reference a service.)
+	Services       map[string]Service            `json:"services" yaml:"services"`              // map depicting the services the module consists of (keys serve as unique identifiers and can be reused elsewhere in the modfile to reference a service)
 	Volumes        map[string][]VolumeTarget     `json:"volumes" yaml:"volumes"`                // map linking volumes to mount points (keys represent volume names)
 	Dependencies   map[ModuleID]ModuleDependency `json:"dependencies" yaml:"dependencies"`      // external modules required by the module (keys represent module IDs)
 	Resources      []Resource                    `json:"resources" yaml:"resources"`            // host resources required by services (e.g. devices, sockets, ...)
 	Secrets        []Secret                      `json:"secrets" yaml:"secrets"`                // secrets required by services (e.g. certs, keys, ...)
 	Configs        []ConfigValue                 `json:"configs" yaml:"configs"`                // configuration values required by services
-	InputGroups    map[string]InputGroup         `json:"input_groups" yaml:"inputGroups"`       // map of groups for categorising user inputs
+	InputGroups    map[string]InputGroup         `json:"input_groups" yaml:"inputGroups"`       // map of groups for categorising user inputs (keys serve as unique identifiers and can be reused elsewhere in the modfile to reference a group)
 }
 
 type Service struct {
