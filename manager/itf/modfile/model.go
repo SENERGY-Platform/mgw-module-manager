@@ -52,6 +52,7 @@ type Module struct {
 	Resources      []Resource                    `json:"resources" yaml:"resources"`            // host resources required by services (e.g. devices, sockets, ...)
 	Secrets        []Secret                      `json:"secrets" yaml:"secrets"`                // secrets required by services (e.g. certs, keys, ...)
 	Configs        []ConfigValue                 `json:"configs" yaml:"configs"`                // configuration values required by services
+	InputGroups    map[string]InputGroup         `json:"input_groups" yaml:"inputGroups"`       // map of groups for categorising user inputs
 }
 
 type Service struct {
@@ -155,10 +156,17 @@ type UserInputBase struct {
 	Name        string  `json:"name" yaml:"name"`               // input name (e.g. used as a label for input field)
 	Description *string `json:"description" yaml:"description"` // short text describing the input
 	Required    bool    `json:"required" yaml:"required"`       // if true a user interaction is required
+	Group       *string `json:"group" yaml:"group"`             // group identifier as used in Module.InputGroups to assign the user input to a specific input group
 }
 
 type UserInput struct {
 	UserInputBase `yaml:",inline"`
 	Type          string         `json:"type" yaml:"type"`               // type of the input (e.g. text, number, password, drop-down ...)
 	Constraints   map[string]any `json:"constraints" yaml:"constraints"` // constraints supported or required by the input type
+}
+
+type InputGroup struct {
+	Name        string  `json:"name" yaml:"name"`               // input group name
+	Description *string `json:"description" yaml:"description"` // short text describing the input group
+	Group       *string `json:"group" yaml:"group"`             // group identifier as used in Module.InputGroups to assign the input group to a parent group
 }
