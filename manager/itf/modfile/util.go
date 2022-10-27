@@ -338,3 +338,21 @@ func (fb *ByteFmt) UnmarshalYAML(yn *yaml.Node) (err error) {
 	}
 	return fb.parse(itf)
 }
+
+func (rtb ResourceTargetBase) Values() (values []string) {
+	if rtb.Service != nil {
+		values = append(values, *rtb.Service, rtb.MountPoint)
+	} else {
+		values = append(values, rtb.MountPoint)
+	}
+	return
+}
+
+func (ct ConfigTarget) Values() (values []string) {
+	if ct.Service != nil {
+		values = append(values, *ct.Service, ct.RefVar)
+	} else {
+		values = append(values, ct.RefVar)
+	}
+	return
+}
