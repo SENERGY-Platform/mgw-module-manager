@@ -25,3 +25,7 @@ type ModuleStorageHandler interface {
 	Delete(id string) error
 	Copy(id string, dstPath string) error
 }
+
+type Target interface {
+	Values() []string
+}
