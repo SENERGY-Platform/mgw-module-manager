@@ -340,19 +340,17 @@ func (fb *ByteFmt) UnmarshalYAML(yn *yaml.Node) (err error) {
 }
 
 func (rtb ResourceTargetBase) Values() (values []string) {
-	if rtb.Service != nil {
-		values = append(values, *rtb.Service, rtb.MountPoint)
-	} else {
-		values = append(values, rtb.MountPoint)
+	values = append(values, rtb.MountPoint)
+	if rtb.Services != nil {
+		values = append(values, rtb.Services...)
 	}
 	return
 }
 
 func (ct ConfigTarget) Values() (values []string) {
-	if ct.Service != nil {
-		values = append(values, *ct.Service, ct.RefVar)
-	} else {
-		values = append(values, ct.RefVar)
+	values = append(values, ct.RefVar)
+	if ct.Services != nil {
+		values = append(values, ct.Services...)
 	}
 	return
 }
