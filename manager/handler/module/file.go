@@ -17,12 +17,13 @@
 package module
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/go-service-base/srv-base"
 	"github.com/SENERGY-Platform/go-service-base/srv-base/types"
+	"gopkg.in/yaml.v3"
 	"module-manager/manager/itf"
+	"module-manager/manager/itf/module"
 	"net/http"
 	"os"
 	"os/exec"
@@ -45,19 +46,20 @@ func NewFileHandler(workdirPath string, delimiter string) (itf.ModuleStorageHand
 	return fh, nil
 }
 
-func (h *FileHandler) List() ([]itf.Module, error) {
-	var modules []itf.Module
+func (h *FileHandler) List() ([]module.Module, error) {
+	var modules []module.Module
 	de, err := os.ReadDir(h.WorkdirPath)
 	if err != nil {
 		return modules, srv_base_types.NewError(http.StatusInternalServerError, "listing modules failed", removeStrFromErr(err, h.WorkdirPath))
 	}
 	for _, entry := range de {
 		if entry.IsDir() {
-			module, err := read(path.Join(h.WorkdirPath, entry.Name(), itf.ModFile))
-			if err != nil {
-				srv_base.Logger.Errorf("reading module '%s' failed: %s", dirToId(entry.Name(), h.Delimiter), err)
+			m, e := read(path.Join(h.WorkdirPath, entry.Name()))
+			if e != nil {
+				srv_base.Logger.Errorf("reading module '%s' failed: %s", dirToId(entry.Name(), h.Delimiter), removeStrFromErr(e, h.WorkdirPath))
+				continue
 			}
-			modules = append(modules, module)
+			modules = append(modules, m)
 		}
 	}
 	return modules, nil
@@ -72,7 +74,7 @@ func (h *FileHandler) Create(srcPath string) error {
 	if len(out) > 0 {
 		return srv_base_types.NewError(http.StatusBadRequest, "creating module failed", fmt.Errorf("includes files with illigal types: %s", strings.TrimSuffix(strings.Replace(strings.Replace(string(out), srcPath, "", -1), "\n", ", ", -1), ", ")))
 	}
-	m, err := read(path.Join(srcPath, itf.ModFile))
+	m, err := read(path.Join(srcPath, module.ModFileName))
 	if err != nil {
 		return srv_base_types.NewError(http.StatusBadRequest, "creating module failed", removeStrFromErr(err, srcPath))
 	}
@@ -95,8 +97,8 @@ func (h *FileHandler) Create(srcPath string) error {
 	return nil
 }
 
-func (h *FileHandler) Read(id string) (itf.Module, error) {
-	m, err := read(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter), itf.ModFile))
+func (h *FileHandler) Read(id string) (module.Module, error) {
+	m, err := read(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter)))
 	if err != nil {
 		code := http.StatusInternalServerError
 		if os.IsNotExist(err) {
@@ -124,18 +126,19 @@ func (h *FileHandler) Copy(id string, dstPath string) error {
 	return cmd.Run()
 }
 
-func read(mPath string) (itf.Module, error) {
-	var module itf.Module
-	mf, err := os.Open(mPath)
+func read(p string) (m module.Module, err error) {
+	p, err = detectModFile(p)
 	if err != nil {
-		return module, err
+		return
 	}
-	defer mf.Close()
-	jd := json.NewDecoder(mf)
-	if err := jd.Decode(&module); err != nil {
-		return module, err
+	f, e := os.Open(p)
+	if e != nil {
+		return
 	}
-	return module, nil
+	defer f.Close()
+	yd := yaml.NewDecoder(f)
+	err = yd.Decode(&m)
+	return
 }
 
 func removeStrFromErr(err error, str string) error {
@@ -148,4 +151,28 @@ func idToDir(id string, delimiter string) string {
 
 func dirToId(dir string, delimiter string) string {
 	return strings.Replace(dir, delimiter, "/", -1)
+}
+
+func checkIfExist(p string) (ok bool, err error) {
+	_, err = os.Stat(p)
+	if err == nil {
+		ok = true
+	} else if err != nil && os.IsNotExist(err) {
+		err = nil
+	}
+	return
+}
+
+func detectModFile(p string) (string, error) {
+	p = path.Join(p, module.ModFileName)
+	if ok, err := checkIfExist(p); err != nil || ok {
+		return p, err
+	}
+	for _, ext := range module.ModFileExtensions {
+		tp := p + "." + ext
+		if ok, err := checkIfExist(tp); err != nil || ok {
+			return tp, err
+		}
+	}
+	return "", errors.New("modfile not found")
 }
