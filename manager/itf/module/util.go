@@ -48,22 +48,25 @@ var boolDataValidator dataTypeValidator = func(i any) (ok bool) {
 }
 
 var intDataValidator dataTypeValidator = func(i any) bool {
-	if _, ok := i.(float64); !ok {
-		return false
+	if _, ok := i.(int); ok {
+		return true
 	}
-	if _, f := math.Modf(i.(float64)); f > 0 {
-		return false
+	if v, ok := i.(float64); ok {
+		if _, f := math.Modf(v); f == 0 {
+			return true
+		}
 	}
-	return true
+	return false
 }
 
-var floatDataValidator dataTypeValidator = func(i any) (ok bool) {
-	_, ok = i.(float64)
-	return
-}
-
-func toInt(i any) int64 {
-	return int64(i.(float64))
+var floatDataValidator dataTypeValidator = func(i any) bool {
+	if _, ok := i.(float64); ok {
+		return true
+	}
+	if _, ok := i.(int); ok {
+		return true
+	}
+	return false
 }
 
 func (m *ModuleType) parse(s string) error {
