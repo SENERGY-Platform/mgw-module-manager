@@ -197,7 +197,7 @@ func (d *DataType) UnmarshalYAML(yn *yaml.Node) (err error) {
 func (v *ConfigValue) parse(tcv tmpConfigValue) error {
 	validator := dataTypeValidatorMap[tcv.Type]
 	if tcv.Value != nil && !validator(tcv.Value) {
-		return fmt.Errorf("invalid type: config 'data' must be of '%s'", tcv.Type)
+		return fmt.Errorf("invalid type: config 'value' must be of '%s'", tcv.Type)
 	}
 	if tcv.Options != nil && len(tcv.Options) > 0 {
 		for _, option := range tcv.Options {
