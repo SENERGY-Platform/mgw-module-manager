@@ -65,38 +65,6 @@ func (h *FileHandler) List() ([]module.Module, error) {
 	return modules, nil
 }
 
-func (h *FileHandler) Create(srcPath string) error {
-	cmd := exec.Command("find", srcPath, "-not", "-type", "d", "-not", "-type", "f")
-	out, err := cmd.Output()
-	if err != nil {
-		return srv_base_types.NewError(http.StatusInternalServerError, "creating module failed: find returned", removeStrFromErr(err, srcPath))
-	}
-	if len(out) > 0 {
-		return srv_base_types.NewError(http.StatusBadRequest, "creating module failed", fmt.Errorf("includes files with illigal types: %s", strings.TrimSuffix(strings.Replace(strings.Replace(string(out), srcPath, "", -1), "\n", ", ", -1), ", ")))
-	}
-	m, err := read(path.Join(srcPath, module.ModFileName))
-	if err != nil {
-		return srv_base_types.NewError(http.StatusBadRequest, "creating module failed", removeStrFromErr(err, srcPath))
-	}
-	dstPath := path.Join(h.WorkdirPath, idToDir(string(m.ID), h.Delimiter))
-	if _, err := os.Stat(dstPath); err != nil {
-		if !os.IsNotExist(err) {
-			return srv_base_types.NewError(http.StatusInternalServerError, "creating module failed", removeStrFromErr(err, h.WorkdirPath))
-		}
-	} else {
-		return srv_base_types.NewError(http.StatusBadRequest, "creating module failed", fmt.Errorf("'%s' already exists", m.ID))
-	}
-	cmd = exec.Command("cp", "-R", "--no-dereference", "--preserve=mode,timestamps", "--no-preserve=context,links,xattr", srcPath, dstPath)
-	err = cmd.Run()
-	if err != nil {
-		if e := os.RemoveAll(dstPath); e != nil {
-			srv_base.Logger.Errorf("cleanup failed: ", e)
-		}
-		return srv_base_types.NewError(http.StatusInternalServerError, "creating module failed: cp returned", err)
-	}
-	return nil
-}
-
 func (h *FileHandler) Read(id string) (module.Module, error) {
 	m, err := read(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter)))
 	if err != nil {
@@ -121,8 +89,29 @@ func (h *FileHandler) Delete(id string) error {
 	return nil
 }
 
-func (h *FileHandler) Copy(id string, dstPath string) error {
-	cmd := exec.Command("cp", "-R", "--no-dereference", "--preserve=mode,timestamps", "--no-preserve=context,links,xattr", path.Join(h.WorkdirPath, idToDir(id, h.Delimiter)), dstPath)
+func (h *FileHandler) CopyTo(id string, dstPath string) error {
+	return copyDir(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter)), dstPath)
+}
+
+func (h *FileHandler) CopyFrom(id string, srcPath string) error {
+	dstPath := path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))
+	if ok, err := checkIfExist(dstPath); err != nil {
+		return srv_base_types.NewError(http.StatusInternalServerError, "creating module failed", removeStrFromErr(err, h.WorkdirPath))
+	} else if ok {
+		return srv_base_types.NewError(http.StatusBadRequest, "creating module failed", fmt.Errorf("'%s' already exists", id))
+	}
+	err := copyDir(srcPath, dstPath)
+	if err != nil {
+		if e := os.RemoveAll(dstPath); e != nil {
+			srv_base.Logger.Errorf("cleanup failed: ", e)
+		}
+		return srv_base_types.NewError(http.StatusInternalServerError, "creating module failed: cp returned", err)
+	}
+	return nil
+}
+
+func copyDir(src string, dst string) error {
+	cmd := exec.Command("cp", "-R", "--no-dereference", "--preserve=mode,timestamps", "--no-preserve=context,links,xattr", src, dst)
 	return cmd.Run()
 }
 
