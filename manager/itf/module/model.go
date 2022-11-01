@@ -37,6 +37,11 @@ type SrvDepCondition string
 
 type ResourceType string
 
+type ModFile struct {
+	ModFileVersion string `yaml:"modfileVersion"`
+	Module
+}
+
 type Module struct {
 	ID             ModuleID                      `json:"id" yaml:"id"`                          // url without schema (e.g. github.com/user/repo)
 	Name           string                        `json:"name" yaml:"name"`                      // module name
