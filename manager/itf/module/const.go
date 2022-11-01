@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package modfile
+package module
 
 import "github.com/SENERGY-Platform/mgw-container-engine-manager-lib/cem-lib"
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package modfile
+package module
 
 import (
 	"code.cloudfoundry.org/bytefmt"
