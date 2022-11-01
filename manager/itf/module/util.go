@@ -208,11 +208,29 @@ func (v *ConfigValue) parse(tcv tmpConfigValue) error {
 	}
 	if tcv.Type == IntData {
 		if tcv.Value != nil {
-			tcv.Value = toInt(tcv.Value)
+			if f, ok := tcv.Value.(float64); ok {
+				tcv.Value = int64(f)
+			}
 		}
-		if tcv.Options != nil && len(tcv.Options) > 0 {
+		if tcv.Options != nil {
 			for i := 0; i < len(tcv.Options); i++ {
-				tcv.Options[i] = toInt(tcv.Options[i])
+				if f, ok := tcv.Options[i].(float64); ok {
+					tcv.Options[i] = int64(f)
+				}
+			}
+		}
+	}
+	if tcv.Type == FloatData {
+		if tcv.Value != nil {
+			if f, ok := tcv.Value.(int); ok {
+				tcv.Value = float64(f)
+			}
+		}
+		if tcv.Options != nil {
+			for i := 0; i < len(tcv.Options); i++ {
+				if f, ok := tcv.Options[i].(int); ok {
+					tcv.Options[i] = float64(f)
+				}
 			}
 		}
 	}
