@@ -16,12 +16,12 @@
 
 package itf
 
-import "module-manager/manager/itf/modfile"
+import "module-manager/manager/itf/module"
 
 type ModuleStorageHandler interface {
-	List() ([]modfile.Module, error)
+	List() ([]module.Module, error)
 	Create(srcPath string) error
-	Read(id string) (modfile.Module, error)
+	Read(id string) (module.Module, error)
 	Delete(id string) error
 	Copy(id string, dstPath string) error
 }
