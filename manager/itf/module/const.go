@@ -18,7 +18,9 @@ package module
 
 import "github.com/SENERGY-Platform/mgw-container-engine-manager-lib/cem-lib"
 
-const ModFile = "Modfile"
+const ModFileName = "Modfile"
+
+var ModFileExtensions = []string{"yaml", "yml"}
 
 const (
 	AddOnModule           ModuleType = "add-on"
