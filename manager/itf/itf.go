@@ -20,10 +20,10 @@ import "module-manager/manager/itf/module"
 
 type ModuleStorageHandler interface {
 	List() ([]module.Module, error)
-	Create(srcPath string) error
 	Read(id string) (module.Module, error)
 	Delete(id string) error
-	Copy(id string, dstPath string) error
+	CopyTo(id string, dstPath string) error
+	CopyFrom(id string, srcPath string) error
 }
 
 type Target interface {
