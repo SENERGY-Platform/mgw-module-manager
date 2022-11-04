@@ -16,11 +16,22 @@
 
 package itf
 
-import "module-manager/manager/itf/module"
+import (
+	"io"
+	"module-manager/manager/itf/module"
+)
 
-type ModuleStorageHandler interface {
+type ModuleHandler interface {
 	List() ([]module.Module, error)
 	Read(id string) (module.Module, error)
+	Add(id string) error
+	Delete(id string) error
+	Update(id string) error
+}
+
+type ModuleStorageHandler interface {
+	List() ([]string, error)
+	Open(id string) (io.ReadCloser, error)
 	Delete(id string) error
 	CopyTo(id string, dstPath string) error
 	CopyFrom(id string, srcPath string) error
