@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-package itf
+package modfile
 
-import "module-manager/manager/itf/module"
+const ModFileName = "Modfile"
 
-type ModuleStorageHandler interface {
-	List() ([]module.Module, error)
-	Read(id string) (module.Module, error)
-	Delete(id string) error
-	CopyTo(id string, dstPath string) error
-	CopyFrom(id string, srcPath string) error
-}
+var ModFileExtensions = []string{"yaml", "yml"}

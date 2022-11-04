@@ -22,11 +22,8 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"math"
-	"strconv"
 	"strings"
 )
-
-type tmpConfigValue ConfigValue
 
 type dataTypeValidator func(i any) bool
 
@@ -119,16 +116,16 @@ func (d *DeploymentType) UnmarshalYAML(yn *yaml.Node) (err error) {
 	return d.parse(s)
 }
 
-func (i *ModuleID) parse(s string) error {
+func (i *ID) parse(s string) error {
 	if !strings.Contains(s, "/") || strings.Contains(s, "//") || strings.HasPrefix(s, "/") {
 		return fmt.Errorf("invalid module ID format '%s'", s)
 	} else {
-		*i = ModuleID(s)
+		*i = ID(s)
 	}
 	return nil
 }
 
-func (i *ModuleID) UnmarshalJSON(b []byte) (err error) {
+func (i *ID) UnmarshalJSON(b []byte) (err error) {
 	var s string
 	if err = json.Unmarshal(b, &s); err != nil {
 		return
@@ -136,7 +133,7 @@ func (i *ModuleID) UnmarshalJSON(b []byte) (err error) {
 	return i.parse(s)
 }
 
-func (i *ModuleID) UnmarshalYAML(yn *yaml.Node) (err error) {
+func (i *ID) UnmarshalYAML(yn *yaml.Node) (err error) {
 	var s string
 	if err = yn.Decode(&s); err != nil {
 		return
@@ -194,135 +191,6 @@ func (d *DataType) UnmarshalYAML(yn *yaml.Node) (err error) {
 	return d.parse(s)
 }
 
-func (v *ConfigValue) parse(tcv tmpConfigValue) error {
-	validator := dataTypeValidatorMap[tcv.Type]
-	if tcv.Value != nil && !validator(tcv.Value) {
-		return fmt.Errorf("invalid type: config 'value' must be of '%s'", tcv.Type)
-	}
-	if tcv.Options != nil && len(tcv.Options) > 0 {
-		for _, option := range tcv.Options {
-			if !validator(option) {
-				return fmt.Errorf("invalid type: config 'options' must contain values of '%s'", tcv.Type)
-			}
-		}
-	}
-	if tcv.Type == IntData {
-		if tcv.Value != nil {
-			if f, ok := tcv.Value.(float64); ok {
-				tcv.Value = int64(f)
-			}
-		}
-		if tcv.Options != nil {
-			for i := 0; i < len(tcv.Options); i++ {
-				if f, ok := tcv.Options[i].(float64); ok {
-					tcv.Options[i] = int64(f)
-				}
-			}
-		}
-	}
-	if tcv.Type == FloatData {
-		if tcv.Value != nil {
-			if f, ok := tcv.Value.(int); ok {
-				tcv.Value = float64(f)
-			}
-		}
-		if tcv.Options != nil {
-			for i := 0; i < len(tcv.Options); i++ {
-				if f, ok := tcv.Options[i].(int); ok {
-					tcv.Options[i] = float64(f)
-				}
-			}
-		}
-	}
-	*v = ConfigValue(tcv)
-	return nil
-}
-
-func (v *ConfigValue) UnmarshalJSON(b []byte) (err error) {
-	var tcv tmpConfigValue
-	if err = json.Unmarshal(b, &tcv); err != nil {
-		return
-	}
-	return v.parse(tcv)
-}
-
-func (v *ConfigValue) UnmarshalYAML(yn *yaml.Node) (err error) {
-	var tcv tmpConfigValue
-	if err = yn.Decode(&tcv); err != nil {
-		return
-	}
-	return v.parse(tcv)
-}
-
-func (p *Port) parse(itf any) error {
-	switch v := itf.(type) {
-	case int:
-		*p = Port(strconv.FormatInt(int64(v), 10))
-	case float64:
-		if _, f := math.Modf(v); f > 0 {
-			return fmt.Errorf("invlid port: %v", v)
-		}
-		*p = Port(strconv.FormatInt(int64(v), 10))
-	case string:
-		parts := strings.Split(v, "-")
-		if len(parts) > 2 {
-			return fmt.Errorf("invalid port range: %s", v)
-		}
-		for i := 0; i < len(parts); i++ {
-			_, err := strconv.ParseInt(parts[i], 10, 64)
-			if err != nil {
-				return fmt.Errorf("invalid port: %s", v)
-			}
-		}
-		*p = Port(v)
-	default:
-		return fmt.Errorf("invlid port: %v", v)
-	}
-	return nil
-}
-
-func (p *Port) IsRange() bool {
-	if strings.Contains(string(*p), "-") {
-		return true
-	}
-	return false
-}
-
-func (p *Port) Range() (ports []int) {
-	parts := strings.Split(string(*p), "-")
-	start, _ := strconv.ParseInt(parts[0], 10, 64)
-	if len(parts) > 1 {
-		end, _ := strconv.ParseInt(parts[1], 10, 64)
-		for i := start; i <= end; i++ {
-			ports = append(ports, int(i))
-		}
-	} else {
-		ports = append(ports, int(start))
-	}
-	return
-}
-
-func (p *Port) Int() int {
-	i, _ := strconv.ParseInt(string(*p), 10, 64)
-	return int(i)
-}
-
-func (p *Port) UnmarshalJSON(b []byte) (err error) {
-	var itf any
-	if err = json.Unmarshal(b, &itf); err != nil {
-		return
-	}
-	return p.parse(itf)
-}
-
-func (p *Port) UnmarshalYAML(yn *yaml.Node) (err error) {
-	var itf any
-	if err = yn.Decode(&itf); err != nil {
-		return
-	}
-	return p.parse(itf)
-}
-
 func (fb *ByteFmt) parse(itf any) error {
 	switch v := itf.(type) {
 	case int:
@@ -358,20 +226,4 @@ func (fb *ByteFmt) UnmarshalYAML(yn *yaml.Node) (err error) {
 		return
 	}
 	return fb.parse(itf)
-}
-
-func (rtb ResourceTargetBase) Values() (values []string) {
-	values = append(values, rtb.MountPoint)
-	if rtb.Services != nil {
-		values = append(values, rtb.Services...)
-	}
-	return
-}
-
-func (ct ConfigTarget) Values() (values []string) {
-	values = append(values, ct.RefVar)
-	if ct.Services != nil {
-		values = append(values, ct.Services...)
-	}
-	return
 }

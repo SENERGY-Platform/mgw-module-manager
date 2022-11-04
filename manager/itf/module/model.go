@@ -21,7 +21,7 @@ import (
 	"module-manager/manager/util"
 )
 
-type ModuleID string
+type ID string
 
 type ModuleType string
 
@@ -29,92 +29,92 @@ type DeploymentType string
 
 type ByteFmt uint64
 
-type Port string
-
 type DataType string
 
 type SrvDepCondition string
 
-type ResourceType string
-
-type ModFile struct {
-	ModFileVersion string `yaml:"modfileVersion"`
-	Module
+type Base struct {
+	ID             ID              `json:"id" yaml:"id"`                          // url without schema (e.g. github.com/user/repo)
+	Name           string          `json:"name" yaml:"name"`                      // module name
+	Description    string          `json:"description" yaml:"description"`        // short text describing the module
+	License        string          `json:"license" yaml:"license"`                // module license name (e.g. Apache License 2.0)
+	Author         string          `json:"author" yaml:"author"`                  // module author
+	Version        util.SemVersion `json:"version" yaml:"version"`                // module version (must be prefixed with 'v' and adhere to the semantic versioning guidelines, see https://semver.org/ for details)
+	Type           ModuleType      `json:"type" yaml:"type"`                      // module type (e.g. device-connector specifies a module for integrating devices)
+	DeploymentType DeploymentType  `json:"deployment_type" yaml:"deploymentType"` // specifies whether a module can only be deployed once or multiple times
 }
 
 type Module struct {
-	ID             ModuleID                      `json:"id" yaml:"id"`                          // url without schema (e.g. github.com/user/repo)
-	Name           string                        `json:"name" yaml:"name"`                      // module name
-	Description    string                        `json:"description" yaml:"description"`        // short text describing the module
-	License        string                        `json:"license" yaml:"license"`                // module license name (e.g. Apache License 2.0)
-	Author         string                        `json:"author" yaml:"author"`                  // module author
-	Version        util.SemVersion               `json:"version" yaml:"version"`                // module version (must be prefixed with 'v' and adhere to the semantic versioning guidelines, see https://semver.org/ for details)
-	Type           ModuleType                    `json:"type" yaml:"type"`                      // module type (e.g. device-connector specifies a module for integrating devices)
-	DeploymentType DeploymentType                `json:"deployment_type" yaml:"deploymentType"` // specifies whether a module can only be deployed once or multiple times
-	Services       map[string]Service            `json:"services" yaml:"services"`              // map depicting the services the module consists of (keys serve as unique identifiers and can be reused elsewhere in the modfile to reference a service)
-	Volumes        map[string][]VolumeTarget     `json:"volumes" yaml:"volumes"`                // map linking volumes to mount points (keys represent volume names)
-	Dependencies   map[ModuleID]ModuleDependency `json:"dependencies" yaml:"dependencies"`      // external modules required by the module (keys represent module IDs)
-	Resources      []Resource                    `json:"resources" yaml:"resources"`            // host resources required by services (e.g. devices, sockets, ...)
-	Secrets        []Secret                      `json:"secrets" yaml:"secrets"`                // secrets required by services (e.g. certs, keys, ...)
-	Configs        []ConfigValue                 `json:"configs" yaml:"configs"`                // configuration values required by services
-	InputGroups    map[string]InputGroup         `json:"input_groups" yaml:"inputGroups"`       // map of groups for categorising user inputs (keys serve as unique identifiers and can be reused elsewhere in the modfile to reference a group)
+	Base
+	Services     map[string]*Service     `json:"services"`     // {srvName:Service}
+	Volumes      []string                `json:"volumes"`      // {volName}
+	Dependencies map[ID]ModuleDependency `json:"dependencies"` // {moduleID:ModuleDependency}
+	Resources    map[string]Resource     `json:"resources"`    // {ref:Resource}
+	Secrets      map[string]Secret       `json:"secrets"`      // {ref:Secret}
+	Configs      map[string]ConfigValue  `json:"configs"`      // {ref:ConfigValue}
+}
+
+type ServiceBase struct {
+	Name      string            `json:"name" yaml:"name"`            // service name
+	Image     string            `json:"image" yaml:"image"`          // container image (must be versioned via tag or digest, e.g. srv-image:v1.0.0)
+	RunConfig cem_lib.RunConfig `json:"run_config" yaml:"runConfig"` // configurations for running the service container (e.g. restart strategy, stop timeout, ...)
 }
 
 type Service struct {
-	Name          string                             `json:"name" yaml:"name"`                    // service name
-	Image         string                             `json:"image" yaml:"image"`                  // container image (must be versioned via tag or digest, e.g. srv-image:v1.0.0)
-	Include       []BindMount                        `json:"include" yaml:"include"`              // files or dictionaries to be mounted from module repository
-	Tmpfs         []TmpfsMount                       `json:"tmpfs" yaml:"tmpfs"`                  // temporary file systems (in memory) required by the service
-	HttpEndpoints []HttpEndpoint                     `json:"http_endpoints" yaml:"httpEndpoints"` // http endpoints of the service to be exposed via the api gateway
-	PortMappings  []PortMapping                      `json:"port_mappings" yaml:"portMappings"`   // service ports to be published on the host
-	Dependencies  map[string]ServiceDependencyTarget `json:"dependencies" yaml:"dependencies"`    // map depicting internal service dependencies (identifiers defined in Module.Services serve as keys)
-	RunConfig     cem_lib.RunConfig                  `json:"run_config" yaml:"runConfig"`         // configurations for running the service container (e.g. restart strategy, stop timeout, ...)
+	ServiceBase
+	Include              map[string]BindMount                `json:"include"`               // {mntPoint:BindMount}
+	Tmpfs                map[string]TmpfsMount               `json:"tmpfs"`                 // {mntPoint:TmpfsMount}
+	Volumes              map[string]string                   `json:"volumes"`               // {mntPoint:volName}
+	Resources            map[string]ResourceTarget           `json:"resources"`             // {mntPoint:ResourceTarget}
+	Secrets              map[string]string                   `json:"secrets"`               // {mntPoint:ref}
+	Configs              map[string]string                   `json:"configs"`               // {refVar:ref}
+	HttpEndpoints        map[string]HttpEndpoint             `json:"http_endpoints"`        // {path:HttpEndpoint}
+	Dependencies         map[string]ServiceDependencyTarget  `json:"dependencies"`          // {refVar:ServiceDependencyTarget}
+	ExternalDependencies map[string]ExternalDependencyTarget `json:"external_dependencies"` // {refVar:ExternalDependencyTarget}
+	PortMappings         []PortMapping                       `json:"port_mappings"`
 }
 
 type BindMount struct {
-	MountPoint string `json:"mount_point" yaml:"mountPoint"` // absolute path in container
-	Source     string `json:"source" yaml:"source"`          // relative path in module repo
-	ReadOnly   bool   `json:"read_only" yaml:"readOnly"`
+	Source   string `json:"source" yaml:"source"` // relative path in module repo
+	ReadOnly bool   `json:"read_only" yaml:"readOnly"`
 }
 
 type TmpfsMount struct {
-	MountPoint string            `json:"mount_point" yaml:"mountPoint"` // absolute path in container
-	Size       ByteFmt           `json:"size" yaml:"size"`              // tmpfs size in bytes provided as integer or in human-readable form (e.g. 64Mb)
-	Mode       *cem_lib.FileMode `json:"mode" yaml:"mode"`              // linux file mode to be used for the tmpfs provided as string (e.g. 777, 0777)
+	Size ByteFmt           `json:"size" yaml:"size"` // tmpfs size in bytes provided as integer or in human-readable form (e.g. 64Mb)
+	Mode *cem_lib.FileMode `json:"mode" yaml:"mode"` // linux file mode to be used for the tmpfs provided as string (e.g. 777, 0777)
 }
 
 type HttpEndpoint struct {
 	Name   string  `json:"name" yaml:"name"`      // endpoint name
 	Port   *int    `json:"port" yaml:"port"`      // port the service is listening on (defaults to 80 if nil)
-	Path   string  `json:"path" yaml:"path"`      // absolute path for the endpoint
 	GwPath *string `json:"gw_path" yaml:"gwPath"` // optional relative path to be used by the api gateway
 }
 
 type PortMapping struct {
-	Name     *string           `json:"name" yaml:"name"`          // port name
-	Port     Port              `json:"port" yaml:"port"`          // port number provided as integer / string or port range provided as string (e.g. 8080-8081)
-	HostPort *Port             `json:"host_port" yaml:"hostPort"` // port number provided as integer / string or port range provided as string (e.g. 8080-8081), can be overridden during deployment to avoid collisions (arbitrary ports are used if nil)
-	Protocol *cem_lib.PortType `json:"protocol" yaml:"protocol"`  // specify port protocol (defaults to tcp if nil)
+	Name     *string           `json:"name"`
+	Port     []int             `json:"port"`
+	HostPort []int             `json:"host_port"`
+	Protocol *cem_lib.PortType `json:"protocol"`
 }
 
 type ServiceDependencyTarget struct {
-	RefVar    string          `json:"ref_var" yaml:"refVar"`      // environment variable to hold the addressable reference of the required service
-	Condition SrvDepCondition `json:"condition" yaml:"condition"` // running state of the required service
+	Service   string          `json:"service"`
+	Condition SrvDepCondition `json:"condition"`
 }
 
-type VolumeTarget struct {
-	MountPoint string   `json:"mount_point" yaml:"mountPoint"` // absolute path in container
-	Services   []string `json:"services" yaml:"services"`      // service identifiers as used in Module.Services to map the mount point to a number of services
+type ExternalDependencyTarget struct {
+	ID      ID     `json:"id"`
+	Service string `json:"service"`
 }
 
 type ModuleDependency struct {
-	Version          util.SemVersionRange                `json:"version" yaml:"version"`                    // version of required module (e.g. =v1.0.2, >v1.0.2., >=v1.0.2, >v1.0.2;<v2.1.3, ...)
-	RequiredServices map[string][]ModuleDependencyTarget `json:"required_services" yaml:"requiredServices"` // map linking required services to reference variables (identifiers as defined in Module.Services of the required module are used as keys)
+	Version          util.SemVersionRange `json:"version"`
+	RequiredServices []string             `json:"required_services"` // {srvName}
 }
 
-type ModuleDependencyTarget struct {
-	RefVar   string   `json:"ref_var" yaml:"refVar"`    // container environment variable to hold the addressable reference of the external service
-	Services []string `json:"services" yaml:"services"` // service identifiers as used in Module.Services to map the reference variable to a number of services
+type ResourceTarget struct {
+	Reference string `json:"reference"`
+	ReadOnly  bool   `json:"read_only"`
 }
 
 type ResourceBase struct {
@@ -122,39 +122,21 @@ type ResourceBase struct {
 	Tags []string `json:"tags" yaml:"tags"` // tags for aiding resource identification (e.g. a vendor), unique type and tag combinations can be used to select resources without requiring user interaction
 }
 
-type ResourceTargetBase struct {
-	MountPoint string   `json:"mount_point" yaml:"mountPoint"` // absolute path in container
-	Services   []string `json:"services" yaml:"services"`      // service identifiers as used in Module.Services to map the mount point to a number of services
-}
-
-type ResourceTarget struct {
-	ResourceTargetBase `yaml:",inline"`
-	ReadOnly           bool `json:"read_only" yaml:"readOnly"` // if true resource will be mounted as read only
-}
-
 type Resource struct {
 	ResourceBase `yaml:",inline"`
-	Targets      []ResourceTarget `json:"targets" yaml:"targets"`      // mount points for the resource
-	UserInput    *UserInputBase   `json:"user_input" yaml:"userInput"` // definitions for user input via gui (if nil the type and tag combination must yield a single resource)
+	UserInput    *UserInputBase `json:"user_input" yaml:"userInput"` // definitions for user input via gui (if nil the type and tag combination must yield a single resource)
 }
 
 type Secret struct {
 	ResourceBase `yaml:",inline"`
-	Targets      []ResourceTargetBase `json:"targets" yaml:"targets"`      // mount points for the secret
-	UserInput    *UserInput           `json:"user_input" yaml:"userInput"` // definitions for user input via gui (if nil the type and tag combination must yield a single secret)
+	UserInput    *UserInput `json:"user_input" yaml:"userInput"` // definitions for user input via gui (if nil the type and tag combination must yield a single secret)
 }
 
 type ConfigValue struct {
-	Value     any            `json:"value" yaml:"value"`          // default configuration value or nil
-	Options   []any          `json:"options" yaml:"options"`      // list of possible configuration values
-	Type      DataType       `json:"type" yaml:"type"`            // data type of the configuration value
-	Targets   []ConfigTarget `json:"targets" yaml:"targets"`      // reference variables for the configuration value
-	UserInput *UserInput     `json:"user_input" yaml:"userInput"` // definitions for user input via gui (if nil a default value must be set)
-}
-
-type ConfigTarget struct {
-	RefVar   string   `json:"ref_var" yaml:"refVar"`    // container environment variable to hold the configuration value
-	Services []string `json:"services" yaml:"services"` // service identifiers as used in Module.Services to map the reference variable to a number of services
+	Value     any        `json:"value" yaml:"value"`          // default configuration value or nil
+	Options   []any      `json:"options" yaml:"options"`      // list of possible configuration values
+	Type      DataType   `json:"type" yaml:"type"`            // data type of the configuration value
+	UserInput *UserInput `json:"user_input" yaml:"userInput"` // definitions for user input via gui (if nil a default value must be set)
 }
 
 type UserInputBase struct {
