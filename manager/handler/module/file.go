@@ -20,11 +20,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/go-service-base/srv-base"
-	"github.com/SENERGY-Platform/go-service-base/srv-base/types"
-	"gopkg.in/yaml.v3"
+	"io"
 	"module-manager/manager/itf"
 	"module-manager/manager/itf/module"
-	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -46,45 +44,39 @@ func NewFileHandler(workdirPath string, delimiter string) (itf.ModuleStorageHand
 	return fh, nil
 }
 
-func (h *FileHandler) List() ([]module.Module, error) {
-	var modules []module.Module
+func (h *FileHandler) List() ([]string, error) {
+	var mIds []string
 	de, err := os.ReadDir(h.WorkdirPath)
 	if err != nil {
-		return modules, srv_base_types.NewError(http.StatusInternalServerError, "listing modules failed", removeStrFromErr(err, h.WorkdirPath))
+		return mIds, newErr(h.WorkdirPath, err)
 	}
 	for _, entry := range de {
 		if entry.IsDir() {
-			m, e := read(path.Join(h.WorkdirPath, entry.Name()))
-			if e != nil {
-				srv_base.Logger.Errorf("reading module '%s' failed: %s", dirToId(entry.Name(), h.Delimiter), removeStrFromErr(e, h.WorkdirPath))
-				continue
-			}
-			modules = append(modules, m)
+			mIds = append(mIds, dirToId(entry.Name(), h.Delimiter))
 		}
 	}
-	return modules, nil
+	return mIds, nil
 }
 
-func (h *FileHandler) Read(id string) (module.Module, error) {
-	m, err := read(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter)))
-	if err != nil {
-		code := http.StatusInternalServerError
-		if os.IsNotExist(err) {
-			code = http.StatusNotFound
-		}
-		return m, srv_base_types.NewError(code, fmt.Sprintf("reading module '%s' failed", id), removeStrFromErr(err, h.WorkdirPath))
+func (h *FileHandler) Open(id string) (io.ReadCloser, error) {
+	p := path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))
+	if _, err := os.Stat(p); err != nil {
+		return nil, newErr(h.WorkdirPath, err)
 	}
-	return m, nil
+	p, err := detectModFile(p)
+	if err != nil {
+		return nil, newErr(h.WorkdirPath, err)
+	}
+	f, e := os.Open(p)
+	if e != nil {
+		return nil, newErr(h.WorkdirPath, err)
+	}
+	return f, nil
 }
 
 func (h *FileHandler) Delete(id string) error {
-	err := os.RemoveAll(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter)))
-	if err != nil {
-		code := http.StatusInternalServerError
-		if os.IsNotExist(err) {
-			code = http.StatusNotFound
-		}
-		return srv_base_types.NewError(code, "deleting module failed", removeStrFromErr(err, h.WorkdirPath))
+	if err := os.RemoveAll(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))); err != nil {
+		return newErr(h.WorkdirPath, err)
 	}
 	return nil
 }
@@ -96,16 +88,16 @@ func (h *FileHandler) CopyTo(id string, dstPath string) error {
 func (h *FileHandler) CopyFrom(id string, srcPath string) error {
 	dstPath := path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))
 	if ok, err := checkIfExist(dstPath); err != nil {
-		return srv_base_types.NewError(http.StatusInternalServerError, "creating module failed", removeStrFromErr(err, h.WorkdirPath))
+		return newErr(h.WorkdirPath, err)
 	} else if ok {
-		return srv_base_types.NewError(http.StatusBadRequest, "creating module failed", fmt.Errorf("'%s' already exists", id))
+		return errors.New("already exists")
 	}
 	err := copyDir(srcPath, dstPath)
 	if err != nil {
 		if e := os.RemoveAll(dstPath); e != nil {
-			srv_base.Logger.Errorf("cleanup failed: ", e)
+			srv_base.Logger.Errorf("cleanup failed: %s", e)
 		}
-		return srv_base_types.NewError(http.StatusInternalServerError, "creating module failed: cp returned", err)
+		return fmt.Errorf("copy returned: %s", err)
 	}
 	return nil
 }
@@ -113,25 +105,6 @@ func (h *FileHandler) CopyFrom(id string, srcPath string) error {
 func copyDir(src string, dst string) error {
 	cmd := exec.Command("cp", "-R", "--no-dereference", "--preserve=mode,timestamps", "--no-preserve=context,links,xattr", src, dst)
 	return cmd.Run()
-}
-
-func read(p string) (m module.Module, err error) {
-	p, err = detectModFile(p)
-	if err != nil {
-		return
-	}
-	f, e := os.Open(p)
-	if e != nil {
-		return
-	}
-	defer f.Close()
-	yd := yaml.NewDecoder(f)
-	err = yd.Decode(&m)
-	return
-}
-
-func removeStrFromErr(err error, str string) error {
-	return errors.New(strings.Replace(err.Error(), str, "", -1))
 }
 
 func idToDir(id string, delimiter string) string {
