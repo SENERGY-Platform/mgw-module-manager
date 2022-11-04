@@ -165,3 +165,23 @@ func detectModFile(p string) (string, error) {
 	}
 	return "", errors.New("modfile not found")
 }
+
+type FileHandlerErr struct {
+	str string
+	err error
+}
+
+func newErr(str string, err error) error {
+	return &FileHandlerErr{
+		str: str,
+		err: err,
+	}
+}
+
+func (e *FileHandlerErr) Error() string {
+	return strings.Replace(e.err.Error(), e.str, "", -1)
+}
+
+func (e *FileHandlerErr) Unwrap() error {
+	return e.err
+}
