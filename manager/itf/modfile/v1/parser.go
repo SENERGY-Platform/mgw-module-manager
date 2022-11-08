@@ -44,12 +44,16 @@ func ParseModule(mfModule Module) (module.Module, error) {
 	if err != nil {
 		return m, err
 	}
+	configs, err := parseModuleConfigs(mfModule.Configs, services)
+	if err != nil {
+		return m, err
+	}
 	m.Services = services
 	m.Volumes = volumes
 	m.Dependencies = dependencies
 	m.Resources = resources
 	m.Secrets = secrets
-	m.Configs = nil
+	m.Configs = configs
 	return m, nil
 }
 
@@ -320,6 +324,37 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module
 			secrets[ref] = mfSecret.Secret
 		}
 		return secrets, nil
+	}
+	return nil, nil
+}
+
+func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*module.Service) (map[string]module.ConfigValue, error) {
+	if mfConfigs != nil && len(mfConfigs) > 0 {
+		configs := make(map[string]module.ConfigValue)
+		for ref, mfConfig := range mfConfigs {
+			if mfConfig.Targets != nil && len(mfConfig.Targets) > 0 {
+				for _, mfTarget := range mfConfig.Targets {
+					if mfTarget.Services != nil && len(mfTarget.Services) > 0 {
+						for _, srv := range mfTarget.Services {
+							if v, ok := services[srv]; ok {
+								if v.Configs == nil {
+									v.Configs = make(map[string]string)
+								}
+								if r, k := v.Configs[mfTarget.RefVar]; k {
+									if r == ref {
+										continue
+									}
+									return configs, fmt.Errorf("'%s' & '%s' -> '%s' -> '%s'", r, ref, srv, mfTarget.RefVar)
+								}
+								v.Configs[mfTarget.RefVar] = ref
+							}
+						}
+					}
+				}
+			}
+			configs[ref] = mfConfig.ConfigValue
+		}
+		return configs, nil
 	}
 	return nil, nil
 }
