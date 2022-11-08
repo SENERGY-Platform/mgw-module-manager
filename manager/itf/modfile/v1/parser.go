@@ -23,7 +23,7 @@ import (
 )
 
 func ParseModule(mfModule Module) (module.Module, error) {
-	m := module.Module{Base: mfModule.Base}
+	m := module.Module{Base: mfModule.Base, InputGroups: mfModule.InputGroups}
 	services, err := parseModuleServices(mfModule.Services)
 	if err != nil {
 		return m, err

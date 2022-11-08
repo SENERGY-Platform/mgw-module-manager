@@ -52,6 +52,7 @@ type Module struct {
 	Resources    map[string]Resource     `json:"resources"`    // {ref:Resource}
 	Secrets      map[string]Secret       `json:"secrets"`      // {ref:Secret}
 	Configs      map[string]ConfigValue  `json:"configs"`      // {ref:ConfigValue}
+	InputGroups  map[string]InputGroup   `json:"input_groups"` // {ref:InputGroup}
 }
 
 type ServiceBase struct {
