@@ -40,11 +40,15 @@ func ParseModule(mfModule Module) (module.Module, error) {
 	if err != nil {
 		return m, err
 	}
+	secrets, err := parseModuleSecrets(mfModule.Secrets, services)
+	if err != nil {
+		return m, err
+	}
 	m.Services = services
 	m.Volumes = volumes
 	m.Dependencies = dependencies
 	m.Resources = resources
-	m.Secrets = nil
+	m.Secrets = secrets
 	m.Configs = nil
 	return m, nil
 }
@@ -285,6 +289,37 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 			resources[ref] = mfResource.Resource
 		}
 		return resources, nil
+	}
+	return nil, nil
+}
+
+func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module.Service) (map[string]module.Secret, error) {
+	if mfSecrets != nil && len(mfSecrets) > 0 {
+		secrets := make(map[string]module.Secret)
+		for ref, mfSecret := range mfSecrets {
+			if mfSecret.Targets != nil && len(mfSecret.Targets) > 0 {
+				for _, mfTarget := range mfSecret.Targets {
+					if mfTarget.Services != nil && len(mfTarget.Services) > 0 {
+						for _, srv := range mfTarget.Services {
+							if v, ok := services[srv]; ok {
+								if v.Secrets == nil {
+									v.Secrets = make(map[string]string)
+								}
+								if r, k := v.Secrets[mfTarget.MountPoint]; k {
+									if r == ref {
+										continue
+									}
+									return secrets, fmt.Errorf("'%s' & '%s' -> '%s' -> '%s'", r, ref, srv, mfTarget.MountPoint)
+								}
+								v.Secrets[mfTarget.MountPoint] = ref
+							}
+						}
+					}
+				}
+			}
+			secrets[ref] = mfSecret.Secret
+		}
+		return secrets, nil
 	}
 	return nil, nil
 }
