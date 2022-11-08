@@ -17,213 +17,157 @@
 package module
 
 import (
-	"code.cloudfoundry.org/bytefmt"
-	"encoding/json"
 	"fmt"
-	"gopkg.in/yaml.v3"
-	"math"
+	"golang.org/x/mod/semver"
 	"strings"
 )
 
-type dataTypeValidator func(i any) bool
-
-var dataTypeValidatorMap = map[DataType]dataTypeValidator{
-	TextData:  textDataValidator,
-	BoolData:  boolDataValidator,
-	IntData:   intDataValidator,
-	FloatData: floatDataValidator,
-}
-
-var textDataValidator dataTypeValidator = func(i any) (ok bool) {
-	_, ok = i.(string)
-	return
-}
-
-var boolDataValidator dataTypeValidator = func(i any) (ok bool) {
-	_, ok = i.(bool)
-	return
-}
-
-var intDataValidator dataTypeValidator = func(i any) bool {
-	if _, ok := i.(int); ok {
-		return true
-	}
-	if v, ok := i.(float64); ok {
-		if _, f := math.Modf(v); f == 0 {
-			return true
-		}
-	}
-	return false
-}
-
-var floatDataValidator dataTypeValidator = func(i any) bool {
-	if _, ok := i.(float64); ok {
-		return true
-	}
-	if _, ok := i.(int); ok {
+func IsValidModuleType(s string) bool {
+	if _, ok := ModuleTypeMap[s]; ok {
 		return true
 	}
 	return false
 }
 
-func (m *ModuleType) parse(s string) error {
-	if t, ok := ModuleTypeMap[s]; ok {
-		*m = t
-	} else {
-		return fmt.Errorf("unknown module type '%s'", s)
+func IsValidDeploymentType(s string) bool {
+	if _, ok := DeploymentTypeMap[s]; ok {
+		return true
 	}
-	return nil
+	return false
 }
 
-func (m *ModuleType) UnmarshalJSON(b []byte) (err error) {
-	var s string
-	if err = json.Unmarshal(b, &s); err != nil {
-		return
-	}
-	return m.parse(s)
-}
-
-func (m *ModuleType) UnmarshalYAML(yn *yaml.Node) (err error) {
-	var s string
-	if err = yn.Decode(&s); err != nil {
-		return
-	}
-	return m.parse(s)
-}
-
-func (d *DeploymentType) parse(s string) error {
-	if t, ok := DeploymentTypeMap[s]; ok {
-		*d = t
-	} else {
-		return fmt.Errorf("unknown deployment type '%s'", s)
-	}
-	return nil
-}
-
-func (d *DeploymentType) UnmarshalJSON(b []byte) (err error) {
-	var s string
-	if err = json.Unmarshal(b, &s); err != nil {
-		return
-	}
-	return d.parse(s)
-}
-
-func (d *DeploymentType) UnmarshalYAML(yn *yaml.Node) (err error) {
-	var s string
-	if err = yn.Decode(&s); err != nil {
-		return
-	}
-	return d.parse(s)
-}
-
-func (i *ID) parse(s string) error {
+func IsValidModuleID(s string) bool {
 	if !strings.Contains(s, "/") || strings.Contains(s, "//") || strings.HasPrefix(s, "/") {
-		return fmt.Errorf("invalid module ID format '%s'", s)
-	} else {
-		*i = ID(s)
+		return false
 	}
-	return nil
+	return true
 }
 
-func (i *ID) UnmarshalJSON(b []byte) (err error) {
-	var s string
-	if err = json.Unmarshal(b, &s); err != nil {
-		return
+func IsValidSrvDepCondition(s string) bool {
+	if _, ok := SrvDepConditionMap[s]; ok {
+		return true
 	}
-	return i.parse(s)
+	return false
 }
 
-func (i *ID) UnmarshalYAML(yn *yaml.Node) (err error) {
-	var s string
-	if err = yn.Decode(&s); err != nil {
-		return
+func IsValidDataType(s string) bool {
+	if _, ok := DataTypeMap[s]; ok {
+		return true
 	}
-	return i.parse(s)
+	return false
 }
 
-func (c *SrvDepCondition) parse(s string) error {
-	if t, ok := SrvDepConditionMap[s]; ok {
-		*c = t
-	} else {
-		return fmt.Errorf("unknown condition type '%s'", s)
+func IsValidSemVer(s string) bool {
+	if semver.IsValid(s) {
+		return true
 	}
-	return nil
+	return false
 }
 
-func (c *SrvDepCondition) UnmarshalJSON(b []byte) (err error) {
-	var s string
-	if err = json.Unmarshal(b, &s); err != nil {
-		return
-	}
-	return c.parse(s)
+const (
+	Greater      = ">"
+	Less         = "<"
+	Equal        = "="
+	GreaterEqual = ">="
+	LessEqual    = "<="
+)
+
+var OperatorMap = map[string]struct{}{
+	Greater:      {},
+	Less:         {},
+	Equal:        {},
+	GreaterEqual: {},
+	LessEqual:    {},
 }
 
-func (c *SrvDepCondition) UnmarshalYAML(yn *yaml.Node) (err error) {
-	var s string
-	if err = yn.Decode(&s); err != nil {
-		return
+func IsValidOperator(s string) bool {
+	if _, ok := OperatorMap[s]; ok {
+		return true
 	}
-	return c.parse(s)
+	return false
 }
 
-func (d *DataType) parse(s string) error {
-	if t, ok := DataTypeMap[s]; ok {
-		*d = t
-	} else {
-		return fmt.Errorf("unknown data type '%s'", s)
+func IsValidSemVerRange(s string) (bool, error) {
+	if _, _, err := parse(s); err != nil {
+		return false, err
 	}
-	return nil
+	return true, nil
 }
 
-func (d *DataType) UnmarshalJSON(b []byte) (err error) {
-	var s string
-	if err = json.Unmarshal(b, &s); err != nil {
-		return
+func InSemVerRange(r string, v string) (bool, error) {
+	opr, ver, err := parse(r)
+	if err != nil {
+		return false, err
 	}
-	return d.parse(s)
+	ok := check(opr[0], ver[0], v)
+	if ok && len(opr) > 1 && len(ver) > 1 {
+		ok = check(opr[1], ver[1], v)
+	}
+	return ok, nil
 }
 
-func (d *DataType) UnmarshalYAML(yn *yaml.Node) (err error) {
-	var s string
-	if err = yn.Decode(&s); err != nil {
-		return
-	}
-	return d.parse(s)
-}
-
-func (fb *ByteFmt) parse(itf any) error {
-	switch v := itf.(type) {
-	case int:
-		*fb = ByteFmt(v)
-	case float64:
-		if _, f := math.Modf(v); f > 0 {
-			return fmt.Errorf("invalid size: %v", v)
+func check(o string, w, v string) bool {
+	res := semver.Compare(v, w)
+	ok := false
+	switch res {
+	case -1:
+		if o == LessEqual || o == Less {
+			ok = true
 		}
-		*fb = ByteFmt(v)
-	case string:
-		bytes, err := bytefmt.ToBytes(v)
-		if err != nil {
-			return fmt.Errorf("invalid size: %s", err)
+	case 0:
+		if o == Equal || o == LessEqual || o == GreaterEqual {
+			ok = true
 		}
-		*fb = ByteFmt(bytes)
-	default:
-		return fmt.Errorf("invalid size: %v", v)
+	case 1:
+		if o == GreaterEqual || o == Greater {
+			ok = true
+		}
 	}
-	return nil
+	return ok
 }
 
-func (fb *ByteFmt) UnmarshalJSON(b []byte) (err error) {
-	var itf any
-	if err = json.Unmarshal(b, &itf); err != nil {
-		return
+func parsePart(s string) (string, string, error) {
+	pos := strings.Index(s, "v")
+	if pos < 1 || pos > 2 {
+		return "", "", fmt.Errorf("invalid format '%s'", s)
 	}
-	return fb.parse(itf)
+	if IsValidOperator(s[:pos]) {
+		if !semver.IsValid(s[pos:]) {
+			return "", "", fmt.Errorf("invalid version format '%s'", s[pos:])
+		}
+		return s[:pos], s[pos:], nil
+	}
+	return "", "", fmt.Errorf("invalid operator format '%s'", s[:pos])
 }
 
-func (fb *ByteFmt) UnmarshalYAML(yn *yaml.Node) (err error) {
-	var itf any
-	if err = yn.Decode(&itf); err != nil {
+func parse(s string) (opr []string, ver []string, err error) {
+	partsStr := strings.Split(s, ";")
+	if len(partsStr) > 2 {
+		err = fmt.Errorf("invalid format '%s'", s)
 		return
 	}
-	return fb.parse(itf)
+	for _, p := range partsStr {
+		o, v, e := parsePart(p)
+		if e != nil {
+			err = e
+			return
+		}
+		opr = append(opr, o)
+		ver = append(ver, v)
+	}
+	if len(opr) > 1 && len(ver) > 1 {
+		if opr[0] == Less || opr[0] == LessEqual || opr[0] == Equal {
+			err = fmt.Errorf("invalid operator order '%s' + '%s'", opr[0], opr[1])
+			return
+		}
+		if opr[1] == Greater || opr[1] == GreaterEqual || opr[1] == Equal {
+			err = fmt.Errorf("invalid operator order '%s' - '%s'", opr[0], opr[1])
+			return
+		}
+		if semver.Compare(ver[0], ver[1]) > -1 {
+			err = fmt.Errorf("invalid version order '%s' - '%s'", ver[0], ver[1])
+			return
+		}
+	}
+	return
 }

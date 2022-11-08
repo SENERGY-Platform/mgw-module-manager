@@ -16,52 +16,50 @@
 
 package module
 
-import "github.com/SENERGY-Platform/mgw-container-engine-manager-lib/cem-lib"
-
 const ModFileName = "Modfile"
 
 var ModFileExtensions = []string{"yaml", "yml"}
 
 const (
-	AddOnModule           ModuleType = "add-on"
-	DeviceConnectorModule ModuleType = "device-connector"
+	AddOnModule           = "add-on"
+	DeviceConnectorModule = "device-connector"
 )
 
-var ModuleTypeMap = map[string]ModuleType{
-	string(AddOnModule):           AddOnModule,
-	string(DeviceConnectorModule): DeviceConnectorModule,
+var ModuleTypeMap = map[string]struct{}{
+	AddOnModule:           {},
+	DeviceConnectorModule: {},
 }
 
 const (
-	SingleDeployment   DeploymentType = "single"
-	MultipleDeployment DeploymentType = "multiple"
+	SingleDeployment   = "single"
+	MultipleDeployment = "multiple"
 )
 
-var DeploymentTypeMap = map[string]DeploymentType{
-	string(SingleDeployment):   SingleDeployment,
-	string(MultipleDeployment): MultipleDeployment,
+var DeploymentTypeMap = map[string]struct{}{
+	SingleDeployment:   {},
+	MultipleDeployment: {},
 }
 
 const (
-	RunningCondition = SrvDepCondition(cem_lib.RunningState)
-	StoppedCondition = SrvDepCondition(cem_lib.StoppedState)
+	RunningCondition = "running"
+	StoppedCondition = "stopped"
 )
 
-var SrvDepConditionMap = map[string]SrvDepCondition{
-	string(RunningCondition): RunningCondition,
-	string(StoppedCondition): StoppedCondition,
+var SrvDepConditionMap = map[string]struct{}{
+	RunningCondition: {},
+	StoppedCondition: {},
 }
 
 const (
-	TextData  DataType = "https://schema.org/Text"
-	BoolData  DataType = "https://schema.org/Boolean"
-	IntData   DataType = "https://schema.org/Integer"
-	FloatData DataType = "https://schema.org/Float"
+	TextData  = "https://schema.org/Text"
+	BoolData  = "https://schema.org/Boolean"
+	IntData   = "https://schema.org/Integer"
+	FloatData = "https://schema.org/Float"
 )
 
-var DataTypeMap = map[string]DataType{
-	string(TextData):  TextData,
-	string(BoolData):  BoolData,
-	string(IntData):   IntData,
-	string(FloatData): FloatData,
+var DataTypeMap = map[string]struct{}{
+	TextData:  {},
+	BoolData:  {},
+	IntData:   {},
+	FloatData: {},
 }

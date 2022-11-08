@@ -19,11 +19,31 @@ package v1
 import (
 	"fmt"
 	"module-manager/manager/itf/module"
-	"reflect"
 )
 
 func ParseModule(mfModule Module) (module.Module, error) {
-	m := module.Module{Base: mfModule.Base, InputGroups: mfModule.InputGroups}
+	m := module.Module{
+		Name:        mfModule.Name,
+		Description: mfModule.Description,
+		License:     mfModule.License,
+		Author:      mfModule.Author,
+	}
+	if !module.IsValidModuleID(mfModule.ID) {
+		return m, fmt.Errorf("invalid module ID format '%s'", mfModule.ID)
+	}
+	m.ID = mfModule.ID
+	if !module.IsValidSemVer(mfModule.Version) {
+		return m, fmt.Errorf("invalid version format '%s'", mfModule.Version)
+	}
+	m.Version = mfModule.Version
+	if !module.IsValidModuleType(mfModule.Type) {
+		return m, fmt.Errorf("invalid module type '%s'", mfModule.Type)
+	}
+	m.Type = mfModule.Type
+	if !module.IsValidDeploymentType(mfModule.DeploymentType) {
+		return m, fmt.Errorf("invalid deployment type '%s'", mfModule.DeploymentType)
+	}
+	m.DeploymentType = mfModule.DeploymentType
 	services, err := parseModuleServices(mfModule.Services)
 	if err != nil {
 		return m, err
@@ -81,7 +101,9 @@ func parseModuleServices(mfServices map[string]Service) (map[string]*module.Serv
 			return services, fmt.Errorf("service '%s' invalid depency: %s", name, err)
 		}
 		services[name] = &module.Service{
-			ServiceBase:   mfService.ServiceBase,
+			Name:          mfService.Name,
+			Image:         mfService.Image,
+			RunConfig:     mfService.RunConfig,
 			Include:       include,
 			Tmpfs:         tmpfs,
 			HttpEndpoints: httpEndpoints,
@@ -97,12 +119,15 @@ func parseServiceInclude(mfInclude []BindMount) (map[string]module.BindMount, er
 		include := make(map[string]module.BindMount)
 		for _, mfBindMount := range mfInclude {
 			if v, ok := include[mfBindMount.MountPoint]; ok {
-				if reflect.DeepEqual(v, mfBindMount.BindMount) {
+				if v.Source == mfBindMount.Source && v.ReadOnly == mfBindMount.ReadOnly {
 					continue
 				}
 				return nil, fmt.Errorf("duplicate '%s'", mfBindMount.MountPoint)
 			}
-			include[mfBindMount.MountPoint] = mfBindMount.BindMount
+			include[mfBindMount.MountPoint] = module.BindMount{
+				Source:   mfBindMount.Source,
+				ReadOnly: mfBindMount.ReadOnly,
+			}
 		}
 		return include, nil
 	}
@@ -114,12 +139,15 @@ func parseServiceTmpfs(mfTmpfs []TmpfsMount) (map[string]module.TmpfsMount, erro
 		tmpfs := make(map[string]module.TmpfsMount)
 		for _, mfTmpf := range mfTmpfs {
 			if v, ok := tmpfs[mfTmpf.MountPoint]; ok {
-				if reflect.DeepEqual(v, mfTmpf.TmpfsMount) {
+				if v.Size == uint64(mfTmpf.Size) && v.Mode == mfTmpf.Mode {
 					continue
 				}
 				return nil, fmt.Errorf("duplicate '%s'", mfTmpf.MountPoint)
 			}
-			tmpfs[mfTmpf.MountPoint] = mfTmpf.TmpfsMount
+			tmpfs[mfTmpf.MountPoint] = module.TmpfsMount{
+				Size: uint64(mfTmpf.Size),
+				Mode: mfTmpf.Mode,
+			}
 		}
 		return tmpfs, nil
 	}
@@ -131,12 +159,16 @@ func parseServiceHttpEndpoints(mfHttpEndpoints []HttpEndpoint) (map[string]modul
 		httpEndpoints := make(map[string]module.HttpEndpoint)
 		for _, mfHttpEndpoint := range mfHttpEndpoints {
 			if v, ok := httpEndpoints[mfHttpEndpoint.Path]; ok {
-				if reflect.DeepEqual(v, mfHttpEndpoint.HttpEndpoint) {
+				if v.Name == mfHttpEndpoint.Name && v.Port == mfHttpEndpoint.Port && v.GwPath == mfHttpEndpoint.GwPath {
 					continue
 				}
 				return nil, fmt.Errorf("duplicate '%s'", mfHttpEndpoint.Path)
 			}
-			httpEndpoints[mfHttpEndpoint.Path] = mfHttpEndpoint.HttpEndpoint
+			httpEndpoints[mfHttpEndpoint.Path] = module.HttpEndpoint{
+				Name:   mfHttpEndpoint.Name,
+				Port:   mfHttpEndpoint.Port,
+				GwPath: mfHttpEndpoint.GwPath,
+			}
 		}
 		return httpEndpoints, nil
 	}
@@ -224,10 +256,13 @@ func parseModuleVolumes(mfVolumes map[string][]VolumeTarget, services map[string
 	return nil, nil
 }
 
-func parseModuleDependencies(mfModuleDependencies map[module.ID]ModuleDependency, services map[string]*module.Service) (map[module.ID]module.ModuleDependency, error) {
+func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, services map[string]*module.Service) (map[string]module.ModuleDependency, error) {
 	if mfModuleDependencies != nil && len(mfModuleDependencies) > 0 {
-		moduleDependencies := make(map[module.ID]module.ModuleDependency)
+		moduleDependencies := make(map[string]module.ModuleDependency)
 		for id, dependency := range mfModuleDependencies {
+			if !module.IsValidModuleID(id) {
+				return moduleDependencies, fmt.Errorf("invalid module ID format '%s'", id)
+			}
 			var rs []string
 			for rqSrv, mfTargets := range dependency.RequiredServices {
 				rs = append(rs, rqSrv)
@@ -290,7 +325,13 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 					}
 				}
 			}
-			resources[ref] = mfResource.Resource
+			resources[ref] = module.Resource{
+				ResourceBase: module.ResourceBase{
+					Type: mfResource.Type,
+					Tags: mfResource.Tags,
+				},
+				UserInput: mfResource.UserInput,
+			}
 		}
 		return resources, nil
 	}
@@ -321,7 +362,13 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module
 					}
 				}
 			}
-			secrets[ref] = mfSecret.Secret
+			secrets[ref] = module.Secret{
+				ResourceBase: module.ResourceBase{
+					Type: mfSecret.Type,
+					Tags: mfSecret.Tags,
+				},
+				UserInput: mfSecret.UserInput,
+			}
 		}
 		return secrets, nil
 	}
@@ -352,7 +399,12 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					}
 				}
 			}
-			configs[ref] = mfConfig.ConfigValue
+			configs[ref] = module.ConfigValue{
+				Value:     mfConfig.Value,
+				Options:   mfConfig.Options,
+				Type:      mfConfig.Type,
+				UserInput: mfConfig.UserInput,
+			}
 		}
 		return configs, nil
 	}

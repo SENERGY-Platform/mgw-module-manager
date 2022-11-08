@@ -17,117 +17,116 @@
 package v1
 
 import (
-	"encoding/json"
+	"code.cloudfoundry.org/bytefmt"
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"math"
-	"module-manager/manager/itf/module"
 	"strconv"
 	"strings"
 )
 
-type tmpConfigValue ConfigValue
-
-type dataTypeValidator func(i any) bool
-
-var dataTypeValidatorMap = map[module.DataType]dataTypeValidator{
-	module.TextData:  textDataValidator,
-	module.BoolData:  boolDataValidator,
-	module.IntData:   intDataValidator,
-	module.FloatData: floatDataValidator,
-}
-
-var textDataValidator dataTypeValidator = func(i any) (ok bool) {
-	_, ok = i.(string)
-	return
-}
-
-var boolDataValidator dataTypeValidator = func(i any) (ok bool) {
-	_, ok = i.(bool)
-	return
-}
-
-var intDataValidator dataTypeValidator = func(i any) bool {
-	if _, ok := i.(int); ok {
-		return true
-	}
-	if v, ok := i.(float64); ok {
-		if _, f := math.Modf(v); f == 0 {
-			return true
-		}
-	}
-	return false
-}
-
-var floatDataValidator dataTypeValidator = func(i any) bool {
-	if _, ok := i.(float64); ok {
-		return true
-	}
-	if _, ok := i.(int); ok {
-		return true
-	}
-	return false
-}
-
-func (v *ConfigValue) parse(tcv tmpConfigValue) error {
-	validator := dataTypeValidatorMap[tcv.Type]
-	if tcv.Value != nil && !validator(tcv.Value) {
-		return fmt.Errorf("invalid type: config 'value' must be of '%s'", tcv.Type)
-	}
-	if tcv.Options != nil && len(tcv.Options) > 0 {
-		for _, option := range tcv.Options {
-			if !validator(option) {
-				return fmt.Errorf("invalid type: config 'options' must contain values of '%s'", tcv.Type)
-			}
-		}
-	}
-	if tcv.Type == module.IntData {
-		if tcv.Value != nil {
-			if f, ok := tcv.Value.(float64); ok {
-				tcv.Value = int64(f)
-			}
-		}
-		if tcv.Options != nil {
-			for i := 0; i < len(tcv.Options); i++ {
-				if f, ok := tcv.Options[i].(float64); ok {
-					tcv.Options[i] = int64(f)
-				}
-			}
-		}
-	}
-	if tcv.Type == module.FloatData {
-		if tcv.Value != nil {
-			if f, ok := tcv.Value.(int); ok {
-				tcv.Value = float64(f)
-			}
-		}
-		if tcv.Options != nil {
-			for i := 0; i < len(tcv.Options); i++ {
-				if f, ok := tcv.Options[i].(int); ok {
-					tcv.Options[i] = float64(f)
-				}
-			}
-		}
-	}
-	*v = ConfigValue(tcv)
-	return nil
-}
-
-func (v *ConfigValue) UnmarshalJSON(b []byte) (err error) {
-	var tcv tmpConfigValue
-	if err = json.Unmarshal(b, &tcv); err != nil {
-		return
-	}
-	return v.parse(tcv)
-}
-
-func (v *ConfigValue) UnmarshalYAML(yn *yaml.Node) (err error) {
-	var tcv tmpConfigValue
-	if err = yn.Decode(&tcv); err != nil {
-		return
-	}
-	return v.parse(tcv)
-}
+//type tmpConfigValue ConfigValue
+//
+//type dataTypeValidator func(i any) bool
+//
+//var dataTypeValidatorMap = map[module.DataType]dataTypeValidator{
+//	module.TextData:  textDataValidator,
+//	module.BoolData:  boolDataValidator,
+//	module.IntData:   intDataValidator,
+//	module.FloatData: floatDataValidator,
+//}
+//
+//var textDataValidator dataTypeValidator = func(i any) (ok bool) {
+//	_, ok = i.(string)
+//	return
+//}
+//
+//var boolDataValidator dataTypeValidator = func(i any) (ok bool) {
+//	_, ok = i.(bool)
+//	return
+//}
+//
+//var intDataValidator dataTypeValidator = func(i any) bool {
+//	if _, ok := i.(int); ok {
+//		return true
+//	}
+//	if v, ok := i.(float64); ok {
+//		if _, f := math.Modf(v); f == 0 {
+//			return true
+//		}
+//	}
+//	return false
+//}
+//
+//var floatDataValidator dataTypeValidator = func(i any) bool {
+//	if _, ok := i.(float64); ok {
+//		return true
+//	}
+//	if _, ok := i.(int); ok {
+//		return true
+//	}
+//	return false
+//}
+//
+//func (v *ConfigValue) parse(tcv tmpConfigValue) error {
+//	validator := dataTypeValidatorMap[tcv.Type]
+//	if tcv.Value != nil && !validator(tcv.Value) {
+//		return fmt.Errorf("invalid type: config 'value' must be of '%s'", tcv.Type)
+//	}
+//	if tcv.Options != nil && len(tcv.Options) > 0 {
+//		for _, option := range tcv.Options {
+//			if !validator(option) {
+//				return fmt.Errorf("invalid type: config 'options' must contain values of '%s'", tcv.Type)
+//			}
+//		}
+//	}
+//	if tcv.Type == module.IntData {
+//		if tcv.Value != nil {
+//			if f, ok := tcv.Value.(float64); ok {
+//				tcv.Value = int64(f)
+//			}
+//		}
+//		if tcv.Options != nil {
+//			for i := 0; i < len(tcv.Options); i++ {
+//				if f, ok := tcv.Options[i].(float64); ok {
+//					tcv.Options[i] = int64(f)
+//				}
+//			}
+//		}
+//	}
+//	if tcv.Type == module.FloatData {
+//		if tcv.Value != nil {
+//			if f, ok := tcv.Value.(int); ok {
+//				tcv.Value = float64(f)
+//			}
+//		}
+//		if tcv.Options != nil {
+//			for i := 0; i < len(tcv.Options); i++ {
+//				if f, ok := tcv.Options[i].(int); ok {
+//					tcv.Options[i] = float64(f)
+//				}
+//			}
+//		}
+//	}
+//	*v = ConfigValue(tcv)
+//	return nil
+//}
+//
+//func (v *ConfigValue) UnmarshalJSON(b []byte) (err error) {
+//	var tcv tmpConfigValue
+//	if err = json.Unmarshal(b, &tcv); err != nil {
+//		return
+//	}
+//	return v.parse(tcv)
+//}
+//
+//func (v *ConfigValue) UnmarshalYAML(yn *yaml.Node) (err error) {
+//	var tcv tmpConfigValue
+//	if err = yn.Decode(&tcv); err != nil {
+//		return
+//	}
+//	return v.parse(tcv)
+//}
 
 func (p *Port) parse(itf any) error {
 	switch v := itf.(type) {
@@ -182,18 +181,39 @@ func (p *Port) Int() int {
 	return int(i)
 }
 
-func (p *Port) UnmarshalJSON(b []byte) (err error) {
-	var itf any
-	if err = json.Unmarshal(b, &itf); err != nil {
-		return
-	}
-	return p.parse(itf)
-}
-
 func (p *Port) UnmarshalYAML(yn *yaml.Node) (err error) {
 	var itf any
 	if err = yn.Decode(&itf); err != nil {
 		return
 	}
 	return p.parse(itf)
+}
+
+func (fb *ByteFmt) parse(itf any) error {
+	switch v := itf.(type) {
+	case int:
+		*fb = ByteFmt(v)
+	case float64:
+		if _, f := math.Modf(v); f > 0 {
+			return fmt.Errorf("invalid size: %v", v)
+		}
+		*fb = ByteFmt(v)
+	case string:
+		bytes, err := bytefmt.ToBytes(v)
+		if err != nil {
+			return fmt.Errorf("invalid size: %s", err)
+		}
+		*fb = ByteFmt(bytes)
+	default:
+		return fmt.Errorf("invalid size: %v", v)
+	}
+	return nil
+}
+
+func (fb *ByteFmt) UnmarshalYAML(yn *yaml.Node) (err error) {
+	var itf any
+	if err = yn.Decode(&itf); err != nil {
+		return
+	}
+	return fb.parse(itf)
 }
