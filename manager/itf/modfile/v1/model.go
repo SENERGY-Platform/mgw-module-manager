@@ -18,7 +18,6 @@ package v1
 
 import (
 	"github.com/SENERGY-Platform/mgw-container-engine-manager-lib/cem-lib"
-	"module-manager/manager/itf/module"
 )
 
 type Port string
@@ -26,21 +25,21 @@ type Port string
 type ByteFmt uint64
 
 type Module struct {
-	ID             string                       `yaml:"id"`             // url without schema (e.g. github.com/user/repo)
-	Name           string                       `yaml:"name"`           // module name
-	Description    string                       `yaml:"description"`    // short text describing the module
-	License        string                       `yaml:"license"`        // module license name (e.g. Apache License 2.0)
-	Author         string                       `yaml:"author"`         // module author
-	Version        string                       `yaml:"version"`        // module version (must be prefixed with 'v' and adhere to the semantic versioning guidelines, see https://semver.org/ for details)
-	Type           string                       `yaml:"type"`           // module type (e.g. device-connector specifies a module for integrating devices)
-	DeploymentType string                       `yaml:"deploymentType"` // specifies whether a module can only be deployed once or multiple times
-	Services       map[string]Service           `yaml:"services"`       // map depicting the services the module consists of (keys serve as unique identifiers and can be reused elsewhere in the modfile to reference a service)
-	Volumes        map[string][]VolumeTarget    `yaml:"volumes"`        // map linking volumes to mount points (keys represent volume names)
-	Dependencies   map[string]ModuleDependency  `yaml:"dependencies"`   // external modules required by the module (keys represent module IDs)
-	Resources      map[string]Resource          `yaml:"resources"`      // host resources required by services (e.g. devices, sockets, ...)
-	Secrets        map[string]Secret            `yaml:"secrets"`        // secrets required by services (e.g. certs, keys, ...)
-	Configs        map[string]ConfigValue       `yaml:"configs"`        // configuration values required by services
-	InputGroups    map[string]module.InputGroup `yaml:"inputGroups"`    // map of groups for categorising user inputs (keys serve as unique identifiers and can be reused elsewhere in the modfile to reference a group)
+	ID             string                      `yaml:"id"`             // url without schema (e.g. github.com/user/repo)
+	Name           string                      `yaml:"name"`           // module name
+	Description    string                      `yaml:"description"`    // short text describing the module
+	License        string                      `yaml:"license"`        // module license name (e.g. Apache License 2.0)
+	Author         string                      `yaml:"author"`         // module author
+	Version        string                      `yaml:"version"`        // module version (must be prefixed with 'v' and adhere to the semantic versioning guidelines, see https://semver.org/ for details)
+	Type           string                      `yaml:"type"`           // module type (e.g. device-connector specifies a module for integrating devices)
+	DeploymentType string                      `yaml:"deploymentType"` // specifies whether a module can only be deployed once or multiple times
+	Services       map[string]Service          `yaml:"services"`       // map depicting the services the module consists of (keys serve as unique identifiers and can be reused elsewhere in the modfile to reference a service)
+	Volumes        map[string][]VolumeTarget   `yaml:"volumes"`        // map linking volumes to mount points (keys represent volume names)
+	Dependencies   map[string]ModuleDependency `yaml:"dependencies"`   // external modules required by the module (keys represent module IDs)
+	Resources      map[string]Resource         `yaml:"resources"`      // host resources required by services (e.g. devices, sockets, ...)
+	Secrets        map[string]Secret           `yaml:"secrets"`        // secrets required by services (e.g. certs, keys, ...)
+	Configs        map[string]ConfigValue      `yaml:"configs"`        // configuration values required by services
+	InputGroups    map[string]InputGroup       `yaml:"inputGroups"`    // map of groups for categorising user inputs (keys serve as unique identifiers and can be reused elsewhere in the modfile to reference a group)
 }
 
 type Service struct {
@@ -111,28 +110,47 @@ type ResourceTarget struct {
 }
 
 type Resource struct {
-	Type      string                `yaml:"type"`      // resource type as defined by external services managing resources (e.g. serial-device, certificate, ...)
-	Tags      []string              `yaml:"tags"`      // tags for aiding resource identification (e.g. a vendor), unique type and tag combinations can be used to select resources without requiring user interaction
-	UserInput *module.UserInputBase `yaml:"userInput"` // definitions for user input via gui (if nil the type and tag combination must yield a single resource)
-	Targets   []ResourceTarget      `yaml:"targets"`   // mount points for the resource
+	Type      string           `yaml:"type"`      // resource type as defined by external services managing resources (e.g. serial-device, certificate, ...)
+	Tags      []string         `yaml:"tags"`      // tags for aiding resource identification (e.g. a vendor), unique type and tag combinations can be used to select resources without requiring user interaction
+	UserInput *UserInputBase   `yaml:"userInput"` // definitions for user input via gui (if nil the type and tag combination must yield a single resource)
+	Targets   []ResourceTarget `yaml:"targets"`   // mount points for the resource
 }
 
 type Secret struct {
 	Type      string               `yaml:"type"`      // resource type as defined by external services managing resources (e.g. serial-device, certificate, ...)
 	Tags      []string             `yaml:"tags"`      // tags for aiding resource identification (e.g. a vendor), unique type and tag combinations can be used to select resources without requiring user interaction
-	UserInput *module.UserInput    `yaml:"userInput"` // definitions for user input via gui (if nil the type and tag combination must yield a single secret)
+	UserInput *UserInput           `yaml:"userInput"` // definitions for user input via gui (if nil the type and tag combination must yield a single secret)
 	Targets   []ResourceTargetBase `yaml:"targets"`   // mount points for the secret
 }
 
 type ConfigValue struct {
-	Value     any               `yaml:"value"`     // default configuration value or nil
-	Options   []any             `yaml:"options"`   // list of possible configuration values
-	Type      string            `yaml:"type"`      // data type of the configuration value
-	UserInput *module.UserInput `yaml:"userInput"` // definitions for user input via gui (if nil a default value must be set)
-	Targets   []ConfigTarget    `yaml:"targets"`   // reference variables for the configuration value
+	Value     any            `yaml:"value"`     // default configuration value or nil
+	Options   []any          `yaml:"options"`   // list of possible configuration values
+	Type      string         `yaml:"type"`      // data type of the configuration value
+	UserInput *UserInput     `yaml:"userInput"` // definitions for user input via gui (if nil a default value must be set)
+	Targets   []ConfigTarget `yaml:"targets"`   // reference variables for the configuration value
 }
 
 type ConfigTarget struct {
 	RefVar   string   `yaml:"refVar"`   // container environment variable to hold the configuration value
 	Services []string `yaml:"services"` // service identifiers as used in Module.Services to map the reference variable to a number of services
+}
+
+type UserInputBase struct {
+	Name        string  `yaml:"name"`        // input name (e.g. used as a label for input field)
+	Description *string `yaml:"description"` // short text describing the input
+	Required    bool    `yaml:"required"`    // if true a user interaction is required
+	Group       *string `yaml:"group"`       // group identifier as used in Module.InputGroups to assign the user input to an input group
+}
+
+type UserInput struct {
+	UserInputBase `yaml:",inline"`
+	Type          string         `yaml:"type"`        // type of the input (e.g. text, number, password, drop-down ...)
+	Constraints   map[string]any `yaml:"constraints"` // constraints supported or required by the input type
+}
+
+type InputGroup struct {
+	Name        string  `yaml:"name"`        // input group name
+	Description *string `yaml:"description"` // short text describing the input group
+	Group       *string `yaml:"group"`       // group identifier as used in Module.InputGroups to assign the input group to a parent group
 }

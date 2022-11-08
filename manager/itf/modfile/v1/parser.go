@@ -56,15 +56,15 @@ func ParseModule(mfModule Module) (module.Module, error) {
 	if err != nil {
 		return m, err
 	}
-	resources, err := parseModuleResources(mfModule.Resources, services)
+	resources, rInputs, err := parseModuleResources(mfModule.Resources, services)
 	if err != nil {
 		return m, err
 	}
-	secrets, err := parseModuleSecrets(mfModule.Secrets, services)
+	secrets, sInputs, err := parseModuleSecrets(mfModule.Secrets, services)
 	if err != nil {
 		return m, err
 	}
-	configs, err := parseModuleConfigs(mfModule.Configs, services)
+	configs, cInputs, err := parseModuleConfigs(mfModule.Configs, services)
 	if err != nil {
 		return m, err
 	}
@@ -74,6 +74,27 @@ func ParseModule(mfModule Module) (module.Module, error) {
 	m.Resources = resources
 	m.Secrets = secrets
 	m.Configs = configs
+	userInput := module.UserInput{}
+	if mfModule.InputGroups != nil && len(mfModule.InputGroups) > 0 {
+		userInput.Groups = make(map[string]module.InputGroup)
+		for ref, mfInputGroup := range mfModule.InputGroups {
+			userInput.Groups[ref] = module.InputGroup{
+				Name:        mfInputGroup.Name,
+				Description: mfInputGroup.Description,
+				Group:       mfInputGroup.Group,
+			}
+		}
+	}
+	if rInputs != nil && len(rInputs) > 0 {
+		userInput.Resources = rInputs
+	}
+	if sInputs != nil && len(sInputs) > 0 {
+		userInput.Secrets = sInputs
+	}
+	if cInputs != nil && len(cInputs) > 0 {
+		userInput.Configs = cInputs
+	}
+	m.UserInput = userInput
 	return m, nil
 }
 
@@ -298,9 +319,10 @@ func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, s
 	return nil, nil
 }
 
-func parseModuleResources(mfResources map[string]Resource, services map[string]*module.Service) (map[string]module.Resource, error) {
+func parseModuleResources(mfResources map[string]Resource, services map[string]*module.Service) (map[string]module.Resource, map[string]module.Input, error) {
 	if mfResources != nil && len(mfResources) > 0 {
 		resources := make(map[string]module.Resource)
+		inputs := make(map[string]module.Input)
 		for ref, mfResource := range mfResources {
 			if mfResource.Targets != nil && len(mfResource.Targets) > 0 {
 				for _, mfTarget := range mfResource.Targets {
@@ -314,7 +336,7 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 									if rt.Reference == ref && rt.ReadOnly == mfTarget.ReadOnly {
 										continue
 									}
-									return resources, fmt.Errorf("'%s' & '%s' -> '%s' -> '%s'", rt.Reference, ref, srv, mfTarget.MountPoint)
+									return resources, inputs, fmt.Errorf("'%s' & '%s' -> '%s' -> '%s'", rt.Reference, ref, srv, mfTarget.MountPoint)
 								}
 								v.Resources[mfTarget.MountPoint] = module.ResourceTarget{
 									Reference: ref,
@@ -326,21 +348,27 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 				}
 			}
 			resources[ref] = module.Resource{
-				ResourceBase: module.ResourceBase{
-					Type: mfResource.Type,
-					Tags: mfResource.Tags,
-				},
-				UserInput: mfResource.UserInput,
+				Type: mfResource.Type,
+				Tags: mfResource.Tags,
+			}
+			if mfResource.UserInput != nil {
+				inputs[ref] = module.Input{
+					Name:        mfResource.UserInput.Name,
+					Description: mfResource.UserInput.Description,
+					Required:    mfResource.UserInput.Required,
+					Group:       mfResource.UserInput.Group,
+				}
 			}
 		}
-		return resources, nil
+		return resources, inputs, nil
 	}
-	return nil, nil
+	return nil, nil, nil
 }
 
-func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module.Service) (map[string]module.Secret, error) {
+func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module.Service) (map[string]module.Resource, map[string]module.Input, error) {
 	if mfSecrets != nil && len(mfSecrets) > 0 {
-		secrets := make(map[string]module.Secret)
+		secrets := make(map[string]module.Resource)
+		inputs := make(map[string]module.Input)
 		for ref, mfSecret := range mfSecrets {
 			if mfSecret.Targets != nil && len(mfSecret.Targets) > 0 {
 				for _, mfTarget := range mfSecret.Targets {
@@ -354,7 +382,7 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module
 									if r == ref {
 										continue
 									}
-									return secrets, fmt.Errorf("'%s' & '%s' -> '%s' -> '%s'", r, ref, srv, mfTarget.MountPoint)
+									return secrets, inputs, fmt.Errorf("'%s' & '%s' -> '%s' -> '%s'", r, ref, srv, mfTarget.MountPoint)
 								}
 								v.Secrets[mfTarget.MountPoint] = ref
 							}
@@ -362,22 +390,30 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module
 					}
 				}
 			}
-			secrets[ref] = module.Secret{
-				ResourceBase: module.ResourceBase{
-					Type: mfSecret.Type,
-					Tags: mfSecret.Tags,
-				},
-				UserInput: mfSecret.UserInput,
+			secrets[ref] = module.Resource{
+				Type: mfSecret.Type,
+				Tags: mfSecret.Tags,
+			}
+			if mfSecret.UserInput != nil {
+				inputs[ref] = module.Input{
+					Name:        mfSecret.UserInput.Name,
+					Description: mfSecret.UserInput.Description,
+					Required:    mfSecret.UserInput.Required,
+					Group:       mfSecret.UserInput.Group,
+					Type:        mfSecret.UserInput.Type,
+					Constraints: mfSecret.UserInput.Constraints,
+				}
 			}
 		}
-		return secrets, nil
+		return secrets, inputs, nil
 	}
-	return nil, nil
+	return nil, nil, nil
 }
 
-func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*module.Service) (map[string]module.ConfigValue, error) {
+func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*module.Service) (map[string]module.ConfigValue, map[string]module.Input, error) {
 	if mfConfigs != nil && len(mfConfigs) > 0 {
 		configs := make(map[string]module.ConfigValue)
+		inputs := make(map[string]module.Input)
 		for ref, mfConfig := range mfConfigs {
 			if mfConfig.Targets != nil && len(mfConfig.Targets) > 0 {
 				for _, mfTarget := range mfConfig.Targets {
@@ -391,7 +427,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 									if r == ref {
 										continue
 									}
-									return configs, fmt.Errorf("'%s' & '%s' -> '%s' -> '%s'", r, ref, srv, mfTarget.RefVar)
+									return configs, inputs, fmt.Errorf("'%s' & '%s' -> '%s' -> '%s'", r, ref, srv, mfTarget.RefVar)
 								}
 								v.Configs[mfTarget.RefVar] = ref
 							}
@@ -400,13 +436,22 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 				}
 			}
 			configs[ref] = module.ConfigValue{
-				Value:     mfConfig.Value,
-				Options:   mfConfig.Options,
-				Type:      mfConfig.Type,
-				UserInput: mfConfig.UserInput,
+				Value:   mfConfig.Value,
+				Options: mfConfig.Options,
+				Type:    mfConfig.Type,
+			}
+			if mfConfig.UserInput != nil {
+				inputs[ref] = module.Input{
+					Name:        mfConfig.UserInput.Name,
+					Description: mfConfig.UserInput.Description,
+					Required:    mfConfig.UserInput.Required,
+					Group:       mfConfig.UserInput.Group,
+					Type:        mfConfig.UserInput.Type,
+					Constraints: mfConfig.UserInput.Constraints,
+				}
 			}
 		}
-		return configs, nil
+		return configs, inputs, nil
 	}
-	return nil, nil
+	return nil, nil, nil
 }

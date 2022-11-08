@@ -33,9 +33,9 @@ type Module struct {
 	Volumes        []string                    `json:"volumes"`      // {volName}
 	Dependencies   map[string]ModuleDependency `json:"dependencies"` // {moduleID:ModuleDependency}
 	Resources      map[string]Resource         `json:"resources"`    // {ref:Resource}
-	Secrets        map[string]Secret           `json:"secrets"`      // {ref:Secret}
+	Secrets        map[string]Resource         `json:"secrets"`      // {ref:Resource}
 	Configs        map[string]ConfigValue      `json:"configs"`      // {ref:ConfigValue}
-	InputGroups    map[string]InputGroup       `json:"input_groups"` // {ref:InputGroup}
+	UserInput      UserInput                   `json:"user_input"`
 }
 
 type Service struct {
@@ -97,43 +97,35 @@ type ResourceTarget struct {
 	ReadOnly  bool   `json:"read_only"`
 }
 
-type ResourceBase struct {
+type Resource struct {
 	Type string   `json:"type"`
 	Tags []string `json:"tags"`
 }
 
-type Resource struct {
-	ResourceBase
-	UserInput *UserInputBase `json:"user_input"`
-}
-
-type Secret struct {
-	ResourceBase
-	UserInput *UserInput `json:"user_input"`
-}
-
 type ConfigValue struct {
-	Value     any        `json:"value"`
-	Options   []any      `json:"options"`
-	Type      string     `json:"type"`
-	UserInput *UserInput `json:"user_input"`
+	Value   any    `json:"value"`
+	Options []any  `json:"options"`
+	Type    string `json:"type"`
 }
 
-type UserInputBase struct {
-	Name        string  `json:"name" yaml:"name"`               // input name (e.g. used as a label for input field)
-	Description *string `json:"description" yaml:"description"` // short text describing the input
-	Required    bool    `json:"required" yaml:"required"`       // if true a user interaction is required
-	Group       *string `json:"group" yaml:"group"`             // group identifier as used in Module.InputGroups to assign the user input to an input group
-}
-
-type UserInput struct {
-	UserInputBase `yaml:",inline"`
-	Type          string         `json:"type" yaml:"type"`               // type of the input (e.g. text, number, password, drop-down ...)
-	Constraints   map[string]any `json:"constraints" yaml:"constraints"` // constraints supported or required by the input type
+type Input struct {
+	Name        string         `json:"name"`
+	Description *string        `json:"description"`
+	Required    bool           `json:"required"`
+	Group       *string        `json:"group"`
+	Type        string         `json:"type,omitempty"`
+	Constraints map[string]any `json:"constraints,omitempty"`
 }
 
 type InputGroup struct {
-	Name        string  `json:"name" yaml:"name"`               // input group name
-	Description *string `json:"description" yaml:"description"` // short text describing the input group
-	Group       *string `json:"group" yaml:"group"`             // group identifier as used in Module.InputGroups to assign the input group to a parent group
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	Group       *string `json:"group"`
+}
+
+type UserInput struct {
+	Resources map[string]Input      `json:"resources"` // {ref:Input}
+	Secrets   map[string]Input      `json:"secrets"`   // {ref:Input}
+	Configs   map[string]Input      `json:"configs"`   // {ref:Input}
+	Groups    map[string]InputGroup `json:"groups"`    // {ref:InputGroup}
 }
