@@ -16,6 +16,13 @@
 
 package modfile
 
+import "module-manager/manager/itf"
+
+type modFileBase struct {
+	Version string `yaml:"modfileVersion"`
+}
+
 type ModFile struct {
-	ModFileVersion string `yaml:"modfileVersion"`
+	modFileBase `yaml:",inline"`
+	module      itf.ModFileModule
 }
