@@ -64,22 +64,6 @@ func IsValidSemVer(s string) bool {
 	return false
 }
 
-const (
-	Greater      = ">"
-	Less         = "<"
-	Equal        = "="
-	GreaterEqual = ">="
-	LessEqual    = "<="
-)
-
-var OperatorMap = map[string]struct{}{
-	Greater:      {},
-	Less:         {},
-	Equal:        {},
-	GreaterEqual: {},
-	LessEqual:    {},
-}
-
 func IsValidOperator(s string) bool {
 	if _, ok := OperatorMap[s]; ok {
 		return true
@@ -88,45 +72,44 @@ func IsValidOperator(s string) bool {
 }
 
 func IsValidSemVerRange(s string) (bool, error) {
-	if _, _, err := parse(s); err != nil {
+	if _, _, err := semVerRangeParse(s); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
 func InSemVerRange(r string, v string) (bool, error) {
-	opr, ver, err := parse(r)
+	opr, ver, err := semVerRangeParse(r)
 	if err != nil {
 		return false, err
 	}
-	ok := check(opr[0], ver[0], v)
+	ok := semVerRangeCheck(opr[0], ver[0], v)
 	if ok && len(opr) > 1 && len(ver) > 1 {
-		ok = check(opr[1], ver[1], v)
+		ok = semVerRangeCheck(opr[1], ver[1], v)
 	}
 	return ok, nil
 }
 
-func check(o string, w, v string) bool {
+func semVerRangeCheck(o string, w, v string) bool {
 	res := semver.Compare(v, w)
-	ok := false
 	switch res {
 	case -1:
 		if o == LessEqual || o == Less {
-			ok = true
+			return true
 		}
 	case 0:
 		if o == Equal || o == LessEqual || o == GreaterEqual {
-			ok = true
+			return true
 		}
 	case 1:
 		if o == GreaterEqual || o == Greater {
-			ok = true
+			return true
 		}
 	}
-	return ok
+	return false
 }
 
-func parsePart(s string) (string, string, error) {
+func semVerRangeParsePart(s string) (string, string, error) {
 	pos := strings.Index(s, "v")
 	if pos < 1 || pos > 2 {
 		return "", "", fmt.Errorf("invalid format '%s'", s)
@@ -140,14 +123,14 @@ func parsePart(s string) (string, string, error) {
 	return "", "", fmt.Errorf("invalid operator format '%s'", s[:pos])
 }
 
-func parse(s string) (opr []string, ver []string, err error) {
+func semVerRangeParse(s string) (opr []string, ver []string, err error) {
 	partsStr := strings.Split(s, ";")
 	if len(partsStr) > 2 {
 		err = fmt.Errorf("invalid format '%s'", s)
 		return
 	}
 	for _, p := range partsStr {
-		o, v, e := parsePart(p)
+		o, v, e := semVerRangeParsePart(p)
 		if e != nil {
 			err = e
 			return

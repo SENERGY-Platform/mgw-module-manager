@@ -59,3 +59,19 @@ var DataTypeMap = map[string]struct{}{
 	IntData:   {},
 	FloatData: {},
 }
+
+const (
+	Greater      = ">"
+	Less         = "<"
+	Equal        = "="
+	GreaterEqual = ">="
+	LessEqual    = "<="
+)
+
+var OperatorMap = map[string]struct{}{
+	Greater:      {},
+	Less:         {},
+	Equal:        {},
+	GreaterEqual: {},
+	LessEqual:    {},
+}
