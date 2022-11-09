@@ -23,27 +23,15 @@ import (
 
 func ParseModule(mfModule Module) (module.Module, error) {
 	m := module.Module{
-		Name:        mfModule.Name,
-		Description: mfModule.Description,
-		License:     mfModule.License,
-		Author:      mfModule.Author,
+		ID:             mfModule.ID,
+		Name:           mfModule.Name,
+		Description:    mfModule.Description,
+		License:        mfModule.License,
+		Author:         mfModule.Author,
+		Version:        mfModule.Version,
+		Type:           mfModule.Type,
+		DeploymentType: mfModule.DeploymentType,
 	}
-	if !module.IsValidModuleID(mfModule.ID) {
-		return m, fmt.Errorf("invalid module ID format '%s'", mfModule.ID)
-	}
-	m.ID = mfModule.ID
-	if !module.IsValidSemVer(mfModule.Version) {
-		return m, fmt.Errorf("invalid version format '%s'", mfModule.Version)
-	}
-	m.Version = mfModule.Version
-	if !module.IsValidModuleType(mfModule.Type) {
-		return m, fmt.Errorf("invalid module type '%s'", mfModule.Type)
-	}
-	m.Type = mfModule.Type
-	if !module.IsValidDeploymentType(mfModule.DeploymentType) {
-		return m, fmt.Errorf("invalid deployment type '%s'", mfModule.DeploymentType)
-	}
-	m.DeploymentType = mfModule.DeploymentType
 	services, err := parseModuleServices(mfModule.Services)
 	if err != nil {
 		return m, err
@@ -281,9 +269,6 @@ func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, s
 	if mfModuleDependencies != nil && len(mfModuleDependencies) > 0 {
 		moduleDependencies := make(map[string]module.ModuleDependency)
 		for id, dependency := range mfModuleDependencies {
-			if !module.IsValidModuleID(id) {
-				return moduleDependencies, fmt.Errorf("invalid module ID format '%s'", id)
-			}
 			var rs []string
 			for rqSrv, mfTargets := range dependency.RequiredServices {
 				rs = append(rs, rqSrv)
