@@ -21,38 +21,38 @@ import (
 	"module-manager/manager/itf/module"
 )
 
-func ParseModule(mfModule Module) (module.Module, error) {
+func (mf Module) Parse() (module.Module, error) {
 	m := module.Module{
-		ID:             mfModule.ID,
-		Name:           mfModule.Name,
-		Description:    mfModule.Description,
-		License:        mfModule.License,
-		Author:         mfModule.Author,
-		Version:        mfModule.Version,
-		Type:           mfModule.Type,
-		DeploymentType: mfModule.DeploymentType,
+		ID:             mf.ID,
+		Name:           mf.Name,
+		Description:    mf.Description,
+		License:        mf.License,
+		Author:         mf.Author,
+		Version:        mf.Version,
+		Type:           mf.Type,
+		DeploymentType: mf.DeploymentType,
 	}
-	services, err := parseModuleServices(mfModule.Services)
+	services, err := parseModuleServices(mf.Services)
 	if err != nil {
 		return m, err
 	}
-	volumes, err := parseModuleVolumes(mfModule.Volumes, services)
+	volumes, err := parseModuleVolumes(mf.Volumes, services)
 	if err != nil {
 		return m, err
 	}
-	dependencies, err := parseModuleDependencies(mfModule.Dependencies, services)
+	dependencies, err := parseModuleDependencies(mf.Dependencies, services)
 	if err != nil {
 		return m, err
 	}
-	resources, rInputs, err := parseModuleResources(mfModule.Resources, services)
+	resources, rInputs, err := parseModuleResources(mf.Resources, services)
 	if err != nil {
 		return m, err
 	}
-	secrets, sInputs, err := parseModuleSecrets(mfModule.Secrets, services)
+	secrets, sInputs, err := parseModuleSecrets(mf.Secrets, services)
 	if err != nil {
 		return m, err
 	}
-	configs, cInputs, err := parseModuleConfigs(mfModule.Configs, services)
+	configs, cInputs, err := parseModuleConfigs(mf.Configs, services)
 	if err != nil {
 		return m, err
 	}
@@ -63,9 +63,9 @@ func ParseModule(mfModule Module) (module.Module, error) {
 	m.Secrets = secrets
 	m.Configs = configs
 	userInput := module.UserInput{}
-	if mfModule.InputGroups != nil && len(mfModule.InputGroups) > 0 {
+	if mf.InputGroups != nil && len(mf.InputGroups) > 0 {
 		userInput.Groups = make(map[string]module.InputGroup)
-		for ref, mfInputGroup := range mfModule.InputGroups {
+		for ref, mfInputGroup := range mf.InputGroups {
 			userInput.Groups[ref] = module.InputGroup{
 				Name:        mfInputGroup.Name,
 				Description: mfInputGroup.Description,
