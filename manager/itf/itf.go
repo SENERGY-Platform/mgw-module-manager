@@ -36,3 +36,7 @@ type ModuleStorageHandler interface {
 	CopyTo(id string, dstPath string) error
 	CopyFrom(id string, srcPath string) error
 }
+
+type ModFileModule interface {
+	Parse() (module.Module, error)
+}
