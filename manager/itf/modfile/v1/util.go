@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"math"
+	"module-manager/manager/itf"
 	"strconv"
 	"strings"
 )
@@ -212,4 +213,12 @@ func (fb *ByteFmt) UnmarshalYAML(yn *yaml.Node) (err error) {
 		return
 	}
 	return fb.parse(itf)
+}
+
+func Decode(yn *yaml.Node) (itf.ModFileModule, error) {
+	var m Module
+	if err := yn.Decode(&m); err != nil {
+		return m, err
+	}
+	return m, nil
 }
