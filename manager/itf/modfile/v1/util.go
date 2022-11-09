@@ -128,33 +128,6 @@ import (
 //	return v.parse(tcv)
 //}
 
-func (p *Port) parse(itf any) error {
-	switch v := itf.(type) {
-	case int:
-		*p = Port(strconv.FormatInt(int64(v), 10))
-	case float64:
-		if _, f := math.Modf(v); f > 0 {
-			return fmt.Errorf("invlid port: %v", v)
-		}
-		*p = Port(strconv.FormatInt(int64(v), 10))
-	case string:
-		parts := strings.Split(v, "-")
-		if len(parts) > 2 {
-			return fmt.Errorf("invalid port range: %s", v)
-		}
-		for i := 0; i < len(parts); i++ {
-			_, err := strconv.ParseInt(parts[i], 10, 64)
-			if err != nil {
-				return fmt.Errorf("invalid port: %s", v)
-			}
-		}
-		*p = Port(v)
-	default:
-		return fmt.Errorf("invlid port: %v", v)
-	}
-	return nil
-}
-
 func (p *Port) IsRange() bool {
 	if strings.Contains(string(*p), "-") {
 		return true
@@ -181,12 +154,35 @@ func (p *Port) Int() int {
 	return int(i)
 }
 
-func (p *Port) UnmarshalYAML(yn *yaml.Node) (err error) {
+func (p *Port) UnmarshalYAML(yn *yaml.Node) error {
 	var itf any
-	if err = yn.Decode(&itf); err != nil {
-		return
+	if err := yn.Decode(&itf); err != nil {
+		return err
 	}
-	return p.parse(itf)
+	switch v := itf.(type) {
+	case int:
+		*p = Port(strconv.FormatInt(int64(v), 10))
+	case float64:
+		if _, f := math.Modf(v); f > 0 {
+			return fmt.Errorf("invlid port: %v", v)
+		}
+		*p = Port(strconv.FormatInt(int64(v), 10))
+	case string:
+		parts := strings.Split(v, "-")
+		if len(parts) > 2 {
+			return fmt.Errorf("invalid port range: %s", v)
+		}
+		for i := 0; i < len(parts); i++ {
+			_, err := strconv.ParseInt(parts[i], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid port: %s", v)
+			}
+		}
+		*p = Port(v)
+	default:
+		return fmt.Errorf("invlid port: %v", v)
+	}
+	return nil
 }
 
 func (fb *ByteFmt) parse(itf any) error {
