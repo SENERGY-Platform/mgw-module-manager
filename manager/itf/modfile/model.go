@@ -16,6 +16,6 @@
 
 package modfile
 
-type Base struct {
+type ModFile struct {
 	ModFileVersion string `yaml:"modfileVersion"`
 }

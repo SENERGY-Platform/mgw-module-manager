@@ -16,6 +16,6 @@
 
 package modfile
 
-const ModFileName = "Modfile"
+const FileName = "Modfile"
 
-var ModFileExtensions = []string{"yaml", "yml"}
+var FileExtensions = []string{"yaml", "yml"}

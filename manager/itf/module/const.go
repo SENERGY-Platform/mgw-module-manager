@@ -16,10 +16,6 @@
 
 package module
 
-const ModFileName = "Modfile"
-
-var ModFileExtensions = []string{"yaml", "yml"}
-
 const (
 	AddOnModule           = "add-on"
 	DeviceConnectorModule = "device-connector"

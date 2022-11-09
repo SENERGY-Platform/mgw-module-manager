@@ -22,7 +22,7 @@ import (
 	"github.com/SENERGY-Platform/go-service-base/srv-base"
 	"io"
 	"module-manager/manager/itf"
-	"module-manager/manager/itf/module"
+	"module-manager/manager/itf/modfile"
 	"os"
 	"os/exec"
 	"path"
@@ -126,11 +126,11 @@ func checkIfExist(p string) (ok bool, err error) {
 }
 
 func detectModFile(p string) (string, error) {
-	p = path.Join(p, module.ModFileName)
+	p = path.Join(p, modfile.FileName)
 	if ok, err := checkIfExist(p); err != nil || ok {
 		return p, err
 	}
-	for _, ext := range module.ModFileExtensions {
+	for _, ext := range modfile.FileExtensions {
 		tp := p + "." + ext
 		if ok, err := checkIfExist(tp); err != nil || ok {
 			return tp, err
