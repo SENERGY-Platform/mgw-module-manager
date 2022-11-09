@@ -58,10 +58,7 @@ func IsValidDataType(s string) bool {
 }
 
 func IsValidSemVer(s string) bool {
-	if semver.IsValid(s) {
-		return true
-	}
-	return false
+	return semver.IsValid(s)
 }
 
 func IsValidOperator(s string) bool {
