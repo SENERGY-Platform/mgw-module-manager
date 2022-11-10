@@ -18,6 +18,7 @@ package module
 
 import (
 	"github.com/SENERGY-Platform/mgw-container-engine-manager-lib/cem-lib"
+	"time"
 )
 
 type Module struct {
@@ -55,12 +56,12 @@ type Service struct {
 }
 
 type RunConfig struct {
-	RestartStrategy string  `json:"restart_strategy"`
-	Retries         *int    `json:"retries"`
-	RemoveAfterRun  bool    `json:"remove_after_run"`
-	StopTimeout     *int64  `json:"stop_timeout"`
-	StopSignal      *string `json:"stop_signal"`
-	PseudoTTY       bool    `json:"pseudo_tty"`
+	RestartStrategy string         `json:"restart_strategy"`
+	Retries         *int           `json:"retries"`
+	RemoveAfterRun  bool           `json:"remove_after_run"`
+	StopTimeout     *time.Duration `json:"stop_timeout"`
+	StopSignal      *string        `json:"stop_signal"`
+	PseudoTTY       bool           `json:"pseudo_tty"`
 }
 
 type BindMount struct {
