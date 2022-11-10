@@ -73,11 +73,9 @@ func IsValidOperator(s string) bool {
 	return false
 }
 
-func IsValidSemVerRange(s string) (bool, error) {
-	if _, _, err := semVerRangeParse(s); err != nil {
-		return false, err
-	}
-	return true, nil
+func ValidateSemVerRange(s string) error {
+	_, _, err := semVerRangeParse(s)
+	return err
 }
 
 func InSemVerRange(r string, v string) (bool, error) {
