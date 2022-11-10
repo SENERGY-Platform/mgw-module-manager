@@ -17,7 +17,6 @@
 package v1
 
 import (
-	"github.com/SENERGY-Platform/mgw-container-engine-manager-lib/cem-lib"
 	"io/fs"
 	"time"
 )
@@ -92,10 +91,10 @@ type HttpEndpoint struct {
 }
 
 type PortMapping struct {
-	Name     *string           `yaml:"name"`     // port name
-	Port     Port              `yaml:"port"`     // port number provided as integer / string or port range provided as string (e.g. 8080-8081)
-	HostPort *Port             `yaml:"hostPort"` // port number provided as integer / string or port range provided as string (e.g. 8080-8081), can be overridden during deployment to avoid collisions (arbitrary ports are used if nil)
-	Protocol *cem_lib.PortType `yaml:"protocol"` // specify port protocol (defaults to tcp if nil)
+	Name     *string `yaml:"name"`     // port name
+	Port     Port    `yaml:"port"`     // port number provided as integer / string or port range provided as string (e.g. 8080-8081)
+	HostPort *Port   `yaml:"hostPort"` // port number provided as integer / string or port range provided as string (e.g. 8080-8081), can be overridden during deployment to avoid collisions (arbitrary ports are used if nil)
+	Protocol *string `yaml:"protocol"` // specify port protocol (defaults to tcp if nil)
 }
 
 type ServiceDependencyTarget struct {
