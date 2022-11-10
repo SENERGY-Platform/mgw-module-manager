@@ -57,6 +57,11 @@ func IsValidDataType(s string) bool {
 	return false
 }
 
+func IsValidRestartStrategy(s string) bool {
+	_, ok := RestartStrategyMap[s]
+	return ok
+}
+
 func IsValidSemVer(s string) bool {
 	return semver.IsValid(s)
 }

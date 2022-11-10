@@ -41,7 +41,7 @@ type Module struct {
 type Service struct {
 	Name                 string                              `json:"name"`
 	Image                string                              `json:"image"`
-	RunConfig            cem_lib.RunConfig                   `json:"run_config"`
+	RunConfig            RunConfig                           `json:"run_config"`
 	Include              map[string]BindMount                `json:"include"`               // {mntPoint:BindMount}
 	Tmpfs                map[string]TmpfsMount               `json:"tmpfs"`                 // {mntPoint:TmpfsMount}
 	Volumes              map[string]string                   `json:"volumes"`               // {mntPoint:volName}
@@ -52,6 +52,15 @@ type Service struct {
 	Dependencies         map[string]ServiceDependencyTarget  `json:"dependencies"`          // {refVar:ServiceDependencyTarget}
 	ExternalDependencies map[string]ExternalDependencyTarget `json:"external_dependencies"` // {refVar:ExternalDependencyTarget}
 	PortMappings         []PortMapping                       `json:"port_mappings"`
+}
+
+type RunConfig struct {
+	RestartStrategy string  `json:"restart_strategy"`
+	Retries         *int    `json:"retries"`
+	RemoveAfterRun  bool    `json:"remove_after_run"`
+	StopTimeout     *int64  `json:"stop_timeout"`
+	StopSignal      *string `json:"stop_signal"`
+	PseudoTTY       bool    `json:"pseudo_tty"`
 }
 
 type BindMount struct {
