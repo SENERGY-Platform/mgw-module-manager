@@ -187,7 +187,11 @@ func (p *Port) UnmarshalYAML(yn *yaml.Node) error {
 	return nil
 }
 
-func (fb *ByteFmt) parse(it any) error {
+func (fb *ByteFmt) UnmarshalYAML(yn *yaml.Node) error {
+	var it any
+	if err := yn.Decode(&it); err != nil {
+		return err
+	}
 	switch v := it.(type) {
 	case int:
 		*fb = ByteFmt(v)
@@ -206,14 +210,6 @@ func (fb *ByteFmt) parse(it any) error {
 		return fmt.Errorf("invalid size: %v", v)
 	}
 	return nil
-}
-
-func (fb *ByteFmt) UnmarshalYAML(yn *yaml.Node) (err error) {
-	var it any
-	if err = yn.Decode(&it); err != nil {
-		return
-	}
-	return fb.parse(it)
 }
 
 func (d *Duration) UnmarshalYAML(yn *yaml.Node) error {
