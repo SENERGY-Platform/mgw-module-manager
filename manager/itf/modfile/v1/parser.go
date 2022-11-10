@@ -199,7 +199,6 @@ func parseServiceHttpEndpoints(mfHttpEndpoints []HttpEndpoint) (map[string]modul
 func parseServicePortMappings(mfPortMappings []PortMapping) ([]module.PortMapping, error) {
 	if mfPortMappings != nil && len(mfPortMappings) > 0 {
 		var mappings []module.PortMapping
-		hostPorts := make(map[int]struct{})
 		for _, mfPortMapping := range mfPortMappings {
 			portMapping := module.PortMapping{
 				Name:     mfPortMapping.Name,
@@ -207,24 +206,7 @@ func parseServicePortMappings(mfPortMappings []PortMapping) ([]module.PortMappin
 				Protocol: mfPortMapping.Protocol,
 			}
 			if mfPortMapping.HostPort != nil {
-				hpr := mfPortMapping.HostPort.Range()
-				lp := len(portMapping.Port)
-				lhp := len(hpr)
-				if lp != lhp {
-					if lp > lhp {
-						return mappings, fmt.Errorf("range mismatch '%s > %s'", mfPortMapping.Port, *mfPortMapping.HostPort)
-					}
-					if lp > 1 && lp < lhp {
-						return mappings, fmt.Errorf("range mismatch '%s < %s'", mfPortMapping.Port, *mfPortMapping.HostPort)
-					}
-				}
-				for _, hp := range hpr {
-					if _, ok := hostPorts[hp]; ok {
-						return mappings, fmt.Errorf("duplicate '%d'", hp)
-					}
-					hostPorts[hp] = struct{}{}
-				}
-				portMapping.HostPort = hpr
+				portMapping.HostPort = mfPortMapping.HostPort.Range()
 			}
 			mappings = append(mappings, portMapping)
 		}
