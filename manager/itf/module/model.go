@@ -113,7 +113,7 @@ type Resource struct {
 }
 
 type ConfigValue struct {
-	Value   any    `json:"value"`
+	Default any    `json:"default"`
 	Options []any  `json:"options"`
 	Type    string `json:"type"`
 }

@@ -415,7 +415,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 				}
 			}
 			configs[ref] = module.ConfigValue{
-				Value:   mfConfig.Value,
+				Default: mfConfig.Value,
 				Options: mfConfig.Options,
 				Type:    mfConfig.Type,
 			}
