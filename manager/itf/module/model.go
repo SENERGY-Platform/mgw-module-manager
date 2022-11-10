@@ -17,7 +17,6 @@
 package module
 
 import (
-	"github.com/SENERGY-Platform/mgw-container-engine-manager-lib/cem-lib"
 	"io/fs"
 	"time"
 )
@@ -82,10 +81,10 @@ type HttpEndpoint struct {
 }
 
 type PortMapping struct {
-	Name     *string           `json:"name"`
-	Port     []int             `json:"port"`
-	HostPort []int             `json:"host_port"`
-	Protocol *cem_lib.PortType `json:"protocol"`
+	Name     *string `json:"name"`
+	Port     []int   `json:"port"`
+	HostPort []int   `json:"host_port"`
+	Protocol *string `json:"protocol"`
 }
 
 type ServiceDependencyTarget struct {
