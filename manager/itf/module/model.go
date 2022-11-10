@@ -18,6 +18,7 @@ package module
 
 import (
 	"github.com/SENERGY-Platform/mgw-container-engine-manager-lib/cem-lib"
+	"io/fs"
 	"time"
 )
 
@@ -70,8 +71,8 @@ type BindMount struct {
 }
 
 type TmpfsMount struct {
-	Size uint64            `json:"size"`
-	Mode *cem_lib.FileMode `json:"mode"`
+	Size uint64       `json:"size"`
+	Mode *fs.FileMode `json:"mode"`
 }
 
 type HttpEndpoint struct {

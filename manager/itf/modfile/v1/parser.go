@@ -161,16 +161,14 @@ func parseServiceTmpfs(mfTmpfs []TmpfsMount) (map[string]module.TmpfsMount, erro
 	if mfTmpfs != nil && len(mfTmpfs) > 0 {
 		tmpfs := make(map[string]module.TmpfsMount)
 		for _, mfTmpf := range mfTmpfs {
-			if v, ok := tmpfs[mfTmpf.MountPoint]; ok {
-				if v.Size == uint64(mfTmpf.Size) && v.Mode == mfTmpf.Mode {
-					continue
-				}
+			if _, ok := tmpfs[mfTmpf.MountPoint]; ok {
 				return nil, fmt.Errorf("duplicate '%s'", mfTmpf.MountPoint)
 			}
-			tmpfs[mfTmpf.MountPoint] = module.TmpfsMount{
-				Size: uint64(mfTmpf.Size),
-				Mode: mfTmpf.Mode,
+			tm := module.TmpfsMount{Size: uint64(mfTmpf.Size)}
+			if mfTmpf.Mode != nil {
+				tm.Mode = &mfTmpf.Mode.FileMode
 			}
+			tmpfs[mfTmpf.MountPoint] = tm
 		}
 		return tmpfs, nil
 	}
