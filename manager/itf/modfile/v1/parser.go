@@ -112,7 +112,7 @@ func parseModuleServices(mfServices map[string]Service) (map[string]*module.Serv
 		services[name] = &module.Service{
 			Name:          mfService.Name,
 			Image:         mfService.Image,
-			RunConfig:     mfService.RunConfig,
+			RunConfig:     parseServiceRunConfig(mfService.RunConfig),
 			Include:       include,
 			Tmpfs:         tmpfs,
 			HttpEndpoints: httpEndpoints,
@@ -121,6 +121,20 @@ func parseModuleServices(mfServices map[string]Service) (map[string]*module.Serv
 		}
 	}
 	return services, nil
+}
+
+func parseServiceRunConfig(mfRunConfig RunConfig) module.RunConfig {
+	rc := module.RunConfig{
+		RestartStrategy: mfRunConfig.RestartStrategy,
+		Retries:         mfRunConfig.Retries,
+		RemoveAfterRun:  mfRunConfig.RemoveAfterRun,
+		StopSignal:      mfRunConfig.StopSignal,
+		PseudoTTY:       mfRunConfig.PseudoTTY,
+	}
+	if mfRunConfig.StopTimeout != nil {
+		rc.StopTimeout = &mfRunConfig.StopTimeout.Duration
+	}
+	return rc
 }
 
 func parseServiceInclude(mfInclude []BindMount) (map[string]module.BindMount, error) {
