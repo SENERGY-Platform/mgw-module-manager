@@ -18,6 +18,7 @@ package v1
 
 import (
 	"github.com/SENERGY-Platform/mgw-container-engine-manager-lib/cem-lib"
+	"io/fs"
 	"time"
 )
 
@@ -73,10 +74,14 @@ type BindMount struct {
 	ReadOnly   bool   `yaml:"readOnly"`
 }
 
+type FileMode struct {
+	fs.FileMode
+}
+
 type TmpfsMount struct {
-	MountPoint string            `yaml:"mountPoint"` // absolute path in container
-	Size       ByteFmt           `yaml:"size"`       // tmpfs size in bytes provided as integer or in human-readable form (e.g. 64Mb)
-	Mode       *cem_lib.FileMode `yaml:"mode"`       // linux file mode to be used for the tmpfs provided as string (e.g. 777, 0777)
+	MountPoint string    `yaml:"mountPoint"` // absolute path in container
+	Size       ByteFmt   `yaml:"size"`       // tmpfs size in bytes provided as integer or in human-readable form (e.g. 64Mb)
+	Mode       *FileMode `yaml:"mode"`       // linux file mode to be used for the tmpfs provided as string (e.g. 777, 0777)
 }
 
 type HttpEndpoint struct {

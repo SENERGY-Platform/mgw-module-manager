@@ -20,6 +20,7 @@ import (
 	"code.cloudfoundry.org/bytefmt"
 	"fmt"
 	"gopkg.in/yaml.v3"
+	"io/fs"
 	"math"
 	"module-manager/manager/itf"
 	"strconv"
@@ -225,8 +226,17 @@ func (d *Duration) UnmarshalYAML(yn *yaml.Node) error {
 	return nil
 }
 
-func (d Duration) MarshalYAML() (any, error) {
-	return d.String(), nil
+func (m *FileMode) UnmarshalYAML(yn *yaml.Node) error {
+	var s string
+	if err := yn.Decode(&s); err != nil {
+		return err
+	}
+	i, err := strconv.ParseUint(s, 8, 32)
+	if err != nil {
+		return err
+	}
+	m.FileMode = fs.FileMode(i)
+	return nil
 }
 
 func Decode(yn *yaml.Node) (itf.ModFileModule, error) {
