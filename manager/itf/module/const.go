@@ -89,3 +89,13 @@ var RestartStrategyMap = map[string]struct{}{
 	RestartNotStopped: {},
 	RestartOnFail:     {},
 }
+
+const (
+	TcpPort = "tcp"
+	UdpPort = "udp"
+)
+
+var PortTypeMap = map[string]struct{}{
+	TcpPort: {},
+	UdpPort: {},
+}
