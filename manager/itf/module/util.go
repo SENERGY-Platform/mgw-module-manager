@@ -23,17 +23,13 @@ import (
 )
 
 func IsValidModuleType(s string) bool {
-	if _, ok := ModuleTypeMap[s]; ok {
-		return true
-	}
-	return false
+	_, ok := ModuleTypeMap[s]
+	return ok
 }
 
 func IsValidDeploymentType(s string) bool {
-	if _, ok := DeploymentTypeMap[s]; ok {
-		return true
-	}
-	return false
+	_, ok := DeploymentTypeMap[s]
+	return ok
 }
 
 func IsValidModuleID(s string) bool {
@@ -44,17 +40,13 @@ func IsValidModuleID(s string) bool {
 }
 
 func IsValidSrvDepCondition(s string) bool {
-	if _, ok := SrvDepConditionMap[s]; ok {
-		return true
-	}
-	return false
+	_, ok := SrvDepConditionMap[s]
+	return ok
 }
 
 func IsValidDataType(s string) bool {
-	if _, ok := DataTypeMap[s]; ok {
-		return true
-	}
-	return false
+	_, ok := DataTypeMap[s]
+	return ok
 }
 
 func IsValidRestartStrategy(s string) bool {
@@ -67,10 +59,8 @@ func IsValidSemVer(s string) bool {
 }
 
 func IsValidOperator(s string) bool {
-	if _, ok := OperatorMap[s]; ok {
-		return true
-	}
-	return false
+	_, ok := OperatorMap[s]
+	return ok
 }
 
 func ValidateSemVerRange(s string) error {
