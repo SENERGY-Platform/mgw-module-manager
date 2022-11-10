@@ -24,6 +24,7 @@ import (
 	"module-manager/manager/itf"
 	"strconv"
 	"strings"
+	"time"
 )
 
 //type tmpConfigValue ConfigValue
@@ -156,11 +157,11 @@ func (p *Port) Int() int {
 }
 
 func (p *Port) UnmarshalYAML(yn *yaml.Node) error {
-	var itf any
-	if err := yn.Decode(&itf); err != nil {
+	var it any
+	if err := yn.Decode(&it); err != nil {
 		return err
 	}
-	switch v := itf.(type) {
+	switch v := it.(type) {
 	case int:
 		*p = Port(strconv.FormatInt(int64(v), 10))
 	case float64:
@@ -186,8 +187,8 @@ func (p *Port) UnmarshalYAML(yn *yaml.Node) error {
 	return nil
 }
 
-func (fb *ByteFmt) parse(itf any) error {
-	switch v := itf.(type) {
+func (fb *ByteFmt) parse(it any) error {
+	switch v := it.(type) {
 	case int:
 		*fb = ByteFmt(v)
 	case float64:
@@ -208,11 +209,28 @@ func (fb *ByteFmt) parse(itf any) error {
 }
 
 func (fb *ByteFmt) UnmarshalYAML(yn *yaml.Node) (err error) {
-	var itf any
-	if err = yn.Decode(&itf); err != nil {
+	var it any
+	if err = yn.Decode(&it); err != nil {
 		return
 	}
-	return fb.parse(itf)
+	return fb.parse(it)
+}
+
+func (d *Duration) UnmarshalYAML(yn *yaml.Node) error {
+	var s string
+	if err := yn.Decode(&s); err != nil {
+		return err
+	}
+	if dur, err := time.ParseDuration(s); err != nil {
+		return err
+	} else {
+		d.Duration = dur
+	}
+	return nil
+}
+
+func (d Duration) MarshalYAML() (any, error) {
+	return d.String(), nil
 }
 
 func Decode(yn *yaml.Node) (itf.ModFileModule, error) {

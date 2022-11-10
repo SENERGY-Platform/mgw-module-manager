@@ -18,6 +18,7 @@ package v1
 
 import (
 	"github.com/SENERGY-Platform/mgw-container-engine-manager-lib/cem-lib"
+	"time"
 )
 
 type Port string
@@ -45,12 +46,25 @@ type Module struct {
 type Service struct {
 	Name          string                             `yaml:"name"`          // service name
 	Image         string                             `yaml:"image"`         // container image (must be versioned via tag or digest, e.g. srv-image:v1.0.0)
-	RunConfig     cem_lib.RunConfig                  `yaml:"runConfig"`     // configurations for running the service container (e.g. restart strategy, stop timeout, ...)
+	RunConfig     RunConfig                          `yaml:"runConfig"`     // configurations for running the service container (e.g. restart strategy, stop timeout, ...)
 	Include       []BindMount                        `yaml:"include"`       // files or dictionaries to be mounted from module repository
 	Tmpfs         []TmpfsMount                       `yaml:"tmpfs"`         // temporary file systems (in memory) required by the service
 	HttpEndpoints []HttpEndpoint                     `yaml:"httpEndpoints"` // http endpoints of the service to be exposed via the api gateway
 	PortMappings  []PortMapping                      `yaml:"portMappings"`  // service ports to be published on the host
 	Dependencies  map[string]ServiceDependencyTarget `yaml:"dependencies"`  // map depicting internal service dependencies (identifiers defined in Module.Services serve as keys)
+}
+
+type Duration struct {
+	time.Duration
+}
+
+type RunConfig struct {
+	RestartStrategy string    `yaml:"restartStrategy"`
+	Retries         *int      `yaml:"retries"`
+	RemoveAfterRun  bool      `yaml:"removeAfterRun"`
+	StopTimeout     *Duration `yaml:"stopTimeout"`
+	StopSignal      *string   `yaml:"stopSignal"`
+	PseudoTTY       bool      `yaml:"pseudoTTY"`
 }
 
 type BindMount struct {
