@@ -103,8 +103,8 @@ type ModuleDependency struct {
 }
 
 type ResourceTarget struct {
-	Reference string `json:"reference"`
-	ReadOnly  bool   `json:"read_only"`
+	Ref      string `json:"ref"`
+	ReadOnly bool   `json:"read_only"`
 }
 
 type Resource struct {

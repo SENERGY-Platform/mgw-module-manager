@@ -318,14 +318,14 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 									v.Resources = make(map[string]module.ResourceTarget)
 								}
 								if rt, k := v.Resources[mfTarget.MountPoint]; k {
-									if rt.Reference == ref && rt.ReadOnly == mfTarget.ReadOnly {
+									if rt.Ref == ref && rt.ReadOnly == mfTarget.ReadOnly {
 										continue
 									}
-									return resources, inputs, fmt.Errorf("'%s' & '%s' -> '%s' -> '%s'", rt.Reference, ref, srv, mfTarget.MountPoint)
+									return resources, inputs, fmt.Errorf("'%s' & '%s' -> '%s' -> '%s'", rt.Ref, ref, srv, mfTarget.MountPoint)
 								}
 								v.Resources[mfTarget.MountPoint] = module.ResourceTarget{
-									Reference: ref,
-									ReadOnly:  mfTarget.ReadOnly,
+									Ref:      ref,
+									ReadOnly: mfTarget.ReadOnly,
 								}
 							}
 						}
