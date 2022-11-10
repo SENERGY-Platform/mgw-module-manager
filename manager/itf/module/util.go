@@ -54,6 +54,11 @@ func IsValidRestartStrategy(s string) bool {
 	return ok
 }
 
+func IsValidPortType(s string) bool {
+	_, ok := PortTypeMap[s]
+	return ok
+}
+
 func IsValidSemVer(s string) bool {
 	return semver.IsValid(s)
 }
