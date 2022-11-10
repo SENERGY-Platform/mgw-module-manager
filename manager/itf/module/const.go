@@ -75,3 +75,17 @@ var OperatorMap = map[string]struct{}{
 	GreaterEqual: {},
 	LessEqual:    {},
 }
+
+const (
+	RestartNever      = "never"
+	RestartAlways     = "always"
+	RestartNotStopped = "not-stopped"
+	RestartOnFail     = "on-fail"
+)
+
+var RestartStrategyMap = map[string]struct{}{
+	RestartNever:      {},
+	RestartAlways:     {},
+	RestartNotStopped: {},
+	RestartOnFail:     {},
+}
