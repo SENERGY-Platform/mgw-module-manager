@@ -30,7 +30,7 @@ type Module struct {
 	Version        string                      `json:"version"`
 	Type           string                      `json:"type"`
 	DeploymentType string                      `json:"deployment_type"`
-	Services       map[string]*Service         `json:"services"`     // {srvName:Service}
+	Services       map[string]*Service         `json:"services"`     // {ref:Service}
 	Volumes        []string                    `json:"volumes"`      // {volName}
 	Dependencies   map[string]ModuleDependency `json:"dependencies"` // {moduleID:ModuleDependency}
 	Resources      map[string]Resource         `json:"resources"`    // {ref:Resource}
@@ -99,7 +99,7 @@ type ExternalDependencyTarget struct {
 
 type ModuleDependency struct {
 	Version          string   `json:"version"`
-	RequiredServices []string `json:"required_services"` // {srvName}
+	RequiredServices []string `json:"required_services"` // {ref}
 }
 
 type ResourceTarget struct {
