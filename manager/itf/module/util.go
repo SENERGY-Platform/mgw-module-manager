@@ -19,6 +19,7 @@ package module
 import (
 	"fmt"
 	"golang.org/x/mod/semver"
+	"reflect"
 	"strings"
 )
 
@@ -143,4 +144,52 @@ func semVerRangeParse(s string) (opr []string, ver []string, err error) {
 		}
 	}
 	return
+}
+
+func (cv *configValue) Kind() reflect.Kind {
+	return cv.t
+}
+
+func (cv *configValue) Is(t reflect.Kind) bool {
+	return cv.t == t
+}
+
+func (c Configs) set(r string, d any, o any, t reflect.Kind) {
+	c[r] = configValue{
+		Default: d,
+		Options: o,
+		t:       t,
+	}
+}
+
+func (c Configs) SetString(r string, d *string, o ...string) {
+	if d != nil {
+		c.set(r, *d, o, reflect.String)
+		return
+	}
+	c.set(r, d, o, reflect.String)
+}
+
+func (c Configs) SetBool(r string, d *bool, o ...bool) {
+	if d != nil {
+		c.set(r, *d, o, reflect.Bool)
+		return
+	}
+	c.set(r, d, o, reflect.Bool)
+}
+
+func (c Configs) SetInt64(r string, d *int64, o ...int64) {
+	if d != nil {
+		c.set(r, *d, o, reflect.Int64)
+		return
+	}
+	c.set(r, d, o, reflect.Int64)
+}
+
+func (c Configs) SetFloat64(r string, d *float64, o ...float64) {
+	if d != nil {
+		c.set(r, *d, o, reflect.Float64)
+		return
+	}
+	c.set(r, d, o, reflect.Float64)
 }
