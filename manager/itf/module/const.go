@@ -47,20 +47,6 @@ var SrvDepConditionMap = map[string]struct{}{
 }
 
 const (
-	TextData  = "https://schema.org/Text"
-	BoolData  = "https://schema.org/Boolean"
-	IntData   = "https://schema.org/Integer"
-	FloatData = "https://schema.org/Float"
-)
-
-var DataTypeMap = map[string]struct{}{
-	TextData:  {},
-	BoolData:  {},
-	IntData:   {},
-	FloatData: {},
-}
-
-const (
 	Greater      = ">"
 	Less         = "<"
 	Equal        = "="
