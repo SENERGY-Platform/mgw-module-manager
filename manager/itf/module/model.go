@@ -18,6 +18,7 @@ package module
 
 import (
 	"io/fs"
+	"reflect"
 	"time"
 )
 
@@ -35,7 +36,7 @@ type Module struct {
 	Dependencies   map[string]ModuleDependency `json:"dependencies"` // {moduleID:ModuleDependency}
 	Resources      map[string]Resource         `json:"resources"`    // {ref:Resource}
 	Secrets        map[string]Resource         `json:"secrets"`      // {ref:Resource}
-	Configs        map[string]any              `json:"configs"`      // {ref:ConfigValue}
+	Configs        Configs                     `json:"configs"`      // {ref:ConfigValue}
 	UserInput      UserInput                   `json:"user_input"`
 }
 
@@ -112,13 +113,12 @@ type Resource struct {
 	Tags []string `json:"tags"`
 }
 
-type DataType interface {
-	string | bool | int64 | float64
-}
+type Configs map[string]configValue
 
-type ConfigValue[T DataType] struct {
-	Default T   `json:"default"`
-	Options []T `json:"options"`
+type configValue struct {
+	Default any `json:"default"`
+	Options any `json:"options"`
+	t       reflect.Kind
 }
 
 type Input struct {
