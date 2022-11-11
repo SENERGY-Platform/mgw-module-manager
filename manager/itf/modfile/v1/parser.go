@@ -17,6 +17,7 @@
 package v1
 
 import (
+	"errors"
 	"fmt"
 	"module-manager/manager/itf/module"
 )
@@ -389,9 +390,9 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module
 	return nil, nil, nil
 }
 
-func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*module.Service) (map[string]module.ConfigValue, map[string]module.Input, error) {
+func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*module.Service) (map[string]any, map[string]module.Input, error) {
+	configs := make(map[string]any)
 	if mfConfigs != nil && len(mfConfigs) > 0 {
-		configs := make(map[string]module.ConfigValue)
 		inputs := make(map[string]module.Input)
 		for ref, mfConfig := range mfConfigs {
 			if mfConfig.Targets != nil && len(mfConfig.Targets) > 0 {
@@ -414,10 +415,81 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					}
 				}
 			}
-			configs[ref] = module.ConfigValue{
-				Default: mfConfig.Value,
-				Options: mfConfig.Options,
-				Type:    mfConfig.Type,
+			switch mfConfig.Type {
+			case TextData:
+				cv := module.ConfigValue[string]{}
+				if mfConfig.Value != nil {
+					val, e := parseConfigValue[string](mfConfig.Value)
+					if e != nil {
+						return configs, inputs, e
+					}
+					cv.Default = val
+				}
+				if mfConfig.Options != nil {
+					opt, e := parseConfigOptions[string](mfConfig.Options)
+					if e != nil {
+						return configs, inputs, e
+					}
+					cv.Options = opt
+				}
+				configs[ref] = cv
+			case BoolData:
+				cv := module.ConfigValue[bool]{}
+				if mfConfig.Value != nil {
+					val, e := parseConfigValue[bool](mfConfig.Value)
+					if e != nil {
+						return configs, inputs, e
+					}
+					cv.Default = val
+				}
+				if mfConfig.Options != nil {
+					opt, e := parseConfigOptions[bool](mfConfig.Options)
+					if e != nil {
+						return configs, inputs, e
+					}
+					cv.Options = opt
+				}
+				configs[ref] = cv
+			case IntData:
+				cv := module.ConfigValue[int64]{}
+				if mfConfig.Value != nil {
+					val, e := parseConfigValue[int](mfConfig.Value)
+					if e != nil {
+						return configs, inputs, e
+					}
+					cv.Default = int64(val)
+				}
+				if mfConfig.Options != nil {
+					opt, e := parseConfigOptions[int](mfConfig.Options)
+					if e != nil {
+						return configs, inputs, e
+					}
+					var tmp []int64
+					for _, o := range opt {
+						tmp = append(tmp, int64(o))
+					}
+					cv.Options = tmp
+				}
+				configs[ref] = cv
+			case FloatData:
+				cv := module.ConfigValue[float64]{}
+				if mfConfig.Value != nil {
+					val, e := parseConfigValue[float64](mfConfig.Value)
+					if e != nil {
+						return configs, inputs, e
+					}
+					cv.Default = val
+				}
+				if mfConfig.Options != nil {
+					opt, e := parseConfigOptions[float64](mfConfig.Options)
+					if e != nil {
+						return configs, inputs, e
+					}
+					cv.Options = opt
+				}
+				configs[ref] = cv
+			default:
+				return configs, inputs, fmt.Errorf("invalid data type '%s'", mfConfig.Type)
 			}
 			if mfConfig.UserInput != nil {
 				inputs[ref] = module.Input{
@@ -432,5 +504,25 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 		}
 		return configs, inputs, nil
 	}
-	return nil, nil, nil
+	return configs, nil, nil
+}
+
+func parseConfigValue[T any](value any) (T, error) {
+	v, ok := value.(T)
+	if !ok {
+		return v, errors.New("value invalid type")
+	}
+	return v, nil
+}
+
+func parseConfigOptions[T any](options []any) ([]T, error) {
+	var opts []T
+	for _, opt := range options {
+		v, ok := opt.(T)
+		if !ok {
+			return opts, errors.New("options invalid type")
+		}
+		opts = append(opts, v)
+	}
+	return opts, nil
 }
