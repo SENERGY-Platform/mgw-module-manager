@@ -35,7 +35,7 @@ type Module struct {
 	Dependencies   map[string]ModuleDependency `json:"dependencies"` // {moduleID:ModuleDependency}
 	Resources      map[string]Resource         `json:"resources"`    // {ref:Resource}
 	Secrets        map[string]Resource         `json:"secrets"`      // {ref:Resource}
-	Configs        map[string]ConfigValue      `json:"configs"`      // {ref:ConfigValue}
+	Configs        map[string]any              `json:"configs"`      // {ref:ConfigValue}
 	UserInput      UserInput                   `json:"user_input"`
 }
 
@@ -112,10 +112,13 @@ type Resource struct {
 	Tags []string `json:"tags"`
 }
 
-type ConfigValue struct {
-	Default any    `json:"default"`
-	Options []any  `json:"options"`
-	Type    string `json:"type"`
+type DataType interface {
+	string | bool | int64 | float64
+}
+
+type ConfigValue[T DataType] struct {
+	Default T   `json:"default"`
+	Options []T `json:"options"`
 }
 
 type Input struct {
