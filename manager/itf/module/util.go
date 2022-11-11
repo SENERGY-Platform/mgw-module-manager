@@ -44,11 +44,6 @@ func IsValidSrvDepCondition(s string) bool {
 	return ok
 }
 
-func IsValidDataType(s string) bool {
-	_, ok := DataTypeMap[s]
-	return ok
-}
-
 func IsValidRestartStrategy(s string) bool {
 	_, ok := RestartStrategyMap[s]
 	return ok
