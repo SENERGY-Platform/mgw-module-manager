@@ -70,7 +70,9 @@ func main() {
 		return
 	}
 
-	dmApi := api.New(moduleStorageHandler)
+	moduleHandler := module.NewHandler(moduleStorageHandler)
+
+	dmApi := api.New(moduleHandler)
 	dmApi.SetRoutes(apiEngine)
 
 	listener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
