@@ -20,7 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/mod/semver"
-	"strings"
+	"regexp"
 )
 
 func Validate(m Module) error {
@@ -319,10 +319,8 @@ func IsValidDeploymentType(s string) bool {
 }
 
 func IsValidModuleID(s string) bool {
-	if !strings.Contains(s, "/") || strings.Contains(s, "//") || strings.HasPrefix(s, "/") {
-		return false
-	}
-	return true
+	re := regexp.MustCompile(`^([a-z0-9A-Z-_.]+)(:\d+)?([\/a-zA-Z0-9-\.]+)?$`)
+	return re.MatchString(s)
 }
 
 func IsValidSrvDepCondition(s string) bool {
