@@ -23,52 +23,6 @@ import (
 	"strings"
 )
 
-func IsValidModuleType(s string) bool {
-	_, ok := ModuleTypeMap[s]
-	return ok
-}
-
-func IsValidDeploymentType(s string) bool {
-	_, ok := DeploymentTypeMap[s]
-	return ok
-}
-
-func IsValidModuleID(s string) bool {
-	if !strings.Contains(s, "/") || strings.Contains(s, "//") || strings.HasPrefix(s, "/") {
-		return false
-	}
-	return true
-}
-
-func IsValidSrvDepCondition(s string) bool {
-	_, ok := SrvDepConditionMap[s]
-	return ok
-}
-
-func IsValidRestartStrategy(s string) bool {
-	_, ok := RestartStrategyMap[s]
-	return ok
-}
-
-func IsValidPortType(s string) bool {
-	_, ok := PortTypeMap[s]
-	return ok
-}
-
-func IsValidSemVer(s string) bool {
-	return semver.IsValid(s)
-}
-
-func IsValidOperator(s string) bool {
-	_, ok := OperatorMap[s]
-	return ok
-}
-
-func ValidateSemVerRange(s string) error {
-	_, _, err := semVerRangeParse(s)
-	return err
-}
-
 func InSemVerRange(r string, v string) (bool, error) {
 	opr, ver, err := semVerRangeParse(r)
 	if err != nil {
