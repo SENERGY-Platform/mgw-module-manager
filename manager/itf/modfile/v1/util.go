@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"io/fs"
-	"math"
 	"module-manager/manager/itf"
 	"strconv"
 	"strings"
@@ -62,11 +61,6 @@ func (p *Port) UnmarshalYAML(yn *yaml.Node) error {
 	switch v := it.(type) {
 	case int:
 		*p = Port(strconv.FormatInt(int64(v), 10))
-	case float64:
-		if _, f := math.Modf(v); f > 0 {
-			return fmt.Errorf("invlid port: %v", v)
-		}
-		*p = Port(strconv.FormatInt(int64(v), 10))
 	case string:
 		parts := strings.Split(v, "-")
 		if len(parts) > 2 {
@@ -92,11 +86,6 @@ func (fb *ByteFmt) UnmarshalYAML(yn *yaml.Node) error {
 	}
 	switch v := it.(type) {
 	case int:
-		*fb = ByteFmt(v)
-	case float64:
-		if _, f := math.Modf(v); f > 0 {
-			return fmt.Errorf("invalid size: %v", v)
-		}
 		*fb = ByteFmt(v)
 	case string:
 		bytes, err := bytefmt.ToBytes(v)
