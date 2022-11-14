@@ -101,8 +101,8 @@ type ExternalDependencyTarget struct {
 }
 
 type ModuleDependency struct {
-	Version          string   `json:"version"`
-	RequiredServices []string `json:"required_services"` // {ref}
+	Version          string      `json:"version"`
+	RequiredServices Set[string] `json:"required_services"` // {ref}
 }
 
 type ResourceTarget struct {

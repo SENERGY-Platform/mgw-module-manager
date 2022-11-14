@@ -263,9 +263,9 @@ func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, s
 	if mfModuleDependencies != nil && len(mfModuleDependencies) > 0 {
 		moduleDependencies := make(map[string]module.ModuleDependency)
 		for id, dependency := range mfModuleDependencies {
-			var rs []string
+			rs := make(module.Set[string])
 			for rqSrv, mfTargets := range dependency.RequiredServices {
-				rs = append(rs, rqSrv)
+				rs[rqSrv] = struct{}{}
 				for _, mfTarget := range mfTargets {
 					if mfTarget.Services != nil && len(mfTarget.Services) > 0 {
 						for _, srv := range mfTarget.Services {
