@@ -32,7 +32,7 @@ type Module struct {
 	Type           string                      `json:"type"`
 	DeploymentType string                      `json:"deployment_type"`
 	Services       map[string]*Service         `json:"services"`     // {ref:Service}
-	Volumes        []string                    `json:"volumes"`      // {volName}
+	Volumes        Set[string]                 `json:"volumes"`      // {volName}
 	Dependencies   map[string]ModuleDependency `json:"dependencies"` // {moduleID:ModuleDependency}
 	Resources      map[string]Resource         `json:"resources"`    // {ref:Resource}
 	Secrets        map[string]Resource         `json:"secrets"`      // {ref:Resource}

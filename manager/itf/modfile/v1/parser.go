@@ -232,11 +232,11 @@ func parseServiceDependencies(mfServiceDependencies map[string]ServiceDependency
 	return nil, nil
 }
 
-func parseModuleVolumes(mfVolumes map[string][]VolumeTarget, services map[string]*module.Service) ([]string, error) {
+func parseModuleVolumes(mfVolumes map[string][]VolumeTarget, services map[string]*module.Service) (module.Set[string], error) {
 	if mfVolumes != nil && len(mfVolumes) > 0 {
-		var volumes []string
+		volumes := make(module.Set[string])
 		for name, mfTargets := range mfVolumes {
-			volumes = append(volumes, name)
+			volumes[name] = struct{}{}
 			for _, mfTarget := range mfTargets {
 				for _, srv := range mfTarget.Services {
 					if v, ok := services[srv]; ok {

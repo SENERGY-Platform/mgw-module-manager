@@ -40,14 +40,6 @@ func Validate(m Module) error {
 		return errors.New("missing services")
 	}
 	volumes := make(map[string]struct{})
-	if m.Volumes != nil && len(m.Volumes) > 0 {
-		for _, volume := range m.Volumes {
-			if _, ok := volumes[volume]; ok {
-				return fmt.Errorf("duplicated volume '%s'", volume)
-			}
-			volumes[volume] = struct{}{}
-		}
-	}
 	hostPorts := make(map[int]struct{})
 	for ref, service := range m.Services {
 		if err := validateServiceRunConfig(service.RunConfig); err != nil {
