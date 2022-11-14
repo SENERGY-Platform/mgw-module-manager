@@ -40,6 +40,8 @@ type Module struct {
 	UserInput      UserInput                   `json:"user_input"`
 }
 
+type Set[T comparable] map[T]struct{}
+
 type Service struct {
 	Name                 string                              `json:"name"`
 	Image                string                              `json:"image"`
