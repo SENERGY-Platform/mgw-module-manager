@@ -39,8 +39,7 @@ func Validate(m Module) error {
 	if m.Services == nil || len(m.Services) == 0 {
 		return errors.New("missing services")
 	}
-	volumes := make(map[string]struct{})
-	hostPorts := make(map[int]struct{})
+	hostPorts := make(map[uint]struct{})
 	for ref, service := range m.Services {
 		if err := validateServiceRunConfig(service.RunConfig); err != nil {
 			return fmt.Errorf("invalid service run config: '%s' %s", ref, err)
@@ -53,7 +52,7 @@ func Validate(m Module) error {
 		}
 		if service.Volumes != nil && len(service.Volumes) > 0 {
 			for _, volume := range service.Volumes {
-				if _, ok := volumes[volume]; !ok {
+				if _, ok := m.Volumes[volume]; !ok {
 					return fmt.Errorf("invalid service volume: '%s' -> '%s'", ref, volume)
 				}
 			}
