@@ -108,8 +108,22 @@ func Validate(m Module) error {
 			}
 		}
 		if service.PortMappings != nil && len(service.PortMappings) > 0 {
-			if err := validateServicePortMappings(service.PortMappings, hostPorts); err != nil {
-				return fmt.Errorf("invalid service port mapping: '%s' %s", ref, err)
+			for _, pm := range service.PortMappings {
+				if pm.HostPort != nil && len(pm.HostPort) > 0 {
+					if len(pm.HostPort) > 1 {
+						for i := pm.HostPort[0]; i <= pm.HostPort[1]; i++ {
+							if _, ok := hostPorts[i]; ok {
+								return fmt.Errorf("duplicate host port '%d'", i)
+							}
+							hostPorts[i] = struct{}{}
+						}
+					} else {
+						if _, ok := hostPorts[pm.HostPort[0]]; ok {
+							return fmt.Errorf("duplicate host port '%d'", pm.HostPort[0])
+						}
+						hostPorts[pm.HostPort[0]] = struct{}{}
+					}
+				}
 			}
 		}
 	}
@@ -179,49 +193,6 @@ func Validate(m Module) error {
 				}
 				if _, ok := m.UserInput.Groups[*input.Group]; !ok {
 					return fmt.Errorf("missing group for input '%s'", ref)
-				}
-			}
-		}
-	}
-	return nil
-}
-
-func validateServicePortMappings(mappings []PortMapping, hostPorts map[uint]struct{}) error {
-	for _, mapping := range mappings {
-		if mapping.Protocol != nil && !IsValidPortType(*mapping.Protocol) {
-			return fmt.Errorf("invalid protocol '%s'", *mapping.Protocol)
-		}
-		if !IsValidPort(mapping.Port) {
-			return fmt.Errorf("invalid port '%v'", mapping.Port)
-		}
-		if mapping.HostPort != nil {
-			if !IsValidPort(mapping.HostPort) {
-				return fmt.Errorf("invalid host port '%v'", mapping.HostPort)
-			}
-			for _, hp := range mapping.HostPort {
-				if _, ok := hostPorts[hp]; ok {
-					return fmt.Errorf("duplicate host port '%d'", hp)
-				}
-				hostPorts[hp] = struct{}{}
-			}
-			var lp int
-			var lhp int
-			if len(mapping.Port) > 1 {
-				lp = int(mapping.Port[1]-mapping.Port[0]) + 1
-			} else {
-				lp = 1
-			}
-			if len(mapping.HostPort) > 1 {
-				lhp = int(mapping.HostPort[1]-mapping.HostPort[0]) + 1
-			} else {
-				lhp = 1
-			}
-			if lp != lhp {
-				if lp > lhp {
-					return errors.New("range mismatch: ports > host ports")
-				}
-				if lp > 1 && lp < lhp {
-					return errors.New("range mismatch: ports < host ports")
 				}
 			}
 		}
