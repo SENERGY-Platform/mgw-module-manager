@@ -186,25 +186,36 @@ func Validate(m Module) error {
 	return nil
 }
 
-func validateServicePortMappings(mappings []PortMapping, hostPorts map[int]struct{}) error {
+func validateServicePortMappings(mappings []PortMapping, hostPorts map[uint]struct{}) error {
 	for _, mapping := range mappings {
-		if mapping.Port == nil || len(mapping.Port) == 0 {
-			return errors.New("missing ports")
+		if mapping.Protocol != nil && !IsValidPortType(*mapping.Protocol) {
+			return fmt.Errorf("invalid protocol '%s'", *mapping.Protocol)
 		}
-		if mapping.Protocol != nil {
-			if !IsValidPortType(*mapping.Protocol) {
-				return fmt.Errorf("invalid protocol '%s'", *mapping.Protocol)
+		if !IsValidPort(mapping.Port) {
+			return fmt.Errorf("invalid port '%v'", mapping.Port)
+		}
+		if mapping.HostPort != nil {
+			if !IsValidPort(mapping.HostPort) {
+				return fmt.Errorf("invalid host port '%v'", mapping.HostPort)
 			}
-		}
-		if mapping.HostPort != nil && len(mapping.HostPort) > 0 {
 			for _, hp := range mapping.HostPort {
 				if _, ok := hostPorts[hp]; ok {
 					return fmt.Errorf("duplicate host port '%d'", hp)
 				}
 				hostPorts[hp] = struct{}{}
 			}
-			lp := len(mapping.Port)
-			lhp := len(mapping.HostPort)
+			var lp int
+			var lhp int
+			if len(mapping.Port) > 1 {
+				lp = int(mapping.Port[1]-mapping.Port[0]) + 1
+			} else {
+				lp = 1
+			}
+			if len(mapping.HostPort) > 1 {
+				lhp = int(mapping.HostPort[1]-mapping.HostPort[0]) + 1
+			} else {
+				lhp = 1
+			}
 			if lp != lhp {
 				if lp > lhp {
 					return errors.New("range mismatch: ports > host ports")
