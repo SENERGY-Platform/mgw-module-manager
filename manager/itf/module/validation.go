@@ -299,6 +299,10 @@ func validateServiceMountPoints(service *Service) error {
 	return nil
 }
 
+func IsValidPort(p []uint) bool {
+	return !(p == nil || len(p) == 0 || len(p) > 2 || (len(p) > 1 && p[0] == p[1]) || (len(p) > 1 && p[1] < p[0]))
+}
+
 func IsValidModuleType(s string) bool {
 	_, ok := ModuleTypeMap[s]
 	return ok
