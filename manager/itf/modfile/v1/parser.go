@@ -336,10 +336,14 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 					}
 				}
 			}
-			resources[ref] = module.Resource{
-				Type: mfResource.Type,
-				Tags: mfResource.Tags,
+			r := module.Resource{Type: mfResource.Type}
+			if mfResource.Tags != nil && len(mfResource.Tags) > 0 {
+				r.Tags = make(module.Set[string])
+				for _, tag := range mfResource.Tags {
+					r.Tags[tag] = struct{}{}
+				}
 			}
+			resources[ref] = r
 			if mfResource.UserInput != nil {
 				inputs[ref] = module.Input{
 					Name:        mfResource.UserInput.Name,
@@ -379,10 +383,14 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module
 					}
 				}
 			}
-			secrets[ref] = module.Resource{
-				Type: mfSecret.Type,
-				Tags: mfSecret.Tags,
+			r := module.Resource{Type: mfSecret.Type}
+			if mfSecret.Tags != nil && len(mfSecret.Tags) > 0 {
+				r.Tags = make(module.Set[string])
+				for _, tag := range mfSecret.Tags {
+					r.Tags[tag] = struct{}{}
+				}
 			}
+			secrets[ref] = r
 			if mfSecret.UserInput != nil {
 				inputs[ref] = module.Input{
 					Name:        mfSecret.UserInput.Name,
