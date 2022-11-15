@@ -19,6 +19,8 @@ package v1
 import (
 	"fmt"
 	"module-manager/manager/itf/module"
+	"strconv"
+	"strings"
 )
 
 func (mf Module) Parse() (module.Module, error) {
@@ -196,29 +198,27 @@ func parseServiceHttpEndpoints(mfHttpEndpoints []HttpEndpoint) (map[string]modul
 	return nil, nil
 }
 
-func parseServicePortMappings(mfPortMappings []PortMapping) ([]module.PortMapping, error) {
+func parsePort(p Port) (sl []uint) {
+	parts := strings.Split(string(p), "-")
+	for i := 0; i < len(parts); i++ {
+		n, _ := strconv.ParseInt(parts[i], 10, 64)
+		sl = append(sl, uint(n))
+	}
+	return
+}
+
+func parseServicePortMappings(mfPortMappings []PortMapping) (module.PortMappings, error) {
 	if mfPortMappings != nil && len(mfPortMappings) > 0 {
-		var mappings []module.PortMapping
+		mappings := make(module.PortMappings)
 		for _, mfPortMapping := range mfPortMappings {
-			portMapping := module.PortMapping{
-				Name:     mfPortMapping.Name,
-				Protocol: mfPortMapping.Protocol,
-			}
-			if mfPortMapping.Port.IsRange() {
-				s, e := mfPortMapping.Port.IntRange()
-				portMapping.Port = []uint{s, e}
-			} else {
-				portMapping.Port = []uint{mfPortMapping.Port.Int()}
-			}
+			var hp []uint
 			if mfPortMapping.HostPort != nil {
-				if mfPortMapping.HostPort.IsRange() {
-					s, e := mfPortMapping.HostPort.IntRange()
-					portMapping.HostPort = []uint{s, e}
-				} else {
-					portMapping.HostPort = []uint{mfPortMapping.HostPort.Int()}
-				}
+				hp = parsePort(*mfPortMapping.HostPort)
 			}
-			mappings = append(mappings, portMapping)
+			err := mappings.Add(mfPortMapping.Name, parsePort(mfPortMapping.Port), hp, mfPortMapping.Protocol)
+			if err != nil {
+				return mappings, err
+			}
 		}
 		return mappings, nil
 	}
