@@ -27,25 +27,6 @@ import (
 	"time"
 )
 
-func (p *Port) IsRange() bool {
-	if strings.Contains(string(*p), "-") {
-		return true
-	}
-	return false
-}
-
-func (p *Port) IntRange() (uint, uint) {
-	parts := strings.Split(string(*p), "-")
-	start, _ := strconv.ParseInt(parts[0], 10, 64)
-	end, _ := strconv.ParseInt(parts[1], 10, 64)
-	return uint(start), uint(end)
-}
-
-func (p *Port) Int() uint {
-	i, _ := strconv.ParseInt(string(*p), 10, 64)
-	return uint(i)
-}
-
 func (p *Port) UnmarshalYAML(yn *yaml.Node) error {
 	var it any
 	if err := yn.Decode(&it); err != nil {
