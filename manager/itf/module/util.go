@@ -17,10 +17,15 @@
 package module
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"golang.org/x/mod/semver"
 	"reflect"
+	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -168,4 +173,85 @@ func (s Set[T]) MarshalJSON() ([]byte, error) {
 		sl = append(sl, item)
 	}
 	return json.Marshal(sl)
+}
+
+func (p PortMappings) Add(name *string, port []uint, hostPort []uint, protocol *string) error {
+	var s []string
+	if name != nil {
+		s = append(s, *name)
+	}
+	if port == nil || !IsValidPort(port) {
+		return fmt.Errorf("invalid port '%v'", port)
+	}
+	for _, n := range port {
+		s = append(s, strconv.FormatInt(int64(n), 10))
+	}
+	if hostPort != nil {
+		if !IsValidPort(hostPort) {
+			return fmt.Errorf("invalid host port '%v'", hostPort)
+		}
+		var lp int
+		var lhp int
+		if len(port) > 1 {
+			lp = int(port[1]-port[0]) + 1
+		} else {
+			lp = 1
+		}
+		if len(hostPort) > 1 {
+			lhp = int(hostPort[1]-hostPort[0]) + 1
+		} else {
+			lhp = 1
+		}
+		if lp != lhp {
+			if lp > lhp {
+				return errors.New("range mismatch: ports > host ports")
+			}
+			if lp > 1 && lp < lhp {
+				return errors.New("range mismatch: ports < host ports")
+			}
+		}
+		for _, n := range hostPort {
+			s = append(s, strconv.FormatInt(int64(n), 10))
+		}
+	}
+	if protocol != nil {
+		if !IsValidPortType(*protocol) {
+			return fmt.Errorf("invalid protocol '%s'", *protocol)
+		}
+		s = append(s, *protocol)
+	}
+	key, err := hashStrings(s)
+	if err != nil {
+		return err
+	}
+	p[key] = portMapping{
+		Name:     name,
+		Port:     port,
+		HostPort: hostPort,
+		Protocol: protocol,
+	}
+	return nil
+}
+
+func (p PortMappings) MarshalJSON() ([]byte, error) {
+	var sl []portMapping
+	for _, pm := range p {
+		sl = append(sl, pm)
+	}
+	return json.Marshal(sl)
+}
+
+func hashStrings(str []string) (string, error) {
+	if str == nil || len(str) == 0 {
+		return "", fmt.Errorf("failed to hash strings: no entries to write")
+	}
+	sort.Strings(str)
+	h := sha256.New()
+	for i := 0; i < len(str); i++ {
+		_, err := h.Write([]byte(str[i]))
+		if err != nil {
+			return "", fmt.Errorf("failed to hash strings: %s", err)
+		}
+	}
+	return base64.URLEncoding.EncodeToString(h.Sum(nil)), nil
 }
