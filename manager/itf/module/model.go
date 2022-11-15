@@ -55,7 +55,7 @@ type Service struct {
 	HttpEndpoints        map[string]HttpEndpoint             `json:"http_endpoints"`        // {path:HttpEndpoint}
 	Dependencies         map[string]ServiceDependencyTarget  `json:"dependencies"`          // {refVar:ServiceDependencyTarget}
 	ExternalDependencies map[string]ExternalDependencyTarget `json:"external_dependencies"` // {refVar:ExternalDependencyTarget}
-	PortMappings         []PortMapping                       `json:"port_mappings"`
+	PortMappings         PortMappings                        `json:"port_mappings"`
 }
 
 type RunConfig struct {
@@ -83,7 +83,9 @@ type HttpEndpoint struct {
 	GwPath *string `json:"gw_path"`
 }
 
-type PortMapping struct {
+type PortMappings map[string]portMapping
+
+type portMapping struct {
 	Name     *string `json:"name"`
 	Port     []uint  `json:"port"`      // {n} || {s, e}
 	HostPort []uint  `json:"host_port"` // {n} || {s, e}
