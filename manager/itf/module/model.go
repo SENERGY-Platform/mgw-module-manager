@@ -111,8 +111,8 @@ type ResourceTarget struct {
 }
 
 type Resource struct {
-	Type string   `json:"type"`
-	Tags []string `json:"tags"`
+	Type string      `json:"type"`
+	Tags Set[string] `json:"tags"`
 }
 
 type Configs map[string]configValue
