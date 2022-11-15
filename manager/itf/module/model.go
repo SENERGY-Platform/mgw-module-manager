@@ -85,8 +85,8 @@ type HttpEndpoint struct {
 
 type PortMapping struct {
 	Name     *string `json:"name"`
-	Port     []int   `json:"port"`
-	HostPort []int   `json:"host_port"`
+	Port     []uint  `json:"port"`
+	HostPort []uint  `json:"host_port"`
 	Protocol *string `json:"protocol"`
 }
 
