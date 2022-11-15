@@ -48,9 +48,9 @@ func (p *Port) Range() (ports []int) {
 	return
 }
 
-func (p *Port) Int() int {
+func (p *Port) Int() uint {
 	i, _ := strconv.ParseInt(string(*p), 10, 64)
-	return int(i)
+	return uint(i)
 }
 
 func (p *Port) UnmarshalYAML(yn *yaml.Node) error {
