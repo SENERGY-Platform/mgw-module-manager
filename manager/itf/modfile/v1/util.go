@@ -34,18 +34,11 @@ func (p *Port) IsRange() bool {
 	return false
 }
 
-func (p *Port) Range() (ports []int) {
+func (p *Port) IntRange() (uint, uint) {
 	parts := strings.Split(string(*p), "-")
 	start, _ := strconv.ParseInt(parts[0], 10, 64)
-	if len(parts) > 1 {
-		end, _ := strconv.ParseInt(parts[1], 10, 64)
-		for i := start; i <= end; i++ {
-			ports = append(ports, int(i))
-		}
-	} else {
-		ports = append(ports, int(start))
-	}
-	return
+	end, _ := strconv.ParseInt(parts[1], 10, 64)
+	return uint(start), uint(end)
 }
 
 func (p *Port) Int() uint {
