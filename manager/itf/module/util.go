@@ -177,9 +177,6 @@ func (s Set[T]) MarshalJSON() ([]byte, error) {
 
 func (p PortMappings) Add(name *string, port []uint, hostPort []uint, protocol *string) error {
 	var s []string
-	if name != nil {
-		s = append(s, *name)
-	}
 	if port == nil || !IsValidPort(port) {
 		return fmt.Errorf("invalid port '%v'", port)
 	}
