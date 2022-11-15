@@ -202,11 +202,21 @@ func parseServicePortMappings(mfPortMappings []PortMapping) ([]module.PortMappin
 		for _, mfPortMapping := range mfPortMappings {
 			portMapping := module.PortMapping{
 				Name:     mfPortMapping.Name,
-				Port:     mfPortMapping.Port.Range(),
 				Protocol: mfPortMapping.Protocol,
 			}
+			if mfPortMapping.Port.IsRange() {
+				s, e := mfPortMapping.Port.IntRange()
+				portMapping.Port = []uint{s, e}
+			} else {
+				portMapping.Port = []uint{mfPortMapping.Port.Int()}
+			}
 			if mfPortMapping.HostPort != nil {
-				portMapping.HostPort = mfPortMapping.HostPort.Range()
+				if mfPortMapping.HostPort.IsRange() {
+					s, e := mfPortMapping.HostPort.IntRange()
+					portMapping.HostPort = []uint{s, e}
+				} else {
+					portMapping.HostPort = []uint{mfPortMapping.HostPort.Int()}
+				}
 			}
 			mappings = append(mappings, portMapping)
 		}
