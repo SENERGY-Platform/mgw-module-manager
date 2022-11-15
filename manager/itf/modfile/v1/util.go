@@ -60,6 +60,9 @@ func (p *Port) UnmarshalYAML(yn *yaml.Node) error {
 	}
 	switch v := it.(type) {
 	case int:
+		if v < 0 {
+			return fmt.Errorf("invalid port: %d", v)
+		}
 		*p = Port(strconv.FormatInt(int64(v), 10))
 	case string:
 		parts := strings.Split(v, "-")
@@ -67,8 +70,8 @@ func (p *Port) UnmarshalYAML(yn *yaml.Node) error {
 			return fmt.Errorf("invalid port range: %s", v)
 		}
 		for i := 0; i < len(parts); i++ {
-			_, err := strconv.ParseInt(parts[i], 10, 64)
-			if err != nil {
+			n, err := strconv.ParseInt(parts[i], 10, 64)
+			if err != nil || n < 0 {
 				return fmt.Errorf("invalid port: %s", v)
 			}
 		}
