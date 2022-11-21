@@ -17,58 +17,49 @@
 package deployment
 
 import (
-	"module-manager/manager/itf/modfile"
-	"module-manager/manager/util"
+	"module-manager/manager/itf/module"
 )
 
 type Base struct {
-	Name          *string          `json:"name"`
-	ModuleID      modfile.ModuleID `json:"module_id"`
-	ModuleVersion util.SemVersion  `json:"module_version"`
+	Name          *string `json:"name"`
+	ModuleID      string  `json:"module_id"`
+	ModuleVersion string  `json:"module_version"`
 }
 
 type Deployment struct {
 	ID string `json:"id"`
 	Base
-	Resources []Resource `json:"resources"`
-	Secrets   []Resource `json:"secrets"`
-	Configs   []Value    `json:"configs"`
+	Resources map[string]Resource `json:"resources"`
+	Secrets   map[string]Resource `json:"secrets"`
+	Configs   map[string]any      `json:"configs"`
 }
 
 type Resource struct {
-	Ref string  `json:"ref"`
-	ID  *string `json:"id"`
-}
-
-type Value struct {
-	Ref   string `json:"ref"`
-	Value any    `json:"value"`
+	ID  string `json:"id"`
+	Src string `json:"src"`
 }
 
 // --------------------------------------------------
 
 type Template struct {
 	Base
-	Resources []ResourceInput `json:"resources"`
-	Secrets   []SecretInput   `json:"secrets"`
-	Configs   []ConfigInput   `json:"configs"`
+	ResourceInputs map[string]ResourceInput     `json:"resource_inputs"`
+	SecretInputs   map[string]ResourceInput     `json:"secret_inputs"`
+	ConfigInputs   map[string]ConfigInput       `json:"config_inputs"`
+	InputGroups    map[string]module.InputGroup `json:"input_groups"`
+}
+
+type Input struct {
+	Value any `json:"value"`
+	module.Input
 }
 
 type ResourceInput struct {
-	Resource
-	UserInput  modfile.UserInputBase `json:"user_input"`
-	OptionsSrc string                `json:"options_src"`
-}
-
-type SecretInput struct {
-	Resource
-	Value      any               `json:"value"`      // for input if secret does not exist
-	UserInput  modfile.UserInput `json:"user_input"` // for input if secret does not exist
-	OptionsSrc string            `json:"options_src"`
+	Input
+	OptionsSrc string `json:"options_src"`
 }
 
 type ConfigInput struct {
-	Value
-	UserInput modfile.UserInput `json:"user_input"`
-	Options   []any             `json:"options"`
+	Input
+	Options []any `json:"options"`
 }
