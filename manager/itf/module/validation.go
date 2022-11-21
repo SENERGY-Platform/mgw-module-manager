@@ -36,6 +36,11 @@ func Validate(m Module) error {
 	if !IsValidDeploymentType(m.DeploymentType) {
 		return fmt.Errorf("invlaid deployment type '%s'", m.DeploymentType)
 	}
+	for v := range m.Volumes {
+		if v == "" {
+			return errors.New("invalid volume name")
+		}
+	}
 	if m.Services == nil || len(m.Services) == 0 {
 		return errors.New("missing services")
 	}
