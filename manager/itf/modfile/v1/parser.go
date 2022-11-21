@@ -433,7 +433,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 				}
 			}
 			switch mfConfig.Type {
-			case TextData:
+			case module.TextData:
 				var d *string
 				var o []string
 				if mfConfig.Value != nil {
@@ -453,7 +453,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					}
 				}
 				configs.SetString(ref, d, o...)
-			case BoolData:
+			case module.BoolData:
 				var d *bool
 				var o []bool
 				if mfConfig.Value != nil {
@@ -473,7 +473,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					}
 				}
 				configs.SetBool(ref, d, o...)
-			case IntData:
+			case module.IntData:
 				var d *int64
 				var o []int64
 				if mfConfig.Value != nil {
@@ -494,7 +494,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					}
 				}
 				configs.SetInt64(ref, d, o...)
-			case FloatData:
+			case module.FloatData:
 				var d *float64
 				var o []float64
 				if mfConfig.Value != nil {
