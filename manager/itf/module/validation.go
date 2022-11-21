@@ -77,6 +77,9 @@ func Validate(m Module) error {
 			return errors.New("missing resources for user inputs")
 		}
 		for ref, input := range m.UserInput.Resources {
+			if ref == "" {
+				return errors.New("invalid user input reference")
+			}
 			if _, ok := m.Resources[ref]; !ok {
 				return fmt.Errorf("missing resource for input '%s'", ref)
 			}
@@ -95,6 +98,9 @@ func Validate(m Module) error {
 			return errors.New("missing secrets for user inputs")
 		}
 		for ref, input := range m.UserInput.Secrets {
+			if ref == "" {
+				return errors.New("invalid user input reference")
+			}
 			if _, ok := m.Secrets[ref]; !ok {
 				return fmt.Errorf("missing secret for input '%s'", ref)
 			}
@@ -113,6 +119,9 @@ func Validate(m Module) error {
 			return errors.New("missing secrets for user inputs")
 		}
 		for ref, input := range m.UserInput.Configs {
+			if ref == "" {
+				return errors.New("invalid user input reference")
+			}
 			if _, ok := m.Configs[ref]; !ok {
 				return fmt.Errorf("missing secret for input '%s'", ref)
 			}
