@@ -51,12 +51,27 @@ func Validate(m Module) error {
 			}
 		}
 	}
-	//if m.Resources != nil && len(m.Resources) > 0 {
-	//// check type?
-	//}
-	//if m.Secrets != nil && len(m.Secrets) > 0 {
-	//// check type?
-	//}
+	if m.Resources != nil && len(m.Resources) > 0 {
+		for ref := range m.Resources {
+			if ref == "" {
+				return errors.New("invalid resource reference")
+			}
+		}
+	}
+	if m.Secrets != nil && len(m.Secrets) > 0 {
+		for ref := range m.Secrets {
+			if ref == "" {
+				return errors.New("invalid secret reference")
+			}
+		}
+	}
+	if m.UserInput.Groups != nil && len(m.UserInput.Groups) > 0 {
+		for ref := range m.UserInput.Groups {
+			if ref == "" {
+				return errors.New("invalid user input group reference")
+			}
+		}
+	}
 	if m.UserInput.Resources != nil && len(m.UserInput.Resources) > 0 {
 		if m.Resources == nil || len(m.Resources) == 0 {
 			return errors.New("missing resources for user inputs")
