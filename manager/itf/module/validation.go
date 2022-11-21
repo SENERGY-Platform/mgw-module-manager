@@ -183,6 +183,9 @@ func Validate(m Module) error {
 		if service.HttpEndpoints != nil && len(service.HttpEndpoints) > 0 {
 			gwPaths := make(map[string]string)
 			for path, edpt := range service.HttpEndpoints {
+				if path == "" {
+					return errors.New("invalid path")
+				}
 				if edpt.GwPath != nil {
 					if v, ok := gwPaths[*edpt.GwPath]; ok {
 						return fmt.Errorf("invalid service http endpoint: '%s' -> '%s' & '%s' -> '%s'", ref, path, v, *edpt.GwPath)
