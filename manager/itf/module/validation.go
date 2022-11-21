@@ -252,11 +252,17 @@ func validateServiceRefVars(service *Service) error {
 	refVars := make(map[string]string)
 	if service.Configs != nil && len(service.Configs) > 0 {
 		for rv := range service.Configs {
+			if rv == "" {
+				return errors.New("invalid ref var")
+			}
 			refVars[rv] = "configs"
 		}
 	}
 	if service.Dependencies != nil && len(service.Dependencies) > 0 {
 		for rv := range service.Dependencies {
+			if rv == "" {
+				return errors.New("invalid ref var")
+			}
 			if v, ok := refVars[rv]; ok {
 				return fmt.Errorf("'%s' -> '%s' & '%s'", rv, v, "dependencies")
 			}
@@ -265,6 +271,9 @@ func validateServiceRefVars(service *Service) error {
 	}
 	if service.ExternalDependencies != nil && len(service.ExternalDependencies) > 0 {
 		for rv := range service.ExternalDependencies {
+			if rv == "" {
+				return errors.New("invalid ref var")
+			}
 			if v, ok := refVars[rv]; ok {
 				return fmt.Errorf("'%s' -> '%s' & '%s'", rv, v, "external dependencies")
 			}
