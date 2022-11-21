@@ -85,3 +85,10 @@ var PortTypeMap = map[string]struct{}{
 	TcpPort: {},
 	UdpPort: {},
 }
+
+const (
+	TextData  = "https://schema.org/Text"
+	BoolData  = "https://schema.org/Boolean"
+	IntData   = "https://schema.org/Integer"
+	FloatData = "https://schema.org/Float"
+)
