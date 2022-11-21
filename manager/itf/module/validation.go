@@ -287,11 +287,17 @@ func validateServiceMountPoints(service *Service) error {
 	mountPoints := make(map[string]string)
 	if service.Include != nil && len(service.Include) > 0 {
 		for mp := range service.Include {
+			if mp == "" {
+				return errors.New("invalid mount point")
+			}
 			mountPoints[mp] = "include"
 		}
 	}
 	if service.Tmpfs != nil && len(service.Tmpfs) > 0 {
 		for mp := range service.Tmpfs {
+			if mp == "" {
+				return errors.New("invalid mount point")
+			}
 			if v, ok := mountPoints[mp]; ok {
 				return fmt.Errorf("'%s' -> '%s' & '%s'", mp, v, "tmpfs")
 			}
@@ -300,6 +306,9 @@ func validateServiceMountPoints(service *Service) error {
 	}
 	if service.Volumes != nil && len(service.Volumes) > 0 {
 		for mp := range service.Volumes {
+			if mp == "" {
+				return errors.New("invalid mount point")
+			}
 			if v, ok := mountPoints[mp]; ok {
 				return fmt.Errorf("'%s' -> '%s' & '%s'", mp, v, "volumes")
 			}
@@ -308,6 +317,9 @@ func validateServiceMountPoints(service *Service) error {
 	}
 	if service.Resources != nil && len(service.Resources) > 0 {
 		for mp := range service.Resources {
+			if mp == "" {
+				return errors.New("invalid mount point")
+			}
 			if v, ok := mountPoints[mp]; ok {
 				return fmt.Errorf("'%s' -> '%s' & '%s'", mp, v, "resources")
 			}
@@ -316,6 +328,9 @@ func validateServiceMountPoints(service *Service) error {
 	}
 	if service.Secrets != nil && len(service.Secrets) > 0 {
 		for mp := range service.Secrets {
+			if mp == "" {
+				return errors.New("invalid mount point")
+			}
 			if v, ok := mountPoints[mp]; ok {
 				return fmt.Errorf("'%s' -> '%s' & '%s'", mp, v, "secrets")
 			}
