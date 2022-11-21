@@ -46,6 +46,9 @@ func Validate(m Module) error {
 	}
 	hostPorts := make(map[uint]struct{})
 	for ref, service := range m.Services {
+		if ref == "" {
+			return errors.New("empty service reference")
+		}
 		if err := validateServiceRunConfig(service.RunConfig); err != nil {
 			return fmt.Errorf("invalid service run config: '%s' %s", ref, err)
 		}
