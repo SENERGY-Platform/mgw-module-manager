@@ -21,45 +21,34 @@ import (
 )
 
 type Base struct {
-	Name          *string `json:"name"`
-	ModuleID      string  `json:"module_id"`
-	ModuleVersion string  `json:"module_version"`
+	Name          *string           `json:"name"` // module name if nil
+	ModuleID      string            `json:"module_id"`
+	ModuleVersion string            `json:"module_version"`
+	Resources     map[string]string `json:"resources"` // {ref:resourceID}
+	Secrets       map[string]string `json:"secrets"`   // {ref:secretID}
+	Configs       map[string]any    `json:"configs"`   // {ref:value}
 }
 
 type Deployment struct {
 	ID string `json:"id"`
 	Base
-	Resources map[string]Resource `json:"resources"`
-	Secrets   map[string]Resource `json:"secrets"`
-	Configs   map[string]any      `json:"configs"`
-}
-
-type Resource struct {
-	ID  string `json:"id"`
-	Src string `json:"src"`
 }
 
 // --------------------------------------------------
 
-type Template struct {
-	Base
-	ResourceInputs map[string]ResourceInput     `json:"resource_inputs"`
-	SecretInputs   map[string]ResourceInput     `json:"secret_inputs"`
-	ConfigInputs   map[string]ConfigInput       `json:"config_inputs"`
-	InputGroups    map[string]module.InputGroup `json:"input_groups"`
-}
-
-type Input struct {
-	Value any `json:"value"`
-	module.Input
+type UserInput struct {
+	ResourceInputs map[string]ResourceInput     `json:"resource_inputs"` // {ref:ResourceInput}
+	SecretInputs   map[string]ResourceInput     `json:"secret_inputs"`   // {ref:ResourceInput}
+	ConfigInputs   map[string]ConfigInput       `json:"config_inputs"`   // {ref:ConfigInput}
+	InputGroups    map[string]module.InputGroup `json:"input_groups"`    // {ref:InputGroup}
 }
 
 type ResourceInput struct {
-	Input
+	module.Input
 	OptionsSrc string `json:"options_src"`
 }
 
 type ConfigInput struct {
-	Input
+	module.Input
 	Options []any `json:"options"`
 }
