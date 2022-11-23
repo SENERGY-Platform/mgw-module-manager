@@ -37,7 +37,7 @@ type Deployment struct {
 
 // --------------------------------------------------
 
-type UserInput struct {
+type InputTemplate struct {
 	ResourceInputs map[string]ResourceInput     `json:"resource_inputs"` // {ref:ResourceInput}
 	SecretInputs   map[string]ResourceInput     `json:"secret_inputs"`   // {ref:ResourceInput}
 	ConfigInputs   map[string]ConfigInput       `json:"config_inputs"`   // {ref:ConfigInput}
