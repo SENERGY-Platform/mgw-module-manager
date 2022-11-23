@@ -32,6 +32,7 @@ type Base struct {
 type Deployment struct {
 	ID string `json:"id"`
 	Base
+	Containers module.Set[string]
 }
 
 // --------------------------------------------------
