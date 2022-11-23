@@ -199,6 +199,14 @@ func (s Set[T]) MarshalJSON() ([]byte, error) {
 	return json.Marshal(sl)
 }
 
+func (s Set[T]) Slice() []T {
+	var sl []T
+	for item := range s {
+		sl = append(sl, item)
+	}
+	return sl
+}
+
 func (p PortMappings) Add(name *string, port []uint, hostPort []uint, protocol *string) error {
 	var s []string
 	if port == nil || !IsValidPort(port) {
