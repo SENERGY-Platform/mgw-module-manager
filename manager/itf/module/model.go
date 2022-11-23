@@ -120,8 +120,8 @@ type Resource struct {
 type Configs map[string]configValue
 
 type configValue struct {
-	Default any `json:"default"`
-	Options any `json:"options"`
+	Default any   `json:"default"`
+	Options []any `json:"options"`
 	t       reflect.Kind
 }
 

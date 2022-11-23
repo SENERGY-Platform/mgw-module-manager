@@ -114,44 +114,68 @@ func (cv *configValue) Is(t reflect.Kind) bool {
 	return cv.t == t
 }
 
-func (c Configs) set(r string, d any, o any, t reflect.Kind) {
-	c[r] = configValue{
-		Default: d,
-		Options: o,
-		t:       t,
-	}
-}
-
 func (c Configs) SetString(r string, d *string, o ...string) {
-	if d != nil {
-		c.set(r, *d, o, reflect.String)
-		return
+	var sl []any
+	if o != nil {
+		for _, s := range o {
+			sl = append(sl, s)
+		}
 	}
-	c.set(r, d, o, reflect.String)
+	cv := configValue{Options: sl, t: reflect.String}
+	if d != nil {
+		cv.Default = *d
+	} else {
+		cv.Default = d
+	}
+	c[r] = cv
 }
 
 func (c Configs) SetBool(r string, d *bool, o ...bool) {
-	if d != nil {
-		c.set(r, *d, o, reflect.Bool)
-		return
+	var sl []any
+	if o != nil {
+		for _, b := range o {
+			sl = append(sl, b)
+		}
 	}
-	c.set(r, d, o, reflect.Bool)
+	cv := configValue{Options: sl, t: reflect.Bool}
+	if d != nil {
+		cv.Default = *d
+	} else {
+		cv.Default = d
+	}
+	c[r] = cv
 }
 
 func (c Configs) SetInt64(r string, d *int64, o ...int64) {
-	if d != nil {
-		c.set(r, *d, o, reflect.Int64)
-		return
+	var sl []any
+	if o != nil {
+		for _, i := range o {
+			sl = append(sl, i)
+		}
 	}
-	c.set(r, d, o, reflect.Int64)
+	cv := configValue{Options: sl, t: reflect.Int64}
+	if d != nil {
+		cv.Default = *d
+	} else {
+		cv.Default = d
+	}
+	c[r] = cv
 }
 
 func (c Configs) SetFloat64(r string, d *float64, o ...float64) {
-	if d != nil {
-		c.set(r, *d, o, reflect.Float64)
-		return
+	var sl []any
+	if o != nil {
+		for _, f := range o {
+			sl = append(sl, f)
+		}
 	}
-	c.set(r, d, o, reflect.Float64)
+	cv := configValue{Options: sl, t: reflect.Float64}
+	if d != nil {
+		cv.Default = *d
+	} else {
+		cv.Default = d
+	}
+	c[r] = cv
 }
 
 func (s *Set[T]) UnmarshalJSON(b []byte) error {
