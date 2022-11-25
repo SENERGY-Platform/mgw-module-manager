@@ -24,6 +24,7 @@ import (
 	"github.com/SENERGY-Platform/go-service-base/srv-base/types"
 	"github.com/gin-gonic/gin"
 	"module-manager/manager/api"
+	"module-manager/manager/handler/deployment"
 	"module-manager/manager/handler/module"
 	"module-manager/manager/util"
 	"net"
@@ -71,8 +72,9 @@ func main() {
 	}
 
 	moduleHandler := module.NewHandler(moduleStorageHandler)
+	deploymentHandler := deployment.NewHandler(nil)
 
-	dmApi := api.New(moduleHandler)
+	dmApi := api.New(moduleHandler, deploymentHandler)
 	dmApi.SetRoutes(apiEngine)
 
 	listener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
