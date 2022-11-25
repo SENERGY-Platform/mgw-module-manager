@@ -308,10 +308,10 @@ func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, s
 	return nil, nil
 }
 
-func parseModuleResources(mfResources map[string]Resource, services map[string]*module.Service) (map[string]module.Resource, map[string]module.Input, error) {
+func parseModuleResources(mfResources map[string]Resource, services map[string]*module.Service) (map[string]module.Resource, map[string]module.InputBase, error) {
 	if mfResources != nil && len(mfResources) > 0 {
 		resources := make(map[string]module.Resource)
-		inputs := make(map[string]module.Input)
+		inputs := make(map[string]module.InputBase)
 		for ref, mfResource := range mfResources {
 			if mfResource.Targets != nil && len(mfResource.Targets) > 0 {
 				for _, mfTarget := range mfResource.Targets {
@@ -345,7 +345,7 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 			}
 			resources[ref] = r
 			if mfResource.UserInput != nil {
-				inputs[ref] = module.Input{
+				inputs[ref] = module.InputBase{
 					Name:        mfResource.UserInput.Name,
 					Description: mfResource.UserInput.Description,
 					Required:    mfResource.UserInput.Required,
@@ -393,10 +393,12 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module
 			secrets[ref] = r
 			if mfSecret.UserInput != nil {
 				inputs[ref] = module.Input{
-					Name:        mfSecret.UserInput.Name,
-					Description: mfSecret.UserInput.Description,
-					Required:    mfSecret.UserInput.Required,
-					Group:       mfSecret.UserInput.Group,
+					InputBase: module.InputBase{
+						Name:        mfSecret.UserInput.Name,
+						Description: mfSecret.UserInput.Description,
+						Required:    mfSecret.UserInput.Required,
+						Group:       mfSecret.UserInput.Group,
+					},
 					Type:        mfSecret.UserInput.Type,
 					Constraints: mfSecret.UserInput.Constraints,
 				}
