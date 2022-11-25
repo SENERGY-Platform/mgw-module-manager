@@ -37,6 +37,25 @@ type ModuleStorageHandler interface {
 	CopyFrom(id string, srcPath string) error
 }
 
+type DeploymentHandler interface {
+	List() ([]deployment.Deployment, error)
+	Read(id string) (deployment.Deployment, error)
+	Add(b deployment.Base, m module.Module) error
+	Start(id string) error
+	Stop(id string) error
+	Delete(id string) error
+	Update(id string) error
+	InputTemplate(m module.Module) deployment.InputTemplate
+}
+
+type DeploymentStorageHandler interface {
+	List() ([]deployment.Deployment, error)
+	Create(base deployment.Deployment) error
+	Read(id string) (deployment.Deployment, error)
+	Update(id string) error
+	Delete(id string) error
+}
+
 type ModFileModule interface {
 	Parse() (module.Module, error)
 }
