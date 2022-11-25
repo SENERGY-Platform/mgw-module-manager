@@ -141,10 +141,16 @@ type Secret struct {
 	Targets   []ResourceTargetBase `yaml:"targets"`   // mount points for the secret
 }
 
+type ListOpt struct {
+	Type      string  `yaml:"type"`      // data type of list items
+	Delimiter *string `yaml:"delimiter"` // delimiter used for marshalling and unmarshalling
+}
+
 type ConfigValue struct {
 	Value     any            `yaml:"value"`     // default configuration value or nil
 	Options   []any          `yaml:"options"`   // list of possible configuration values
 	Type      string         `yaml:"type"`      // data type of the configuration value
+	ListOpt   *ListOpt       `yaml:"listOpt"`   // required options if type is list
 	UserInput *UserInput     `yaml:"userInput"` // definitions for user input via gui (if nil a default value must be set)
 	Targets   []ConfigTarget `yaml:"targets"`   // reference variables for the configuration value
 }
