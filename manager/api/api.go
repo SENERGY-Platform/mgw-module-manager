@@ -33,5 +33,7 @@ func New(moduleHandler itf.ModuleHandler, deploymentHandler itf.DeploymentHandle
 
 func (a *Api) SetRoutes(e *gin.Engine) {
 	e.GET("modules", a.GetModules)
-	e.GET("modules/:module", a.GetModule)
+	e.GET("modules/:"+util.ModuleParam, a.GetModule)
+	e.GET("modules/:"+util.ModuleParam+"/input_template", a.GetModuleInputTemplate)
+	e.POST("deployments", a.PostDeployment)
 }
