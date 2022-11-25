@@ -18,6 +18,7 @@ package itf
 
 import (
 	"io"
+	"module-manager/manager/itf/deployment"
 	"module-manager/manager/itf/module"
 )
 
