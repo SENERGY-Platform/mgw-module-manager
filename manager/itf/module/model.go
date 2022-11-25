@@ -119,19 +119,29 @@ type Resource struct {
 
 type Configs map[string]configValue
 
+type SliceOpt struct {
+	dataType  reflect.Kind
+	delimiter *string // ; if nil
+}
+
 type configValue struct {
-	Default any   `json:"default"`
-	Options []any `json:"options"`
-	t       reflect.Kind
+	Default  any `json:"default"`
+	Options  any `json:"options"`
+	dataType reflect.Kind
+	sliceOpt *SliceOpt
+}
+
+type InputBase struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	Required    bool    `json:"required"`
+	Group       *string `json:"group"`
 }
 
 type Input struct {
-	Name        string         `json:"name"`
-	Description *string        `json:"description"`
-	Required    bool           `json:"required"`
-	Group       *string        `json:"group"`
-	Type        string         `json:"type,omitempty"`
-	Constraints map[string]any `json:"constraints,omitempty"`
+	InputBase
+	Type        string         `json:"type"` // type of the input (e.g. text, number, user+password, drop-down ...)
+	Constraints map[string]any `json:"constraints"`
 }
 
 type InputGroup struct {
@@ -141,7 +151,7 @@ type InputGroup struct {
 }
 
 type UserInput struct {
-	Resources map[string]Input      `json:"resources"` // {ref:Input}
+	Resources map[string]InputBase  `json:"resources"` // {ref:InputBase}
 	Secrets   map[string]Input      `json:"secrets"`   // {ref:Input}
 	Configs   map[string]Input      `json:"configs"`   // {ref:Input}
 	Groups    map[string]InputGroup `json:"groups"`    // {ref:InputGroup}
