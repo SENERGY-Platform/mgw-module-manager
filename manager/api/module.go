@@ -38,3 +38,13 @@ func (a *Api) GetModule(gc *gin.Context) {
 	}
 	gc.JSON(http.StatusOK, &module)
 }
+
+func (a *Api) GetModuleInputTemplate(gc *gin.Context) {
+	module, err := a.moduleHandler.Read(gc.Param("module"))
+	if err != nil {
+		_ = gc.Error(err)
+		return
+	}
+	template := a.deploymentHandler.InputTemplate(module)
+	gc.JSON(http.StatusOK, &template)
+}
