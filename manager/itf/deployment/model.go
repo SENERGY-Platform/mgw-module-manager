@@ -21,12 +21,11 @@ import (
 )
 
 type Base struct {
-	Name          *string           `json:"name"` // module name if nil
-	ModuleID      string            `json:"module_id"`
-	ModuleVersion string            `json:"module_version"`
-	Resources     map[string]string `json:"resources"` // {ref:resourceID}
-	Secrets       map[string]string `json:"secrets"`   // {ref:secretID}
-	Configs       map[string]any    `json:"configs"`   // {ref:value}
+	Name      *string           `json:"name"` // module name if nil
+	ModuleID  string            `json:"module_id"`
+	Resources map[string]string `json:"resources"` // {ref:resourceID}
+	Secrets   map[string]string `json:"secrets"`   // {ref:secretID}
+	Configs   map[string]any    `json:"configs"`   // {ref:value}
 }
 
 type Deployment struct {
@@ -38,18 +37,30 @@ type Deployment struct {
 // --------------------------------------------------
 
 type InputTemplate struct {
-	ResourceInputs map[string]ResourceInput     `json:"resource_inputs"` // {ref:ResourceInput}
-	SecretInputs   map[string]ResourceInput     `json:"secret_inputs"`   // {ref:ResourceInput}
-	ConfigInputs   map[string]ConfigInput       `json:"config_inputs"`   // {ref:ConfigInput}
-	InputGroups    map[string]module.InputGroup `json:"input_groups"`    // {ref:InputGroup}
+	Resources   map[string]ResourceInput     `json:"resources"`    // {ref:ResourceInput}
+	Secrets     map[string]SecretInput       `json:"secrets"`      // {ref:SecretInput}
+	Configs     map[string]ConfigInput       `json:"configs"`      // {ref:ConfigInput}
+	InputGroups map[string]module.InputGroup `json:"input_groups"` // {ref:InputGroup}
 }
 
 type ResourceInput struct {
+	module.InputBase
+	OptionsSrc string `json:"options_src"`
+}
+
+type SecretInput struct {
 	module.Input
 	OptionsSrc string `json:"options_src"`
 }
 
 type ConfigInput struct {
 	module.Input
-	Options []any `json:"options"`
+	Options any `json:"options"`
+}
+
+// --------------------------------------------------
+
+type DeploymentsPostRequest struct {
+	Base
+	SecretRequests map[string]any // {ref:value}
 }
