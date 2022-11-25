@@ -113,7 +113,7 @@ type ResourceTarget struct {
 }
 
 type Resource struct {
-	Type string      `json:"type"`
+	Type string      `json:"type"` // resource type as defined by external services managing resources (e.g. serial-device, certificate, credentials ...)
 	Tags Set[string] `json:"tags"`
 }
 
