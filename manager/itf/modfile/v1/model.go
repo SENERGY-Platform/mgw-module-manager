@@ -163,7 +163,7 @@ type UserInputBase struct {
 
 type UserInput struct {
 	UserInputBase `yaml:",inline"`
-	Type          string         `yaml:"type"`        // type of the input (e.g. text, number, password, drop-down ...)
+	Type          string         `yaml:"type"`        // type of the input (e.g. text, number, password, user+password, drop-down ...)
 	Constraints   map[string]any `yaml:"constraints"` // constraints supported or required by the input type
 }
 
