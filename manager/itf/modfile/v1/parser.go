@@ -17,6 +17,7 @@
 package v1
 
 import (
+	"errors"
 	"fmt"
 	"module-manager/manager/itf/module"
 	"strconv"
@@ -435,7 +436,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 				}
 			}
 			switch mfConfig.Type {
-			case module.TextData:
+			case TextData:
 				var d *string
 				var o []string
 				if mfConfig.Value != nil {
@@ -455,7 +456,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					}
 				}
 				configs.SetString(ref, d, o...)
-			case module.BoolData:
+			case BoolData:
 				var d *bool
 				var o []bool
 				if mfConfig.Value != nil {
@@ -475,7 +476,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					}
 				}
 				configs.SetBool(ref, d, o...)
-			case module.IntData:
+			case IntData:
 				var d *int64
 				var o []int64
 				if mfConfig.Value != nil {
@@ -496,7 +497,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					}
 				}
 				configs.SetInt64(ref, d, o...)
-			case module.FloatData:
+			case FloatData:
 				var d *float64
 				var o []float64
 				if mfConfig.Value != nil {
@@ -516,15 +517,132 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					}
 				}
 				configs.SetFloat64(ref, d, o...)
+			case ListData:
+				if mfConfig.ListOpt == nil {
+					return configs, inputs, errors.New("missing list options")
+				}
+				switch mfConfig.ListOpt.Type {
+				case TextData:
+					var d []string
+					var o []string
+					if mfConfig.Value != nil {
+						fmt.Println(mfConfig.Value)
+						v, ok := mfConfig.Value.([]any)
+						if !ok {
+							return configs, inputs, fmt.Errorf("%s type missmatch: slice != %T", ref, mfConfig.Value)
+						}
+						for _, i := range v {
+							s, k := i.(string)
+							if !k {
+								return configs, inputs, fmt.Errorf("%s type missmatch: string != %T", ref, i)
+							}
+							d = append(d, s)
+						}
+					}
+					if mfConfig.Options != nil {
+						for _, opt := range mfConfig.Options {
+							v, ok := opt.(string)
+							if !ok {
+								return configs, inputs, fmt.Errorf("%s type missmatch: string != %T", ref, opt)
+							}
+							o = append(o, v)
+						}
+					}
+					configs.SetStringSlice(ref, d, mfConfig.ListOpt.Delimiter, o...)
+				case BoolData:
+					var d []bool
+					var o []bool
+					if mfConfig.Value != nil {
+						fmt.Println(mfConfig.Value)
+						v, ok := mfConfig.Value.([]any)
+						if !ok {
+							return configs, inputs, fmt.Errorf("%s type missmatch: slice != %T", ref, mfConfig.Value)
+						}
+						for _, i := range v {
+							b, k := i.(bool)
+							if !k {
+								return configs, inputs, fmt.Errorf("%s type missmatch: bool != %T", ref, i)
+							}
+							d = append(d, b)
+						}
+					}
+					if mfConfig.Options != nil {
+						for _, opt := range mfConfig.Options {
+							v, ok := opt.(bool)
+							if !ok {
+								return configs, inputs, fmt.Errorf("%s type missmatch: bool != %T", ref, opt)
+							}
+							o = append(o, v)
+						}
+					}
+					configs.SetBoolSlice(ref, d, mfConfig.ListOpt.Delimiter, o...)
+				case IntData:
+					var d []int64
+					var o []int64
+					if mfConfig.Value != nil {
+						v, ok := mfConfig.Value.([]any)
+						if !ok {
+							return configs, inputs, fmt.Errorf("%s type missmatch: slice != %T", ref, mfConfig.Value)
+						}
+						for _, i := range v {
+							n, k := i.(int)
+							if !k {
+								return configs, inputs, fmt.Errorf("%s type missmatch: int != %T", ref, i)
+							}
+							d = append(d, int64(n))
+						}
+					}
+					if mfConfig.Options != nil {
+						for _, opt := range mfConfig.Options {
+							v, ok := opt.(int)
+							if !ok {
+								return configs, inputs, fmt.Errorf("%s type missmatch: int != %T", ref, opt)
+							}
+							o = append(o, int64(v))
+						}
+					}
+					configs.SetInt64Slice(ref, d, mfConfig.ListOpt.Delimiter, o...)
+				case FloatData:
+					var d []float64
+					var o []float64
+					if mfConfig.Value != nil {
+						fmt.Println(mfConfig.Value)
+						v, ok := mfConfig.Value.([]any)
+						if !ok {
+							return configs, inputs, fmt.Errorf("%s type missmatch: slice != %T", ref, mfConfig.Value)
+						}
+						for _, i := range v {
+							f, k := i.(float64)
+							if !k {
+								return configs, inputs, fmt.Errorf("%s type missmatch: float != %T", ref, i)
+							}
+							d = append(d, f)
+						}
+					}
+					if mfConfig.Options != nil {
+						for _, opt := range mfConfig.Options {
+							v, ok := opt.(float64)
+							if !ok {
+								return configs, inputs, fmt.Errorf("%s type missmatch: float != %T", ref, opt)
+							}
+							o = append(o, v)
+						}
+					}
+					configs.SetFloat64Slice(ref, d, mfConfig.ListOpt.Delimiter, o...)
+				default:
+					return configs, inputs, fmt.Errorf("invalid data type '%s'", mfConfig.ListOpt.Type)
+				}
 			default:
 				return configs, inputs, fmt.Errorf("invalid data type '%s'", mfConfig.Type)
 			}
 			if mfConfig.UserInput != nil {
 				inputs[ref] = module.Input{
-					Name:        mfConfig.UserInput.Name,
-					Description: mfConfig.UserInput.Description,
-					Required:    mfConfig.UserInput.Required,
-					Group:       mfConfig.UserInput.Group,
+					InputBase: module.InputBase{
+						Name:        mfConfig.UserInput.Name,
+						Description: mfConfig.UserInput.Description,
+						Required:    mfConfig.UserInput.Required,
+						Group:       mfConfig.UserInput.Group,
+					},
 					Type:        mfConfig.UserInput.Type,
 					Constraints: mfConfig.UserInput.Constraints,
 				}
