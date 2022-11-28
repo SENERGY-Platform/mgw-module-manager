@@ -147,12 +147,13 @@ type ListOpt struct {
 }
 
 type ConfigValue struct {
-	Value     any            `yaml:"value"`     // default configuration value or nil
-	Options   []any          `yaml:"options"`   // list of possible configuration values
-	Type      string         `yaml:"type"`      // data type of the configuration value
-	ListOpt   *ListOpt       `yaml:"listOpt"`   // required options if type is list
-	UserInput *UserInput     `yaml:"userInput"` // definitions for user input via gui (if nil a default value must be set)
-	Targets   []ConfigTarget `yaml:"targets"`   // reference variables for the configuration value
+	Value      any            `yaml:"value"`      // default configuration value or nil
+	Options    []any          `yaml:"options"`    // list of possible configuration values
+	OptionsExt bool           `yaml:"optionsExt"` // if true a value not defined in options can be set (only required if options are provided)
+	Type       string         `yaml:"type"`       // data type of the configuration value
+	ListOpt    *ListOpt       `yaml:"listOpt"`    // required options if type is list
+	UserInput  *UserInput     `yaml:"userInput"`  // definitions for user input via gui (if nil a default value must be set)
+	Targets    []ConfigTarget `yaml:"targets"`    // reference variables for the configuration value
 }
 
 type ConfigTarget struct {
