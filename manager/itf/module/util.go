@@ -130,65 +130,66 @@ func (o *SliceOpt) Delimiter() *string {
 	return o.delimiter
 }
 
-func (c Configs) set(ref string, def any, opt any, kind reflect.Kind) {
-	c[ref] = configValue{Default: def, Options: opt, dataType: kind}
+func (c Configs) set(ref string, def any, opt any, optExt bool, kind reflect.Kind) {
+	c[ref] = configValue{Default: def, Options: opt, OptExt: optExt, dataType: kind}
 }
 
-func (c Configs) SetString(ref string, def *string, opt ...string) {
+func (c Configs) SetString(ref string, def *string, optExt bool, opt ...string) {
 	if def != nil {
-		c.set(ref, *def, opt, reflect.String)
+		c.set(ref, *def, opt, optExt, reflect.String)
 	} else {
-		c.set(ref, def, opt, reflect.String)
+		c.set(ref, def, opt, optExt, reflect.String)
 	}
 }
 
-func (c Configs) SetBool(ref string, def *bool, opt ...bool) {
+func (c Configs) SetBool(ref string, def *bool, optExt bool, opt ...bool) {
 	if def != nil {
-		c.set(ref, *def, opt, reflect.Bool)
+		c.set(ref, *def, opt, optExt, reflect.Bool)
 	} else {
-		c.set(ref, def, opt, reflect.Bool)
+		c.set(ref, def, opt, optExt, reflect.Bool)
 	}
 }
 
-func (c Configs) SetInt64(ref string, def *int64, opt ...int64) {
+func (c Configs) SetInt64(ref string, def *int64, optExt bool, opt ...int64) {
 	if def != nil {
-		c.set(ref, *def, opt, reflect.Int64)
+		c.set(ref, *def, opt, optExt, reflect.Int64)
 	} else {
-		c.set(ref, def, opt, reflect.Int64)
+		c.set(ref, def, opt, optExt, reflect.Int64)
 	}
 }
 
-func (c Configs) SetFloat64(ref string, def *float64, opt ...float64) {
+func (c Configs) SetFloat64(ref string, def *float64, optExt bool, opt ...float64) {
 	if def != nil {
-		c.set(ref, *def, opt, reflect.Float64)
+		c.set(ref, *def, opt, optExt, reflect.Float64)
 	} else {
-		c.set(ref, def, opt, reflect.Float64)
+		c.set(ref, def, opt, optExt, reflect.Float64)
 	}
 }
 
-func (c Configs) setSlice(ref string, def any, dlm *string, opt any, kind reflect.Kind) {
+func (c Configs) setSlice(ref string, def any, dlm *string, opt any, optExt bool, kind reflect.Kind) {
 	c[ref] = configValue{
 		Default:  def,
 		Options:  opt,
+		OptExt:   optExt,
 		dataType: reflect.Slice,
 		sliceOpt: &SliceOpt{dataType: kind, delimiter: dlm},
 	}
 }
 
-func (c Configs) SetStringSlice(ref string, def []string, dlm *string, opt ...string) {
-	c.setSlice(ref, def, dlm, opt, reflect.String)
+func (c Configs) SetStringSlice(ref string, def []string, dlm *string, optExt bool, opt ...string) {
+	c.setSlice(ref, def, dlm, opt, optExt, reflect.String)
 }
 
-func (c Configs) SetBoolSlice(ref string, def []bool, dlm *string, opt ...bool) {
-	c.setSlice(ref, def, dlm, opt, reflect.Bool)
+func (c Configs) SetBoolSlice(ref string, def []bool, dlm *string, optExt bool, opt ...bool) {
+	c.setSlice(ref, def, dlm, opt, optExt, reflect.Bool)
 }
 
-func (c Configs) SetInt64Slice(ref string, def []int64, dlm *string, opt ...int64) {
-	c.setSlice(ref, def, dlm, opt, reflect.Int64)
+func (c Configs) SetInt64Slice(ref string, def []int64, dlm *string, optExt bool, opt ...int64) {
+	c.setSlice(ref, def, dlm, opt, optExt, reflect.Int64)
 }
 
-func (c Configs) SetFloat64Slice(ref string, def []float64, dlm *string, opt ...float64) {
-	c.setSlice(ref, def, dlm, opt, reflect.Float64)
+func (c Configs) SetFloat64Slice(ref string, def []float64, dlm *string, optExt bool, opt ...float64) {
+	c.setSlice(ref, def, dlm, opt, optExt, reflect.Float64)
 }
 
 func (s *Set[T]) UnmarshalJSON(b []byte) error {
