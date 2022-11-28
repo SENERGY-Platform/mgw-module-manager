@@ -526,7 +526,6 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					var d []string
 					var o []string
 					if mfConfig.Value != nil {
-						fmt.Println(mfConfig.Value)
 						v, ok := mfConfig.Value.([]any)
 						if !ok {
 							return configs, inputs, fmt.Errorf("%s type missmatch: slice != %T", ref, mfConfig.Value)
@@ -553,7 +552,6 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					var d []bool
 					var o []bool
 					if mfConfig.Value != nil {
-						fmt.Println(mfConfig.Value)
 						v, ok := mfConfig.Value.([]any)
 						if !ok {
 							return configs, inputs, fmt.Errorf("%s type missmatch: slice != %T", ref, mfConfig.Value)
@@ -606,7 +604,6 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					var d []float64
 					var o []float64
 					if mfConfig.Value != nil {
-						fmt.Println(mfConfig.Value)
 						v, ok := mfConfig.Value.([]any)
 						if !ok {
 							return configs, inputs, fmt.Errorf("%s type missmatch: slice != %T", ref, mfConfig.Value)
