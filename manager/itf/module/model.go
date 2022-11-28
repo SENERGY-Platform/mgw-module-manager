@@ -125,8 +125,9 @@ type SliceOpt struct {
 }
 
 type configValue struct {
-	Default  any `json:"default"`
-	Options  any `json:"options"`
+	Default  any  `json:"default"`
+	Options  any  `json:"options"`
+	OptExt   bool `json:"opt_ext"`
 	dataType reflect.Kind
 	sliceOpt *SliceOpt
 }
