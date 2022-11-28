@@ -455,7 +455,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 						o = append(o, v)
 					}
 				}
-				configs.SetString(ref, d, o...)
+				configs.SetString(ref, d, mfConfig.OptionsExt, o...)
 			case BoolData:
 				var d *bool
 				var o []bool
@@ -475,7 +475,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 						o = append(o, v)
 					}
 				}
-				configs.SetBool(ref, d, o...)
+				configs.SetBool(ref, d, mfConfig.OptionsExt, o...)
 			case IntData:
 				var d *int64
 				var o []int64
@@ -496,7 +496,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 						o = append(o, int64(v))
 					}
 				}
-				configs.SetInt64(ref, d, o...)
+				configs.SetInt64(ref, d, mfConfig.OptionsExt, o...)
 			case FloatData:
 				var d *float64
 				var o []float64
@@ -516,7 +516,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 						o = append(o, v)
 					}
 				}
-				configs.SetFloat64(ref, d, o...)
+				configs.SetFloat64(ref, d, mfConfig.OptionsExt, o...)
 			case ListData:
 				if mfConfig.ListOpt == nil {
 					return configs, inputs, errors.New("missing list options")
@@ -547,7 +547,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, v)
 						}
 					}
-					configs.SetStringSlice(ref, d, mfConfig.ListOpt.Delimiter, o...)
+					configs.SetStringSlice(ref, d, mfConfig.ListOpt.Delimiter, mfConfig.OptionsExt, o...)
 				case BoolData:
 					var d []bool
 					var o []bool
@@ -573,7 +573,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, v)
 						}
 					}
-					configs.SetBoolSlice(ref, d, mfConfig.ListOpt.Delimiter, o...)
+					configs.SetBoolSlice(ref, d, mfConfig.ListOpt.Delimiter, mfConfig.OptionsExt, o...)
 				case IntData:
 					var d []int64
 					var o []int64
@@ -599,7 +599,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, int64(v))
 						}
 					}
-					configs.SetInt64Slice(ref, d, mfConfig.ListOpt.Delimiter, o...)
+					configs.SetInt64Slice(ref, d, mfConfig.ListOpt.Delimiter, mfConfig.OptionsExt, o...)
 				case FloatData:
 					var d []float64
 					var o []float64
@@ -625,7 +625,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, v)
 						}
 					}
-					configs.SetFloat64Slice(ref, d, mfConfig.ListOpt.Delimiter, o...)
+					configs.SetFloat64Slice(ref, d, mfConfig.ListOpt.Delimiter, mfConfig.OptionsExt, o...)
 				default:
 					return configs, inputs, fmt.Errorf("invalid data type '%s'", mfConfig.ListOpt.Type)
 				}
