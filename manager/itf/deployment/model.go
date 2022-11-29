@@ -38,24 +38,25 @@ type Deployment struct {
 
 type InputTemplate struct {
 	Resources   map[string]ResourceInput     `json:"resources"`    // {ref:ResourceInput}
-	Secrets     map[string]SecretInput       `json:"secrets"`      // {ref:SecretInput}
+	Secrets     map[string]ResourceInput     `json:"secrets"`      // {ref:SecretInput}
 	Configs     map[string]ConfigInput       `json:"configs"`      // {ref:ConfigInput}
 	InputGroups map[string]module.InputGroup `json:"input_groups"` // {ref:InputGroup}
 }
 
 type ResourceInput struct {
-	module.InputBase
-	OptionsSrc string `json:"options_src"`
-}
-
-type SecretInput struct {
 	module.Input
 	OptionsSrc string `json:"options_src"`
 }
 
 type ConfigInput struct {
 	module.Input
-	Options any `json:"options"`
+	Default  any               `json:"default"`
+	Options  any               `json:"options"`
+	OptExt   bool              `json:"opt_ext"`
+	Type     module.ConfigType `json:"type"`
+	TypeOpt  map[string]any    `json:"type_opt"`
+	DataType module.DataType   `json:"data_type"`
+	IsSlice  bool              `json:"is_slice"`
 }
 
 // --------------------------------------------------
