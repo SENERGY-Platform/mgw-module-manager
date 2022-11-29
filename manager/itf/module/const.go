@@ -85,3 +85,49 @@ var PortTypeMap = map[string]struct{}{
 	TcpPort: {},
 	UdpPort: {},
 }
+
+const (
+	Bool DataType = iota
+	Int64
+	Float64
+	String
+)
+
+var DataTypeRef = []string{
+	Bool:    "bool",
+	Int64:   "int",
+	Float64: "float",
+	String:  "string",
+}
+
+var DataTypeRefMap = func() map[string]DataType {
+	m := make(map[string]DataType)
+	for i := 0; i < len(DataTypeRef); i++ {
+		m[DataTypeRef[i]] = DataType(i)
+	}
+	return m
+}()
+
+const (
+	Text ConfigType = iota
+	Date
+	Time
+	Number
+	Toggle
+)
+
+var ConfigTypeRef = []string{
+	Text:   "text",
+	Date:   "date",
+	Time:   "time",
+	Number: "number",
+	Toggle: "toggle",
+}
+
+var ConfigTypeRefMap = func() map[string]ConfigType {
+	m := make(map[string]ConfigType)
+	for i := 0; i < len(ConfigTypeRef); i++ {
+		m[ConfigTypeRef[i]] = ConfigType(i)
+	}
+	return m
+}()
