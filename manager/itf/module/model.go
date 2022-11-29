@@ -151,7 +151,7 @@ type InputGroup struct {
 }
 
 type Inputs struct {
-	Resources map[string]Input      `json:"resources"` // {ref:InputBase}
+	Resources map[string]Input      `json:"resources"` // {ref:Input}
 	Secrets   map[string]Input      `json:"secrets"`   // {ref:Input}
 	Configs   map[string]Input      `json:"configs"`   // {ref:Input}
 	Groups    map[string]InputGroup `json:"groups"`    // {ref:InputGroup}
