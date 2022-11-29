@@ -45,7 +45,7 @@ type InputTemplate struct {
 
 type ResourceInput struct {
 	module.Input
-	OptionsSrc string `json:"options_src"`
+	module.Resource
 }
 
 type ConfigInput struct {
