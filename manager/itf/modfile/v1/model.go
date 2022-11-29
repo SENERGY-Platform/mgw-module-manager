@@ -134,12 +134,12 @@ type ResourceBase struct {
 }
 
 type Resource struct {
-	ResourceBase `yaml:"readOnly"`
+	ResourceBase `yaml:",inline"`
 	Targets      []ResourceTarget `yaml:"targets"` // mount points for the resource
 }
 
 type Secret struct {
-	ResourceBase `yaml:"readOnly"`
+	ResourceBase `yaml:",inline"`
 	Targets      []ResourceTargetBase `yaml:"targets"` // mount points for the secret
 }
 
