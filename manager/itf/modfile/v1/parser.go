@@ -17,7 +17,6 @@
 package v1
 
 import (
-	"errors"
 	"fmt"
 	"module-manager/manager/itf/module"
 	"strconv"
@@ -65,7 +64,7 @@ func (mf Module) Parse() (module.Module, error) {
 	m.Resources = resources
 	m.Secrets = secrets
 	m.Configs = configs
-	userInput := module.UserInput{}
+	userInput := module.Inputs{}
 	if mf.InputGroups != nil && len(mf.InputGroups) > 0 {
 		userInput.Groups = make(map[string]module.InputGroup)
 		for ref, mfInputGroup := range mf.InputGroups {
@@ -85,7 +84,7 @@ func (mf Module) Parse() (module.Module, error) {
 	if cInputs != nil && len(cInputs) > 0 {
 		userInput.Configs = cInputs
 	}
-	m.UserInput = userInput
+	m.Inputs = userInput
 	return m, nil
 }
 
@@ -309,10 +308,10 @@ func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, s
 	return nil, nil
 }
 
-func parseModuleResources(mfResources map[string]Resource, services map[string]*module.Service) (map[string]module.Resource, map[string]module.InputBase, error) {
+func parseModuleResources(mfResources map[string]Resource, services map[string]*module.Service) (map[string]module.Resource, map[string]module.Input, error) {
 	if mfResources != nil && len(mfResources) > 0 {
 		resources := make(map[string]module.Resource)
-		inputs := make(map[string]module.InputBase)
+		inputs := make(map[string]module.Input)
 		for ref, mfResource := range mfResources {
 			if mfResource.Targets != nil && len(mfResource.Targets) > 0 {
 				for _, mfTarget := range mfResource.Targets {
@@ -346,7 +345,7 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 			}
 			resources[ref] = r
 			if mfResource.UserInput != nil {
-				inputs[ref] = module.InputBase{
+				inputs[ref] = module.Input{
 					Name:        mfResource.UserInput.Name,
 					Description: mfResource.UserInput.Description,
 					Required:    mfResource.UserInput.Required,
@@ -394,14 +393,10 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module
 			secrets[ref] = r
 			if mfSecret.UserInput != nil {
 				inputs[ref] = module.Input{
-					InputBase: module.InputBase{
-						Name:        mfSecret.UserInput.Name,
-						Description: mfSecret.UserInput.Description,
-						Required:    mfSecret.UserInput.Required,
-						Group:       mfSecret.UserInput.Group,
-					},
-					Type:        mfSecret.UserInput.Type,
-					Constraints: mfSecret.UserInput.Constraints,
+					Name:        mfSecret.UserInput.Name,
+					Description: mfSecret.UserInput.Description,
+					Required:    mfSecret.UserInput.Required,
+					Group:       mfSecret.UserInput.Group,
 				}
 			}
 		}
@@ -435,94 +430,17 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					}
 				}
 			}
-			switch mfConfig.Type {
-			case TextData:
-				var d *string
-				var o []string
-				if mfConfig.Value != nil {
-					v, ok := mfConfig.Value.(string)
-					if !ok {
-						return configs, inputs, fmt.Errorf("%s type missmatch: string != %T", ref, mfConfig.Value)
-					}
-					d = &v
-				}
-				if mfConfig.Options != nil {
-					for _, opt := range mfConfig.Options {
-						v, ok := opt.(string)
-						if !ok {
-							return configs, inputs, fmt.Errorf("%s type missmatch: string != %T", ref, opt)
-						}
-						o = append(o, v)
-					}
-				}
-				configs.SetString(ref, d, mfConfig.OptionsExt, o...)
-			case BoolData:
-				var d *bool
-				var o []bool
-				if mfConfig.Value != nil {
-					v, ok := mfConfig.Value.(bool)
-					if !ok {
-						return configs, inputs, fmt.Errorf("%s type missmatch: bool != %T", ref, mfConfig.Value)
-					}
-					d = &v
-				}
-				if mfConfig.Options != nil {
-					for _, opt := range mfConfig.Options {
-						v, ok := opt.(bool)
-						if !ok {
-							return configs, inputs, fmt.Errorf("%s type missmatch: bool != %T", ref, opt)
-						}
-						o = append(o, v)
-					}
-				}
-				configs.SetBool(ref, d, mfConfig.OptionsExt, o...)
-			case IntData:
-				var d *int64
-				var o []int64
-				if mfConfig.Value != nil {
-					v, ok := mfConfig.Value.(int)
-					if !ok {
-						return configs, inputs, fmt.Errorf("%s type missmatch: int != %T", ref, mfConfig.Value)
-					}
-					tmp := int64(v)
-					d = &tmp
-				}
-				if mfConfig.Options != nil {
-					for _, opt := range mfConfig.Options {
-						v, ok := opt.(int)
-						if !ok {
-							return configs, inputs, fmt.Errorf("%s type missmatch: int != %T", ref, opt)
-						}
-						o = append(o, int64(v))
-					}
-				}
-				configs.SetInt64(ref, d, mfConfig.OptionsExt, o...)
-			case FloatData:
-				var d *float64
-				var o []float64
-				if mfConfig.Value != nil {
-					v, ok := mfConfig.Value.(float64)
-					if !ok {
-						return configs, inputs, fmt.Errorf("%s type missmatch: float64 != %T", ref, mfConfig.Value)
-					}
-					d = &v
-				}
-				if mfConfig.Options != nil {
-					for _, opt := range mfConfig.Options {
-						v, ok := opt.(float64)
-						if !ok {
-							return configs, inputs, fmt.Errorf("%s type missmatch: float64 != %T", ref, opt)
-						}
-						o = append(o, v)
-					}
-				}
-				configs.SetFloat64(ref, d, mfConfig.OptionsExt, o...)
-			case ListData:
-				if mfConfig.ListOpt == nil {
-					return configs, inputs, errors.New("missing list options")
-				}
-				switch mfConfig.ListOpt.Type {
-				case TextData:
+			ct, ok := module.ConfigTypeRefMap[mfConfig.Type]
+			if !ok {
+				return configs, inputs, fmt.Errorf("%s ivalid config type '%s'", ref, mfConfig.Type)
+			}
+			dt, ok := module.DataTypeRefMap[mfConfig.DataType]
+			if !ok {
+				return configs, inputs, fmt.Errorf("%s ivalid data type '%s'", ref, mfConfig.DataType)
+			}
+			if mfConfig.IsList {
+				switch dt {
+				case module.String:
 					var d []string
 					var o []string
 					if mfConfig.Value != nil {
@@ -547,8 +465,13 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, v)
 						}
 					}
-					configs.SetStringSlice(ref, d, mfConfig.ListOpt.Delimiter, mfConfig.OptionsExt, o...)
-				case BoolData:
+					configs.SetStringSlice(ref, d, o, module.ConfigValue{
+						OptExt:    mfConfig.OptionsExt,
+						Type:      ct,
+						TypeOpt:   mfConfig.TypeOptions,
+						Delimiter: mfConfig.Delimiter,
+					})
+				case module.Bool:
 					var d []bool
 					var o []bool
 					if mfConfig.Value != nil {
@@ -573,8 +496,13 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, v)
 						}
 					}
-					configs.SetBoolSlice(ref, d, mfConfig.ListOpt.Delimiter, mfConfig.OptionsExt, o...)
-				case IntData:
+					configs.SetBoolSlice(ref, d, o, module.ConfigValue{
+						OptExt:    mfConfig.OptionsExt,
+						Type:      ct,
+						TypeOpt:   mfConfig.TypeOptions,
+						Delimiter: mfConfig.Delimiter,
+					})
+				case module.Int64:
 					var d []int64
 					var o []int64
 					if mfConfig.Value != nil {
@@ -599,8 +527,13 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, int64(v))
 						}
 					}
-					configs.SetInt64Slice(ref, d, mfConfig.ListOpt.Delimiter, mfConfig.OptionsExt, o...)
-				case FloatData:
+					configs.SetInt64Slice(ref, d, o, module.ConfigValue{
+						OptExt:    mfConfig.OptionsExt,
+						Type:      ct,
+						TypeOpt:   mfConfig.TypeOptions,
+						Delimiter: mfConfig.Delimiter,
+					})
+				case module.Float64:
 					var d []float64
 					var o []float64
 					if mfConfig.Value != nil {
@@ -625,23 +558,121 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, v)
 						}
 					}
-					configs.SetFloat64Slice(ref, d, mfConfig.ListOpt.Delimiter, mfConfig.OptionsExt, o...)
-				default:
-					return configs, inputs, fmt.Errorf("invalid data type '%s'", mfConfig.ListOpt.Type)
+					configs.SetFloat64Slice(ref, d, o, module.ConfigValue{
+						OptExt:    mfConfig.OptionsExt,
+						Type:      ct,
+						TypeOpt:   mfConfig.TypeOptions,
+						Delimiter: mfConfig.Delimiter,
+					})
 				}
-			default:
-				return configs, inputs, fmt.Errorf("invalid data type '%s'", mfConfig.Type)
+			} else {
+				switch dt {
+				case module.String:
+					var d *string
+					var o []string
+					if mfConfig.Value != nil {
+						v, ok := mfConfig.Value.(string)
+						if !ok {
+							return configs, inputs, fmt.Errorf("%s type missmatch: string != %T", ref, mfConfig.Value)
+						}
+						d = &v
+					}
+					if mfConfig.Options != nil {
+						for _, opt := range mfConfig.Options {
+							v, ok := opt.(string)
+							if !ok {
+								return configs, inputs, fmt.Errorf("%s type missmatch: string != %T", ref, opt)
+							}
+							o = append(o, v)
+						}
+					}
+					configs.SetString(ref, d, o, module.ConfigValue{
+						OptExt:  mfConfig.OptionsExt,
+						Type:    ct,
+						TypeOpt: mfConfig.TypeOptions,
+					})
+				case module.Bool:
+					var d *bool
+					var o []bool
+					if mfConfig.Value != nil {
+						v, ok := mfConfig.Value.(bool)
+						if !ok {
+							return configs, inputs, fmt.Errorf("%s type missmatch: bool != %T", ref, mfConfig.Value)
+						}
+						d = &v
+					}
+					if mfConfig.Options != nil {
+						for _, opt := range mfConfig.Options {
+							v, ok := opt.(bool)
+							if !ok {
+								return configs, inputs, fmt.Errorf("%s type missmatch: bool != %T", ref, opt)
+							}
+							o = append(o, v)
+						}
+					}
+					configs.SetBool(ref, d, o, module.ConfigValue{
+						OptExt:  mfConfig.OptionsExt,
+						Type:    ct,
+						TypeOpt: mfConfig.TypeOptions,
+					})
+				case module.Int64:
+					var d *int64
+					var o []int64
+					if mfConfig.Value != nil {
+						v, ok := mfConfig.Value.(int)
+						if !ok {
+							return configs, inputs, fmt.Errorf("%s type missmatch: int != %T", ref, mfConfig.Value)
+						}
+						tmp := int64(v)
+						d = &tmp
+					}
+					if mfConfig.Options != nil {
+						for _, opt := range mfConfig.Options {
+							v, ok := opt.(int)
+							if !ok {
+								return configs, inputs, fmt.Errorf("%s type missmatch: int != %T", ref, opt)
+							}
+							o = append(o, int64(v))
+						}
+					}
+					configs.SetInt64(ref, d, o, module.ConfigValue{
+						OptExt:  mfConfig.OptionsExt,
+						Type:    ct,
+						TypeOpt: mfConfig.TypeOptions,
+					})
+				case module.Float64:
+					var d *float64
+					var o []float64
+					if mfConfig.Value != nil {
+						v, ok := mfConfig.Value.(float64)
+						if !ok {
+							return configs, inputs, fmt.Errorf("%s type missmatch: float64 != %T", ref, mfConfig.Value)
+						}
+						d = &v
+					}
+					if mfConfig.Options != nil {
+						for _, opt := range mfConfig.Options {
+							v, ok := opt.(float64)
+							if !ok {
+								return configs, inputs, fmt.Errorf("%s type missmatch: float64 != %T", ref, opt)
+							}
+							o = append(o, v)
+						}
+					}
+					configs.SetFloat64(ref, d, o, module.ConfigValue{
+						OptExt:  mfConfig.OptionsExt,
+						Type:    ct,
+						TypeOpt: mfConfig.TypeOptions,
+					})
+				}
 			}
+
 			if mfConfig.UserInput != nil {
 				inputs[ref] = module.Input{
-					InputBase: module.InputBase{
-						Name:        mfConfig.UserInput.Name,
-						Description: mfConfig.UserInput.Description,
-						Required:    mfConfig.UserInput.Required,
-						Group:       mfConfig.UserInput.Group,
-					},
-					Type:        mfConfig.UserInput.Type,
-					Constraints: mfConfig.UserInput.Constraints,
+					Name:        mfConfig.UserInput.Name,
+					Description: mfConfig.UserInput.Description,
+					Required:    mfConfig.UserInput.Required,
+					Group:       mfConfig.UserInput.Group,
 				}
 			}
 		}
