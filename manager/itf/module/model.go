@@ -18,7 +18,6 @@ package module
 
 import (
 	"io/fs"
-	"reflect"
 	"time"
 )
 
@@ -119,17 +118,23 @@ type Resource struct {
 
 type Configs map[string]configValue
 
-type SliceOpt struct {
-	dataType  reflect.Kind
-	delimiter *string // ; if nil
+type DataType uint
+
+type ConfigType uint
+
+type ConfigValue struct {
+	OptExt    bool           `json:"opt_ext"`
+	Type      ConfigType     `json:"type"`
+	TypeOpt   map[string]any `json:"type_opt"`
+	Delimiter *string        `json:"delimiter"` // ';' if nil (only applies if IsSlice == true)
 }
 
 type configValue struct {
-	Default  any  `json:"default"`
-	Options  any  `json:"options"`
-	OptExt   bool `json:"opt_ext"`
-	dataType reflect.Kind
-	sliceOpt *SliceOpt
+	Default  any      `json:"default"`
+	Options  any      `json:"options"`
+	DataType DataType `json:"data_type"`
+	IsSlice  bool     `json:"is_slice"`
+	ConfigValue
 }
 
 type InputBase struct {
