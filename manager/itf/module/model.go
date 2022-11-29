@@ -73,12 +73,12 @@ type BindMount struct {
 
 type TmpfsMount struct {
 	Size uint64       `json:"size"`
-	Mode *fs.FileMode `json:"mode"` // 0770 if nil
+	Mode *fs.FileMode `json:"mode"` // '0770' if nil
 }
 
 type HttpEndpoint struct {
 	Name   string  `json:"name"`
-	Port   *int    `json:"port"` // 80 if nil
+	Port   *int    `json:"port"` // '80' if nil
 	GwPath *string `json:"gw_path"`
 }
 
@@ -88,7 +88,7 @@ type portMapping struct {
 	Name     *string `json:"name"`
 	Port     []uint  `json:"port"`      // {n} || {s, e}
 	HostPort []uint  `json:"host_port"` // {n} || {s, e}
-	Protocol *string `json:"protocol"`  // tcp if nil
+	Protocol *string `json:"protocol"`  // 'tcp' if nil
 }
 
 type ServiceDependencyTarget struct {
