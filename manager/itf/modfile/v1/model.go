@@ -127,18 +127,20 @@ type ResourceTarget struct {
 	ReadOnly           bool `yaml:"readOnly"` // if true resource will be mounted as read only
 }
 
+type ResourceBase struct {
+	Type      string     `yaml:"type"`      // resource type as defined by external services managing resources (e.g. serial-device, certificate, ...)
+	Tags      []string   `yaml:"tags"`      // tags for aiding resource identification (e.g. a vendor), unique type and tag combinations can be used to select resources without requiring user interaction
+	UserInput *UserInput `yaml:"userInput"` // meta info for user input via gui (if nil the type and tag combination must yield a unique resource)
+}
+
 type Resource struct {
-	Type      string           `yaml:"type"`      // resource type as defined by external services managing resources (e.g. serial-device, certificate, ...)
-	Tags      []string         `yaml:"tags"`      // tags for aiding resource identification (e.g. a vendor), unique type and tag combinations can be used to select resources without requiring user interaction
-	UserInput *UserInputBase   `yaml:"userInput"` // definitions for user input via gui (if nil the type and tag combination must yield a single resource)
-	Targets   []ResourceTarget `yaml:"targets"`   // mount points for the resource
+	ResourceBase `yaml:"readOnly"`
+	Targets      []ResourceTarget `yaml:"targets"` // mount points for the resource
 }
 
 type Secret struct {
-	Type      string               `yaml:"type"`      // resource type as defined by external services managing resources (e.g. serial-device, certificate, ...)
-	Tags      []string             `yaml:"tags"`      // tags for aiding resource identification (e.g. a vendor), unique type and tag combinations can be used to select resources without requiring user interaction
-	UserInput *UserInput           `yaml:"userInput"` // definitions for user input via gui (if nil the type and tag combination must yield a single secret)
-	Targets   []ResourceTargetBase `yaml:"targets"`   // mount points for the secret
+	ResourceBase `yaml:"readOnly"`
+	Targets      []ResourceTargetBase `yaml:"targets"` // mount points for the secret
 }
 
 type ListOpt struct {
@@ -161,17 +163,11 @@ type ConfigTarget struct {
 	Services []string `yaml:"services"` // service identifiers as used in Module.Services to map the reference variable to a number of services
 }
 
-type UserInputBase struct {
+type UserInput struct {
 	Name        string  `yaml:"name"`        // input name (e.g. used as a label for input field)
 	Description *string `yaml:"description"` // short text describing the input
 	Required    bool    `yaml:"required"`    // if true a user interaction is required
 	Group       *string `yaml:"group"`       // group identifier as used in Module.InputGroups to assign the user input to an input group
-}
-
-type UserInput struct {
-	UserInputBase `yaml:",inline"`
-	Type          string         `yaml:"type"`        // type of the input (e.g. text, number, password, user+password, drop-down ...)
-	Constraints   map[string]any `yaml:"constraints"` // constraints supported or required by the input type
 }
 
 type InputGroup struct {
