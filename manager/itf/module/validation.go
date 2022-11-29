@@ -65,18 +65,18 @@ func Validate(m Module) error {
 			}
 		}
 	}
-	if m.UserInput.Groups != nil && len(m.UserInput.Groups) > 0 {
-		for ref := range m.UserInput.Groups {
+	if m.Inputs.Groups != nil && len(m.Inputs.Groups) > 0 {
+		for ref := range m.Inputs.Groups {
 			if ref == "" {
 				return errors.New("invalid user input group reference")
 			}
 		}
 	}
-	if m.UserInput.Resources != nil && len(m.UserInput.Resources) > 0 {
+	if m.Inputs.Resources != nil && len(m.Inputs.Resources) > 0 {
 		if m.Resources == nil || len(m.Resources) == 0 {
 			return errors.New("missing resources for user inputs")
 		}
-		for ref, input := range m.UserInput.Resources {
+		for ref, input := range m.Inputs.Resources {
 			if ref == "" {
 				return errors.New("invalid user input reference")
 			}
@@ -84,20 +84,20 @@ func Validate(m Module) error {
 				return fmt.Errorf("missing resource for input '%s'", ref)
 			}
 			if input.Group != nil {
-				if m.UserInput.Groups == nil || len(m.UserInput.Groups) == 0 {
+				if m.Inputs.Groups == nil || len(m.Inputs.Groups) == 0 {
 					return errors.New("missing groups for user inputs")
 				}
-				if _, ok := m.UserInput.Groups[*input.Group]; !ok {
+				if _, ok := m.Inputs.Groups[*input.Group]; !ok {
 					return fmt.Errorf("missing group for input '%s'", ref)
 				}
 			}
 		}
 	}
-	if m.UserInput.Secrets != nil && len(m.UserInput.Secrets) > 0 {
+	if m.Inputs.Secrets != nil && len(m.Inputs.Secrets) > 0 {
 		if m.Secrets == nil || len(m.Secrets) == 0 {
 			return errors.New("missing secrets for user inputs")
 		}
-		for ref, input := range m.UserInput.Secrets {
+		for ref, input := range m.Inputs.Secrets {
 			if ref == "" {
 				return errors.New("invalid user input reference")
 			}
@@ -105,20 +105,20 @@ func Validate(m Module) error {
 				return fmt.Errorf("missing secret for input '%s'", ref)
 			}
 			if input.Group != nil {
-				if m.UserInput.Groups == nil || len(m.UserInput.Groups) == 0 {
+				if m.Inputs.Groups == nil || len(m.Inputs.Groups) == 0 {
 					return errors.New("missing groups for user inputs")
 				}
-				if _, ok := m.UserInput.Groups[*input.Group]; !ok {
+				if _, ok := m.Inputs.Groups[*input.Group]; !ok {
 					return fmt.Errorf("missing group for input '%s'", ref)
 				}
 			}
 		}
 	}
-	if m.UserInput.Configs != nil && len(m.UserInput.Configs) > 0 {
+	if m.Inputs.Configs != nil && len(m.Inputs.Configs) > 0 {
 		if m.Configs == nil || len(m.Configs) == 0 {
 			return errors.New("missing secrets for user inputs")
 		}
-		for ref, input := range m.UserInput.Configs {
+		for ref, input := range m.Inputs.Configs {
 			if ref == "" {
 				return errors.New("invalid user input reference")
 			}
@@ -126,10 +126,10 @@ func Validate(m Module) error {
 				return fmt.Errorf("missing secret for input '%s'", ref)
 			}
 			if input.Group != nil {
-				if m.UserInput.Groups == nil || len(m.UserInput.Groups) == 0 {
+				if m.Inputs.Groups == nil || len(m.Inputs.Groups) == 0 {
 					return errors.New("missing groups for user inputs")
 				}
-				if _, ok := m.UserInput.Groups[*input.Group]; !ok {
+				if _, ok := m.Inputs.Groups[*input.Group]; !ok {
 					return fmt.Errorf("missing group for input '%s'", ref)
 				}
 			}

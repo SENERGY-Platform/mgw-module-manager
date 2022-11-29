@@ -36,7 +36,7 @@ type Module struct {
 	Resources      map[string]Resource         `json:"resources"`    // {ref:Resource}
 	Secrets        map[string]Resource         `json:"secrets"`      // {ref:Resource}
 	Configs        Configs                     `json:"configs"`      // {ref:ConfigValue}
-	UserInput      UserInput                   `json:"user_input"`
+	Inputs         Inputs                      `json:"inputs"`
 }
 
 type Set[T comparable] map[T]struct{}
@@ -137,17 +137,11 @@ type configValue struct {
 	ConfigValue
 }
 
-type InputBase struct {
+type Input struct {
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
 	Required    bool    `json:"required"`
 	Group       *string `json:"group"`
-}
-
-type Input struct {
-	InputBase
-	Type        string         `json:"type"` // type of the input (e.g. text, number, user+password, drop-down ...)
-	Constraints map[string]any `json:"constraints"`
 }
 
 type InputGroup struct {
@@ -156,8 +150,8 @@ type InputGroup struct {
 	Group       *string `json:"group"`
 }
 
-type UserInput struct {
-	Resources map[string]InputBase  `json:"resources"` // {ref:InputBase}
+type Inputs struct {
+	Resources map[string]Input      `json:"resources"` // {ref:InputBase}
 	Secrets   map[string]Input      `json:"secrets"`   // {ref:Input}
 	Configs   map[string]Input      `json:"configs"`   // {ref:Input}
 	Groups    map[string]InputGroup `json:"groups"`    // {ref:InputGroup}
