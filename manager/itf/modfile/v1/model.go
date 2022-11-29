@@ -143,19 +143,17 @@ type Secret struct {
 	Targets      []ResourceTargetBase `yaml:"targets"` // mount points for the secret
 }
 
-type ListOpt struct {
-	Type      string  `yaml:"type"`      // data type of list items
-	Delimiter *string `yaml:"delimiter"` // delimiter used for marshalling and unmarshalling
-}
-
 type ConfigValue struct {
-	Value      any            `yaml:"value"`      // default configuration value or nil
-	Options    []any          `yaml:"options"`    // list of possible configuration values
-	OptionsExt bool           `yaml:"optionsExt"` // if true a value not defined in options can be set (only required if options are provided)
-	Type       string         `yaml:"type"`       // data type of the configuration value
-	ListOpt    *ListOpt       `yaml:"listOpt"`    // required options if type is list
-	UserInput  *UserInput     `yaml:"userInput"`  // definitions for user input via gui (if nil a default value must be set)
-	Targets    []ConfigTarget `yaml:"targets"`    // reference variables for the configuration value
+	Value       any            `yaml:"value"`       // default configuration value or nil
+	Options     []any          `yaml:"options"`     // list of possible configuration values
+	OptionsExt  bool           `yaml:"optionsExt"`  // if true a value not defined in options can be set (only required if options are provided)
+	Type        string         `yaml:"type"`        // type of the configuration value (e.g. text, number, date, ...)
+	TypeOptions map[string]any `yaml:"typeOptions"` // type specific options (e.g. number supports min, max values or step)
+	DataType    string         `yaml:"dataType"`    // data type of the configuration value (e.g. string, int, ...)
+	IsList      bool           `yaml:"isList"`      // set to true if multiple configuration values are required
+	Delimiter   *string        `yaml:"delimiter"`   // delimiter to be used for marshalling multiple configuration values
+	UserInput   *UserInput     `yaml:"userInput"`   // meta info for user input via gui (if nil a default value must be set)
+	Targets     []ConfigTarget `yaml:"targets"`     // reference variables for the configuration value
 }
 
 type ConfigTarget struct {
