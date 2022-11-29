@@ -23,7 +23,6 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/mod/semver"
-	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -106,90 +105,60 @@ func semVerRangeParse(s string) (opr []string, ver []string, err error) {
 	return
 }
 
-func (cv *configValue) Kind() reflect.Kind {
-	return cv.dataType
+func (c Configs) set(ref string, def any, opt any, dType DataType, cv ConfigValue) {
+	c[ref] = configValue{Default: def, Options: opt, DataType: dType, ConfigValue: cv}
 }
 
-func (cv *configValue) Is(t reflect.Kind) bool {
-	return cv.dataType == t
-}
-
-func (cv *configValue) SliceOpt() *SliceOpt {
-	return cv.sliceOpt
-}
-
-func (o *SliceOpt) Kind() reflect.Kind {
-	return o.dataType
-}
-
-func (o *SliceOpt) Is(t reflect.Kind) bool {
-	return o.dataType == t
-}
-
-func (o *SliceOpt) Delimiter() *string {
-	return o.delimiter
-}
-
-func (c Configs) set(ref string, def any, opt any, optExt bool, kind reflect.Kind) {
-	c[ref] = configValue{Default: def, Options: opt, OptExt: optExt, dataType: kind}
-}
-
-func (c Configs) SetString(ref string, def *string, optExt bool, opt ...string) {
+func (c Configs) SetString(ref string, def *string, opt []string, cv ConfigValue) {
 	if def != nil {
-		c.set(ref, *def, opt, optExt, reflect.String)
+		c.set(ref, *def, opt, String, cv)
 	} else {
-		c.set(ref, def, opt, optExt, reflect.String)
+		c.set(ref, def, opt, String, cv)
 	}
 }
 
-func (c Configs) SetBool(ref string, def *bool, optExt bool, opt ...bool) {
+func (c Configs) SetBool(ref string, def *bool, opt []bool, cv ConfigValue) {
 	if def != nil {
-		c.set(ref, *def, opt, optExt, reflect.Bool)
+		c.set(ref, *def, opt, Bool, cv)
 	} else {
-		c.set(ref, def, opt, optExt, reflect.Bool)
+		c.set(ref, def, opt, Bool, cv)
 	}
 }
 
-func (c Configs) SetInt64(ref string, def *int64, optExt bool, opt ...int64) {
+func (c Configs) SetInt64(ref string, def *int64, opt []int64, cv ConfigValue) {
 	if def != nil {
-		c.set(ref, *def, opt, optExt, reflect.Int64)
+		c.set(ref, *def, opt, Int64, cv)
 	} else {
-		c.set(ref, def, opt, optExt, reflect.Int64)
+		c.set(ref, def, opt, Int64, cv)
 	}
 }
 
-func (c Configs) SetFloat64(ref string, def *float64, optExt bool, opt ...float64) {
+func (c Configs) SetFloat64(ref string, def *float64, opt []float64, cv ConfigValue) {
 	if def != nil {
-		c.set(ref, *def, opt, optExt, reflect.Float64)
+		c.set(ref, *def, opt, Float64, cv)
 	} else {
-		c.set(ref, def, opt, optExt, reflect.Float64)
+		c.set(ref, def, opt, Float64, cv)
 	}
 }
 
-func (c Configs) setSlice(ref string, def any, dlm *string, opt any, optExt bool, kind reflect.Kind) {
-	c[ref] = configValue{
-		Default:  def,
-		Options:  opt,
-		OptExt:   optExt,
-		dataType: reflect.Slice,
-		sliceOpt: &SliceOpt{dataType: kind, delimiter: dlm},
-	}
+func (c Configs) setSlice(ref string, def any, opt any, dType DataType, cv ConfigValue) {
+	c[ref] = configValue{Default: def, Options: opt, DataType: dType, IsSlice: true, ConfigValue: cv}
 }
 
-func (c Configs) SetStringSlice(ref string, def []string, dlm *string, optExt bool, opt ...string) {
-	c.setSlice(ref, def, dlm, opt, optExt, reflect.String)
+func (c Configs) SetStringSlice(ref string, def []string, opt []string, cv ConfigValue) {
+	c.setSlice(ref, def, opt, String, cv)
 }
 
-func (c Configs) SetBoolSlice(ref string, def []bool, dlm *string, optExt bool, opt ...bool) {
-	c.setSlice(ref, def, dlm, opt, optExt, reflect.Bool)
+func (c Configs) SetBoolSlice(ref string, def []bool, opt []bool, cv ConfigValue) {
+	c.setSlice(ref, def, opt, Bool, cv)
 }
 
-func (c Configs) SetInt64Slice(ref string, def []int64, dlm *string, optExt bool, opt ...int64) {
-	c.setSlice(ref, def, dlm, opt, optExt, reflect.Int64)
+func (c Configs) SetInt64Slice(ref string, def []int64, opt []int64, cv ConfigValue) {
+	c.setSlice(ref, def, opt, Int64, cv)
 }
 
-func (c Configs) SetFloat64Slice(ref string, def []float64, dlm *string, optExt bool, opt ...float64) {
-	c.setSlice(ref, def, dlm, opt, optExt, reflect.Float64)
+func (c Configs) SetFloat64Slice(ref string, def []float64, opt []float64, cv ConfigValue) {
+	c.setSlice(ref, def, opt, Float64, cv)
 }
 
 func (s *Set[T]) UnmarshalJSON(b []byte) error {
