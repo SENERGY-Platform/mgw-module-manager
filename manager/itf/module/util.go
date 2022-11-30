@@ -275,3 +275,16 @@ func (c ConfigType) MarshalJSON() ([]byte, error) {
 func (d DataType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(DataTypeRef[d])
 }
+
+func (d *DataType) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	t, ok := DataTypeRefMap[s]
+	if !ok {
+		return fmt.Errorf("invalid data type '%s'", s)
+	}
+	*d = t
+	return nil
+}
