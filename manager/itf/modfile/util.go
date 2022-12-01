@@ -48,6 +48,6 @@ func (mf *ModFile) UnmarshalYAML(yn *yaml.Node) error {
 	return nil
 }
 
-func (mf *ModFile) ParseModule() (module.Module, error) {
-	return mf.module.Parse()
+func (mf *ModFile) ParseModule(confDefHandler itf.ConfDefHandler) (module.Module, error) {
+	return mf.module.Parse(confDefHandler)
 }
