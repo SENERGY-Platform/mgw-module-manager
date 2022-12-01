@@ -31,10 +31,11 @@ import (
 
 type Handler struct {
 	storageHandler itf.ModuleStorageHandler
+	confDefHandler itf.ConfDefHandler
 }
 
-func NewHandler(storageHandler itf.ModuleStorageHandler) *Handler {
-	return &Handler{storageHandler: storageHandler}
+func NewHandler(storageHandler itf.ModuleStorageHandler, confDefHandler itf.ConfDefHandler) *Handler {
+	return &Handler{storageHandler: storageHandler, confDefHandler: confDefHandler}
 }
 
 func (h *Handler) List() ([]module.Module, error) {
