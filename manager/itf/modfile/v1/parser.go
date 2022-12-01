@@ -18,12 +18,13 @@ package v1
 
 import (
 	"fmt"
+	"module-manager/manager/itf"
 	"module-manager/manager/itf/module"
 	"strconv"
 	"strings"
 )
 
-func (mf Module) Parse() (module.Module, error) {
+func (mf Module) Parse(confDefHandler itf.ConfDefHandler) (module.Module, error) {
 	m := module.Module{
 		ID:             mf.ID,
 		Name:           mf.Name,
@@ -54,7 +55,7 @@ func (mf Module) Parse() (module.Module, error) {
 	if err != nil {
 		return m, err
 	}
-	configs, cInputs, err := parseModuleConfigs(mf.Configs, services)
+	configs, cInputs, err := parseModuleConfigs(mf.Configs, services, confDefHandler)
 	if err != nil {
 		return m, err
 	}
@@ -405,7 +406,7 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module
 	return nil, nil, nil
 }
 
-func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*module.Service) (module.Configs, map[string]module.Input, error) {
+func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*module.Service, confDefHandler itf.ConfDefHandler) (module.Configs, map[string]module.Input, error) {
 	configs := make(module.Configs)
 	if mfConfigs != nil && len(mfConfigs) > 0 {
 		inputs := make(map[string]module.Input)
