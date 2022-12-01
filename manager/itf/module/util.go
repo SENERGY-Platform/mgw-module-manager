@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/mod/semver"
+	"module-manager/manager/itf"
 	"sort"
 	"strconv"
 	"strings"
@@ -105,60 +106,82 @@ func semVerRangeParse(s string) (opr []string, ver []string, err error) {
 	return
 }
 
-func (c Configs) set(ref string, def any, opt any, dType DataType, cv ConfigValue) {
-	c[ref] = configValue{Default: def, Options: opt, DataType: dType, ConfigValue: cv}
-}
-
-func (c Configs) SetString(ref string, def *string, opt []string, cv ConfigValue) {
-	if def != nil {
-		c.set(ref, *def, opt, String, cv)
-	} else {
-		c.set(ref, def, opt, String, cv)
+func (c Configs) set(ref string, def any, opt any, dType DataType, optExt bool, cType string, cTypeOpt map[string]any, confDefHandler itf.ConfDefHandler) error {
+	ctOpt, err := confDefHandler.Parse(cType, cTypeOpt, dType)
+	if err != nil {
+		return err
 	}
-}
-
-func (c Configs) SetBool(ref string, def *bool, opt []bool, cv ConfigValue) {
-	if def != nil {
-		c.set(ref, *def, opt, Bool, cv)
-	} else {
-		c.set(ref, def, opt, Bool, cv)
+	c[ref] = configValue{
+		Default:  def,
+		Options:  opt,
+		OptExt:   optExt,
+		Type:     cType,
+		TypeOpt:  ctOpt,
+		DataType: dType,
 	}
+	return nil
 }
 
-func (c Configs) SetInt64(ref string, def *int64, opt []int64, cv ConfigValue) {
+func (c Configs) SetString(ref string, def *string, opt []string, optExt bool, cType string, cTypeOpt map[string]any, confDefHandler itf.ConfDefHandler) error {
 	if def != nil {
-		c.set(ref, *def, opt, Int64, cv)
-	} else {
-		c.set(ref, def, opt, Int64, cv)
+		return c.set(ref, *def, opt, String, optExt, cType, cTypeOpt, confDefHandler)
 	}
+	return c.set(ref, def, opt, String, optExt, cType, cTypeOpt, confDefHandler)
 }
 
-func (c Configs) SetFloat64(ref string, def *float64, opt []float64, cv ConfigValue) {
+func (c Configs) SetBool(ref string, def *bool, opt []bool, optExt bool, cType string, cTypeOpt map[string]any, confDefHandler itf.ConfDefHandler) error {
 	if def != nil {
-		c.set(ref, *def, opt, Float64, cv)
-	} else {
-		c.set(ref, def, opt, Float64, cv)
+		return c.set(ref, *def, opt, Bool, optExt, cType, cTypeOpt, confDefHandler)
 	}
+	return c.set(ref, def, opt, Bool, optExt, cType, cTypeOpt, confDefHandler)
 }
 
-func (c Configs) setSlice(ref string, def any, opt any, dType DataType, cv ConfigValue) {
-	c[ref] = configValue{Default: def, Options: opt, DataType: dType, IsSlice: true, ConfigValue: cv}
+func (c Configs) SetInt64(ref string, def *int64, opt []int64, optExt bool, cType string, cTypeOpt map[string]any, confDefHandler itf.ConfDefHandler) error {
+	if def != nil {
+		return c.set(ref, *def, opt, Int64, optExt, cType, cTypeOpt, confDefHandler)
+	}
+	return c.set(ref, def, opt, Int64, optExt, cType, cTypeOpt, confDefHandler)
 }
 
-func (c Configs) SetStringSlice(ref string, def []string, opt []string, cv ConfigValue) {
-	c.setSlice(ref, def, opt, String, cv)
+func (c Configs) SetFloat64(ref string, def *float64, opt []float64, optExt bool, cType string, cTypeOpt map[string]any, confDefHandler itf.ConfDefHandler) error {
+	if def != nil {
+		return c.set(ref, *def, opt, Float64, optExt, cType, cTypeOpt, confDefHandler)
+	}
+	return c.set(ref, def, opt, Float64, optExt, cType, cTypeOpt, confDefHandler)
 }
 
-func (c Configs) SetBoolSlice(ref string, def []bool, opt []bool, cv ConfigValue) {
-	c.setSlice(ref, def, opt, Bool, cv)
+func (c Configs) setSlice(ref string, def any, opt any, dType DataType, optExt bool, cType string, cTypeOpt map[string]any, delimiter *string, confDefHandler itf.ConfDefHandler) error {
+	ctOpt, err := confDefHandler.Parse(cType, cTypeOpt, dType)
+	if err != nil {
+		return err
+	}
+	c[ref] = configValue{
+		Default:   def,
+		Options:   opt,
+		OptExt:    optExt,
+		Type:      cType,
+		TypeOpt:   ctOpt,
+		DataType:  dType,
+		IsSlice:   true,
+		Delimiter: delimiter,
+	}
+	return nil
 }
 
-func (c Configs) SetInt64Slice(ref string, def []int64, opt []int64, cv ConfigValue) {
-	c.setSlice(ref, def, opt, Int64, cv)
+func (c Configs) SetStringSlice(ref string, def []string, opt []string, optExt bool, cType string, cTypeOpt map[string]any, delimiter *string, confDefHandler itf.ConfDefHandler) error {
+	return c.setSlice(ref, def, opt, String, optExt, cType, cTypeOpt, delimiter, confDefHandler)
 }
 
-func (c Configs) SetFloat64Slice(ref string, def []float64, opt []float64, cv ConfigValue) {
-	c.setSlice(ref, def, opt, Float64, cv)
+func (c Configs) SetBoolSlice(ref string, def []bool, opt []bool, optExt bool, cType string, cTypeOpt map[string]any, delimiter *string, confDefHandler itf.ConfDefHandler) error {
+	return c.setSlice(ref, def, opt, Bool, optExt, cType, cTypeOpt, delimiter, confDefHandler)
+}
+
+func (c Configs) SetInt64Slice(ref string, def []int64, opt []int64, optExt bool, cType string, cTypeOpt map[string]any, delimiter *string, confDefHandler itf.ConfDefHandler) error {
+	return c.setSlice(ref, def, opt, Int64, optExt, cType, cTypeOpt, delimiter, confDefHandler)
+}
+
+func (c Configs) SetFloat64Slice(ref string, def []float64, opt []float64, optExt bool, cType string, cTypeOpt map[string]any, delimiter *string, confDefHandler itf.ConfDefHandler) error {
+	return c.setSlice(ref, def, opt, Float64, optExt, cType, cTypeOpt, delimiter, confDefHandler)
 }
 
 func (s *Set[T]) UnmarshalJSON(b []byte) error {
