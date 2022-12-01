@@ -58,7 +58,7 @@ func (h *Handler) List() ([]module.Module, error) {
 			srv_base.Logger.Errorf("decoding modfile '%s' failed: %s", id, err)
 			continue
 		}
-		m, err = mf.ParseModule()
+		m, err = mf.ParseModule(h.confDefHandler)
 		if err != nil {
 			srv_base.Logger.Errorf("parsing module '%s' failed: %s", id, err)
 			continue
@@ -84,7 +84,7 @@ func (h *Handler) Read(id string) (module.Module, error) {
 	if err != nil {
 		return m, srv_base_types.NewError(http.StatusInternalServerError, fmt.Sprintf("decoding modfile '%s' failed", id), err)
 	}
-	m, err = mf.ParseModule()
+	m, err = mf.ParseModule(h.confDefHandler)
 	if err != nil {
 		return m, srv_base_types.NewError(http.StatusInternalServerError, fmt.Sprintf("parsing module '%s' failed", id), err)
 	}
