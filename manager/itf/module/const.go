@@ -107,27 +107,3 @@ var DataTypeRefMap = func() map[string]DataType {
 	}
 	return m
 }()
-
-const (
-	Text ConfigType = iota
-	Date
-	Time
-	Number
-	Toggle
-)
-
-var ConfigTypeRef = []string{
-	Text:   "text",
-	Date:   "date",
-	Time:   "time",
-	Number: "number",
-	Toggle: "toggle",
-}
-
-var ConfigTypeRefMap = func() map[string]ConfigType {
-	m := make(map[string]ConfigType)
-	for i := 0; i < len(ConfigTypeRef); i++ {
-		m[ConfigTypeRef[i]] = ConfigType(i)
-	}
-	return m
-}()
