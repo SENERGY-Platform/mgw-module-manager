@@ -291,10 +291,6 @@ func hashStrings(str []string) (string, error) {
 	return base64.URLEncoding.EncodeToString(h.Sum(nil)), nil
 }
 
-func (c ConfigType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(ConfigTypeRef[c])
-}
-
 func (d DataType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(DataTypeRef[d])
 }
