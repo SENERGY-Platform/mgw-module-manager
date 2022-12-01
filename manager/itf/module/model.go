@@ -120,21 +120,15 @@ type Configs map[string]configValue
 
 type DataType uint
 
-type ConfigType uint
-
-type ConfigValue struct {
-	OptExt    bool           `json:"opt_ext"`
-	Type      ConfigType     `json:"type"`
-	TypeOpt   map[string]any `json:"type_opt"`
-	Delimiter *string        `json:"delimiter"` // ';' if nil (only applies if IsSlice == true)
-}
-
 type configValue struct {
-	Default  any      `json:"default"`
-	Options  any      `json:"options"`
-	DataType DataType `json:"data_type"`
-	IsSlice  bool     `json:"is_slice"`
-	ConfigValue
+	Default   any            `json:"default"`
+	Options   any            `json:"options"`
+	OptExt    bool           `json:"opt_ext"`
+	Type      string         `json:"type"`
+	TypeOpt   map[string]any `json:"type_opt"`
+	DataType  DataType       `json:"data_type"`
+	IsSlice   bool           `json:"is_slice"`
+	Delimiter *string        `json:"delimiter"` // ';' if nil (only applies if IsSlice == true)
 }
 
 type Input struct {
