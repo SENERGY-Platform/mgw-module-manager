@@ -431,10 +431,6 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					}
 				}
 			}
-			ct, ok := module.ConfigTypeRefMap[mfConfig.Type]
-			if !ok {
-				return configs, inputs, fmt.Errorf("%s ivalid config type '%s'", ref, mfConfig.Type)
-			}
 			dt, ok := module.DataTypeRefMap[mfConfig.DataType]
 			if !ok {
 				return configs, inputs, fmt.Errorf("%s ivalid data type '%s'", ref, mfConfig.DataType)
@@ -466,12 +462,10 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, v)
 						}
 					}
-					configs.SetStringSlice(ref, d, o, module.ConfigValue{
-						OptExt:    mfConfig.OptionsExt,
-						Type:      ct,
-						TypeOpt:   mfConfig.TypeOptions,
-						Delimiter: mfConfig.Delimiter,
-					})
+					err := configs.SetStringSlice(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, mfConfig.TypeOptions, mfConfig.Delimiter, confDefHandler)
+					if err != nil {
+						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
+					}
 				case module.Bool:
 					var d []bool
 					var o []bool
@@ -497,12 +491,10 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, v)
 						}
 					}
-					configs.SetBoolSlice(ref, d, o, module.ConfigValue{
-						OptExt:    mfConfig.OptionsExt,
-						Type:      ct,
-						TypeOpt:   mfConfig.TypeOptions,
-						Delimiter: mfConfig.Delimiter,
-					})
+					err := configs.SetBoolSlice(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, mfConfig.TypeOptions, mfConfig.Delimiter, confDefHandler)
+					if err != nil {
+						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
+					}
 				case module.Int64:
 					var d []int64
 					var o []int64
@@ -528,12 +520,10 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, int64(v))
 						}
 					}
-					configs.SetInt64Slice(ref, d, o, module.ConfigValue{
-						OptExt:    mfConfig.OptionsExt,
-						Type:      ct,
-						TypeOpt:   mfConfig.TypeOptions,
-						Delimiter: mfConfig.Delimiter,
-					})
+					err := configs.SetInt64Slice(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, mfConfig.TypeOptions, mfConfig.Delimiter, confDefHandler)
+					if err != nil {
+						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
+					}
 				case module.Float64:
 					var d []float64
 					var o []float64
@@ -559,12 +549,10 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, v)
 						}
 					}
-					configs.SetFloat64Slice(ref, d, o, module.ConfigValue{
-						OptExt:    mfConfig.OptionsExt,
-						Type:      ct,
-						TypeOpt:   mfConfig.TypeOptions,
-						Delimiter: mfConfig.Delimiter,
-					})
+					err := configs.SetFloat64Slice(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, mfConfig.TypeOptions, mfConfig.Delimiter, confDefHandler)
+					if err != nil {
+						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
+					}
 				}
 			} else {
 				switch dt {
@@ -587,11 +575,10 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, v)
 						}
 					}
-					configs.SetString(ref, d, o, module.ConfigValue{
-						OptExt:  mfConfig.OptionsExt,
-						Type:    ct,
-						TypeOpt: mfConfig.TypeOptions,
-					})
+					err := configs.SetString(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, mfConfig.TypeOptions, confDefHandler)
+					if err != nil {
+						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
+					}
 				case module.Bool:
 					var d *bool
 					var o []bool
@@ -611,11 +598,10 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, v)
 						}
 					}
-					configs.SetBool(ref, d, o, module.ConfigValue{
-						OptExt:  mfConfig.OptionsExt,
-						Type:    ct,
-						TypeOpt: mfConfig.TypeOptions,
-					})
+					err := configs.SetBool(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, mfConfig.TypeOptions, confDefHandler)
+					if err != nil {
+						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
+					}
 				case module.Int64:
 					var d *int64
 					var o []int64
@@ -636,11 +622,10 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, int64(v))
 						}
 					}
-					configs.SetInt64(ref, d, o, module.ConfigValue{
-						OptExt:  mfConfig.OptionsExt,
-						Type:    ct,
-						TypeOpt: mfConfig.TypeOptions,
-					})
+					err := configs.SetInt64(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, mfConfig.TypeOptions, confDefHandler)
+					if err != nil {
+						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
+					}
 				case module.Float64:
 					var d *float64
 					var o []float64
@@ -660,11 +645,10 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 							o = append(o, v)
 						}
 					}
-					configs.SetFloat64(ref, d, o, module.ConfigValue{
-						OptExt:  mfConfig.OptionsExt,
-						Type:    ct,
-						TypeOpt: mfConfig.TypeOptions,
-					})
+					err := configs.SetFloat64(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, mfConfig.TypeOptions, confDefHandler)
+					if err != nil {
+						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
+					}
 				}
 			}
 
