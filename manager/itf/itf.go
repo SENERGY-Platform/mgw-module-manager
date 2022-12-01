@@ -58,5 +58,9 @@ type DeploymentStorageHandler interface {
 }
 
 type ModFileModule interface {
-	Parse() (module.Module, error)
+	Parse(confDefHandler ConfDefHandler) (module.Module, error)
+}
+
+type ConfDefHandler interface {
+	Parse(cType string, cTypeOpt map[string]any, dType module.DataType) (map[string]any, error)
 }
