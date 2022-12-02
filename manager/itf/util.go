@@ -105,6 +105,29 @@ func (c Configs) SetFloat64Slice(ref string, def []float64, opt []float64, optEx
 	return c.setSlice(ref, def, opt, misc.Float64, optExt, cType, cTypeOpt, delimiter, confDefHandler)
 }
 
+func (o ConfigTypeOptions) set(ref string, val any, dType misc.DataType) {
+	o[ref] = configTypeOption{
+		Value:    val,
+		DataType: dType,
+	}
+}
+
+func (o ConfigTypeOptions) SetString(ref string, val string) {
+	o.set(ref, val, misc.String)
+}
+
+func (o ConfigTypeOptions) SetBool(ref string, val bool) {
+	o.set(ref, val, misc.Bool)
+}
+
+func (o ConfigTypeOptions) SetInt64(ref string, val int64) {
+	o.set(ref, val, misc.Int64)
+}
+
+func (o ConfigTypeOptions) SetFloat64(ref string, val float64) {
+	o.set(ref, val, misc.Float64)
+}
+
 func (p PortMappings) Add(name *string, port []uint, hostPort []uint, protocol *string) error {
 	var s []string
 	if port == nil || !IsValidPort(port) {
