@@ -21,6 +21,14 @@ import (
 	"module-manager/manager/modfile/v1"
 )
 
+func Decode[T Module](yn *yaml.Node) (Module, error) {
+	var m T
+	if err := yn.Decode(&m); err != nil {
+		return m, err
+	}
+	return m, nil
+}
+
 var decoder = map[string]func(*yaml.Node) (Module, error){
 	"1": Decode[v1.Module],
 }

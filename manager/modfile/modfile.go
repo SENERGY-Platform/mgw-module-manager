@@ -59,14 +59,6 @@ func (mf *ModFile) UnmarshalYAML(yn *yaml.Node) error {
 	return nil
 }
 
-func Decode[T Module](yn *yaml.Node) (Module, error) {
-	var m T
-	if err := yn.Decode(&m); err != nil {
-		return m, err
-	}
-	return m, nil
-}
-
 func (mf *ModFile) ParseModule(confDefHandler itf.ConfDefHandler) (itf.Module, error) {
 	return mf.module.Parse(confDefHandler)
 }
