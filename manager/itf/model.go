@@ -120,14 +120,21 @@ type Resource struct {
 type Configs map[string]configValue
 
 type configValue struct {
-	Default   any            `json:"default"`
-	Options   any            `json:"options"`
-	OptExt    bool           `json:"opt_ext"`
-	Type      string         `json:"type"`
-	TypeOpt   map[string]any `json:"type_opt"`
-	DataType  misc.DataType  `json:"data_type"`
-	IsSlice   bool           `json:"is_slice"`
-	Delimiter *string        `json:"delimiter"` // ';' if nil (only applies if IsSlice == true)
+	Default   any               `json:"default"`
+	Options   any               `json:"options"`
+	OptExt    bool              `json:"opt_ext"`
+	Type      string            `json:"type"`
+	TypeOpt   ConfigTypeOptions `json:"type_opt"`
+	DataType  misc.DataType     `json:"data_type"`
+	IsSlice   bool              `json:"is_slice"`
+	Delimiter *string           `json:"delimiter"` // ';' if nil (only applies if IsSlice == true)
+}
+
+type ConfigTypeOptions map[string]configTypeOption
+
+type configTypeOption struct {
+	Value    any           `json:"value"`
+	DataType misc.DataType `json:"data_type"`
 }
 
 type Input struct {
