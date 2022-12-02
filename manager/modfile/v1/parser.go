@@ -24,7 +24,7 @@ import (
 	"strings"
 )
 
-func (mf Module) Parse(confDefHandler itf.ConfDefHandler) (itf.Module, error) {
+func (mf Module) Parse() (itf.Module, error) {
 	m := itf.Module{
 		ID:             mf.ID,
 		Name:           mf.Name,
@@ -55,7 +55,7 @@ func (mf Module) Parse(confDefHandler itf.ConfDefHandler) (itf.Module, error) {
 	if err != nil {
 		return m, err
 	}
-	configs, cInputs, err := parseModuleConfigs(mf.Configs, services, confDefHandler)
+	configs, cInputs, err := parseModuleConfigs(mf.Configs, services)
 	if err != nil {
 		return m, err
 	}
@@ -406,7 +406,7 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*itf.Se
 	return nil, nil, nil
 }
 
-func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*itf.Service, confDefHandler itf.ConfDefHandler) (itf.Configs, map[string]itf.Input, error) {
+func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*itf.Service) (itf.Configs, map[string]itf.Input, error) {
 	configs := make(itf.Configs)
 	if mfConfigs != nil && len(mfConfigs) > 0 {
 		inputs := make(map[string]itf.Input)

@@ -27,7 +27,7 @@ const FileName = "Modfile"
 var FileExtensions = []string{"yaml", "yml"}
 
 type Module interface {
-	Parse(confDefHandler itf.ConfDefHandler) (itf.Module, error)
+	Parse() (itf.Module, error)
 }
 
 type modFileBase struct {
@@ -59,6 +59,6 @@ func (mf *ModFile) UnmarshalYAML(yn *yaml.Node) error {
 	return nil
 }
 
-func (mf *ModFile) ParseModule(confDefHandler itf.ConfDefHandler) (itf.Module, error) {
-	return mf.module.Parse(confDefHandler)
+func (mf *ModFile) ParseModule() (itf.Module, error) {
+	return mf.module.Parse()
 }
