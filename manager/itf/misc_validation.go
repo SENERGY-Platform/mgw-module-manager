@@ -16,14 +16,18 @@
 
 package itf
 
-type ConfigDefinition struct {
-	DataType   Set[DataType]                     `json:"data_type"`
-	Options    map[string]ConfigDefinitionOption `json:"options"`
-	Validation map[string]any                    `json:"validation"`
+import "golang.org/x/mod/semver"
+
+func IsValidSemVer(s string) bool {
+	return semver.IsValid(s)
 }
 
-type ConfigDefinitionOption struct {
-	DataType        Set[DataType] `json:"data_type"`
-	InheritDataType bool          `json:"inherit_data_type"`
-	Required        bool          `json:"required"`
+func IsValidOperator(s string) bool {
+	_, ok := OperatorMap[s]
+	return ok
+}
+
+func ValidateSemVerRange(s string) error {
+	_, _, err := semVerRangeParse(s)
+	return err
 }

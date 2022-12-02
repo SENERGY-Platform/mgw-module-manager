@@ -19,7 +19,6 @@ package itf
 import (
 	"errors"
 	"fmt"
-	"golang.org/x/mod/semver"
 	"regexp"
 )
 
@@ -372,18 +371,4 @@ func IsValidRestartStrategy(s string) bool {
 func IsValidPortType(s string) bool {
 	_, ok := PortTypeMap[s]
 	return ok
-}
-
-func IsValidSemVer(s string) bool {
-	return semver.IsValid(s)
-}
-
-func IsValidOperator(s string) bool {
-	_, ok := OperatorMap[s]
-	return ok
-}
-
-func ValidateSemVerRange(s string) error {
-	_, _, err := semVerRangeParse(s)
-	return err
 }

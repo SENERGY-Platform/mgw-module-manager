@@ -33,18 +33,18 @@ type Deployment struct {
 // --------------------------------------------------
 
 type InputTemplate struct {
-	Resources   map[string]ResourceInput `json:"resources"`    // {ref:ResourceInput}
-	Secrets     map[string]ResourceInput `json:"secrets"`      // {ref:SecretInput}
-	Configs     map[string]ConfigInput   `json:"configs"`      // {ref:ConfigInput}
-	InputGroups map[string]InputGroup    `json:"input_groups"` // {ref:InputGroup}
+	Resources   map[string]InputTemplateResource `json:"resources"`    // {ref:ResourceInput}
+	Secrets     map[string]InputTemplateResource `json:"secrets"`      // {ref:SecretInput}
+	Configs     map[string]InputTemplateConfig   `json:"configs"`      // {ref:ConfigInput}
+	InputGroups map[string]InputGroup            `json:"input_groups"` // {ref:InputGroup}
 }
 
-type ResourceInput struct {
+type InputTemplateResource struct {
 	Input
 	Resource
 }
 
-type ConfigInput struct {
+type InputTemplateConfig struct {
 	Input
 	Default  any            `json:"default"`
 	Options  any            `json:"options"`
