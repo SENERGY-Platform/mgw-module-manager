@@ -16,7 +16,9 @@
 
 package itf
 
-import "module-manager/manager/itf/misc"
+import (
+	"module-manager/manager/itf/misc"
+)
 
 type DeploymentBase struct {
 	Name      *string           `json:"name"` // module name if nil

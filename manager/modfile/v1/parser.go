@@ -243,9 +243,9 @@ func parseServiceDependencies(mfServiceDependencies map[string]ServiceDependency
 	return nil, nil
 }
 
-func parseModuleVolumes(mfVolumes map[string][]VolumeTarget, services map[string]*itf.Service) (itf.Set[string], error) {
+func parseModuleVolumes(mfVolumes map[string][]VolumeTarget, services map[string]*itf.Service) (misc.Set[string], error) {
 	if mfVolumes != nil && len(mfVolumes) > 0 {
-		volumes := make(itf.Set[string])
+		volumes := make(misc.Set[string])
 		for name, mfTargets := range mfVolumes {
 			volumes[name] = struct{}{}
 			for _, mfTarget := range mfTargets {
@@ -274,7 +274,7 @@ func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, s
 	if mfModuleDependencies != nil && len(mfModuleDependencies) > 0 {
 		moduleDependencies := make(map[string]itf.ModuleDependency)
 		for id, dependency := range mfModuleDependencies {
-			rs := make(itf.Set[string])
+			rs := make(misc.Set[string])
 			for rqSrv, mfTargets := range dependency.RequiredServices {
 				rs[rqSrv] = struct{}{}
 				for _, mfTarget := range mfTargets {
@@ -339,7 +339,7 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 			}
 			r := itf.Resource{Type: mfResource.Type}
 			if mfResource.Tags != nil && len(mfResource.Tags) > 0 {
-				r.Tags = make(itf.Set[string])
+				r.Tags = make(misc.Set[string])
 				for _, tag := range mfResource.Tags {
 					r.Tags[tag] = struct{}{}
 				}
@@ -386,7 +386,7 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*itf.Se
 			}
 			r := itf.Resource{Type: mfSecret.Type}
 			if mfSecret.Tags != nil && len(mfSecret.Tags) > 0 {
-				r.Tags = make(itf.Set[string])
+				r.Tags = make(misc.Set[string])
 				for _, tag := range mfSecret.Tags {
 					r.Tags[tag] = struct{}{}
 				}
@@ -431,13 +431,13 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 					}
 				}
 			}
-			dt, ok := itf.DataTypeRefMap[mfConfig.DataType]
+			dt, ok := misc.DataTypeRefMap[mfConfig.DataType]
 			if !ok {
 				return configs, inputs, fmt.Errorf("%s ivalid data type '%s'", ref, mfConfig.DataType)
 			}
 			if mfConfig.IsList {
 				switch dt {
-				case itf.String:
+				case misc.String:
 					var d []string
 					var o []string
 					if mfConfig.Value != nil {
@@ -466,7 +466,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-				case itf.Bool:
+				case misc.Bool:
 					var d []bool
 					var o []bool
 					if mfConfig.Value != nil {
@@ -495,7 +495,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-				case itf.Int64:
+				case misc.Int64:
 					var d []int64
 					var o []int64
 					if mfConfig.Value != nil {
@@ -524,7 +524,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-				case itf.Float64:
+				case misc.Float64:
 					var d []float64
 					var o []float64
 					if mfConfig.Value != nil {
@@ -556,7 +556,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 				}
 			} else {
 				switch dt {
-				case itf.String:
+				case misc.String:
 					var d *string
 					var o []string
 					if mfConfig.Value != nil {
@@ -579,7 +579,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-				case itf.Bool:
+				case misc.Bool:
 					var d *bool
 					var o []bool
 					if mfConfig.Value != nil {
@@ -602,7 +602,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-				case itf.Int64:
+				case misc.Int64:
 					var d *int64
 					var o []int64
 					if mfConfig.Value != nil {
@@ -626,7 +626,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-				case itf.Float64:
+				case misc.Float64:
 					var d *float64
 					var o []float64
 					if mfConfig.Value != nil {
