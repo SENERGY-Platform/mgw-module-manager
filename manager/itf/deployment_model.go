@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package deployment
+package itf
 
-import (
-	"module-manager/manager/itf/module"
-)
-
-type Base struct {
+type DeploymentBase struct {
 	Name      *string           `json:"name"` // module name if nil
 	ModuleID  string            `json:"module_id"`
 	Resources map[string]string `json:"resources"` // {ref:resourceID}
@@ -30,38 +26,38 @@ type Base struct {
 
 type Deployment struct {
 	ID string `json:"id"`
-	Base
-	Containers module.Set[string]
+	DeploymentBase
+	Containers Set[string]
 }
 
 // --------------------------------------------------
 
 type InputTemplate struct {
-	Resources   map[string]ResourceInput     `json:"resources"`    // {ref:ResourceInput}
-	Secrets     map[string]ResourceInput     `json:"secrets"`      // {ref:SecretInput}
-	Configs     map[string]ConfigInput       `json:"configs"`      // {ref:ConfigInput}
-	InputGroups map[string]module.InputGroup `json:"input_groups"` // {ref:InputGroup}
+	Resources   map[string]ResourceInput `json:"resources"`    // {ref:ResourceInput}
+	Secrets     map[string]ResourceInput `json:"secrets"`      // {ref:SecretInput}
+	Configs     map[string]ConfigInput   `json:"configs"`      // {ref:ConfigInput}
+	InputGroups map[string]InputGroup    `json:"input_groups"` // {ref:InputGroup}
 }
 
 type ResourceInput struct {
-	module.Input
-	module.Resource
+	Input
+	Resource
 }
 
 type ConfigInput struct {
-	module.Input
-	Default  any               `json:"default"`
-	Options  any               `json:"options"`
-	OptExt   bool              `json:"opt_ext"`
-	Type     module.ConfigType `json:"type"`
-	TypeOpt  map[string]any    `json:"type_opt"`
-	DataType module.DataType   `json:"data_type"`
-	IsSlice  bool              `json:"is_slice"`
+	Input
+	Default  any            `json:"default"`
+	Options  any            `json:"options"`
+	OptExt   bool           `json:"opt_ext"`
+	Type     string         `json:"type"`
+	TypeOpt  map[string]any `json:"type_opt"`
+	DataType DataType       `json:"data_type"`
+	IsSlice  bool           `json:"is_slice"`
 }
 
 // --------------------------------------------------
 
 type DeploymentsPostRequest struct {
-	Base
+	DeploymentBase
 	SecretRequests map[string]any // {ref:value}
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package module
+package itf
 
 import (
 	"io/fs"
@@ -38,8 +38,6 @@ type Module struct {
 	Configs        Configs                     `json:"configs"`      // {ref:ConfigValue}
 	Inputs         Inputs                      `json:"inputs"`
 }
-
-type Set[T comparable] map[T]struct{}
 
 type Service struct {
 	Name                 string                              `json:"name"`
@@ -117,8 +115,6 @@ type Resource struct {
 }
 
 type Configs map[string]configValue
-
-type DataType uint
 
 type configValue struct {
 	Default   any            `json:"default"`

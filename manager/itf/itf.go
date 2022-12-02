@@ -18,13 +18,11 @@ package itf
 
 import (
 	"io"
-	"module-manager/manager/itf/deployment"
-	"module-manager/manager/itf/module"
 )
 
 type ModuleHandler interface {
-	List() ([]module.Module, error)
-	Read(id string) (module.Module, error)
+	List() ([]Module, error)
+	Read(id string) (Module, error)
 	Add(id string) error
 	Delete(id string) error
 	Update(id string) error
@@ -39,28 +37,24 @@ type ModuleStorageHandler interface {
 }
 
 type DeploymentHandler interface {
-	List() ([]deployment.Deployment, error)
-	Read(id string) (deployment.Deployment, error)
-	Add(b deployment.Base, m module.Module) error
+	List() ([]Deployment, error)
+	Read(id string) (Deployment, error)
+	Add(b DeploymentBase, m Module) error
 	Start(id string) error
 	Stop(id string) error
 	Delete(id string) error
 	Update(id string) error
-	InputTemplate(m module.Module) deployment.InputTemplate
+	InputTemplate(m Module) InputTemplate
 }
 
 type DeploymentStorageHandler interface {
-	List() ([]deployment.Deployment, error)
-	Create(base deployment.Deployment) error
-	Read(id string) (deployment.Deployment, error)
+	List() ([]Deployment, error)
+	Create(base Deployment) error
+	Read(id string) (Deployment, error)
 	Update(id string) error
 	Delete(id string) error
 }
 
-type ModFileModule interface {
-	Parse(confDefHandler ConfDefHandler) (module.Module, error)
-}
-
 type ConfDefHandler interface {
-	Parse(cType string, cTypeOpt map[string]any, dType module.DataType) (map[string]any, error)
+	Parse(cType string, cTypeOpt map[string]any, dType DataType) (map[string]any, error)
 }

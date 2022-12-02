@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package module
+package itf
 
 const (
 	AddOnModule           = "add-on"
@@ -47,22 +47,6 @@ var SrvDepConditionMap = map[string]struct{}{
 }
 
 const (
-	Greater      = ">"
-	Less         = "<"
-	Equal        = "="
-	GreaterEqual = ">="
-	LessEqual    = "<="
-)
-
-var OperatorMap = map[string]struct{}{
-	Greater:      {},
-	Less:         {},
-	Equal:        {},
-	GreaterEqual: {},
-	LessEqual:    {},
-}
-
-const (
 	RestartNever      = "never"
 	RestartAlways     = "always"
 	RestartNotStopped = "not-stopped"
@@ -85,25 +69,3 @@ var PortTypeMap = map[string]struct{}{
 	TcpPort: {},
 	UdpPort: {},
 }
-
-const (
-	Bool DataType = iota
-	Int64
-	Float64
-	String
-)
-
-var DataTypeRef = []string{
-	Bool:    "bool",
-	Int64:   "int",
-	Float64: "float",
-	String:  "string",
-}
-
-var DataTypeRefMap = func() map[string]DataType {
-	m := make(map[string]DataType)
-	for i := 0; i < len(DataTypeRef); i++ {
-		m[DataTypeRef[i]] = DataType(i)
-	}
-	return m
-}()
