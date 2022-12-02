@@ -22,6 +22,8 @@ import (
 	"time"
 )
 
+// Module ---------------------------------------------------------------------------------------
+
 type Module struct {
 	ID             string                      `json:"id"`
 	Name           string                      `json:"name"`
@@ -146,4 +148,64 @@ type Inputs struct {
 	Secrets   map[string]Input      `json:"secrets"`   // {ref:Input}
 	Configs   map[string]Input      `json:"configs"`   // {ref:Input}
 	Groups    map[string]InputGroup `json:"groups"`    // {ref:InputGroup}
+}
+
+// Config Definition ----------------------------------------------------------------------------
+
+type ConfigDefinition struct {
+	DataType   misc.Set[misc.DataType]           `json:"data_type"`
+	Options    map[string]ConfigDefinitionOption `json:"options"`
+	Validation map[string]any                    `json:"validation"`
+}
+
+type ConfigDefinitionOption struct {
+	DataType        misc.Set[misc.DataType] `json:"data_type"`
+	InheritDataType bool                    `json:"inherit_data_type"`
+	Required        bool                    `json:"required"`
+}
+
+// Deployment -----------------------------------------------------------------------------------
+
+type DeploymentBase struct {
+	Name      *string           `json:"name"` // module name if nil
+	ModuleID  string            `json:"module_id"`
+	Resources map[string]string `json:"resources"` // {ref:resourceID}
+	Secrets   map[string]string `json:"secrets"`   // {ref:secretID}
+	Configs   map[string]any    `json:"configs"`   // {ref:value}
+}
+
+type Deployment struct {
+	ID string `json:"id"`
+	DeploymentBase
+	Containers misc.Set[string]
+}
+
+type DeploymentsPostRequest struct {
+	DeploymentBase
+	SecretRequests map[string]any // {ref:value}
+}
+
+// Input Template -------------------------------------------------------------------------------
+
+type InputTemplate struct {
+	Resources   map[string]InputTemplateResource `json:"resources"`    // {ref:ResourceInput}
+	Secrets     map[string]InputTemplateResource `json:"secrets"`      // {ref:SecretInput}
+	Configs     map[string]InputTemplateConfig   `json:"configs"`      // {ref:ConfigInput}
+	InputGroups map[string]InputGroup            `json:"input_groups"` // {ref:InputGroup}
+}
+
+type InputTemplateResource struct {
+	Input
+	Resource
+}
+
+type InputTemplateConfig struct {
+	Input
+	Default  any            `json:"default"`
+	Options  any            `json:"options"`
+	OptExt   bool           `json:"opt_ext"`
+	Type     string         `json:"type"`
+	TypeOpt  map[string]any `json:"type_opt"`
+	DataType misc.DataType  `json:"data_type"`
+	IsSlice  bool           `json:"is_slice"`
 }
