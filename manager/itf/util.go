@@ -27,82 +27,76 @@ import (
 	"strconv"
 )
 
-func (c Configs) set(ref string, def any, opt any, dType misc.DataType, optExt bool, cType string, cTypeOpt map[string]any, confDefHandler ConfDefHandler) error {
-	ctOpt, err := confDefHandler.Parse(cType, cTypeOpt, dType)
-	if err != nil {
-		return err
-	}
+func (c Configs) set(ref string, def any, opt any, dType misc.DataType, optExt bool, cType string, cTypeOpt ConfigTypeOptions) {
 	c[ref] = configValue{
 		Default:  def,
 		Options:  opt,
 		OptExt:   optExt,
 		Type:     cType,
-		TypeOpt:  ctOpt,
+		TypeOpt:  cTypeOpt,
 		DataType: dType,
 	}
-	return nil
 }
 
-func (c Configs) SetString(ref string, def *string, opt []string, optExt bool, cType string, cTypeOpt map[string]any, confDefHandler ConfDefHandler) error {
+func (c Configs) SetString(ref string, def *string, opt []string, optExt bool, cType string, cTypeOpt ConfigTypeOptions) {
 	if def != nil {
-		return c.set(ref, *def, opt, misc.String, optExt, cType, cTypeOpt, confDefHandler)
+		c.set(ref, *def, opt, misc.String, optExt, cType, cTypeOpt)
+	} else {
+		c.set(ref, def, opt, misc.String, optExt, cType, cTypeOpt)
 	}
-	return c.set(ref, def, opt, misc.String, optExt, cType, cTypeOpt, confDefHandler)
 }
 
-func (c Configs) SetBool(ref string, def *bool, opt []bool, optExt bool, cType string, cTypeOpt map[string]any, confDefHandler ConfDefHandler) error {
+func (c Configs) SetBool(ref string, def *bool, opt []bool, optExt bool, cType string, cTypeOpt ConfigTypeOptions) {
 	if def != nil {
-		return c.set(ref, *def, opt, misc.Bool, optExt, cType, cTypeOpt, confDefHandler)
+		c.set(ref, *def, opt, misc.Bool, optExt, cType, cTypeOpt)
+	} else {
+		c.set(ref, def, opt, misc.Bool, optExt, cType, cTypeOpt)
 	}
-	return c.set(ref, def, opt, misc.Bool, optExt, cType, cTypeOpt, confDefHandler)
 }
 
-func (c Configs) SetInt64(ref string, def *int64, opt []int64, optExt bool, cType string, cTypeOpt map[string]any, confDefHandler ConfDefHandler) error {
+func (c Configs) SetInt64(ref string, def *int64, opt []int64, optExt bool, cType string, cTypeOpt ConfigTypeOptions) {
 	if def != nil {
-		return c.set(ref, *def, opt, misc.Int64, optExt, cType, cTypeOpt, confDefHandler)
+		c.set(ref, *def, opt, misc.Int64, optExt, cType, cTypeOpt)
+	} else {
+		c.set(ref, def, opt, misc.Int64, optExt, cType, cTypeOpt)
 	}
-	return c.set(ref, def, opt, misc.Int64, optExt, cType, cTypeOpt, confDefHandler)
 }
 
-func (c Configs) SetFloat64(ref string, def *float64, opt []float64, optExt bool, cType string, cTypeOpt map[string]any, confDefHandler ConfDefHandler) error {
+func (c Configs) SetFloat64(ref string, def *float64, opt []float64, optExt bool, cType string, cTypeOpt ConfigTypeOptions) {
 	if def != nil {
-		return c.set(ref, *def, opt, misc.Float64, optExt, cType, cTypeOpt, confDefHandler)
+		c.set(ref, *def, opt, misc.Float64, optExt, cType, cTypeOpt)
+	} else {
+		c.set(ref, def, opt, misc.Float64, optExt, cType, cTypeOpt)
 	}
-	return c.set(ref, def, opt, misc.Float64, optExt, cType, cTypeOpt, confDefHandler)
 }
 
-func (c Configs) setSlice(ref string, def any, opt any, dType misc.DataType, optExt bool, cType string, cTypeOpt map[string]any, delimiter *string, confDefHandler ConfDefHandler) error {
-	ctOpt, err := confDefHandler.Parse(cType, cTypeOpt, dType)
-	if err != nil {
-		return err
-	}
+func (c Configs) setSlice(ref string, def any, opt any, dType misc.DataType, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) {
 	c[ref] = configValue{
 		Default:   def,
 		Options:   opt,
 		OptExt:    optExt,
 		Type:      cType,
-		TypeOpt:   ctOpt,
+		TypeOpt:   cTypeOpt,
 		DataType:  dType,
 		IsSlice:   true,
 		Delimiter: delimiter,
 	}
-	return nil
 }
 
-func (c Configs) SetStringSlice(ref string, def []string, opt []string, optExt bool, cType string, cTypeOpt map[string]any, delimiter *string, confDefHandler ConfDefHandler) error {
-	return c.setSlice(ref, def, opt, misc.String, optExt, cType, cTypeOpt, delimiter, confDefHandler)
+func (c Configs) SetStringSlice(ref string, def []string, opt []string, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) {
+	c.setSlice(ref, def, opt, misc.String, optExt, cType, cTypeOpt, delimiter)
 }
 
-func (c Configs) SetBoolSlice(ref string, def []bool, opt []bool, optExt bool, cType string, cTypeOpt map[string]any, delimiter *string, confDefHandler ConfDefHandler) error {
-	return c.setSlice(ref, def, opt, misc.Bool, optExt, cType, cTypeOpt, delimiter, confDefHandler)
+func (c Configs) SetBoolSlice(ref string, def []bool, opt []bool, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) {
+	c.setSlice(ref, def, opt, misc.Bool, optExt, cType, cTypeOpt, delimiter)
 }
 
-func (c Configs) SetInt64Slice(ref string, def []int64, opt []int64, optExt bool, cType string, cTypeOpt map[string]any, delimiter *string, confDefHandler ConfDefHandler) error {
-	return c.setSlice(ref, def, opt, misc.Int64, optExt, cType, cTypeOpt, delimiter, confDefHandler)
+func (c Configs) SetInt64Slice(ref string, def []int64, opt []int64, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) {
+	c.setSlice(ref, def, opt, misc.Int64, optExt, cType, cTypeOpt, delimiter)
 }
 
-func (c Configs) SetFloat64Slice(ref string, def []float64, opt []float64, optExt bool, cType string, cTypeOpt map[string]any, delimiter *string, confDefHandler ConfDefHandler) error {
-	return c.setSlice(ref, def, opt, misc.Float64, optExt, cType, cTypeOpt, delimiter, confDefHandler)
+func (c Configs) SetFloat64Slice(ref string, def []float64, opt []float64, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) {
+	c.setSlice(ref, def, opt, misc.Float64, optExt, cType, cTypeOpt, delimiter)
 }
 
 func (o ConfigTypeOptions) set(ref string, val any, dType misc.DataType) {
