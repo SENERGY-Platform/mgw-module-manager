@@ -18,7 +18,6 @@ package itf
 
 import (
 	"io"
-	"module-manager/manager/itf/misc"
 )
 
 type ModuleHandler interface {
@@ -54,8 +53,4 @@ type DeploymentStorageHandler interface {
 	Read(id string) (Deployment, error)
 	Update(id string) error
 	Delete(id string) error
-}
-
-type ConfDefHandler interface {
-	Parse(cType string, cTypeOpt map[string]any, dType misc.DataType) (map[string]any, error)
 }
