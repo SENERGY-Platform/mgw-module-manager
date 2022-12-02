@@ -30,11 +30,11 @@ import (
 
 type Handler struct {
 	storageHandler itf.ModuleStorageHandler
-	confDefHandler itf.ConfDefHandler
+	configDefs     map[string]itf.ConfigDefinition
 }
 
-func NewHandler(storageHandler itf.ModuleStorageHandler, confDefHandler itf.ConfDefHandler) *Handler {
-	return &Handler{storageHandler: storageHandler, confDefHandler: confDefHandler}
+func NewHandler(storageHandler itf.ModuleStorageHandler, configDefs map[string]itf.ConfigDefinition) *Handler {
+	return &Handler{storageHandler: storageHandler, configDefs: configDefs}
 }
 
 func (h *Handler) List() ([]itf.Module, error) {
