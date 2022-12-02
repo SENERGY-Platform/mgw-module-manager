@@ -71,8 +71,14 @@ func main() {
 		srv_base.Logger.Error(err)
 		return
 	}
-	confDefHandler, _ := config_def.NewHandler("/home/ydu/Workspace/DEV/SENERGY/MULTI-GATEWAY-II/CORE/mgw-module-manager/test/config_types.json")
-	moduleHandler := module.NewHandler(moduleStorageHandler, confDefHandler)
+
+	configDefs, err := config_def.Load(config.ConfigDefsPath)
+	if err != nil {
+		srv_base.Logger.Error(err)
+		return
+	}
+
+	moduleHandler := module.NewHandler(moduleStorageHandler, configDefs)
 	deploymentHandler := deployment.NewHandler(nil)
 
 	dmApi := api.New(moduleHandler, deploymentHandler)
