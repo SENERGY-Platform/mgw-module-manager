@@ -19,13 +19,12 @@ package v1
 import (
 	"fmt"
 	"module-manager/manager/itf"
-	"module-manager/manager/itf/module"
 	"strconv"
 	"strings"
 )
 
-func (mf Module) Parse(confDefHandler itf.ConfDefHandler) (module.Module, error) {
-	m := module.Module{
+func (mf Module) Parse(confDefHandler itf.ConfDefHandler) (itf.Module, error) {
+	m := itf.Module{
 		ID:             mf.ID,
 		Name:           mf.Name,
 		Description:    mf.Description,
@@ -65,11 +64,11 @@ func (mf Module) Parse(confDefHandler itf.ConfDefHandler) (module.Module, error)
 	m.Resources = resources
 	m.Secrets = secrets
 	m.Configs = configs
-	userInput := module.Inputs{}
+	userInput := itf.Inputs{}
 	if mf.InputGroups != nil && len(mf.InputGroups) > 0 {
-		userInput.Groups = make(map[string]module.InputGroup)
+		userInput.Groups = make(map[string]itf.InputGroup)
 		for ref, mfInputGroup := range mf.InputGroups {
-			userInput.Groups[ref] = module.InputGroup{
+			userInput.Groups[ref] = itf.InputGroup{
 				Name:        mfInputGroup.Name,
 				Description: mfInputGroup.Description,
 				Group:       mfInputGroup.Group,
@@ -89,8 +88,8 @@ func (mf Module) Parse(confDefHandler itf.ConfDefHandler) (module.Module, error)
 	return m, nil
 }
 
-func parseModuleServices(mfServices map[string]Service) (map[string]*module.Service, error) {
-	services := make(map[string]*module.Service)
+func parseModuleServices(mfServices map[string]Service) (map[string]*itf.Service, error) {
+	services := make(map[string]*itf.Service)
 	for name, mfService := range mfServices {
 		include, err := parseServiceInclude(mfService.Include)
 		if err != nil {
@@ -112,7 +111,7 @@ func parseModuleServices(mfServices map[string]Service) (map[string]*module.Serv
 		if err != nil {
 			return services, fmt.Errorf("service '%s' invalid depency: %s", name, err)
 		}
-		services[name] = &module.Service{
+		services[name] = &itf.Service{
 			Name:          mfService.Name,
 			Image:         mfService.Image,
 			RunConfig:     parseServiceRunConfig(mfService.RunConfig),
@@ -126,8 +125,8 @@ func parseModuleServices(mfServices map[string]Service) (map[string]*module.Serv
 	return services, nil
 }
 
-func parseServiceRunConfig(mfRunConfig RunConfig) module.RunConfig {
-	rc := module.RunConfig{
+func parseServiceRunConfig(mfRunConfig RunConfig) itf.RunConfig {
+	rc := itf.RunConfig{
 		RestartStrategy: mfRunConfig.RestartStrategy,
 		Retries:         mfRunConfig.Retries,
 		RemoveAfterRun:  mfRunConfig.RemoveAfterRun,
@@ -140,9 +139,9 @@ func parseServiceRunConfig(mfRunConfig RunConfig) module.RunConfig {
 	return rc
 }
 
-func parseServiceInclude(mfInclude []BindMount) (map[string]module.BindMount, error) {
+func parseServiceInclude(mfInclude []BindMount) (map[string]itf.BindMount, error) {
 	if mfInclude != nil && len(mfInclude) > 0 {
-		include := make(map[string]module.BindMount)
+		include := make(map[string]itf.BindMount)
 		for _, mfBindMount := range mfInclude {
 			if v, ok := include[mfBindMount.MountPoint]; ok {
 				if v.Source == mfBindMount.Source && v.ReadOnly == mfBindMount.ReadOnly {
@@ -150,7 +149,7 @@ func parseServiceInclude(mfInclude []BindMount) (map[string]module.BindMount, er
 				}
 				return nil, fmt.Errorf("duplicate '%s'", mfBindMount.MountPoint)
 			}
-			include[mfBindMount.MountPoint] = module.BindMount{
+			include[mfBindMount.MountPoint] = itf.BindMount{
 				Source:   mfBindMount.Source,
 				ReadOnly: mfBindMount.ReadOnly,
 			}
@@ -160,14 +159,14 @@ func parseServiceInclude(mfInclude []BindMount) (map[string]module.BindMount, er
 	return nil, nil
 }
 
-func parseServiceTmpfs(mfTmpfs []TmpfsMount) (map[string]module.TmpfsMount, error) {
+func parseServiceTmpfs(mfTmpfs []TmpfsMount) (map[string]itf.TmpfsMount, error) {
 	if mfTmpfs != nil && len(mfTmpfs) > 0 {
-		tmpfs := make(map[string]module.TmpfsMount)
+		tmpfs := make(map[string]itf.TmpfsMount)
 		for _, mfTmpf := range mfTmpfs {
 			if _, ok := tmpfs[mfTmpf.MountPoint]; ok {
 				return nil, fmt.Errorf("duplicate '%s'", mfTmpf.MountPoint)
 			}
-			tm := module.TmpfsMount{Size: uint64(mfTmpf.Size)}
+			tm := itf.TmpfsMount{Size: uint64(mfTmpf.Size)}
 			if mfTmpf.Mode != nil {
 				tm.Mode = &mfTmpf.Mode.FileMode
 			}
@@ -178,9 +177,9 @@ func parseServiceTmpfs(mfTmpfs []TmpfsMount) (map[string]module.TmpfsMount, erro
 	return nil, nil
 }
 
-func parseServiceHttpEndpoints(mfHttpEndpoints []HttpEndpoint) (map[string]module.HttpEndpoint, error) {
+func parseServiceHttpEndpoints(mfHttpEndpoints []HttpEndpoint) (map[string]itf.HttpEndpoint, error) {
 	if mfHttpEndpoints != nil && len(mfHttpEndpoints) > 0 {
-		httpEndpoints := make(map[string]module.HttpEndpoint)
+		httpEndpoints := make(map[string]itf.HttpEndpoint)
 		for _, mfHttpEndpoint := range mfHttpEndpoints {
 			if v, ok := httpEndpoints[mfHttpEndpoint.Path]; ok {
 				if v.Name == mfHttpEndpoint.Name && v.Port == mfHttpEndpoint.Port && v.GwPath == mfHttpEndpoint.GwPath {
@@ -188,7 +187,7 @@ func parseServiceHttpEndpoints(mfHttpEndpoints []HttpEndpoint) (map[string]modul
 				}
 				return nil, fmt.Errorf("duplicate '%s'", mfHttpEndpoint.Path)
 			}
-			httpEndpoints[mfHttpEndpoint.Path] = module.HttpEndpoint{
+			httpEndpoints[mfHttpEndpoint.Path] = itf.HttpEndpoint{
 				Name:   mfHttpEndpoint.Name,
 				Port:   mfHttpEndpoint.Port,
 				GwPath: mfHttpEndpoint.GwPath,
@@ -208,9 +207,9 @@ func parsePort(p Port) (sl []uint) {
 	return
 }
 
-func parseServicePortMappings(mfPortMappings []PortMapping) (module.PortMappings, error) {
+func parseServicePortMappings(mfPortMappings []PortMapping) (itf.PortMappings, error) {
 	if mfPortMappings != nil && len(mfPortMappings) > 0 {
-		mappings := make(module.PortMappings)
+		mappings := make(itf.PortMappings)
 		for _, mfPortMapping := range mfPortMappings {
 			var hp []uint
 			if mfPortMapping.HostPort != nil {
@@ -226,14 +225,14 @@ func parseServicePortMappings(mfPortMappings []PortMapping) (module.PortMappings
 	return nil, nil
 }
 
-func parseServiceDependencies(mfServiceDependencies map[string]ServiceDependencyTarget) (map[string]module.ServiceDependencyTarget, error) {
+func parseServiceDependencies(mfServiceDependencies map[string]ServiceDependencyTarget) (map[string]itf.ServiceDependencyTarget, error) {
 	if mfServiceDependencies != nil && len(mfServiceDependencies) > 0 {
-		serviceDependencies := make(map[string]module.ServiceDependencyTarget)
+		serviceDependencies := make(map[string]itf.ServiceDependencyTarget)
 		for srv, mfTarget := range mfServiceDependencies {
 			if _, ok := serviceDependencies[mfTarget.RefVar]; ok {
 				return serviceDependencies, fmt.Errorf("duplicate '%s'", mfTarget.RefVar)
 			}
-			serviceDependencies[mfTarget.RefVar] = module.ServiceDependencyTarget{
+			serviceDependencies[mfTarget.RefVar] = itf.ServiceDependencyTarget{
 				Service:   srv,
 				Condition: mfTarget.Condition,
 			}
@@ -243,9 +242,9 @@ func parseServiceDependencies(mfServiceDependencies map[string]ServiceDependency
 	return nil, nil
 }
 
-func parseModuleVolumes(mfVolumes map[string][]VolumeTarget, services map[string]*module.Service) (module.Set[string], error) {
+func parseModuleVolumes(mfVolumes map[string][]VolumeTarget, services map[string]*itf.Service) (itf.Set[string], error) {
 	if mfVolumes != nil && len(mfVolumes) > 0 {
-		volumes := make(module.Set[string])
+		volumes := make(itf.Set[string])
 		for name, mfTargets := range mfVolumes {
 			volumes[name] = struct{}{}
 			for _, mfTarget := range mfTargets {
@@ -270,11 +269,11 @@ func parseModuleVolumes(mfVolumes map[string][]VolumeTarget, services map[string
 	return nil, nil
 }
 
-func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, services map[string]*module.Service) (map[string]module.ModuleDependency, error) {
+func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, services map[string]*itf.Service) (map[string]itf.ModuleDependency, error) {
 	if mfModuleDependencies != nil && len(mfModuleDependencies) > 0 {
-		moduleDependencies := make(map[string]module.ModuleDependency)
+		moduleDependencies := make(map[string]itf.ModuleDependency)
 		for id, dependency := range mfModuleDependencies {
-			rs := make(module.Set[string])
+			rs := make(itf.Set[string])
 			for rqSrv, mfTargets := range dependency.RequiredServices {
 				rs[rqSrv] = struct{}{}
 				for _, mfTarget := range mfTargets {
@@ -282,7 +281,7 @@ func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, s
 						for _, srv := range mfTarget.Services {
 							if v, ok := services[srv]; ok {
 								if v.ExternalDependencies == nil {
-									v.ExternalDependencies = make(map[string]module.ExternalDependencyTarget)
+									v.ExternalDependencies = make(map[string]itf.ExternalDependencyTarget)
 								}
 								if ep, k := v.ExternalDependencies[mfTarget.RefVar]; k {
 									if ep.ID == id && ep.Service == rqSrv {
@@ -290,7 +289,7 @@ func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, s
 									}
 									return moduleDependencies, fmt.Errorf("service '%s' invalid module dependency: duplicate '%s'", srv, mfTarget.RefVar)
 								}
-								v.ExternalDependencies[mfTarget.RefVar] = module.ExternalDependencyTarget{
+								v.ExternalDependencies[mfTarget.RefVar] = itf.ExternalDependencyTarget{
 									ID:      id,
 									Service: rqSrv,
 								}
@@ -299,7 +298,7 @@ func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, s
 					}
 				}
 			}
-			moduleDependencies[id] = module.ModuleDependency{
+			moduleDependencies[id] = itf.ModuleDependency{
 				Version:          dependency.Version,
 				RequiredServices: rs,
 			}
@@ -309,10 +308,10 @@ func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, s
 	return nil, nil
 }
 
-func parseModuleResources(mfResources map[string]Resource, services map[string]*module.Service) (map[string]module.Resource, map[string]module.Input, error) {
+func parseModuleResources(mfResources map[string]Resource, services map[string]*itf.Service) (map[string]itf.Resource, map[string]itf.Input, error) {
 	if mfResources != nil && len(mfResources) > 0 {
-		resources := make(map[string]module.Resource)
-		inputs := make(map[string]module.Input)
+		resources := make(map[string]itf.Resource)
+		inputs := make(map[string]itf.Input)
 		for ref, mfResource := range mfResources {
 			if mfResource.Targets != nil && len(mfResource.Targets) > 0 {
 				for _, mfTarget := range mfResource.Targets {
@@ -320,7 +319,7 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 						for _, srv := range mfTarget.Services {
 							if v, ok := services[srv]; ok {
 								if v.Resources == nil {
-									v.Resources = make(map[string]module.ResourceTarget)
+									v.Resources = make(map[string]itf.ResourceTarget)
 								}
 								if rt, k := v.Resources[mfTarget.MountPoint]; k {
 									if rt.Ref == ref && rt.ReadOnly == mfTarget.ReadOnly {
@@ -328,7 +327,7 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 									}
 									return resources, inputs, fmt.Errorf("'%s' & '%s' -> '%s' -> '%s'", rt.Ref, ref, srv, mfTarget.MountPoint)
 								}
-								v.Resources[mfTarget.MountPoint] = module.ResourceTarget{
+								v.Resources[mfTarget.MountPoint] = itf.ResourceTarget{
 									Ref:      ref,
 									ReadOnly: mfTarget.ReadOnly,
 								}
@@ -337,16 +336,16 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 					}
 				}
 			}
-			r := module.Resource{Type: mfResource.Type}
+			r := itf.Resource{Type: mfResource.Type}
 			if mfResource.Tags != nil && len(mfResource.Tags) > 0 {
-				r.Tags = make(module.Set[string])
+				r.Tags = make(itf.Set[string])
 				for _, tag := range mfResource.Tags {
 					r.Tags[tag] = struct{}{}
 				}
 			}
 			resources[ref] = r
 			if mfResource.UserInput != nil {
-				inputs[ref] = module.Input{
+				inputs[ref] = itf.Input{
 					Name:        mfResource.UserInput.Name,
 					Description: mfResource.UserInput.Description,
 					Required:    mfResource.UserInput.Required,
@@ -359,10 +358,10 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 	return nil, nil, nil
 }
 
-func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module.Service) (map[string]module.Resource, map[string]module.Input, error) {
+func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*itf.Service) (map[string]itf.Resource, map[string]itf.Input, error) {
 	if mfSecrets != nil && len(mfSecrets) > 0 {
-		secrets := make(map[string]module.Resource)
-		inputs := make(map[string]module.Input)
+		secrets := make(map[string]itf.Resource)
+		inputs := make(map[string]itf.Input)
 		for ref, mfSecret := range mfSecrets {
 			if mfSecret.Targets != nil && len(mfSecret.Targets) > 0 {
 				for _, mfTarget := range mfSecret.Targets {
@@ -384,16 +383,16 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module
 					}
 				}
 			}
-			r := module.Resource{Type: mfSecret.Type}
+			r := itf.Resource{Type: mfSecret.Type}
 			if mfSecret.Tags != nil && len(mfSecret.Tags) > 0 {
-				r.Tags = make(module.Set[string])
+				r.Tags = make(itf.Set[string])
 				for _, tag := range mfSecret.Tags {
 					r.Tags[tag] = struct{}{}
 				}
 			}
 			secrets[ref] = r
 			if mfSecret.UserInput != nil {
-				inputs[ref] = module.Input{
+				inputs[ref] = itf.Input{
 					Name:        mfSecret.UserInput.Name,
 					Description: mfSecret.UserInput.Description,
 					Required:    mfSecret.UserInput.Required,
@@ -406,10 +405,10 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*module
 	return nil, nil, nil
 }
 
-func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*module.Service, confDefHandler itf.ConfDefHandler) (module.Configs, map[string]module.Input, error) {
-	configs := make(module.Configs)
+func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*itf.Service, confDefHandler itf.ConfDefHandler) (itf.Configs, map[string]itf.Input, error) {
+	configs := make(itf.Configs)
 	if mfConfigs != nil && len(mfConfigs) > 0 {
-		inputs := make(map[string]module.Input)
+		inputs := make(map[string]itf.Input)
 		for ref, mfConfig := range mfConfigs {
 			if mfConfig.Targets != nil && len(mfConfig.Targets) > 0 {
 				for _, mfTarget := range mfConfig.Targets {
@@ -431,13 +430,13 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					}
 				}
 			}
-			dt, ok := module.DataTypeRefMap[mfConfig.DataType]
+			dt, ok := itf.DataTypeRefMap[mfConfig.DataType]
 			if !ok {
 				return configs, inputs, fmt.Errorf("%s ivalid data type '%s'", ref, mfConfig.DataType)
 			}
 			if mfConfig.IsList {
 				switch dt {
-				case module.String:
+				case itf.String:
 					var d []string
 					var o []string
 					if mfConfig.Value != nil {
@@ -466,7 +465,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-				case module.Bool:
+				case itf.Bool:
 					var d []bool
 					var o []bool
 					if mfConfig.Value != nil {
@@ -495,7 +494,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-				case module.Int64:
+				case itf.Int64:
 					var d []int64
 					var o []int64
 					if mfConfig.Value != nil {
@@ -524,7 +523,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-				case module.Float64:
+				case itf.Float64:
 					var d []float64
 					var o []float64
 					if mfConfig.Value != nil {
@@ -556,7 +555,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 				}
 			} else {
 				switch dt {
-				case module.String:
+				case itf.String:
 					var d *string
 					var o []string
 					if mfConfig.Value != nil {
@@ -579,7 +578,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-				case module.Bool:
+				case itf.Bool:
 					var d *bool
 					var o []bool
 					if mfConfig.Value != nil {
@@ -602,7 +601,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-				case module.Int64:
+				case itf.Int64:
 					var d *int64
 					var o []int64
 					if mfConfig.Value != nil {
@@ -626,7 +625,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-				case module.Float64:
+				case itf.Float64:
 					var d *float64
 					var o []float64
 					if mfConfig.Value != nil {
@@ -653,7 +652,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*m
 			}
 
 			if mfConfig.UserInput != nil {
-				inputs[ref] = module.Input{
+				inputs[ref] = itf.Input{
 					Name:        mfConfig.UserInput.Name,
 					Description: mfConfig.UserInput.Description,
 					Required:    mfConfig.UserInput.Required,

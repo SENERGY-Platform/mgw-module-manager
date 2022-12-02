@@ -16,6 +16,11 @@
 
 package modfile
 
-const FileName = "Modfile"
+import (
+	"gopkg.in/yaml.v3"
+	"module-manager/manager/modfile/v1"
+)
 
-var FileExtensions = []string{"yaml", "yml"}
+var decoder = map[string]func(*yaml.Node) (Module, error){
+	"1": Decode[v1.Module],
+}

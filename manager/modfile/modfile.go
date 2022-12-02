@@ -20,12 +20,23 @@ import (
 	"errors"
 	"gopkg.in/yaml.v3"
 	"module-manager/manager/itf"
-	"module-manager/manager/itf/modfile/v1"
-	"module-manager/manager/itf/module"
 )
 
-var decoders = map[string]func(*yaml.Node) (itf.ModFileModule, error){
-	"1": v1.Decode,
+const FileName = "Modfile"
+
+var FileExtensions = []string{"yaml", "yml"}
+
+type Module interface {
+	Parse(confDefHandler itf.ConfDefHandler) (itf.Module, error)
+}
+
+type modFileBase struct {
+	Version string `yaml:"modfileVersion"`
+}
+
+type ModFile struct {
+	modFileBase `yaml:",inline"`
+	module      Module
 }
 
 func (mf *ModFile) UnmarshalYAML(yn *yaml.Node) error {
@@ -33,7 +44,7 @@ func (mf *ModFile) UnmarshalYAML(yn *yaml.Node) error {
 	if err := yn.Decode(&base); err != nil {
 		return err
 	}
-	d, ok := decoders[base.Version]
+	d, ok := decoder[base.Version]
 	if !ok {
 		return errors.New("unsupported modfile version")
 	}
@@ -48,6 +59,14 @@ func (mf *ModFile) UnmarshalYAML(yn *yaml.Node) error {
 	return nil
 }
 
-func (mf *ModFile) ParseModule(confDefHandler itf.ConfDefHandler) (module.Module, error) {
+func Decode[T Module](yn *yaml.Node) (Module, error) {
+	var m T
+	if err := yn.Decode(&m); err != nil {
+		return m, err
+	}
+	return m, nil
+}
+
+func (mf *ModFile) ParseModule(confDefHandler itf.ConfDefHandler) (itf.Module, error) {
 	return mf.module.Parse(confDefHandler)
 }

@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"io/fs"
-	"module-manager/manager/itf"
 	"strconv"
 	"strings"
 	"time"
@@ -100,12 +99,4 @@ func (m *FileMode) UnmarshalYAML(yn *yaml.Node) error {
 	}
 	m.FileMode = fs.FileMode(i)
 	return nil
-}
-
-func Decode(yn *yaml.Node) (itf.ModFileModule, error) {
-	var m Module
-	if err := yn.Decode(&m); err != nil {
-		return m, err
-	}
-	return m, nil
 }
