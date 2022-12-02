@@ -18,6 +18,7 @@ package itf
 
 import (
 	"io"
+	"module-manager/manager/itf/misc"
 )
 
 type ModuleHandler interface {
@@ -56,5 +57,5 @@ type DeploymentStorageHandler interface {
 }
 
 type ConfDefHandler interface {
-	Parse(cType string, cTypeOpt map[string]any, dType DataType) (map[string]any, error)
+	Parse(cType string, cTypeOpt map[string]any, dType misc.DataType) (map[string]any, error)
 }

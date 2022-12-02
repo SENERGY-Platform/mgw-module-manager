@@ -14,42 +14,20 @@
  * limitations under the License.
  */
 
-package itf
+package misc
 
-const (
-	Greater      = ">"
-	Less         = "<"
-	Equal        = "="
-	GreaterEqual = ">="
-	LessEqual    = "<="
-)
+import "golang.org/x/mod/semver"
 
-var OperatorMap = map[string]struct{}{
-	Greater:      {},
-	Less:         {},
-	Equal:        {},
-	GreaterEqual: {},
-	LessEqual:    {},
+func IsValidSemVer(s string) bool {
+	return semver.IsValid(s)
 }
 
-const (
-	Bool DataType = iota
-	Int64
-	Float64
-	String
-)
-
-var DataTypeRef = []string{
-	Bool:    "bool",
-	Int64:   "int",
-	Float64: "float",
-	String:  "string",
+func IsValidOperator(s string) bool {
+	_, ok := OperatorMap[s]
+	return ok
 }
 
-var DataTypeRefMap = func() map[string]DataType {
-	m := make(map[string]DataType)
-	for i := 0; i < len(DataTypeRef); i++ {
-		m[DataTypeRef[i]] = DataType(i)
-	}
-	return m
-}()
+func ValidateSemVerRange(s string) error {
+	_, _, err := semVerRangeParse(s)
+	return err
+}

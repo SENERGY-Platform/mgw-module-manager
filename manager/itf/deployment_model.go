@@ -16,6 +16,8 @@
 
 package itf
 
+import "module-manager/manager/itf/misc"
+
 type DeploymentBase struct {
 	Name      *string           `json:"name"` // module name if nil
 	ModuleID  string            `json:"module_id"`
@@ -27,7 +29,7 @@ type DeploymentBase struct {
 type Deployment struct {
 	ID string `json:"id"`
 	DeploymentBase
-	Containers Set[string]
+	Containers misc.Set[string]
 }
 
 // --------------------------------------------------
@@ -51,7 +53,7 @@ type InputTemplateConfig struct {
 	OptExt   bool           `json:"opt_ext"`
 	Type     string         `json:"type"`
 	TypeOpt  map[string]any `json:"type_opt"`
-	DataType DataType       `json:"data_type"`
+	DataType misc.DataType  `json:"data_type"`
 	IsSlice  bool           `json:"is_slice"`
 }
 

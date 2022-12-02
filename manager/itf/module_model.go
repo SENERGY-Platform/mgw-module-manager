@@ -18,6 +18,7 @@ package itf
 
 import (
 	"io/fs"
+	"module-manager/manager/itf/misc"
 	"time"
 )
 
@@ -31,7 +32,7 @@ type Module struct {
 	Type           string                      `json:"type"`
 	DeploymentType string                      `json:"deployment_type"`
 	Services       map[string]*Service         `json:"services"`     // {ref:Service}
-	Volumes        Set[string]                 `json:"volumes"`      // {volName}
+	Volumes        misc.Set[string]            `json:"volumes"`      // {volName}
 	Dependencies   map[string]ModuleDependency `json:"dependencies"` // {moduleID:ModuleDependency}
 	Resources      map[string]Resource         `json:"resources"`    // {ref:Resource}
 	Secrets        map[string]Resource         `json:"secrets"`      // {ref:Resource}
@@ -100,8 +101,8 @@ type ExternalDependencyTarget struct {
 }
 
 type ModuleDependency struct {
-	Version          string      `json:"version"`
-	RequiredServices Set[string] `json:"required_services"` // {ref}
+	Version          string           `json:"version"`
+	RequiredServices misc.Set[string] `json:"required_services"` // {ref}
 }
 
 type ResourceTarget struct {
@@ -110,8 +111,8 @@ type ResourceTarget struct {
 }
 
 type Resource struct {
-	Type string      `json:"type"` // resource type as defined by external services managing resources (e.g. serial-device, certificate, credentials ...)
-	Tags Set[string] `json:"tags"`
+	Type string           `json:"type"` // resource type as defined by external services managing resources (e.g. serial-device, certificate, credentials ...)
+	Tags misc.Set[string] `json:"tags"`
 }
 
 type Configs map[string]configValue
@@ -122,7 +123,7 @@ type configValue struct {
 	OptExt    bool           `json:"opt_ext"`
 	Type      string         `json:"type"`
 	TypeOpt   map[string]any `json:"type_opt"`
-	DataType  DataType       `json:"data_type"`
+	DataType  misc.DataType  `json:"data_type"`
 	IsSlice   bool           `json:"is_slice"`
 	Delimiter *string        `json:"delimiter"` // ';' if nil (only applies if IsSlice == true)
 }

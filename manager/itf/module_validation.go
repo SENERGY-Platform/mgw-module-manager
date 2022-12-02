@@ -19,6 +19,7 @@ package itf
 import (
 	"errors"
 	"fmt"
+	"module-manager/manager/itf/misc"
 	"regexp"
 )
 
@@ -26,7 +27,7 @@ func Validate(m Module) error {
 	if !IsValidModuleID(m.ID) {
 		return fmt.Errorf("invalid module ID format '%s'", m.ID)
 	}
-	if !IsValidSemVer(m.Version) {
+	if !misc.IsValidSemVer(m.Version) {
 		return fmt.Errorf("invalid version format '%s'", m.Version)
 	}
 	if !IsValidModuleType(m.Type) {
@@ -45,7 +46,7 @@ func Validate(m Module) error {
 			if !IsValidModuleID(mid) {
 				return fmt.Errorf("invalid dependency module ID format '%s'", mid)
 			}
-			if err := ValidateSemVerRange(dependency.Version); err != nil {
+			if err := misc.ValidateSemVerRange(dependency.Version); err != nil {
 				return fmt.Errorf("dependency '%s': %s", mid, err)
 			}
 		}

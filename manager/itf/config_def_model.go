@@ -16,14 +16,16 @@
 
 package itf
 
+import "module-manager/manager/itf/misc"
+
 type ConfigDefinition struct {
-	DataType   Set[DataType]                     `json:"data_type"`
+	DataType   misc.Set[misc.DataType]           `json:"data_type"`
 	Options    map[string]ConfigDefinitionOption `json:"options"`
 	Validation map[string]any                    `json:"validation"`
 }
 
 type ConfigDefinitionOption struct {
-	DataType        Set[DataType] `json:"data_type"`
-	InheritDataType bool          `json:"inherit_data_type"`
-	Required        bool          `json:"required"`
+	DataType        misc.Set[misc.DataType] `json:"data_type"`
+	InheritDataType bool                    `json:"inherit_data_type"`
+	Required        bool                    `json:"required"`
 }

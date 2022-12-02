@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package itf
+package misc
 
 import (
 	"encoding/json"
