@@ -30,6 +30,7 @@ type Config struct {
 	ServerPort        int                     `json:"server_port" env_var:"SERVER_PORT"`
 	ModuleFileHandler ModuleFileHandlerConfig `json:"module_file_handler" env_var:"MFH_CONFIG"`
 	Logger            srv_base.LoggerConfig   `json:"logger" env_var:"LOGGER_CONFIG"`
+	ConfigDefsPath    string                  `json:"config_defs_path" env_var:"CONFIG_DEFS_PATH"`
 }
 
 func NewConfig(path *string) (*Config, error) {
