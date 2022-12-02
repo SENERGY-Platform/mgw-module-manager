@@ -18,12 +18,12 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"module-manager/manager/itf/deployment"
+	"module-manager/manager/itf"
 	"net/http"
 )
 
 func (a *Api) PostDeployment(gc *gin.Context) {
-	base := deployment.Base{}
+	base := itf.DeploymentBase{}
 	if err := gc.ShouldBindJSON(&base); err != nil {
 		gc.Status(http.StatusBadRequest)
 		_ = gc.Error(err)

@@ -23,8 +23,7 @@ import (
 	"github.com/SENERGY-Platform/go-service-base/srv-base/types"
 	"gopkg.in/yaml.v3"
 	"module-manager/manager/itf"
-	"module-manager/manager/itf/modfile"
-	"module-manager/manager/itf/module"
+	"module-manager/manager/modfile"
 	"net/http"
 	"os"
 )
@@ -38,8 +37,8 @@ func NewHandler(storageHandler itf.ModuleStorageHandler, confDefHandler itf.Conf
 	return &Handler{storageHandler: storageHandler, confDefHandler: confDefHandler}
 }
 
-func (h *Handler) List() ([]module.Module, error) {
-	var modules []module.Module
+func (h *Handler) List() ([]itf.Module, error) {
+	var modules []itf.Module
 	mIds, err := h.storageHandler.List()
 	if err != nil {
 		return modules, srv_base_types.NewError(http.StatusInternalServerError, "listing modules failed", err)
@@ -50,7 +49,7 @@ func (h *Handler) List() ([]module.Module, error) {
 			srv_base.Logger.Errorf("opening module '%s' failed: %s", id, err)
 			continue
 		}
-		var m module.Module
+		var m itf.Module
 		yd := yaml.NewDecoder(modFile)
 		var mf modfile.ModFile
 		err = yd.Decode(&mf)
@@ -68,8 +67,8 @@ func (h *Handler) List() ([]module.Module, error) {
 	return modules, nil
 }
 
-func (h *Handler) Read(id string) (module.Module, error) {
-	var m module.Module
+func (h *Handler) Read(id string) (itf.Module, error) {
+	var m itf.Module
 	modFile, err := h.storageHandler.Open(id)
 	if err != nil {
 		code := http.StatusInternalServerError
