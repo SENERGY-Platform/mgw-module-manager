@@ -24,6 +24,7 @@ import (
 	"github.com/SENERGY-Platform/go-service-base/srv-base/types"
 	"github.com/gin-gonic/gin"
 	"module-manager/manager/api"
+	"module-manager/manager/handler/config_def"
 	"module-manager/manager/handler/deployment"
 	"module-manager/manager/handler/module"
 	"module-manager/manager/util"
@@ -70,8 +71,8 @@ func main() {
 		srv_base.Logger.Error(err)
 		return
 	}
-
-	moduleHandler := module.NewHandler(moduleStorageHandler)
+	confDefHandler, _ := config_def.NewHandler("/home/ydu/Workspace/DEV/SENERGY/MULTI-GATEWAY-II/CORE/mgw-module-manager/test/config_types.json")
+	moduleHandler := module.NewHandler(moduleStorageHandler, confDefHandler)
 	deploymentHandler := deployment.NewHandler(nil)
 
 	dmApi := api.New(moduleHandler, deploymentHandler)
