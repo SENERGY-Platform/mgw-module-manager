@@ -159,9 +159,9 @@ type ConfigDefinition struct {
 }
 
 type ConfigDefinitionOption struct {
-	DataType        misc.Set[misc.DataType] `json:"data_type"`
-	InheritDataType bool                    `json:"inherit_data_type"`
-	Required        bool                    `json:"required"`
+	DataType misc.Set[misc.DataType] `json:"data_type"`
+	Inherit  bool                    `json:"inherit"`
+	Required bool                    `json:"required"`
 }
 
 // Deployment -----------------------------------------------------------------------------------
