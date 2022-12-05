@@ -438,25 +438,25 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 			if mfConfig.IsList {
 				switch dt {
 				case misc.String:
-					d, o, co, err := parseConfigSlice[string](mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueString, parseConfigOptionsString)
+					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueString, parseConfigOptionsString)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetStringSlice(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co, mfConfig.Delimiter)
 				case misc.Bool:
-					d, o, co, err := parseConfigSlice[bool](mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueBool, parseConfigOptionsBool)
+					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueBool, parseConfigOptionsBool)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetBoolSlice(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co, mfConfig.Delimiter)
 				case misc.Int64:
-					d, o, co, err := parseConfigSlice[int64](mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueInt64, parseConfigOptionsInt64)
+					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueInt64, parseConfigOptionsInt64)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetInt64Slice(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co, mfConfig.Delimiter)
 				case misc.Float64:
-					d, o, co, err := parseConfigSlice[float64](mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueFloat64, parseConfigOptionsFloat64)
+					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueFloat64, parseConfigOptionsFloat64)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
@@ -465,25 +465,25 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 			} else {
 				switch dt {
 				case misc.String:
-					d, o, co, err := parseConfig[string](mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueString, parseConfigOptionsString)
+					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueString, parseConfigOptionsString)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetString(ref, &d, o, mfConfig.OptionsExt, mfConfig.Type, co)
 				case misc.Bool:
-					d, o, co, err := parseConfig[bool](mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueBool, parseConfigOptionsBool)
+					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueBool, parseConfigOptionsBool)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetBool(ref, &d, o, mfConfig.OptionsExt, mfConfig.Type, co)
 				case misc.Int64:
-					d, o, co, err := parseConfig[int64](mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueInt64, parseConfigOptionsInt64)
+					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueInt64, parseConfigOptionsInt64)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetInt64(ref, &d, o, mfConfig.OptionsExt, mfConfig.Type, co)
 				case misc.Float64:
-					d, o, co, err := parseConfig[float64](mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueFloat64, parseConfigOptionsFloat64)
+					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueFloat64, parseConfigOptionsFloat64)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
