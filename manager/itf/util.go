@@ -122,16 +122,25 @@ func (o ConfigTypeOptions) SetFloat64(ref string, val float64) {
 	o.set(ref, val, misc.Float64)
 }
 
+func isValidPort(p []uint) bool {
+	return !(p == nil || len(p) == 0 || len(p) > 2 || (len(p) > 1 && p[0] == p[1]) || (len(p) > 1 && p[1] < p[0]))
+}
+
+func isValidPortType(s string) bool {
+	_, ok := PortTypeMap[s]
+	return ok
+}
+
 func (p PortMappings) Add(name *string, port []uint, hostPort []uint, protocol *string) error {
 	var s []string
-	if port == nil || !IsValidPort(port) {
+	if port == nil || !isValidPort(port) {
 		return fmt.Errorf("invalid port '%v'", port)
 	}
 	for _, n := range port {
 		s = append(s, strconv.FormatInt(int64(n), 10))
 	}
 	if hostPort != nil {
-		if !IsValidPort(hostPort) {
+		if !isValidPort(hostPort) {
 			return fmt.Errorf("invalid host port '%v'", hostPort)
 		}
 		var lp int
@@ -159,7 +168,7 @@ func (p PortMappings) Add(name *string, port []uint, hostPort []uint, protocol *
 		}
 	}
 	if protocol != nil {
-		if !IsValidPortType(*protocol) {
+		if !isValidPortType(*protocol) {
 			return fmt.Errorf("invalid protocol '%s'", *protocol)
 		}
 		s = append(s, *protocol)
