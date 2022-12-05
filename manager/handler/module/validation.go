@@ -88,66 +88,21 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 		}
 	}
 	if m.Inputs.Resources != nil {
-		if m.Resources == nil {
-			return errors.New("missing resources for user inputs")
-		}
-		for ref, input := range m.Inputs.Resources {
-			if ref == "" {
-				return errors.New("invalid user input reference")
-			}
-			if _, ok := m.Resources[ref]; !ok {
-				return fmt.Errorf("missing resource for input '%s'", ref)
-			}
-			if input.Group != nil {
-				if m.Inputs.Groups == nil {
-					return errors.New("missing groups for user inputs")
-				}
-				if _, ok := m.Inputs.Groups[*input.Group]; !ok {
-					return fmt.Errorf("missing group for input '%s'", ref)
-				}
-			}
+		err := ValidateInputs(m.Inputs.Resources, m.Resources, "resource", m.Inputs.Groups)
+		if err != nil {
+			return err
 		}
 	}
 	if m.Inputs.Secrets != nil {
-		if m.Secrets == nil {
-			return errors.New("missing secrets for user inputs")
-		}
-		for ref, input := range m.Inputs.Secrets {
-			if ref == "" {
-				return errors.New("invalid user input reference")
-			}
-			if _, ok := m.Secrets[ref]; !ok {
-				return fmt.Errorf("missing secret for input '%s'", ref)
-			}
-			if input.Group != nil {
-				if m.Inputs.Groups == nil {
-					return errors.New("missing groups for user inputs")
-				}
-				if _, ok := m.Inputs.Groups[*input.Group]; !ok {
-					return fmt.Errorf("missing group for input '%s'", ref)
-				}
-			}
+		err := ValidateInputs(m.Inputs.Secrets, m.Secrets, "secret", m.Inputs.Groups)
+		if err != nil {
+			return err
 		}
 	}
 	if m.Inputs.Configs != nil {
-		if m.Configs == nil {
-			return errors.New("missing secrets for user inputs")
-		}
-		for ref, input := range m.Inputs.Configs {
-			if ref == "" {
-				return errors.New("invalid user input reference")
-			}
-			if _, ok := m.Configs[ref]; !ok {
-				return fmt.Errorf("missing secret for input '%s'", ref)
-			}
-			if input.Group != nil {
-				if m.Inputs.Groups == nil {
-					return errors.New("missing groups for user inputs")
-				}
-				if _, ok := m.Inputs.Groups[*input.Group]; !ok {
-					return fmt.Errorf("missing group for input '%s'", ref)
-				}
-			}
+		err := ValidateInputs(m.Inputs.Configs, m.Configs, "config", m.Inputs.Groups)
+		if err != nil {
+			return err
 		}
 	}
 	if m.Services == nil || len(m.Services) == 0 {
@@ -378,6 +333,29 @@ func IsValidSrvDepCondition(s string) bool {
 func IsValidRestartStrategy(s string) bool {
 	_, ok := itf.RestartStrategyMap[s]
 	return ok
+}
+
+func ValidateInputs[T any](inputs map[string]itf.Input, refs map[string]T, refName string, groups map[string]itf.InputGroup) error {
+	if refs == nil {
+		return fmt.Errorf("missing %ss for user inputs", refName)
+	}
+	for ref, input := range inputs {
+		if ref == "" {
+			return errors.New("invalid input reference")
+		}
+		if _, ok := refs[ref]; !ok {
+			return fmt.Errorf("missing %s for input '%s'", refName, ref)
+		}
+		if input.Group != nil {
+			if groups == nil {
+				return errors.New("missing groups for inputs")
+			}
+			if _, ok := groups[*input.Group]; !ok {
+				return fmt.Errorf("missing group for input '%s'", ref)
+			}
+		}
+	}
+	return nil
 }
 
 func ValidateConfigs(c itf.Configs, cDef map[string]itf.ConfigDefinition) error {
