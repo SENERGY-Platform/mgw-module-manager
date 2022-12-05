@@ -24,7 +24,7 @@ import (
 	"regexp"
 )
 
-func Validate(m itf.Module) error {
+func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 	if !IsValidModuleID(m.ID) {
 		return fmt.Errorf("invalid module ID format '%s'", m.ID)
 	}
