@@ -37,10 +37,8 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 	if !IsValidDeploymentType(m.DeploymentType) {
 		return fmt.Errorf("invlaid deployment type '%s'", m.DeploymentType)
 	}
-	for v := range m.Volumes {
-		if v == "" {
-			return errors.New("invalid volume name")
-		}
+	if err := validateNotEmpty(m.Volumes, "invalid volume name"); err != nil {
+		return err
 	}
 	if m.Dependencies != nil {
 		for mid, dependency := range m.Dependencies {
@@ -53,55 +51,43 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 			if dependency.RequiredServices == nil {
 				return fmt.Errorf("missing services for dependency '%s'", mid)
 			}
-			for s := range dependency.RequiredServices {
-				if s == "" {
-					return fmt.Errorf("invalid service for dependency '%s'", mid)
-				}
+			if err := validateNotEmpty(dependency.RequiredServices, fmt.Sprintf("invalid service for dependency '%s'", mid)); err != nil {
+				return err
 			}
 		}
 	}
 	if m.Resources != nil {
-		for ref := range m.Resources {
-			if ref == "" {
-				return errors.New("invalid resource reference")
-			}
+		if err := validateNotEmpty(m.Resources, "invalid resource reference"); err != nil {
+			return err
 		}
 	}
 	if m.Secrets != nil {
-		for ref := range m.Secrets {
-			if ref == "" {
-				return errors.New("invalid secret reference")
-			}
+		if err := validateNotEmpty(m.Secrets, "invalid secret reference"); err != nil {
+			return err
 		}
 	}
 	if m.Configs != nil {
-		err := ValidateConfigs(m.Configs, cDef)
-		if err != nil {
+		if err := ValidateConfigs(m.Configs, cDef); err != nil {
 			return err
 		}
 	}
 	if m.Inputs.Groups != nil {
-		for ref := range m.Inputs.Groups {
-			if ref == "" {
-				return errors.New("invalid user input group reference")
-			}
+		if err := validateNotEmpty(m.Inputs.Groups, "invalid input group reference"); err != nil {
+			return err
 		}
 	}
 	if m.Inputs.Resources != nil {
-		err := ValidateInputs(m.Inputs.Resources, m.Resources, "resource", m.Inputs.Groups)
-		if err != nil {
+		if err := ValidateInputs(m.Inputs.Resources, m.Resources, "resource", m.Inputs.Groups); err != nil {
 			return err
 		}
 	}
 	if m.Inputs.Secrets != nil {
-		err := ValidateInputs(m.Inputs.Secrets, m.Secrets, "secret", m.Inputs.Groups)
-		if err != nil {
+		if err := ValidateInputs(m.Inputs.Secrets, m.Secrets, "secret", m.Inputs.Groups); err != nil {
 			return err
 		}
 	}
 	if m.Inputs.Configs != nil {
-		err := ValidateInputs(m.Inputs.Configs, m.Configs, "config", m.Inputs.Groups)
-		if err != nil {
+		if err := ValidateInputs(m.Inputs.Configs, m.Configs, "config", m.Inputs.Groups); err != nil {
 			return err
 		}
 	}
@@ -353,6 +339,15 @@ func ValidateInputs[T any](inputs map[string]itf.Input, refs map[string]T, refNa
 			if _, ok := groups[*input.Group]; !ok {
 				return fmt.Errorf("missing group for input '%s'", ref)
 			}
+		}
+	}
+	return nil
+}
+
+func validateNotEmpty[T any](refs map[string]T, msg string) error {
+	for ref := range refs {
+		if ref == "" {
+			return errors.New(msg)
 		}
 	}
 	return nil
