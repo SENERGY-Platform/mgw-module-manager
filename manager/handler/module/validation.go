@@ -53,6 +53,11 @@ func Validate(m itf.Module) error {
 			if dependency.RequiredServices == nil {
 				return fmt.Errorf("missing services for dependency '%s'", mid)
 			}
+			for s := range dependency.RequiredServices {
+				if s == "" {
+					return fmt.Errorf("invalid service for dependency '%s'", mid)
+				}
+			}
 		}
 	}
 	if m.Resources != nil && len(m.Resources) > 0 {
