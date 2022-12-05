@@ -42,7 +42,7 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 			return errors.New("invalid volume name")
 		}
 	}
-	if m.Dependencies != nil && len(m.Dependencies) > 0 {
+	if m.Dependencies != nil {
 		for mid, dependency := range m.Dependencies {
 			if !IsValidModuleID(mid) {
 				return fmt.Errorf("invalid dependency module ID format '%s'", mid)
@@ -60,35 +60,35 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 			}
 		}
 	}
-	if m.Resources != nil && len(m.Resources) > 0 {
+	if m.Resources != nil {
 		for ref := range m.Resources {
 			if ref == "" {
 				return errors.New("invalid resource reference")
 			}
 		}
 	}
-	if m.Secrets != nil && len(m.Secrets) > 0 {
+	if m.Secrets != nil {
 		for ref := range m.Secrets {
 			if ref == "" {
 				return errors.New("invalid secret reference")
 			}
 		}
 	}
-	if m.Configs != nil && len(m.Configs) > 0 {
+	if m.Configs != nil {
 		err := ValidateConfigs(m.Configs, cDef)
 		if err != nil {
 			return err
 		}
 	}
-	if m.Inputs.Groups != nil && len(m.Inputs.Groups) > 0 {
+	if m.Inputs.Groups != nil {
 		for ref := range m.Inputs.Groups {
 			if ref == "" {
 				return errors.New("invalid user input group reference")
 			}
 		}
 	}
-	if m.Inputs.Resources != nil && len(m.Inputs.Resources) > 0 {
-		if m.Resources == nil || len(m.Resources) == 0 {
+	if m.Inputs.Resources != nil {
+		if m.Resources == nil {
 			return errors.New("missing resources for user inputs")
 		}
 		for ref, input := range m.Inputs.Resources {
@@ -108,8 +108,8 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 			}
 		}
 	}
-	if m.Inputs.Secrets != nil && len(m.Inputs.Secrets) > 0 {
-		if m.Secrets == nil || len(m.Secrets) == 0 {
+	if m.Inputs.Secrets != nil {
+		if m.Secrets == nil {
 			return errors.New("missing secrets for user inputs")
 		}
 		for ref, input := range m.Inputs.Secrets {
@@ -129,8 +129,8 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 			}
 		}
 	}
-	if m.Inputs.Configs != nil && len(m.Inputs.Configs) > 0 {
-		if m.Configs == nil || len(m.Configs) == 0 {
+	if m.Inputs.Configs != nil {
+		if m.Configs == nil {
 			return errors.New("missing secrets for user inputs")
 		}
 		for ref, input := range m.Inputs.Configs {
@@ -167,35 +167,35 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 		if err := validateServiceRefVars(service); err != nil {
 			return fmt.Errorf("invalid service reference variable: '%s' -> %s", ref, err)
 		}
-		if service.Volumes != nil && len(service.Volumes) > 0 {
+		if service.Volumes != nil {
 			for _, volume := range service.Volumes {
 				if _, ok := m.Volumes[volume]; !ok {
 					return fmt.Errorf("invalid service volume: '%s' -> '%s'", ref, volume)
 				}
 			}
 		}
-		if service.Resources != nil && len(service.Resources) > 0 {
+		if service.Resources != nil {
 			for _, target := range service.Resources {
 				if _, ok := m.Resources[target.Ref]; !ok {
 					return fmt.Errorf("invalid service resource: '%s' -> '%s'", ref, target.Ref)
 				}
 			}
 		}
-		if service.Secrets != nil && len(service.Secrets) > 0 {
+		if service.Secrets != nil {
 			for _, secretRef := range service.Secrets {
 				if _, ok := m.Secrets[secretRef]; !ok {
 					return fmt.Errorf("invalid service secret: '%s' -> '%s'", ref, secretRef)
 				}
 			}
 		}
-		if service.Configs != nil && len(service.Configs) > 0 {
+		if service.Configs != nil {
 			for _, confRef := range service.Configs {
 				if _, ok := m.Configs[confRef]; !ok {
 					return fmt.Errorf("invalid service secret: '%s' -> '%s'", ref, confRef)
 				}
 			}
 		}
-		if service.HttpEndpoints != nil && len(service.HttpEndpoints) > 0 {
+		if service.HttpEndpoints != nil {
 			gwPaths := make(map[string]string)
 			for path, edpt := range service.HttpEndpoints {
 				if path == "" {
@@ -210,7 +210,7 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 
 			}
 		}
-		if service.Dependencies != nil && len(service.Dependencies) > 0 {
+		if service.Dependencies != nil {
 			for _, target := range service.Dependencies {
 				if _, ok := m.Services[target.Service]; !ok {
 					return fmt.Errorf("invalid service dependency: '%s' -> '%s'", ref, target.Service)
@@ -220,14 +220,14 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 				}
 			}
 		}
-		if service.ExternalDependencies != nil && len(service.ExternalDependencies) > 0 {
+		if service.ExternalDependencies != nil {
 			for _, target := range service.ExternalDependencies {
 				if !IsValidModuleID(target.ID) {
 					return fmt.Errorf("invalid service external dependency: '%s' -> '%s'", ref, target.ID)
 				}
 			}
 		}
-		if service.PortMappings != nil && len(service.PortMappings) > 0 {
+		if service.PortMappings != nil {
 			for _, pm := range service.PortMappings {
 				if pm.HostPort != nil && len(pm.HostPort) > 0 {
 					if len(pm.HostPort) > 1 {
@@ -265,7 +265,7 @@ func validateServiceRunConfig(rc itf.RunConfig) error {
 
 func validateServiceRefVars(service *itf.Service) error {
 	refVars := make(map[string]string)
-	if service.Configs != nil && len(service.Configs) > 0 {
+	if service.Configs != nil {
 		for rv := range service.Configs {
 			if rv == "" {
 				return errors.New("invalid ref var")
@@ -273,7 +273,7 @@ func validateServiceRefVars(service *itf.Service) error {
 			refVars[rv] = "configs"
 		}
 	}
-	if service.Dependencies != nil && len(service.Dependencies) > 0 {
+	if service.Dependencies != nil {
 		for rv := range service.Dependencies {
 			if rv == "" {
 				return errors.New("invalid ref var")
@@ -284,7 +284,7 @@ func validateServiceRefVars(service *itf.Service) error {
 			refVars[rv] = "dependencies"
 		}
 	}
-	if service.ExternalDependencies != nil && len(service.ExternalDependencies) > 0 {
+	if service.ExternalDependencies != nil {
 		for rv := range service.ExternalDependencies {
 			if rv == "" {
 				return errors.New("invalid ref var")
@@ -300,7 +300,7 @@ func validateServiceRefVars(service *itf.Service) error {
 
 func validateServiceMountPoints(service *itf.Service) error {
 	mountPoints := make(map[string]string)
-	if service.Include != nil && len(service.Include) > 0 {
+	if service.Include != nil {
 		for mp := range service.Include {
 			if mp == "" {
 				return errors.New("invalid mount point")
@@ -308,7 +308,7 @@ func validateServiceMountPoints(service *itf.Service) error {
 			mountPoints[mp] = "include"
 		}
 	}
-	if service.Tmpfs != nil && len(service.Tmpfs) > 0 {
+	if service.Tmpfs != nil {
 		for mp := range service.Tmpfs {
 			if mp == "" {
 				return errors.New("invalid mount point")
@@ -319,7 +319,7 @@ func validateServiceMountPoints(service *itf.Service) error {
 			mountPoints[mp] = "tmpfs"
 		}
 	}
-	if service.Volumes != nil && len(service.Volumes) > 0 {
+	if service.Volumes != nil {
 		for mp := range service.Volumes {
 			if mp == "" {
 				return errors.New("invalid mount point")
@@ -330,7 +330,7 @@ func validateServiceMountPoints(service *itf.Service) error {
 			mountPoints[mp] = "volumes"
 		}
 	}
-	if service.Resources != nil && len(service.Resources) > 0 {
+	if service.Resources != nil {
 		for mp := range service.Resources {
 			if mp == "" {
 				return errors.New("invalid mount point")
@@ -341,7 +341,7 @@ func validateServiceMountPoints(service *itf.Service) error {
 			mountPoints[mp] = "resources"
 		}
 	}
-	if service.Secrets != nil && len(service.Secrets) > 0 {
+	if service.Secrets != nil {
 		for mp := range service.Secrets {
 			if mp == "" {
 				return errors.New("invalid mount point")
