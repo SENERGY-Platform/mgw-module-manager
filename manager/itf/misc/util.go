@@ -66,3 +66,7 @@ func (d *DataType) UnmarshalJSON(b []byte) error {
 	*d = t
 	return nil
 }
+
+func (d DataType) String() string {
+	return DataTypeRef[d]
+}
