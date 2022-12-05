@@ -50,6 +50,13 @@ func Validate(m itf.Module) error {
 			if err := sem_ver.ValidateSemVerRange(dependency.Version); err != nil {
 				return fmt.Errorf("dependency '%s': %s", mid, err)
 			}
+			if dependency.RequiredServices != nil {
+				for s := range dependency.RequiredServices {
+					if s == "" {
+						return fmt.Errorf("invalid service name for dependency '%s'", mid)
+					}
+				}
+			}
 		}
 	}
 	if m.Resources != nil && len(m.Resources) > 0 {
