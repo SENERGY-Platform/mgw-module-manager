@@ -17,22 +17,6 @@
 package misc
 
 const (
-	Greater      = ">"
-	Less         = "<"
-	Equal        = "="
-	GreaterEqual = ">="
-	LessEqual    = "<="
-)
-
-var OperatorMap = map[string]struct{}{
-	Greater:      {},
-	Less:         {},
-	Equal:        {},
-	GreaterEqual: {},
-	LessEqual:    {},
-}
-
-const (
 	Bool DataType = iota
 	Int64
 	Float64

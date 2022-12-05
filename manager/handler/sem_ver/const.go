@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package misc
+package sem_ver
 
-import "golang.org/x/mod/semver"
+const (
+	Greater      = ">"
+	Less         = "<"
+	Equal        = "="
+	GreaterEqual = ">="
+	LessEqual    = "<="
+)
 
-func IsValidSemVer(s string) bool {
-	return semver.IsValid(s)
-}
-
-func IsValidOperator(s string) bool {
-	_, ok := OperatorMap[s]
-	return ok
-}
-
-func ValidateSemVerRange(s string) error {
-	_, _, err := semVerRangeParse(s)
-	return err
+var OperatorMap = map[string]struct{}{
+	Greater:      {},
+	Less:         {},
+	Equal:        {},
+	GreaterEqual: {},
+	LessEqual:    {},
 }
