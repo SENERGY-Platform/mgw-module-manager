@@ -25,16 +25,16 @@ import (
 )
 
 func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
-	if !IsValidModuleID(m.ID) {
+	if !isValidModuleID(m.ID) {
 		return fmt.Errorf("invalid module ID format '%s'", m.ID)
 	}
 	if !sem_ver.IsValidSemVer(m.Version) {
 		return fmt.Errorf("invalid version format '%s'", m.Version)
 	}
-	if !IsValidModuleType(m.Type) {
+	if !isValidModuleType(m.Type) {
 		return fmt.Errorf("invalid module type '%s'", m.Type)
 	}
-	if !IsValidDeploymentType(m.DeploymentType) {
+	if !isValidDeploymentType(m.DeploymentType) {
 		return fmt.Errorf("invlaid deployment type '%s'", m.DeploymentType)
 	}
 	if err := validateNotEmpty(m.Volumes, "invalid volume name"); err != nil {
@@ -42,7 +42,7 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 	}
 	if m.Dependencies != nil {
 		for mid, dependency := range m.Dependencies {
-			if !IsValidModuleID(mid) {
+			if !isValidModuleID(mid) {
 				return fmt.Errorf("invalid dependency module ID format '%s'", mid)
 			}
 			if err := sem_ver.ValidateSemVerRange(dependency.Version); err != nil {
@@ -67,7 +67,7 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 		}
 	}
 	if m.Configs != nil {
-		if err := ValidateConfigs(m.Configs, cDef); err != nil {
+		if err := validateConfigs(m.Configs, cDef); err != nil {
 			return err
 		}
 	}
@@ -77,17 +77,17 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 		}
 	}
 	if m.Inputs.Resources != nil {
-		if err := ValidateInputs(m.Inputs.Resources, m.Resources, "resource", m.Inputs.Groups); err != nil {
+		if err := validateInputs(m.Inputs.Resources, m.Resources, "resource", m.Inputs.Groups); err != nil {
 			return err
 		}
 	}
 	if m.Inputs.Secrets != nil {
-		if err := ValidateInputs(m.Inputs.Secrets, m.Secrets, "secret", m.Inputs.Groups); err != nil {
+		if err := validateInputs(m.Inputs.Secrets, m.Secrets, "secret", m.Inputs.Groups); err != nil {
 			return err
 		}
 	}
 	if m.Inputs.Configs != nil {
-		if err := ValidateInputs(m.Inputs.Configs, m.Configs, "config", m.Inputs.Groups); err != nil {
+		if err := validateInputs(m.Inputs.Configs, m.Configs, "config", m.Inputs.Groups); err != nil {
 			return err
 		}
 	}
@@ -156,14 +156,14 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 				if _, ok := m.Services[target.Service]; !ok {
 					return fmt.Errorf("invalid service dependency: '%s' -> '%s'", ref, target.Service)
 				}
-				if !IsValidSrvDepCondition(target.Condition) {
+				if !isValidSrvDepCondition(target.Condition) {
 					return fmt.Errorf("invalid service dependency condition: '%s' -> '%s'", ref, target.Condition)
 				}
 			}
 		}
 		if service.ExternalDependencies != nil {
 			for _, target := range service.ExternalDependencies {
-				if !IsValidModuleID(target.ID) {
+				if !isValidModuleID(target.ID) {
 					return fmt.Errorf("invalid service external dependency: '%s' -> '%s'", ref, target.ID)
 				}
 			}
@@ -192,7 +192,7 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 }
 
 func validateServiceRunConfig(rc itf.RunConfig) error {
-	if !IsValidRestartStrategy(rc.RestartStrategy) {
+	if !isValidRestartStrategy(rc.RestartStrategy) {
 		return fmt.Errorf("invalid restart strategy '%s'", rc.RestartStrategy)
 	}
 	if rc.RestartStrategy == itf.RestartOnFail && rc.Retries == nil {
@@ -296,32 +296,32 @@ func validateServiceMountPoints(service *itf.Service) error {
 	return nil
 }
 
-func IsValidModuleType(s string) bool {
+func isValidModuleType(s string) bool {
 	_, ok := itf.ModuleTypeMap[s]
 	return ok
 }
 
-func IsValidDeploymentType(s string) bool {
+func isValidDeploymentType(s string) bool {
 	_, ok := itf.DeploymentTypeMap[s]
 	return ok
 }
 
-func IsValidModuleID(s string) bool {
+func isValidModuleID(s string) bool {
 	re := regexp.MustCompile(`^([a-z0-9A-Z-_.]+)(:\d+)?([\/a-zA-Z0-9-\.]+)?$`)
 	return re.MatchString(s)
 }
 
-func IsValidSrvDepCondition(s string) bool {
+func isValidSrvDepCondition(s string) bool {
 	_, ok := itf.SrvDepConditionMap[s]
 	return ok
 }
 
-func IsValidRestartStrategy(s string) bool {
+func isValidRestartStrategy(s string) bool {
 	_, ok := itf.RestartStrategyMap[s]
 	return ok
 }
 
-func ValidateInputs[T any](inputs map[string]itf.Input, refs map[string]T, refName string, groups map[string]itf.InputGroup) error {
+func validateInputs[T any](inputs map[string]itf.Input, refs map[string]T, refName string, groups map[string]itf.InputGroup) error {
 	if refs == nil {
 		return fmt.Errorf("missing %ss for user inputs", refName)
 	}
@@ -353,7 +353,7 @@ func validateNotEmpty[T any](refs map[string]T, msg string) error {
 	return nil
 }
 
-func ValidateConfigs(c itf.Configs, cDef map[string]itf.ConfigDefinition) error {
+func validateConfigs(c itf.Configs, cDef map[string]itf.ConfigDefinition) error {
 	for ref, cv := range c {
 		if ref == "" {
 			return errors.New("invalid config reference")
