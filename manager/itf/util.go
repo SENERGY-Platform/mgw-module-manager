@@ -122,6 +122,20 @@ func (o ConfigTypeOptions) SetFloat64(ref string, val float64) {
 	o.set(ref, val, misc.Float64)
 }
 
+func (v configValue) OptionsLen() (l int) {
+	switch o := v.Options.(type) {
+	case []string:
+		l = len(o)
+	case []bool:
+		l = len(o)
+	case []int64:
+		l = len(o)
+	case []float64:
+		l = len(o)
+	}
+	return
+}
+
 func isValidPort(p []uint) bool {
 	return !(p == nil || len(p) == 0 || len(p) > 2 || (len(p) > 1 && p[0] == p[1]) || (len(p) > 1 && p[1] < p[0]))
 }
