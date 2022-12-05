@@ -99,7 +99,7 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 				return fmt.Errorf("missing resource for input '%s'", ref)
 			}
 			if input.Group != nil {
-				if m.Inputs.Groups == nil || len(m.Inputs.Groups) == 0 {
+				if m.Inputs.Groups == nil {
 					return errors.New("missing groups for user inputs")
 				}
 				if _, ok := m.Inputs.Groups[*input.Group]; !ok {
@@ -120,7 +120,7 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 				return fmt.Errorf("missing secret for input '%s'", ref)
 			}
 			if input.Group != nil {
-				if m.Inputs.Groups == nil || len(m.Inputs.Groups) == 0 {
+				if m.Inputs.Groups == nil {
 					return errors.New("missing groups for user inputs")
 				}
 				if _, ok := m.Inputs.Groups[*input.Group]; !ok {
@@ -141,7 +141,7 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 				return fmt.Errorf("missing secret for input '%s'", ref)
 			}
 			if input.Group != nil {
-				if m.Inputs.Groups == nil || len(m.Inputs.Groups) == 0 {
+				if m.Inputs.Groups == nil {
 					return errors.New("missing groups for user inputs")
 				}
 				if _, ok := m.Inputs.Groups[*input.Group]; !ok {
