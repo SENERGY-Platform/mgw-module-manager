@@ -74,6 +74,12 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 			}
 		}
 	}
+	if m.Configs != nil && len(m.Configs) > 0 {
+		err := ValidateConfigs(m.Configs, cDef)
+		if err != nil {
+			return err
+		}
+	}
 	if m.Inputs.Groups != nil && len(m.Inputs.Groups) > 0 {
 		for ref := range m.Inputs.Groups {
 			if ref == "" {
@@ -372,4 +378,52 @@ func IsValidSrvDepCondition(s string) bool {
 func IsValidRestartStrategy(s string) bool {
 	_, ok := itf.RestartStrategyMap[s]
 	return ok
+}
+
+func ValidateConfigs(c itf.Configs, cDef map[string]itf.ConfigDefinition) error {
+	for ref, cv := range c {
+		if ref == "" {
+			return errors.New("invalid config reference")
+		}
+		def, ok := cDef[cv.Type]
+		if !ok {
+			return fmt.Errorf("invalid config type '%s'", cv.Type)
+		}
+		if _, ok = def.DataType[cv.DataType]; !ok {
+			return fmt.Errorf("invalid data type '%s' for config type '%s'", cv.DataType, cv.Type)
+		}
+		if cv.TypeOpt != nil && def.Options == nil {
+			return fmt.Errorf("config type '%s' does not support options", cv.Type)
+		}
+		if cv.TypeOpt == nil && def.Options != nil {
+			for key, defOpt := range def.Options {
+				if defOpt.Required {
+					return fmt.Errorf("option '%s' is required by config type '%s'", key, cv.Type)
+				}
+			}
+		}
+		if cv.TypeOpt != nil && def.Options != nil {
+			for key := range cv.TypeOpt {
+				if _, ok := def.Options[key]; !ok {
+					return fmt.Errorf("option '%s' not supported by config type '%s'", ref, cv.Type)
+				}
+			}
+			for key, defOpt := range def.Options {
+				if tOpt, ok := cv.TypeOpt[key]; ok {
+					if defOpt.Inherit {
+						if tOpt.DataType != cv.DataType {
+							return fmt.Errorf("invalid data type for option '%s' of config type '%s'", key, cv.Type)
+						}
+					} else {
+						if _, ok = defOpt.DataType[tOpt.DataType]; !ok {
+							return fmt.Errorf("invalid data type for option '%s' of config type '%s'", key, cv.Type)
+						}
+					}
+				} else if defOpt.Required {
+					return fmt.Errorf("option '%s' is required by config type '%s'", key, cv.Type)
+				}
+			}
+		}
+	}
+	return nil
 }
