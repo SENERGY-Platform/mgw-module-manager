@@ -594,7 +594,7 @@ func parseConfigValueInt64(val any) (int64, error) {
 	case int64:
 		i = v
 	default:
-		return 0, fmt.Errorf("invalid data type '%T'", val)
+		return i, fmt.Errorf("invalid data type '%T'", val)
 	}
 	return i, nil
 }
@@ -607,7 +607,7 @@ func parseConfigValueFloat64(val any) (float64, error) {
 	case float64:
 		f = v
 	default:
-		return 0, fmt.Errorf("invalid data type '%T'", val)
+		return f, fmt.Errorf("invalid data type '%T'", val)
 	}
 	return f, nil
 }
