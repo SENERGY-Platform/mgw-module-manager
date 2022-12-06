@@ -81,7 +81,7 @@ func (h *Handler) InputTemplate(m itf.Module) itf.InputTemplate {
 				OptExt:   cv.OptExt,
 				Type:     cv.Type,
 				DataType: cv.DataType,
-				IsSlice:  cv.IsSlice,
+				IsList:   cv.IsSlice,
 			}
 			if cv.TypeOpt != nil {
 				itc.TypeOpt = make(map[string]any)

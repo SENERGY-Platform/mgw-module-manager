@@ -214,5 +214,5 @@ type InputTemplateConfig struct {
 	Type     string         `json:"type"`
 	TypeOpt  map[string]any `json:"type_opt"`
 	DataType misc.DataType  `json:"data_type"`
-	IsSlice  bool           `json:"is_slice"`
+	IsList   bool           `json:"is_list"`
 }
