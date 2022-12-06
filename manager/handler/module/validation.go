@@ -137,18 +137,15 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
 			}
 		}
 		if service.HttpEndpoints != nil {
-			gwPaths := make(map[string]string)
-			for path, edpt := range service.HttpEndpoints {
-				if path == "" {
-					return errors.New("invalid path")
+			extPaths := make(map[string]string)
+			for extPath, edpt := range service.HttpEndpoints {
+				if !isValidPath(extPath) {
+					return fmt.Errorf("invalid external path '%s'", extPath)
 				}
-				if edpt.GwPath != nil {
-					if v, ok := gwPaths[*edpt.GwPath]; ok {
-						return fmt.Errorf("invalid service http endpoint: '%s' -> '%s' & '%s' -> '%s'", ref, path, v, *edpt.GwPath)
-					}
-					gwPaths[*edpt.GwPath] = path
+				if v, ok := extPaths[extPath]; ok {
+					return fmt.Errorf("invalid service http endpoint: '%s' -> '%s' -> '%s' & '%s'", ref, extPath, v, edpt.Path)
 				}
-
+				extPaths[extPath] = edpt.Path
 			}
 		}
 		if service.Dependencies != nil {
