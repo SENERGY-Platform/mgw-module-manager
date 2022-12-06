@@ -42,7 +42,7 @@ func (c Configs) SetString(ref string, def *string, opt []string, optExt bool, c
 	if def != nil {
 		c.set(ref, *def, opt, misc.String, optExt, cType, cTypeOpt)
 	} else {
-		c.set(ref, def, opt, misc.String, optExt, cType, cTypeOpt)
+		c.set(ref, nil, opt, misc.String, optExt, cType, cTypeOpt)
 	}
 }
 
@@ -50,7 +50,7 @@ func (c Configs) SetBool(ref string, def *bool, opt []bool, optExt bool, cType s
 	if def != nil {
 		c.set(ref, *def, opt, misc.Bool, optExt, cType, cTypeOpt)
 	} else {
-		c.set(ref, def, opt, misc.Bool, optExt, cType, cTypeOpt)
+		c.set(ref, nil, opt, misc.Bool, optExt, cType, cTypeOpt)
 	}
 }
 
@@ -58,7 +58,7 @@ func (c Configs) SetInt64(ref string, def *int64, opt []int64, optExt bool, cTyp
 	if def != nil {
 		c.set(ref, *def, opt, misc.Int64, optExt, cType, cTypeOpt)
 	} else {
-		c.set(ref, def, opt, misc.Int64, optExt, cType, cTypeOpt)
+		c.set(ref, nil, opt, misc.Int64, optExt, cType, cTypeOpt)
 	}
 }
 
@@ -66,7 +66,7 @@ func (c Configs) SetFloat64(ref string, def *float64, opt []float64, optExt bool
 	if def != nil {
 		c.set(ref, *def, opt, misc.Float64, optExt, cType, cTypeOpt)
 	} else {
-		c.set(ref, def, opt, misc.Float64, optExt, cType, cTypeOpt)
+		c.set(ref, nil, opt, misc.Float64, optExt, cType, cTypeOpt)
 	}
 }
 
