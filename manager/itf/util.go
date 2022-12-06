@@ -97,27 +97,32 @@ func (c Configs) SetFloat64Slice(ref string, def []float64, opt []float64, optEx
 	c[ref] = newConfigValueSlice(def, opt, misc.Float64, optExt, cType, cTypeOpt, delimiter)
 }
 
-func (o ConfigTypeOptions) set(ref string, val any, dType misc.DataType) {
+func (o ConfigTypeOptions) SetString(ref string, val string) {
 	o[ref] = configTypeOption{
 		Value:    val,
-		DataType: dType,
+		DataType: misc.String,
 	}
 }
 
-func (o ConfigTypeOptions) SetString(ref string, val string) {
-	o.set(ref, val, misc.String)
-}
-
 func (o ConfigTypeOptions) SetBool(ref string, val bool) {
-	o.set(ref, val, misc.Bool)
+	o[ref] = configTypeOption{
+		Value:    val,
+		DataType: misc.Bool,
+	}
 }
 
 func (o ConfigTypeOptions) SetInt64(ref string, val int64) {
-	o.set(ref, val, misc.Int64)
+	o[ref] = configTypeOption{
+		Value:    val,
+		DataType: misc.Int64,
+	}
 }
 
 func (o ConfigTypeOptions) SetFloat64(ref string, val float64) {
-	o.set(ref, val, misc.Float64)
+	o[ref] = configTypeOption{
+		Value:    val,
+		DataType: misc.Float64,
+	}
 }
 
 func (v configValue) OptionsLen() (l int) {
