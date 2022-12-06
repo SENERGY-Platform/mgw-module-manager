@@ -321,6 +321,11 @@ func isValidRestartStrategy(s string) bool {
 	return ok
 }
 
+func isValidPath(s string) bool {
+	re := regexp.MustCompile(`(?m)^\/(?:[a-zA-Z0-9-_%]+)*(?:\/[a-zA-Z0-9-_%]+)*$`)
+	return re.MatchString(s)
+}
+
 func validateInputs[T any](inputs map[string]itf.Input, refs map[string]T, refName string, groups map[string]itf.InputGroup) error {
 	if refs == nil {
 		return fmt.Errorf("missing %ss for user inputs", refName)
