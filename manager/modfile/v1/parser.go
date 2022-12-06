@@ -182,16 +182,20 @@ func parseServiceHttpEndpoints(mfHttpEndpoints []HttpEndpoint) (map[string]itf.H
 	if mfHttpEndpoints != nil && len(mfHttpEndpoints) > 0 {
 		httpEndpoints := make(map[string]itf.HttpEndpoint)
 		for _, mfHttpEndpoint := range mfHttpEndpoints {
-			if v, ok := httpEndpoints[mfHttpEndpoint.Path]; ok {
-				if v.Name == mfHttpEndpoint.Name && v.Port == mfHttpEndpoint.Port && v.GwPath == mfHttpEndpoint.GwPath {
+			p := mfHttpEndpoint.Path
+			if mfHttpEndpoint.ExtPath != nil {
+				p = *mfHttpEndpoint.ExtPath
+			}
+			if v, ok := httpEndpoints[p]; ok {
+				if v.Name == mfHttpEndpoint.Name && v.Port == mfHttpEndpoint.Port && v.Path == mfHttpEndpoint.Path {
 					continue
 				}
 				return nil, fmt.Errorf("duplicate '%s'", mfHttpEndpoint.Path)
 			}
-			httpEndpoints[mfHttpEndpoint.Path] = itf.HttpEndpoint{
-				Name:   mfHttpEndpoint.Name,
-				Port:   mfHttpEndpoint.Port,
-				GwPath: mfHttpEndpoint.GwPath,
+			httpEndpoints[p] = itf.HttpEndpoint{
+				Name: mfHttpEndpoint.Name,
+				Port: mfHttpEndpoint.Port,
+				Path: mfHttpEndpoint.Path,
 			}
 		}
 		return httpEndpoints, nil
