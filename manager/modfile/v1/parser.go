@@ -438,25 +438,25 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 			if mfConfig.IsList {
 				switch dt {
 				case misc.String:
-					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueString, parseConfigOptionsString)
+					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueString)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetStringSlice(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co, mfConfig.Delimiter)
 				case misc.Bool:
-					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueBool, parseConfigOptionsBool)
+					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueBool)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetBoolSlice(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co, mfConfig.Delimiter)
 				case misc.Int64:
-					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueInt64, parseConfigOptionsInt64)
+					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueInt64)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetInt64Slice(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co, mfConfig.Delimiter)
 				case misc.Float64:
-					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueFloat64, parseConfigOptionsFloat64)
+					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueFloat64)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
@@ -465,25 +465,25 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 			} else {
 				switch dt {
 				case misc.String:
-					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueString, parseConfigOptionsString)
+					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueString)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetString(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co)
 				case misc.Bool:
-					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueBool, parseConfigOptionsBool)
+					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueBool)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetBool(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co)
 				case misc.Int64:
-					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueInt64, parseConfigOptionsInt64)
+					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueInt64)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetInt64(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co)
 				case misc.Float64:
-					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueFloat64, parseConfigOptionsFloat64)
+					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueFloat64)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
@@ -505,7 +505,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 	return configs, nil, nil
 }
 
-func parseConfig[T any](val any, opt []any, ctOpt map[string]any, valParser func(any) (T, error), optParser func([]any) ([]T, error)) (d *T, o []T, co itf.ConfigTypeOptions, err error) {
+func parseConfig[T any](val any, opt []any, ctOpt map[string]any, valParser func(any) (T, error)) (d *T, o []T, co itf.ConfigTypeOptions, err error) {
 	if val != nil {
 		v, er := valParser(val)
 		if er != nil {
@@ -514,18 +514,18 @@ func parseConfig[T any](val any, opt []any, ctOpt map[string]any, valParser func
 		}
 		d = &v
 	}
-	if opt != nil {
-		if o, err = optParser(opt); err != nil {
+	if opt != nil && len(opt) > 0 {
+		if o, err = parseConfigOptions(opt, valParser); err != nil {
 			return
 		}
 	}
-	if ctOpt != nil {
+	if ctOpt != nil && len(ctOpt) > 0 {
 		co, err = parseConfigTypeOptions(ctOpt)
 	}
 	return
 }
 
-func parseConfigSlice[T any](val any, opt []any, ctOpt map[string]any, valParser func(any) (T, error), optParser func([]any) ([]T, error)) (d []T, o []T, co itf.ConfigTypeOptions, err error) {
+func parseConfigSlice[T any](val any, opt []any, ctOpt map[string]any, valParser func(any) (T, error)) (d []T, o []T, co itf.ConfigTypeOptions, err error) {
 	if val != nil {
 		v, ok := val.([]any)
 		if !ok {
@@ -541,15 +541,27 @@ func parseConfigSlice[T any](val any, opt []any, ctOpt map[string]any, valParser
 			d = append(d, pi)
 		}
 	}
-	if opt != nil {
-		if o, err = optParser(opt); err != nil {
+	if opt != nil && len(opt) > 0 {
+		if o, err = parseConfigOptions(opt, valParser); err != nil {
 			return
 		}
 	}
-	if ctOpt != nil {
+	if ctOpt != nil && len(ctOpt) > 0 {
 		co, err = parseConfigTypeOptions(ctOpt)
 	}
 	return
+}
+
+func parseConfigOptions[T any](opt []any, valParser func(any) (T, error)) ([]T, error) {
+	var opts []T
+	for _, o := range opt {
+		v, err := valParser(o)
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, v)
+	}
+	return opts, nil
 }
 
 func parseConfigValueString(val any) (string, error) {
@@ -598,54 +610,6 @@ func parseConfigValueFloat64(val any) (float64, error) {
 		return 0, fmt.Errorf("invalid data type '%T'", val)
 	}
 	return f, nil
-}
-
-func parseConfigOptionsString(opt []any) ([]string, error) {
-	var opts []string
-	for _, o := range opt {
-		v, err := parseConfigValueString(o)
-		if err != nil {
-			return nil, err
-		}
-		opts = append(opts, v)
-	}
-	return opts, nil
-}
-
-func parseConfigOptionsBool(opt []any) ([]bool, error) {
-	var opts []bool
-	for _, o := range opt {
-		v, err := parseConfigValueBool(o)
-		if err != nil {
-			return nil, err
-		}
-		opts = append(opts, v)
-	}
-	return opts, nil
-}
-
-func parseConfigOptionsInt64(opt []any) ([]int64, error) {
-	var opts []int64
-	for _, o := range opt {
-		v, err := parseConfigValueInt64(o)
-		if err != nil {
-			return nil, err
-		}
-		opts = append(opts, v)
-	}
-	return opts, nil
-}
-
-func parseConfigOptionsFloat64(opt []any) ([]float64, error) {
-	var opts []float64
-	for _, o := range opt {
-		v, err := parseConfigValueFloat64(o)
-		if err != nil {
-			return nil, err
-		}
-		opts = append(opts, v)
-	}
-	return opts, nil
 }
 
 func parseConfigTypeOptions(opt map[string]any) (itf.ConfigTypeOptions, error) {
