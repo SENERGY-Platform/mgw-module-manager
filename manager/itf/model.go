@@ -52,7 +52,7 @@ type Service struct {
 	Resources            map[string]ResourceTarget           `json:"resources"`             // {mntPoint:ResourceTarget}
 	Secrets              map[string]string                   `json:"secrets"`               // {mntPoint:ref}
 	Configs              map[string]string                   `json:"configs"`               // {refVar:ref}
-	HttpEndpoints        map[string]HttpEndpoint             `json:"http_endpoints"`        // {path:HttpEndpoint}
+	HttpEndpoints        map[string]HttpEndpoint             `json:"http_endpoints"`        // {externalPath:HttpEndpoint}
 	Dependencies         map[string]ServiceDependencyTarget  `json:"dependencies"`          // {refVar:ServiceDependencyTarget}
 	ExternalDependencies map[string]ExternalDependencyTarget `json:"external_dependencies"` // {refVar:ExternalDependencyTarget}
 	PortMappings         PortMappings                        `json:"port_mappings"`
@@ -78,9 +78,9 @@ type TmpfsMount struct {
 }
 
 type HttpEndpoint struct {
-	Name   string  `json:"name"`
-	Port   *int    `json:"port"` // '80' if nil
-	GwPath *string `json:"gw_path"`
+	Name string `json:"name"`
+	Port *int   `json:"port"` // '80' if nil
+	Path string `json:"path"` // internal path
 }
 
 type PortMappings map[string]portMapping
