@@ -84,10 +84,10 @@ type TmpfsMount struct {
 }
 
 type HttpEndpoint struct {
-	Name   string  `yaml:"name"`   // endpoint name
-	Path   string  `yaml:"path"`   // absolute path for the endpoint
-	Port   *int    `yaml:"port"`   // port the service is listening on (defaults to 80 if nil)
-	GwPath *string `yaml:"gwPath"` // optional relative path to be used by the api gateway
+	Name    string  `yaml:"name"`    // endpoint name
+	Path    string  `yaml:"path"`    // internal endpoint path
+	Port    *int    `yaml:"port"`    // port the service is listening on (defaults to 80 if nil)
+	ExtPath *string `yaml:"extPath"` // optional external path to be used by the api gateway
 }
 
 type PortMapping struct {
