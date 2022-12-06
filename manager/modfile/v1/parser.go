@@ -469,25 +469,25 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-					configs.SetString(ref, &d, o, mfConfig.OptionsExt, mfConfig.Type, co)
+					configs.SetString(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co)
 				case misc.Bool:
 					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueBool, parseConfigOptionsBool)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-					configs.SetBool(ref, &d, o, mfConfig.OptionsExt, mfConfig.Type, co)
+					configs.SetBool(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co)
 				case misc.Int64:
 					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueInt64, parseConfigOptionsInt64)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-					configs.SetInt64(ref, &d, o, mfConfig.OptionsExt, mfConfig.Type, co)
+					configs.SetInt64(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co)
 				case misc.Float64:
 					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueFloat64, parseConfigOptionsFloat64)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
-					configs.SetFloat64(ref, &d, o, mfConfig.OptionsExt, mfConfig.Type, co)
+					configs.SetFloat64(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co)
 				}
 			}
 
@@ -505,11 +505,14 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 	return configs, nil, nil
 }
 
-func parseConfig[T any](val any, opt []any, ctOpt map[string]any, valParser func(any) (T, error), optParser func([]any) ([]T, error)) (d T, o []T, co itf.ConfigTypeOptions, err error) {
+func parseConfig[T any](val any, opt []any, ctOpt map[string]any, valParser func(any) (T, error), optParser func([]any) ([]T, error)) (d *T, o []T, co itf.ConfigTypeOptions, err error) {
 	if val != nil {
-		if d, err = valParser(val); err != nil {
+		v, er := valParser(val)
+		if er != nil {
+			err = er
 			return
 		}
+		d = &v
 	}
 	if opt != nil {
 		if o, err = optParser(opt); err != nil {
