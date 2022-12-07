@@ -24,7 +24,7 @@ import (
 	"regexp"
 )
 
-func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition) error {
+func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition, validators map[string]itf.Validator) error {
 	if !isValidModuleID(m.ID) {
 		return fmt.Errorf("invalid module ID format '%s'", m.ID)
 	}
@@ -355,7 +355,7 @@ func validateNotEmpty[T any](refs map[string]T, msg string) error {
 	return nil
 }
 
-func validateConfigs(c itf.Configs, cDef map[string]itf.ConfigDefinition) error {
+func validateConfigs(c itf.Configs, cDef map[string]itf.ConfigDefinition, validators map[string]itf.Validator) error {
 	for ref, cv := range c {
 		if ref == "" {
 			return errors.New("invalid config reference")
