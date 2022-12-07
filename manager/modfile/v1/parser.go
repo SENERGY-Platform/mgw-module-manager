@@ -97,36 +97,38 @@ func (mf Module) Parse() (itf.Module, error) {
 
 func parseModuleServices(mfServices map[string]Service) (map[string]*itf.Service, error) {
 	services := make(map[string]*itf.Service)
-	for name, mfService := range mfServices {
-		include, err := parseServiceInclude(mfService.Include)
-		if err != nil {
-			return services, fmt.Errorf("service '%s' invalid include: %s", name, err)
-		}
-		tmpfs, err := parseServiceTmpfs(mfService.Tmpfs)
-		if err != nil {
-			return services, fmt.Errorf("service '%s' invalid tmpfs: %s", name, err)
-		}
-		httpEndpoints, err := parseServiceHttpEndpoints(mfService.HttpEndpoints)
-		if err != nil {
-			return services, fmt.Errorf("service '%s' invalid http endpoint: %s", name, err)
-		}
-		portMappings, err := parseServicePortMappings(mfService.PortMappings)
-		if err != nil {
-			return services, fmt.Errorf("service '%s' invalid port mapping: %s", name, err)
-		}
-		dependencies, err := parseServiceDependencies(mfService.Dependencies)
-		if err != nil {
-			return services, fmt.Errorf("service '%s' invalid depency: %s", name, err)
-		}
-		services[name] = &itf.Service{
-			Name:          mfService.Name,
-			Image:         mfService.Image,
-			RunConfig:     parseServiceRunConfig(mfService.RunConfig),
-			Include:       include,
-			Tmpfs:         tmpfs,
-			HttpEndpoints: httpEndpoints,
-			Dependencies:  dependencies,
-			PortMappings:  portMappings,
+	if mfServices != nil && len(mfServices) > 0 {
+		for name, mfService := range mfServices {
+			include, err := parseServiceInclude(mfService.Include)
+			if err != nil {
+				return services, fmt.Errorf("service '%s' invalid include: %s", name, err)
+			}
+			tmpfs, err := parseServiceTmpfs(mfService.Tmpfs)
+			if err != nil {
+				return services, fmt.Errorf("service '%s' invalid tmpfs: %s", name, err)
+			}
+			httpEndpoints, err := parseServiceHttpEndpoints(mfService.HttpEndpoints)
+			if err != nil {
+				return services, fmt.Errorf("service '%s' invalid http endpoint: %s", name, err)
+			}
+			portMappings, err := parseServicePortMappings(mfService.PortMappings)
+			if err != nil {
+				return services, fmt.Errorf("service '%s' invalid port mapping: %s", name, err)
+			}
+			dependencies, err := parseServiceDependencies(mfService.Dependencies)
+			if err != nil {
+				return services, fmt.Errorf("service '%s' invalid depency: %s", name, err)
+			}
+			services[name] = &itf.Service{
+				Name:          mfService.Name,
+				Image:         mfService.Image,
+				RunConfig:     parseServiceRunConfig(mfService.RunConfig),
+				Include:       include,
+				Tmpfs:         tmpfs,
+				HttpEndpoints: httpEndpoints,
+				Dependencies:  dependencies,
+				PortMappings:  portMappings,
+			}
 		}
 	}
 	return services, nil
@@ -417,8 +419,8 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*itf.Se
 }
 
 func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*itf.Service) (itf.Configs, map[string]itf.Input, error) {
-	configs := make(itf.Configs)
 	if mfConfigs != nil && len(mfConfigs) > 0 {
+		configs := make(itf.Configs)
 		inputs := make(map[string]itf.Input)
 		for ref, mfConfig := range mfConfigs {
 			if mfConfig.Targets != nil && len(mfConfig.Targets) > 0 {
@@ -512,7 +514,7 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 		}
 		return configs, inputs, nil
 	}
-	return configs, nil, nil
+	return nil, nil, nil
 }
 
 func parseConfig[T any](val any, opt []any, ctOpt map[string]any, valParser func(any) (T, error)) (d *T, o []T, co itf.ConfigTypeOptions, err error) {
