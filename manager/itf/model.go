@@ -163,13 +163,24 @@ type Inputs struct {
 type ConfigDefinition struct {
 	DataType   misc.Set[misc.DataType]           `json:"data_type"`
 	Options    map[string]ConfigDefinitionOption `json:"options"`
-	Validation map[string]any                    `json:"validation"`
+	Validators []ConfigDefinitionValidator       `json:"validators"`
 }
 
 type ConfigDefinitionOption struct {
 	DataType misc.Set[misc.DataType] `json:"data_type"`
 	Inherit  bool                    `json:"inherit"`
 	Required bool                    `json:"required"`
+}
+
+type ConfigDefinitionValidator struct {
+	Target    string                                    `json:"target"`
+	Type      string                                    `json:"type"`
+	Parameter map[string]ConfigDefinitionValidatorParam `json:"parameter"`
+}
+
+type ConfigDefinitionValidatorParam struct {
+	Value any    `json:"value"`
+	Ref   string `json:"ref"`
 }
 
 // Deployment -----------------------------------------------------------------------------------
