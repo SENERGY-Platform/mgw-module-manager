@@ -1,0 +1,160 @@
+{
+  "text": {
+    "data_type": [
+      "string"
+    ],
+    "options": {
+      "regex": {
+        "data_type": [
+          "string"
+        ]
+      },
+      "size": {
+        "data_type": [
+          "int"
+        ]
+      }
+    }
+  },
+  "number": {
+    "data_type": [
+      "int",
+      "float"
+    ],
+    "options": {
+      "min": {
+        "inherit": true
+      },
+      "max": {
+        "inherit": true
+      },
+      "step": {
+        "inherit": true
+      }
+    },
+    "validators": [
+      {
+        "target": "value",
+        "type": "compare",
+        "parameter": {
+          "b": {
+            "ref": "options.min"
+          },
+          "operator": {
+            "value": ">="
+          }
+        }
+      },
+      {
+        "target": "value",
+        "type": "compare",
+        "parameter": {
+          "b": {
+            "ref": "options.max"
+          },
+          "operator": {
+            "value": "<="
+          }
+        }
+      }
+    ]
+  },
+  "date": {
+    "data_type": [
+      "string"
+    ],
+    "options": {
+      "min": {
+        "data_type": [
+          "string"
+        ]
+      },
+      "max": {
+        "data_type": [
+          "string"
+        ]
+      }
+    },
+    "validators": [
+      {
+        "target": "value",
+        "type": "regex",
+        "parameter": {
+          "pattern": {
+            "value": "...."
+          }
+        }
+      },
+      {
+        "target": "options.min",
+        "type": "regex",
+        "parameter": {
+          "pattern": {
+            "value": "...."
+          }
+        }
+      },
+      {
+        "target": "options.max",
+        "type": "regex",
+        "parameter": {
+          "pattern": {
+            "value": "...."
+          }
+        }
+      }
+    ]
+  },
+  "time": {
+    "data_type": [
+      "string"
+    ],
+    "options": {
+      "min": {
+        "data_type": [
+          "string"
+        ]
+      },
+      "max": {
+        "data_type": [
+          "string"
+        ]
+      }
+    }
+  },
+  "unix-time": {
+    "data_type": [
+      "float"
+    ],
+    "options": {
+      "min": {
+        "data_type": [
+          "float"
+        ]
+      },
+      "max": {
+        "data_type": [
+          "float"
+        ]
+      }
+    }
+  },
+  "toggle": {
+    "data_type": [
+      "string",
+      "int",
+      "float",
+      "bool"
+    ],
+    "options": {
+      "stateA": {
+        "inherit": true,
+        "required": true
+      },
+      "stateB": {
+        "inherit": true,
+        "required": true
+      }
+    }
+  }
+}
