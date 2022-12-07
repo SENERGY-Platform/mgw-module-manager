@@ -27,6 +27,7 @@ import (
 	"module-manager/manager/handler/config_def"
 	"module-manager/manager/handler/deployment"
 	"module-manager/manager/handler/module"
+	"module-manager/manager/itf"
 	"module-manager/manager/util"
 	"net"
 	"net/http"
@@ -78,7 +79,12 @@ func main() {
 		return
 	}
 
-	moduleHandler := module.NewHandler(moduleStorageHandler, configDefs)
+	var validators = map[string]itf.Validator{
+		"regex":          config_def.RegexValidator,
+		"number_compare": config_def.NumberCompareValidator,
+	}
+
+	moduleHandler := module.NewHandler(moduleStorageHandler, configDefs, validators)
 	deploymentHandler := deployment.NewHandler(nil)
 
 	dmApi := api.New(moduleHandler, deploymentHandler)
