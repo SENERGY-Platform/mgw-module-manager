@@ -29,6 +29,7 @@ type Module struct {
 	ID             string                      `yaml:"id"`             // url without schema (e.g. github.com/user/repo)
 	Name           string                      `yaml:"name"`           // module name
 	Description    string                      `yaml:"description"`    // short text describing the module
+	Tags           []string                    `yaml:"tags"`           // module tags
 	License        string                      `yaml:"license"`        // module license name (e.g. Apache License 2.0)
 	Author         string                      `yaml:"author"`         // module author
 	Version        string                      `yaml:"version"`        // module version (must be prefixed with 'v' and adhere to the semantic versioning guidelines, see https://semver.org/ for details)

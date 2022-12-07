@@ -35,6 +35,12 @@ func (mf Module) Parse() (itf.Module, error) {
 		Type:           mf.Type,
 		DeploymentType: mf.DeploymentType,
 	}
+	if mf.Tags != nil && len(mf.Tags) > 0 {
+		m.Tags = make(misc.Set[string])
+		for _, tag := range mf.Tags {
+			m.Tags[tag] = struct{}{}
+		}
+	}
 	services, err := parseModuleServices(mf.Services)
 	if err != nil {
 		return m, err

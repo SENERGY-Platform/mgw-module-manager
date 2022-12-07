@@ -28,6 +28,7 @@ type Module struct {
 	ID             string                      `json:"id"`
 	Name           string                      `json:"name"`
 	Description    string                      `json:"description"`
+	Tags           misc.Set[string]            `json:"tags"`
 	License        string                      `json:"license"`
 	Author         string                      `json:"author"`
 	Version        string                      `json:"version"`
