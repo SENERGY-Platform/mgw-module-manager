@@ -67,7 +67,7 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition, validators map
 		}
 	}
 	if m.Configs != nil {
-		if err := validateConfigs(m.Configs, cDef); err != nil {
+		if err := validateConfigs(m.Configs, cDef, validators); err != nil {
 			return err
 		}
 	}
