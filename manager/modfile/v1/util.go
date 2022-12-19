@@ -83,7 +83,7 @@ func (d *Duration) UnmarshalYAML(yn *yaml.Node) error {
 	if dur, err := time.ParseDuration(s); err != nil {
 		return err
 	} else {
-		d.Duration = dur
+		*d = Duration(dur)
 	}
 	return nil
 }

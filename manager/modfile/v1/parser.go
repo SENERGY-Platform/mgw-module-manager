@@ -22,6 +22,7 @@ import (
 	"module-manager/manager/itf/misc"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func (mf Module) Parse() (itf.Module, error) {
@@ -143,7 +144,7 @@ func parseServiceRunConfig(mfRunConfig RunConfig) itf.RunConfig {
 		PseudoTTY:       mfRunConfig.PseudoTTY,
 	}
 	if mfRunConfig.StopTimeout != nil {
-		rc.StopTimeout = &mfRunConfig.StopTimeout.Duration
+		rc.StopTimeout = (*time.Duration)(mfRunConfig.StopTimeout)
 	}
 	return rc
 }

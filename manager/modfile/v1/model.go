@@ -55,9 +55,7 @@ type Service struct {
 	Dependencies  map[string]ServiceDependencyTarget `yaml:"dependencies"`  // map depicting internal service dependencies (identifiers defined in Module.Services serve as keys)
 }
 
-type Duration struct {
-	time.Duration
-}
+type Duration time.Duration
 
 type RunConfig struct {
 	RestartStrategy string    `yaml:"restartStrategy"`
