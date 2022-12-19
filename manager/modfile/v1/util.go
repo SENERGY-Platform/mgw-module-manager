@@ -20,7 +20,6 @@ import (
 	"code.cloudfoundry.org/bytefmt"
 	"fmt"
 	"gopkg.in/yaml.v3"
-	"io/fs"
 	"strconv"
 	"strings"
 	"time"
@@ -97,6 +96,6 @@ func (m *FileMode) UnmarshalYAML(yn *yaml.Node) error {
 	if err != nil {
 		return err
 	}
-	m.FileMode = fs.FileMode(i)
+	*m = FileMode(i)
 	return nil
 }

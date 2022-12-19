@@ -72,9 +72,7 @@ type BindMount struct {
 	ReadOnly   bool   `yaml:"readOnly"`
 }
 
-type FileMode struct {
-	fs.FileMode
-}
+type FileMode fs.FileMode
 
 type TmpfsMount struct {
 	MountPoint string    `yaml:"mountPoint"` // absolute path in container

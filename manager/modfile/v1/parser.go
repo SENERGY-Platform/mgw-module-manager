@@ -18,6 +18,7 @@ package v1
 
 import (
 	"fmt"
+	"io/fs"
 	"module-manager/manager/itf"
 	"module-manager/manager/itf/misc"
 	"strconv"
@@ -178,7 +179,7 @@ func parseServiceTmpfs(mfTmpfs []TmpfsMount) (map[string]itf.TmpfsMount, error) 
 			}
 			tm := itf.TmpfsMount{Size: uint64(mfTmpf.Size)}
 			if mfTmpf.Mode != nil {
-				tm.Mode = &mfTmpf.Mode.FileMode
+				tm.Mode = (*fs.FileMode)(mfTmpf.Mode)
 			}
 			tmpfs[mfTmpf.MountPoint] = tm
 		}
