@@ -17,43 +17,43 @@
 package itf
 
 const (
-	AddOnModule           = "add-on"
-	DeviceConnectorModule = "device-connector"
+	AddOnModule           ModuleType = "add-on"
+	DeviceConnectorModule ModuleType = "device-connector"
 )
 
-var ModuleTypeMap = map[string]struct{}{
+var ModuleTypeMap = map[ModuleType]struct{}{
 	AddOnModule:           {},
 	DeviceConnectorModule: {},
 }
 
 const (
-	SingleDeployment   = "single"
-	MultipleDeployment = "multiple"
+	SingleDeployment   DeploymentType = "single"
+	MultipleDeployment DeploymentType = "multiple"
 )
 
-var DeploymentTypeMap = map[string]struct{}{
+var DeploymentTypeMap = map[DeploymentType]struct{}{
 	SingleDeployment:   {},
 	MultipleDeployment: {},
 }
 
 const (
-	RunningCondition = "running"
-	StoppedCondition = "stopped"
+	RunningCondition ServiceCondition = "running"
+	StoppedCondition ServiceCondition = "stopped"
 )
 
-var SrvDepConditionMap = map[string]struct{}{
+var SrvDepConditionMap = map[ServiceCondition]struct{}{
 	RunningCondition: {},
 	StoppedCondition: {},
 }
 
 const (
-	RestartNever      = "never"
-	RestartAlways     = "always"
-	RestartNotStopped = "not-stopped"
-	RestartOnFail     = "on-fail"
+	RestartNever      RestartStrategy = "never"
+	RestartAlways     RestartStrategy = "always"
+	RestartNotStopped RestartStrategy = "not-stopped"
+	RestartOnFail     RestartStrategy = "on-fail"
 )
 
-var RestartStrategyMap = map[string]struct{}{
+var RestartStrategyMap = map[RestartStrategy]struct{}{
 	RestartNever:      {},
 	RestartAlways:     {},
 	RestartNotStopped: {},
@@ -61,11 +61,11 @@ var RestartStrategyMap = map[string]struct{}{
 }
 
 const (
-	TcpPort = "tcp"
-	UdpPort = "udp"
+	TcpPort PortProtocol = "tcp"
+	UdpPort PortProtocol = "udp"
 )
 
-var PortTypeMap = map[string]struct{}{
+var PortTypeMap = map[PortProtocol]struct{}{
 	TcpPort: {},
 	UdpPort: {},
 }

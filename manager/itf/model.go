@@ -24,6 +24,10 @@ import (
 
 // Module ---------------------------------------------------------------------------------------
 
+type ModuleType = string
+
+type DeploymentType = string
+
 type Module struct {
 	ID             string                      `json:"id"`
 	Name           string                      `json:"name"`
@@ -32,8 +36,8 @@ type Module struct {
 	License        string                      `json:"license"`
 	Author         string                      `json:"author"`
 	Version        string                      `json:"version"`
-	Type           string                      `json:"type"`
-	DeploymentType string                      `json:"deployment_type"`
+	Type           ModuleType                  `json:"type"`
+	DeploymentType DeploymentType              `json:"deployment_type"`
 	Services       map[string]*Service         `json:"services"`     // {ref:Service}
 	Volumes        misc.Set[string]            `json:"volumes"`      // {volName}
 	Dependencies   map[string]ModuleDependency `json:"dependencies"` // {moduleID:ModuleDependency}
@@ -59,13 +63,15 @@ type Service struct {
 	PortMappings         PortMappings                        `json:"port_mappings"`
 }
 
+type RestartStrategy = string
+
 type RunConfig struct {
-	RestartStrategy string         `json:"restart_strategy"`
-	Retries         *int           `json:"retries"`
-	RemoveAfterRun  bool           `json:"remove_after_run"`
-	StopTimeout     *time.Duration `json:"stop_timeout"`
-	StopSignal      *string        `json:"stop_signal"`
-	PseudoTTY       bool           `json:"pseudo_tty"`
+	RestartStrategy RestartStrategy `json:"restart_strategy"`
+	Retries         *int            `json:"retries"`
+	RemoveAfterRun  bool            `json:"remove_after_run"`
+	StopTimeout     *time.Duration  `json:"stop_timeout"`
+	StopSignal      *string         `json:"stop_signal"`
+	PseudoTTY       bool            `json:"pseudo_tty"`
 }
 
 type BindMount struct {
@@ -86,16 +92,20 @@ type HttpEndpoint struct {
 
 type PortMappings map[string]portMapping
 
+type PortProtocol = string
+
 type portMapping struct {
-	Name     *string `json:"name"`
-	Port     []uint  `json:"port"`      // {n} || {s, e}
-	HostPort []uint  `json:"host_port"` // {n} || {s, e}
-	Protocol *string `json:"protocol"`  // 'tcp' if nil
+	Name     *string       `json:"name"`
+	Port     []uint        `json:"port"`      // {n} || {s, e}
+	HostPort []uint        `json:"host_port"` // {n} || {s, e}
+	Protocol *PortProtocol `json:"protocol"`  // 'tcp' if nil
 }
 
+type ServiceCondition = string
+
 type ServiceDependencyTarget struct {
-	Service   string `json:"service"`
-	Condition string `json:"condition"`
+	Service   string           `json:"service"`
+	Condition ServiceCondition `json:"condition"`
 }
 
 type ExternalDependencyTarget struct {
