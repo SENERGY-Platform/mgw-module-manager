@@ -80,8 +80,9 @@ func main() {
 	}
 
 	var validators = map[string]itf.Validator{
-		"regex":          config_def.RegexValidator,
-		"number_compare": config_def.NumberCompareValidator,
+		"regex":            config_def.RegexValidator,
+		"number_compare":   config_def.NumberCompareValidator,
+		"text_len_compare": config_def.TextLenCompareValidator,
 	}
 
 	moduleHandler := module.NewHandler(moduleStorageHandler, configDefs, validators)
