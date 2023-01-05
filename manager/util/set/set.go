@@ -16,9 +16,9 @@
 
 package set
 
-import (
-	"encoding/json"
-)
+import "encoding/json"
+
+type Set[T comparable] map[T]struct{}
 
 func (s *Set[T]) UnmarshalJSON(b []byte) error {
 	var sl []T
