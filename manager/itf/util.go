@@ -65,62 +65,62 @@ func newConfigValueSlice[T any](def []T, opt []T, dType DataType, optExt bool, c
 }
 
 func (c Configs) SetString(ref string, def *string, opt []string, optExt bool, cType string, cTypeOpt ConfigTypeOptions) {
-	c[ref] = newConfigValue(def, opt, String, optExt, cType, cTypeOpt)
+	c[ref] = newConfigValue(def, opt, StringType, optExt, cType, cTypeOpt)
 }
 
 func (c Configs) SetBool(ref string, def *bool, opt []bool, optExt bool, cType string, cTypeOpt ConfigTypeOptions) {
-	c[ref] = newConfigValue(def, opt, Bool, optExt, cType, cTypeOpt)
+	c[ref] = newConfigValue(def, opt, BoolType, optExt, cType, cTypeOpt)
 }
 
 func (c Configs) SetInt64(ref string, def *int64, opt []int64, optExt bool, cType string, cTypeOpt ConfigTypeOptions) {
-	c[ref] = newConfigValue(def, opt, Int64, optExt, cType, cTypeOpt)
+	c[ref] = newConfigValue(def, opt, Int64Type, optExt, cType, cTypeOpt)
 }
 
 func (c Configs) SetFloat64(ref string, def *float64, opt []float64, optExt bool, cType string, cTypeOpt ConfigTypeOptions) {
-	c[ref] = newConfigValue(def, opt, Float64, optExt, cType, cTypeOpt)
+	c[ref] = newConfigValue(def, opt, Float64Type, optExt, cType, cTypeOpt)
 }
 
 func (c Configs) SetStringSlice(ref string, def []string, opt []string, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) {
-	c[ref] = newConfigValueSlice(def, opt, String, optExt, cType, cTypeOpt, delimiter)
+	c[ref] = newConfigValueSlice(def, opt, StringType, optExt, cType, cTypeOpt, delimiter)
 }
 
 func (c Configs) SetBoolSlice(ref string, def []bool, opt []bool, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) {
-	c[ref] = newConfigValueSlice(def, opt, Bool, optExt, cType, cTypeOpt, delimiter)
+	c[ref] = newConfigValueSlice(def, opt, BoolType, optExt, cType, cTypeOpt, delimiter)
 }
 
 func (c Configs) SetInt64Slice(ref string, def []int64, opt []int64, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) {
-	c[ref] = newConfigValueSlice(def, opt, Int64, optExt, cType, cTypeOpt, delimiter)
+	c[ref] = newConfigValueSlice(def, opt, Int64Type, optExt, cType, cTypeOpt, delimiter)
 }
 
 func (c Configs) SetFloat64Slice(ref string, def []float64, opt []float64, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) {
-	c[ref] = newConfigValueSlice(def, opt, Float64, optExt, cType, cTypeOpt, delimiter)
+	c[ref] = newConfigValueSlice(def, opt, Float64Type, optExt, cType, cTypeOpt, delimiter)
 }
 
 func (o ConfigTypeOptions) SetString(ref string, val string) {
 	o[ref] = configTypeOption{
 		Value:    val,
-		DataType: String,
+		DataType: StringType,
 	}
 }
 
 func (o ConfigTypeOptions) SetBool(ref string, val bool) {
 	o[ref] = configTypeOption{
 		Value:    val,
-		DataType: Bool,
+		DataType: BoolType,
 	}
 }
 
 func (o ConfigTypeOptions) SetInt64(ref string, val int64) {
 	o[ref] = configTypeOption{
 		Value:    val,
-		DataType: Int64,
+		DataType: Int64Type,
 	}
 }
 
 func (o ConfigTypeOptions) SetFloat64(ref string, val float64) {
 	o[ref] = configTypeOption{
 		Value:    val,
-		DataType: Float64,
+		DataType: Float64Type,
 	}
 }
 

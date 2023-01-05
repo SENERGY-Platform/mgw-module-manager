@@ -451,25 +451,25 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 			}
 			if mfConfig.IsList {
 				switch dt {
-				case itf.String:
+				case itf.StringType:
 					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueString)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetStringSlice(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co, mfConfig.Delimiter)
-				case itf.Bool:
+				case itf.BoolType:
 					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueBool)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetBoolSlice(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co, mfConfig.Delimiter)
-				case itf.Int64:
+				case itf.Int64Type:
 					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueInt64)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetInt64Slice(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co, mfConfig.Delimiter)
-				case itf.Float64:
+				case itf.Float64Type:
 					d, o, co, err := parseConfigSlice(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueFloat64)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
@@ -478,25 +478,25 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 				}
 			} else {
 				switch dt {
-				case itf.String:
+				case itf.StringType:
 					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueString)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetString(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co)
-				case itf.Bool:
+				case itf.BoolType:
 					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueBool)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetBool(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co)
-				case itf.Int64:
+				case itf.Int64Type:
 					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueInt64)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)
 					}
 					configs.SetInt64(ref, d, o, mfConfig.OptionsExt, mfConfig.Type, co)
-				case itf.Float64:
+				case itf.Float64Type:
 					d, o, co, err := parseConfig(mfConfig.Value, mfConfig.Options, mfConfig.TypeOptions, parseConfigValueFloat64)
 					if err != nil {
 						return configs, inputs, fmt.Errorf("error parsing config '%s': %s", ref, err)

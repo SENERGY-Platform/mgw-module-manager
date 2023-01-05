@@ -71,17 +71,17 @@ var PortTypeMap = map[PortProtocol]struct{}{
 }
 
 const (
-	Bool DataType = iota
-	Int64
-	Float64
-	String
+	BoolType DataType = iota
+	Int64Type
+	Float64Type
+	StringType
 )
 
 var DataTypeRef = []string{
-	Bool:    "bool",
-	Int64:   "int",
-	Float64: "float",
-	String:  "string",
+	BoolType:    "bool",
+	Int64Type:   "int",
+	Float64Type: "float",
+	StringType:  "string",
 }
 
 var DataTypeRefMap = func() map[string]DataType {
