@@ -18,7 +18,7 @@ package itf
 
 import (
 	"io/fs"
-	"module-manager/manager/itf/misc"
+	"module-manager/manager/util/set"
 	"time"
 )
 
@@ -32,14 +32,14 @@ type Module struct {
 	ID             string                      `json:"id"`
 	Name           string                      `json:"name"`
 	Description    string                      `json:"description"`
-	Tags           misc.Set[string]            `json:"tags"`
+	Tags           set.Set[string]             `json:"tags"`
 	License        string                      `json:"license"`
 	Author         string                      `json:"author"`
 	Version        string                      `json:"version"`
 	Type           ModuleType                  `json:"type"`
 	DeploymentType DeploymentType              `json:"deployment_type"`
 	Services       map[string]*Service         `json:"services"`     // {ref:Service}
-	Volumes        misc.Set[string]            `json:"volumes"`      // {volName}
+	Volumes        set.Set[string]             `json:"volumes"`      // {volName}
 	Dependencies   map[string]ModuleDependency `json:"dependencies"` // {moduleID:ModuleDependency}
 	Resources      map[string]Resource         `json:"resources"`    // {ref:Resource}
 	Secrets        map[string]Resource         `json:"secrets"`      // {ref:Resource}
@@ -114,8 +114,8 @@ type ExternalDependencyTarget struct {
 }
 
 type ModuleDependency struct {
-	Version          string           `json:"version"`
-	RequiredServices misc.Set[string] `json:"required_services"` // {ref}
+	Version          string          `json:"version"`
+	RequiredServices set.Set[string] `json:"required_services"` // {ref}
 }
 
 type ResourceTarget struct {
@@ -124,8 +124,8 @@ type ResourceTarget struct {
 }
 
 type Resource struct {
-	Type string           `json:"type"` // resource type as defined by external services managing resources (e.g. serial-device, certificate, credentials ...)
-	Tags misc.Set[string] `json:"tags"`
+	Type string          `json:"type"` // resource type as defined by external services managing resources (e.g. serial-device, certificate, credentials ...)
+	Tags set.Set[string] `json:"tags"`
 }
 
 type Configs map[string]configValue
@@ -173,15 +173,15 @@ type Inputs struct {
 // Config Definition ----------------------------------------------------------------------------
 
 type ConfigDefinition struct {
-	DataType   misc.Set[DataType]                `json:"data_type"`
+	DataType   set.Set[DataType]                 `json:"data_type"`
 	Options    map[string]ConfigDefinitionOption `json:"options"`
 	Validators []ConfigDefinitionValidator       `json:"validators"`
 }
 
 type ConfigDefinitionOption struct {
-	DataType misc.Set[DataType] `json:"data_type"`
-	Inherit  bool               `json:"inherit"`
-	Required bool               `json:"required"`
+	DataType set.Set[DataType] `json:"data_type"`
+	Inherit  bool              `json:"inherit"`
+	Required bool              `json:"required"`
 }
 
 type ConfigDefinitionValidator struct {
@@ -208,7 +208,7 @@ type DeploymentBase struct {
 type Deployment struct {
 	ID string `json:"id"`
 	DeploymentBase
-	Containers misc.Set[string]
+	Containers set.Set[string]
 }
 
 type DeploymentsPostRequest struct {

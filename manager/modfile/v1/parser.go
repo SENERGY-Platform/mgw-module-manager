@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"io/fs"
 	"module-manager/manager/itf"
-	"module-manager/manager/itf/misc"
+	"module-manager/manager/util/set"
 	"strconv"
 	"strings"
 	"time"
@@ -38,7 +38,7 @@ func (mf Module) Parse() (itf.Module, error) {
 		DeploymentType: mf.DeploymentType,
 	}
 	if mf.Tags != nil && len(mf.Tags) > 0 {
-		m.Tags = make(misc.Set[string])
+		m.Tags = make(set.Set[string])
 		for _, tag := range mf.Tags {
 			m.Tags[tag] = struct{}{}
 		}
@@ -257,9 +257,9 @@ func parseServiceDependencies(mfServiceDependencies map[string]ServiceDependency
 	return nil, nil
 }
 
-func parseModuleVolumes(mfVolumes map[string][]VolumeTarget, services map[string]*itf.Service) (misc.Set[string], error) {
+func parseModuleVolumes(mfVolumes map[string][]VolumeTarget, services map[string]*itf.Service) (set.Set[string], error) {
 	if mfVolumes != nil && len(mfVolumes) > 0 {
-		volumes := make(misc.Set[string])
+		volumes := make(set.Set[string])
 		for name, mfTargets := range mfVolumes {
 			volumes[name] = struct{}{}
 			for _, mfTarget := range mfTargets {
@@ -288,7 +288,7 @@ func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, s
 	if mfModuleDependencies != nil && len(mfModuleDependencies) > 0 {
 		moduleDependencies := make(map[string]itf.ModuleDependency)
 		for id, dependency := range mfModuleDependencies {
-			rs := make(misc.Set[string])
+			rs := make(set.Set[string])
 			for rqSrv, mfTargets := range dependency.RequiredServices {
 				rs[rqSrv] = struct{}{}
 				for _, mfTarget := range mfTargets {
@@ -353,7 +353,7 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 			}
 			r := itf.Resource{Type: mfResource.Type}
 			if mfResource.Tags != nil && len(mfResource.Tags) > 0 {
-				r.Tags = make(misc.Set[string])
+				r.Tags = make(set.Set[string])
 				for _, tag := range mfResource.Tags {
 					r.Tags[tag] = struct{}{}
 				}
@@ -400,7 +400,7 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*itf.Se
 			}
 			r := itf.Resource{Type: mfSecret.Type}
 			if mfSecret.Tags != nil && len(mfSecret.Tags) > 0 {
-				r.Tags = make(misc.Set[string])
+				r.Tags = make(set.Set[string])
 				for _, tag := range mfSecret.Tags {
 					r.Tags[tag] = struct{}{}
 				}
