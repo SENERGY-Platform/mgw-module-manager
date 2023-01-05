@@ -18,7 +18,6 @@ package misc
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 func (s *Set[T]) UnmarshalJSON(b []byte) error {
@@ -48,25 +47,4 @@ func (s Set[T]) Slice() []T {
 		sl = append(sl, item)
 	}
 	return sl
-}
-
-func (d DataType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(DataTypeRef[d])
-}
-
-func (d *DataType) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
-		return err
-	}
-	t, ok := DataTypeRefMap[s]
-	if !ok {
-		return fmt.Errorf("invalid data type '%s'", s)
-	}
-	*d = t
-	return nil
-}
-
-func (d DataType) String() string {
-	return DataTypeRef[d]
 }

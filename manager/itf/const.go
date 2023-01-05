@@ -69,3 +69,25 @@ var PortTypeMap = map[PortProtocol]struct{}{
 	TcpPort: {},
 	UdpPort: {},
 }
+
+const (
+	Bool DataType = iota
+	Int64
+	Float64
+	String
+)
+
+var DataTypeRef = []string{
+	Bool:    "bool",
+	Int64:   "int",
+	Float64: "float",
+	String:  "string",
+}
+
+var DataTypeRefMap = func() map[string]DataType {
+	m := make(map[string]DataType)
+	for i := 0; i < len(DataTypeRef); i++ {
+		m[DataTypeRef[i]] = DataType(i)
+	}
+	return m
+}()

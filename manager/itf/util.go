@@ -22,12 +22,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"module-manager/manager/itf/misc"
 	"sort"
 	"strconv"
 )
 
-func newConfigValue[T any](def *T, opt []T, dType misc.DataType, optExt bool, cType string, cTypeOpt ConfigTypeOptions) configValue {
+func newConfigValue[T any](def *T, opt []T, dType DataType, optExt bool, cType string, cTypeOpt ConfigTypeOptions) configValue {
 	cv := configValue{
 		OptExt:   optExt,
 		Type:     cType,
@@ -45,7 +44,7 @@ func newConfigValue[T any](def *T, opt []T, dType misc.DataType, optExt bool, cT
 	return cv
 }
 
-func newConfigValueSlice[T any](def []T, opt []T, dType misc.DataType, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) configValue {
+func newConfigValueSlice[T any](def []T, opt []T, dType DataType, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) configValue {
 	cv := configValue{
 		OptExt:    optExt,
 		Type:      cType,
@@ -66,62 +65,62 @@ func newConfigValueSlice[T any](def []T, opt []T, dType misc.DataType, optExt bo
 }
 
 func (c Configs) SetString(ref string, def *string, opt []string, optExt bool, cType string, cTypeOpt ConfigTypeOptions) {
-	c[ref] = newConfigValue(def, opt, misc.String, optExt, cType, cTypeOpt)
+	c[ref] = newConfigValue(def, opt, String, optExt, cType, cTypeOpt)
 }
 
 func (c Configs) SetBool(ref string, def *bool, opt []bool, optExt bool, cType string, cTypeOpt ConfigTypeOptions) {
-	c[ref] = newConfigValue(def, opt, misc.Bool, optExt, cType, cTypeOpt)
+	c[ref] = newConfigValue(def, opt, Bool, optExt, cType, cTypeOpt)
 }
 
 func (c Configs) SetInt64(ref string, def *int64, opt []int64, optExt bool, cType string, cTypeOpt ConfigTypeOptions) {
-	c[ref] = newConfigValue(def, opt, misc.Int64, optExt, cType, cTypeOpt)
+	c[ref] = newConfigValue(def, opt, Int64, optExt, cType, cTypeOpt)
 }
 
 func (c Configs) SetFloat64(ref string, def *float64, opt []float64, optExt bool, cType string, cTypeOpt ConfigTypeOptions) {
-	c[ref] = newConfigValue(def, opt, misc.Float64, optExt, cType, cTypeOpt)
+	c[ref] = newConfigValue(def, opt, Float64, optExt, cType, cTypeOpt)
 }
 
 func (c Configs) SetStringSlice(ref string, def []string, opt []string, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) {
-	c[ref] = newConfigValueSlice(def, opt, misc.String, optExt, cType, cTypeOpt, delimiter)
+	c[ref] = newConfigValueSlice(def, opt, String, optExt, cType, cTypeOpt, delimiter)
 }
 
 func (c Configs) SetBoolSlice(ref string, def []bool, opt []bool, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) {
-	c[ref] = newConfigValueSlice(def, opt, misc.Bool, optExt, cType, cTypeOpt, delimiter)
+	c[ref] = newConfigValueSlice(def, opt, Bool, optExt, cType, cTypeOpt, delimiter)
 }
 
 func (c Configs) SetInt64Slice(ref string, def []int64, opt []int64, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) {
-	c[ref] = newConfigValueSlice(def, opt, misc.Int64, optExt, cType, cTypeOpt, delimiter)
+	c[ref] = newConfigValueSlice(def, opt, Int64, optExt, cType, cTypeOpt, delimiter)
 }
 
 func (c Configs) SetFloat64Slice(ref string, def []float64, opt []float64, optExt bool, cType string, cTypeOpt ConfigTypeOptions, delimiter *string) {
-	c[ref] = newConfigValueSlice(def, opt, misc.Float64, optExt, cType, cTypeOpt, delimiter)
+	c[ref] = newConfigValueSlice(def, opt, Float64, optExt, cType, cTypeOpt, delimiter)
 }
 
 func (o ConfigTypeOptions) SetString(ref string, val string) {
 	o[ref] = configTypeOption{
 		Value:    val,
-		DataType: misc.String,
+		DataType: String,
 	}
 }
 
 func (o ConfigTypeOptions) SetBool(ref string, val bool) {
 	o[ref] = configTypeOption{
 		Value:    val,
-		DataType: misc.Bool,
+		DataType: Bool,
 	}
 }
 
 func (o ConfigTypeOptions) SetInt64(ref string, val int64) {
 	o[ref] = configTypeOption{
 		Value:    val,
-		DataType: misc.Int64,
+		DataType: Int64,
 	}
 }
 
 func (o ConfigTypeOptions) SetFloat64(ref string, val float64) {
 	o[ref] = configTypeOption{
 		Value:    val,
-		DataType: misc.Float64,
+		DataType: Float64,
 	}
 }
 
@@ -224,4 +223,25 @@ func hashStrings(str []string) (string, error) {
 		}
 	}
 	return base64.URLEncoding.EncodeToString(h.Sum(nil)), nil
+}
+
+func (d DataType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(DataTypeRef[d])
+}
+
+func (d *DataType) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	t, ok := DataTypeRefMap[s]
+	if !ok {
+		return fmt.Errorf("invalid data type '%s'", s)
+	}
+	*d = t
+	return nil
+}
+
+func (d DataType) String() string {
+	return DataTypeRef[d]
 }

@@ -136,16 +136,18 @@ type configValue struct {
 	OptExt    bool              `json:"opt_ext"`
 	Type      string            `json:"type"`
 	TypeOpt   ConfigTypeOptions `json:"type_opt"`
-	DataType  misc.DataType     `json:"data_type"`
+	DataType  DataType          `json:"data_type"`
 	IsSlice   bool              `json:"is_slice"`
 	Delimiter *string           `json:"delimiter"` // ';' if nil (only applies if IsSlice == true)
 }
 
 type ConfigTypeOptions map[string]configTypeOption
 
+type DataType uint
+
 type configTypeOption struct {
-	Value    any           `json:"value"`
-	DataType misc.DataType `json:"data_type"`
+	Value    any      `json:"value"`
+	DataType DataType `json:"data_type"`
 }
 
 type Input struct {
@@ -171,15 +173,15 @@ type Inputs struct {
 // Config Definition ----------------------------------------------------------------------------
 
 type ConfigDefinition struct {
-	DataType   misc.Set[misc.DataType]           `json:"data_type"`
+	DataType   misc.Set[DataType]                `json:"data_type"`
 	Options    map[string]ConfigDefinitionOption `json:"options"`
 	Validators []ConfigDefinitionValidator       `json:"validators"`
 }
 
 type ConfigDefinitionOption struct {
-	DataType misc.Set[misc.DataType] `json:"data_type"`
-	Inherit  bool                    `json:"inherit"`
-	Required bool                    `json:"required"`
+	DataType misc.Set[DataType] `json:"data_type"`
+	Inherit  bool               `json:"inherit"`
+	Required bool               `json:"required"`
 }
 
 type ConfigDefinitionValidator struct {
@@ -235,6 +237,6 @@ type InputTemplateConfig struct {
 	OptExt   bool           `json:"opt_ext"`
 	Type     string         `json:"type"`
 	TypeOpt  map[string]any `json:"type_opt"`
-	DataType misc.DataType  `json:"data_type"`
+	DataType DataType       `json:"data_type"`
 	IsList   bool           `json:"is_list"`
 }

@@ -17,5 +17,3 @@
 package misc
 
 type Set[T comparable] map[T]struct{}
-
-type DataType uint
