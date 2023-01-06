@@ -185,7 +185,7 @@ type ConfigDefinitionOption struct {
 }
 
 type ConfigDefinitionValidator struct {
-	Type      string                                    `json:"type"`
+	Name      string                                    `json:"name"`
 	Parameter map[string]ConfigDefinitionValidatorParam `json:"parameter"`
 }
 
