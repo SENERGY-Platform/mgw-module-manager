@@ -55,4 +55,4 @@ type DeploymentStorageHandler interface {
 	Delete(id string) error
 }
 
-type Validator func(v any, p map[string]any) (bool, error)
+type Validator func(map[string]any) (bool, error)
