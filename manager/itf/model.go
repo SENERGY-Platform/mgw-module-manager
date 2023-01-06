@@ -185,14 +185,13 @@ type ConfigDefinitionOption struct {
 }
 
 type ConfigDefinitionValidator struct {
-	Target    string                                    `json:"target"`
 	Type      string                                    `json:"type"`
 	Parameter map[string]ConfigDefinitionValidatorParam `json:"parameter"`
 }
 
 type ConfigDefinitionValidatorParam struct {
-	Value any    `json:"value"`
-	Ref   string `json:"ref"`
+	Value any     `json:"value"`
+	Ref   *string `json:"ref"`
 }
 
 // Deployment -----------------------------------------------------------------------------------
