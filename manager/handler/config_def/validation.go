@@ -23,27 +23,43 @@ import (
 	"unicode/utf8"
 )
 
-func RegexValidator(val any, parameter map[string]any) (bool, error) {
-	v, ok := val.(string)
-	if !ok {
-		return false, fmt.Errorf("invalid data type: %T != string", val)
+func getParamValue(params map[string]any, key string) (any, error) {
+	if params == nil {
+		return nil, errors.New("no parameters")
 	}
-	if parameter == nil {
-		return false, errors.New("missing parameters")
-	}
-	pattern, ok := parameter["pattern"]
+	v, ok := params[key]
 	if !ok {
-		return false, errors.New("missing 'pattern' parameter")
+		return nil, fmt.Errorf("parameter '%s' required", key)
 	}
-	p, ok := pattern.(string)
-	if !ok {
-		return false, fmt.Errorf("invalid data type: %T != string", pattern)
+	return v, nil
+}
+
+func getParamValueGen[T any](params map[string]any, key string) (v T, err error) {
+	if p, e := getParamValue(params, key); e != nil {
+		err = e
+	} else {
+		var ok bool
+		if v, ok = p.(T); !ok {
+			err = fmt.Errorf("parameter '%s' invalid data type: %T != %T", key, p, *new(T))
+		}
+	}
+	return
+}
+
+func RegexValidator(params map[string]any) (bool, error) {
+	str, err := getParamValueGen[string](params, "string")
+	if err != nil {
+		return false, err
+	}
+	p, err := getParamValueGen[string](params, "pattern")
+	if err != nil {
+		return false, err
 	}
 	re, err := regexp.Compile(p)
 	if err != nil {
 		return false, fmt.Errorf("invalid regex pattern '%s'", p)
 	}
-	return re.MatchString(v), nil
+	return re.MatchString(str), nil
 }
 
 type number interface {
@@ -67,63 +83,45 @@ func compareNumber[T number](a T, b T, o string) (bool, error) {
 	}
 }
 
-func getCompareParameter(parameter map[string]any) (b any, o string, err error) {
-	if parameter == nil {
-		return nil, "", errors.New("missing parameters")
-	}
-	op, ok := parameter["operator"]
-	if !ok {
-		err = errors.New("missing 'operator' parameter")
-		return
-	}
-	o, ok = op.(string)
-	if !ok {
-		err = fmt.Errorf("invalid data type: %T != string", op)
-		return
-	}
-	b, ok = parameter["b"]
-	if !ok {
-		err = errors.New("missing 'b' parameter")
-		return
-	}
-	return
-}
-
-func NumberCompareValidator(val any, parameter map[string]any) (bool, error) {
-	bp, o, err := getCompareParameter(parameter)
+func NumberCompareValidator(params map[string]any) (bool, error) {
+	o, err := getParamValueGen[string](params, "operator")
 	if err != nil {
 		return false, err
 	}
-	switch a := val.(type) {
+	av, err := getParamValue(params, "a")
+	if err != nil {
+		return false, err
+	}
+	switch a := av.(type) {
 	case int64:
-		b, k := bp.(int64)
-		if !k {
-			return false, fmt.Errorf("invalid data type: %T != int", bp)
+		b, err := getParamValueGen[int64](params, "b")
+		if err != nil {
+			return false, err
 		}
 		return compareNumber(a, b, o)
 	case float64:
-		b, k := bp.(float64)
-		if !k {
-			return false, fmt.Errorf("invalid data type: %T != float", bp)
+		b, err := getParamValueGen[float64](params, "b")
+		if err != nil {
+			return false, err
 		}
 		return compareNumber(a, b, o)
 	default:
-		return false, fmt.Errorf("invalid data type: %T != int | float", a)
+		return false, fmt.Errorf("invalid data type: %T != int64 | float64", a)
 	}
 }
 
-func TextLenCompareValidator(val any, parameter map[string]any) (bool, error) {
-	v, ok := val.(string)
-	if !ok {
-		return false, fmt.Errorf("invalid data type: %T != string", val)
-	}
-	bp, o, err := getCompareParameter(parameter)
+func TextLenCompareValidator(params map[string]any) (bool, error) {
+	o, err := getParamValueGen[string](params, "operator")
 	if err != nil {
 		return false, err
 	}
-	b, k := bp.(int64)
-	if !k {
-		return false, fmt.Errorf("invalid data type: %T != int", b)
+	s, err := getParamValueGen[string](params, "string")
+	if err != nil {
+		return false, err
 	}
-	return compareNumber(int64(utf8.RuneCountInString(v)), b, o)
+	l, err := getParamValueGen[int64](params, "length")
+	if err != nil {
+		return false, err
+	}
+	return compareNumber(int64(utf8.RuneCountInString(s)), l, o)
 }
