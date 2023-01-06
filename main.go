@@ -25,6 +25,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"module-manager/manager/api"
 	"module-manager/manager/handler/config_def"
+	"module-manager/manager/handler/config_def/validator"
 	"module-manager/manager/handler/deployment"
 	"module-manager/manager/handler/module"
 	"module-manager/manager/itf"
@@ -80,9 +81,9 @@ func main() {
 	}
 
 	var validators = map[string]itf.Validator{
-		"regex":            config_def.RegexValidator,
-		"number_compare":   config_def.NumberCompareValidator,
-		"text_len_compare": config_def.TextLenCompareValidator,
+		"regex":            validator.Regex,
+		"number_compare":   validator.NumberCompare,
+		"text_len_compare": validator.TextLenCompare,
 	}
 
 	moduleHandler := module.NewHandler(moduleStorageHandler, configDefs, validators)
