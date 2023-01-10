@@ -24,7 +24,7 @@ import (
 	"regexp"
 )
 
-func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition, validators map[string]itf.Validator) error {
+func Validate(m itf.Module, cValHandler itf.ConfigValidationHandler) error {
 	if !isValidModuleID(m.ID) {
 		return fmt.Errorf("invalid module ID format '%s'", m.ID)
 	}
@@ -67,8 +67,18 @@ func Validate(m itf.Module, cDef map[string]itf.ConfigDefinition, validators map
 		}
 	}
 	if m.Configs != nil {
-		if err := validateConfigs(m.Configs, cDef, validators); err != nil {
-			return err
+		for _, cv := range m.Configs {
+			if err := cValHandler.ValidateBase(cv.Type, cv.TypeOpt, cv.DataType); err != nil {
+				return err
+			}
+			if err := cValHandler.ValidateOptions(cv.Type, cv.TypeOpt); err != nil {
+				return err
+			}
+			if cv.Default != nil {
+				if err := cValHandler.ValidateValue(cv.Type, cv.TypeOpt, cv.Default); err != nil {
+					return err
+				}
+			}
 		}
 	}
 	if m.Inputs.Groups != nil {
@@ -350,54 +360,6 @@ func validateNotEmpty[T any](refs map[string]T, msg string) error {
 	for ref := range refs {
 		if ref == "" {
 			return errors.New(msg)
-		}
-	}
-	return nil
-}
-
-func validateConfigs(c itf.Configs, cDef map[string]itf.ConfigDefinition, validators map[string]itf.Validator) error {
-	for ref, cv := range c {
-		if ref == "" {
-			return errors.New("invalid config reference")
-		}
-		def, ok := cDef[cv.Type]
-		if !ok {
-			return fmt.Errorf("invalid config type '%s'", cv.Type)
-		}
-		if _, ok = def.DataType[cv.DataType]; !ok {
-			return fmt.Errorf("invalid data type '%s' for config type '%s'", cv.DataType, cv.Type)
-		}
-		if cv.TypeOpt != nil && def.Options == nil {
-			return fmt.Errorf("config type '%s' does not support options", cv.Type)
-		}
-		if cv.TypeOpt == nil && def.Options != nil {
-			for key, defOpt := range def.Options {
-				if defOpt.Required {
-					return fmt.Errorf("option '%s' is required by config type '%s'", key, cv.Type)
-				}
-			}
-		}
-		if cv.TypeOpt != nil && def.Options != nil {
-			for key := range cv.TypeOpt {
-				if _, ok := def.Options[key]; !ok {
-					return fmt.Errorf("option '%s' not supported by config type '%s'", ref, cv.Type)
-				}
-			}
-			for key, defOpt := range def.Options {
-				if tOpt, ok := cv.TypeOpt[key]; ok {
-					if defOpt.Inherit {
-						if tOpt.DataType != cv.DataType {
-							return fmt.Errorf("invalid data type for option '%s' of config type '%s'", key, cv.Type)
-						}
-					} else {
-						if _, ok = defOpt.DataType[tOpt.DataType]; !ok {
-							return fmt.Errorf("invalid data type for option '%s' of config type '%s'", key, cv.Type)
-						}
-					}
-				} else if defOpt.Required {
-					return fmt.Errorf("option '%s' is required by config type '%s'", key, cv.Type)
-				}
-			}
 		}
 	}
 	return nil
