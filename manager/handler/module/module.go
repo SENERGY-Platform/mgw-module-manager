@@ -29,13 +29,12 @@ import (
 )
 
 type Handler struct {
-	storageHandler itf.ModuleStorageHandler
-	configDefs     map[string]itf.ConfigDefinition
-	validators     map[string]itf.Validator
+	storageHandler          itf.ModuleStorageHandler
+	configValidationHandler itf.ConfigValidationHandler
 }
 
-func NewHandler(storageHandler itf.ModuleStorageHandler, configDefs map[string]itf.ConfigDefinition, validators map[string]itf.Validator) *Handler {
-	return &Handler{storageHandler: storageHandler, configDefs: configDefs, validators: validators}
+func NewHandler(storageHandler itf.ModuleStorageHandler, configValidationHandler itf.ConfigValidationHandler) *Handler {
+	return &Handler{storageHandler: storageHandler, configValidationHandler: configValidationHandler}
 }
 
 func (h *Handler) List() ([]itf.Module, error) {
