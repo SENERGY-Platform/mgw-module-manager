@@ -56,3 +56,9 @@ type DeploymentStorageHandler interface {
 }
 
 type Validator func(params map[string]any) error
+
+type ConfigValidationHandler interface {
+	ValidateBase(cType string, cTypeOpt ConfigTypeOptions, dataType DataType) error
+	ValidateOptions(cType string, cTypeOpt ConfigTypeOptions) error
+	ValidateValue(cType string, cTypeOpt ConfigTypeOptions, value any) error
+}
