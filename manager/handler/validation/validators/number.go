@@ -14,33 +14,48 @@
  * limitations under the License.
  */
 
-package validator
+package validators
 
-import "fmt"
+import (
+	"fmt"
+)
 
-func NumberCompare(params map[string]any) (bool, error) {
+func NumberCompare(params map[string]any) error {
 	o, err := getParamValueGen[string](params, "operator")
 	if err != nil {
-		return false, err
+		return err
 	}
 	av, err := getParamValue(params, "a")
 	if err != nil {
-		return false, err
+		return err
 	}
 	switch a := av.(type) {
 	case int64:
 		b, err := getParamValueGen[int64](params, "b")
 		if err != nil {
-			return false, err
+			return err
 		}
-		return compareNumber(a, b, o)
+		ok, err := compareNumber(a, b, o)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return fmt.Errorf("%d %s %d", a, o, b)
+		}
 	case float64:
 		b, err := getParamValueGen[float64](params, "b")
 		if err != nil {
-			return false, err
+			return err
 		}
-		return compareNumber(a, b, o)
+		ok, err := compareNumber(a, b, o)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return fmt.Errorf("%f %s %f", a, o, b)
+		}
 	default:
-		return false, fmt.Errorf("invalid data type: %T != int64 | float64", a)
+		return fmt.Errorf("invalid data type: %T != int64 | float64", a)
 	}
+	return nil
 }

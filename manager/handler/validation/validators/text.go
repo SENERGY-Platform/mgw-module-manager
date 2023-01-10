@@ -14,42 +14,53 @@
  * limitations under the License.
  */
 
-package validator
+package validators
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"unicode/utf8"
 )
 
-func Regex(params map[string]any) (bool, error) {
+func Regex(params map[string]any) error {
 	str, err := getParamValueGen[string](params, "string")
 	if err != nil {
-		return false, err
+		return err
 	}
 	p, err := getParamValueGen[string](params, "pattern")
 	if err != nil {
-		return false, err
+		return err
 	}
 	re, err := regexp.Compile(p)
 	if err != nil {
-		return false, fmt.Errorf("invalid regex pattern '%s'", p)
+		return fmt.Errorf("invalid pattern '%s'", p)
 	}
-	return re.MatchString(str), nil
+	if !re.MatchString(str) {
+		return errors.New("no match")
+	}
+	return nil
 }
 
-func TextLenCompare(params map[string]any) (bool, error) {
+func TextLenCompare(params map[string]any) error {
 	o, err := getParamValueGen[string](params, "operator")
 	if err != nil {
-		return false, err
+		return err
 	}
 	s, err := getParamValueGen[string](params, "string")
 	if err != nil {
-		return false, err
+		return err
 	}
 	l, err := getParamValueGen[int64](params, "length")
 	if err != nil {
-		return false, err
+		return err
 	}
-	return compareNumber(int64(utf8.RuneCountInString(s)), l, o)
+	ok, err := compareNumber(int64(utf8.RuneCountInString(s)), l, o)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return errors.New("invalid length")
+	}
+	return nil
 }
