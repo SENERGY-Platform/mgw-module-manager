@@ -24,10 +24,10 @@ import (
 	"github.com/SENERGY-Platform/go-service-base/srv-base/types"
 	"github.com/gin-gonic/gin"
 	"module-manager/manager/api"
-	"module-manager/manager/handler/config_def"
-	"module-manager/manager/handler/config_def/validator"
 	"module-manager/manager/handler/deployment"
 	"module-manager/manager/handler/module"
+	"module-manager/manager/handler/validation"
+	"module-manager/manager/handler/validation/validators"
 	"module-manager/manager/itf"
 	"module-manager/manager/util"
 	"net"
@@ -74,19 +74,19 @@ func main() {
 		return
 	}
 
-	configDefs, err := config_def.Load(config.ConfigDefsPath)
+	var validatorMap = map[string]itf.Validator{
+		"regex":            validators.Regex,
+		"number_compare":   validators.NumberCompare,
+		"text_len_compare": validators.TextLenCompare,
+	}
+
+	configValidationHandler, err := validation.NewConfigValidationHandler(config.ConfigDefsPath, validatorMap)
 	if err != nil {
 		srv_base.Logger.Error(err)
 		return
 	}
 
-	var validators = map[string]itf.Validator{
-		"regex":            validator.Regex,
-		"number_compare":   validator.NumberCompare,
-		"text_len_compare": validator.TextLenCompare,
-	}
-
-	moduleHandler := module.NewHandler(moduleStorageHandler, configDefs, validators)
+	moduleHandler := module.NewHandler(moduleStorageHandler, configValidationHandler)
 	deploymentHandler := deployment.NewHandler(nil)
 
 	dmApi := api.New(moduleHandler, deploymentHandler)
