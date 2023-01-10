@@ -329,7 +329,7 @@ func isValidRestartStrategy(s string) bool {
 }
 
 func isValidPath(s string) bool {
-	re := regexp.MustCompile(`(?m)^\/(?:[a-zA-Z0-9-_%]+)*(?:\/[a-zA-Z0-9-_%]+)*$`)
+	re := regexp.MustCompile(`^\/(?:[a-zA-Z0-9-_%]+)*(?:\/[a-zA-Z0-9-_%]+)*$`)
 	return re.MatchString(s)
 }
 
