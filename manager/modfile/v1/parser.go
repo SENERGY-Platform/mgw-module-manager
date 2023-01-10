@@ -636,6 +636,16 @@ func parseConfigTypeOptions(opt map[string]any) (itf.ConfigTypeOptions, error) {
 			o.SetBool(key, v)
 		case int:
 			o.SetInt64(key, int64(v))
+		case int8:
+			o.SetInt64(key, int64(v))
+		case int16:
+			o.SetInt64(key, int64(v))
+		case int32:
+			o.SetInt64(key, int64(v))
+		case int64:
+			o.SetInt64(key, v)
+		case float32:
+			o.SetFloat64(key, float64(v))
 		case float64:
 			o.SetFloat64(key, v)
 		default:
