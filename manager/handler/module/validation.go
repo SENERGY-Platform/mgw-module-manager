@@ -19,8 +19,8 @@ package module
 import (
 	"errors"
 	"fmt"
-	"module-manager/manager/handler/sem_ver"
 	"module-manager/manager/itf"
+	"module-manager/manager/util/sem_ver"
 	"regexp"
 )
 
