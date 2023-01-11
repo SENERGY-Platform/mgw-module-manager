@@ -45,6 +45,7 @@ func NewConfig(path *string) (*Config, error) {
 			Microseconds: true,
 			Terminal:     true,
 		},
+		ConfigDefsPath: "include/config_definitions.json",
 	}
 	err := srv_base.LoadConfig(path, &cfg, nil, nil, nil)
 	return &cfg, err
