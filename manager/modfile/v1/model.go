@@ -58,12 +58,11 @@ type Service struct {
 type Duration time.Duration
 
 type RunConfig struct {
-	RestartStrategy string    `yaml:"restartStrategy"`
-	Retries         *int      `yaml:"retries"`
-	RemoveAfterRun  bool      `yaml:"removeAfterRun"`
-	StopTimeout     *Duration `yaml:"stopTimeout"`
-	StopSignal      *string   `yaml:"stopSignal"`
-	PseudoTTY       bool      `yaml:"pseudoTTY"`
+	MaxRetries     *int      `yaml:"maxRetries"`
+	RemoveAfterRun bool      `yaml:"removeAfterRun"`
+	StopTimeout    *Duration `yaml:"stopTimeout"`
+	StopSignal     *string   `yaml:"stopSignal"`
+	PseudoTTY      bool      `yaml:"pseudoTTY"`
 }
 
 type BindMount struct {

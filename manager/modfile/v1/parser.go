@@ -138,11 +138,10 @@ func parseModuleServices(mfServices map[string]Service) (map[string]*itf.Service
 
 func parseServiceRunConfig(mfRunConfig RunConfig) itf.RunConfig {
 	rc := itf.RunConfig{
-		RestartStrategy: mfRunConfig.RestartStrategy,
-		Retries:         mfRunConfig.Retries,
-		RemoveAfterRun:  mfRunConfig.RemoveAfterRun,
-		StopSignal:      mfRunConfig.StopSignal,
-		PseudoTTY:       mfRunConfig.PseudoTTY,
+		MaxRetries:     mfRunConfig.MaxRetries,
+		RemoveAfterRun: mfRunConfig.RemoveAfterRun,
+		StopSignal:     mfRunConfig.StopSignal,
+		PseudoTTY:      mfRunConfig.PseudoTTY,
 	}
 	if mfRunConfig.StopTimeout != nil {
 		rc.StopTimeout = (*time.Duration)(mfRunConfig.StopTimeout)
