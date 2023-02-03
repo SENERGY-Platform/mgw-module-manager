@@ -63,15 +63,12 @@ type Service struct {
 	PortMappings         PortMappings                        `json:"port_mappings"`
 }
 
-type RestartStrategy = string
-
 type RunConfig struct {
-	RestartStrategy RestartStrategy `json:"restart_strategy"`
-	Retries         *int            `json:"retries"`
-	RemoveAfterRun  bool            `json:"remove_after_run"`
-	StopTimeout     *time.Duration  `json:"stop_timeout"`
-	StopSignal      *string         `json:"stop_signal"`
-	PseudoTTY       bool            `json:"pseudo_tty"`
+	MaxRetries     *int           `json:"max_retries"` // '5' if nil
+	RemoveAfterRun bool           `json:"remove_after_run"`
+	StopTimeout    *time.Duration `json:"stop_timeout"`
+	StopSignal     *string        `json:"stop_signal"`
+	PseudoTTY      bool           `json:"pseudo_tty"`
 }
 
 type BindMount struct {

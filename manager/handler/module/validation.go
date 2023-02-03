@@ -109,9 +109,6 @@ func Validate(m itf.Module, cValHandler itf.ConfigValidationHandler) error {
 		if ref == "" {
 			return errors.New("invalid service reference")
 		}
-		if err := validateServiceRunConfig(service.RunConfig); err != nil {
-			return fmt.Errorf("invalid service run config: '%s' %s", ref, err)
-		}
 		if err := validateServiceMountPoints(service); err != nil {
 			return fmt.Errorf("invalid service mount point: '%s' -> %s", ref, err)
 		}
@@ -194,19 +191,6 @@ func Validate(m itf.Module, cValHandler itf.ConfigValidationHandler) error {
 				}
 			}
 		}
-	}
-	return nil
-}
-
-func validateServiceRunConfig(rc itf.RunConfig) error {
-	if !isValidRestartStrategy(rc.RestartStrategy) {
-		return fmt.Errorf("invalid restart strategy '%s'", rc.RestartStrategy)
-	}
-	if rc.RestartStrategy == itf.RestartOnFail && rc.Retries == nil {
-		return errors.New("missing retries")
-	}
-	if rc.RestartStrategy == itf.RestartAlways && rc.RemoveAfterRun {
-		return fmt.Errorf("remove after run and restart strategy '%s'", rc.RestartStrategy)
 	}
 	return nil
 }
@@ -320,11 +304,6 @@ func isValidModuleID(s string) bool {
 
 func isValidSrvDepCondition(s string) bool {
 	_, ok := itf.SrvDepConditionMap[s]
-	return ok
-}
-
-func isValidRestartStrategy(s string) bool {
-	_, ok := itf.RestartStrategyMap[s]
 	return ok
 }
 

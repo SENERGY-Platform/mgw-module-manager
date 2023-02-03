@@ -37,30 +37,6 @@ var DeploymentTypeMap = map[DeploymentType]struct{}{
 }
 
 const (
-	RunningCondition ServiceCondition = "running"
-	StoppedCondition ServiceCondition = "stopped"
-)
-
-var SrvDepConditionMap = map[ServiceCondition]struct{}{
-	RunningCondition: {},
-	StoppedCondition: {},
-}
-
-const (
-	RestartNever      RestartStrategy = "never"
-	RestartAlways     RestartStrategy = "always"
-	RestartNotStopped RestartStrategy = "not-stopped"
-	RestartOnFail     RestartStrategy = "on-fail"
-)
-
-var RestartStrategyMap = map[RestartStrategy]struct{}{
-	RestartNever:      {},
-	RestartAlways:     {},
-	RestartNotStopped: {},
-	RestartOnFail:     {},
-}
-
-const (
 	TcpPort PortProtocol = "tcp"
 	UdpPort PortProtocol = "udp"
 )
