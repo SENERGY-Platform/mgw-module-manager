@@ -26,22 +26,23 @@ type Port string
 type ByteFmt uint64
 
 type Module struct {
-	ID             string                      `yaml:"id"`             // url without schema (e.g. github.com/user/repo)
-	Name           string                      `yaml:"name"`           // module name
-	Description    string                      `yaml:"description"`    // short text describing the module
-	Tags           []string                    `yaml:"tags"`           // module tags
-	License        string                      `yaml:"license"`        // module license name (e.g. Apache License 2.0)
-	Author         string                      `yaml:"author"`         // module author
-	Version        string                      `yaml:"version"`        // module version (must be prefixed with 'v' and adhere to the semantic versioning guidelines, see https://semver.org/ for details)
-	Type           string                      `yaml:"type"`           // module type (e.g. device-connector specifies a module for integrating devices)
-	DeploymentType string                      `yaml:"deploymentType"` // specifies whether a module can only be deployed once or multiple times
-	Services       map[string]Service          `yaml:"services"`       // map depicting the services the module consists of (keys serve as unique identifiers and can be reused elsewhere in the modfile to reference a service)
-	Volumes        map[string][]VolumeTarget   `yaml:"volumes"`        // map linking volumes to mount points (keys represent volume names)
-	Dependencies   map[string]ModuleDependency `yaml:"dependencies"`   // external modules required by the module (keys represent module IDs)
-	Resources      map[string]Resource         `yaml:"resources"`      // host resources required by services (e.g. devices, sockets, ...)
-	Secrets        map[string]Secret           `yaml:"secrets"`        // secrets required by services (e.g. certs, keys, ...)
-	Configs        map[string]ConfigValue      `yaml:"configs"`        // configuration values required by services
-	InputGroups    map[string]InputGroup       `yaml:"inputGroups"`    // map of groups for categorising user inputs (keys serve as unique identifiers and can be reused elsewhere in the modfile to reference a group)
+	ID                string                        `yaml:"id"`                // url without schema (e.g. github.com/user/repo)
+	Name              string                        `yaml:"name"`              // module name
+	Description       string                        `yaml:"description"`       // short text describing the module
+	Tags              []string                      `yaml:"tags"`              // module tags
+	License           string                        `yaml:"license"`           // module license name (e.g. Apache License 2.0)
+	Author            string                        `yaml:"author"`            // module author
+	Version           string                        `yaml:"version"`           // module version (must be prefixed with 'v' and adhere to the semantic versioning guidelines, see https://semver.org/ for details)
+	Type              string                        `yaml:"type"`              // module type (e.g. device-connector specifies a module for integrating devices)
+	DeploymentType    string                        `yaml:"deploymentType"`    // specifies whether a module can only be deployed once or multiple times
+	Services          map[string]Service            `yaml:"services"`          // map depicting the services the module consists of (keys serve as unique identifiers and can be reused elsewhere in the modfile to reference a service)
+	ServiceReferences map[string][]DependencyTarget `yaml:"serviceReferences"` // map linking module services to reference variables (identifiers as defined in Module.Services serve as keys)
+	Volumes           map[string][]VolumeTarget     `yaml:"volumes"`           // map linking volumes to mount points (keys represent volume names)
+	Dependencies      map[string]ModuleDependency   `yaml:"dependencies"`      // external modules required by the module (keys represent module IDs)
+	Resources         map[string]Resource           `yaml:"resources"`         // host resources required by services (e.g. devices, sockets, ...)
+	Secrets           map[string]Secret             `yaml:"secrets"`           // secrets required by services (e.g. certs, keys, ...)
+	Configs           map[string]ConfigValue        `yaml:"configs"`           // configuration values required by services
+	InputGroups       map[string]InputGroup         `yaml:"inputGroups"`       // map of groups for categorising user inputs (keys serve as unique identifiers and can be reused elsewhere in the modfile to reference a group)
 }
 
 type Service struct {
