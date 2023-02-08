@@ -369,9 +369,9 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 	return nil, nil, nil
 }
 
-func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*itf.Service) (map[string]itf.Resource, map[string]itf.Input, error) {
+func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*itf.Service) (map[string]itf.Secret, map[string]itf.Input, error) {
 	if mfSecrets != nil && len(mfSecrets) > 0 {
-		secrets := make(map[string]itf.Resource)
+		secrets := make(map[string]itf.Secret)
 		inputs := make(map[string]itf.Input)
 		for ref, mfSecret := range mfSecrets {
 			if mfSecret.Targets != nil && len(mfSecret.Targets) > 0 {
@@ -394,7 +394,7 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*itf.Se
 					}
 				}
 			}
-			r := itf.Resource{Type: mfSecret.Type}
+			r := itf.Secret{Type: mfSecret.Type}
 			if mfSecret.Tags != nil && len(mfSecret.Tags) > 0 {
 				r.Tags = make(set.Set[string])
 				for _, tag := range mfSecret.Tags {
