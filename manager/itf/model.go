@@ -41,8 +41,8 @@ type Module struct {
 	Services       map[string]*Service         `json:"services"`     // {ref:Service}
 	Volumes        set.Set[string]             `json:"volumes"`      // {volName}
 	Dependencies   map[string]ModuleDependency `json:"dependencies"` // {moduleID:ModuleDependency}
-	Resources      map[string]Resource         `json:"resources"`    // {ref:Resource}
-	Secrets        map[string]Resource         `json:"secrets"`      // {ref:Resource}
+	Resources      map[string]set.Set[string]  `json:"resources"`    // {ref:{tag}}
+	Secrets        map[string]Secret           `json:"secrets"`      // {ref:Secret}
 	Configs        Configs                     `json:"configs"`      // {ref:ConfigValue}
 	Inputs         Inputs                      `json:"inputs"`
 }
@@ -120,8 +120,8 @@ type ResourceTarget struct {
 	ReadOnly bool   `json:"read_only"`
 }
 
-type Resource struct {
-	Type string          `json:"type"` // resource type as defined by external services managing resources (e.g. serial-device, certificate, credentials ...)
+type Secret struct {
+	Type string          `json:"type"` // types are defined by secret-manager
 	Tags set.Set[string] `json:"tags"`
 }
 
