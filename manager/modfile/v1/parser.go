@@ -319,9 +319,9 @@ func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, s
 	return nil, nil
 }
 
-func parseModuleResources(mfResources map[string]Resource, services map[string]*itf.Service) (map[string]itf.Resource, map[string]itf.Input, error) {
+func parseModuleResources(mfResources map[string]Resource, services map[string]*itf.Service) (map[string]set.Set[string], map[string]itf.Input, error) {
 	if mfResources != nil && len(mfResources) > 0 {
-		resources := make(map[string]itf.Resource)
+		resources := make(map[string]set.Set[string])
 		inputs := make(map[string]itf.Input)
 		for ref, mfResource := range mfResources {
 			if mfResource.Targets != nil && len(mfResource.Targets) > 0 {
@@ -347,11 +347,11 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 					}
 				}
 			}
-			r := itf.Resource{Type: mfResource.Type}
+			var r set.Set[string]
 			if mfResource.Tags != nil && len(mfResource.Tags) > 0 {
-				r.Tags = make(set.Set[string])
+				r = make(set.Set[string])
 				for _, tag := range mfResource.Tags {
-					r.Tags[tag] = struct{}{}
+					r[tag] = struct{}{}
 				}
 			}
 			resources[ref] = r
