@@ -57,6 +57,7 @@ type Service struct {
 	Resources            map[string]ResourceTarget           `json:"resources"`             // {mntPoint:ResourceTarget}
 	Secrets              map[string]string                   `json:"secrets"`               // {mntPoint:ref}
 	Configs              map[string]string                   `json:"configs"`               // {refVar:ref}
+	SrvReferences        map[string]string                   `json:"srv_references"`        // {refVar:ref}
 	HttpEndpoints        map[string]HttpEndpoint             `json:"http_endpoints"`        // {externalPath:HttpEndpoint}
 	Dependencies         map[string]ServiceDependencyTarget  `json:"dependencies"`          // {refVar:ServiceDependencyTarget}
 	ExternalDependencies map[string]ExternalDependencyTarget `json:"external_dependencies"` // {refVar:ExternalDependencyTarget}
