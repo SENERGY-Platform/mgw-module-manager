@@ -99,13 +99,6 @@ type portMapping struct {
 	Protocol *PortProtocol `json:"protocol"`  // 'tcp' if nil
 }
 
-type ServiceCondition = string
-
-type ServiceDependencyTarget struct {
-	Service   string           `json:"service"`
-	Condition ServiceCondition `json:"condition"`
-}
-
 type ExternalDependencyTarget struct {
 	ID      string `json:"id"`
 	Service string `json:"service"`
