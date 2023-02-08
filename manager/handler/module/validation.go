@@ -156,12 +156,9 @@ func Validate(m itf.Module, cValHandler itf.ConfigValidationHandler) error {
 			}
 		}
 		if service.Dependencies != nil {
-			for _, target := range service.Dependencies {
-				if _, ok := m.Services[target.Service]; !ok {
-					return fmt.Errorf("invalid service dependency: '%s' -> '%s'", ref, target.Service)
-				}
-				if !isValidSrvDepCondition(target.Condition) {
-					return fmt.Errorf("invalid service dependency condition: '%s' -> '%s'", ref, target.Condition)
+			for s := range service.Dependencies {
+				if _, ok := m.Services[s]; !ok {
+					return fmt.Errorf("invalid service dependency: '%s' -> '%s'", ref, s)
 				}
 			}
 		}
@@ -300,11 +297,6 @@ func isValidDeploymentType(s string) bool {
 func isValidModuleID(s string) bool {
 	re := regexp.MustCompile(`^([a-z0-9A-Z-_.]+)(:\d+)?([\/a-zA-Z0-9-\.]+)?$`)
 	return re.MatchString(s)
-}
-
-func isValidSrvDepCondition(s string) bool {
-	_, ok := itf.SrvDepConditionMap[s]
-	return ok
 }
 
 func isValidPath(s string) bool {
