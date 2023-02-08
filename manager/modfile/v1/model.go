@@ -100,12 +100,12 @@ type VolumeTarget struct {
 }
 
 type ModuleDependency struct {
-	Version          string                              `yaml:"version"`          // version of required module (e.g. =v1.0.2, >v1.0.2., >=v1.0.2, >v1.0.2;<v2.1.3, ...)
-	RequiredServices map[string][]ModuleDependencyTarget `yaml:"requiredServices"` // map linking required services to reference variables (identifiers as defined in Module.Services of the required module are used as keys)
+	Version          string                        `yaml:"version"`          // version of required module (e.g. =v1.0.2, >v1.0.2., >=v1.0.2, >v1.0.2;<v2.1.3, ...)
+	RequiredServices map[string][]DependencyTarget `yaml:"requiredServices"` // map linking required services to reference variables (identifiers as defined in Module.Services of the required module are used as keys)
 }
 
-type ModuleDependencyTarget struct {
-	RefVar   string   `yaml:"refVar"`   // container environment variable to hold the addressable reference of the external service
+type DependencyTarget struct {
+	RefVar   string   `yaml:"refVar"`   // container environment variable to hold the addressable reference of the service
 	Services []string `yaml:"services"` // service identifiers as used in Module.Services to map the reference variable to a number of services
 }
 
