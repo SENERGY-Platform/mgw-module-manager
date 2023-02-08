@@ -94,11 +94,6 @@ type PortMapping struct {
 	Protocol *string `yaml:"protocol"` // specify port protocol (defaults to tcp if nil)
 }
 
-type ServiceDependencyTarget struct {
-	RefVar    string `yaml:"refVar"`    // environment variable to hold the addressable reference of the required service
-	Condition string `yaml:"condition"` // running state of the required service
-}
-
 type VolumeTarget struct {
 	MountPoint string   `yaml:"mountPoint"` // absolute path in container
 	Services   []string `yaml:"services"`   // service identifiers as used in Module.Services to map the mount point to a number of services
