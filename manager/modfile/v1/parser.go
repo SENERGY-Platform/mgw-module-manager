@@ -239,17 +239,14 @@ func parseServicePortMappings(mfPortMappings []PortMapping) (itf.PortMappings, e
 	return nil, nil
 }
 
-func parseServiceDependencies(mfServiceDependencies map[string]ServiceDependencyTarget) (map[string]itf.ServiceDependencyTarget, error) {
+func parseServiceDependencies(mfServiceDependencies []string) (set.Set[string], error) {
 	if mfServiceDependencies != nil && len(mfServiceDependencies) > 0 {
-		serviceDependencies := make(map[string]itf.ServiceDependencyTarget)
-		for srv, mfTarget := range mfServiceDependencies {
-			if _, ok := serviceDependencies[mfTarget.RefVar]; ok {
-				return serviceDependencies, fmt.Errorf("duplicate '%s'", mfTarget.RefVar)
+		serviceDependencies := make(set.Set[string])
+		for _, ref := range mfServiceDependencies {
+			if _, ok := serviceDependencies[ref]; ok {
+				return serviceDependencies, fmt.Errorf("duplicate '%s'", ref)
 			}
-			serviceDependencies[mfTarget.RefVar] = itf.ServiceDependencyTarget{
-				Service:   srv,
-				Condition: mfTarget.Condition,
-			}
+			serviceDependencies[ref] = struct{}{}
 		}
 		return serviceDependencies, nil
 	}
