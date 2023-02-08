@@ -59,15 +59,15 @@ func (h *Handler) Update(id string) error {
 func (h *Handler) InputTemplate(m itf.Module) itf.InputTemplate {
 	it := itf.InputTemplate{InputGroups: m.Inputs.Groups}
 	if m.Inputs.Resources != nil {
-		it.Resources = make(map[string]itf.InputTemplateResource)
+		it.Resources = make(map[string]itf.Input)
 		for ref, input := range m.Inputs.Resources {
-			it.Resources[ref] = itf.InputTemplateResource{Input: input, Resource: m.Resources[ref]}
+			it.Resources[ref] = input
 		}
 	}
 	if m.Inputs.Secrets != nil {
-		it.Secrets = make(map[string]itf.InputTemplateResource)
+		it.Secrets = make(map[string]itf.InputTemplateSecret)
 		for ref, input := range m.Inputs.Secrets {
-			it.Secrets[ref] = itf.InputTemplateResource{Input: input, Resource: m.Secrets[ref]}
+			it.Secrets[ref] = itf.InputTemplateSecret{Input: input, Secret: m.Secrets[ref]}
 		}
 	}
 	if m.Inputs.Configs != nil {
