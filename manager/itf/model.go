@@ -209,15 +209,15 @@ type DeploymentsPostRequest struct {
 // Input Template -------------------------------------------------------------------------------
 
 type InputTemplate struct {
-	Resources   map[string]InputTemplateResource `json:"resources"`    // {ref:ResourceInput}
-	Secrets     map[string]InputTemplateResource `json:"secrets"`      // {ref:SecretInput}
-	Configs     map[string]InputTemplateConfig   `json:"configs"`      // {ref:ConfigInput}
-	InputGroups map[string]InputGroup            `json:"input_groups"` // {ref:InputGroup}
+	Resources   map[string]Input               `json:"resources"`    // {ref:ResourceInput}
+	Secrets     map[string]InputTemplateSecret `json:"secrets"`      // {ref:SecretInput}
+	Configs     map[string]InputTemplateConfig `json:"configs"`      // {ref:ConfigInput}
+	InputGroups map[string]InputGroup          `json:"input_groups"` // {ref:InputGroup}
 }
 
-type InputTemplateResource struct {
+type InputTemplateSecret struct {
 	Input
-	Resource
+	Secret
 }
 
 type InputTemplateConfig struct {
