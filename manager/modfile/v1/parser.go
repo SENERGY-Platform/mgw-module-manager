@@ -272,6 +272,8 @@ func parseModuleSrvReferences(mfSrvRefs map[string][]DependencyTarget, services 
 							return fmt.Errorf("service '%s' invalid service reference: duplicate '%s'", srv, mfTarget.RefVar)
 						}
 						v.SrvReferences[mfTarget.RefVar] = mfSrv
+					} else {
+						return fmt.Errorf("invalid service reference: service '%s' not defined", srv)
 					}
 				}
 			}
