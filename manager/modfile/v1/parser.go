@@ -335,6 +335,8 @@ func parseModuleDependencies(mfModuleDependencies map[string]ModuleDependency, s
 									ID:      id,
 									Service: rqSrv,
 								}
+							} else {
+								return moduleDependencies, fmt.Errorf("invalid module dependency: service '%s' not defined", srv)
 							}
 						}
 					}
