@@ -375,6 +375,8 @@ func parseModuleResources(mfResources map[string]Resource, services map[string]*
 									Ref:      ref,
 									ReadOnly: mfTarget.ReadOnly,
 								}
+							} else {
+								return resources, inputs, fmt.Errorf("invalid resource: service '%s' not defined", srv)
 							}
 						}
 					}
