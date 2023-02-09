@@ -202,8 +202,8 @@ func validateServiceRefVars(service *itf.Service) error {
 			refVars[rv] = "configs"
 		}
 	}
-	if service.Dependencies != nil {
-		for rv := range service.Dependencies {
+	if service.SrvReferences != nil {
+		for rv := range service.SrvReferences {
 			if rv == "" {
 				return errors.New("invalid ref var")
 			}
