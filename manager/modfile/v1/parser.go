@@ -300,6 +300,8 @@ func parseModuleVolumes(mfVolumes map[string][]VolumeTarget, services map[string
 							return volumes, fmt.Errorf("service '%s' invalid volume: duplicate '%s'", srv, mfTarget.MountPoint)
 						}
 						v.Volumes[mfTarget.MountPoint] = name
+					} else {
+						return volumes, fmt.Errorf("invalid volume: service '%s' not defined", srv)
 					}
 				}
 			}
