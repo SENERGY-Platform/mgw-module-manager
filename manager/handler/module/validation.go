@@ -155,6 +155,13 @@ func Validate(m itf.Module, cValHandler itf.ConfigValidationHandler) error {
 				extPaths[extPath] = edpt.Path
 			}
 		}
+		if service.SrvReferences != nil {
+			for refVar, s := range service.SrvReferences {
+				if _, ok := m.Services[s]; !ok {
+					return fmt.Errorf("invalid service reference: '%s' -> '%s' -> '%s'", ref, refVar, s)
+				}
+			}
+		}
 		if service.Dependencies != nil {
 			for s := range service.Dependencies {
 				if _, ok := m.Services[s]; !ok {
