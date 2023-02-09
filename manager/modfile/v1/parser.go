@@ -37,12 +37,7 @@ func (mf Module) Parse() (itf.Module, error) {
 		Type:           mf.Type,
 		DeploymentType: mf.DeploymentType,
 	}
-	if mf.Tags != nil && len(mf.Tags) > 0 {
-		m.Tags = make(set.Set[string])
-		for _, tag := range mf.Tags {
-			m.Tags[tag] = struct{}{}
-		}
-	}
+	m.Tags = parseModuleTags(mf.Tags)
 	services, err := parseModuleServices(mf.Services)
 	if err != nil {
 		return m, err
@@ -99,6 +94,17 @@ func (mf Module) Parse() (itf.Module, error) {
 	}
 	m.Inputs = userInput
 	return m, nil
+}
+
+func parseModuleTags(mfTags []string) set.Set[string] {
+	if mfTags != nil && len(mfTags) > 0 {
+		tags := make(set.Set[string])
+		for _, tag := range mfTags {
+			tags[tag] = struct{}{}
+		}
+		return tags
+	}
+	return nil
 }
 
 func parseModuleServices(mfServices map[string]Service) (map[string]*itf.Service, error) {
