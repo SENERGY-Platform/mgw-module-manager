@@ -74,14 +74,7 @@ func (mf Module) Parse() (itf.Module, error) {
 	m.Configs = configs
 	userInput := itf.Inputs{}
 	if mf.InputGroups != nil && len(mf.InputGroups) > 0 {
-		userInput.Groups = make(map[string]itf.InputGroup)
-		for ref, mfInputGroup := range mf.InputGroups {
-			userInput.Groups[ref] = itf.InputGroup{
-				Name:        mfInputGroup.Name,
-				Description: mfInputGroup.Description,
-				Group:       mfInputGroup.Group,
-			}
-		}
+		userInput.Groups = parseInputGroups(mf.InputGroups)
 	}
 	if rInputs != nil && len(rInputs) > 0 {
 		userInput.Resources = rInputs
@@ -683,4 +676,16 @@ func parseConfigTypeOptions(opt map[string]any) (itf.ConfigTypeOptions, error) {
 		}
 	}
 	return o, nil
+}
+
+func parseInputGroups(mfInputGroups map[string]InputGroup) map[string]itf.InputGroup {
+	iGroups := make(map[string]itf.InputGroup)
+	for ref, mfInputGroup := range mfInputGroups {
+		iGroups[ref] = itf.InputGroup{
+			Name:        mfInputGroup.Name,
+			Description: mfInputGroup.Description,
+			Group:       mfInputGroup.Group,
+		}
+	}
+	return iGroups
 }
