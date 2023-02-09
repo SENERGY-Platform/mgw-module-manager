@@ -473,6 +473,8 @@ func parseModuleConfigs(mfConfigs map[string]ConfigValue, services map[string]*i
 									return configs, inputs, fmt.Errorf("'%s' & '%s' -> '%s' -> '%s'", r, ref, srv, mfTarget.RefVar)
 								}
 								v.Configs[mfTarget.RefVar] = ref
+							} else {
+								return configs, inputs, fmt.Errorf("invalid config: service '%s' not defined", srv)
 							}
 						}
 					}
