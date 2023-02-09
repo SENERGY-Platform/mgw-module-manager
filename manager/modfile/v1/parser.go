@@ -424,6 +424,8 @@ func parseModuleSecrets(mfSecrets map[string]Secret, services map[string]*itf.Se
 									return secrets, inputs, fmt.Errorf("'%s' & '%s' -> '%s' -> '%s'", r, ref, srv, mfTarget.MountPoint)
 								}
 								v.Secrets[mfTarget.MountPoint] = ref
+							} else {
+								return secrets, inputs, fmt.Errorf("invalid secret: service '%s' not defined", srv)
 							}
 						}
 					}
