@@ -47,6 +47,10 @@ func (mf Module) Parse() (itf.Module, error) {
 	if err != nil {
 		return m, err
 	}
+	err = parseModuleSrvReferences(mf.ServiceReferences, services)
+	if err != nil {
+		return m, err
+	}
 	volumes, err := parseModuleVolumes(mf.Volumes, services)
 	if err != nil {
 		return m, err
@@ -251,6 +255,30 @@ func parseServiceDependencies(mfServiceDependencies []string) (set.Set[string], 
 		return serviceDependencies, nil
 	}
 	return nil, nil
+}
+
+func parseModuleSrvReferences(mfSrvRefs map[string][]DependencyTarget, services map[string]*itf.Service) error {
+	if mfSrvRefs != nil && len(mfSrvRefs) > 0 {
+		for mfSrv, mfTargets := range mfSrvRefs {
+			for _, mfTarget := range mfTargets {
+				for _, srv := range mfTarget.Services {
+					if v, ok := services[srv]; ok {
+						if v.SrvReferences == nil {
+							v.SrvReferences = make(map[string]string)
+						}
+						if s, k := v.SrvReferences[mfTarget.RefVar]; k {
+							if s == mfSrv {
+								continue
+							}
+							return fmt.Errorf("service '%s' invalid service reference: duplicate '%s'", srv, mfTarget.RefVar)
+						}
+						v.SrvReferences[mfTarget.RefVar] = mfSrv
+					}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func parseModuleVolumes(mfVolumes map[string][]VolumeTarget, services map[string]*itf.Service) (set.Set[string], error) {
