@@ -3,17 +3,17 @@ module module-manager
 go 1.19
 
 require (
-	code.cloudfoundry.org/bytefmt v0.0.0-20211005130812-5bb3c17173e5
 	github.com/SENERGY-Platform/gin-middleware v0.0.3
 	github.com/SENERGY-Platform/go-service-base v0.5.1
-	github.com/SENERGY-Platform/mgw-container-engine-manager-lib v0.7.0
+	github.com/SENERGY-Platform/mgw-modfile-lib v0.3.0
+	github.com/SENERGY-Platform/mgw-module-lib v0.4.3
 	github.com/gin-gonic/gin v1.8.1
 	github.com/y-du/go-log-level v0.2.2
-	golang.org/x/mod v0.5.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
+	code.cloudfoundry.org/bytefmt v0.0.0-20211005130812-5bb3c17173e5 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
@@ -28,6 +28,7 @@ require (
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/y-du/go-env-loader v0.5.0 // indirect
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
+	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/net v0.0.0-20210428140749-89ef3d95e781 // indirect
 	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
 	golang.org/x/text v0.3.6 // indirect
