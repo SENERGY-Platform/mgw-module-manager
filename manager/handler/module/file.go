@@ -38,13 +38,13 @@ type FileHandler struct {
 }
 
 func NewFileHandler(workdirPath string, delimiter string) (itf.ModuleStorageHandler, error) {
-	fh := &FileHandler{}
 	if !path.IsAbs(workdirPath) {
-		return fh, fmt.Errorf("workdir path must be absolute")
+		return nil, fmt.Errorf("workdir path must be absolute")
 	}
-	fh.WorkdirPath = workdirPath
-	fh.Delimiter = delimiter
-	return fh, nil
+	return &FileHandler{
+		WorkdirPath: workdirPath,
+		Delimiter:   delimiter,
+	}, nil
 }
 
 func (h *FileHandler) List() ([]string, error) {
