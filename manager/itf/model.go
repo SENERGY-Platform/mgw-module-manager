@@ -79,11 +79,11 @@ type InputTemplateSecret struct {
 
 type InputTemplateConfig struct {
 	module.Input
-	Default  any            `json:"default"`
-	Options  any            `json:"options"`
-	OptExt   bool           `json:"opt_ext"`
-	Type     string         `json:"type"`
-	TypeOpt  map[string]any `json:"type_opt"`
-	DataType DataType       `json:"data_type"`
-	IsList   bool           `json:"is_list"`
+	Default  any             `json:"default"`
+	Options  any             `json:"options"`
+	OptExt   bool            `json:"opt_ext"`
+	Type     string          `json:"type"`
+	TypeOpt  map[string]any  `json:"type_opt"`
+	DataType module.DataType `json:"data_type"`
+	IsList   bool            `json:"is_list"`
 }
