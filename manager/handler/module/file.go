@@ -95,8 +95,7 @@ func (h *FileHandler) CopyFrom(id string, srcPath string) error {
 	} else if ok {
 		return errors.New("already exists")
 	}
-	err := copyDir(srcPath, dstPath)
-	if err != nil {
+	if err := copyDir(srcPath, dstPath); err != nil {
 		if e := os.RemoveAll(dstPath); e != nil {
 			srv_base.Logger.Errorf("cleanup failed: %s", e)
 		}
