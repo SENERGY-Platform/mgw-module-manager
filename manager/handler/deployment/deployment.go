@@ -68,7 +68,10 @@ func (h *Handler) InputTemplate(m *module.Module) itf.InputTemplate {
 	if m.Inputs.Secrets != nil {
 		it.Secrets = make(map[string]itf.InputTemplateSecret)
 		for ref, input := range m.Inputs.Secrets {
-			it.Secrets[ref] = itf.InputTemplateSecret{Input: input, Secret: m.Secrets[ref]}
+			it.Secrets[ref] = itf.InputTemplateSecret{
+				Input:  input,
+				Secret: m.Secrets[ref],
+			}
 		}
 	}
 	if m.Inputs.Configs != nil {
