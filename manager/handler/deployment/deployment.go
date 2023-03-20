@@ -60,9 +60,12 @@ func (h *Handler) Update(id string) error {
 func (h *Handler) InputTemplate(m *module.Module) itf.InputTemplate {
 	it := itf.InputTemplate{InputGroups: m.Inputs.Groups}
 	if m.Inputs.Resources != nil {
-		it.Resources = make(map[string]module.Input)
+		it.Resources = make(map[string]itf.InputTemplateResource)
 		for ref, input := range m.Inputs.Resources {
-			it.Resources[ref] = input
+			it.Resources[ref] = itf.InputTemplateResource{
+				Input: input,
+				Tags:  m.Resources[ref],
+			}
 		}
 	}
 	if m.Inputs.Secrets != nil {
