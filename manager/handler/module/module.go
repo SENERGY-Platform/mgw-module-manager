@@ -23,7 +23,6 @@ import (
 	"github.com/SENERGY-Platform/go-service-base/srv-base/types"
 	"gopkg.in/yaml.v3"
 	"module-manager/manager/itf"
-	"module-manager/manager/modfile"
 	"net/http"
 	"os"
 )
