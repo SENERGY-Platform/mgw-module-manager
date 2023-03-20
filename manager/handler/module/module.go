@@ -21,6 +21,9 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/go-service-base/srv-base"
 	"github.com/SENERGY-Platform/go-service-base/srv-base/types"
+	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"github.com/SENERGY-Platform/mgw-module-lib/validation"
 	"gopkg.in/yaml.v3"
 	"module-manager/manager/itf"
 	"net/http"
@@ -30,10 +33,17 @@ import (
 type Handler struct {
 	storageHandler          itf.ModuleStorageHandler
 	configValidationHandler itf.ConfigValidationHandler
+	mfDecoders              modfile.Decoders
+	mfGenerators            modfile.Generators
 }
 
-func NewHandler(storageHandler itf.ModuleStorageHandler, configValidationHandler itf.ConfigValidationHandler) *Handler {
-	return &Handler{storageHandler: storageHandler, configValidationHandler: configValidationHandler}
+func NewHandler(storageHandler itf.ModuleStorageHandler, configValidationHandler itf.ConfigValidationHandler, mfDecoders modfile.Decoders, mfGenerators modfile.Generators) *Handler {
+	return &Handler{
+		storageHandler:          storageHandler,
+		configValidationHandler: configValidationHandler,
+		mfDecoders:              mfDecoders,
+		mfGenerators:            mfGenerators,
+	}
 }
 
 func (h *Handler) List() ([]itf.Module, error) {
