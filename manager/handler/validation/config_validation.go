@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"module-manager/manager/itf"
 	"os"
 	"regexp"
@@ -42,7 +43,7 @@ func NewConfigValidationHandler(definitionsPath string, validators map[string]it
 	return &ConfigValidationHandler{definitions: definitions, validators: validators}, nil
 }
 
-func (h *ConfigValidationHandler) ValidateBase(cType string, cTypeOpt itf.ConfigTypeOptions, dataType itf.DataType) error {
+func (h *ConfigValidationHandler) ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType itf.DataType) error {
 	if h.definitions != nil {
 		def, ok := h.definitions[cType]
 		if !ok {
@@ -89,7 +90,7 @@ func (h *ConfigValidationHandler) ValidateBase(cType string, cTypeOpt itf.Config
 	return nil
 }
 
-func (h *ConfigValidationHandler) ValidateOptions(cType string, cTypeOpt itf.ConfigTypeOptions) error {
+func (h *ConfigValidationHandler) ValidateOptions(cType string, cTypeOpt module.ConfigTypeOptions) error {
 	if h.definitions != nil {
 		def, ok := h.definitions[cType]
 		if !ok {
@@ -133,7 +134,7 @@ func (h *ConfigValidationHandler) ValidateOptions(cType string, cTypeOpt itf.Con
 	return nil
 }
 
-func (h *ConfigValidationHandler) ValidateValue(cType string, cTypeOpt itf.ConfigTypeOptions, value any) error {
+func (h *ConfigValidationHandler) ValidateValue(cType string, cTypeOpt module.ConfigTypeOptions, value any) error {
 	if h.definitions != nil {
 		def, ok := h.definitions[cType]
 		if !ok {
