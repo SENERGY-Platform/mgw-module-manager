@@ -17,12 +17,13 @@
 package itf
 
 import (
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"io"
 )
 
 type ModuleHandler interface {
-	List() ([]Module, error)
-	Read(id string) (Module, error)
+	List() ([]*module.Module, error)
+	Read(id string) (*module.Module, error)
 	Add(id string) error
 	Delete(id string) error
 	Update(id string) error
