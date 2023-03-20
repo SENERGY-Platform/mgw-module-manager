@@ -46,29 +46,27 @@ func NewHandler(storageHandler itf.ModuleStorageHandler, configValidationHandler
 	}
 }
 
-func (h *Handler) List() ([]itf.Module, error) {
-	var modules []itf.Module
+func (h *Handler) List() ([]*module.Module, error) {
 	mIds, err := h.storageHandler.List()
 	if err != nil {
-		return modules, srv_base_types.NewError(http.StatusInternalServerError, "listing modules failed", err)
+		return nil, srv_base_types.NewError(http.StatusInternalServerError, "listing modules failed", err)
 	}
+	var modules []*module.Module
 	for _, id := range mIds {
-		modFile, err := h.storageHandler.Open(id)
+		file, err := h.storageHandler.Open(id)
 		if err != nil {
 			srv_base.Logger.Errorf("opening module '%s' failed: %s", id, err)
 			continue
 		}
-		var m itf.Module
-		yd := yaml.NewDecoder(modFile)
-		var mf modfile.ModFile
-		err = yd.Decode(&mf)
-		if err != nil {
+		yd := yaml.NewDecoder(file)
+		mf := modfile.New(h.mfDecoders, h.mfGenerators)
+		if err = yd.Decode(&mf); err != nil {
 			srv_base.Logger.Errorf("decoding modfile '%s' failed: %s", id, err)
 			continue
 		}
-		m, err = mf.ParseModule()
+		m, err := mf.GetModule()
 		if err != nil {
-			srv_base.Logger.Errorf("parsing module '%s' failed: %s", id, err)
+			srv_base.Logger.Errorf("getting module '%s' failed: %s", id, err)
 			continue
 		}
 		modules = append(modules, m)
