@@ -48,12 +48,12 @@ func NewFileHandler(workdirPath string, delimiter string) (itf.ModuleStorageHand
 }
 
 func (h *FileHandler) List() ([]string, error) {
-	var mIds []string
-	de, err := os.ReadDir(h.WorkdirPath)
+	dir, err := os.ReadDir(h.WorkdirPath)
 	if err != nil {
-		return mIds, newErr(h.WorkdirPath, err)
+		return nil, newErr(h.WorkdirPath, err)
 	}
-	for _, entry := range de {
+	var mIds []string
+	for _, entry := range dir {
 		if entry.IsDir() {
 			mIds = append(mIds, dirToId(entry.Name(), h.Delimiter))
 		}
