@@ -49,7 +49,7 @@ func (h *ConfigValidationHandler) ValidateBase(cType string, cTypeOpt module.Con
 		if !ok {
 			return fmt.Errorf("unknown config type '%s'", cType)
 		}
-		if _, ok = def.DataType[dataType]; !ok {
+		if !inStrSlice(dataType, def.DataType) {
 			return fmt.Errorf("data type '%s' not supported by '%s'", dataType, cType)
 		}
 		if cTypeOpt != nil && def.Options == nil {
@@ -75,7 +75,7 @@ func (h *ConfigValidationHandler) ValidateBase(cType string, cTypeOpt module.Con
 							return fmt.Errorf("data type '%s' not supported by option '%s' of '%s'", tOpt.DataType, key, cType)
 						}
 					} else {
-						if _, ok = defOpt.DataType[tOpt.DataType]; !ok {
+						if !inStrSlice(tOpt.DataType, defOpt.DataType) {
 							return fmt.Errorf("data type '%s' not supported by option '%s' of '%s'", tOpt.DataType, key, cType)
 						}
 					}
@@ -228,4 +228,13 @@ func validateDefs(configDefs map[string]itf.ConfigDefinition, validators map[str
 		}
 	}
 	return nil
+}
+
+func inStrSlice(c string, sl []string) bool {
+	for _, s := range sl {
+		if c == s {
+			return true
+		}
+	}
+	return false
 }
