@@ -74,25 +74,24 @@ func (h *Handler) List() ([]*module.Module, error) {
 	return modules, nil
 }
 
-func (h *Handler) Read(id string) (itf.Module, error) {
-	var m itf.Module
-	modFile, err := h.storageHandler.Open(id)
+func (h *Handler) Read(id string) (*module.Module, error) {
+	file, err := h.storageHandler.Open(id)
 	if err != nil {
 		code := http.StatusInternalServerError
 		if os.IsNotExist(errors.Unwrap(err)) {
 			code = http.StatusNotFound
 		}
-		return m, srv_base_types.NewError(code, fmt.Sprintf("opening module '%s' failed", id), err)
+		return nil, srv_base_types.NewError(code, fmt.Sprintf("opening module '%s' failed", id), err)
 	}
-	yd := yaml.NewDecoder(modFile)
-	var mf modfile.ModFile
+	yd := yaml.NewDecoder(file)
+	mf := modfile.New(h.mfDecoders, h.mfGenerators)
 	err = yd.Decode(&mf)
 	if err != nil {
-		return m, srv_base_types.NewError(http.StatusInternalServerError, fmt.Sprintf("decoding modfile '%s' failed", id), err)
+		return nil, srv_base_types.NewError(http.StatusInternalServerError, fmt.Sprintf("decoding modfile '%s' failed", id), err)
 	}
-	m, err = mf.ParseModule()
+	m, err := mf.GetModule()
 	if err != nil {
-		return m, srv_base_types.NewError(http.StatusInternalServerError, fmt.Sprintf("parsing module '%s' failed", id), err)
+		return nil, srv_base_types.NewError(http.StatusInternalServerError, fmt.Sprintf("getting module '%s' failed", id), err)
 	}
 	return m, nil
 }
