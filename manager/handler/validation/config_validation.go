@@ -43,7 +43,7 @@ func NewConfigValidationHandler(definitionsPath string, validators map[string]it
 	return &ConfigValidationHandler{definitions: definitions, validators: validators}, nil
 }
 
-func (h *ConfigValidationHandler) ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType itf.DataType) error {
+func (h *ConfigValidationHandler) ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error {
 	if h.definitions != nil {
 		def, ok := h.definitions[cType]
 		if !ok {
