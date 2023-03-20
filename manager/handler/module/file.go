@@ -128,11 +128,11 @@ func checkIfExist(p string) (ok bool, err error) {
 }
 
 func detectModFile(p string) (string, error) {
-	p = path.Join(p, modfile.FileName)
+	p = path.Join(p, FileName)
 	if ok, err := checkIfExist(p); err != nil || ok {
 		return p, err
 	}
-	for _, ext := range modfile.FileExtensions {
+	for _, ext := range FileExtensions {
 		tp := p + "." + ext
 		if ok, err := checkIfExist(tp); err != nil || ok {
 			return tp, err
