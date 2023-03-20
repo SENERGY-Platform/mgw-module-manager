@@ -22,6 +22,9 @@ import (
 	"github.com/SENERGY-Platform/gin-middleware"
 	"github.com/SENERGY-Platform/go-service-base/srv-base"
 	"github.com/SENERGY-Platform/go-service-base/srv-base/types"
+	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
+	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1dec"
+	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1gen"
 	"github.com/gin-gonic/gin"
 	"module-manager/manager/api"
 	"module-manager/manager/handler/deployment"
@@ -86,7 +89,12 @@ func main() {
 		return
 	}
 
-	moduleHandler := module.NewHandler(moduleStorageHandler, configValidationHandler)
+	mfDecoders := make(modfile.Decoders)
+	mfDecoders.Add(v1dec.GetDecoder)
+	mfGenerators := make(modfile.Generators)
+	mfGenerators.Add(v1gen.GetGenerator)
+
+	moduleHandler := module.NewHandler(moduleStorageHandler, configValidationHandler, mfDecoders, mfGenerators)
 	deploymentHandler := deployment.NewHandler(nil)
 
 	dmApi := api.New(moduleHandler, deploymentHandler)
