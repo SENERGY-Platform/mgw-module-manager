@@ -17,6 +17,7 @@
 package deployment
 
 import (
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"module-manager/manager/itf"
 )
 
@@ -36,7 +37,7 @@ func (h *Handler) Read(id string) (itf.Deployment, error) {
 	return itf.Deployment{}, nil
 }
 
-func (h *Handler) Add(b itf.DeploymentBase, m itf.Module) error {
+func (h *Handler) Add(b itf.DeploymentBase, m module.Module) error {
 	return nil
 }
 
@@ -56,10 +57,10 @@ func (h *Handler) Update(id string) error {
 	return nil
 }
 
-func (h *Handler) InputTemplate(m itf.Module) itf.InputTemplate {
+func (h *Handler) InputTemplate(m *module.Module) itf.InputTemplate {
 	it := itf.InputTemplate{InputGroups: m.Inputs.Groups}
 	if m.Inputs.Resources != nil {
-		it.Resources = make(map[string]itf.Input)
+		it.Resources = make(map[string]module.Input)
 		for ref, input := range m.Inputs.Resources {
 			it.Resources[ref] = input
 		}
