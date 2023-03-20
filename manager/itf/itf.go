@@ -40,12 +40,12 @@ type ModuleStorageHandler interface {
 type DeploymentHandler interface {
 	List() ([]Deployment, error)
 	Read(id string) (Deployment, error)
-	Add(b DeploymentBase, m Module) error
+	Add(b DeploymentBase, m module.Module) error
 	Start(id string) error
 	Stop(id string) error
 	Delete(id string) error
 	Update(id string) error
-	InputTemplate(m Module) InputTemplate
+	InputTemplate(m *module.Module) InputTemplate
 }
 
 type DeploymentStorageHandler interface {
@@ -59,7 +59,7 @@ type DeploymentStorageHandler interface {
 type Validator func(params map[string]any) error
 
 type ConfigValidationHandler interface {
-	ValidateBase(cType string, cTypeOpt ConfigTypeOptions, dataType DataType) error
-	ValidateOptions(cType string, cTypeOpt ConfigTypeOptions) error
-	ValidateValue(cType string, cTypeOpt ConfigTypeOptions, value any) error
+	ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType DataType) error
+	ValidateOptions(cType string, cTypeOpt module.ConfigTypeOptions) error
+	ValidateValue(cType string, cTypeOpt module.ConfigTypeOptions, value any) error
 }
