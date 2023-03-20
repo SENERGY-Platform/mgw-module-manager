@@ -22,7 +22,6 @@ import (
 	"github.com/SENERGY-Platform/go-service-base/srv-base"
 	"io"
 	"module-manager/manager/itf"
-	"module-manager/manager/modfile"
 	"os"
 	"os/exec"
 	"path"
