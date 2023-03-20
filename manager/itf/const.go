@@ -17,53 +17,15 @@
 package itf
 
 const (
-	AddOnModule           ModuleType = "add-on"
-	DeviceConnectorModule ModuleType = "device-connector"
+	BoolType    DataType = "bool"
+	Int64Type   DataType = "int"
+	Float64Type DataType = "float"
+	StringType  DataType = "string"
 )
 
-var ModuleTypeMap = map[ModuleType]struct{}{
-	AddOnModule:           {},
-	DeviceConnectorModule: {},
+var DataTypeMap = map[string]struct{}{
+	BoolType:    {},
+	Int64Type:   {},
+	Float64Type: {},
+	StringType:  {},
 }
-
-const (
-	SingleDeployment   DeploymentType = "single"
-	MultipleDeployment DeploymentType = "multiple"
-)
-
-var DeploymentTypeMap = map[DeploymentType]struct{}{
-	SingleDeployment:   {},
-	MultipleDeployment: {},
-}
-
-const (
-	TcpPort PortProtocol = "tcp"
-	UdpPort PortProtocol = "udp"
-)
-
-var PortTypeMap = map[PortProtocol]struct{}{
-	TcpPort: {},
-	UdpPort: {},
-}
-
-const (
-	BoolType DataType = iota
-	Int64Type
-	Float64Type
-	StringType
-)
-
-var DataTypeRef = []string{
-	BoolType:    "bool",
-	Int64Type:   "int",
-	Float64Type: "float",
-	StringType:  "string",
-}
-
-var DataTypeRefMap = func() map[string]DataType {
-	m := make(map[string]DataType)
-	for i := 0; i < len(DataTypeRef); i++ {
-		m[DataTypeRef[i]] = DataType(i)
-	}
-	return m
-}()
