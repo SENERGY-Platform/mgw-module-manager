@@ -28,6 +28,10 @@ import (
 	"strings"
 )
 
+const FileName = "Modfile"
+
+var FileExtensions = []string{"yaml", "yml"}
+
 type FileHandler struct {
 	WorkdirPath string
 	Delimiter   string
