@@ -23,7 +23,6 @@ import (
 	"github.com/SENERGY-Platform/go-service-base/srv-base/types"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-lib/validation"
 	"gopkg.in/yaml.v3"
 	"module-manager/manager/itf"
 	"net/http"
