@@ -29,16 +29,16 @@ func NewHandler(storageHandler itf.DeploymentStorageHandler) *Handler {
 	return &Handler{storageHandler: storageHandler}
 }
 
-func (h *Handler) List() ([]itf.Deployment, error) {
+func (h *Handler) List() ([]model.Deployment, error) {
 	return nil, nil
 }
 
-func (h *Handler) Read(id string) (itf.Deployment, error) {
-	return itf.Deployment{}, nil
+func (h *Handler) Read(id string) (model.Deployment, error) {
+	return model.Deployment{}, nil
 }
 
-func (h *Handler) Add(b itf.DeploymentBase, m module.Module) error {
-	return nil
+func (h *Handler) Add(b model.DeploymentBase, m *module.Module) (string, error) {
+	return "", nil
 }
 
 func (h *Handler) Start(id string) error {
@@ -57,31 +57,31 @@ func (h *Handler) Update(id string) error {
 	return nil
 }
 
-func (h *Handler) InputTemplate(m *module.Module) itf.InputTemplate {
-	it := itf.InputTemplate{InputGroups: m.Inputs.Groups}
+func (h *Handler) InputTemplate(m *module.Module) model.InputTemplate {
+	it := model.InputTemplate{InputGroups: m.Inputs.Groups}
 	if m.Inputs.Resources != nil {
-		it.Resources = make(map[string]itf.InputTemplateResource)
+		it.Resources = make(map[string]model.InputTemplateResource)
 		for ref, input := range m.Inputs.Resources {
-			it.Resources[ref] = itf.InputTemplateResource{
+			it.Resources[ref] = model.InputTemplateResource{
 				Input: input,
 				Tags:  m.Resources[ref],
 			}
 		}
 	}
 	if m.Inputs.Secrets != nil {
-		it.Secrets = make(map[string]itf.InputTemplateSecret)
+		it.Secrets = make(map[string]model.InputTemplateSecret)
 		for ref, input := range m.Inputs.Secrets {
-			it.Secrets[ref] = itf.InputTemplateSecret{
+			it.Secrets[ref] = model.InputTemplateSecret{
 				Input:  input,
 				Secret: m.Secrets[ref],
 			}
 		}
 	}
 	if m.Inputs.Configs != nil {
-		it.Configs = make(map[string]itf.InputTemplateConfig)
+		it.Configs = make(map[string]model.InputTemplateConfig)
 		for ref, input := range m.Inputs.Configs {
 			cv := m.Configs[ref]
-			itc := itf.InputTemplateConfig{
+			itc := model.InputTemplateConfig{
 				Input:    input,
 				Default:  cv.Default,
 				Options:  cv.Options,
