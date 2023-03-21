@@ -45,8 +45,8 @@ type ConfigDefinitionValidatorParam struct {
 // Deployment -----------------------------------------------------------------------------------
 
 type DeploymentBase struct {
-	Name      *string           `json:"name"` // module name if nil
 	ModuleID  string            `json:"module_id"`
+	Name      *string           `json:"name"`      // defaults to module name if nil
 	Resources map[string]string `json:"resources"` // {ref:resourceID}
 	Secrets   map[string]string `json:"secrets"`   // {ref:secretID}
 	Configs   map[string]any    `json:"configs"`   // {ref:value}
