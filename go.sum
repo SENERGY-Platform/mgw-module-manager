@@ -4,10 +4,10 @@ github.com/SENERGY-Platform/gin-middleware v0.0.3 h1:4nHTazmr0nwaH07GNxePD5Cx+dS
 github.com/SENERGY-Platform/gin-middleware v0.0.3/go.mod h1:dQhrVQLWQ+o1mcjp8492amf5ISsdxDRI5UnHBmDBMcA=
 github.com/SENERGY-Platform/go-service-base v0.5.1 h1:uSWeF4TaYd2RJwDpd0bkUf9um1KloKFOg/uCHRn5sik=
 github.com/SENERGY-Platform/go-service-base v0.5.1/go.mod h1:MzMs3X4xFg9GxYoC1JrRXyKpN6lh3NgWTuwpk6P2Qzs=
-github.com/SENERGY-Platform/mgw-modfile-lib v0.3.0 h1:e+0cJSfdSqNz5AgS5fz9kgy5HLAN+cnqlCyJ2qmhqXc=
-github.com/SENERGY-Platform/mgw-modfile-lib v0.3.0/go.mod h1:NmxVFov1h5nODgxsez7ozz7xQoyMLFuSvUgrVAe24Ts=
-github.com/SENERGY-Platform/mgw-module-lib v0.4.3 h1:z9DjBhJikHik0uVPG9MQTL5p28U9hx4U2ZpX7/ulaBk=
-github.com/SENERGY-Platform/mgw-module-lib v0.4.3/go.mod h1:JhBC4Xodrx8sq5hGKtk11Zie6ZPYWMG2tx3vP9vqGf8=
+github.com/SENERGY-Platform/mgw-modfile-lib v0.4.0 h1:tXxfLtU7rsUg5EeQbhBaQCtrFByU75fm2virv5HJm0o=
+github.com/SENERGY-Platform/mgw-modfile-lib v0.4.0/go.mod h1:FJ9miJq7AiOyj/NMTM8/S3qS/QtX230kpCKOV5ZRhYU=
+github.com/SENERGY-Platform/mgw-module-lib v0.5.0 h1:vlSXnt2D/4zE6SqgXRg0Fa1oy3T/z5WilxneiBVTRkU=
+github.com/SENERGY-Platform/mgw-module-lib v0.5.0/go.mod h1:JhBC4Xodrx8sq5hGKtk11Zie6ZPYWMG2tx3vP9vqGf8=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
