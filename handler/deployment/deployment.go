@@ -18,8 +18,8 @@ package deployment
 
 import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"module-manager/manager/itf"
-	"module-manager/manager/model"
+	"module-manager/itf"
+	"module-manager/model"
 )
 
 type Handler struct {

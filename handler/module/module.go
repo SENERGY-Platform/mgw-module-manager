@@ -24,7 +24,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"gopkg.in/yaml.v3"
-	"module-manager/manager/itf"
+	"module-manager/itf"
 	"net/http"
 	"os"
 )

@@ -17,7 +17,7 @@
 package api
 
 import (
-	"module-manager/manager/itf"
+	"module-manager/itf"
 )
 
 type Api struct {

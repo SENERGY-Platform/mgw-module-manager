@@ -17,7 +17,7 @@
 package api
 
 import (
-	"module-manager/manager/model"
+	model "module-manager/model"
 )
 
 func (a *Api) GetInputTemplate(id string) (model.InputTemplate, error) {

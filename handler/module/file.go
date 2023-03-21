@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/go-service-base/srv-base"
 	"io"
-	"module-manager/manager/itf"
 	"os"
 	"os/exec"
 	"path"
@@ -37,7 +36,7 @@ type FileHandler struct {
 	Delimiter   string
 }
 
-func NewFileHandler(workdirPath string, delimiter string) (itf.ModuleStorageHandler, error) {
+func NewFileHandler(workdirPath string, delimiter string) (*FileHandler, error) {
 	if !path.IsAbs(workdirPath) {
 		return nil, fmt.Errorf("workdir path must be absolute")
 	}

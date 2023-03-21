@@ -19,7 +19,7 @@ package itf
 import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"io"
-	"module-manager/manager/model"
+	"module-manager/model"
 )
 
 type ModuleHandler interface {
