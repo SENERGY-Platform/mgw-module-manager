@@ -16,7 +16,10 @@
 
 package model
 
-import "github.com/SENERGY-Platform/mgw-module-lib/module"
+import (
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"github.com/SENERGY-Platform/mgw-module-lib/util"
+)
 
 type InputTemplate struct {
 	Resources   map[string]InputTemplateResource `json:"resources"`    // {ref:ResourceInput}
@@ -27,7 +30,7 @@ type InputTemplate struct {
 
 type InputTemplateResource struct {
 	module.Input
-	Tags map[string]struct{} `json:"tags"`
+	Tags util.Set[string] `json:"tags"`
 }
 
 type InputTemplateSecret struct {
