@@ -58,7 +58,7 @@ type Deployment struct {
 	Containers map[string]struct{}
 }
 
-type DeploymentsPostRequest struct {
+type DeploymentRequest struct {
 	DeploymentBase
 	SecretRequests map[string]any // {ref:value}
 }
