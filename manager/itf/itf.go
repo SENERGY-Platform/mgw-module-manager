@@ -63,3 +63,10 @@ type ConfigValidationHandler interface {
 	ValidateOptions(cType string, cTypeOpt module.ConfigTypeOptions) error
 	ValidateValue(cType string, cTypeOpt module.ConfigTypeOptions, value any) error
 }
+
+type Api interface {
+	GetModules() ([]*module.Module, error)
+	GetModule(id string) (*module.Module, error)
+	GetInputTemplate(id string) (model.InputTemplate, error)
+	DeployModule(dr model.DeploymentRequest) (string, error)
+}
