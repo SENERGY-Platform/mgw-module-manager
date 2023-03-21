@@ -28,6 +28,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"module-manager/manager/api"
 	"module-manager/manager/handler/deployment"
+	"module-manager/manager/handler/http_engine"
 	"module-manager/manager/handler/module"
 	"module-manager/manager/handler/validation"
 	"module-manager/manager/handler/validation/validators"
@@ -66,11 +67,6 @@ func main() {
 
 	srv_base.Logger.Debugf("config: %s", srv_base.ToJsonStr(config))
 
-	gin.SetMode(gin.ReleaseMode)
-	apiEngine := gin.New()
-	apiEngine.Use(gin_mw.LoggerHandler(srv_base.Logger), gin_mw.ErrorHandler, gin.Recovery())
-	apiEngine.UseRawPath = true
-
 	moduleStorageHandler, err := module.NewFileHandler(config.ModuleFileHandler.WorkdirPath, config.ModuleFileHandler.Delimiter)
 	if err != nil {
 		srv_base.Logger.Error(err)
@@ -95,13 +91,25 @@ func main() {
 	moduleHandler := module.NewHandler(moduleStorageHandler, configValidationHandler, mfDecoders, mfGenerators)
 	deploymentHandler := deployment.NewHandler(nil)
 
-	dmApi := api.New(moduleHandler, deploymentHandler)
-	dmApi.SetRoutes(apiEngine)
+	mApi := api.New(moduleHandler, deploymentHandler)
+
+	gin.SetMode(gin.ReleaseMode)
+	httpEngine := gin.New()
+	httpEngine.Use(gin_mw.LoggerHandler(srv_base.Logger), gin_mw.ErrorHandler, gin.Recovery())
+	httpEngine.UseRawPath = true
+
+	httpEngine.GET("modules", http_engine.GenHandler(mApi.GetModules))
+	httpEngine.GET("modules/:m", http_engine.GenHandlerP(mApi.GetModule, func(gc *gin.Context) (string, error) {
+		return http_engine.GetUrlParam(gc, "m")
+	}))
+	httpEngine.GET("modules/:m/input_template", http_engine.GenHandlerP(mApi.GetInputTemplate, func(gc *gin.Context) (string, error) {
+		return http_engine.GetUrlParam(gc, "m")
+	}))
 
 	listener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
 		srv_base.Logger.Error(err)
 		return
 	}
-	srv_base.StartServer(&http.Server{Handler: apiEngine}, listener, srv_base_types.DefaultShutdownSignals)
+	srv_base.StartServer(&http.Server{Handler: httpEngine}, listener, srv_base_types.DefaultShutdownSignals)
 }
