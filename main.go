@@ -33,6 +33,7 @@ import (
 	"module-manager/handler/validation"
 	"module-manager/handler/validation/validators"
 	"module-manager/itf"
+	"module-manager/model"
 	"module-manager/util"
 	"net"
 	"net/http"
@@ -105,6 +106,7 @@ func main() {
 	httpEngine.GET("modules/:m/input_template", http_engine.GenHandlerP(mApi.GetInputTemplate, func(gc *gin.Context) (string, error) {
 		return http_engine.GetUrlParam(gc, "m")
 	}))
+	httpEngine.POST("deployments", http_engine.GenHandlerP(mApi.DeployModule, http_engine.GetJsonBody[model.DeploymentRequest]))
 
 	listener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
