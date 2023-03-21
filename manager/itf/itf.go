@@ -19,6 +19,7 @@ package itf
 import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"io"
+	"module-manager/manager/model"
 )
 
 type ModuleHandler interface {
@@ -38,20 +39,20 @@ type ModuleStorageHandler interface {
 }
 
 type DeploymentHandler interface {
-	List() ([]Deployment, error)
-	Read(id string) (Deployment, error)
-	Add(b DeploymentBase, m module.Module) error
+	List() ([]model.Deployment, error)
+	Read(id string) (model.Deployment, error)
+	Add(b model.DeploymentBase, m *module.Module) (string, error)
 	Start(id string) error
 	Stop(id string) error
 	Delete(id string) error
 	Update(id string) error
-	InputTemplate(m *module.Module) InputTemplate
+	InputTemplate(m *module.Module) model.InputTemplate
 }
 
 type DeploymentStorageHandler interface {
-	List() ([]Deployment, error)
-	Create(base Deployment) error
-	Read(id string) (Deployment, error)
+	List() ([]model.Deployment, error)
+	Create(base model.Deployment) error
+	Read(id string) (model.Deployment, error)
 	Update(id string) error
 	Delete(id string) error
 }
