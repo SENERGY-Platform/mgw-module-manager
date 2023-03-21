@@ -17,34 +17,13 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	"net/http"
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
 )
 
-func (a *Api) GetModules(gc *gin.Context) {
-	modules, err := a.moduleHandler.List()
-	if err != nil {
-		_ = gc.Error(err)
-		return
-	}
-	gc.JSON(http.StatusOK, &modules)
+func (a *Api) GetModules() ([]*module.Module, error) {
+	return a.moduleHandler.List()
 }
 
-func (a *Api) GetModule(gc *gin.Context) {
-	module, err := a.moduleHandler.Read(gc.Param("module"))
-	if err != nil {
-		_ = gc.Error(err)
-		return
-	}
-	gc.JSON(http.StatusOK, &module)
-}
-
-func (a *Api) GetModuleInputTemplate(gc *gin.Context) {
-	module, err := a.moduleHandler.Read(gc.Param("module"))
-	if err != nil {
-		_ = gc.Error(err)
-		return
-	}
-	template := a.deploymentHandler.InputTemplate(module)
-	gc.JSON(http.StatusOK, &template)
+func (a *Api) GetModule(id string) (*module.Module, error) {
+	return a.moduleHandler.Read(id)
 }

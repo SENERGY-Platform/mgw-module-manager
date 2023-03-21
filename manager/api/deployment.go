@@ -17,27 +17,26 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	"module-manager/manager/itf"
-	"net/http"
+	"module-manager/manager/model"
 )
 
-func (a *Api) PostDeployment(gc *gin.Context) {
-	base := itf.DeploymentBase{}
-	if err := gc.ShouldBindJSON(&base); err != nil {
-		gc.Status(http.StatusBadRequest)
-		_ = gc.Error(err)
-		return
-	}
-	module, err := a.moduleHandler.Read(base.ModuleID)
+func (a *Api) GetInputTemplate(id string) (model.InputTemplate, error) {
+	m, err := a.moduleHandler.Read(id)
 	if err != nil {
-		_ = gc.Error(err)
-		return
+		return model.InputTemplate{}, err
 	}
-	err = a.deploymentHandler.Add(base, module)
+	template := a.deploymentHandler.InputTemplate(m)
+	return template, nil
+}
+
+func (a *Api) DeployModule(dr model.DeploymentRequest) (string, error) {
+	m, err := a.moduleHandler.Read(dr.ModuleID)
 	if err != nil {
-		_ = gc.Error(err)
-		return
+		return "", err
 	}
-	gc.Status(http.StatusOK)
+	id, err := a.deploymentHandler.Add(dr.DeploymentBase, m)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
 }

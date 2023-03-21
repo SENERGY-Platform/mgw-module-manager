@@ -17,8 +17,6 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	"module-manager/manager/api/util"
 	"module-manager/manager/itf"
 )
 
@@ -29,11 +27,4 @@ type Api struct {
 
 func New(moduleHandler itf.ModuleHandler, deploymentHandler itf.DeploymentHandler) *Api {
 	return &Api{moduleHandler: moduleHandler, deploymentHandler: deploymentHandler}
-}
-
-func (a *Api) SetRoutes(e *gin.Engine) {
-	e.GET("modules", a.GetModules)
-	e.GET("modules/:"+util.ModuleParam, a.GetModule)
-	e.GET("modules/:"+util.ModuleParam+"/input_template", a.GetModuleInputTemplate)
-	e.POST("deployments", a.PostDeployment)
 }
