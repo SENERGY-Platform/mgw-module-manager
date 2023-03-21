@@ -59,46 +59,40 @@ func (h *Handler) Update(id string) error {
 }
 
 func (h *Handler) InputTemplate(m *module.Module) model.InputTemplate {
-	it := model.InputTemplate{InputGroups: m.Inputs.Groups}
-	if m.Inputs.Resources != nil {
-		it.Resources = make(map[string]model.InputTemplateResource)
-		for ref, input := range m.Inputs.Resources {
-			it.Resources[ref] = model.InputTemplateResource{
-				Input: input,
-				Tags:  m.Resources[ref],
-			}
+	it := model.InputTemplate{
+		Resources:   make(map[string]model.InputTemplateResource),
+		Secrets:     make(map[string]model.InputTemplateSecret),
+		Configs:     make(map[string]model.InputTemplateConfig),
+		InputGroups: m.Inputs.Groups,
+	}
+	for ref, input := range m.Inputs.Resources {
+		it.Resources[ref] = model.InputTemplateResource{
+			Input: input,
+			Tags:  m.Resources[ref],
 		}
 	}
-	if m.Inputs.Secrets != nil {
-		it.Secrets = make(map[string]model.InputTemplateSecret)
-		for ref, input := range m.Inputs.Secrets {
-			it.Secrets[ref] = model.InputTemplateSecret{
-				Input:  input,
-				Secret: m.Secrets[ref],
-			}
+	for ref, input := range m.Inputs.Secrets {
+		it.Secrets[ref] = model.InputTemplateSecret{
+			Input:  input,
+			Secret: m.Secrets[ref],
 		}
 	}
-	if m.Inputs.Configs != nil {
-		it.Configs = make(map[string]model.InputTemplateConfig)
-		for ref, input := range m.Inputs.Configs {
-			cv := m.Configs[ref]
-			itc := model.InputTemplateConfig{
-				Input:    input,
-				Default:  cv.Default,
-				Options:  cv.Options,
-				OptExt:   cv.OptExt,
-				Type:     cv.Type,
-				DataType: cv.DataType,
-				IsList:   cv.IsSlice,
-			}
-			if cv.TypeOpt != nil {
-				itc.TypeOpt = make(map[string]any)
-				for key, opt := range cv.TypeOpt {
-					itc.TypeOpt[key] = opt.Value
-				}
-			}
-			it.Configs[ref] = itc
+	for ref, input := range m.Inputs.Configs {
+		cv := m.Configs[ref]
+		itc := model.InputTemplateConfig{
+			Input:    input,
+			Default:  cv.Default,
+			Options:  cv.Options,
+			OptExt:   cv.OptExt,
+			Type:     cv.Type,
+			TypeOpt:  make(map[string]any),
+			DataType: cv.DataType,
+			IsList:   cv.IsSlice,
 		}
+		for key, opt := range cv.TypeOpt {
+			itc.TypeOpt[key] = opt.Value
+		}
+		it.Configs[ref] = itc
 	}
 	return it
 }
