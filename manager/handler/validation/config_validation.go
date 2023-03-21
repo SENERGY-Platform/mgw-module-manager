@@ -22,13 +22,14 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"module-manager/manager/itf"
+	"module-manager/manager/model"
 	"os"
 	"regexp"
 	"strings"
 )
 
 type ConfigValidationHandler struct {
-	definitions map[string]itf.ConfigDefinition
+	definitions map[string]model.ConfigDefinition
 	validators  map[string]itf.Validator
 }
 
@@ -182,21 +183,21 @@ func (h *ConfigValidationHandler) ValidateValue(cType string, cTypeOpt module.Co
 	return nil
 }
 
-func loadDefs(path string) (map[string]itf.ConfigDefinition, error) {
+func loadDefs(path string) (map[string]model.ConfigDefinition, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 	decoder := json.NewDecoder(file)
-	var d map[string]itf.ConfigDefinition
+	var d map[string]model.ConfigDefinition
 	if err = decoder.Decode(&d); err != nil {
 		return nil, err
 	}
 	return d, nil
 }
 
-func validateDefs(configDefs map[string]itf.ConfigDefinition, validators map[string]itf.Validator) error {
+func validateDefs(configDefs map[string]model.ConfigDefinition, validators map[string]itf.Validator) error {
 	for ref, cDef := range configDefs {
 		if cDef.DataType == nil || len(cDef.DataType) == 0 {
 			return fmt.Errorf("config definition '%s' missing data type", ref)
