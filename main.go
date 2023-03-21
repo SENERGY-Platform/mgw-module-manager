@@ -77,13 +77,11 @@ func main() {
 		return
 	}
 
-	var validatorMap = map[string]itf.Validator{
+	configValidationHandler, err := validation.NewConfigValidationHandler(config.ConfigDefsPath, map[string]itf.Validator{
 		"regex":            validators.Regex,
 		"number_compare":   validators.NumberCompare,
 		"text_len_compare": validators.TextLenCompare,
-	}
-
-	configValidationHandler, err := validation.NewConfigValidationHandler(config.ConfigDefsPath, validatorMap)
+	})
 	if err != nil {
 		srv_base.Logger.Error(err)
 		return
