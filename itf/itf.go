@@ -38,6 +38,9 @@ type ModuleStorageHandler interface {
 	CopyFrom(id string, srcPath string) error
 }
 
+type ModuleTransferHandler interface {
+}
+
 type DeploymentHandler interface {
 	List() ([]model.Deployment, error)
 	Read(id string) (model.Deployment, error)
