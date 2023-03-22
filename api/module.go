@@ -20,10 +20,18 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 )
 
+func (a *Api) AddModule(id string) error {
+	panic("not implemented")
+}
+
 func (a *Api) GetModules() ([]*module.Module, error) {
 	return a.moduleHandler.List()
 }
 
 func (a *Api) GetModule(id string) (*module.Module, error) {
 	return a.moduleHandler.Read(id)
+}
+
+func (a *Api) DeleteModule(id string) error {
+	panic("not implemented")
 }

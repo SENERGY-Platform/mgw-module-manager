@@ -40,3 +40,27 @@ func (a *Api) AddDeployment(dr model.DeploymentRequest) (string, error) {
 	}
 	return id, nil
 }
+
+func (a *Api) GetDeployments() ([]model.Deployment, error) {
+	panic("not implemented")
+}
+
+func (a *Api) GetDeployment() (model.Deployment, error) {
+	panic("not implemented")
+}
+
+func (a *Api) StartDeployment(id string) error {
+	panic("not implemented")
+}
+
+func (a *Api) StopDeployment(id string) error {
+	panic("not implemented")
+}
+
+func (a *Api) UpdateDeployment(dr model.DeploymentRequest) {
+	panic("not implemented")
+}
+
+func (a *Api) DeleteDeployment(id string) error {
+	panic("not implemented")
+}
