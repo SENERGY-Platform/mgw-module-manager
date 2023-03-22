@@ -43,6 +43,17 @@ import (
 
 var version string
 
+func setRoutes(e *gin.Engine, a itf.Api) {
+	e.GET("modules", http_engine.GenHandler(a.GetModules))
+	e.GET("modules/:m", http_engine.GenHandlerP(a.GetModule, func(gc *gin.Context) (string, error) {
+		return http_engine.GetUrlParam(gc, "m")
+	}))
+	e.GET("modules/:m/input_template", http_engine.GenHandlerP(a.GetInputTemplate, func(gc *gin.Context) (string, error) {
+		return http_engine.GetUrlParam(gc, "m")
+	}))
+	e.POST("deployments", http_engine.GenHandlerP(a.AddDeployment, http_engine.GetJsonBody[model.DeploymentRequest]))
+}
+
 func main() {
 	srv_base.PrintInfo("mgw-module-manager", version)
 
@@ -99,14 +110,7 @@ func main() {
 	httpEngine.Use(gin_mw.LoggerHandler(srv_base.Logger), gin_mw.ErrorHandler, gin.Recovery())
 	httpEngine.UseRawPath = true
 
-	httpEngine.GET("modules", http_engine.GenHandler(mApi.GetModules))
-	httpEngine.GET("modules/:m", http_engine.GenHandlerP(mApi.GetModule, func(gc *gin.Context) (string, error) {
-		return http_engine.GetUrlParam(gc, "m")
-	}))
-	httpEngine.GET("modules/:m/input_template", http_engine.GenHandlerP(mApi.GetInputTemplate, func(gc *gin.Context) (string, error) {
-		return http_engine.GetUrlParam(gc, "m")
-	}))
-	httpEngine.POST("deployments", http_engine.GenHandlerP(mApi.DeployModule, http_engine.GetJsonBody[model.DeploymentRequest]))
+	setRoutes(httpEngine, mApi)
 
 	listener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
