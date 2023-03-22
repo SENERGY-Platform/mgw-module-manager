@@ -29,7 +29,7 @@ func (a *Api) GetInputTemplate(id string) (model.InputTemplate, error) {
 	return template, nil
 }
 
-func (a *Api) DeployModule(dr model.DeploymentRequest) (string, error) {
+func (a *Api) AddDeployment(dr model.DeploymentRequest) (string, error) {
 	m, err := a.moduleHandler.Read(dr.ModuleID)
 	if err != nil {
 		return "", err
