@@ -85,7 +85,12 @@ func main() {
 		return
 	}
 
-	configValidationHandler, err := validation.NewConfigValidationHandler(config.ConfigDefsPath, map[string]itf.Validator{
+	cfgDefs, err := validation.LoadDefs(config.ConfigDefsPath)
+	if err != nil {
+		srv_base.Logger.Error(err)
+		return
+	}
+	configValidationHandler, err := validation.NewConfigValidationHandler(cfgDefs, map[string]itf.Validator{
 		"regex":            validators.Regex,
 		"number_compare":   validators.NumberCompare,
 		"text_len_compare": validators.TextLenCompare,

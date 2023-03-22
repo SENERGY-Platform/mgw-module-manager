@@ -33,12 +33,8 @@ type ConfigValidationHandler struct {
 	validators  map[string]itf.Validator
 }
 
-func NewConfigValidationHandler(definitionsPath string, validators map[string]itf.Validator) (*ConfigValidationHandler, error) {
-	definitions, err := loadDefs(definitionsPath)
-	if err != nil {
-		return nil, err
-	}
-	if err = validateDefs(definitions, validators); err != nil {
+func NewConfigValidationHandler(definitions map[string]model.ConfigDefinition, validators map[string]itf.Validator) (*ConfigValidationHandler, error) {
+	if err := validateDefs(definitions, validators); err != nil {
 		return nil, err
 	}
 	return &ConfigValidationHandler{definitions: definitions, validators: validators}, nil
@@ -183,7 +179,7 @@ func (h *ConfigValidationHandler) ValidateValue(cType string, cTypeOpt module.Co
 	return nil
 }
 
-func loadDefs(path string) (map[string]model.ConfigDefinition, error) {
+func LoadDefs(path string) (map[string]model.ConfigDefinition, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
