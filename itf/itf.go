@@ -69,8 +69,16 @@ type ConfigValidationHandler interface {
 }
 
 type Api interface {
+	AddModule(id string) error
 	GetModules() ([]*module.Module, error)
 	GetModule(id string) (*module.Module, error)
+	DeleteModule(id string) error
 	GetInputTemplate(id string) (model.InputTemplate, error)
-	DeployModule(dr model.DeploymentRequest) (string, error)
+	AddDeployment(dr model.DeploymentRequest) (string, error)
+	GetDeployments() ([]model.Deployment, error)
+	GetDeployment() (model.Deployment, error)
+	StartDeployment(id string) error
+	StopDeployment(id string) error
+	UpdateDeployment(dr model.DeploymentRequest)
+	DeleteDeployment(id string) error
 }
