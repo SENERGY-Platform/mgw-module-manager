@@ -24,11 +24,11 @@ import (
 )
 
 func Regex(params map[string]any) error {
-	str, err := getParamValueGen[string](params, "string")
+	str, err := getParamValue[string](params, "string")
 	if err != nil {
 		return err
 	}
-	p, err := getParamValueGen[string](params, "pattern")
+	p, err := getParamValue[string](params, "pattern")
 	if err != nil {
 		return err
 	}
@@ -43,15 +43,15 @@ func Regex(params map[string]any) error {
 }
 
 func TextLenCompare(params map[string]any) error {
-	o, err := getParamValueGen[string](params, "operator")
+	o, err := getParamValue[string](params, "operator")
 	if err != nil {
 		return err
 	}
-	s, err := getParamValueGen[string](params, "string")
+	s, err := getParamValue[string](params, "string")
 	if err != nil {
 		return err
 	}
-	l, err := getParamValueGen[int64](params, "length")
+	l, err := getParamValue[int64](params, "length")
 	if err != nil {
 		return err
 	}

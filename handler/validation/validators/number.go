@@ -21,17 +21,17 @@ import (
 )
 
 func NumberCompare(params map[string]any) error {
-	o, err := getParamValueGen[string](params, "operator")
+	o, err := getParamValue[string](params, "operator")
 	if err != nil {
 		return err
 	}
-	av, err := getParamValue(params, "a")
+	av, err := getParamValue[any](params, "a")
 	if err != nil {
 		return err
 	}
 	switch a := av.(type) {
 	case int64:
-		b, err := getParamValueGen[int64](params, "b")
+		b, err := getParamValue[int64](params, "b")
 		if err != nil {
 			return err
 		}
@@ -43,7 +43,7 @@ func NumberCompare(params map[string]any) error {
 			return fmt.Errorf("%d %s %d", a, o, b)
 		}
 	case float64:
-		b, err := getParamValueGen[float64](params, "b")
+		b, err := getParamValue[float64](params, "b")
 		if err != nil {
 			return err
 		}

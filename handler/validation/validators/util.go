@@ -17,31 +17,19 @@
 package validators
 
 import (
-	"errors"
 	"fmt"
 )
 
-func getParamValue(params map[string]any, key string) (any, error) {
-	if params == nil {
-		return nil, errors.New("no parameters")
-	}
-	v, ok := params[key]
+func getParamValue[T any](params map[string]any, pKey string) (T, error) {
+	v, ok := params[pKey]
 	if !ok {
-		return nil, fmt.Errorf("parameter '%s' required", key)
+		return *new(T), fmt.Errorf("parameter '%s' not defined", pKey)
 	}
-	return v, nil
-}
-
-func getParamValueGen[T any](params map[string]any, key string) (v T, err error) {
-	if p, e := getParamValue(params, key); e != nil {
-		err = e
-	} else {
-		var ok bool
-		if v, ok = p.(T); !ok {
-			err = fmt.Errorf("parameter '%s' invalid data type: %T != %T", key, p, *new(T))
-		}
+	pVal, ok := v.(T)
+	if !ok {
+		return *new(T), fmt.Errorf("parameter '%s' invalid data type: %T != %T", pKey, v, *new(T))
 	}
-	return
+	return pVal, nil
 }
 
 type number interface {
