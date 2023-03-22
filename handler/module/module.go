@@ -31,14 +31,16 @@ import (
 
 type Handler struct {
 	storageHandler          itf.ModuleStorageHandler
+	transferHandler         itf.ModuleTransferHandler
 	configValidationHandler itf.ConfigValidationHandler
 	mfDecoders              modfile.Decoders
 	mfGenerators            modfile.Generators
 }
 
-func NewHandler(storageHandler itf.ModuleStorageHandler, configValidationHandler itf.ConfigValidationHandler, mfDecoders modfile.Decoders, mfGenerators modfile.Generators) *Handler {
+func NewHandler(storageHandler itf.ModuleStorageHandler, transferHandler itf.ModuleTransferHandler, configValidationHandler itf.ConfigValidationHandler, mfDecoders modfile.Decoders, mfGenerators modfile.Generators) *Handler {
 	return &Handler{
 		storageHandler:          storageHandler,
+		transferHandler:         transferHandler,
 		configValidationHandler: configValidationHandler,
 		mfDecoders:              mfDecoders,
 		mfGenerators:            mfGenerators,
