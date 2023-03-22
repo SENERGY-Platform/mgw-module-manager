@@ -16,18 +16,21 @@
 
 package model
 
-import "github.com/SENERGY-Platform/mgw-module-lib/module"
+import (
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"github.com/SENERGY-Platform/mgw-module-lib/util"
+)
 
 type ConfigDefinition struct {
-	DataType   []module.DataType                 `json:"data_type"`
+	DataType   util.Set[module.DataType]         `json:"data_type"`
 	Options    map[string]ConfigDefinitionOption `json:"options"`
 	Validators []ConfigDefinitionValidator       `json:"validators"`
 }
 
 type ConfigDefinitionOption struct {
-	DataType []module.DataType `json:"data_type"`
-	Inherit  bool              `json:"inherit"`
-	Required bool              `json:"required"`
+	DataType util.Set[module.DataType] `json:"data_type"`
+	Inherit  bool                      `json:"inherit"`
+	Required bool                      `json:"required"`
 }
 
 type ConfigDefinitionValidator struct {

@@ -50,7 +50,7 @@ func (h *ConfigValidationHandler) ValidateBase(cType string, cTypeOpt module.Con
 		if !ok {
 			return fmt.Errorf("unknown config type '%s'", cType)
 		}
-		if !inStrSlice(dataType, def.DataType) {
+		if _, ok := def.DataType[dataType]; !ok {
 			return fmt.Errorf("data type '%s' not supported by '%s'", dataType, cType)
 		}
 		if cTypeOpt != nil && def.Options == nil {
@@ -76,7 +76,7 @@ func (h *ConfigValidationHandler) ValidateBase(cType string, cTypeOpt module.Con
 							return fmt.Errorf("data type '%s' not supported by option '%s' of '%s'", tOpt.DataType, key, cType)
 						}
 					} else {
-						if !inStrSlice(tOpt.DataType, defOpt.DataType) {
+						if _, ok := defOpt.DataType[tOpt.DataType]; !ok {
 							return fmt.Errorf("data type '%s' not supported by option '%s' of '%s'", tOpt.DataType, key, cType)
 						}
 					}
