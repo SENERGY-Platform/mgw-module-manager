@@ -63,6 +63,38 @@ func (h *ConfigValidationHandler) ValidateValue(cType string, cTypeOpts module.C
 	return vltValue(cDef.Validators, cTypeOpts, h.validators, value)
 }
 
+func (h *ConfigValidationHandler) ValidateValSlice(cType string, cTypeOpts module.ConfigTypeOptions, value any, dataType module.DataType) error {
+	cDef, ok := h.definitions[cType]
+	if !ok {
+		return fmt.Errorf("config type '%s' not defined", cType)
+	}
+	switch dataType {
+	case module.StringType:
+		return vltValSlice[string](cDef.Validators, cTypeOpts, h.validators, value)
+	case module.BoolType:
+		return vltValSlice[bool](cDef.Validators, cTypeOpts, h.validators, value)
+	case module.Int64Type:
+		return vltValSlice[int64](cDef.Validators, cTypeOpts, h.validators, value)
+	case module.Float64Type:
+		return vltValSlice[float64](cDef.Validators, cTypeOpts, h.validators, value)
+	default:
+		return fmt.Errorf("unknown data type '%s'", dataType)
+	}
+}
+
+func vltValSlice[T any](cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]itf.Validator, value any) error {
+	valSl, ok := value.([]T)
+	if !ok {
+		return fmt.Errorf("invlaid data type: %T != %T", value, *new(T))
+	}
+	for _, val := range valSl {
+		if err := vltValue(cDefVlts, cTypeOpts, validators, val); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func LoadDefs(path string) (map[string]model.ConfigDefinition, error) {
 	file, err := os.Open(path)
 	if err != nil {
