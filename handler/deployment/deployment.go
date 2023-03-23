@@ -24,10 +24,11 @@ import (
 
 type Handler struct {
 	storageHandler itf.DeploymentStorageHandler
+	cfgVltHandler  itf.ConfigValidationHandler
 }
 
-func NewHandler(storageHandler itf.DeploymentStorageHandler) *Handler {
-	return &Handler{storageHandler: storageHandler}
+func NewHandler(storageHandler itf.DeploymentStorageHandler, cfgVltHandler itf.ConfigValidationHandler) *Handler {
+	return &Handler{storageHandler: storageHandler, cfgVltHandler: cfgVltHandler}
 }
 
 func (h *Handler) List() ([]model.Deployment, error) {

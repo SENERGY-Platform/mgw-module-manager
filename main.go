@@ -108,7 +108,7 @@ func main() {
 	mfGenerators.Add(v1gen.GetGenerator)
 
 	moduleHandler := module.NewHandler(moduleStorageHandler, nil, configValidationHandler, mfDecoders, mfGenerators)
-	deploymentHandler := deployment.NewHandler(nil)
+	deploymentHandler := deployment.NewHandler(nil, configValidationHandler)
 
 	mApi := api.New(moduleHandler, deploymentHandler)
 
