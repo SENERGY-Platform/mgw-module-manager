@@ -18,7 +18,6 @@ package validation
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"module-manager/itf"
@@ -40,143 +39,28 @@ func NewConfigValidationHandler(definitions map[string]model.ConfigDefinition, v
 	return &ConfigValidationHandler{definitions: definitions, validators: validators}, nil
 }
 
-func (h *ConfigValidationHandler) ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error {
-	if h.definitions != nil {
-		def, ok := h.definitions[cType]
-		if !ok {
-			return fmt.Errorf("unknown config type '%s'", cType)
-		}
-		if _, ok := def.DataType[dataType]; !ok {
-			return fmt.Errorf("data type '%s' not supported by '%s'", dataType, cType)
-		}
-		if cTypeOpt != nil && def.Options == nil {
-			return fmt.Errorf("options not supported by '%s'", cType)
-		}
-		if cTypeOpt == nil && def.Options != nil {
-			for key, defOpt := range def.Options {
-				if defOpt.Required {
-					return fmt.Errorf("option '%s' is required by '%s'", key, cType)
-				}
-			}
-		}
-		if cTypeOpt != nil && def.Options != nil {
-			for key := range cTypeOpt {
-				if _, ok := def.Options[key]; !ok {
-					return fmt.Errorf("option '%s' not supported by '%s'", key, cType)
-				}
-			}
-			for key, defOpt := range def.Options {
-				if tOpt, ok := cTypeOpt[key]; ok {
-					if defOpt.Inherit {
-						if tOpt.DataType != dataType {
-							return fmt.Errorf("data type '%s' not supported by option '%s' of '%s'", tOpt.DataType, key, cType)
-						}
-					} else {
-						if _, ok := defOpt.DataType[tOpt.DataType]; !ok {
-							return fmt.Errorf("data type '%s' not supported by option '%s' of '%s'", tOpt.DataType, key, cType)
-						}
-					}
-				} else if defOpt.Required {
-					return fmt.Errorf("option '%s' is required by '%s'", key, cType)
-				}
-			}
-		}
-	} else {
-		return errors.New("no config definitions")
+func (h *ConfigValidationHandler) ValidateBase(cType string, cTypeOpts module.ConfigTypeOptions, dataType module.DataType) error {
+	cDef, ok := h.definitions[cType]
+	if !ok {
+		return fmt.Errorf("config type '%s' not defined", cType)
 	}
-	return nil
+	return vltBase(cDef, cTypeOpts, dataType)
 }
 
-func (h *ConfigValidationHandler) ValidateOptions(cType string, cTypeOpt module.ConfigTypeOptions) error {
-	if h.definitions != nil {
-		def, ok := h.definitions[cType]
-		if !ok {
-			return fmt.Errorf("unknown config type '%s'", cType)
-		}
-		if def.Validators != nil && cTypeOpt != nil {
-			for _, validator := range def.Validators {
-				params := make(map[string]any)
-				for key, val := range validator.Parameter {
-					if val.Ref == nil {
-						params[key] = val.Value
-					} else {
-						if *val.Ref == "value" && val.Value == nil {
-							params = nil
-							break
-						}
-						oKey := strings.Split(*val.Ref, ".")
-						if v, ok := cTypeOpt[oKey[1]]; ok {
-							params[key] = v.Value
-						} else {
-							if val.Value == nil {
-								params = nil
-								break
-							}
-							params[key] = val.Value
-						}
-					}
-				}
-				if params != nil {
-					validatorFunc := h.validators[validator.Name]
-					err := validatorFunc(params)
-					if err != nil {
-						return fmt.Errorf("options '%s' validation failed: %s", validator.Name, err)
-					}
-				}
-			}
-		}
-	} else {
-		return errors.New("no config definitions")
+func (h *ConfigValidationHandler) ValidateOptions(cType string, cTypeOpts module.ConfigTypeOptions) error {
+	cDef, ok := h.definitions[cType]
+	if !ok {
+		return fmt.Errorf("config type '%s' not defined", cType)
 	}
-	return nil
+	return vltOptions(cDef.Validators, cTypeOpts, h.validators)
 }
 
-func (h *ConfigValidationHandler) ValidateValue(cType string, cTypeOpt module.ConfigTypeOptions, value any) error {
-	if h.definitions != nil {
-		def, ok := h.definitions[cType]
-		if !ok {
-			return fmt.Errorf("unknown config type '%s'", cType)
-		}
-		if def.Validators != nil {
-			for _, validator := range def.Validators {
-				params := make(map[string]any)
-				for key, val := range validator.Parameter {
-					if val.Ref == nil {
-						params[key] = val.Value
-					} else {
-						if *val.Ref == "value" {
-							params[key] = value
-						} else {
-							if cTypeOpt == nil && val.Value == nil {
-								params = nil
-								break
-							}
-							oKey := strings.Split(*val.Ref, ".")
-							if v, ok := cTypeOpt[oKey[1]]; ok {
-								params[key] = v.Value
-							} else {
-								if val.Value == nil {
-									params = nil
-									break
-								}
-								params[key] = val.Value
-							}
-						}
-					}
-				}
-				if params != nil {
-					validatorFunc := h.validators[validator.Name]
-					err := validatorFunc(params)
-					if err != nil {
-						return fmt.Errorf("options '%s' validation failed: %s", validator.Name, err)
-					}
-				}
-			}
-		}
-	} else {
-		return errors.New("no config definitions")
+func (h *ConfigValidationHandler) ValidateValue(cType string, cTypeOpts module.ConfigTypeOptions, value any) error {
+	cDef, ok := h.definitions[cType]
+	if !ok {
+		return fmt.Errorf("config type '%s' not defined", cType)
 	}
-	return nil
+	return vltValue(cDef.Validators, cTypeOpts, h.validators, value)
 }
 
 func LoadDefs(path string) (map[string]model.ConfigDefinition, error) {
@@ -234,4 +118,134 @@ func inStrSlice(c string, sl []string) bool {
 		}
 	}
 	return false
+}
+
+func vltBase(cDef model.ConfigDefinition, cTypeOpts module.ConfigTypeOptions, dataType module.DataType) error {
+	if _, ok := cDef.DataType[dataType]; !ok {
+		return fmt.Errorf("data type '%s' not supported", dataType)
+	}
+	if len(cTypeOpts) > 0 && len(cDef.Options) == 0 {
+		return fmt.Errorf("options not supported")
+	}
+	for name := range cTypeOpts {
+		if _, ok := cDef.Options[name]; !ok {
+			return fmt.Errorf("option '%s' not supported", name)
+		}
+	}
+	for name, cDefO := range cDef.Options {
+		if cTypeO, ok := cTypeOpts[name]; ok {
+			if cDefO.Inherit {
+				if cTypeO.DataType != dataType {
+					return fmt.Errorf("data type '%s' not supported by option '%s'", cTypeO.DataType, name)
+				}
+			} else {
+				if _, ok := cDefO.DataType[cTypeO.DataType]; !ok {
+					return fmt.Errorf("data type '%s' not supported by option '%s'", cTypeO.DataType, name)
+				}
+			}
+		} else if cDefO.Required {
+			return fmt.Errorf("option '%s' required", name)
+		}
+	}
+	return nil
+}
+
+func genVltOptParams(cDefVltParams map[string]model.ConfigDefinitionValidatorParam, cTypeOpts module.ConfigTypeOptions) map[string]any {
+	vp := make(map[string]any)
+	for name, cDefVP := range cDefVltParams {
+		if cDefVP.Ref != nil {
+			if *cDefVP.Ref == "value" {
+				if cDefVP.Value != nil {
+					vp[name] = cDefVP.Value
+				} else {
+					vp = nil
+					break
+				}
+			} else {
+				cTypeOName := strings.Split(*cDefVP.Ref, ".")[1]
+				if cTypeO, ok := cTypeOpts[cTypeOName]; ok {
+					vp[name] = cTypeO.Value
+				} else {
+					if cDefVP.Value != nil {
+						vp[name] = cDefVP.Value
+					} else {
+						vp = nil
+						break
+					}
+				}
+			}
+		} else {
+			vp[name] = cDefVP.Value
+		}
+	}
+	return vp
+}
+
+func vltOptions(cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]itf.Validator) error {
+	for _, cDefVlt := range cDefVlts {
+		p := genVltOptParams(cDefVlt.Parameter, cTypeOpts)
+		if len(p) > 0 {
+			vFunc, ok := validators[cDefVlt.Name]
+			if !ok {
+				return fmt.Errorf("validator '%s' not defined", cDefVlt.Name)
+			}
+			err := vFunc(p)
+			if err != nil {
+				return fmt.Errorf("validator '%s' returned with: %s", cDefVlt.Name, err)
+			}
+		}
+	}
+	return nil
+}
+
+func genVltValParams(cDefVltParams map[string]model.ConfigDefinitionValidatorParam, cTypeOpts module.ConfigTypeOptions, value any) map[string]any {
+	vp := make(map[string]any)
+	for name, cDefVP := range cDefVltParams {
+		if cDefVP.Ref != nil {
+			if *cDefVP.Ref == "value" {
+				if value != nil {
+					vp[name] = value
+				} else {
+					if cDefVP.Value != nil {
+						vp[name] = cDefVP.Value
+					} else {
+						vp = nil
+						break
+					}
+				}
+			} else {
+				cTypeOName := strings.Split(*cDefVP.Ref, ".")[1]
+				if cTypeO, ok := cTypeOpts[cTypeOName]; ok {
+					vp[name] = cTypeO.Value
+				} else {
+					if cDefVP.Value != nil {
+						vp[name] = cDefVP.Value
+					} else {
+						vp = nil
+						break
+					}
+				}
+			}
+		} else {
+			vp[name] = cDefVP.Value
+		}
+	}
+	return vp
+}
+
+func vltValue(cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]itf.Validator, value any) error {
+	for _, cDefVlt := range cDefVlts {
+		p := genVltValParams(cDefVlt.Parameter, cTypeOpts, value)
+		if len(p) > 0 {
+			vFunc, ok := validators[cDefVlt.Name]
+			if !ok {
+				return fmt.Errorf("validator '%s' not defined", cDefVlt.Name)
+			}
+			err := vFunc(p)
+			if err != nil {
+				return fmt.Errorf("validator '%s' returned with: %s", cDefVlt.Name, err)
+			}
+		}
+	}
+	return nil
 }
