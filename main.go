@@ -43,6 +43,12 @@ import (
 
 var version string
 
+var inputValidators = map[string]itf.Validator{
+	"regex":            validators.Regex,
+	"number_compare":   validators.NumberCompare,
+	"text_len_compare": validators.TextLenCompare,
+}
+
 func setRoutes(e *gin.Engine, a itf.Api) {
 	e.GET("modules", http_engine.GenHandler(a.GetModules))
 	e.GET("modules/:m", http_engine.GenHandlerP(a.GetModule, func(gc *gin.Context) (string, error) {
@@ -90,11 +96,7 @@ func main() {
 		srv_base.Logger.Error(err)
 		return
 	}
-	configValidationHandler, err := validation.NewConfigValidationHandler(cfgDefs, map[string]itf.Validator{
-		"regex":            validators.Regex,
-		"number_compare":   validators.NumberCompare,
-		"text_len_compare": validators.TextLenCompare,
-	})
+	configValidationHandler, err := validation.NewConfigValidationHandler(cfgDefs, inputValidators)
 	if err != nil {
 		srv_base.Logger.Error(err)
 		return
