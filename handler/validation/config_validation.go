@@ -143,15 +143,6 @@ func validateDefs(configDefs map[string]model.ConfigDefinition, validators map[s
 	return nil
 }
 
-func inStrSlice(c string, sl []string) bool {
-	for _, s := range sl {
-		if c == s {
-			return true
-		}
-	}
-	return false
-}
-
 func vltBase(cDef model.ConfigDefinition, cTypeOpts module.ConfigTypeOptions, dataType module.DataType) error {
 	if _, ok := cDef.DataType[dataType]; !ok {
 		return fmt.Errorf("data type '%s' not supported", dataType)
