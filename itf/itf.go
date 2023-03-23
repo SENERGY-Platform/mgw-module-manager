@@ -66,6 +66,7 @@ type ConfigValidationHandler interface {
 	ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error
 	ValidateOptions(cType string, cTypeOpt module.ConfigTypeOptions) error
 	ValidateValue(cType string, cTypeOpt module.ConfigTypeOptions, value any) error
+	ValidateValSlice(cType string, cTypeOpt module.ConfigTypeOptions, valSl any, dataType module.DataType) error
 }
 
 type Api interface {
