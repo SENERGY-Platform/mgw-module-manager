@@ -68,8 +68,8 @@ func (h *Handler) InputTemplate(m *module.Module) model.InputTemplate {
 	}
 	for ref, input := range m.Inputs.Resources {
 		it.Resources[ref] = model.InputTemplateResource{
-			Input: input,
-			Tags:  m.Resources[ref],
+			Input:    input,
+			Resource: m.Resources[ref],
 		}
 	}
 	for ref, input := range m.Inputs.Secrets {
@@ -89,6 +89,7 @@ func (h *Handler) InputTemplate(m *module.Module) model.InputTemplate {
 			TypeOpt:  make(map[string]any),
 			DataType: cv.DataType,
 			IsList:   cv.IsSlice,
+			Required: cv.Required,
 		}
 		for key, opt := range cv.TypeOpt {
 			itc.TypeOpt[key] = opt.Value

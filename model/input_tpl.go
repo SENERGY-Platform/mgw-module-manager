@@ -18,7 +18,6 @@ package model
 
 import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-lib/util"
 )
 
 type InputTemplate struct {
@@ -30,7 +29,7 @@ type InputTemplate struct {
 
 type InputTemplateResource struct {
 	module.Input
-	Tags util.Set[string] `json:"tags"`
+	module.Resource
 }
 
 type InputTemplateSecret struct {
@@ -47,4 +46,5 @@ type InputTemplateConfig struct {
 	TypeOpt  map[string]any  `json:"type_opt"`
 	DataType module.DataType `json:"data_type"`
 	IsList   bool            `json:"is_list"`
+	Required bool            `json:"required"`
 }
