@@ -17,6 +17,8 @@
 package deployment
 
 import (
+	"errors"
+	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"module-manager/itf"
 	"module-manager/model"
@@ -61,4 +63,20 @@ func (h *Handler) Update(id string) error {
 
 func (h *Handler) InputTemplate(m *module.Module) model.InputTemplate {
 	return genInputTemplate(m)
+}
+
+func (h *Handler) validateConfigs(dCs map[string]any, mCs module.Configs) error {
+	for ref, val := range dCs {
+		mC := mCs[ref]
+		if mC.IsSlice {
+			if err := h.cfgVltHandler.ValidateValSlice(mC.Type, mC.TypeOpt, val, mC.DataType); err != nil {
+				return fmt.Errorf("validating config '%s' failed: %s", ref, err)
+			}
+		} else {
+			if err := h.cfgVltHandler.ValidateValue(mC.Type, mC.TypeOpt, val); err != nil {
+				return fmt.Errorf("validating config '%s' failed: %s", ref, err)
+			}
+		}
+	}
+	return nil
 }
