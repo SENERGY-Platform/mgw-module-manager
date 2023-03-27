@@ -4,10 +4,10 @@ github.com/SENERGY-Platform/gin-middleware v0.0.3 h1:4nHTazmr0nwaH07GNxePD5Cx+dS
 github.com/SENERGY-Platform/gin-middleware v0.0.3/go.mod h1:dQhrVQLWQ+o1mcjp8492amf5ISsdxDRI5UnHBmDBMcA=
 github.com/SENERGY-Platform/go-service-base v0.5.1 h1:uSWeF4TaYd2RJwDpd0bkUf9um1KloKFOg/uCHRn5sik=
 github.com/SENERGY-Platform/go-service-base v0.5.1/go.mod h1:MzMs3X4xFg9GxYoC1JrRXyKpN6lh3NgWTuwpk6P2Qzs=
-github.com/SENERGY-Platform/mgw-modfile-lib v0.6.0 h1:WT1D+hXceplpzingDx2HUtkS206zNlYVJ+IWg7iqLBQ=
-github.com/SENERGY-Platform/mgw-modfile-lib v0.6.0/go.mod h1:xFeITnWszayH4s93rDjMIANfEyNEpoXAl7d+7ZSjDzg=
-github.com/SENERGY-Platform/mgw-module-lib v0.6.0 h1:85XKQhVBvT3yjhofGTJnFGYuDNb7D2QpgMlNWl7Y2v0=
-github.com/SENERGY-Platform/mgw-module-lib v0.6.0/go.mod h1:JhBC4Xodrx8sq5hGKtk11Zie6ZPYWMG2tx3vP9vqGf8=
+github.com/SENERGY-Platform/mgw-modfile-lib v0.8.0 h1:nvxdzeT4YPzAqNn+TWWXerw6zgpMuG0Vr3LFblh3cq4=
+github.com/SENERGY-Platform/mgw-modfile-lib v0.8.0/go.mod h1:kI6qsh+hg6O+vq4KNQqmIro5t51bMrrm7d/MkzU5p8k=
+github.com/SENERGY-Platform/mgw-module-lib v0.7.0 h1:XSmV2MMTRdrcmPVDmf3Sa2f1UiZsBNO4L0bVdZQNt44=
+github.com/SENERGY-Platform/mgw-module-lib v0.7.0/go.mod h1:JhBC4Xodrx8sq5hGKtk11Zie6ZPYWMG2tx3vP9vqGf8=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
@@ -45,6 +45,8 @@ github.com/google/go-cmp v0.4.0/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/
 github.com/google/go-cmp v0.5.5 h1:Khx7svrCpmxxtHBq5j2mp/xVjsi8hQMfNLvJFAlrGgU=
 github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
+github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
+github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=

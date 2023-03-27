@@ -5,9 +5,10 @@ go 1.19
 require (
 	github.com/SENERGY-Platform/gin-middleware v0.0.3
 	github.com/SENERGY-Platform/go-service-base v0.5.1
-	github.com/SENERGY-Platform/mgw-modfile-lib v0.6.0
-	github.com/SENERGY-Platform/mgw-module-lib v0.6.0
+	github.com/SENERGY-Platform/mgw-modfile-lib v0.8.0
+	github.com/SENERGY-Platform/mgw-module-lib v0.7.0
 	github.com/gin-gonic/gin v1.8.1
+	github.com/google/uuid v1.3.0
 	github.com/y-du/go-log-level v0.2.2
 	gopkg.in/yaml.v3 v3.0.1
 )
