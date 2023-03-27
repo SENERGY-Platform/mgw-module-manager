@@ -44,7 +44,7 @@ type ModuleTransferHandler interface {
 type DeploymentHandler interface {
 	List() ([]model.Deployment, error)
 	Read(id string) (model.Deployment, error)
-	Add(b model.DeploymentBase, m *module.Module) (string, error)
+	Add(m *module.Module, b model.DepBase, name *string) (string, error)
 	Start(id string) error
 	Stop(id string) error
 	Delete(id string) error
