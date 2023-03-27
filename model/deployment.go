@@ -16,21 +16,22 @@
 
 package model
 
-type DeploymentBase struct {
-	ModuleID  string            `json:"module_id"`
-	Name      *string           `json:"name"`      // defaults to module name if nil
-	Resources map[string]string `json:"resources"` // {ref:resourceID}
-	Secrets   map[string]string `json:"secrets"`   // {ref:secretID}
-	Configs   map[string]any    `json:"configs"`   // {ref:value}
+type DepBase struct {
+	ModuleID      string            `json:"module_id"`
+	HostResources map[string]string `json:"host_resources"` // {ref:resourceID}
+	Secrets       map[string]string `json:"secrets"`        // {ref:secretID}
+	Configs       map[string]any    `json:"configs"`        // {ref:value}
 }
 
 type Deployment struct {
-	ID string `json:"id"`
-	DeploymentBase
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	DepBase
 	Containers map[string]struct{}
 }
 
-type DeploymentRequest struct {
-	DeploymentBase
+type DepRequest struct {
+	Name *string `json:"name"` // defaults to module name if nil
+	DepBase
 	SecretRequests map[string]any // {ref:value}
 }
