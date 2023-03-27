@@ -61,15 +61,15 @@ func (h *Handler) Update(id string) error {
 
 func (h *Handler) InputTemplate(m *module.Module) model.InputTemplate {
 	it := model.InputTemplate{
-		Resources:   make(map[string]model.InputTemplateResource),
-		Secrets:     make(map[string]model.InputTemplateSecret),
-		Configs:     make(map[string]model.InputTemplateConfig),
-		InputGroups: m.Inputs.Groups,
+		HostResources: make(map[string]model.InputTemplateHostRes),
+		Secrets:       make(map[string]model.InputTemplateSecret),
+		Configs:       make(map[string]model.InputTemplateConfig),
+		InputGroups:   m.Inputs.Groups,
 	}
 	for ref, input := range m.Inputs.Resources {
-		it.Resources[ref] = model.InputTemplateResource{
-			Input:    input,
-			Resource: m.Resources[ref],
+		it.HostResources[ref] = model.InputTemplateHostRes{
+			Input:        input,
+			HostResource: m.HostResources[ref],
 		}
 	}
 	for ref, input := range m.Inputs.Secrets {

@@ -21,15 +21,15 @@ import (
 )
 
 type InputTemplate struct {
-	Resources   map[string]InputTemplateResource `json:"resources"`    // {ref:ResourceInput}
-	Secrets     map[string]InputTemplateSecret   `json:"secrets"`      // {ref:SecretInput}
-	Configs     map[string]InputTemplateConfig   `json:"configs"`      // {ref:ConfigInput}
-	InputGroups map[string]module.InputGroup     `json:"input_groups"` // {ref:InputGroup}
+	HostResources map[string]InputTemplateHostRes `json:"host_resources"` // {ref:ResourceInput}
+	Secrets       map[string]InputTemplateSecret  `json:"secrets"`        // {ref:SecretInput}
+	Configs       map[string]InputTemplateConfig  `json:"configs"`        // {ref:ConfigInput}
+	InputGroups   map[string]module.InputGroup    `json:"input_groups"`   // {ref:InputGroup}
 }
 
-type InputTemplateResource struct {
+type InputTemplateHostRes struct {
 	module.Input
-	module.Resource
+	module.HostResource
 }
 
 type InputTemplateSecret struct {
