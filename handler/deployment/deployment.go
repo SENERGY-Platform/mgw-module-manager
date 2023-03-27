@@ -61,10 +61,6 @@ func (h *Handler) Update(id string) error {
 	return nil
 }
 
-func (h *Handler) InputTemplate(m *module.Module) model.InputTemplate {
-	return genInputTemplate(m)
-}
-
 func (h *Handler) validateConfigs(dCs map[string]any, mCs module.Configs) error {
 	for ref, val := range dCs {
 		mC := mCs[ref]

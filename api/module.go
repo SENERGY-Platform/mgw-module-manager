@@ -18,6 +18,7 @@ package api
 
 import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"module-manager/model"
 )
 
 func (a *Api) AddModule(id string) error {
@@ -34,4 +35,8 @@ func (a *Api) GetModule(id string) (*module.Module, error) {
 
 func (a *Api) DeleteModule(id string) error {
 	panic("not implemented")
+}
+
+func (a *Api) GetInputTemplate(id string) (model.InputTemplate, error) {
+	return a.moduleHandler.InputTemplate(id)
 }

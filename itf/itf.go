@@ -28,6 +28,7 @@ type ModuleHandler interface {
 	Add(id string) error
 	Delete(id string) error
 	Update(id string) error
+	InputTemplate(id string) (model.InputTemplate, error)
 }
 
 type ModuleStorageHandler interface {
@@ -49,7 +50,6 @@ type DeploymentHandler interface {
 	Stop(id string) error
 	Delete(id string) error
 	Update(id string) error
-	InputTemplate(m *module.Module) model.InputTemplate
 }
 
 type DeploymentStorageHandler interface {

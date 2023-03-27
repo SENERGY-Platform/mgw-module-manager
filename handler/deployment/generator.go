@@ -22,46 +22,6 @@ import (
 	"module-manager/model"
 )
 
-func genInputTemplate(m *module.Module) model.InputTemplate {
-	it := model.InputTemplate{
-		HostResources: make(map[string]model.InputTemplateHostRes),
-		Secrets:       make(map[string]model.InputTemplateSecret),
-		Configs:       make(map[string]model.InputTemplateConfig),
-		InputGroups:   m.Inputs.Groups,
-	}
-	for ref, input := range m.Inputs.Resources {
-		it.HostResources[ref] = model.InputTemplateHostRes{
-			Input:        input,
-			HostResource: m.HostResources[ref],
-		}
-	}
-	for ref, input := range m.Inputs.Secrets {
-		it.Secrets[ref] = model.InputTemplateSecret{
-			Input:  input,
-			Secret: m.Secrets[ref],
-		}
-	}
-	for ref, input := range m.Inputs.Configs {
-		cv := m.Configs[ref]
-		itc := model.InputTemplateConfig{
-			Input:    input,
-			Default:  cv.Default,
-			Options:  cv.Options,
-			OptExt:   cv.OptExt,
-			Type:     cv.Type,
-			TypeOpt:  make(map[string]any),
-			DataType: cv.DataType,
-			IsList:   cv.IsSlice,
-			Required: cv.Required,
-		}
-		for key, opt := range cv.TypeOpt {
-			itc.TypeOpt[key] = opt.Value
-		}
-		it.Configs[ref] = itc
-	}
-	return it
-}
-
 func genDeployment(m *module.Module, b model.DepBase, name *string) (*model.Deployment, []string, []string, error) {
 	dRs, rad, err := genDepHostRes(b.HostResources, m.HostResources)
 	if err != nil {

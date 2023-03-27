@@ -20,21 +20,12 @@ import (
 	"module-manager/model"
 )
 
-func (a *Api) GetInputTemplate(id string) (model.InputTemplate, error) {
-	m, err := a.moduleHandler.Read(id)
-	if err != nil {
-		return model.InputTemplate{}, err
-	}
-	template := a.deploymentHandler.InputTemplate(m)
-	return template, nil
-}
-
-func (a *Api) AddDeployment(dr model.DeploymentRequest) (string, error) {
+func (a *Api) AddDeployment(dr model.DepRequest) (string, error) {
 	m, err := a.moduleHandler.Read(dr.ModuleID)
 	if err != nil {
 		return "", err
 	}
-	id, err := a.deploymentHandler.Add(dr.DeploymentBase, m)
+	id, err := a.deploymentHandler.Add(m, dr.DepBase, dr.Name)
 	if err != nil {
 		return "", err
 	}
