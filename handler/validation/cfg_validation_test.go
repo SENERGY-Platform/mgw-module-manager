@@ -433,3 +433,44 @@ func TestVltBase(t *testing.T) {
 		t.Error("err == nil")
 	}
 }
+
+func TestVltValInOpt(t *testing.T) {
+	if _, err := vltValInOpt[int](nil, nil); err == nil {
+		t.Error("err == nil")
+	}
+	if _, err := vltValInOpt[int](1, nil); err == nil {
+		t.Error("err == nil")
+	}
+	if _, err := vltValInOpt[int](nil, 1); err == nil {
+		t.Error("err == nil")
+	}
+	if ok, err := vltValInOpt[int](1, []int{}); err != nil {
+		t.Error("err == nil")
+	} else if ok == true {
+		t.Error("ok == true")
+	}
+	if ok, err := vltValInOpt[int](1, []int{1}); err != nil {
+		t.Error("err == nil")
+	} else if ok == false {
+		t.Error("ok == false")
+	}
+}
+
+func TestVltValSlInOpt(t *testing.T) {
+	if _, err := vltValSlInOpt[int](nil, nil); err == nil {
+		t.Error("err == nil")
+	}
+	if _, err := vltValSlInOpt[int]([]int{}, nil); err == nil {
+		t.Error("err == nil")
+	}
+	if ok, err := vltValSlInOpt[int]([]int{1}, []int{}); err != nil {
+		t.Error("err != nil")
+	} else if ok == true {
+		t.Error("ok == true")
+	}
+	if ok, err := vltValSlInOpt[int]([]int{1}, []int{1}); err != nil {
+		t.Error("err != nil")
+	} else if ok == false {
+		t.Error("ok == false")
+	}
+}
