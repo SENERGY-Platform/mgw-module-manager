@@ -17,6 +17,7 @@
 package deployment
 
 import (
+	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"math"
@@ -42,6 +43,9 @@ func parseCfgValSlice(val any, dataType module.DataType) (v any, err error) {
 	vSl, ok := val.([]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid data type '%T'", val)
+	}
+	if len(vSl) == 0 {
+		return nil, errors.New("no values to parse")
 	}
 	switch dataType {
 	case module.StringType:
