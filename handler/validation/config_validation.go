@@ -280,7 +280,7 @@ func genVltOptParams(cDefVltParams map[string]model.ConfigDefinitionValidatorPar
 	return vp
 }
 
-func vltOptions(cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]itf.Validator) error {
+func vltTypeOpts(cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]itf.Validator) error {
 	for _, cDefVlt := range cDefVlts {
 		p := genVltOptParams(cDefVlt.Parameter, cTypeOpts)
 		if len(p) > 0 {
