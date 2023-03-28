@@ -84,29 +84,13 @@ func (h *ConfigValidationHandler) ValidateValInOpt(cOpt any, value any, isSlice 
 	var ok bool
 	switch dataType {
 	case module.StringType:
-		if isSlice {
-			ok, err = vltValSlInOpt[string](value, cOpt)
-		} else {
-			ok, err = vltValInOpt[string](value, cOpt)
-		}
+		ok, err = vltValInOptF[string](isSlice)(value, cOpt)
 	case module.BoolType:
-		if isSlice {
-			ok, err = vltValSlInOpt[bool](value, cOpt)
-		} else {
-			ok, err = vltValInOpt[bool](value, cOpt)
-		}
+		ok, err = vltValInOptF[bool](isSlice)(value, cOpt)
 	case module.Int64Type:
-		if isSlice {
-			ok, err = vltValSlInOpt[int64](value, cOpt)
-		} else {
-			ok, err = vltValInOpt[int64](value, cOpt)
-		}
+		ok, err = vltValInOptF[int64](isSlice)(value, cOpt)
 	case module.Float64Type:
-		if isSlice {
-			ok, err = vltValSlInOpt[float64](value, cOpt)
-		} else {
-			ok, err = vltValInOpt[float64](value, cOpt)
-		}
+		ok, err = vltValInOptF[float64](isSlice)(value, cOpt)
 	default:
 		err = fmt.Errorf("unknown data type '%s'", dataType)
 	}
@@ -114,6 +98,14 @@ func (h *ConfigValidationHandler) ValidateValInOpt(cOpt any, value any, isSlice 
 		err = errors.New("value not allowed")
 	}
 	return
+}
+
+func vltValInOptF[T comparable](isSl bool) func(any, any) (bool, error) {
+	if isSl {
+		return vltValSlInOpt[T]
+	} else {
+		return vltValInOpt[T]
+	}
 }
 
 func vltValInOpt[T comparable](val any, opt any) (bool, error) {
