@@ -25,11 +25,11 @@ import (
 )
 
 type Handler struct {
-	storageHandler itf.DeploymentStorageHandler
-	cfgVltHandler  itf.ConfigValidationHandler
+	storageHandler itf.DepStorageHandler
+	cfgVltHandler  itf.CfgValidationHandler
 }
 
-func NewHandler(storageHandler itf.DeploymentStorageHandler, cfgVltHandler itf.ConfigValidationHandler) *Handler {
+func NewHandler(storageHandler itf.DepStorageHandler, cfgVltHandler itf.CfgValidationHandler) *Handler {
 	return &Handler{storageHandler: storageHandler, cfgVltHandler: cfgVltHandler}
 }
 
@@ -37,7 +37,7 @@ func (h *Handler) List() ([]model.Deployment, error) {
 	return nil, nil
 }
 
-func (h *Handler) Read(id string) (model.Deployment, error) {
+func (h *Handler) Get(id string) (model.Deployment, error) {
 	return model.Deployment{}, nil
 }
 
