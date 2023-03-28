@@ -18,7 +18,6 @@ package validation
 
 import (
 	"errors"
-	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/util"
 	"module-manager/itf"
@@ -95,7 +94,6 @@ func TestGenVltOptParams(t *testing.T) {
 		t.Errorf("len(%v) != 0", b)
 	}
 	// ------------------------------
-	fmt.Println(cDefVP)
 	cDefVP[""] = model.ConfigDefinitionValidatorParam{
 		Value: nil,
 		Ref:   &vRef,
@@ -233,7 +231,6 @@ func TestVltOptions(t *testing.T) {
 		return errors.New("test")
 	}
 	if err := vltTypeOpts(cDefVlts, nil, vlts); err == nil {
-		fmt.Println(err)
 		t.Error("err == nil")
 	}
 	// ------------------------------
@@ -291,7 +288,6 @@ func TestVltValue(t *testing.T) {
 		return errors.New("test")
 	}
 	if err := vltValue(cDefVlts, nil, vlts, nil); err == nil {
-		fmt.Println(err)
 		t.Error("err == nil")
 	}
 	// ------------------------------
@@ -312,7 +308,6 @@ func TestVltValue(t *testing.T) {
 		},
 	}
 	if err := vltValue(cDefVlts, nil, vlts, nil); err != nil {
-		fmt.Println(err)
 		t.Error("err != nil")
 	}
 }
