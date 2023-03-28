@@ -31,14 +31,14 @@ import (
 )
 
 type Handler struct {
-	storageHandler          itf.ModuleStorageHandler
-	transferHandler         itf.ModuleTransferHandler
-	configValidationHandler itf.ConfigValidationHandler
+	storageHandler          itf.ModStorageHandler
+	transferHandler         itf.ModTransferHandler
+	configValidationHandler itf.CfgValidationHandler
 	mfDecoders              modfile.Decoders
 	mfGenerators            modfile.Generators
 }
 
-func NewHandler(storageHandler itf.ModuleStorageHandler, transferHandler itf.ModuleTransferHandler, configValidationHandler itf.ConfigValidationHandler, mfDecoders modfile.Decoders, mfGenerators modfile.Generators) *Handler {
+func NewHandler(storageHandler itf.ModStorageHandler, transferHandler itf.ModTransferHandler, configValidationHandler itf.CfgValidationHandler, mfDecoders modfile.Decoders, mfGenerators modfile.Generators) *Handler {
 	return &Handler{
 		storageHandler:          storageHandler,
 		transferHandler:         transferHandler,
@@ -76,7 +76,7 @@ func (h *Handler) List() ([]*module.Module, error) {
 	return modules, nil
 }
 
-func (h *Handler) Read(id string) (*module.Module, error) {
+func (h *Handler) Get(id string) (*module.Module, error) {
 	file, err := h.storageHandler.Open(id)
 	if err != nil {
 		code := http.StatusInternalServerError
@@ -118,7 +118,7 @@ func (h *Handler) Update(id string) error {
 }
 
 func (h *Handler) InputTemplate(id string) (model.InputTemplate, error) {
-	m, err := h.Read(id)
+	m, err := h.Get(id)
 	if err != nil {
 		return model.InputTemplate{}, err
 	}
