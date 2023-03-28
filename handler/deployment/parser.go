@@ -32,6 +32,8 @@ func parseCfgVal(val any, dataType module.DataType) (v any, err error) {
 		v, err = parseInt64(val)
 	case module.Float64Type:
 		v, err = parseFloat64(val)
+	default:
+		return nil, fmt.Errorf("unknown data type '%s'", dataType)
 	}
 	return
 }
@@ -50,6 +52,8 @@ func parseCfgValSlice(val any, dataType module.DataType) (v any, err error) {
 		v, err = toTSlice(vSl, parseInt64)
 	case module.Float64Type:
 		v, err = toTSlice(vSl, parseFloat64)
+	default:
+		return nil, fmt.Errorf("unknown data type '%s'", dataType)
 	}
 	return
 }
