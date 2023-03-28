@@ -79,25 +79,6 @@ func (h *ConfigValidationHandler) ValidateValue(cType string, cTypeOpts module.C
 	}
 }
 
-func (h *ConfigValidationHandler) ValidateValSlice(cType string, cTypeOpts module.ConfigTypeOptions, value any, dataType module.DataType) error {
-	cDef, ok := h.definitions[cType]
-	if !ok {
-		return fmt.Errorf("config type '%s' not defined", cType)
-	}
-	switch dataType {
-	case module.StringType:
-		return vltValSlice[string](cDef.Validators, cTypeOpts, h.validators, value)
-	case module.BoolType:
-		return vltValSlice[bool](cDef.Validators, cTypeOpts, h.validators, value)
-	case module.Int64Type:
-		return vltValSlice[int64](cDef.Validators, cTypeOpts, h.validators, value)
-	case module.Float64Type:
-		return vltValSlice[float64](cDef.Validators, cTypeOpts, h.validators, value)
-	default:
-		return fmt.Errorf("unknown data type '%s'", dataType)
-	}
-}
-
 func (h *ConfigValidationHandler) ValidateValInOpt(cOpt any, value any, isSlice bool, dataType module.DataType) (err error) {
 	fmt.Println(value)
 	var ok bool
