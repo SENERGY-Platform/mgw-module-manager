@@ -39,7 +39,7 @@ type ModStorageHandler interface {
 	CopyFrom(id string, srcPath string) error
 }
 
-type ModuleTransferHandler interface {
+type ModTransferHandler interface {
 }
 
 type DeploymentHandler interface {
