@@ -21,7 +21,7 @@ import (
 )
 
 func (a *Api) AddDeployment(dr model.DepRequest) (string, error) {
-	m, err := a.moduleHandler.Read(dr.ModuleID)
+	m, err := a.moduleHandler.Get(dr.ModuleID)
 	if err != nil {
 		return "", err
 	}
@@ -48,7 +48,7 @@ func (a *Api) StopDeployment(id string) error {
 	panic("not implemented")
 }
 
-func (a *Api) UpdateDeployment(dr model.DeploymentRequest) {
+func (a *Api) UpdateDeployment(dr model.DepRequest) {
 	panic("not implemented")
 }
 

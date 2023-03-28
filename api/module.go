@@ -30,7 +30,7 @@ func (a *Api) GetModules() ([]*module.Module, error) {
 }
 
 func (a *Api) GetModule(id string) (*module.Module, error) {
-	return a.moduleHandler.Read(id)
+	return a.moduleHandler.Get(id)
 }
 
 func (a *Api) DeleteModule(id string) error {
