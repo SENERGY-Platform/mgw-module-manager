@@ -80,7 +80,6 @@ func (h *ConfigValidationHandler) ValidateValue(cType string, cTypeOpts module.C
 }
 
 func (h *ConfigValidationHandler) ValidateValInOpt(cOpt any, value any, isSlice bool, dataType module.DataType) (err error) {
-	fmt.Println(value)
 	var ok bool
 	switch dataType {
 	case module.StringType:
