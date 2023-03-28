@@ -64,9 +64,9 @@ type Validator func(params map[string]any) error
 
 type CfgValidationHandler interface {
 	ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error
-	ValidateOptions(cType string, cTypeOpt module.ConfigTypeOptions) error
-	ValidateValue(cType string, cTypeOpt module.ConfigTypeOptions, value any) error
-	ValidateValSlice(cType string, cTypeOpt module.ConfigTypeOptions, valSl any, dataType module.DataType) error
+	ValidateTypeOptions(cType string, cTypeOpt module.ConfigTypeOptions) error
+	ValidateValue(cType string, cTypeOpt module.ConfigTypeOptions, value any, isSlice bool, dataType module.DataType) error
+	ValidateValInOpt(cOpt any, value any, isSlice bool, dataType module.DataType) error
 }
 
 type Api interface {
