@@ -24,14 +24,14 @@ import (
 
 type ModuleHandler interface {
 	List() ([]*module.Module, error)
-	Read(id string) (*module.Module, error)
+	Get(id string) (*module.Module, error)
 	Add(id string) error
 	Delete(id string) error
 	Update(id string) error
 	InputTemplate(id string) (model.InputTemplate, error)
 }
 
-type ModuleStorageHandler interface {
+type ModStorageHandler interface {
 	List() ([]string, error)
 	Open(id string) (io.ReadCloser, error)
 	Delete(id string) error
@@ -44,7 +44,7 @@ type ModuleTransferHandler interface {
 
 type DeploymentHandler interface {
 	List() ([]model.Deployment, error)
-	Read(id string) (model.Deployment, error)
+	Get(id string) (model.Deployment, error)
 	Add(m *module.Module, b model.DepBase, name *string) (string, error)
 	Start(id string) error
 	Stop(id string) error
@@ -52,9 +52,9 @@ type DeploymentHandler interface {
 	Update(id string) error
 }
 
-type DeploymentStorageHandler interface {
-	List() ([]model.Deployment, error)
-	Create(base model.Deployment) error
+type DepStorageHandler interface {
+	List() ([]*model.Deployment, error)
+	Create(dep model.Deployment) error
 	Read(id string) (model.Deployment, error)
 	Update(id string) error
 	Delete(id string) error
@@ -62,7 +62,7 @@ type DeploymentStorageHandler interface {
 
 type Validator func(params map[string]any) error
 
-type ConfigValidationHandler interface {
+type CfgValidationHandler interface {
 	ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error
 	ValidateOptions(cType string, cTypeOpt module.ConfigTypeOptions) error
 	ValidateValue(cType string, cTypeOpt module.ConfigTypeOptions, value any) error
