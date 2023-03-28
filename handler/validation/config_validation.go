@@ -18,6 +18,7 @@ package validation
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"module-manager/itf"
@@ -80,6 +81,85 @@ func (h *ConfigValidationHandler) ValidateValSlice(cType string, cTypeOpts modul
 	default:
 		return fmt.Errorf("unknown data type '%s'", dataType)
 	}
+}
+
+func (h *ConfigValidationHandler) ValidateValInOpt(cOpt any, value any, isSlice bool, dataType module.DataType) (err error) {
+	fmt.Println(value)
+	var ok bool
+	switch dataType {
+	case module.StringType:
+		if isSlice {
+			ok, err = vltValSlInOpt[string](value, cOpt)
+		} else {
+			ok, err = vltValInOpt[string](value, cOpt)
+		}
+	case module.BoolType:
+		if isSlice {
+			ok, err = vltValSlInOpt[bool](value, cOpt)
+		} else {
+			ok, err = vltValInOpt[bool](value, cOpt)
+		}
+	case module.Int64Type:
+		if isSlice {
+			ok, err = vltValSlInOpt[int64](value, cOpt)
+		} else {
+			ok, err = vltValInOpt[int64](value, cOpt)
+		}
+	case module.Float64Type:
+		if isSlice {
+			ok, err = vltValSlInOpt[float64](value, cOpt)
+		} else {
+			ok, err = vltValInOpt[float64](value, cOpt)
+		}
+	default:
+		err = fmt.Errorf("unknown data type '%s'", dataType)
+	}
+	if !ok {
+		err = errors.New("value not allowed")
+	}
+	return
+}
+
+func vltValInOpt[T comparable](val any, opt any) (bool, error) {
+	v, ok := val.(T)
+	if !ok {
+		return false, fmt.Errorf("invalid data type '%T'", val)
+	}
+	o, ok := opt.([]T)
+	if !ok {
+		return false, fmt.Errorf("invalid data type '%T'", opt)
+	}
+	for _, e := range o {
+		if v == e {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func vltValSlInOpt[T comparable](val any, opt any) (bool, error) {
+	vSl, ok := val.([]T)
+	if !ok {
+		return false, fmt.Errorf("invalid data type '%T'", val)
+	}
+	o, ok := opt.([]T)
+	if !ok {
+		return false, fmt.Errorf("invalid data type '%T'", opt)
+	}
+	var k bool
+	for _, v := range vSl {
+		k = false
+		for _, e := range o {
+			if v == e {
+				k = true
+				break
+			}
+		}
+		if !k {
+			break
+		}
+	}
+	return k, nil
 }
 
 func vltValSlice[T any](cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]itf.Validator, value any) error {
