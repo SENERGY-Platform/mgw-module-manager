@@ -64,12 +64,11 @@ func (h *Handler) Update(id string) error {
 func (h *Handler) validateConfigs(dCs map[string]any, mCs module.Configs) error {
 	for ref, val := range dCs {
 		mC := mCs[ref]
-		if mC.IsSlice {
-			if err := h.cfgVltHandler.ValidateValSlice(mC.Type, mC.TypeOpt, val, mC.DataType); err != nil {
-				return fmt.Errorf("validating config '%s' failed: %s", ref, err)
-			}
-		} else {
-			if err := h.cfgVltHandler.ValidateValue(mC.Type, mC.TypeOpt, val); err != nil {
+		if err := h.cfgVltHandler.ValidateValue(mC.Type, mC.TypeOpt, val, mC.IsSlice, mC.DataType); err != nil {
+			return fmt.Errorf("validating config '%s' failed: %s", ref, err)
+		}
+		if mC.Options != nil && !mC.OptExt {
+			if err := h.cfgVltHandler.ValidateValInOpt(mC.Options, val, mC.IsSlice, mC.DataType); err != nil {
 				return fmt.Errorf("validating config '%s' failed: %s", ref, err)
 			}
 		}
