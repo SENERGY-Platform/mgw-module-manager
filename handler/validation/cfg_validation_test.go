@@ -203,7 +203,7 @@ func TestGenVltValParams(t *testing.T) {
 func TestVltOptions(t *testing.T) {
 	var cDefVlts []model.ConfigDefinitionValidator
 	vlts := make(map[string]itf.Validator)
-	if err := vltOptions(cDefVlts, nil, vlts); err != nil {
+	if err := vltTypeOpts(cDefVlts, nil, vlts); err != nil {
 		t.Error("err != nil")
 	}
 	// ------------------------------
@@ -218,21 +218,21 @@ func TestVltOptions(t *testing.T) {
 			},
 		},
 	}
-	if err := vltOptions(cDefVlts, nil, vlts); err == nil {
+	if err := vltTypeOpts(cDefVlts, nil, vlts); err == nil {
 		t.Error("err == nil")
 	}
 	// ------------------------------
 	vlts["vlt"] = func(params map[string]any) error {
 		return nil
 	}
-	if err := vltOptions(cDefVlts, nil, vlts); err != nil {
+	if err := vltTypeOpts(cDefVlts, nil, vlts); err != nil {
 		t.Error("err != nil")
 	}
 	// ------------------------------
 	vlts["vlt"] = func(params map[string]any) error {
 		return errors.New("test")
 	}
-	if err := vltOptions(cDefVlts, nil, vlts); err == nil {
+	if err := vltTypeOpts(cDefVlts, nil, vlts); err == nil {
 		fmt.Println(err)
 		t.Error("err == nil")
 	}
@@ -253,7 +253,7 @@ func TestVltOptions(t *testing.T) {
 			},
 		},
 	}
-	if err := vltOptions(cDefVlts, nil, vlts); err != nil {
+	if err := vltTypeOpts(cDefVlts, nil, vlts); err != nil {
 		t.Error("err != nil")
 	}
 }
