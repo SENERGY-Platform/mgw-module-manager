@@ -17,6 +17,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/gin-middleware"
@@ -108,7 +109,17 @@ func main() {
 	mfGenerators.Add(v1gen.GetGenerator)
 
 	moduleHandler := module.NewHandler(moduleStorageHandler, nil, configValidationHandler, mfDecoders, mfGenerators)
-	deploymentHandler := deployment.NewHandler(nil, configValidationHandler)
+
+	dbCtx, dbCtxCf := context.WithCancel(context.Background())
+	defer dbCtxCf()
+	db, err := util.InitDB(dbCtx, config.DB.Host, config.DB.Port, config.DB.User, config.DB.Passwd, config.DB.Name, 10, 10)
+	if err != nil {
+		srv_base.Logger.Error(err)
+		return
+	}
+
+	depStorageHandler := deployment.NewStorageHandler(db)
+	deploymentHandler := deployment.NewHandler(depStorageHandler, configValidationHandler)
 
 	mApi := api.New(moduleHandler, deploymentHandler)
 
