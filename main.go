@@ -85,7 +85,7 @@ func main() {
 
 	srv_base.Logger.Debugf("config: %s", srv_base.ToJsonStr(config))
 
-	moduleStorageHandler, err := module.NewFileHandler(config.ModuleFileHandler.WorkdirPath, config.ModuleFileHandler.Delimiter)
+	moduleStorageHandler, err := module.NewStorageHandler(config.ModuleFileHandler.WorkdirPath, config.ModuleFileHandler.Delimiter)
 	if err != nil {
 		srv_base.Logger.Error(err)
 		return

@@ -31,22 +31,22 @@ const FileName = "Modfile"
 
 var FileExtensions = []string{"yaml", "yml"}
 
-type FileHandler struct {
+type StorageHandler struct {
 	WorkdirPath string
 	Delimiter   string
 }
 
-func NewFileHandler(workdirPath string, delimiter string) (*FileHandler, error) {
+func NewStorageHandler(workdirPath string, delimiter string) (*StorageHandler, error) {
 	if !path.IsAbs(workdirPath) {
 		return nil, fmt.Errorf("workdir path must be absolute")
 	}
-	return &FileHandler{
+	return &StorageHandler{
 		WorkdirPath: workdirPath,
 		Delimiter:   delimiter,
 	}, nil
 }
 
-func (h *FileHandler) List() ([]string, error) {
+func (h *StorageHandler) List() ([]string, error) {
 	dir, err := os.ReadDir(h.WorkdirPath)
 	if err != nil {
 		return nil, newErr(h.WorkdirPath, err)
@@ -60,7 +60,7 @@ func (h *FileHandler) List() ([]string, error) {
 	return mIds, nil
 }
 
-func (h *FileHandler) Open(id string) (io.ReadCloser, error) {
+func (h *StorageHandler) Open(id string) (io.ReadCloser, error) {
 	p := path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))
 	if _, err := os.Stat(p); err != nil {
 		return nil, newErr(h.WorkdirPath, err)
@@ -76,18 +76,18 @@ func (h *FileHandler) Open(id string) (io.ReadCloser, error) {
 	return f, nil
 }
 
-func (h *FileHandler) Delete(id string) error {
+func (h *StorageHandler) Delete(id string) error {
 	if err := os.RemoveAll(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))); err != nil {
 		return newErr(h.WorkdirPath, err)
 	}
 	return nil
 }
 
-func (h *FileHandler) CopyTo(id string, dstPath string) error {
+func (h *StorageHandler) CopyTo(id string, dstPath string) error {
 	return copyDir(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter)), dstPath)
 }
 
-func (h *FileHandler) CopyFrom(id string, srcPath string) error {
+func (h *StorageHandler) CopyFrom(id string, srcPath string) error {
 	dstPath := path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))
 	if ok, err := checkIfExist(dstPath); err != nil {
 		return newErr(h.WorkdirPath, err)
