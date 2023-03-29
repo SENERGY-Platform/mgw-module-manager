@@ -30,6 +30,7 @@ func InitDB(ctx context.Context, addr string, port uint, user string, pw string,
 	if err != nil {
 		return nil, err
 	}
+	defer tmpDB.Close()
 	ctxWT, cf := context.WithTimeout(ctx, 10*time.Second)
 	defer cf()
 	if err = createDB(tmpDB, ctxWT, name); err != nil {

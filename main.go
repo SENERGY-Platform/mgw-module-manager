@@ -117,6 +117,7 @@ func main() {
 		srv_base.Logger.Error(err)
 		return
 	}
+	defer db.Close()
 
 	depStorageHandler := deployment.NewStorageHandler(db)
 	deploymentHandler := deployment.NewHandler(depStorageHandler, configValidationHandler)
