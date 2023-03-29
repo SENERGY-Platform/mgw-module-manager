@@ -21,16 +21,25 @@ import (
 	"github.com/y-du/go-log-level/level"
 )
 
+type DataBaseConfig struct {
+	Host   string `json:"host" env_var:"DB_HOST"`
+	Port   uint   `json:"port" env_var:"DB_PORT"`
+	User   string `json:"user" env_var:"DB_USER"`
+	Passwd string `json:"passwd" env_var:"DB_PASSWD"`
+	Name   string `json:"name" env_var:"DB_NAME"`
+}
+
 type ModuleFileHandlerConfig struct {
 	WorkdirPath string `json:"workdir_path" env_var:"MFH_WORKDIR_PATH"`
 	Delimiter   string `json:"delimiter" env_var:"MFH_DELIMITER"`
 }
 
 type Config struct {
-	ServerPort        int                     `json:"server_port" env_var:"SERVER_PORT"`
+	ServerPort        uint                    `json:"server_port" env_var:"SERVER_PORT"`
 	ModuleFileHandler ModuleFileHandlerConfig `json:"module_file_handler" env_var:"MFH_CONFIG"`
 	Logger            srv_base.LoggerConfig   `json:"logger" env_var:"LOGGER_CONFIG"`
 	ConfigDefsPath    string                  `json:"config_defs_path" env_var:"CONFIG_DEFS_PATH"`
+	DB                DataBaseConfig          `json:"db" env_var:"DB_CONFIG"`
 }
 
 func NewConfig(path *string) (*Config, error) {
@@ -46,6 +55,9 @@ func NewConfig(path *string) (*Config, error) {
 			Terminal:     true,
 		},
 		ConfigDefsPath: "include/config_definitions.json",
+		DB: DataBaseConfig{
+			Port: 3306,
+		},
 	}
 	err := srv_base.LoadConfig(path, &cfg, nil, nil, nil)
 	return &cfg, err
