@@ -23,16 +23,16 @@ import (
 	"time"
 )
 
-func genDeployment(m *module.Module, dd model.DepData, name *string) (*model.Deployment, []string, []string, error) {
-	dRs, rad, err := genDepHostRes(dd.HostResources, m.HostResources)
+func genDeployment(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (*model.Deployment, []string, []string, error) {
+	dRs, rad, err := genDepHostRes(hostRes, m.HostResources)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	dSs, sad, err := genDepSecrets(dd.Secrets, m.Secrets)
+	dSs, sad, err := genDepSecrets(secrets, m.Secrets)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	dCs, err := genDepConfigs(dd.Configs, m.Configs)
+	dCs, err := genDepConfigs(configs, m.Configs)
 	if err != nil {
 		return nil, nil, nil, err
 	}
