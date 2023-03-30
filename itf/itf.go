@@ -61,7 +61,7 @@ type DepInstanceHandler interface {
 }
 
 type DepStorageHandler interface {
-	List() ([]*model.Deployment, error)
+	List() ([]model.DepMeta, error)
 	Create(dep *model.Deployment) error
 	Read(id string) (*model.Deployment, error)
 	Update(dep *model.Deployment) error
