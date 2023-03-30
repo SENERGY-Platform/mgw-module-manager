@@ -120,7 +120,7 @@ func main() {
 	}
 	defer db.Close()
 
-	depStorageHandler := deployment.NewStorageHandler(db, time.Duration(config.DB.Timeout))
+	depStorageHandler := deployment.NewStorageHandler(db, dbCtx, time.Duration(config.DB.Timeout))
 	deploymentHandler := deployment.NewHandler(depStorageHandler, configValidationHandler)
 
 	mApi := api.New(moduleHandler, deploymentHandler)
