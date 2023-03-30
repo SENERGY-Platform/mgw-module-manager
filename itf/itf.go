@@ -45,7 +45,15 @@ type ModTransferHandler interface {
 type DeploymentHandler interface {
 	List() ([]model.Deployment, error)
 	Get(id string) (model.Deployment, error)
-	Add(m *module.Module, b model.DepBase, name *string) (string, error)
+	Add(m *module.Module, data model.DepData, name *string) (string, error)
+	Delete(id string) error
+	Update(id string) error
+}
+
+type DepInstanceHandler interface {
+	List() ([]model.DepInstance, error)
+	Get(id string) (model.DepInstance, error)
+	Add(m *module.Module, d model.DepInstance) (string, error)
 	Start(id string) error
 	Stop(id string) error
 	Delete(id string) error
@@ -54,9 +62,9 @@ type DeploymentHandler interface {
 
 type DepStorageHandler interface {
 	List() ([]*model.Deployment, error)
-	Create(dep model.Deployment) error
-	Read(id string) (model.Deployment, error)
-	Update(id string) error
+	Create(dep *model.Deployment) error
+	Read(id string) (*model.Deployment, error)
+	Update(dep *model.Deployment) error
 	Delete(id string) error
 }
 

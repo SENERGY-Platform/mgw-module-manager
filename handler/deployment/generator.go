@@ -20,25 +20,29 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"module-manager/model"
+	"time"
 )
 
-func genDeployment(m *module.Module, b model.DepBase, name *string) (*model.Deployment, []string, []string, error) {
-	dRs, rad, err := genDepHostRes(b.HostResources, m.HostResources)
+func genDeployment(m *module.Module, dd model.DepData, name *string) (*model.Deployment, []string, []string, error) {
+	dRs, rad, err := genDepHostRes(dd.HostResources, m.HostResources)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	dSs, sad, err := genDepSecrets(b.Secrets, m.Secrets)
+	dSs, sad, err := genDepSecrets(dd.Secrets, m.Secrets)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	dCs, err := genDepConfigs(b.Configs, m.Configs)
+	dCs, err := genDepConfigs(dd.Configs, m.Configs)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 	d := model.Deployment{
-		Name: m.Name,
-		DepBase: model.DepBase{
-			ModuleID:      m.ID,
+		DepMeta: model.DepMeta{
+			ModuleID: m.ID,
+			Created:  time.Now().UTC(),
+			Updated:  time.Now().UTC(),
+		},
+		DepData: model.DepData{
 			HostResources: dRs,
 			Secrets:       dSs,
 			Configs:       dCs,

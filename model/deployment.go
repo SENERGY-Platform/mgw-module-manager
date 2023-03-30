@@ -16,22 +16,36 @@
 
 package model
 
-type DepBase struct {
-	ModuleID      string            `json:"module_id"`
+import "time"
+
+type DepMeta struct {
+	ID       string    `json:"id"`
+	ModuleID string    `json:"module_id"`
+	Name     string    `json:"name"`
+	Created  time.Time `json:"created"`
+	Updated  time.Time `json:"updated"`
+}
+
+type DepData struct {
 	HostResources map[string]string `json:"host_resources"` // {ref:resourceID}
 	Secrets       map[string]string `json:"secrets"`        // {ref:secretID}
 	Configs       map[string]any    `json:"configs"`        // {ref:value}
 }
 
 type Deployment struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	DepBase
-	Containers map[string]struct{}
+	DepMeta
+	DepData
+}
+
+type DepInstance struct {
+	ID         string
+	DepID      string
+	Containers []string
 }
 
 type DepRequest struct {
-	Name *string `json:"name"` // defaults to module name if nil
-	DepBase
+	Name     *string `json:"name"` // defaults to module name if nil
+	ModuleID string  `json:"module_id"`
+	DepData
 	SecretRequests map[string]any // {ref:value}
 }
