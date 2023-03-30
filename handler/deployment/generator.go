@@ -94,26 +94,25 @@ func genDepConfigs(cfgs map[string]any, mCs module.Configs) (map[string]model.De
 	for ref, mC := range mCs {
 		val, ok := cfgs[ref]
 		if !ok {
-			if mC.Default != nil {
-				dCs[ref] = mC.Default
-			} else {
-				if mC.Required {
-					return nil, fmt.Errorf("config '%s' requried", ref)
-				}
+			if mC.Default == nil && mC.Required {
+				return nil, fmt.Errorf("config '%s' requried", ref)
 			}
 		} else {
 			var v any
 			var err error
 			if mC.IsSlice {
 				v, err = parseCfgValSlice(val, mC.DataType)
-				dCs[ref] = v
 			} else {
 				v, err = parseCfgVal(val, mC.DataType)
 			}
 			if err != nil {
 				return nil, fmt.Errorf("parsing config '%s' failed: %s", ref, err)
 			}
-			dCs[ref] = v
+			dCs[ref] = model.DepConfig{
+				Value:    v,
+				DataType: mC.DataType,
+				IsSlice:  mC.IsSlice,
+			}
 		}
 	}
 	return dCs, nil
