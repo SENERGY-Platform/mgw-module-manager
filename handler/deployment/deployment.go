@@ -57,7 +57,7 @@ func (h *Handler) Delete(id string) error {
 	return nil
 }
 
-func (h *Handler) Update(id string) error {
+func (h *Handler) Update(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error {
 	return nil
 }
 

@@ -25,7 +25,7 @@ func (a *Api) AddDeployment(dr model.DepRequest) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	id, err := a.deploymentHandler.Add(m, dr.DepBase, dr.Name)
+	id, err := a.deploymentHandler.Add(m, dr.Name, dr.HostResources, dr.Secrets, dr.Configs)
 	if err != nil {
 		return "", err
 	}

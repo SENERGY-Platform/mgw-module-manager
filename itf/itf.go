@@ -45,9 +45,9 @@ type ModTransferHandler interface {
 type DeploymentHandler interface {
 	List() ([]model.DepMeta, error)
 	Get(id string) (model.Deployment, error)
-	Add(m *module.Module, data model.DepData, name *string) (string, error)
+	Add(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error)
 	Delete(id string) error
-	Update(id string) error
+	Update(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error
 }
 
 type DepInstanceHandler interface {
