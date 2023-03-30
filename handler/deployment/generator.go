@@ -89,8 +89,8 @@ func genDepSecrets(s map[string]string, mSs map[string]module.Secret) (map[strin
 	return dSs, ad, nil
 }
 
-func genDepConfigs(cfgs map[string]any, mCs module.Configs) (map[string]any, error) {
-	dCs := make(map[string]any)
+func genDepConfigs(cfgs map[string]any, mCs module.Configs) (map[string]model.DepConfig, error) {
+	dCs := make(map[string]model.DepConfig)
 	for ref, mC := range mCs {
 		val, ok := cfgs[ref]
 		if !ok {
