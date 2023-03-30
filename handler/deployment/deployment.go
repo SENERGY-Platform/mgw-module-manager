@@ -33,7 +33,7 @@ func NewHandler(storageHandler itf.DepStorageHandler, cfgVltHandler itf.CfgValid
 	return &Handler{storageHandler: storageHandler, cfgVltHandler: cfgVltHandler}
 }
 
-func (h *Handler) List() ([]model.Deployment, error) {
+func (h *Handler) List() ([]model.DepMeta, error) {
 	return nil, nil
 }
 
