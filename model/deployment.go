@@ -16,7 +16,10 @@
 
 package model
 
-import "time"
+import (
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"time"
+)
 
 type DepMeta struct {
 	ID       string    `json:"id"`
@@ -26,15 +29,17 @@ type DepMeta struct {
 	Updated  time.Time `json:"updated"`
 }
 
-type DepData struct {
-	HostResources map[string]string `json:"host_resources"` // {ref:resourceID}
-	Secrets       map[string]string `json:"secrets"`        // {ref:secretID}
-	Configs       map[string]any    `json:"configs"`        // {ref:value}
-}
-
 type Deployment struct {
 	DepMeta
-	DepData
+	HostResources map[string]string    `json:"host_resources"` // {ref:resourceID}
+	Secrets       map[string]string    `json:"secrets"`        // {ref:secretID}
+	Configs       map[string]DepConfig `json:"configs"`        // {ref:value}
+}
+
+type DepConfig struct {
+	Value    any             `json:"value"`
+	DataType module.DataType `json:"data_type"`
+	IsSlice  bool            `json:"is_slice"`
 }
 
 type DepInstance struct {
@@ -44,8 +49,10 @@ type DepInstance struct {
 }
 
 type DepRequest struct {
-	Name     *string `json:"name"` // defaults to module name if nil
-	ModuleID string  `json:"module_id"`
-	DepData
-	SecretRequests map[string]any // {ref:value}
+	Name           *string           `json:"name"` // defaults to module name if nil
+	ModuleID       string            `json:"module_id"`
+	HostResources  map[string]string `json:"host_resources"` // {ref:resourceID}
+	Secrets        map[string]string `json:"secrets"`        // {ref:secretID}
+	Configs        map[string]any    `json:"configs"`        // {ref:value}
+	SecretRequests map[string]any    // {ref:value}
 }
