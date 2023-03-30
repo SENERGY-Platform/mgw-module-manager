@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"module-manager/model"
-	"time"
 )
 
 func genDeployment(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (*model.Deployment, []string, []string, error) {
@@ -42,11 +41,9 @@ func genDeployment(m *module.Module, name *string, hostRes map[string]string, se
 			Created:  time.Now().UTC(),
 			Updated:  time.Now().UTC(),
 		},
-		DepData: model.DepData{
-			HostResources: dRs,
-			Secrets:       dSs,
-			Configs:       dCs,
-		},
+		HostResources: dRs,
+		Secrets:       dSs,
+		Configs:       dCs,
 	}
 	if name != nil {
 		d.Name = *name
