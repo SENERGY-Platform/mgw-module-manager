@@ -22,11 +22,12 @@ import (
 )
 
 type DataBaseConfig struct {
-	Host   string `json:"host" env_var:"DB_HOST"`
-	Port   uint   `json:"port" env_var:"DB_PORT"`
-	User   string `json:"user" env_var:"DB_USER"`
-	Passwd string `json:"passwd" env_var:"DB_PASSWD"`
-	Name   string `json:"name" env_var:"DB_NAME"`
+	Host    string `json:"host" env_var:"DB_HOST"`
+	Port    uint   `json:"port" env_var:"DB_PORT"`
+	User    string `json:"user" env_var:"DB_USER"`
+	Passwd  string `json:"passwd" env_var:"DB_PASSWD"`
+	Name    string `json:"name" env_var:"DB_NAME"`
+	Timeout int64  `json:"timeout" env_var:"DB_TIMEOUT"`
 }
 
 type ModuleFileHandlerConfig struct {
@@ -56,7 +57,8 @@ func NewConfig(path *string) (*Config, error) {
 		},
 		ConfigDefsPath: "include/config_definitions.json",
 		DB: DataBaseConfig{
-			Port: 3306,
+			Port:    3306,
+			Timeout: 5000000000,
 		},
 	}
 	err := srv_base.LoadConfig(path, &cfg, nil, nil, nil)

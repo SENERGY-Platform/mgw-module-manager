@@ -25,13 +25,13 @@ import (
 	"time"
 )
 
-func InitDB(ctx context.Context, addr string, port uint, user string, pw string, name string, moc int, mic int) (*sql.DB, error) {
+func InitDB(ctx context.Context, addr string, port uint, user string, pw string, name string, moc int, mic int, timeout time.Duration) (*sql.DB, error) {
 	tmpDB, err := newDB(addr, port, user, pw, "", 3*time.Minute, 1, 1)
 	if err != nil {
 		return nil, err
 	}
 	defer tmpDB.Close()
-	ctxWT, cf := context.WithTimeout(ctx, 10*time.Second)
+	ctxWT, cf := context.WithTimeout(ctx, timeout)
 	defer cf()
 	if err = createDB(tmpDB, ctxWT, name); err != nil {
 		return nil, err

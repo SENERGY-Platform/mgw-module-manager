@@ -40,6 +40,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
 
 var version string
@@ -112,14 +113,14 @@ func main() {
 
 	dbCtx, dbCtxCf := context.WithCancel(context.Background())
 	defer dbCtxCf()
-	db, err := util.InitDB(dbCtx, config.DB.Host, config.DB.Port, config.DB.User, config.DB.Passwd, config.DB.Name, 10, 10)
+	db, err := util.InitDB(dbCtx, config.DB.Host, config.DB.Port, config.DB.User, config.DB.Passwd, config.DB.Name, 10, 10, time.Duration(config.DB.Timeout))
 	if err != nil {
 		srv_base.Logger.Error(err)
 		return
 	}
 	defer db.Close()
 
-	depStorageHandler := deployment.NewStorageHandler(db)
+	depStorageHandler := deployment.NewStorageHandler(db, time.Duration(config.DB.Timeout))
 	deploymentHandler := deployment.NewHandler(depStorageHandler, configValidationHandler)
 
 	mApi := api.New(moduleHandler, deploymentHandler)
