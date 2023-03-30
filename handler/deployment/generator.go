@@ -38,8 +38,6 @@ func genDeployment(m *module.Module, name *string, hostRes map[string]string, se
 	d := model.Deployment{
 		DepMeta: model.DepMeta{
 			ModuleID: m.ID,
-			Created:  time.Now().UTC(),
-			Updated:  time.Now().UTC(),
 		},
 		HostResources: dRs,
 		Secrets:       dSs,
