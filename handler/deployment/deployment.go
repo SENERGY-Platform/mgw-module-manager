@@ -61,14 +61,14 @@ func (h *Handler) Update(m *module.Module, name *string, hostRes map[string]stri
 	return nil
 }
 
-func (h *Handler) validateConfigs(dCs map[string]any, mCs module.Configs) error {
-	for ref, val := range dCs {
+func (h *Handler) validateConfigs(dCs map[string]model.DepConfig, mCs module.Configs) error {
+	for ref, dC := range dCs {
 		mC := mCs[ref]
-		if err := h.cfgVltHandler.ValidateValue(mC.Type, mC.TypeOpt, val, mC.IsSlice, mC.DataType); err != nil {
+		if err := h.cfgVltHandler.ValidateValue(mC.Type, mC.TypeOpt, dC.Value, mC.IsSlice, mC.DataType); err != nil {
 			return fmt.Errorf("validating config '%s' failed: %s", ref, err)
 		}
 		if mC.Options != nil && !mC.OptExt {
-			if err := h.cfgVltHandler.ValidateValInOpt(mC.Options, val, mC.IsSlice, mC.DataType); err != nil {
+			if err := h.cfgVltHandler.ValidateValInOpt(mC.Options, dC.Value, mC.IsSlice, mC.DataType); err != nil {
 				return fmt.Errorf("validating config '%s' failed: %s", ref, err)
 			}
 		}
