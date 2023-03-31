@@ -144,5 +144,11 @@ func (h *StorageHandler) Update(dep *model.Deployment) error {
 }
 
 func (h *StorageHandler) Delete(id string) error {
-	panic("not implemented")
+	ctx, cf := context.WithTimeout(h.ctx, h.timeout)
+	defer cf()
+	_, err := h.db.ExecContext(ctx, "DELETE FROM `deployments` WHERE `id` = ?", id)
+	if err != nil {
+		return err
+	}
+	return nil
 }
