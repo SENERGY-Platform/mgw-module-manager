@@ -109,13 +109,13 @@ func insertConfigs(ctx context.Context, pf func(context.Context, string) (*sql.S
 }
 
 func genCfgInsertQuery(dataType module.DataType, isSlice bool) string {
-	table := []string{"configs", dataType}
-	cols := []string{"`dep_id`", "`ref`", "`value`"}
+	table := "configs"
+	cols := []string{"`dep_id`", "`ref`", fmt.Sprintf("`v_%s`", dataType)}
 	if isSlice {
-		table = append(table, "list")
+		table = "list_" + table
 		cols = append(cols, "`ord`")
 	}
-	return fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s?)", strings.Join(table, "_"), strings.Join(cols, ", "), strings.Repeat("?, ", len(cols)-1))
+	return fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s?)", table, strings.Join(cols, ", "), strings.Repeat("?, ", len(cols)-1))
 }
 
 func execCfgSlStmt[T any](ctx context.Context, stmt *sql.Stmt, depId string, ref string, val any) error {

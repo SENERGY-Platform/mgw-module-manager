@@ -16,20 +16,20 @@
 
 CREATE TABLE IF NOT EXISTS `deployments`
 (
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `id`        CHAR(36)     NOT NULL,
-    `module_id` VARCHAR(256) NOT NULL,
-    `name`      VARCHAR(256) NOT NULL,
-    `created`   TIMESTAMP(6)    NOT NULL,
-    `updated`   TIMESTAMP(6)    NOT NULL,
+    `index`     BIGINT AUTO_INCREMENT NOT NULL,
+    `id`        CHAR(36)              NOT NULL,
+    `module_id` VARCHAR(256)          NOT NULL,
+    `name`      VARCHAR(256)          NOT NULL,
+    `created`   TIMESTAMP(6)          NOT NULL,
+    `updated`   TIMESTAMP(6)          NOT NULL,
     UNIQUE KEY (`id`),
     PRIMARY KEY (`index`)
 );
 CREATE TABLE IF NOT EXISTS `instances`
 (
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `id`     CHAR(36) NOT NULL,
-    `dep_id` CHAR(36) NOT NULL,
+    `index`  BIGINT AUTO_INCREMENT NOT NULL,
+    `id`     CHAR(36)              NOT NULL,
+    `dep_id` CHAR(36)              NOT NULL,
     UNIQUE KEY (`id`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
@@ -39,8 +39,8 @@ CREATE TABLE IF NOT EXISTS `instances`
 CREATE TABLE IF NOT EXISTS `containers`
 (
     `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `c_id` CHAR(36) NOT NULL,
-    `i_id` CHAR(36) NOT NULL,
+    `c_id`  CHAR(36)              NOT NULL,
+    `i_id`  CHAR(36)              NOT NULL,
     UNIQUE KEY (`c_id`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (`i_id`) REFERENCES `instances` (`id`)
@@ -49,10 +49,10 @@ CREATE TABLE IF NOT EXISTS `containers`
 );
 CREATE TABLE IF NOT EXISTS `host_resources`
 (
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `dep_id` CHAR(36)     NOT NULL,
-    `ref`    VARCHAR(128) NOT NULL,
-    `res_id` CHAR(36)     NOT NULL,
+    `index`  BIGINT AUTO_INCREMENT NOT NULL,
+    `dep_id` CHAR(36)              NOT NULL,
+    `ref`    VARCHAR(128)          NOT NULL,
+    `res_id` CHAR(36)              NOT NULL,
     UNIQUE KEY (`dep_id`, `ref`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
@@ -61,110 +61,41 @@ CREATE TABLE IF NOT EXISTS `host_resources`
 );
 CREATE TABLE IF NOT EXISTS `secrets`
 (
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `dep_id` CHAR(36)     NOT NULL,
-    `ref`    VARCHAR(128) NOT NULL,
-    `sec_id` CHAR(36)     NOT NULL,
+    `index`  BIGINT AUTO_INCREMENT NOT NULL,
+    `dep_id` CHAR(36)              NOT NULL,
+    `ref`    VARCHAR(128)          NOT NULL,
+    `sec_id` CHAR(36)              NOT NULL,
     UNIQUE KEY (`dep_id`, `ref`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
         ON DELETE CASCADE
         ON UPDATE RESTRICT
 );
-CREATE TABLE IF NOT EXISTS `configs_string`
+CREATE TABLE IF NOT EXISTS `configs`
 (
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `dep_id` CHAR(36)     NOT NULL,
-    `ref`    VARCHAR(128) NOT NULL,
-    `value`  VARCHAR(512),
+    `index`    BIGINT AUTO_INCREMENT NOT NULL,
+    `dep_id`   CHAR(36)              NOT NULL,
+    `ref`      VARCHAR(128)          NOT NULL,
+    `v_string` VARCHAR(512),
+    `v_int`    BIGINT,
+    `v_float`  DOUBLE,
+    `v_bool`   BOOLEAN,
     UNIQUE KEY (`dep_id`, `ref`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
         ON DELETE CASCADE
         ON UPDATE RESTRICT
 );
-CREATE TABLE IF NOT EXISTS `configs_string_list`
+CREATE TABLE IF NOT EXISTS `list_configs`
 (
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `dep_id` CHAR(36)     NOT NULL,
-    `ref`    VARCHAR(128) NOT NULL,
-    `ord`    SMALLINT     NOT NULL,
-    `value`  VARCHAR(512),
-    UNIQUE KEY (`dep_id`, `ref`, `ord`),
-    PRIMARY KEY (`index`),
-    FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
-        ON DELETE CASCADE
-        ON UPDATE RESTRICT
-);
-CREATE TABLE IF NOT EXISTS `configs_int`
-(
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `dep_id` CHAR(36)     NOT NULL,
-    `ref`    VARCHAR(128) NOT NULL,
-    `value`  BIGINT,
-    UNIQUE KEY (`dep_id`, `ref`),
-    PRIMARY KEY (`index`),
-    FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
-        ON DELETE CASCADE
-        ON UPDATE RESTRICT
-);
-CREATE TABLE IF NOT EXISTS `configs_int_list`
-(
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `dep_id` CHAR(36)     NOT NULL,
-    `ref`    VARCHAR(128) NOT NULL,
-    `ord`    SMALLINT     NOT NULL,
-    `value`  BIGINT,
-    UNIQUE KEY (`dep_id`, `ref`, `ord`),
-    PRIMARY KEY (`index`),
-    FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
-        ON DELETE CASCADE
-        ON UPDATE RESTRICT
-);
-CREATE TABLE IF NOT EXISTS `configs_float`
-(
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `dep_id` CHAR(36)     NOT NULL,
-    `ref`    VARCHAR(128) NOT NULL,
-    `value`  DOUBLE,
-    UNIQUE KEY (`dep_id`, `ref`),
-    PRIMARY KEY (`index`),
-    FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
-        ON DELETE CASCADE
-        ON UPDATE RESTRICT
-);
-CREATE TABLE IF NOT EXISTS `configs_float_list`
-(
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `dep_id` CHAR(36)     NOT NULL,
-    `ref`    VARCHAR(128) NOT NULL,
-    `ord`    SMALLINT     NOT NULL,
-    `value`  DOUBLE,
-    UNIQUE KEY (`dep_id`, `ref`, `ord`),
-    PRIMARY KEY (`index`),
-    FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
-        ON DELETE CASCADE
-        ON UPDATE RESTRICT
-);
-CREATE TABLE IF NOT EXISTS `configs_bool`
-(
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `dep_id` CHAR(36)     NOT NULL,
-    `ref`    VARCHAR(128) NOT NULL,
-    `value`  BOOLEAN,
-    UNIQUE KEY (`dep_id`, `ref`),
-    PRIMARY KEY (`index`),
-    FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
-        ON DELETE CASCADE
-        ON UPDATE RESTRICT
-);
-CREATE TABLE IF NOT EXISTS `configs_bool_list`
-(
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `dep_id` CHAR(36)     NOT NULL,
-    `ref`    VARCHAR(128) NOT NULL,
-    `ord`    SMALLINT     NOT NULL,
-    `value`  BOOLEAN,
+    `index`    BIGINT AUTO_INCREMENT NOT NULL,
+    `dep_id`   CHAR(36)              NOT NULL,
+    `ref`      VARCHAR(128)          NOT NULL,
+    `ord`      SMALLINT              NOT NULL,
+    `v_string` VARCHAR(512),
+    `v_int`    BIGINT,
+    `v_float`  DOUBLE,
+    `v_bool`   BOOLEAN,
     UNIQUE KEY (`dep_id`, `ref`, `ord`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
