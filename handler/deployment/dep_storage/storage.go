@@ -23,6 +23,8 @@ import (
 	"time"
 )
 
+const tLayout = "2006-01-02 15:04:05.000000"
+
 type StorageHandler struct {
 	db      *sql.DB
 	ctx     context.Context
