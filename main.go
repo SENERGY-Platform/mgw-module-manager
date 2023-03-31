@@ -29,6 +29,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"module-manager/api"
 	"module-manager/handler/deployment"
+	"module-manager/handler/deployment/dep_storage"
 	"module-manager/handler/http_engine"
 	"module-manager/handler/module"
 	"module-manager/handler/validation"
@@ -120,7 +121,7 @@ func main() {
 	}
 	defer db.Close()
 
-	depStorageHandler := deployment.NewStorageHandler(db, dbCtx, time.Duration(config.DB.Timeout))
+	depStorageHandler := dep_storage.NewStorageHandler(db, dbCtx, time.Duration(config.DB.Timeout))
 	deploymentHandler := deployment.NewHandler(depStorageHandler, configValidationHandler)
 
 	mApi := api.New(moduleHandler, deploymentHandler)
