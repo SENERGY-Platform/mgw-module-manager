@@ -77,7 +77,37 @@ func (h *StorageHandler) Create(dep *model.Deployment) (string, error) {
 }
 
 func (h *StorageHandler) Read(id string) (*model.Deployment, error) {
-	panic("not implemented")
+	ctx, cf := context.WithTimeout(h.ctx, h.timeout)
+	defer cf()
+	depMeta, err := selectDeployment(ctx, h.db.QueryRowContext, id)
+	if err != nil {
+		return nil, err
+	}
+	depMeta.ID = id
+	hostRes, err := selectHostResources(ctx, h.db.QueryContext, id)
+	if err != nil {
+		return nil, err
+	}
+	secrets, err := selectSecrets(ctx, h.db.QueryContext, id)
+	if err != nil {
+		return nil, err
+	}
+	configs := make(map[string]model.DepConfig)
+	err = selectConfigs(ctx, h.db.QueryContext, id, configs)
+	if err != nil {
+		return nil, err
+	}
+	err = selectListConfigs(ctx, h.db.QueryContext, id, configs)
+	if err != nil {
+		return nil, err
+	}
+	dep := model.Deployment{
+		DepMeta:       depMeta,
+		HostResources: hostRes,
+		Secrets:       secrets,
+		Configs:       configs,
+	}
+	return &dep, nil
 }
 
 func (h *StorageHandler) Update(dep *model.Deployment) error {
