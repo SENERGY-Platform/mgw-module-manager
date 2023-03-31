@@ -40,7 +40,36 @@ func NewStorageHandler(db *sql.DB, ctx context.Context, timeout time.Duration) *
 }
 
 func (h *StorageHandler) List() ([]model.DepMeta, error) {
-	panic("not implemented")
+	ctx, cf := context.WithTimeout(h.ctx, h.timeout)
+	defer cf()
+	rows, err := h.db.QueryContext(ctx, "SELECT `id`, `module_id`, `name`, `created`, `updated` FROM `deployments` ORDER BY `name`")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var dms []model.DepMeta
+	for rows.Next() {
+		var dm model.DepMeta
+		var ct, ut []uint8
+		if err = rows.Scan(&dm.ID, &dm.ModuleID, &dm.Name, &ct, &ut); err != nil {
+			return nil, err
+		}
+		tc, err := time.Parse(tLayout, string(ct))
+		if err != nil {
+			return nil, err
+		}
+		tu, err := time.Parse(tLayout, string(ut))
+		if err != nil {
+			return nil, err
+		}
+		dm.Created = tc
+		dm.Updated = tu
+		dms = append(dms, dm)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return dms, nil
 }
 
 func (h *StorageHandler) Create(dep *model.Deployment) (string, error) {
