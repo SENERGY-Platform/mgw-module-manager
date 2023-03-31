@@ -60,6 +60,9 @@ func setRoutes(e *gin.Engine, a itf.Api) {
 	e.GET("modules/:m/input_template", http_engine.GenHandlerP(a.GetInputTemplate, func(gc *gin.Context) (string, error) {
 		return http_engine.GetUrlParam(gc, "m")
 	}))
+	e.GET("deployments/:d", http_engine.GenHandlerP(a.GetDeployment, func(gc *gin.Context) (string, error) {
+		return http_engine.GetUrlParam(gc, "d")
+	}))
 	e.POST("deployments", http_engine.GenHandlerP(a.AddDeployment, http_engine.GetJsonBody[model.DepRequest]))
 }
 
