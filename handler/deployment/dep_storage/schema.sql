@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS `deployments`
     `id`        CHAR(36)     NOT NULL,
     `module_id` VARCHAR(256) NOT NULL,
     `name`      VARCHAR(256) NOT NULL,
-    `created`   TIMESTAMP    NOT NULL,
-    `updated`   TIMESTAMP    NOT NULL,
+    `created`   TIMESTAMP(6)    NOT NULL,
+    `updated`   TIMESTAMP(6)    NOT NULL,
     UNIQUE KEY (`id`),
     PRIMARY KEY (`index`)
 );
