@@ -30,31 +30,40 @@ type Handler struct {
 }
 
 func NewHandler(storageHandler itf.DepStorageHandler, cfgVltHandler itf.CfgValidationHandler) *Handler {
-	return &Handler{storageHandler: storageHandler, cfgVltHandler: cfgVltHandler}
+	return &Handler{
+		storageHandler: storageHandler,
+		cfgVltHandler:  cfgVltHandler,
+	}
 }
 
 func (h *Handler) List() ([]model.DepMeta, error) {
-	return nil, nil
+	return h.storageHandler.List()
 }
 
-func (h *Handler) Get(id string) (model.Deployment, error) {
-	return model.Deployment{}, nil
+func (h *Handler) Get(id string) (*model.Deployment, error) {
+	return h.storageHandler.Read(id)
 }
 
-func (h *Handler) Add(b model.DeploymentBase, m *module.Module) (string, error) {
-	return "", nil
-}
-
-func (h *Handler) Start(id string) error {
-	return nil
-}
-
-func (h *Handler) Stop(id string) error {
-	return nil
+func (h *Handler) Add(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
+	dep, rad, sad, err := genDeployment(m, name, hostRes, secrets, configs)
+	if err != nil {
+		return "", err
+	}
+	if len(rad) > 0 || len(sad) > 0 {
+		return "", errors.New("auto resource discovery not implemented")
+	}
+	if err = h.validateConfigs(dep.Configs, m.Configs); err != nil {
+		return "", err
+	}
+	id, err := h.storageHandler.Create(dep)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
 }
 
 func (h *Handler) Delete(id string) error {
-	return nil
+	return h.storageHandler.Delete(id)
 }
 
 func (h *Handler) Update(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error {
