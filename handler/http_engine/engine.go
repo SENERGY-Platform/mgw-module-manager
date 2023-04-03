@@ -34,22 +34,6 @@ func Gen0P2RHandler[RT any](hf func(context.Context) (RT, error)) func(*gin.Cont
 	}
 }
 
-func Gen1P2RHandler[PT any, RT any](hf func(context.Context, PT) (RT, error), pf func(*gin.Context) (PT, error)) func(*gin.Context) {
-	return func(gc *gin.Context) {
-		p, err := pf(gc)
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		r, err := hf(gc.Request.Context(), p)
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		gc.JSON(http.StatusOK, r)
-	}
-}
-
 func Gen1P1RHandler[PT any](hf func(context.Context, PT) error, pf func(*gin.Context) (PT, error)) func(*gin.Context) {
 	return func(gc *gin.Context) {
 		p, err := pf(gc)
@@ -63,6 +47,22 @@ func Gen1P1RHandler[PT any](hf func(context.Context, PT) error, pf func(*gin.Con
 			return
 		}
 		gc.Status(http.StatusOK)
+	}
+}
+
+func Gen1P2RHandler[PT any, RT any](hf func(context.Context, PT) (RT, error), pf func(*gin.Context) (PT, error)) func(*gin.Context) {
+	return func(gc *gin.Context) {
+		p, err := pf(gc)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		r, err := hf(gc.Request.Context(), p)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, r)
 	}
 }
 
