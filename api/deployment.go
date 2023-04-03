@@ -17,41 +17,42 @@
 package api
 
 import (
+	"context"
 	"module-manager/model"
 )
 
-func (a *Api) AddDeployment(dr model.DepRequest) (string, error) {
-	m, err := a.moduleHandler.Get(dr.ModuleID)
+func (a *Api) AddDeployment(ctx context.Context, dr model.DepRequest) (string, error) {
+	m, err := a.moduleHandler.Get(ctx, dr.ModuleID)
 	if err != nil {
 		return "", err
 	}
-	id, err := a.deploymentHandler.Add(m, dr.Name, dr.HostResources, dr.Secrets, dr.Configs)
+	id, err := a.deploymentHandler.Create(ctx, m, dr.Name, dr.HostResources, dr.Secrets, dr.Configs)
 	if err != nil {
 		return "", err
 	}
 	return id, nil
 }
 
-func (a *Api) GetDeployments() ([]model.DepMeta, error) {
-	return a.deploymentHandler.List()
+func (a *Api) GetDeployments(ctx context.Context) ([]model.DepMeta, error) {
+	return a.deploymentHandler.List(ctx)
 }
 
-func (a *Api) GetDeployment(id string) (*model.Deployment, error) {
-	return a.deploymentHandler.Get(id)
+func (a *Api) GetDeployment(ctx context.Context, id string) (*model.Deployment, error) {
+	return a.deploymentHandler.Get(ctx, id)
 }
 
-func (a *Api) StartDeployment(id string) error {
+func (a *Api) StartDeployment(ctx context.Context, id string) error {
 	panic("not implemented")
 }
 
-func (a *Api) StopDeployment(id string) error {
+func (a *Api) StopDeployment(ctx context.Context, id string) error {
 	panic("not implemented")
 }
 
-func (a *Api) UpdateDeployment(dr model.DepRequest) {
+func (a *Api) UpdateDeployment(ctx context.Context, dr model.DepRequest) {
 	panic("not implemented")
 }
 
-func (a *Api) DeleteDeployment(id string) error {
-	return a.deploymentHandler.Delete(id)
+func (a *Api) DeleteDeployment(ctx context.Context, id string) error {
+	return a.deploymentHandler.Delete(ctx, id)
 }

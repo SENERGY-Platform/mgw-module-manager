@@ -17,26 +17,27 @@
 package api
 
 import (
+	"context"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"module-manager/model"
 )
 
-func (a *Api) AddModule(id string) error {
+func (a *Api) AddModule(ctx context.Context, id string) error {
 	panic("not implemented")
 }
 
-func (a *Api) GetModules() ([]*module.Module, error) {
-	return a.moduleHandler.List()
+func (a *Api) GetModules(ctx context.Context) ([]*module.Module, error) {
+	return a.moduleHandler.List(ctx)
 }
 
-func (a *Api) GetModule(id string) (*module.Module, error) {
-	return a.moduleHandler.Get(id)
+func (a *Api) GetModule(ctx context.Context, id string) (*module.Module, error) {
+	return a.moduleHandler.Get(ctx, id)
 }
 
-func (a *Api) DeleteModule(id string) error {
+func (a *Api) DeleteModule(ctx context.Context, id string) error {
 	panic("not implemented")
 }
 
-func (a *Api) GetInputTemplate(id string) (model.InputTemplate, error) {
-	return a.moduleHandler.InputTemplate(id)
+func (a *Api) GetInputTemplate(ctx context.Context, id string) (model.InputTemplate, error) {
+	return a.moduleHandler.InputTemplate(ctx, id)
 }
