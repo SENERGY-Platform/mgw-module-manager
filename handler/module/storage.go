@@ -17,6 +17,7 @@
 package module
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/go-service-base/srv-base"
@@ -46,7 +47,7 @@ func NewStorageHandler(workdirPath string, delimiter string) (*StorageHandler, e
 	}, nil
 }
 
-func (h *StorageHandler) List() ([]string, error) {
+func (h *StorageHandler) List(ctx context.Context) ([]string, error) {
 	dir, err := os.ReadDir(h.WorkdirPath)
 	if err != nil {
 		return nil, newErr(h.WorkdirPath, err)
@@ -60,7 +61,7 @@ func (h *StorageHandler) List() ([]string, error) {
 	return mIds, nil
 }
 
-func (h *StorageHandler) Open(id string) (io.ReadCloser, error) {
+func (h *StorageHandler) Open(ctx context.Context, id string) (io.ReadCloser, error) {
 	p := path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))
 	if _, err := os.Stat(p); err != nil {
 		return nil, newErr(h.WorkdirPath, err)
@@ -76,18 +77,18 @@ func (h *StorageHandler) Open(id string) (io.ReadCloser, error) {
 	return f, nil
 }
 
-func (h *StorageHandler) Delete(id string) error {
+func (h *StorageHandler) Delete(ctx context.Context, id string) error {
 	if err := os.RemoveAll(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))); err != nil {
 		return newErr(h.WorkdirPath, err)
 	}
 	return nil
 }
 
-func (h *StorageHandler) CopyTo(id string, dstPath string) error {
+func (h *StorageHandler) CopyTo(ctx context.Context, id string, dstPath string) error {
 	return copyDir(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter)), dstPath)
 }
 
-func (h *StorageHandler) CopyFrom(id string, srcPath string) error {
+func (h *StorageHandler) CopyFrom(ctx context.Context, id string, srcPath string) error {
 	dstPath := path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))
 	if ok, err := checkIfExist(dstPath); err != nil {
 		return newErr(h.WorkdirPath, err)

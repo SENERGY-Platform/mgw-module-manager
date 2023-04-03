@@ -17,6 +17,7 @@
 package module
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/go-service-base/srv-base"
@@ -48,14 +49,14 @@ func NewHandler(storageHandler itf.ModStorageHandler, transferHandler itf.ModTra
 	}
 }
 
-func (h *Handler) List() ([]*module.Module, error) {
-	mIds, err := h.storageHandler.List()
+func (h *Handler) List(ctx context.Context) ([]*module.Module, error) {
+	mIds, err := h.storageHandler.List(ctx)
 	if err != nil {
 		return nil, srv_base_types.NewError(http.StatusInternalServerError, "listing modules failed", err)
 	}
 	var modules []*module.Module
 	for _, id := range mIds {
-		file, err := h.storageHandler.Open(id)
+		file, err := h.storageHandler.Open(ctx, id)
 		if err != nil {
 			srv_base.Logger.Errorf("opening module '%s' failed: %s", id, err)
 			continue
@@ -76,8 +77,8 @@ func (h *Handler) List() ([]*module.Module, error) {
 	return modules, nil
 }
 
-func (h *Handler) Get(id string) (*module.Module, error) {
-	file, err := h.storageHandler.Open(id)
+func (h *Handler) Get(ctx context.Context, id string) (*module.Module, error) {
+	file, err := h.storageHandler.Open(ctx, id)
 	if err != nil {
 		code := http.StatusInternalServerError
 		if os.IsNotExist(errors.Unwrap(err)) {
@@ -98,12 +99,12 @@ func (h *Handler) Get(id string) (*module.Module, error) {
 	return m, nil
 }
 
-func (h *Handler) Add(id string) error {
+func (h *Handler) Add(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *Handler) Delete(id string) error {
-	if err := h.storageHandler.Delete(id); err != nil {
+func (h *Handler) Delete(ctx context.Context, id string) error {
+	if err := h.storageHandler.Delete(ctx, id); err != nil {
 		code := http.StatusInternalServerError
 		if os.IsNotExist(errors.Unwrap(err)) {
 			code = http.StatusNotFound
@@ -113,12 +114,12 @@ func (h *Handler) Delete(id string) error {
 	return nil
 }
 
-func (h *Handler) Update(id string) error {
+func (h *Handler) Update(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *Handler) InputTemplate(id string) (model.InputTemplate, error) {
-	m, err := h.Get(id)
+func (h *Handler) InputTemplate(ctx context.Context, id string) (model.InputTemplate, error) {
+	m, err := h.Get(ctx, id)
 	if err != nil {
 		return model.InputTemplate{}, err
 	}
