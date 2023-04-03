@@ -49,6 +49,22 @@ func GenHandlerP[PT any, RT any](hf func(PT) (RT, error), pf func(*gin.Context) 
 	}
 }
 
+func GenNRHandlerP[PT any](hf func(PT) error, pf func(*gin.Context) (PT, error)) func(*gin.Context) {
+	return func(gc *gin.Context) {
+		p, err := pf(gc)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		err = hf(p)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
 func GetUrlParam(gc *gin.Context, p string) (s string, err error) {
 	s = gc.Param(p)
 	if s == "" {
