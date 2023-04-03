@@ -61,11 +61,16 @@ type DepInstanceHandler interface {
 }
 
 type DepStorageHandler interface {
-	List() ([]model.DepMeta, error)
-	Create(dep *model.Deployment) (string, error)
-	Read(id string) (*model.Deployment, error)
-	Update(dep *model.Deployment) error
-	Delete(id string) error
+	List(ctx context.Context) ([]model.DepMeta, error)
+	Create(ctx context.Context, dep *model.Deployment) (Transaction, string, error)
+	Read(ctx context.Context, id string) (*model.Deployment, error)
+	Update(ctx context.Context, dep *model.Deployment) (Transaction, error)
+	Delete(ctx context.Context, id string) error
+}
+
+type Transaction interface {
+	Commit() error
+	Rollback() error
 }
 
 type Validator func(params map[string]any) error
