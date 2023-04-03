@@ -45,6 +45,8 @@ type DepConfig struct {
 type DepInstance struct {
 	ID         string
 	DepID      string
+	Created    time.Time `json:"created"`
+	Updated    time.Time `json:"updated"`
 	Containers []string
 }
 
