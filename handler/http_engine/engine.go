@@ -23,7 +23,7 @@ import (
 	"net/http"
 )
 
-func GenHandler[RT any](hf func(context.Context) (RT, error)) func(*gin.Context) {
+func Gen0P2RHandler[RT any](hf func(context.Context) (RT, error)) func(*gin.Context) {
 	return func(gc *gin.Context) {
 		r, err := hf(gc.Request.Context())
 		if err != nil {
@@ -34,7 +34,7 @@ func GenHandler[RT any](hf func(context.Context) (RT, error)) func(*gin.Context)
 	}
 }
 
-func GenHandlerP[PT any, RT any](hf func(context.Context, PT) (RT, error), pf func(*gin.Context) (PT, error)) func(*gin.Context) {
+func Gen1P2RHandler[PT any, RT any](hf func(context.Context, PT) (RT, error), pf func(*gin.Context) (PT, error)) func(*gin.Context) {
 	return func(gc *gin.Context) {
 		p, err := pf(gc)
 		if err != nil {
@@ -50,7 +50,7 @@ func GenHandlerP[PT any, RT any](hf func(context.Context, PT) (RT, error), pf fu
 	}
 }
 
-func GenNRHandlerP[PT any](hf func(context.Context, PT) error, pf func(*gin.Context) (PT, error)) func(*gin.Context) {
+func Gen1P1RHandler[PT any](hf func(context.Context, PT) error, pf func(*gin.Context) (PT, error)) func(*gin.Context) {
 	return func(gc *gin.Context) {
 		p, err := pf(gc)
 		if err != nil {

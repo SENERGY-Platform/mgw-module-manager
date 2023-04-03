@@ -53,21 +53,21 @@ var inputValidators = map[string]itf.Validator{
 }
 
 func setRoutes(e *gin.Engine, a itf.Api) {
-	e.GET("modules", http_engine.GenHandler(a.GetModules))
-	e.GET("modules/:m", http_engine.GenHandlerP(a.GetModule, func(gc *gin.Context) (string, error) {
+	e.GET("modules", http_engine.Gen0P2RHandler(a.GetModules))
+	e.GET("modules/:m", http_engine.Gen1P2RHandler(a.GetModule, func(gc *gin.Context) (string, error) {
 		return http_engine.GetUrlParam(gc, "m")
 	}))
-	e.GET("modules/:m/input_template", http_engine.GenHandlerP(a.GetInputTemplate, func(gc *gin.Context) (string, error) {
+	e.GET("modules/:m/input_template", http_engine.Gen1P2RHandler(a.GetInputTemplate, func(gc *gin.Context) (string, error) {
 		return http_engine.GetUrlParam(gc, "m")
 	}))
-	e.GET("deployments", http_engine.GenHandler(a.GetDeployments))
-	e.GET("deployments/:d", http_engine.GenHandlerP(a.GetDeployment, func(gc *gin.Context) (string, error) {
+	e.GET("deployments", http_engine.Gen0P2RHandler(a.GetDeployments))
+	e.GET("deployments/:d", http_engine.Gen1P2RHandler(a.GetDeployment, func(gc *gin.Context) (string, error) {
 		return http_engine.GetUrlParam(gc, "d")
 	}))
-	e.DELETE("deployments/:d", http_engine.GenNRHandlerP(a.DeleteDeployment, func(gc *gin.Context) (string, error) {
+	e.DELETE("deployments/:d", http_engine.Gen1P1RHandler(a.DeleteDeployment, func(gc *gin.Context) (string, error) {
 		return http_engine.GetUrlParam(gc, "d")
 	}))
-	e.POST("deployments", http_engine.GenHandlerP(a.AddDeployment, http_engine.GetJsonBody[model.DepRequest]))
+	e.POST("deployments", http_engine.Gen1P2RHandler(a.AddDeployment, http_engine.GetJsonBody[model.DepRequest]))
 }
 
 func main() {
