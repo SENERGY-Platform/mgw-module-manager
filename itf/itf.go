@@ -43,21 +43,13 @@ type ModTransferHandler interface {
 }
 
 type DeploymentHandler interface {
-	List() ([]model.DepMeta, error)
-	Get(id string) (model.Deployment, error)
-	Add(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error)
-	Delete(id string) error
-	Update(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error
-}
-
-type DepInstanceHandler interface {
-	List() ([]model.DepInstance, error)
-	Get(id string) (model.DepInstance, error)
-	Add(m *module.Module, d model.DepInstance) (string, error)
-	Start(id string) error
-	Stop(id string) error
-	Delete(id string) error
-	Update(id string) error
+	List(ctx context.Context) ([]model.DepMeta, error)
+	Get(ctx context.Context, id string) (*model.Deployment, error)
+	Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error)
+	Delete(ctx context.Context, id string) error
+	Update(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error
+	Start(ctx context.Context, id string) error
+	Stop(ctx context.Context, id string) error
 }
 
 type DepStorageHandler interface {
