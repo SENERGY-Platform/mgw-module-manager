@@ -64,6 +64,9 @@ func setRoutes(e *gin.Engine, a itf.Api) {
 	e.GET("deployments/:d", http_engine.Gen1P2RHandler(a.GetDeployment, func(gc *gin.Context) (string, error) {
 		return http_engine.GetUrlParam(gc, "d")
 	}))
+	e.PUT("deployments/:d", http_engine.Gen2P1RHandler(a.UpdateDeployment, func(gc *gin.Context) (string, error) {
+		return http_engine.GetUrlParam(gc, "d")
+	}, http_engine.GetJsonBody[model.DepRequest]))
 	e.DELETE("deployments/:d", http_engine.Gen1P1RHandler(a.DeleteDeployment, func(gc *gin.Context) (string, error) {
 		return http_engine.GetUrlParam(gc, "d")
 	}))
