@@ -66,6 +66,27 @@ func Gen1P2RHandler[PT any, RT any](hf func(context.Context, PT) (RT, error), pf
 	}
 }
 
+func Gen2P1RHandler[P1T any, P2T any](hf func(context.Context, P1T, P2T) error, p1f func(*gin.Context) (P1T, error), p2f func(*gin.Context) (P2T, error)) func(*gin.Context) {
+	return func(gc *gin.Context) {
+		p1, err := p1f(gc)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		p2, err := p2f(gc)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		err = hf(gc.Request.Context(), p1, p2)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
 func GetUrlParam(gc *gin.Context, p string) (s string, err error) {
 	s = gc.Param(p)
 	if s == "" {
