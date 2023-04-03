@@ -32,12 +32,12 @@ func (a *Api) AddDeployment(dr model.DepRequest) (string, error) {
 	return id, nil
 }
 
-func (a *Api) GetDeployments() ([]model.Deployment, error) {
-	panic("not implemented")
+func (a *Api) GetDeployments() ([]model.DepMeta, error) {
+	return a.deploymentHandler.List()
 }
 
-func (a *Api) GetDeployment() (model.Deployment, error) {
-	panic("not implemented")
+func (a *Api) GetDeployment(id string) (*model.Deployment, error) {
+	return a.deploymentHandler.Get(id)
 }
 
 func (a *Api) StartDeployment(id string) error {
@@ -53,5 +53,5 @@ func (a *Api) UpdateDeployment(dr model.DepRequest) {
 }
 
 func (a *Api) DeleteDeployment(id string) error {
-	panic("not implemented")
+	return a.deploymentHandler.Delete(id)
 }
