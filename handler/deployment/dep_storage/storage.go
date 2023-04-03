@@ -19,6 +19,7 @@ package dep_storage
 import (
 	"context"
 	"database/sql"
+	"module-manager/itf"
 	"module-manager/model"
 	"time"
 )
@@ -33,9 +34,7 @@ func NewStorageHandler(db *sql.DB) *StorageHandler {
 	return &StorageHandler{db: db}
 }
 
-func (h *StorageHandler) List() ([]model.DepMeta, error) {
-	ctx, cf := context.WithTimeout(h.ctx, h.timeout)
-	defer cf()
+func (h *StorageHandler) List(ctx context.Context) ([]model.DepMeta, error) {
 	rows, err := h.db.QueryContext(ctx, "SELECT `id`, `module_id`, `name`, `created`, `updated` FROM `deployments` ORDER BY `name`")
 	if err != nil {
 		return nil, err
@@ -66,42 +65,44 @@ func (h *StorageHandler) List() ([]model.DepMeta, error) {
 	return dms, nil
 }
 
-func (h *StorageHandler) Create(dep *model.Deployment) (string, error) {
-	ctx, cf := context.WithTimeout(h.ctx, h.timeout)
-	defer cf()
-	tx, err := h.db.BeginTx(ctx, nil)
-	if err != nil {
-		return "", err
+func (h *StorageHandler) Create(ctx context.Context, dep *model.Deployment) (itf.Transaction, string, error) {
+	tx, e := h.db.BeginTx(ctx, nil)
+	if e != nil {
+		return nil, "", e
 	}
-	defer tx.Rollback()
-	id, err := insertDeployment(ctx, tx.ExecContext, tx.QueryRowContext, dep.ModuleID, dep.Name, dep.Created)
+	var err error
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+	var id string
+	id, err = insertDeployment(ctx, tx.ExecContext, tx.QueryRowContext, dep.ModuleID, dep.Name, dep.Created)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 	if len(dep.HostResources) > 0 {
 		err = insertHostResources(ctx, tx.PrepareContext, id, dep.HostResources)
 		if err != nil {
-			return "", err
+			return nil, "", err
 		}
 	}
 	if len(dep.Secrets) > 0 {
 		err = insertSecrets(ctx, tx.PrepareContext, id, dep.Secrets)
 		if err != nil {
-			return "", err
+			return nil, "", err
 		}
 	}
 	if len(dep.Configs) > 0 {
 		err = insertConfigs(ctx, tx.PrepareContext, id, dep.Configs)
+		if err != nil {
+			return nil, "", err
+		}
 	}
-	if err = tx.Commit(); err != nil {
-		return "", err
-	}
-	return id, nil
+	return tx, id, nil
 }
 
-func (h *StorageHandler) Read(id string) (*model.Deployment, error) {
-	ctx, cf := context.WithTimeout(h.ctx, h.timeout)
-	defer cf()
+func (h *StorageHandler) Read(ctx context.Context, id string) (*model.Deployment, error) {
 	depMeta, err := selectDeployment(ctx, h.db.QueryRowContext, id)
 	if err != nil {
 		return nil, err
@@ -133,13 +134,22 @@ func (h *StorageHandler) Read(id string) (*model.Deployment, error) {
 	return &dep, nil
 }
 
-func (h *StorageHandler) Update(dep *model.Deployment) error {
-	panic("not implemented")
+func (h *StorageHandler) Update(ctx context.Context, dep *model.Deployment) (itf.Transaction, error) {
+	tx, e := h.db.BeginTx(ctx, nil)
+	if e != nil {
+		return nil, e
+	}
+	var err error
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	return tx, nil
 }
 
-func (h *StorageHandler) Delete(id string) error {
-	ctx, cf := context.WithTimeout(h.ctx, h.timeout)
-	defer cf()
+func (h *StorageHandler) Delete(ctx context.Context, id string) error {
 	_, err := h.db.ExecContext(ctx, "DELETE FROM `deployments` WHERE `id` = ?", id)
 	if err != nil {
 		return err
