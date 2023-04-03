@@ -17,26 +17,27 @@
 package itf
 
 import (
+	"context"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"io"
 	"module-manager/model"
 )
 
 type ModuleHandler interface {
-	List() ([]*module.Module, error)
-	Get(id string) (*module.Module, error)
-	Add(id string) error
-	Delete(id string) error
-	Update(id string) error
-	InputTemplate(id string) (model.InputTemplate, error)
+	List(ctx context.Context) ([]*module.Module, error)
+	Get(ctx context.Context, id string) (*module.Module, error)
+	Add(ctx context.Context, id string) error
+	Delete(ctx context.Context, id string) error
+	Update(ctx context.Context, id string) error
+	InputTemplate(ctx context.Context, id string) (model.InputTemplate, error)
 }
 
 type ModStorageHandler interface {
-	List() ([]string, error)
-	Open(id string) (io.ReadCloser, error)
-	Delete(id string) error
-	CopyTo(id string, dstPath string) error
-	CopyFrom(id string, srcPath string) error
+	List(ctx context.Context) ([]string, error)
+	Open(ctx context.Context, id string) (io.ReadCloser, error)
+	Delete(ctx context.Context, id string) error
+	CopyTo(ctx context.Context, id string, dstPath string) error
+	CopyFrom(ctx context.Context, id string, srcPath string) error
 }
 
 type ModTransferHandler interface {
@@ -75,16 +76,16 @@ type CfgValidationHandler interface {
 }
 
 type Api interface {
-	AddModule(id string) error
-	GetModules() ([]*module.Module, error)
-	GetModule(id string) (*module.Module, error)
-	DeleteModule(id string) error
-	GetInputTemplate(id string) (model.InputTemplate, error)
-	AddDeployment(dr model.DepRequest) (string, error)
-	GetDeployments() ([]model.Deployment, error)
-	GetDeployment() (model.Deployment, error)
-	StartDeployment(id string) error
-	StopDeployment(id string) error
-	UpdateDeployment(dr model.DepRequest)
-	DeleteDeployment(id string) error
+	AddModule(ctx context.Context, id string) error
+	GetModules(ctx context.Context) ([]*module.Module, error)
+	GetModule(ctx context.Context, id string) (*module.Module, error)
+	DeleteModule(ctx context.Context, id string) error
+	GetInputTemplate(ctx context.Context, id string) (model.InputTemplate, error)
+	AddDeployment(ctx context.Context, dr model.DepRequest) (string, error)
+	GetDeployments(ctx context.Context) ([]model.DepMeta, error)
+	GetDeployment(ctx context.Context, id string) (*model.Deployment, error)
+	StartDeployment(ctx context.Context, id string) error
+	StopDeployment(ctx context.Context, id string) error
+	UpdateDeployment(ctx context.Context, dr model.DepRequest)
+	DeleteDeployment(ctx context.Context, id string) error
 }
