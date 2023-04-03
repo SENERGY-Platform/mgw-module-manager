@@ -26,17 +26,11 @@ import (
 const tLayout = "2006-01-02 15:04:05.000000"
 
 type StorageHandler struct {
-	db      *sql.DB
-	ctx     context.Context
-	timeout time.Duration
+	db *sql.DB
 }
 
-func NewStorageHandler(db *sql.DB, ctx context.Context, timeout time.Duration) *StorageHandler {
-	return &StorageHandler{
-		db:      db,
-		ctx:     ctx,
-		timeout: timeout,
-	}
+func NewStorageHandler(db *sql.DB) *StorageHandler {
+	return &StorageHandler{db: db}
 }
 
 func (h *StorageHandler) List() ([]model.DepMeta, error) {

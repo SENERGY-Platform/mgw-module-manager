@@ -22,17 +22,20 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"module-manager/itf"
 	"module-manager/model"
+	"time"
 )
 
 type Handler struct {
 	storageHandler itf.DepStorageHandler
 	cfgVltHandler  itf.CfgValidationHandler
+	stgHdlTimeout  time.Duration
 }
 
-func NewHandler(storageHandler itf.DepStorageHandler, cfgVltHandler itf.CfgValidationHandler) *Handler {
+func NewHandler(storageHandler itf.DepStorageHandler, cfgVltHandler itf.CfgValidationHandler, storageHandlerTimeout time.Duration) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cfgVltHandler:  cfgVltHandler,
+		stgHdlTimeout:  storageHandlerTimeout,
 	}
 }
 
