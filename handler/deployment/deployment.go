@@ -63,6 +63,7 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 	if err = h.validateConfigs(dep.Configs, m.Configs); err != nil {
 		return "", err
 	}
+	dep.Created = time.Now().UTC()
 	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
 	defer cf()
 	tx, id, err := h.storageHandler.Create(ctxWt, dep)
