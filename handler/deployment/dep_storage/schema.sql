@@ -25,25 +25,14 @@ CREATE TABLE IF NOT EXISTS `deployments`
     UNIQUE KEY (`id`),
     PRIMARY KEY (`index`)
 );
-CREATE TABLE IF NOT EXISTS `instances`
-(
-    `index`  BIGINT AUTO_INCREMENT NOT NULL,
-    `id`     CHAR(36)              NOT NULL,
-    `dep_id` CHAR(36)              NOT NULL,
-    UNIQUE KEY (`id`),
-    PRIMARY KEY (`index`),
-    FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
-        ON DELETE CASCADE
-        ON UPDATE RESTRICT
-);
 CREATE TABLE IF NOT EXISTS `containers`
 (
     `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `c_id`  CHAR(36)              NOT NULL,
-    `i_id`  CHAR(36)              NOT NULL,
-    UNIQUE KEY (`c_id`),
+    `dep_id`  CHAR(36)              NOT NULL,
+    `ctr_id`  CHAR(36)              NOT NULL,
+    UNIQUE KEY (`ctr_id`),
     PRIMARY KEY (`index`),
-    FOREIGN KEY (`i_id`) REFERENCES `instances` (`id`)
+    FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
         ON DELETE CASCADE
         ON UPDATE RESTRICT
 );
