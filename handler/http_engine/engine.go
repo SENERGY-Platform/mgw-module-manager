@@ -17,14 +17,15 @@
 package http_engine
 
 import (
+	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-func GenHandler[RT any](hf func() (RT, error)) func(*gin.Context) {
+func GenHandler[RT any](hf func(context.Context) (RT, error)) func(*gin.Context) {
 	return func(gc *gin.Context) {
-		r, err := hf()
+		r, err := hf(gc.Request.Context())
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -33,14 +34,14 @@ func GenHandler[RT any](hf func() (RT, error)) func(*gin.Context) {
 	}
 }
 
-func GenHandlerP[PT any, RT any](hf func(PT) (RT, error), pf func(*gin.Context) (PT, error)) func(*gin.Context) {
+func GenHandlerP[PT any, RT any](hf func(context.Context, PT) (RT, error), pf func(*gin.Context) (PT, error)) func(*gin.Context) {
 	return func(gc *gin.Context) {
 		p, err := pf(gc)
 		if err != nil {
 			_ = gc.Error(err)
 			return
 		}
-		r, err := hf(p)
+		r, err := hf(gc.Request.Context(), p)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -49,14 +50,14 @@ func GenHandlerP[PT any, RT any](hf func(PT) (RT, error), pf func(*gin.Context) 
 	}
 }
 
-func GenNRHandlerP[PT any](hf func(PT) error, pf func(*gin.Context) (PT, error)) func(*gin.Context) {
+func GenNRHandlerP[PT any](hf func(context.Context, PT) error, pf func(*gin.Context) (PT, error)) func(*gin.Context) {
 	return func(gc *gin.Context) {
 		p, err := pf(gc)
 		if err != nil {
 			_ = gc.Error(err)
 			return
 		}
-		err = hf(p)
+		err = hf(gc.Request.Context(), p)
 		if err != nil {
 			_ = gc.Error(err)
 			return
