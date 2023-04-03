@@ -145,7 +145,44 @@ func (h *StorageHandler) Update(ctx context.Context, dep *model.Deployment) (itf
 			tx.Rollback()
 		}
 	}()
-
+	_, err = tx.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `updated` = ? WHERE `id` = ?", dep.Name, dep.Updated, dep.ID)
+	if err != nil {
+		return nil, err
+	}
+	_, err = tx.ExecContext(ctx, "DELETE FROM `host_resources` WHERE `dep_id` = ?", dep.ID)
+	if err != nil {
+		return nil, err
+	}
+	_, err = tx.ExecContext(ctx, "DELETE FROM `secrets` WHERE `dep_id` = ?", dep.ID)
+	if err != nil {
+		return nil, err
+	}
+	_, err = tx.ExecContext(ctx, "DELETE FROM `configs` WHERE `dep_id` = ?", dep.ID)
+	if err != nil {
+		return nil, err
+	}
+	_, err = tx.ExecContext(ctx, "DELETE FROM `list_configs` WHERE `dep_id` = ?", dep.ID)
+	if err != nil {
+		return nil, err
+	}
+	if len(dep.HostResources) > 0 {
+		err = insertHostResources(ctx, tx.PrepareContext, dep.ID, dep.HostResources)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if len(dep.Secrets) > 0 {
+		err = insertSecrets(ctx, tx.PrepareContext, dep.ID, dep.Secrets)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if len(dep.Configs) > 0 {
+		err = insertConfigs(ctx, tx.PrepareContext, dep.ID, dep.Configs)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return tx, nil
 }
 
