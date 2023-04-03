@@ -17,6 +17,7 @@
 package deployment
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
@@ -39,15 +40,19 @@ func NewHandler(storageHandler itf.DepStorageHandler, cfgVltHandler itf.CfgValid
 	}
 }
 
-func (h *Handler) List() ([]model.DepMeta, error) {
-	return h.storageHandler.List()
+func (h *Handler) List(ctx context.Context) ([]model.DepMeta, error) {
+	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
+	defer cf()
+	return h.storageHandler.List(ctxWt)
 }
 
-func (h *Handler) Get(id string) (*model.Deployment, error) {
-	return h.storageHandler.Read(id)
+func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error) {
+	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
+	defer cf()
+	return h.storageHandler.Read(ctxWt, id)
 }
 
-func (h *Handler) Add(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
+func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
 	dep, rad, sad, err := genDeployment(m, name, hostRes, secrets, configs)
 	if err != nil {
 		return "", err
@@ -58,18 +63,35 @@ func (h *Handler) Add(m *module.Module, name *string, hostRes map[string]string,
 	if err = h.validateConfigs(dep.Configs, m.Configs); err != nil {
 		return "", err
 	}
-	id, err := h.storageHandler.Create(dep)
+	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
+	defer cf()
+	tx, id, err := h.storageHandler.Create(ctxWt, dep)
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+	err = tx.Commit()
 	if err != nil {
 		return "", err
 	}
 	return id, nil
 }
 
-func (h *Handler) Delete(id string) error {
-	return h.storageHandler.Delete(id)
+func (h *Handler) Delete(ctx context.Context, id string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
+	defer cf()
+	return h.storageHandler.Delete(ctxWt, id)
 }
 
-func (h *Handler) Update(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error {
+func (h *Handler) Update(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error {
+	return nil
+}
+
+func (h *Handler) Start(ctx context.Context, id string) error {
+	return nil
+}
+
+func (h *Handler) Stop(ctx context.Context, id string) error {
 	return nil
 }
 
