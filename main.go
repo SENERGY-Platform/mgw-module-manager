@@ -28,14 +28,13 @@ import (
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1gen"
 	"github.com/gin-gonic/gin"
 	"module-manager/api"
+	"module-manager/api/http_engine"
 	"module-manager/handler/deployment"
 	"module-manager/handler/deployment/dep_storage"
-	"module-manager/handler/http_engine"
 	"module-manager/handler/module"
 	"module-manager/handler/validation"
 	"module-manager/handler/validation/validators"
 	"module-manager/itf"
-	"module-manager/model"
 	"module-manager/util"
 	"net"
 	"net/http"
@@ -50,27 +49,6 @@ var inputValidators = map[string]itf.Validator{
 	"regex":            validators.Regex,
 	"number_compare":   validators.NumberCompare,
 	"text_len_compare": validators.TextLenCompare,
-}
-
-func setRoutes(e *gin.Engine, a itf.Api) {
-	e.GET("modules", http_engine.Gen0P2RHandler(a.GetModules))
-	e.GET("modules/:m", http_engine.Gen1P2RHandler(a.GetModule, func(gc *gin.Context) (string, error) {
-		return http_engine.GetUrlParam(gc, "m")
-	}))
-	e.GET("modules/:m/input_template", http_engine.Gen1P2RHandler(a.GetInputTemplate, func(gc *gin.Context) (string, error) {
-		return http_engine.GetUrlParam(gc, "m")
-	}))
-	e.GET("deployments", http_engine.Gen0P2RHandler(a.GetDeployments))
-	e.GET("deployments/:d", http_engine.Gen1P2RHandler(a.GetDeployment, func(gc *gin.Context) (string, error) {
-		return http_engine.GetUrlParam(gc, "d")
-	}))
-	e.PUT("deployments/:d", http_engine.Gen2P1RHandler(a.UpdateDeployment, func(gc *gin.Context) (string, error) {
-		return http_engine.GetUrlParam(gc, "d")
-	}, http_engine.GetJsonBody[model.DepRequest]))
-	e.DELETE("deployments/:d", http_engine.Gen1P1RHandler(a.DeleteDeployment, func(gc *gin.Context) (string, error) {
-		return http_engine.GetUrlParam(gc, "d")
-	}))
-	e.POST("deployments", http_engine.Gen1P2RHandler(a.AddDeployment, http_engine.GetJsonBody[model.DepRequest]))
 }
 
 func main() {
@@ -141,7 +119,7 @@ func main() {
 	httpEngine.Use(gin_mw.LoggerHandler(srv_base.Logger), gin_mw.ErrorHandler, gin.Recovery())
 	httpEngine.UseRawPath = true
 
-	setRoutes(httpEngine, mApi)
+	http_engine.SetRoutes(httpEngine, mApi)
 
 	listener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
