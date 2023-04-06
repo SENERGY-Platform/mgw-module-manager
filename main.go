@@ -116,7 +116,7 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	httpEngine := gin.New()
-	httpEngine.Use(gin_mw.LoggerHandler(srv_base.Logger), gin_mw.ErrorHandler, gin.Recovery())
+	httpEngine.Use(gin_mw.LoggerHandler(srv_base.Logger), gin_mw.ErrorHandler(http_engine.GetStatusCode, ", "), gin.Recovery())
 	httpEngine.UseRawPath = true
 
 	http_engine.SetRoutes(httpEngine, mApi)
