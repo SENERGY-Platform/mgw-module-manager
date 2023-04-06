@@ -20,7 +20,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"module-manager/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"time"
 )
 

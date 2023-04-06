@@ -17,7 +17,7 @@
 package api
 
 import (
-	"module-manager/itf"
+	"github.com/SENERGY-Platform/mgw-module-manager/itf"
 )
 
 type Api struct {

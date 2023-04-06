@@ -19,7 +19,7 @@ package api
 import (
 	"context"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"module-manager/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/model"
 )
 
 func (a *Api) AddModule(ctx context.Context, id string) error {

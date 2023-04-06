@@ -17,9 +17,9 @@
 package http_engine
 
 import (
+	"github.com/SENERGY-Platform/mgw-module-manager/itf"
+	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/gin-gonic/gin"
-	"module-manager/itf"
-	"module-manager/model"
 	"net/http"
 )
 

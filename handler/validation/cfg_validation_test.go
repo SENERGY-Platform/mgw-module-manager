@@ -20,8 +20,8 @@ import (
 	"errors"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/util"
-	"module-manager/itf"
-	"module-manager/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/itf"
+	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"reflect"
 	"testing"
 )

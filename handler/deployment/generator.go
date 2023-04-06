@@ -19,7 +19,7 @@ package deployment
 import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"module-manager/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/model"
 )
 
 func genDeployment(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (*model.Deployment, []string, []string, error) {

@@ -1,4 +1,4 @@
-module module-manager
+module github.com/SENERGY-Platform/mgw-module-manager
 
 go 1.19
 

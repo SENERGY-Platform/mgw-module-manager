@@ -17,8 +17,8 @@
 package http_engine
 
 import (
+	"github.com/SENERGY-Platform/mgw-module-manager/itf"
 	"github.com/gin-gonic/gin"
-	"module-manager/itf"
 )
 
 func SetRoutes(e *gin.Engine, a itf.Api) {

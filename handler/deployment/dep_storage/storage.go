@@ -19,8 +19,8 @@ package dep_storage
 import (
 	"context"
 	"database/sql"
-	"module-manager/itf"
-	"module-manager/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/itf"
+	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"time"
 )
 
