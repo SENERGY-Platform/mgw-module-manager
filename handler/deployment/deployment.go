@@ -19,7 +19,6 @@ package deployment
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
@@ -55,10 +54,10 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
 	dep, rad, sad, err := genDeployment(m, name, hostRes, secrets, configs)
 	if err != nil {
-		return "", err
+		return "", model.NewInvalidInputError(err)
 	}
 	if len(rad) > 0 || len(sad) > 0 {
-		return "", errors.New("auto resource discovery not implemented")
+		return "", model.NewInvalidInputError(errors.New("auto resource discovery not implemented"))
 	}
 	if err = h.validateConfigs(dep.Configs, m.Configs); err != nil {
 		return "", err
@@ -73,7 +72,7 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 	defer tx.Rollback()
 	err = tx.Commit()
 	if err != nil {
-		return "", err
+		return "", model.NewInternalError(err)
 	}
 	return id, nil
 }
@@ -87,10 +86,10 @@ func (h *Handler) Delete(ctx context.Context, id string) error {
 func (h *Handler) Update(ctx context.Context, m *module.Module, id string, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error {
 	dep, rad, sad, err := genDeployment(m, name, hostRes, secrets, configs)
 	if err != nil {
-		return err
+		return model.NewInvalidInputError(err)
 	}
 	if len(rad) > 0 || len(sad) > 0 {
-		return errors.New("auto resource discovery not implemented")
+		return model.NewInvalidInputError(errors.New("auto resource discovery not implemented"))
 	}
 	if err = h.validateConfigs(dep.Configs, m.Configs); err != nil {
 		return err
@@ -106,7 +105,7 @@ func (h *Handler) Update(ctx context.Context, m *module.Module, id string, name 
 	defer tx.Rollback()
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return model.NewInternalError(err)
 	}
 	return nil
 }
@@ -123,11 +122,11 @@ func (h *Handler) validateConfigs(dCs map[string]model.DepConfig, mCs module.Con
 	for ref, dC := range dCs {
 		mC := mCs[ref]
 		if err := h.cfgVltHandler.ValidateValue(mC.Type, mC.TypeOpt, dC.Value, mC.IsSlice, mC.DataType); err != nil {
-			return fmt.Errorf("validating config '%s' failed: %s", ref, err)
+			return model.NewInvalidInputError(err)
 		}
 		if mC.Options != nil && !mC.OptExt {
 			if err := h.cfgVltHandler.ValidateValInOpt(mC.Options, dC.Value, mC.IsSlice, mC.DataType); err != nil {
-				return fmt.Errorf("validating config '%s' failed: %s", ref, err)
+				return model.NewInvalidInputError(err)
 			}
 		}
 	}

@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/go-service-base/srv-base"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"io"
 	"os"
 	"os/exec"
@@ -50,7 +51,7 @@ func NewStorageHandler(workdirPath string, delimiter string) (*StorageHandler, e
 func (h *StorageHandler) List(ctx context.Context) ([]string, error) {
 	dir, err := os.ReadDir(h.WorkdirPath)
 	if err != nil {
-		return nil, newErr(h.WorkdirPath, err)
+		return nil, model.NewInternalError(wrapErr(err, h.WorkdirPath))
 	}
 	var mIds []string
 	for _, entry := range dir {
@@ -64,42 +65,46 @@ func (h *StorageHandler) List(ctx context.Context) ([]string, error) {
 func (h *StorageHandler) Open(ctx context.Context, id string) (io.ReadCloser, error) {
 	p := path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))
 	if _, err := os.Stat(p); err != nil {
-		return nil, newErr(h.WorkdirPath, err)
+		return nil, model.NewNotFoundError(wrapErr(err, h.WorkdirPath))
 	}
 	p, err := detectModFile(p)
 	if err != nil {
-		return nil, newErr(h.WorkdirPath, err)
+		return nil, model.NewInternalError(wrapErr(err, h.WorkdirPath))
 	}
 	f, e := os.Open(p)
 	if e != nil {
-		return nil, newErr(h.WorkdirPath, err)
+		return nil, model.NewInternalError(wrapErr(err, h.WorkdirPath))
 	}
 	return f, nil
 }
 
 func (h *StorageHandler) Delete(ctx context.Context, id string) error {
 	if err := os.RemoveAll(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))); err != nil {
-		return newErr(h.WorkdirPath, err)
+		return model.NewInternalError(wrapErr(err, h.WorkdirPath))
 	}
 	return nil
 }
 
 func (h *StorageHandler) CopyTo(ctx context.Context, id string, dstPath string) error {
-	return copyDir(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter)), dstPath)
+	err := copyDir(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter)), dstPath)
+	if err != nil {
+		return model.NewInternalError(wrapErr(err, h.WorkdirPath))
+	}
+	return nil
 }
 
 func (h *StorageHandler) CopyFrom(ctx context.Context, id string, srcPath string) error {
 	dstPath := path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))
 	if ok, err := checkIfExist(dstPath); err != nil {
-		return newErr(h.WorkdirPath, err)
+		return model.NewInternalError(wrapErr(err, h.WorkdirPath))
 	} else if ok {
-		return errors.New("already exists")
+		return model.NewInternalError(errors.New("already exists"))
 	}
 	if err := copyDir(srcPath, dstPath); err != nil {
 		if e := os.RemoveAll(dstPath); e != nil {
 			srv_base.Logger.Errorf("cleanup failed: %s", e)
 		}
-		return fmt.Errorf("copy returned: %s", err)
+		return model.NewInternalError(wrapErr(err, h.WorkdirPath))
 	}
 	return nil
 }
@@ -141,22 +146,22 @@ func detectModFile(p string) (string, error) {
 	return "", errors.New("modfile not found")
 }
 
-type FileHandlerErr struct {
-	str string
+type FileHandlerError struct {
+	msg string
 	err error
 }
 
-func newErr(str string, err error) error {
-	return &FileHandlerErr{
-		str: str,
+func wrapErr(err error, s string) error {
+	return &FileHandlerError{
+		msg: strings.Replace(err.Error(), s, "", -1),
 		err: err,
 	}
 }
 
-func (e *FileHandlerErr) Error() string {
-	return strings.Replace(e.err.Error(), e.str, "", -1)
+func (e *FileHandlerError) Error() string {
+	return e.msg
 }
 
-func (e *FileHandlerErr) Unwrap() error {
+func (e *FileHandlerError) Unwrap() error {
 	return e.err
 }

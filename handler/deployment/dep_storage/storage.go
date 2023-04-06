@@ -19,6 +19,7 @@ package dep_storage
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"time"
@@ -37,7 +38,7 @@ func NewStorageHandler(db *sql.DB) *StorageHandler {
 func (h *StorageHandler) List(ctx context.Context) ([]model.DepMeta, error) {
 	rows, err := h.db.QueryContext(ctx, "SELECT `id`, `module_id`, `name`, `created`, `updated` FROM `deployments` ORDER BY `name`")
 	if err != nil {
-		return nil, err
+		return nil, model.NewInternalError(err)
 	}
 	defer rows.Close()
 	var dms []model.DepMeta
@@ -45,22 +46,22 @@ func (h *StorageHandler) List(ctx context.Context) ([]model.DepMeta, error) {
 		var dm model.DepMeta
 		var ct, ut []uint8
 		if err = rows.Scan(&dm.ID, &dm.ModuleID, &dm.Name, &ct, &ut); err != nil {
-			return nil, err
+			return nil, model.NewInternalError(err)
 		}
 		tc, err := time.Parse(tLayout, string(ct))
 		if err != nil {
-			return nil, err
+			return nil, model.NewInternalError(err)
 		}
 		tu, err := time.Parse(tLayout, string(ut))
 		if err != nil {
-			return nil, err
+			return nil, model.NewInternalError(err)
 		}
 		dm.Created = tc
 		dm.Updated = tu
 		dms = append(dms, dm)
 	}
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return nil, model.NewInternalError(err)
 	}
 	return dms, nil
 }
@@ -68,7 +69,7 @@ func (h *StorageHandler) List(ctx context.Context) ([]model.DepMeta, error) {
 func (h *StorageHandler) Create(ctx context.Context, dep *model.Deployment) (handler.Transaction, string, error) {
 	tx, e := h.db.BeginTx(ctx, nil)
 	if e != nil {
-		return nil, "", e
+		return nil, "", model.NewInternalError(e)
 	}
 	var err error
 	defer func() {
@@ -79,24 +80,24 @@ func (h *StorageHandler) Create(ctx context.Context, dep *model.Deployment) (han
 	var id string
 	id, err = insertDeployment(ctx, tx.ExecContext, tx.QueryRowContext, dep.ModuleID, dep.Name, dep.Created)
 	if err != nil {
-		return nil, "", err
+		return nil, "", model.NewInternalError(err)
 	}
 	if len(dep.HostResources) > 0 {
 		err = insertHostResources(ctx, tx.PrepareContext, id, dep.HostResources)
 		if err != nil {
-			return nil, "", err
+			return nil, "", model.NewInternalError(err)
 		}
 	}
 	if len(dep.Secrets) > 0 {
 		err = insertSecrets(ctx, tx.PrepareContext, id, dep.Secrets)
 		if err != nil {
-			return nil, "", err
+			return nil, "", model.NewInternalError(err)
 		}
 	}
 	if len(dep.Configs) > 0 {
 		err = insertConfigs(ctx, tx.PrepareContext, id, dep.Configs)
 		if err != nil {
-			return nil, "", err
+			return nil, "", model.NewInternalError(err)
 		}
 	}
 	return tx, id, nil
@@ -110,20 +111,20 @@ func (h *StorageHandler) Read(ctx context.Context, id string) (*model.Deployment
 	depMeta.ID = id
 	hostRes, err := selectHostResources(ctx, h.db.QueryContext, id)
 	if err != nil {
-		return nil, err
+		return nil, model.NewInternalError(err)
 	}
 	secrets, err := selectSecrets(ctx, h.db.QueryContext, id)
 	if err != nil {
-		return nil, err
+		return nil, model.NewInternalError(err)
 	}
 	configs := make(map[string]model.DepConfig)
 	err = selectConfigs(ctx, h.db.QueryContext, id, configs)
 	if err != nil {
-		return nil, err
+		return nil, model.NewInternalError(err)
 	}
 	err = selectListConfigs(ctx, h.db.QueryContext, id, configs)
 	if err != nil {
-		return nil, err
+		return nil, model.NewInternalError(err)
 	}
 	dep := model.Deployment{
 		DepMeta:       depMeta,
@@ -137,7 +138,7 @@ func (h *StorageHandler) Read(ctx context.Context, id string) (*model.Deployment
 func (h *StorageHandler) Update(ctx context.Context, dep *model.Deployment) (handler.Transaction, error) {
 	tx, e := h.db.BeginTx(ctx, nil)
 	if e != nil {
-		return nil, e
+		return nil, model.NewInternalError(e)
 	}
 	var err error
 	defer func() {
@@ -145,51 +146,65 @@ func (h *StorageHandler) Update(ctx context.Context, dep *model.Deployment) (han
 			tx.Rollback()
 		}
 	}()
-	_, err = tx.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `updated` = ? WHERE `id` = ?", dep.Name, dep.Updated, dep.ID)
+	res, err := tx.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `updated` = ? WHERE `id` = ?", dep.Name, dep.Updated, dep.ID)
 	if err != nil {
-		return nil, err
+		return nil, model.NewInternalError(err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	if n < 1 {
+		return nil, model.NewNotFoundError(errors.New("no rows affected"))
 	}
 	_, err = tx.ExecContext(ctx, "DELETE FROM `host_resources` WHERE `dep_id` = ?", dep.ID)
 	if err != nil {
-		return nil, err
+		return nil, model.NewInternalError(err)
 	}
 	_, err = tx.ExecContext(ctx, "DELETE FROM `secrets` WHERE `dep_id` = ?", dep.ID)
 	if err != nil {
-		return nil, err
+		return nil, model.NewInternalError(err)
 	}
 	_, err = tx.ExecContext(ctx, "DELETE FROM `configs` WHERE `dep_id` = ?", dep.ID)
 	if err != nil {
-		return nil, err
+		return nil, model.NewInternalError(err)
 	}
 	_, err = tx.ExecContext(ctx, "DELETE FROM `list_configs` WHERE `dep_id` = ?", dep.ID)
 	if err != nil {
-		return nil, err
+		return nil, model.NewInternalError(err)
 	}
 	if len(dep.HostResources) > 0 {
 		err = insertHostResources(ctx, tx.PrepareContext, dep.ID, dep.HostResources)
 		if err != nil {
-			return nil, err
+			return nil, model.NewInternalError(err)
 		}
 	}
 	if len(dep.Secrets) > 0 {
 		err = insertSecrets(ctx, tx.PrepareContext, dep.ID, dep.Secrets)
 		if err != nil {
-			return nil, err
+			return nil, model.NewInternalError(err)
 		}
 	}
 	if len(dep.Configs) > 0 {
 		err = insertConfigs(ctx, tx.PrepareContext, dep.ID, dep.Configs)
 		if err != nil {
-			return nil, err
+			return nil, model.NewInternalError(err)
 		}
 	}
 	return tx, nil
 }
 
 func (h *StorageHandler) Delete(ctx context.Context, id string) error {
-	_, err := h.db.ExecContext(ctx, "DELETE FROM `deployments` WHERE `id` = ?", id)
+	res, err := h.db.ExecContext(ctx, "DELETE FROM `deployments` WHERE `id` = ?", id)
 	if err != nil {
-		return err
+		return model.NewInternalError(err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	if n < 1 {
+		return model.NewNotFoundError(errors.New("no rows affected"))
 	}
 	return nil
 }

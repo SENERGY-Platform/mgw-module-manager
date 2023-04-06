@@ -18,18 +18,12 @@ package module
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"github.com/SENERGY-Platform/go-service-base/srv-base"
-	"github.com/SENERGY-Platform/go-service-base/srv-base/types"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-lib/validation"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"gopkg.in/yaml.v3"
-	"net/http"
-	"os"
 )
 
 type Handler struct {
@@ -53,7 +47,7 @@ func NewHandler(storageHandler handler.ModStorageHandler, transferHandler handle
 func (h *Handler) List(ctx context.Context) ([]*module.Module, error) {
 	mIds, err := h.storageHandler.List(ctx)
 	if err != nil {
-		return nil, srv_base_types.NewError(http.StatusInternalServerError, "listing modules failed", err)
+		return nil, err
 	}
 	var modules []*module.Module
 	for _, id := range mIds {
@@ -81,21 +75,17 @@ func (h *Handler) List(ctx context.Context) ([]*module.Module, error) {
 func (h *Handler) Get(ctx context.Context, id string) (*module.Module, error) {
 	file, err := h.storageHandler.Open(ctx, id)
 	if err != nil {
-		code := http.StatusInternalServerError
-		if os.IsNotExist(errors.Unwrap(err)) {
-			code = http.StatusNotFound
-		}
-		return nil, srv_base_types.NewError(code, fmt.Sprintf("opening module '%s' failed", id), err)
+		return nil, err
 	}
 	yd := yaml.NewDecoder(file)
 	mf := modfile.New(h.mfDecoders, h.mfGenerators)
 	err = yd.Decode(&mf)
 	if err != nil {
-		return nil, srv_base_types.NewError(http.StatusInternalServerError, fmt.Sprintf("decoding modfile '%s' failed", id), err)
+		return nil, model.NewInternalError(err)
 	}
 	m, err := mf.GetModule()
 	if err != nil {
-		return nil, srv_base_types.NewError(http.StatusInternalServerError, fmt.Sprintf("getting module '%s' failed", id), err)
+		return nil, model.NewInternalError(err)
 	}
 	return m, nil
 }
@@ -105,14 +95,7 @@ func (h *Handler) Add(ctx context.Context, id string) error {
 }
 
 func (h *Handler) Delete(ctx context.Context, id string) error {
-	if err := h.storageHandler.Delete(ctx, id); err != nil {
-		code := http.StatusInternalServerError
-		if os.IsNotExist(errors.Unwrap(err)) {
-			code = http.StatusNotFound
-		}
-		return srv_base_types.NewError(code, fmt.Sprintf("deleting module '%s' failed", id), err)
-	}
-	return nil
+	return h.storageHandler.Delete(ctx, id)
 }
 
 func (h *Handler) Update(ctx context.Context, id string) error {

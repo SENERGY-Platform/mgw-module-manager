@@ -19,6 +19,7 @@ package dep_storage
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"time"
@@ -30,15 +31,18 @@ func selectDeployment(ctx context.Context, qwf func(context.Context, string, ...
 	var ct, ut []uint8
 	err := row.Scan(&dm.ModuleID, &dm.Name, &ct, &ut)
 	if err != nil {
-		return model.DepMeta{}, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return model.DepMeta{}, model.NewNotFoundError(err)
+		}
+		return model.DepMeta{}, model.NewInternalError(err)
 	}
 	tc, err := time.Parse(tLayout, string(ct))
 	if err != nil {
-		return model.DepMeta{}, err
+		return model.DepMeta{}, model.NewInternalError(err)
 	}
 	tu, err := time.Parse(tLayout, string(ut))
 	if err != nil {
-		return model.DepMeta{}, err
+		return model.DepMeta{}, model.NewInternalError(err)
 	}
 	dm.Created = tc
 	dm.Updated = tu
