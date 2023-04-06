@@ -23,6 +23,7 @@ import (
 	"github.com/SENERGY-Platform/gin-middleware"
 	"github.com/SENERGY-Platform/go-service-base/srv-base"
 	"github.com/SENERGY-Platform/go-service-base/srv-base/types"
+	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1dec"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1gen"
@@ -109,8 +110,10 @@ func main() {
 	}
 	defer db.Close()
 
+	cewClient := client.New(http.DefaultClient, config.CewBaseUrl)
+
 	depStorageHandler := dep_storage.NewStorageHandler(db)
-	deploymentHandler := deployment.NewHandler(depStorageHandler, configValidationHandler, time.Duration(config.DB.Timeout))
+	deploymentHandler := deployment.NewHandler(depStorageHandler, configValidationHandler, cewClient, time.Duration(config.DB.Timeout))
 
 	mApi := api.New(moduleHandler, deploymentHandler)
 

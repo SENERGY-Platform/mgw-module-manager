@@ -41,6 +41,7 @@ type Config struct {
 	Logger            srv_base.LoggerConfig   `json:"logger" env_var:"LOGGER_CONFIG"`
 	ConfigDefsPath    string                  `json:"config_defs_path" env_var:"CONFIG_DEFS_PATH"`
 	DB                DataBaseConfig          `json:"db" env_var:"DB_CONFIG"`
+	CewBaseUrl        string                  `json:"cew_base_url" env_var:"CEW_BASE_URL"`
 }
 
 func NewConfig(path *string) (*Config, error) {
@@ -61,6 +62,7 @@ func NewConfig(path *string) (*Config, error) {
 			Name:    "module_manager",
 			Timeout: 5000000000,
 		},
+		CewBaseUrl: "http://api-gateway/cew",
 	}
 	err := srv_base.LoadConfig(path, &cfg, nil, nil, nil)
 	return &cfg, err

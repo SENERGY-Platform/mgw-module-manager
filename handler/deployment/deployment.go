@@ -19,6 +19,7 @@ package deployment
 import (
 	"context"
 	"errors"
+	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
@@ -28,13 +29,15 @@ import (
 type Handler struct {
 	storageHandler handler.DepStorageHandler
 	cfgVltHandler  handler.CfgValidationHandler
+	cewClient      client.CewClient
 	stgHdlTimeout  time.Duration
 }
 
-func NewHandler(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, storageHandlerTimeout time.Duration) *Handler {
+func NewHandler(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient client.CewClient, storageHandlerTimeout time.Duration) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cfgVltHandler:  cfgVltHandler,
+		cewClient:      cewClient,
 		stgHdlTimeout:  storageHandlerTimeout,
 	}
 }
