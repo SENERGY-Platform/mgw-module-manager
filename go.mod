@@ -7,6 +7,7 @@ require (
 	github.com/SENERGY-Platform/go-service-base v0.6.0
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.8.0
 	github.com/SENERGY-Platform/mgw-module-lib v0.7.0
+	github.com/SENERGY-Platform/mgw-module-manager/lib v0.0.0-00010101000000-000000000000
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/y-du/go-log-level v0.2.2
@@ -40,3 +41,5 @@ require (
 	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 )
+
+replace github.com/SENERGY-Platform/mgw-module-manager/lib => ./lib
