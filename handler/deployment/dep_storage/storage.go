@@ -209,7 +209,38 @@ func (h *StorageHandler) DeleteDep(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *StorageHandler) ListInst(ctx context.Context) ([]model.DepInstance, error) {
+func (h *StorageHandler) ListInst(ctx context.Context) ([]model.DepInstanceMeta, error) {
+	rows, err := h.db.QueryContext(ctx, "SELECT `id`, `dep_id`, `created`, `updated` FROM `instances` ORDER BY `created`")
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	defer rows.Close()
+	var dims []model.DepInstanceMeta
+	for rows.Next() {
+		var dim model.DepInstanceMeta
+		var ct, ut []uint8
+		if err = rows.Scan(&dim.ID, &dim.DepID, &ct, &ut); err != nil {
+			return nil, model.NewInternalError(err)
+		}
+		tc, err := time.Parse(tLayout, string(ct))
+		if err != nil {
+			return nil, model.NewInternalError(err)
+		}
+		tu, err := time.Parse(tLayout, string(ut))
+		if err != nil {
+			return nil, model.NewInternalError(err)
+		}
+		dim.Created = tc
+		dim.Updated = tu
+		dims = append(dims, dim)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	return dims, nil
+}
+
+func (h *StorageHandler) CreateInst(ctx context.Context, inst *model.DepInstance) (handler.Transaction, string, error) {
 	panic("not implemented")
 }
 
