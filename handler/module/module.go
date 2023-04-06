@@ -91,7 +91,7 @@ func (h *Handler) Get(ctx context.Context, id string) (*module.Module, error) {
 }
 
 func (h *Handler) Add(ctx context.Context, id string) error {
-	return nil
+	panic("not implemented")
 }
 
 func (h *Handler) Delete(ctx context.Context, id string) error {
@@ -99,7 +99,7 @@ func (h *Handler) Delete(ctx context.Context, id string) error {
 }
 
 func (h *Handler) Update(ctx context.Context, id string) error {
-	return nil
+	panic("not implemented")
 }
 
 func (h *Handler) InputTemplate(ctx context.Context, id string) (model.InputTemplate, error) {

@@ -114,11 +114,11 @@ func (h *Handler) Update(ctx context.Context, m *module.Module, id string, name 
 }
 
 func (h *Handler) Start(ctx context.Context, id string) error {
-	return nil
+	panic("not implemented")
 }
 
 func (h *Handler) Stop(ctx context.Context, id string) error {
-	return nil
+	panic("not implemented")
 }
 
 func (h *Handler) validateConfigs(dCs map[string]model.DepConfig, mCs module.Configs) error {
