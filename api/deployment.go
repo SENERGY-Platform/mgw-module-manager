@@ -21,7 +21,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func (a *Api) AddDeployment(ctx context.Context, dr model.DepRequest) (string, error) {
+func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error) {
 	m, err := a.moduleHandler.Get(ctx, dr.ModuleID)
 	if err != nil {
 		return "", err
