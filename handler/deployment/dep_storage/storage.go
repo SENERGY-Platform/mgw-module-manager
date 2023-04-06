@@ -245,7 +245,20 @@ func (h *StorageHandler) CreateInst(ctx context.Context, inst *model.DepInstance
 }
 
 func (h *StorageHandler) ReadInst(ctx context.Context, id string) (*model.DepInstance, error) {
-	panic("not implemented")
+	instMeta, err := selectInstance(ctx, h.db.QueryRowContext, id)
+	if err != nil {
+		return nil, err
+	}
+	instMeta.ID = id
+	containers, err := selectContainers(ctx, h.db.QueryContext, id)
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	inst := model.DepInstance{
+		DepInstanceMeta: instMeta,
+		Containers:      containers,
+	}
+	return &inst, nil
 }
 
 func (h *StorageHandler) UpdateInst(ctx context.Context, inst *model.DepInstance) (handler.Transaction, error) {
