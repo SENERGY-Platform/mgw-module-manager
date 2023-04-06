@@ -49,6 +49,7 @@ type DeploymentHandler interface {
 	Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error)
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, m *module.Module, id string, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error
+	Deploy(ctx context.Context, m *module.Module, mPath string, id string) error
 	Start(ctx context.Context, id string) error
 	Stop(ctx context.Context, id string) error
 }

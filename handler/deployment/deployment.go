@@ -113,6 +113,10 @@ func (h *Handler) Update(ctx context.Context, m *module.Module, id string, name 
 	return nil
 }
 
+func (h *Handler) Deploy(ctx context.Context, m *module.Module, mPath string, id string) error {
+	panic("not implemented")
+}
+
 func (h *Handler) Start(ctx context.Context, id string) error {
 	panic("not implemented")
 }
