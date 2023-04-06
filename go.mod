@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/SENERGY-Platform/gin-middleware v0.1.0
 	github.com/SENERGY-Platform/go-service-base v0.6.0
+	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.3.1
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.8.0
 	github.com/SENERGY-Platform/mgw-module-lib v0.7.0
 	github.com/SENERGY-Platform/mgw-module-manager/lib v0.0.0-00010101000000-000000000000
@@ -16,6 +17,7 @@ require (
 
 require (
 	code.cloudfoundry.org/bytefmt v0.0.0-20211005130812-5bb3c17173e5 // indirect
+	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.5.0 // indirect
 	github.com/bytedance/sonic v1.8.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
