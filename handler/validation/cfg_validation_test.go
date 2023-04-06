@@ -20,7 +20,7 @@ import (
 	"errors"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/util"
-	"github.com/SENERGY-Platform/mgw-module-manager/itf"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"reflect"
 	"testing"
@@ -200,7 +200,7 @@ func TestGenVltValParams(t *testing.T) {
 
 func TestVltOptions(t *testing.T) {
 	var cDefVlts []model.ConfigDefinitionValidator
-	vlts := make(map[string]itf.Validator)
+	vlts := make(map[string]handler.Validator)
 	if err := vltTypeOpts(cDefVlts, nil, vlts); err != nil {
 		t.Error("err != nil")
 	}
@@ -257,7 +257,7 @@ func TestVltOptions(t *testing.T) {
 
 func TestVltValue(t *testing.T) {
 	var cDefVlts []model.ConfigDefinitionValidator
-	vlts := make(map[string]itf.Validator)
+	vlts := make(map[string]handler.Validator)
 	if err := vltValue(cDefVlts, nil, vlts, nil); err != nil {
 		t.Error("err != nil")
 	}

@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-manager/itf"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"os"
 	"regexp"
@@ -30,10 +30,10 @@ import (
 
 type ConfigValidationHandler struct {
 	definitions map[string]model.ConfigDefinition
-	validators  map[string]itf.Validator
+	validators  map[string]handler.Validator
 }
 
-func NewConfigValidationHandler(definitions map[string]model.ConfigDefinition, validators map[string]itf.Validator) (*ConfigValidationHandler, error) {
+func NewConfigValidationHandler(definitions map[string]model.ConfigDefinition, validators map[string]handler.Validator) (*ConfigValidationHandler, error) {
 	if err := validateDefs(definitions, validators); err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func vltValSlInOpt[T comparable](val any, opt any) (bool, error) {
 	return k, nil
 }
 
-func vltValSlice[T any](cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]itf.Validator, value any) error {
+func vltValSlice[T any](cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]handler.Validator, value any) error {
 	valSl, ok := value.([]T)
 	if !ok {
 		return fmt.Errorf("invlaid data type: %T != %T", value, *new(T))
@@ -176,7 +176,8 @@ func LoadDefs(path string) (map[string]model.ConfigDefinition, error) {
 	return d, nil
 }
 
-func validateDefs(configDefs map[string]model.ConfigDefinition, validators map[string]itf.Validator) error {
+func validateDefs(configDefs map[string]model.ConfigDefinition, validators map[string]handler.Validator) error {
+	// missing tests and needs to be cleaned up
 	for ref, cDef := range configDefs {
 		if cDef.DataType == nil || len(cDef.DataType) == 0 {
 			return fmt.Errorf("config definition '%s' missing data type", ref)
@@ -271,7 +272,7 @@ func genVltOptParams(cDefVltParams map[string]model.ConfigDefinitionValidatorPar
 	return vp
 }
 
-func vltTypeOpts(cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]itf.Validator) error {
+func vltTypeOpts(cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]handler.Validator) error {
 	for _, cDefVlt := range cDefVlts {
 		p := genVltOptParams(cDefVlt.Parameter, cTypeOpts)
 		if len(p) > 0 {
@@ -323,7 +324,7 @@ func genVltValParams(cDefVltParams map[string]model.ConfigDefinitionValidatorPar
 	return vp
 }
 
-func vltValue(cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]itf.Validator, value any) error {
+func vltValue(cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]handler.Validator, value any) error {
 	for _, cDefVlt := range cDefVlts {
 		p := genVltValParams(cDefVlt.Parameter, cTypeOpts, value)
 		if len(p) > 0 {

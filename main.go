@@ -28,12 +28,12 @@ import (
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1gen"
 	"github.com/SENERGY-Platform/mgw-module-manager/api"
 	"github.com/SENERGY-Platform/mgw-module-manager/api/http_engine"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/deployment"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/deployment/dep_storage"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/validation"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/validation/validators"
-	"github.com/SENERGY-Platform/mgw-module-manager/itf"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/gin-gonic/gin"
 	"net"
@@ -45,7 +45,7 @@ import (
 
 var version string
 
-var inputValidators = map[string]itf.Validator{
+var inputValidators = map[string]handler.Validator{
 	"regex":            validators.Regex,
 	"number_compare":   validators.NumberCompare,
 	"text_len_compare": validators.TextLenCompare,

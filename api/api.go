@@ -17,14 +17,14 @@
 package api
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-manager/itf"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 )
 
 type Api struct {
-	moduleHandler     itf.ModuleHandler
-	deploymentHandler itf.DeploymentHandler
+	moduleHandler     handler.ModuleHandler
+	deploymentHandler handler.DeploymentHandler
 }
 
-func New(moduleHandler itf.ModuleHandler, deploymentHandler itf.DeploymentHandler) *Api {
+func New(moduleHandler handler.ModuleHandler, deploymentHandler handler.DeploymentHandler) *Api {
 	return &Api{moduleHandler: moduleHandler, deploymentHandler: deploymentHandler}
 }

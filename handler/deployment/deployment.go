@@ -21,18 +21,18 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-manager/itf"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"time"
 )
 
 type Handler struct {
-	storageHandler itf.DepStorageHandler
-	cfgVltHandler  itf.CfgValidationHandler
+	storageHandler handler.DepStorageHandler
+	cfgVltHandler  handler.CfgValidationHandler
 	stgHdlTimeout  time.Duration
 }
 
-func NewHandler(storageHandler itf.DepStorageHandler, cfgVltHandler itf.CfgValidationHandler, storageHandlerTimeout time.Duration) *Handler {
+func NewHandler(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, storageHandlerTimeout time.Duration) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cfgVltHandler:  cfgVltHandler,

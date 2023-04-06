@@ -25,7 +25,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/validation"
-	"github.com/SENERGY-Platform/mgw-module-manager/itf"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"gopkg.in/yaml.v3"
 	"net/http"
@@ -33,14 +33,14 @@ import (
 )
 
 type Handler struct {
-	storageHandler          itf.ModStorageHandler
-	transferHandler         itf.ModTransferHandler
-	configValidationHandler itf.CfgValidationHandler
+	storageHandler          handler.ModStorageHandler
+	transferHandler         handler.ModTransferHandler
+	configValidationHandler handler.CfgValidationHandler
 	mfDecoders              modfile.Decoders
 	mfGenerators            modfile.Generators
 }
 
-func NewHandler(storageHandler itf.ModStorageHandler, transferHandler itf.ModTransferHandler, configValidationHandler itf.CfgValidationHandler, mfDecoders modfile.Decoders, mfGenerators modfile.Generators) *Handler {
+func NewHandler(storageHandler handler.ModStorageHandler, transferHandler handler.ModTransferHandler, configValidationHandler handler.CfgValidationHandler, mfDecoders modfile.Decoders, mfGenerators modfile.Generators) *Handler {
 	return &Handler{
 		storageHandler:          storageHandler,
 		transferHandler:         transferHandler,

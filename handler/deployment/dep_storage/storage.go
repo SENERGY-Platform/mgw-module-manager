@@ -19,7 +19,7 @@ package dep_storage
 import (
 	"context"
 	"database/sql"
-	"github.com/SENERGY-Platform/mgw-module-manager/itf"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"time"
 )
@@ -65,7 +65,7 @@ func (h *StorageHandler) List(ctx context.Context) ([]model.DepMeta, error) {
 	return dms, nil
 }
 
-func (h *StorageHandler) Create(ctx context.Context, dep *model.Deployment) (itf.Transaction, string, error) {
+func (h *StorageHandler) Create(ctx context.Context, dep *model.Deployment) (handler.Transaction, string, error) {
 	tx, e := h.db.BeginTx(ctx, nil)
 	if e != nil {
 		return nil, "", e
@@ -134,7 +134,7 @@ func (h *StorageHandler) Read(ctx context.Context, id string) (*model.Deployment
 	return &dep, nil
 }
 
-func (h *StorageHandler) Update(ctx context.Context, dep *model.Deployment) (itf.Transaction, error) {
+func (h *StorageHandler) Update(ctx context.Context, dep *model.Deployment) (handler.Transaction, error) {
 	tx, e := h.db.BeginTx(ctx, nil)
 	if e != nil {
 		return nil, e
