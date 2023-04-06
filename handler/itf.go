@@ -60,9 +60,10 @@ type DepStorageHandler interface {
 	ReadDep(ctx context.Context, id string) (*model.Deployment, error)
 	UpdateDep(ctx context.Context, dep *model.Deployment) (Transaction, error)
 	DeleteDep(ctx context.Context, id string) error
-	ListInst(ctx context.Context) ([]model.DepInstance, error)
-	CreateInst(ctx context.Context, inst *model.DepInstance) (string, error)
-	UpdateInst(ctx context.Context, inst *model.DepInstance) error
+	ListInst(ctx context.Context) ([]model.DepInstanceMeta, error)
+	CreateInst(ctx context.Context, inst *model.DepInstance) (Transaction, string, error)
+	ReadInst(ctx context.Context, id string) (*model.DepInstance, error)
+	UpdateInst(ctx context.Context, inst *model.DepInstance) (Transaction, error)
 	DeleteInst(ctx context.Context, id string) error
 }
 

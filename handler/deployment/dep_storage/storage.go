@@ -213,11 +213,11 @@ func (h *StorageHandler) ListInst(ctx context.Context) ([]model.DepInstance, err
 	panic("not implemented")
 }
 
-func (h *StorageHandler) CreateInst(ctx context.Context, inst *model.DepInstance) (string, error) {
+func (h *StorageHandler) ReadInst(ctx context.Context, id string) (*model.DepInstance, error) {
 	panic("not implemented")
 }
 
-func (h *StorageHandler) UpdateInst(ctx context.Context, inst *model.DepInstance) error {
+func (h *StorageHandler) UpdateInst(ctx context.Context, inst *model.DepInstance) (handler.Transaction, error) {
 	panic("not implemented")
 }
 
