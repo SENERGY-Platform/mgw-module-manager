@@ -41,6 +41,10 @@ func (a *Api) GetDeployment(ctx context.Context, id string) (*model.Deployment, 
 	return a.deploymentHandler.Get(ctx, id)
 }
 
+func (a *Api) DeployDeployment(ctx context.Context, id string) error {
+	panic("not implemented")
+}
+
 func (a *Api) StartDeployment(ctx context.Context, id string) error {
 	panic("not implemented")
 }

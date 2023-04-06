@@ -35,7 +35,7 @@ func NewStorageHandler(db *sql.DB) *StorageHandler {
 	return &StorageHandler{db: db}
 }
 
-func (h *StorageHandler) List(ctx context.Context) ([]model.DepMeta, error) {
+func (h *StorageHandler) ListDep(ctx context.Context) ([]model.DepMeta, error) {
 	rows, err := h.db.QueryContext(ctx, "SELECT `id`, `module_id`, `name`, `created`, `updated` FROM `deployments` ORDER BY `name`")
 	if err != nil {
 		return nil, model.NewInternalError(err)
@@ -66,7 +66,7 @@ func (h *StorageHandler) List(ctx context.Context) ([]model.DepMeta, error) {
 	return dms, nil
 }
 
-func (h *StorageHandler) Create(ctx context.Context, dep *model.Deployment) (handler.Transaction, string, error) {
+func (h *StorageHandler) CreateDep(ctx context.Context, dep *model.Deployment) (handler.Transaction, string, error) {
 	tx, e := h.db.BeginTx(ctx, nil)
 	if e != nil {
 		return nil, "", model.NewInternalError(e)
@@ -103,7 +103,7 @@ func (h *StorageHandler) Create(ctx context.Context, dep *model.Deployment) (han
 	return tx, id, nil
 }
 
-func (h *StorageHandler) Read(ctx context.Context, id string) (*model.Deployment, error) {
+func (h *StorageHandler) ReadDep(ctx context.Context, id string) (*model.Deployment, error) {
 	depMeta, err := selectDeployment(ctx, h.db.QueryRowContext, id)
 	if err != nil {
 		return nil, err
@@ -135,7 +135,7 @@ func (h *StorageHandler) Read(ctx context.Context, id string) (*model.Deployment
 	return &dep, nil
 }
 
-func (h *StorageHandler) Update(ctx context.Context, dep *model.Deployment) (handler.Transaction, error) {
+func (h *StorageHandler) UpdateDep(ctx context.Context, dep *model.Deployment) (handler.Transaction, error) {
 	tx, e := h.db.BeginTx(ctx, nil)
 	if e != nil {
 		return nil, model.NewInternalError(e)
@@ -194,7 +194,7 @@ func (h *StorageHandler) Update(ctx context.Context, dep *model.Deployment) (han
 	return tx, nil
 }
 
-func (h *StorageHandler) Delete(ctx context.Context, id string) error {
+func (h *StorageHandler) DeleteDep(ctx context.Context, id string) error {
 	res, err := h.db.ExecContext(ctx, "DELETE FROM `deployments` WHERE `id` = ?", id)
 	if err != nil {
 		return model.NewInternalError(err)
@@ -207,4 +207,20 @@ func (h *StorageHandler) Delete(ctx context.Context, id string) error {
 		return model.NewNotFoundError(errors.New("no rows affected"))
 	}
 	return nil
+}
+
+func (h *StorageHandler) ListInst(ctx context.Context) ([]model.DepInstance, error) {
+	panic("not implemented")
+}
+
+func (h *StorageHandler) CreateInst(ctx context.Context, inst *model.DepInstance) (string, error) {
+	panic("not implemented")
+}
+
+func (h *StorageHandler) UpdateInst(ctx context.Context, inst *model.DepInstance) error {
+	panic("not implemented")
+}
+
+func (h *StorageHandler) DeleteInst(ctx context.Context, id string) error {
+	panic("not implemented")
 }

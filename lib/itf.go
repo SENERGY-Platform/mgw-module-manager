@@ -31,6 +31,7 @@ type Api interface {
 	CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error)
 	GetDeployments(ctx context.Context) ([]model.DepMeta, error)
 	GetDeployment(ctx context.Context, id string) (*model.Deployment, error)
+	DeployDeployment(ctx context.Context, id string) error
 	StartDeployment(ctx context.Context, id string) error
 	StopDeployment(ctx context.Context, id string) error
 	UpdateDeployment(ctx context.Context, id string, dr model.DepRequest) error

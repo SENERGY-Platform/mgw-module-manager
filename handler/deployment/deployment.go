@@ -44,13 +44,13 @@ func NewHandler(storageHandler handler.DepStorageHandler, cfgVltHandler handler.
 func (h *Handler) List(ctx context.Context) ([]model.DepMeta, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
 	defer cf()
-	return h.storageHandler.List(ctxWt)
+	return h.storageHandler.ListDep(ctxWt)
 }
 
 func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
 	defer cf()
-	return h.storageHandler.Read(ctxWt, id)
+	return h.storageHandler.ReadDep(ctxWt, id)
 }
 
 func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
@@ -64,7 +64,7 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 	d.Created = time.Now().UTC()
 	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
 	defer cf()
-	tx, id, err := h.storageHandler.Create(ctxWt, d)
+	tx, id, err := h.storageHandler.CreateDep(ctxWt, d)
 	if err != nil {
 		return "", err
 	}
@@ -79,7 +79,7 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 func (h *Handler) Delete(ctx context.Context, id string) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
 	defer cf()
-	return h.storageHandler.Delete(ctxWt, id)
+	return h.storageHandler.DeleteDep(ctxWt, id)
 }
 
 func (h *Handler) Update(ctx context.Context, m *module.Module, id string, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error {
@@ -94,7 +94,7 @@ func (h *Handler) Update(ctx context.Context, m *module.Module, id string, name 
 	d.Updated = time.Now().UTC()
 	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
 	defer cf()
-	tx, err := h.storageHandler.Update(ctxWt, d)
+	tx, err := h.storageHandler.UpdateDep(ctxWt, d)
 	if err != nil {
 		return err
 	}
@@ -106,8 +106,9 @@ func (h *Handler) Update(ctx context.Context, m *module.Module, id string, name 
 	return nil
 }
 
-func (h *Handler) Deploy(ctx context.Context, m *module.Module, mPath string, id string) error {
-	panic("not implemented")
+func (h *Handler) Deploy(ctx context.Context, m *module.Module, mPath string, d *model.Deployment) error {
+
+	return nil
 }
 
 func (h *Handler) Start(ctx context.Context, id string) error {

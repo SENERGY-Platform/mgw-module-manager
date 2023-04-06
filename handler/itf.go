@@ -49,17 +49,21 @@ type DeploymentHandler interface {
 	Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error)
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, m *module.Module, id string, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error
-	Deploy(ctx context.Context, m *module.Module, mPath string, id string) error
+	Deploy(ctx context.Context, m *module.Module, mPath string, d *model.Deployment) error
 	Start(ctx context.Context, id string) error
 	Stop(ctx context.Context, id string) error
 }
 
 type DepStorageHandler interface {
-	List(ctx context.Context) ([]model.DepMeta, error)
-	Create(ctx context.Context, dep *model.Deployment) (Transaction, string, error)
-	Read(ctx context.Context, id string) (*model.Deployment, error)
-	Update(ctx context.Context, dep *model.Deployment) (Transaction, error)
-	Delete(ctx context.Context, id string) error
+	ListDep(ctx context.Context) ([]model.DepMeta, error)
+	CreateDep(ctx context.Context, dep *model.Deployment) (Transaction, string, error)
+	ReadDep(ctx context.Context, id string) (*model.Deployment, error)
+	UpdateDep(ctx context.Context, dep *model.Deployment) (Transaction, error)
+	DeleteDep(ctx context.Context, id string) error
+	ListInst(ctx context.Context) ([]model.DepInstance, error)
+	CreateInst(ctx context.Context, inst *model.DepInstance) (string, error)
+	UpdateInst(ctx context.Context, inst *model.DepInstance) error
+	DeleteInst(ctx context.Context, id string) error
 }
 
 type Transaction interface {

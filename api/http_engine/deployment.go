@@ -55,7 +55,7 @@ func postDeploymentH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		id, err := a.AddDeployment(gc.Request.Context(), depReq)
+		id, err := a.CreateDeployment(gc.Request.Context(), depReq)
 		if err != nil {
 			_ = gc.Error(err)
 			return
