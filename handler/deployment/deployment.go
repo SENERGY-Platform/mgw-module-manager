@@ -18,7 +18,6 @@ package deployment
 
 import (
 	"context"
-	"errors"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
@@ -55,12 +54,9 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 }
 
 func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
-	dep, rad, sad, err := genDeployment(m, name, hostRes, secrets, configs)
+	dep, err := genDeployment(m, name, hostRes, secrets, configs)
 	if err != nil {
 		return "", model.NewInvalidInputError(err)
-	}
-	if len(rad) > 0 || len(sad) > 0 {
-		return "", model.NewInvalidInputError(errors.New("auto resource discovery not implemented"))
 	}
 	if err = h.validateConfigs(dep.Configs, m.Configs); err != nil {
 		return "", err
@@ -87,12 +83,9 @@ func (h *Handler) Delete(ctx context.Context, id string) error {
 }
 
 func (h *Handler) Update(ctx context.Context, m *module.Module, id string, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error {
-	dep, rad, sad, err := genDeployment(m, name, hostRes, secrets, configs)
+	dep, err := genDeployment(m, name, hostRes, secrets, configs)
 	if err != nil {
 		return model.NewInvalidInputError(err)
-	}
-	if len(rad) > 0 || len(sad) > 0 {
-		return model.NewInvalidInputError(errors.New("auto resource discovery not implemented"))
 	}
 	if err = h.validateConfigs(dep.Configs, m.Configs); err != nil {
 		return err
