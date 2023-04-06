@@ -283,7 +283,38 @@ func (h *StorageHandler) ReadInst(ctx context.Context, id string) (*model.DepIns
 }
 
 func (h *StorageHandler) UpdateInst(ctx context.Context, inst *model.DepInstance) (handler.Transaction, error) {
-	panic("not implemented")
+	tx, e := h.db.BeginTx(ctx, nil)
+	if e != nil {
+		return nil, model.NewInternalError(e)
+	}
+	var err error
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+	res, err := tx.ExecContext(ctx, "UPDATE `instances` SET `updated` = ? WHERE `id` = ?", inst.Updated, inst.ID)
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	if n < 1 {
+		return nil, model.NewNotFoundError(errors.New("no rows affected"))
+	}
+	_, err = tx.ExecContext(ctx, "DELETE FROM `containers` WHERE `i_id` = ?", inst.ID)
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	if len(inst.Containers) > 0 {
+		err = insertContainers(ctx, tx.PrepareContext, inst.ID, inst.Containers)
+		if err != nil {
+			return nil, model.NewInternalError(err)
+		}
+	}
+	return tx, nil
 }
 
 func (h *StorageHandler) DeleteInst(ctx context.Context, id string) error {
