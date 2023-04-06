@@ -17,15 +17,15 @@
 package http_engine
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-manager/itf"
-	"github.com/SENERGY-Platform/mgw-module-manager/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 const depIdParam = "d"
 
-func getDeploymentsH(a itf.Api) gin.HandlerFunc {
+func getDeploymentsH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		deployments, err := a.GetDeployments(gc.Request.Context())
 		if err != nil {
@@ -36,7 +36,7 @@ func getDeploymentsH(a itf.Api) gin.HandlerFunc {
 	}
 }
 
-func getDeploymentH(a itf.Api) gin.HandlerFunc {
+func getDeploymentH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		deployment, err := a.GetDeployment(gc.Request.Context(), gc.Param(depIdParam))
 		if err != nil {
@@ -47,7 +47,7 @@ func getDeploymentH(a itf.Api) gin.HandlerFunc {
 	}
 }
 
-func postDeploymentH(a itf.Api) gin.HandlerFunc {
+func postDeploymentH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		var depReq model.DepRequest
 		err := gc.ShouldBindJSON(&depReq)
@@ -65,7 +65,7 @@ func postDeploymentH(a itf.Api) gin.HandlerFunc {
 	}
 }
 
-func putDeploymentH(a itf.Api) gin.HandlerFunc {
+func putDeploymentH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		var depReq model.DepRequest
 		err := gc.ShouldBindJSON(&depReq)
@@ -83,7 +83,7 @@ func putDeploymentH(a itf.Api) gin.HandlerFunc {
 	}
 }
 
-func deleteDeploymentH(a itf.Api) gin.HandlerFunc {
+func deleteDeploymentH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		err := a.DeleteDeployment(gc.Request.Context(), gc.Param(depIdParam))
 		if err != nil {

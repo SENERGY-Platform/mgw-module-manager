@@ -26,7 +26,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/validation"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
-	"github.com/SENERGY-Platform/mgw-module-manager/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"gopkg.in/yaml.v3"
 	"net/http"
 	"os"

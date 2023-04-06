@@ -18,7 +18,7 @@ package api
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/mgw-module-manager/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
 func (a *Api) AddDeployment(ctx context.Context, dr model.DepRequest) (string, error) {

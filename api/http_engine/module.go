@@ -17,14 +17,14 @@
 package http_engine
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-manager/itf"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 const modIdParam = "m"
 
-func getModulesH(a itf.Api) gin.HandlerFunc {
+func getModulesH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		modules, err := a.GetModules(gc.Request.Context())
 		if err != nil {
@@ -35,7 +35,7 @@ func getModulesH(a itf.Api) gin.HandlerFunc {
 	}
 }
 
-func getModuleH(a itf.Api) gin.HandlerFunc {
+func getModuleH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		module, err := a.GetModule(gc.Request.Context(), gc.Param(modIdParam))
 		if err != nil {
@@ -46,7 +46,7 @@ func getModuleH(a itf.Api) gin.HandlerFunc {
 	}
 }
 
-func getInputTemplateH(a itf.Api) gin.HandlerFunc {
+func getInputTemplateH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		inputTemplate, err := a.GetInputTemplate(gc.Request.Context(), gc.Param(modIdParam))
 		if err != nil {

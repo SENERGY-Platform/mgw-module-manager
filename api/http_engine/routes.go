@@ -17,11 +17,11 @@
 package http_engine
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-manager/itf"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	"github.com/gin-gonic/gin"
 )
 
-func SetRoutes(e *gin.Engine, a itf.Api) {
+func SetRoutes(e *gin.Engine, a lib.Api) {
 	e.GET("modules", getModulesH(a))
 	e.GET("modules/:"+modIdParam, getModuleH(a))
 	e.GET("modules/:"+modIdParam+"/input_template", getInputTemplateH(a))
