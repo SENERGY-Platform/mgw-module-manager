@@ -27,9 +27,11 @@ CREATE TABLE IF NOT EXISTS `deployments`
 );
 CREATE TABLE IF NOT EXISTS `instances`
 (
-    `index`  BIGINT AUTO_INCREMENT NOT NULL,
-    `id`     CHAR(36)              NOT NULL,
-    `dep_id` CHAR(36)              NOT NULL,
+    `index`   BIGINT AUTO_INCREMENT NOT NULL,
+    `id`      CHAR(36)              NOT NULL,
+    `dep_id`  CHAR(36)              NOT NULL,
+    `created` TIMESTAMP(6)          NOT NULL,
+    `updated` TIMESTAMP(6)          NOT NULL,
     UNIQUE KEY (`id`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
