@@ -266,5 +266,16 @@ func (h *StorageHandler) UpdateInst(ctx context.Context, inst *model.DepInstance
 }
 
 func (h *StorageHandler) DeleteInst(ctx context.Context, id string) error {
-	panic("not implemented")
+	res, err := h.db.ExecContext(ctx, "DELETE FROM `instances` WHERE `id` = ?", id)
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	if n < 1 {
+		return model.NewNotFoundError(errors.New("no rows affected"))
+	}
+	return nil
 }
