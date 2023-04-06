@@ -54,17 +54,17 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 }
 
 func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
-	dep, err := genDeployment(m, name, hostRes, secrets, configs)
+	d, err := genDeployment(m, name, hostRes, secrets, configs)
 	if err != nil {
 		return "", model.NewInvalidInputError(err)
 	}
-	if err = h.validateConfigs(dep.Configs, m.Configs); err != nil {
+	if err = h.validateConfigs(d.Configs, m.Configs); err != nil {
 		return "", err
 	}
-	dep.Created = time.Now().UTC()
+	d.Created = time.Now().UTC()
 	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
 	defer cf()
-	tx, id, err := h.storageHandler.Create(ctxWt, dep)
+	tx, id, err := h.storageHandler.Create(ctxWt, d)
 	if err != nil {
 		return "", err
 	}
@@ -83,18 +83,18 @@ func (h *Handler) Delete(ctx context.Context, id string) error {
 }
 
 func (h *Handler) Update(ctx context.Context, m *module.Module, id string, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error {
-	dep, err := genDeployment(m, name, hostRes, secrets, configs)
+	d, err := genDeployment(m, name, hostRes, secrets, configs)
 	if err != nil {
 		return model.NewInvalidInputError(err)
 	}
-	if err = h.validateConfigs(dep.Configs, m.Configs); err != nil {
+	if err = h.validateConfigs(d.Configs, m.Configs); err != nil {
 		return err
 	}
-	dep.ID = id
-	dep.Updated = time.Now().UTC()
+	d.ID = id
+	d.Updated = time.Now().UTC()
 	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
 	defer cf()
-	tx, err := h.storageHandler.Update(ctxWt, dep)
+	tx, err := h.storageHandler.Update(ctxWt, d)
 	if err != nil {
 		return err
 	}
