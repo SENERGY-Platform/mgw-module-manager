@@ -131,8 +131,8 @@ func execCfgSlStmt[T any](ctx context.Context, stmt *sql.Stmt, depId string, ref
 	return nil
 }
 
-func insertInstance(ctx context.Context, ef func(context.Context, string, ...any) (sql.Result, error), qwf func(context.Context, string, ...any) *sql.Row, depId string, timestamp time.Time) (string, error) {
-	res, err := ef(ctx, "INSERT INTO `instances` (`id`, `dep_id`, `created`, `updated`) VALUES (UUID(), ?, ?, ?)", depId, timestamp, timestamp)
+func insertInstance(ctx context.Context, ef func(context.Context, string, ...any) (sql.Result, error), qwf func(context.Context, string, ...any) *sql.Row, depId string, modPath string, timestamp time.Time) (string, error) {
+	res, err := ef(ctx, "INSERT INTO `instances` (`id`, `dep_id`, `mod_path`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?)", depId, modPath, timestamp, timestamp)
 	if err != nil {
 		return "", err
 	}

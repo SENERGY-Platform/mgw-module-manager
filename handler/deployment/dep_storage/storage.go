@@ -252,7 +252,7 @@ func (h *StorageHandler) CreateInst(ctx context.Context, inst *model.DepInstance
 		}
 	}()
 	var id string
-	id, err = insertInstance(ctx, tx.ExecContext, tx.QueryRowContext, inst.DepID, inst.Created)
+	id, err = insertInstance(ctx, tx.ExecContext, tx.QueryRowContext, inst.DepID, inst.ModPath, inst.Created)
 	if err != nil {
 		return nil, "", model.NewInternalError(err)
 	}
