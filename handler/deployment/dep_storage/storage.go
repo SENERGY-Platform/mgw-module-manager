@@ -241,7 +241,28 @@ func (h *StorageHandler) ListInst(ctx context.Context) ([]model.DepInstanceMeta,
 }
 
 func (h *StorageHandler) CreateInst(ctx context.Context, inst *model.DepInstance) (handler.Transaction, string, error) {
-	panic("not implemented")
+	tx, e := h.db.BeginTx(ctx, nil)
+	if e != nil {
+		return nil, "", model.NewInternalError(e)
+	}
+	var err error
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+	var id string
+	id, err = insertInstance(ctx, tx.ExecContext, tx.QueryRowContext, inst.DepID, inst.Created)
+	if err != nil {
+		return nil, "", model.NewInternalError(err)
+	}
+	if len(inst.Containers) > 0 {
+		err = insertContainers(ctx, tx.PrepareContext, id, inst.Containers)
+		if err != nil {
+			return nil, "", model.NewInternalError(err)
+		}
+	}
+	return tx, id, nil
 }
 
 func (h *StorageHandler) ReadInst(ctx context.Context, id string) (*model.DepInstance, error) {

@@ -130,3 +130,37 @@ func execCfgSlStmt[T any](ctx context.Context, stmt *sql.Stmt, depId string, ref
 	}
 	return nil
 }
+
+func insertInstance(ctx context.Context, ef func(context.Context, string, ...any) (sql.Result, error), qwf func(context.Context, string, ...any) *sql.Row, depId string, timestamp time.Time) (string, error) {
+	res, err := ef(ctx, "INSERT INTO `instances` (`id`, `dep_id`, `created`, `updated`) VALUES (UUID(), ?, ?, ?)", depId, timestamp, timestamp)
+	if err != nil {
+		return "", err
+	}
+	i, err := res.LastInsertId()
+	if err != nil {
+		return "", err
+	}
+	row := qwf(ctx, "SELECT `id` FROM `instances` WHERE `index` = ?", i)
+	var id string
+	if err = row.Scan(&id); err != nil {
+		return "", err
+	}
+	if id == "" {
+		return "", errors.New("generating id failed")
+	}
+	return id, nil
+}
+
+func insertContainers(ctx context.Context, pf func(context.Context, string) (*sql.Stmt, error), instId string, m map[string]string) error {
+	stmt, err := pf(ctx, "INSERT INTO `containers` (`i_id`, `s_ref`, `c_id`) VALUES (?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	for ref, id := range m {
+		if _, err = stmt.ExecContext(ctx, instId, ref, id); err != nil {
+			return err
+		}
+	}
+	return nil
+}
