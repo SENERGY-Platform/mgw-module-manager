@@ -22,18 +22,18 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func genDeployment(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (*model.Deployment, error) {
-	dRs, err := genDepHostRes(hostRes, m.HostResources)
+func genDeployment(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (*model.Deployment, []string, []string, error) {
+	dRs, rad, err := genDepHostRes(hostRes, m.HostResources)
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
-	dSs, err := genDepSecrets(secrets, m.Secrets)
+	dSs, sad, err := genDepSecrets(secrets, m.Secrets)
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
 	dCs, err := genDepConfigs(configs, m.Configs)
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
 	d := model.Deployment{
 		DepMeta: model.DepMeta{
@@ -47,37 +47,47 @@ func genDeployment(m *module.Module, name *string, hostRes map[string]string, se
 	if name != nil {
 		d.Name = *name
 	}
-	return &d, nil
+	return &d, rad, sad, nil
 }
 
-func genDepHostRes(hrs map[string]string, mHRs map[string]module.HostResource) (map[string]string, error) {
+func genDepHostRes(hrs map[string]string, mHRs map[string]module.HostResource) (map[string]string, []string, error) {
 	dRs := make(map[string]string)
+	var ad []string
 	for ref, mRH := range mHRs {
 		id, ok := hrs[ref]
 		if ok {
 			dRs[ref] = id
 		} else {
-			if mRH.Required && len(mRH.Tags) == 0 {
-				return nil, fmt.Errorf("host resource '%s' required", ref)
+			if mRH.Required {
+				if len(mRH.Tags) > 0 {
+					ad = append(ad, ref)
+				} else {
+					return nil, nil, fmt.Errorf("host resource '%s' required", ref)
+				}
 			}
 		}
 	}
-	return dRs, nil
+	return dRs, ad, nil
 }
 
-func genDepSecrets(s map[string]string, mSs map[string]module.Secret) (map[string]string, error) {
+func genDepSecrets(s map[string]string, mSs map[string]module.Secret) (map[string]string, []string, error) {
 	dSs := make(map[string]string)
+	var ad []string
 	for ref, mS := range mSs {
 		id, ok := s[ref]
 		if ok {
 			dSs[ref] = id
 		} else {
-			if mS.Required && len(mS.Tags) == 0 {
-				return nil, fmt.Errorf("secret '%s' required", ref)
+			if mS.Required {
+				if len(mS.Tags) > 0 {
+					ad = append(ad, ref)
+				} else {
+					return nil, nil, fmt.Errorf("secret '%s' required", ref)
+				}
 			}
 		}
 	}
-	return dSs, nil
+	return dSs, ad, nil
 }
 
 func genDepConfigs(cfgs map[string]any, mCs module.Configs) (map[string]model.DepConfig, error) {
