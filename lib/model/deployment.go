@@ -63,3 +63,18 @@ type DepRequestBase struct {
 	Configs        map[string]any    `json:"configs"`        // {ref:value}
 	SecretRequests map[string]any    // {ref:value}
 }
+
+type DepRequest struct {
+	DepRequestBase
+	Dependencies map[string]DepRequestBase `json:"dependencies"`
+}
+
+type DepFilter struct {
+	ModuleID string
+	Name     string
+}
+
+type DepInstFilter struct {
+	DepID string
+	IsSub bool
+}
