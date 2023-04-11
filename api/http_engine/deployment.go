@@ -25,9 +25,23 @@ import (
 
 const depIdParam = "d"
 
+type deploymentsQuery struct {
+	Name     string `form:"name"`
+	ModuleID string `form:"module_id"`
+}
+
 func getDeploymentsH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		deployments, err := a.GetDeployments(gc.Request.Context())
+		query := deploymentsQuery{}
+		if err := gc.ShouldBindQuery(&query); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		filter := model.DepFilter{
+			ModuleID: query.ModuleID,
+			Name:     query.Name,
+		}
+		deployments, err := a.GetDeployments(gc.Request.Context(), filter)
 		if err != nil {
 			_ = gc.Error(err)
 			return
