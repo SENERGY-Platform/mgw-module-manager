@@ -28,6 +28,11 @@ type InputTemplateBase struct {
 	InputGroups   map[string]module.InputGroup    `json:"input_groups"`   // {ref:InputGroup}
 }
 
+type InputTemplate struct {
+	InputTemplateBase
+	Dependencies map[string]InputTemplateBase `json:"dependencies"`
+}
+
 type InputTemplateHostRes struct {
 	module.Input
 	module.HostResource
