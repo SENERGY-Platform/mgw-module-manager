@@ -57,8 +57,8 @@ func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string
 	return id, nil
 }
 
-func (a *Api) GetDeployments(ctx context.Context) ([]model.DepMeta, error) {
-	return a.deploymentHandler.List(ctx)
+func (a *Api) GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
+	return a.deploymentHandler.List(ctx, filter)
 }
 
 func (a *Api) GetDeployment(ctx context.Context, id string) (*model.Deployment, error) {
