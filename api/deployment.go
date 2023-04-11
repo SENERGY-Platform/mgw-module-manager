@@ -18,8 +18,32 @@ package api
 
 import (
 	"context"
+	"errors"
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
+
+func (a *Api) PrepareDeployment(ctx context.Context, id string) (model.InputTemplate, error) {
+	m, err := a.moduleHandler.Get(ctx, id)
+	if err != nil {
+		return model.InputTemplate{}, err
+	}
+	if m.DeploymentType == module.SingleDeployment {
+		ds, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: m.ID})
+		if err != nil {
+			return model.InputTemplate{}, err
+		}
+		if len(ds) > 0 {
+			return model.InputTemplate{}, model.NewInternalError(errors.New("already deployed"))
+		}
+	}
+	itm := make(map[string]model.InputTemplateBase)
+	err = a.getDepInputTemplates(ctx, m, itm)
+	if err != nil {
+		return model.InputTemplate{}, err
+	}
+	return model.InputTemplate{InputTemplateBase: genInputTemplate(m), Dependencies: itm}, nil
+}
 
 func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error) {
 	m, err := a.moduleHandler.Get(ctx, dr.ModuleID)
