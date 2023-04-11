@@ -37,7 +37,3 @@ func (a *Api) GetModule(ctx context.Context, id string) (*module.Module, error) 
 func (a *Api) DeleteModule(ctx context.Context, id string) error {
 	panic("not implemented")
 }
-
-func (a *Api) GetInputTemplate(ctx context.Context, id string) (model.InputTemplate, error) {
-	return a.moduleHandler.InputTemplate(ctx, id)
-}
