@@ -20,7 +20,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 )
 
-type InputTemplate struct {
+type InputTemplateBase struct {
+	ModuleID      string                          `json:"module_id"`
 	HostResources map[string]InputTemplateHostRes `json:"host_resources"` // {ref:ResourceInput}
 	Secrets       map[string]InputTemplateSecret  `json:"secrets"`        // {ref:SecretInput}
 	Configs       map[string]InputTemplateConfig  `json:"configs"`        // {ref:ConfigInput}
