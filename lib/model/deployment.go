@@ -55,7 +55,7 @@ type DepInstance struct {
 	Containers map[string]string `json:"containers"`
 }
 
-type DepRequest struct {
+type DepRequestBase struct {
 	Name           *string           `json:"name"` // defaults to module name if nil
 	ModuleID       string            `json:"module_id"`
 	HostResources  map[string]string `json:"host_resources"` // {ref:resourceID}
