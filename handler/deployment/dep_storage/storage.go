@@ -19,9 +19,10 @@ package dep_storage
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"strings"
 	"time"
 )
 
@@ -35,8 +36,38 @@ func NewStorageHandler(db *sql.DB) *StorageHandler {
 	return &StorageHandler{db: db}
 }
 
-func (h *StorageHandler) ListDep(ctx context.Context) ([]model.DepMeta, error) {
-	rows, err := h.db.QueryContext(ctx, "SELECT `id`, `module_id`, `name`, `created`, `updated` FROM `deployments` ORDER BY `name`")
+func (h *StorageHandler) BeginTransaction(ctx context.Context) (driver.Tx, error) {
+	tx, e := h.db.BeginTx(ctx, nil)
+	if e != nil {
+		return nil, model.NewInternalError(e)
+	}
+	return tx, nil
+}
+
+func genListDepFilter(filter model.DepFilter) (string, []any) {
+	var fc []string
+	var val []any
+	if filter.Name != "" {
+		fc = append(fc, "`name` = ?")
+		val = append(val, filter.Name)
+	}
+	if filter.ModuleID != "" {
+		fc = append(fc, "`module_id` = ?")
+		val = append(val, filter.ModuleID)
+	}
+	if len(fc) > 0 {
+		return " WHERE " + strings.Join(fc, " AND "), val
+	}
+	return "", nil
+}
+
+func (h *StorageHandler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
+	q := "SELECT `id`, `module_id`, `name`, `created`, `updated` FROM `deployments`"
+	fc, val := genListDepFilter(filter)
+	if fc != "" {
+		q += fc
+	}
+	rows, err := h.db.QueryContext(ctx, q+" ORDER BY `name`", val...)
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
@@ -66,41 +97,32 @@ func (h *StorageHandler) ListDep(ctx context.Context) ([]model.DepMeta, error) {
 	return dms, nil
 }
 
-func (h *StorageHandler) CreateDep(ctx context.Context, dep *model.Deployment) (handler.Transaction, string, error) {
-	tx, e := h.db.BeginTx(ctx, nil)
-	if e != nil {
-		return nil, "", model.NewInternalError(e)
-	}
-	var err error
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		}
-	}()
+func (h *StorageHandler) CreateDep(ctx context.Context, itf driver.Tx, dep *model.Deployment) (string, error) {
+	tx := itf.(*sql.Tx)
 	var id string
-	id, err = insertDeployment(ctx, tx.ExecContext, tx.QueryRowContext, dep.ModuleID, dep.Name, dep.Created)
+	id, err := insertDeployment(ctx, tx.ExecContext, tx.QueryRowContext, dep.ModuleID, dep.Name, dep.Created)
 	if err != nil {
-		return nil, "", model.NewInternalError(err)
+		return "", model.NewInternalError(err)
 	}
 	if len(dep.HostResources) > 0 {
 		err = insertHostResources(ctx, tx.PrepareContext, id, dep.HostResources)
 		if err != nil {
-			return nil, "", model.NewInternalError(err)
+			return "", model.NewInternalError(err)
 		}
 	}
 	if len(dep.Secrets) > 0 {
 		err = insertSecrets(ctx, tx.PrepareContext, id, dep.Secrets)
 		if err != nil {
-			return nil, "", model.NewInternalError(err)
+			return "", model.NewInternalError(err)
 		}
 	}
 	if len(dep.Configs) > 0 {
 		err = insertConfigs(ctx, tx.PrepareContext, id, dep.Configs)
 		if err != nil {
-			return nil, "", model.NewInternalError(err)
+			return "", model.NewInternalError(err)
 		}
 	}
-	return tx, id, nil
+	return id, nil
 }
 
 func (h *StorageHandler) ReadDep(ctx context.Context, id string) (*model.Deployment, error) {
@@ -135,63 +157,54 @@ func (h *StorageHandler) ReadDep(ctx context.Context, id string) (*model.Deploym
 	return &dep, nil
 }
 
-func (h *StorageHandler) UpdateDep(ctx context.Context, dep *model.Deployment) (handler.Transaction, error) {
-	tx, e := h.db.BeginTx(ctx, nil)
-	if e != nil {
-		return nil, model.NewInternalError(e)
-	}
-	var err error
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		}
-	}()
+func (h *StorageHandler) UpdateDep(ctx context.Context, itf driver.Tx, dep *model.Deployment) error {
+	tx := itf.(*sql.Tx)
 	res, err := tx.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `updated` = ? WHERE `id` = ?", dep.Name, dep.Updated, dep.ID)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.NewInternalError(err)
 	}
 	n, err := res.RowsAffected()
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.NewInternalError(err)
 	}
 	if n < 1 {
-		return nil, model.NewNotFoundError(errors.New("no rows affected"))
+		return model.NewNotFoundError(errors.New("no rows affected"))
 	}
 	_, err = tx.ExecContext(ctx, "DELETE FROM `host_resources` WHERE `dep_id` = ?", dep.ID)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.NewInternalError(err)
 	}
 	_, err = tx.ExecContext(ctx, "DELETE FROM `secrets` WHERE `dep_id` = ?", dep.ID)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.NewInternalError(err)
 	}
 	_, err = tx.ExecContext(ctx, "DELETE FROM `configs` WHERE `dep_id` = ?", dep.ID)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.NewInternalError(err)
 	}
 	_, err = tx.ExecContext(ctx, "DELETE FROM `list_configs` WHERE `dep_id` = ?", dep.ID)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.NewInternalError(err)
 	}
 	if len(dep.HostResources) > 0 {
 		err = insertHostResources(ctx, tx.PrepareContext, dep.ID, dep.HostResources)
 		if err != nil {
-			return nil, model.NewInternalError(err)
+			return model.NewInternalError(err)
 		}
 	}
 	if len(dep.Secrets) > 0 {
 		err = insertSecrets(ctx, tx.PrepareContext, dep.ID, dep.Secrets)
 		if err != nil {
-			return nil, model.NewInternalError(err)
+			return model.NewInternalError(err)
 		}
 	}
 	if len(dep.Configs) > 0 {
 		err = insertConfigs(ctx, tx.PrepareContext, dep.ID, dep.Configs)
 		if err != nil {
-			return nil, model.NewInternalError(err)
+			return model.NewInternalError(err)
 		}
 	}
-	return tx, nil
+	return nil
 }
 
 func (h *StorageHandler) DeleteDep(ctx context.Context, id string) error {
@@ -209,7 +222,7 @@ func (h *StorageHandler) DeleteDep(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *StorageHandler) ListInst(ctx context.Context) ([]model.DepInstanceMeta, error) {
+func (h *StorageHandler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.DepInstanceMeta, error) {
 	rows, err := h.db.QueryContext(ctx, "SELECT `id`, `dep_id`, `created`, `updated` FROM `instances` ORDER BY `created`")
 	if err != nil {
 		return nil, model.NewInternalError(err)
@@ -240,29 +253,25 @@ func (h *StorageHandler) ListInst(ctx context.Context) ([]model.DepInstanceMeta,
 	return dims, nil
 }
 
-func (h *StorageHandler) CreateInst(ctx context.Context, inst *model.DepInstance) (handler.Transaction, string, error) {
-	tx, e := h.db.BeginTx(ctx, nil)
-	if e != nil {
-		return nil, "", model.NewInternalError(e)
-	}
-	var err error
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		}
-	}()
-	var id string
-	id, err = insertInstance(ctx, tx.ExecContext, tx.QueryRowContext, inst.DepID, inst.ModPath, inst.Created)
+func (h *StorageHandler) CreateInst(ctx context.Context, itf driver.Tx, inst *model.DepInstanceMeta) (string, error) {
+	tx := itf.(*sql.Tx)
+	res, err := tx.ExecContext(ctx, "INSERT INTO `instances` (`id`, `dep_id`, `mod_path`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?)", inst.DepID, inst.ModPath, inst.Created, inst.Created)
 	if err != nil {
-		return nil, "", model.NewInternalError(err)
+		return "", model.NewInternalError(err)
 	}
-	if len(inst.Containers) > 0 {
-		err = insertContainers(ctx, tx.PrepareContext, id, inst.Containers)
-		if err != nil {
-			return nil, "", model.NewInternalError(err)
-		}
+	i, err := res.LastInsertId()
+	if err != nil {
+		return "", model.NewInternalError(err)
 	}
-	return tx, id, nil
+	row := tx.QueryRowContext(ctx, "SELECT `id` FROM `instances` WHERE `index` = ?", i)
+	var id string
+	if err = row.Scan(&id); err != nil {
+		return "", model.NewInternalError(err)
+	}
+	if id == "" {
+		return "", model.NewInternalError(errors.New("generating id failed"))
+	}
+	return id, nil
 }
 
 func (h *StorageHandler) ReadInst(ctx context.Context, id string) (*model.DepInstance, error) {
@@ -282,39 +291,20 @@ func (h *StorageHandler) ReadInst(ctx context.Context, id string) (*model.DepIns
 	return &inst, nil
 }
 
-func (h *StorageHandler) UpdateInst(ctx context.Context, inst *model.DepInstance) (handler.Transaction, error) {
-	tx, e := h.db.BeginTx(ctx, nil)
-	if e != nil {
-		return nil, model.NewInternalError(e)
-	}
-	var err error
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		}
-	}()
+func (h *StorageHandler) UpdateInst(ctx context.Context, itf driver.Tx, inst *model.DepInstanceMeta) error {
+	tx := itf.(*sql.Tx)
 	res, err := tx.ExecContext(ctx, "UPDATE `instances` SET `updated` = ? WHERE `id` = ?", inst.Updated, inst.ID)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.NewInternalError(err)
 	}
 	n, err := res.RowsAffected()
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.NewInternalError(err)
 	}
 	if n < 1 {
-		return nil, model.NewNotFoundError(errors.New("no rows affected"))
+		return model.NewNotFoundError(errors.New("no rows affected"))
 	}
-	_, err = tx.ExecContext(ctx, "DELETE FROM `containers` WHERE `i_id` = ?", inst.ID)
-	if err != nil {
-		return nil, model.NewInternalError(err)
-	}
-	if len(inst.Containers) > 0 {
-		err = insertContainers(ctx, tx.PrepareContext, inst.ID, inst.Containers)
-		if err != nil {
-			return nil, model.NewInternalError(err)
-		}
-	}
-	return tx, nil
+	return nil
 }
 
 func (h *StorageHandler) DeleteInst(ctx context.Context, id string) error {
@@ -330,4 +320,12 @@ func (h *StorageHandler) DeleteInst(ctx context.Context, id string) error {
 		return model.NewNotFoundError(errors.New("no rows affected"))
 	}
 	return nil
+}
+
+func (h *StorageHandler) CreateInstCtr(ctx context.Context, itf driver.Tx, iId, sRef string) (string, error) {
+	panic("not implemented")
+}
+
+func (h *StorageHandler) DeleteInstCtr(ctx context.Context, cId string) error {
+	panic("not implemented")
 }

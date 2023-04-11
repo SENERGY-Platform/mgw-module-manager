@@ -18,6 +18,7 @@ package handler
 
 import (
 	"context"
+	"database/sql/driver"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"io"
@@ -55,21 +56,19 @@ type DeploymentHandler interface {
 }
 
 type DepStorageHandler interface {
-	ListDep(ctx context.Context) ([]model.DepMeta, error)
-	CreateDep(ctx context.Context, dep *model.Deployment) (Transaction, string, error)
+	BeginTransaction(ctx context.Context) (driver.Tx, error)
+	ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
+	CreateDep(ctx context.Context, tx driver.Tx, dep *model.Deployment) (string, error)
 	ReadDep(ctx context.Context, id string) (*model.Deployment, error)
-	UpdateDep(ctx context.Context, dep *model.Deployment) (Transaction, error)
+	UpdateDep(ctx context.Context, tx driver.Tx, dep *model.Deployment) error
 	DeleteDep(ctx context.Context, id string) error
-	ListInst(ctx context.Context) ([]model.DepInstanceMeta, error)
-	CreateInst(ctx context.Context, inst *model.DepInstance) (Transaction, string, error)
+	ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.DepInstanceMeta, error)
+	CreateInst(ctx context.Context, tx driver.Tx, inst *model.DepInstanceMeta) (string, error)
 	ReadInst(ctx context.Context, id string) (*model.DepInstance, error)
-	UpdateInst(ctx context.Context, inst *model.DepInstance) (Transaction, error)
+	UpdateInst(ctx context.Context, tx driver.Tx, inst *model.DepInstanceMeta) error
 	DeleteInst(ctx context.Context, id string) error
-}
-
-type Transaction interface {
-	Commit() error
-	Rollback() error
+	CreateInstCtr(ctx context.Context, tx driver.Tx, iId, sRef string) (string, error)
+	DeleteInstCtr(ctx context.Context, cId string) error
 }
 
 type Validator func(params map[string]any) error
