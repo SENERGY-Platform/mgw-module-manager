@@ -88,3 +88,67 @@ func (a *Api) UpdateDeployment(ctx context.Context, id string, dr model.DepReque
 func (a *Api) DeleteDeployment(ctx context.Context, id string) error {
 	return a.deploymentHandler.Delete(ctx, id)
 }
+
+func (a *Api) getDepInputTemplates(ctx context.Context, m *module.Module, itm map[string]model.InputTemplateBase) error {
+	for mdID := range m.Dependencies {
+		if _, ok := itm[mdID]; !ok {
+			ds, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: mdID})
+			if err != nil {
+				return err
+			}
+			if len(ds) < 1 {
+				md, err := a.moduleHandler.Get(ctx, mdID)
+				if err != nil {
+					return err
+				}
+				itm[mdID] = genInputTemplate(md)
+				err = a.getDepInputTemplates(ctx, md, itm)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func genInputTemplate(m *module.Module) model.InputTemplateBase {
+	it := model.InputTemplateBase{
+		ModuleID:      m.ID,
+		HostResources: make(map[string]model.InputTemplateHostRes),
+		Secrets:       make(map[string]model.InputTemplateSecret),
+		Configs:       make(map[string]model.InputTemplateConfig),
+		InputGroups:   m.Inputs.Groups,
+	}
+	for ref, input := range m.Inputs.Resources {
+		it.HostResources[ref] = model.InputTemplateHostRes{
+			Input:        input,
+			HostResource: m.HostResources[ref],
+		}
+	}
+	for ref, input := range m.Inputs.Secrets {
+		it.Secrets[ref] = model.InputTemplateSecret{
+			Input:  input,
+			Secret: m.Secrets[ref],
+		}
+	}
+	for ref, input := range m.Inputs.Configs {
+		cv := m.Configs[ref]
+		itc := model.InputTemplateConfig{
+			Input:    input,
+			Default:  cv.Default,
+			Options:  cv.Options,
+			OptExt:   cv.OptExt,
+			Type:     cv.Type,
+			TypeOpt:  make(map[string]any),
+			DataType: cv.DataType,
+			IsList:   cv.IsSlice,
+			Required: cv.Required,
+		}
+		for key, opt := range cv.TypeOpt {
+			itc.TypeOpt[key] = opt.Value
+		}
+		it.Configs[ref] = itc
+	}
+	return it
+}
