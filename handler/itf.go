@@ -45,12 +45,11 @@ type ModTransferHandler interface {
 }
 
 type DeploymentHandler interface {
-	List(ctx context.Context) ([]model.DepMeta, error)
+	List(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
 	Get(ctx context.Context, id string) (*model.Deployment, error)
-	Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error)
+	Create(ctx context.Context, m *module.Module, mPath string, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error)
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, m *module.Module, id string, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error
-	Deploy(ctx context.Context, m *module.Module, mPath string, d *model.Deployment) error
 	Start(ctx context.Context, id string) error
 	Stop(ctx context.Context, id string) error
 }

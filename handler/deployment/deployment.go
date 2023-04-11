@@ -18,6 +18,8 @@ package deployment
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
@@ -41,10 +43,10 @@ func NewHandler(storageHandler handler.DepStorageHandler, cfgVltHandler handler.
 	}
 }
 
-func (h *Handler) List(ctx context.Context) ([]model.DepMeta, error) {
+func (h *Handler) List(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
 	defer cf()
-	return h.storageHandler.ListDep(ctxWt)
+	return h.storageHandler.ListDep(ctxWt, filter)
 }
 
 func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error) {
@@ -53,18 +55,21 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 	return h.storageHandler.ReadDep(ctxWt, id)
 }
 
-func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
-	d, err := genDeployment(m, name, hostRes, secrets, configs)
+func (h *Handler) Create(ctx context.Context, m *module.Module, mPath string, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
+	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
+	defer cf()
+	d, rad, sad, err := genDeployment(m, name, hostRes, secrets, configs)
 	if err != nil {
 		return "", model.NewInvalidInputError(err)
+	}
+	if len(rad) > 0 || len(sad) > 0 {
+		return "", model.NewInternalError(errors.New("auto resource discovery not implemented"))
 	}
 	if err = h.validateConfigs(d.Configs, m.Configs); err != nil {
 		return "", err
 	}
 	d.Created = time.Now().UTC()
-	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
-	defer cf()
-	tx, id, err := h.storageHandler.CreateDep(ctxWt, d)
+	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -83,27 +88,31 @@ func (h *Handler) Delete(ctx context.Context, id string) error {
 }
 
 func (h *Handler) Update(ctx context.Context, m *module.Module, id string, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error {
-	d, err := genDeployment(m, name, hostRes, secrets, configs)
-	if err != nil {
-		return model.NewInvalidInputError(err)
-	}
-	if err = h.validateConfigs(d.Configs, m.Configs); err != nil {
-		return err
-	}
-	d.ID = id
-	d.Updated = time.Now().UTC()
-	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
-	defer cf()
-	tx, err := h.storageHandler.UpdateDep(ctxWt, d)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-	err = tx.Commit()
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	return nil
+	panic("not implemented")
+	//d, rad, sad, err := genDeployment(m, name, hostRes, secrets, configs)
+	//if err != nil {
+	//	return model.NewInvalidInputError(err)
+	//}
+	//if len(rad) > 0 || len(sad) > 0 {
+	//	return model.NewInternalError(errors.New("auto resource discovery not implemented"))
+	//}
+	//if err = h.validateConfigs(d.Configs, m.Configs); err != nil {
+	//	return err
+	//}
+	//d.ID = id
+	//d.Updated = time.Now().UTC()
+	//ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
+	//defer cf()
+	//tx, err := h.storageHandler.UpdateDep(ctxWt, d)
+	//if err != nil {
+	//	return err
+	//}
+	//defer tx.Rollback()
+	//err = tx.Commit()
+	//if err != nil {
+	//	return model.NewInternalError(err)
+	//}
+	//return nil
 }
 
 func (h *Handler) Deploy(ctx context.Context, m *module.Module, mPath string, d *model.Deployment) error {
