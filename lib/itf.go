@@ -27,11 +27,10 @@ type Api interface {
 	GetModules(ctx context.Context) ([]*module.Module, error)
 	GetModule(ctx context.Context, id string) (*module.Module, error)
 	DeleteModule(ctx context.Context, id string) error
-	GetInputTemplate(ctx context.Context, id string) (model.InputTemplate, error)
+	PrepareDeployment(ctx context.Context, id string) (model.InputTemplate, error)
 	CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error)
-	GetDeployments(ctx context.Context) ([]model.DepMeta, error)
+	GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
 	GetDeployment(ctx context.Context, id string) (*model.Deployment, error)
-	DeployDeployment(ctx context.Context, id string) error
 	StartDeployment(ctx context.Context, id string) error
 	StopDeployment(ctx context.Context, id string) error
 	UpdateDeployment(ctx context.Context, id string, dr model.DepRequest) error
