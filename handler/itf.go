@@ -30,7 +30,6 @@ type ModuleHandler interface {
 	Add(ctx context.Context, id string) error
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, id string) error
-	InputTemplate(ctx context.Context, id string) (model.InputTemplate, error)
 }
 
 type ModStorageHandler interface {
