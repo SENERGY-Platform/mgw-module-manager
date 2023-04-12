@@ -74,6 +74,21 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 		return "", err
 	}
 	defer tx.Rollback()
+	dId, err := h.storageHandler.CreateDep(ctxWt, tx, deployment)
+	if err != nil {
+		return "", err
+	}
+	instance := model.DepInstance{
+		DepInstanceMeta: model.DepInstanceMeta{
+			DepID:   dId,
+			Created: deployment.Created,
+		},
+	}
+	iId, err := h.storageHandler.CreateInst(ctxWt, tx, &instance.DepInstanceMeta)
+	if err != nil {
+		return "", err
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return "", model.NewInternalError(err)
