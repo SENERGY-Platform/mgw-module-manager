@@ -58,17 +58,17 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
 	defer cf()
-	d, rad, sad, err := genDeployment(m, name, hostRes, secrets, configs)
+	deployment, rad, sad, err := genDeployment(m, name, hostRes, secrets, configs)
 	if err != nil {
 		return "", model.NewInvalidInputError(err)
 	}
 	if len(rad) > 0 || len(sad) > 0 {
 		return "", model.NewInternalError(errors.New("auto resource discovery not implemented"))
 	}
-	if err = h.validateConfigs(d.Configs, m.Configs); err != nil {
+	if err = h.validateConfigs(deployment.Configs, m.Configs); err != nil {
 		return "", err
 	}
-	d.Created = time.Now().UTC()
+	deployment.Created = time.Now().UTC()
 	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {
 		return "", err
