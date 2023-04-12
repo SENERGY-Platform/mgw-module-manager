@@ -50,11 +50,25 @@ func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string
 	if err != nil {
 		return "", err
 	}
-	id, err := a.deploymentHandler.Create(ctx, m, dr.Name, dr.HostResources, dr.Secrets, dr.Configs)
-	if err != nil {
-		return "", err
+	depMap := make(map[string]string)
+	if len(dr.Dependencies) > 0 {
+		dms := make(map[string]*module.Module)
+		if err := a.getReqModules(ctx, m, dms); err != nil {
+			return "", err
+		}
+		order, err := getOrder(dms)
+		if err != nil {
+			return "", model.NewInternalError(err)
+		}
+		for _, dmID := range order {
+			ddID, err := a.createDeployment(ctx, dms[dmID], dr.Dependencies[dmID])
+			if err != nil {
+				return "", err
+			}
+			depMap[dmID] = ddID
+		}
 	}
-	return id, nil
+	return a.createDeployment(ctx, m, dr.DepRequestBase)
 }
 
 func (a *Api) GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
