@@ -255,7 +255,7 @@ func (h *StorageHandler) ListInst(ctx context.Context, filter model.DepInstFilte
 
 func (h *StorageHandler) CreateInst(ctx context.Context, itf driver.Tx, inst *model.DepInstanceMeta) (string, error) {
 	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "INSERT INTO `instances` (`id`, `dep_id`, `mod_path`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?)", inst.DepID, inst.ModPath, inst.Created, inst.Created)
+	res, err := tx.ExecContext(ctx, "INSERT INTO `instances` (`id`, `dep_id`, `created`, `updated`) VALUES (UUID(), ?, ?, ?)", inst.DepID, inst.Created, inst.Created)
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}

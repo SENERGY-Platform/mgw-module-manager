@@ -45,7 +45,6 @@ type DepConfig struct {
 type DepInstanceMeta struct {
 	ID      string    `json:"id"`
 	DepID   string    `json:"dep_id"`
-	ModPath string    `json:"mod_path"`
 	Created time.Time `json:"created"`
 	Updated time.Time `json:"updated"`
 }

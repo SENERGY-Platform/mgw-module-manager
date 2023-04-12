@@ -166,10 +166,10 @@ func selectListConfigs(ctx context.Context, qf func(ctx context.Context, query s
 }
 
 func selectInstance(ctx context.Context, qwf func(context.Context, string, ...any) *sql.Row, instID string) (model.DepInstanceMeta, error) {
-	row := qwf(ctx, "SELECT `dep_id`, `mod_path`, `created`, `updated` FROM `instances` WHERE `id` = ?", instID)
+	row := qwf(ctx, "SELECT `dep_id`, `created`, `updated` FROM `instances` WHERE `id` = ?", instID)
 	var dim model.DepInstanceMeta
 	var ct, ut []uint8
-	err := row.Scan(&dim.DepID, &dim.ModPath, &ct, &ut)
+	err := row.Scan(&dim.DepID, &ct, &ut)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return model.DepInstanceMeta{}, model.NewNotFoundError(err)
