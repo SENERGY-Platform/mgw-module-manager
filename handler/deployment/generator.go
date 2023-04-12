@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"path"
 )
 
 func genDeployment(m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (*model.Deployment, []string, []string, error) {
@@ -121,4 +122,8 @@ func genDepConfigs(cfgs map[string]any, mCs module.Configs) (map[string]model.De
 
 func genVolumeName(s, v string) string {
 	return fmt.Sprintf("%s_%s", s, v)
+}
+
+func genBindMountPath(s, p string) string {
+	return path.Join(s, p)
 }
