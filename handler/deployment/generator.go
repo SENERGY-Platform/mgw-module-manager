@@ -118,3 +118,7 @@ func genDepConfigs(cfgs map[string]any, mCs module.Configs) (map[string]model.De
 	}
 	return dCs, nil
 }
+
+func genVolumeName(id, vol string) string {
+	return fmt.Sprintf("%s_%s", id, vol)
+}
