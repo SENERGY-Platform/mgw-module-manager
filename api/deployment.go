@@ -41,6 +41,15 @@ func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string
 	if err != nil {
 		return "", err
 	}
+	if m.DeploymentType == module.SingleDeployment {
+		dLst, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: m.ID})
+		if err != nil {
+			return "", err
+		}
+		if len(dLst) > 0 {
+			return "", model.NewInvalidInputError(errors.New("already deployed"))
+		}
+	}
 	depMap := make(map[string]string)
 	if len(m.Dependencies) > 0 {
 		dms := make(map[string]*module.Module)
