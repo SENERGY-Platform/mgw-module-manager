@@ -31,32 +31,34 @@ type Handler struct {
 	storageHandler handler.DepStorageHandler
 	cfgVltHandler  handler.CfgValidationHandler
 	cewClient      client.CewClient
-	stgHdlTimeout  time.Duration
+	dbTimeout      time.Duration
+	httpTimeout    time.Duration
 }
 
-func NewHandler(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient client.CewClient, storageHandlerTimeout time.Duration) *Handler {
+func NewHandler(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient client.CewClient, dbTimeout time.Duration, httpTimeout time.Duration) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cfgVltHandler:  cfgVltHandler,
 		cewClient:      cewClient,
-		stgHdlTimeout:  storageHandlerTimeout,
+		dbTimeout:      dbTimeout,
+		httpTimeout:    httpTimeout,
 	}
 }
 
 func (h *Handler) List(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
-	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	return h.storageHandler.ListDep(ctxWt, filter)
 }
 
 func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error) {
-	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	return h.storageHandler.ReadDep(ctxWt, id)
 }
 
 func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
-	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	deployment, rad, sad, err := genDeployment(m, name, hostRes, secrets, configs)
 	if err != nil {
@@ -97,7 +99,7 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 }
 
 func (h *Handler) Delete(ctx context.Context, id string) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.stgHdlTimeout)
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	return h.storageHandler.DeleteDep(ctxWt, id)
 }
