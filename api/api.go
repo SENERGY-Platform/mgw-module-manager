@@ -17,6 +17,7 @@
 package api
 
 import (
+	"context"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
@@ -48,4 +49,21 @@ func getOrder(modules map[string]*module.Module) ([]string, error) {
 		return nil, model.NewInternalError(err)
 	}
 	return order, nil
+}
+
+func (a *Api) getReqModules(ctx context.Context, m *module.Module, modules map[string]*module.Module) error {
+	for id := range m.Dependencies {
+		if _, ok := modules[id]; !ok {
+			dm, err := a.moduleHandler.Get(ctx, id)
+			if err != nil {
+				return err
+			}
+			modules[id] = dm
+			err = a.getReqModules(ctx, dm, modules)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
