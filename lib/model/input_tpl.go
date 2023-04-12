@@ -21,7 +21,6 @@ import (
 )
 
 type InputTemplateBase struct {
-	ModuleID      string                          `json:"module_id"`
 	HostResources map[string]InputTemplateHostRes `json:"host_resources"` // {ref:ResourceInput}
 	Secrets       map[string]InputTemplateSecret  `json:"secrets"`        // {ref:SecretInput}
 	Configs       map[string]InputTemplateConfig  `json:"configs"`        // {ref:ConfigInput}
@@ -29,6 +28,7 @@ type InputTemplateBase struct {
 }
 
 type InputTemplate struct {
+	ModuleID string `json:"module_id"`
 	InputTemplateBase
 	Dependencies map[string]InputTemplateBase `json:"dependencies"`
 }

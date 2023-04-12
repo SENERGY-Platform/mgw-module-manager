@@ -42,7 +42,7 @@ func (a *Api) PrepareDeployment(ctx context.Context, id string) (model.InputTemp
 	if err != nil {
 		return model.InputTemplate{}, err
 	}
-	return model.InputTemplate{InputTemplateBase: genInputTemplate(m), Dependencies: itm}, nil
+	return model.InputTemplate{ModuleID: m.ID, InputTemplateBase: genInputTemplate(m), Dependencies: itm}, nil
 }
 
 func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error) {
@@ -128,7 +128,6 @@ func (a *Api) getDepInputTemplates(ctx context.Context, m *module.Module, itm ma
 
 func genInputTemplate(m *module.Module) model.InputTemplateBase {
 	it := model.InputTemplateBase{
-		ModuleID:      m.ID,
 		HostResources: make(map[string]model.InputTemplateHostRes),
 		Secrets:       make(map[string]model.InputTemplateSecret),
 		Configs:       make(map[string]model.InputTemplateConfig),
