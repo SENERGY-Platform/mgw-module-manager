@@ -58,7 +58,7 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 }
 
 func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	dbCtx, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	deployment, rad, sad, err := genDeployment(m, name, hostRes, secrets, configs)
 	if err != nil {
@@ -76,7 +76,7 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 		return "", err
 	}
 	defer tx.Rollback()
-	dId, err := h.storageHandler.CreateDep(ctxWt, tx, deployment)
+	dId, err := h.storageHandler.CreateDep(dbCtx, tx, deployment)
 	if err != nil {
 		return "", err
 	}
@@ -86,7 +86,7 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 			Created: deployment.Created,
 		},
 	}
-	iId, err := h.storageHandler.CreateInst(ctxWt, tx, &instance.DepInstanceMeta)
+	iId, err := h.storageHandler.CreateInst(dbCtx, tx, &instance.DepInstanceMeta)
 	if err != nil {
 		return "", err
 	}
