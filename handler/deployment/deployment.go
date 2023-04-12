@@ -93,7 +93,7 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}
-	return id, nil
+	return dId, nil
 }
 
 func (h *Handler) Delete(ctx context.Context, id string) error {
