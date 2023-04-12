@@ -56,8 +56,7 @@ type DepInstance struct {
 }
 
 type DepRequestBase struct {
-	Name           *string           `json:"name"` // defaults to module name if nil
-	ModuleID       string            `json:"module_id"`
+	Name           *string           `json:"name"`           // defaults to module name if nil
 	HostResources  map[string]string `json:"host_resources"` // {ref:resourceID}
 	Secrets        map[string]string `json:"secrets"`        // {ref:secretID}
 	Configs        map[string]any    `json:"configs"`        // {ref:value}
@@ -65,6 +64,7 @@ type DepRequestBase struct {
 }
 
 type DepRequest struct {
+	ModuleID string `json:"module_id"`
 	DepRequestBase
 	Dependencies map[string]DepRequestBase `json:"dependencies"`
 }
