@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
@@ -91,6 +92,13 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 		return "", err
 	}
 
+	for v := range m.Volumes {
+		vName, err := h.createVolume(ctx, dId, iId, v)
+		if err != nil {
+			return "", err
+		}
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return "", model.NewInternalError(err)
@@ -158,4 +166,17 @@ func (h *Handler) validateConfigs(dCs map[string]model.DepConfig, mCs module.Con
 		}
 	}
 	return nil
+}
+
+func (h *Handler) createVolume(ctx context.Context, dID, iID, v string) (string, error) {
+	httpCtx, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	vName, err := h.cewClient.CreateVolume(httpCtx, cew_model.Volume{
+		Name:   genVolumeName(iID, v),
+		Labels: map[string]string{"d_id": dID, "i_id": iID},
+	})
+	if err != nil {
+		return "", model.NewInternalError(err)
+	}
+	return vName, nil
 }
