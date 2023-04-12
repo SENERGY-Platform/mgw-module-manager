@@ -59,8 +59,8 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 }
 
 func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
-	dbCtx, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
+	dbCtx, dbCf := context.WithTimeout(ctx, h.dbTimeout)
+	defer dbCf()
 	deployment, rad, sad, err := genDeployment(m, name, hostRes, secrets, configs)
 	if err != nil {
 		return "", model.NewInvalidInputError(err)
@@ -72,28 +72,28 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 		return "", err
 	}
 	deployment.Created = time.Now().UTC()
-	tx, err := h.storageHandler.BeginTransaction(ctx)
+	tx, err := h.storageHandler.BeginTransaction(dbCtx)
 	if err != nil {
 		return "", err
 	}
 	defer tx.Rollback()
-	dId, err := h.storageHandler.CreateDep(dbCtx, tx, deployment)
+	dID, err := h.storageHandler.CreateDep(dbCtx, tx, deployment)
 	if err != nil {
 		return "", err
 	}
 	instance := model.DepInstance{
 		DepInstanceMeta: model.DepInstanceMeta{
-			DepID:   dId,
+			DepID:   dID,
 			Created: deployment.Created,
 		},
 	}
-	iId, err := h.storageHandler.CreateInst(dbCtx, tx, &instance.DepInstanceMeta)
+	iID, err := h.storageHandler.CreateInst(dbCtx, tx, &instance.DepInstanceMeta)
 	if err != nil {
 		return "", err
 	}
 
 	for v := range m.Volumes {
-		vName, err := h.createVolume(ctx, dId, iId, v)
+		vName, err := h.createVolume(ctx, dID, iID, v)
 		if err != nil {
 			return "", err
 		}
@@ -103,7 +103,7 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}
-	return dId, nil
+	return dID, nil
 }
 
 func (h *Handler) Delete(ctx context.Context, id string) error {
