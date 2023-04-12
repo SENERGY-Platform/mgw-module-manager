@@ -21,13 +21,18 @@ import (
 	"github.com/y-du/go-log-level/level"
 )
 
-type DataBaseConfig struct {
+type DatabaseConfig struct {
 	Host    string `json:"host" env_var:"DB_HOST"`
 	Port    uint   `json:"port" env_var:"DB_PORT"`
 	User    string `json:"user" env_var:"DB_USER"`
 	Passwd  string `json:"passwd" env_var:"DB_PASSWD"`
 	Name    string `json:"name" env_var:"DB_NAME"`
 	Timeout int64  `json:"timeout" env_var:"DB_TIMEOUT"`
+}
+
+type HttpClientConfig struct {
+	CewBaseUrl string `json:"cew_base_url" env_var:"CEW_BASE_URL"`
+	Timeout    int64  `json:"timeout" env_var:"HTTP_TIMEOUT"`
 }
 
 type ModuleFileHandlerConfig struct {
@@ -40,8 +45,8 @@ type Config struct {
 	ModuleFileHandler ModuleFileHandlerConfig `json:"module_file_handler" env_var:"MFH_CONFIG"`
 	Logger            srv_base.LoggerConfig   `json:"logger" env_var:"LOGGER_CONFIG"`
 	ConfigDefsPath    string                  `json:"config_defs_path" env_var:"CONFIG_DEFS_PATH"`
-	DB                DataBaseConfig          `json:"db" env_var:"DB_CONFIG"`
-	CewBaseUrl        string                  `json:"cew_base_url" env_var:"CEW_BASE_URL"`
+	Database          DatabaseConfig          `json:"database" env_var:"DATABASE_CONFIG"`
+	HttpClient        HttpClientConfig        `json:"http_client" env_var:"HTTP_CLIENT_CONFIG"`
 }
 
 func NewConfig(path *string) (*Config, error) {
@@ -57,12 +62,15 @@ func NewConfig(path *string) (*Config, error) {
 			Terminal:     true,
 		},
 		ConfigDefsPath: "include/config_definitions.json",
-		DB: DataBaseConfig{
+		Database: DatabaseConfig{
 			Port:    3306,
 			Name:    "module_manager",
 			Timeout: 5000000000,
 		},
-		CewBaseUrl: "http://api-gateway/cew",
+		HttpClient: HttpClientConfig{
+			CewBaseUrl: "http://api-gateway/cew",
+			Timeout:    10000000000,
+		},
 	}
 	err := srv_base.LoadConfig(path, &cfg, nil, nil, nil)
 	return &cfg, err

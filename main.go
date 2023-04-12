@@ -103,17 +103,17 @@ func main() {
 
 	dbCtx, dbCtxCf := context.WithCancel(context.Background())
 	defer dbCtxCf()
-	db, err := util.InitDB(dbCtx, config.DB.Host, config.DB.Port, config.DB.User, config.DB.Passwd, config.DB.Name, 10, 10, time.Duration(config.DB.Timeout))
+	db, err := util.InitDB(dbCtx, config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd, config.Database.Name, 10, 10, time.Duration(config.Database.Timeout))
 	if err != nil {
 		srv_base.Logger.Error(err)
 		return
 	}
 	defer db.Close()
 
-	cewClient := client.New(http.DefaultClient, config.CewBaseUrl)
+	cewClient := client.New(http.DefaultClient, config.HttpClient.CewBaseUrl)
 
 	depStorageHandler := dep_storage.NewStorageHandler(db)
-	deploymentHandler := deployment.NewHandler(depStorageHandler, configValidationHandler, cewClient, time.Duration(config.DB.Timeout))
+	deploymentHandler := deployment.NewHandler(depStorageHandler, configValidationHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout))
 
 	mApi := api.New(moduleHandler, deploymentHandler)
 
