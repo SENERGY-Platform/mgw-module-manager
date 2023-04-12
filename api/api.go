@@ -17,7 +17,10 @@
 package api
 
 import (
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
 type Api struct {
@@ -27,4 +30,22 @@ type Api struct {
 
 func New(moduleHandler handler.ModuleHandler, deploymentHandler handler.DeploymentHandler) *Api {
 	return &Api{moduleHandler: moduleHandler, deploymentHandler: deploymentHandler}
+}
+
+func getOrder(modules map[string]*module.Module) ([]string, error) {
+	nodes := make(tsort.Nodes)
+	for id, m := range modules {
+		if len(m.Dependencies) > 0 {
+			reqIDs := make(map[string]struct{})
+			for i := range m.Dependencies {
+				reqIDs[i] = struct{}{}
+			}
+			nodes.Add(id, reqIDs, nil)
+		}
+	}
+	order, err := tsort.GetTopOrder(nodes)
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	return order, nil
 }
