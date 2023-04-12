@@ -51,7 +51,7 @@ func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string
 		return "", err
 	}
 	depMap := make(map[string]string)
-	if len(dr.Dependencies) > 0 {
+	if len(m.Dependencies) > 0 {
 		dms := make(map[string]*module.Module)
 		if err := a.getReqModules(ctx, m, dms); err != nil {
 			return "", err
