@@ -28,15 +28,6 @@ func (a *Api) PrepareDeployment(ctx context.Context, id string) (model.InputTemp
 	if err != nil {
 		return model.InputTemplate{}, err
 	}
-	if m.DeploymentType == module.SingleDeployment {
-		ds, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: m.ID})
-		if err != nil {
-			return model.InputTemplate{}, err
-		}
-		if len(ds) > 0 {
-			return model.InputTemplate{}, model.NewInternalError(errors.New("already deployed"))
-		}
-	}
 	itm := make(map[string]model.InputTemplateBase)
 	err = a.getDepInputTemplates(ctx, m, itm)
 	if err != nil {
