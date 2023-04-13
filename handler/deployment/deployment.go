@@ -76,6 +76,10 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 	if err = h.validateConfigs(cfg, m.Configs); err != nil {
 		return "", err
 	}
+	cfgEnvVals, err := genConfigEnvValues(m.Configs, cfg)
+	if err != nil {
+		return "", model.NewInvalidInputError(err)
+	}
 	dName := m.Name
 	if name != nil {
 		dName = *name
