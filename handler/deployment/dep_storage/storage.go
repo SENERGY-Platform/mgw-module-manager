@@ -180,7 +180,11 @@ func (h *StorageHandler) UpdateDep(ctx context.Context, itf driver.Tx, dID, name
 	if n < 1 {
 		return model.NewNotFoundError(errors.New("no rows affected"))
 	}
-	_, err = tx.ExecContext(ctx, "DELETE FROM `host_resources` WHERE `dep_id` = ?", dID)
+	return nil
+}
+
+func (h *StorageHandler) DeleteDep(ctx context.Context, id string) error {
+	res, err := h.db.ExecContext(ctx, "DELETE FROM `deployments` WHERE `id` = ?", id)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
