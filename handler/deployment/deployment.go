@@ -88,9 +88,27 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 		return "", err
 	}
 	defer tx.Rollback()
-	dID, err := h.storageHandler.CreateDep(dbCtx, tx, m.ID, dName, hRes, sec, cfg, timestamp)
+	dID, err := h.storageHandler.CreateDep(dbCtx, tx, m.ID, dName, timestamp)
 	if err != nil {
 		return "", err
+	}
+	if len(hRes) > 0 {
+		err = h.storageHandler.CreateDepHostRes(dbCtx, tx, hRes, dID)
+		if err != nil {
+			return "", err
+		}
+	}
+	if len(sec) > 0 {
+		err = h.storageHandler.CreateDepSecrets(dbCtx, tx, sec, dID)
+		if err != nil {
+			return "", err
+		}
+	}
+	if len(cfg) > 0 {
+		err = h.storageHandler.CreateDepConfigs(dbCtx, tx, m.Configs, cfg, dID)
+		if err != nil {
+			return "", err
+		}
 	}
 	iID, err := h.storageHandler.CreateInst(dbCtx, tx, dID, timestamp)
 	if err != nil {

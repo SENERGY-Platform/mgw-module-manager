@@ -21,6 +21,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"strings"
 	"time"
@@ -97,32 +98,41 @@ func (h *StorageHandler) ListDep(ctx context.Context, filter model.DepFilter) ([
 	return dms, nil
 }
 
-func (h *StorageHandler) CreateDep(ctx context.Context, itf driver.Tx, mID, name string, hostResources map[string]string, secrets map[string]string, configs map[string]model.DepConfig, timestamp time.Time) (string, error) {
+func (h *StorageHandler) CreateDep(ctx context.Context, itf driver.Tx, mID, name string, timestamp time.Time) (string, error) {
 	tx := itf.(*sql.Tx)
 	var id string
 	id, err := insertDeployment(ctx, tx.ExecContext, tx.QueryRowContext, mID, name, timestamp)
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}
-	if len(hostResources) > 0 {
-		err = insertHostResources(ctx, tx.PrepareContext, id, hostResources)
-		if err != nil {
-			return "", model.NewInternalError(err)
-		}
-	}
-	if len(secrets) > 0 {
-		err = insertSecrets(ctx, tx.PrepareContext, id, secrets)
-		if err != nil {
-			return "", model.NewInternalError(err)
-		}
-	}
-	if len(configs) > 0 {
-		err = insertConfigs(ctx, tx.PrepareContext, id, configs)
-		if err != nil {
-			return "", model.NewInternalError(err)
-		}
-	}
 	return id, nil
+}
+
+func (h *StorageHandler) CreateDepConfigs(ctx context.Context, itf driver.Tx, mConfigs module.Configs, dConfigs map[string]any, dID string) error {
+	tx := itf.(*sql.Tx)
+	err := insertConfigs(ctx, tx.PrepareContext, mConfigs, dConfigs, dID)
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	return nil
+}
+
+func (h *StorageHandler) CreateDepHostRes(ctx context.Context, itf driver.Tx, hostResources map[string]string, dID string) error {
+	tx := itf.(*sql.Tx)
+	err := insertResources(ctx, tx.PrepareContext, "INSERT INTO `host_resources` (`dep_id`, `ref`, `res_id`) VALUES (?, ?, ?)", dID, hostResources)
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	return nil
+}
+
+func (h *StorageHandler) CreateDepSecrets(ctx context.Context, itf driver.Tx, secrets map[string]string, dID string) error {
+	tx := itf.(*sql.Tx)
+	err := insertResources(ctx, tx.PrepareContext, "INSERT INTO `secrets` (`dep_id`, `ref`, `sec_id`) VALUES (?, ?, ?)", dID, secrets)
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	return nil
 }
 
 func (h *StorageHandler) ReadDep(ctx context.Context, id string) (*model.Deployment, error) {
@@ -157,7 +167,7 @@ func (h *StorageHandler) ReadDep(ctx context.Context, id string) (*model.Deploym
 	return &dep, nil
 }
 
-func (h *StorageHandler) UpdateDep(ctx context.Context, itf driver.Tx, dID, name string, hostResources map[string]string, secrets map[string]string, configs map[string]model.DepConfig, timestamp time.Time) error {
+func (h *StorageHandler) UpdateDep(ctx context.Context, itf driver.Tx, dID, name string, timestamp time.Time) error {
 	tx := itf.(*sql.Tx)
 	res, err := tx.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `updated` = ? WHERE `id` = ?", name, timestamp, dID)
 	if err != nil {
@@ -174,11 +184,19 @@ func (h *StorageHandler) UpdateDep(ctx context.Context, itf driver.Tx, dID, name
 	if err != nil {
 		return model.NewInternalError(err)
 	}
-	_, err = tx.ExecContext(ctx, "DELETE FROM `secrets` WHERE `dep_id` = ?", dID)
+	n, err := res.RowsAffected()
 	if err != nil {
 		return model.NewInternalError(err)
 	}
-	_, err = tx.ExecContext(ctx, "DELETE FROM `configs` WHERE `dep_id` = ?", dID)
+	if n < 1 {
+		return model.NewNotFoundError(errors.New("no rows affected"))
+	}
+	return nil
+}
+
+func (h *StorageHandler) DeleteDepConfigs(ctx context.Context, itf driver.Tx, dID string) error {
+	tx := itf.(*sql.Tx)
+	_, err := tx.ExecContext(ctx, "DELETE FROM `configs` WHERE `dep_id` = ?", dID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
@@ -186,38 +204,23 @@ func (h *StorageHandler) UpdateDep(ctx context.Context, itf driver.Tx, dID, name
 	if err != nil {
 		return model.NewInternalError(err)
 	}
-	if len(hostResources) > 0 {
-		err = insertHostResources(ctx, tx.PrepareContext, dID, hostResources)
-		if err != nil {
-			return model.NewInternalError(err)
-		}
-	}
-	if len(secrets) > 0 {
-		err = insertSecrets(ctx, tx.PrepareContext, dID, secrets)
-		if err != nil {
-			return model.NewInternalError(err)
-		}
-	}
-	if len(configs) > 0 {
-		err = insertConfigs(ctx, tx.PrepareContext, dID, configs)
-		if err != nil {
-			return model.NewInternalError(err)
-		}
+	return nil
+}
+
+func (h *StorageHandler) DeleteDepHostRes(ctx context.Context, itf driver.Tx, dID string) error {
+	tx := itf.(*sql.Tx)
+	_, err := tx.ExecContext(ctx, "DELETE FROM `host_resources` WHERE `dep_id` = ?", dID)
+	if err != nil {
+		return model.NewInternalError(err)
 	}
 	return nil
 }
 
-func (h *StorageHandler) DeleteDep(ctx context.Context, id string) error {
-	res, err := h.db.ExecContext(ctx, "DELETE FROM `deployments` WHERE `id` = ?", id)
+func (h *StorageHandler) DeleteDepSecrets(ctx context.Context, itf driver.Tx, dID string) error {
+	tx := itf.(*sql.Tx)
+	_, err := tx.ExecContext(ctx, "DELETE FROM `secrets` WHERE `dep_id` = ?", dID)
 	if err != nil {
 		return model.NewInternalError(err)
-	}
-	n, err := res.RowsAffected()
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	if n < 1 {
-		return model.NewNotFoundError(errors.New("no rows affected"))
 	}
 	return nil
 }

@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"strconv"
 	"strings"
 	"time"
@@ -70,37 +69,42 @@ func insertResources(ctx context.Context, pf func(context.Context, string) (*sql
 	return nil
 }
 
-func insertConfigs(ctx context.Context, pf func(context.Context, string) (*sql.Stmt, error), id string, configs map[string]model.DepConfig) (err error) {
+func insertConfigs(ctx context.Context, pf func(context.Context, string) (*sql.Stmt, error), mConfigs module.Configs, dConfigs map[string]any, dID string) (err error) {
 	stmtMap := make(map[string]*sql.Stmt)
-	for ref, dC := range configs {
+	for ref, val := range dConfigs {
+		mConfig, ok := mConfigs[ref]
+		if !ok {
+			err = fmt.Errorf("config '%s' not defined", ref)
+			return
+		}
 		var stmt *sql.Stmt
-		key := dC.DataType + strconv.FormatBool(dC.IsSlice)
+		key := mConfig.DataType + strconv.FormatBool(mConfig.IsSlice)
 		if stmt = stmtMap[key]; stmt == nil {
-			stmt, err = pf(ctx, genCfgInsertQuery(dC.DataType, dC.IsSlice))
+			stmt, err = pf(ctx, genCfgInsertQuery(mConfig.DataType, mConfig.IsSlice))
 			if err != nil {
 				return
 			}
 			defer stmt.Close()
 			stmtMap[key] = stmt
 		}
-		if dC.IsSlice {
-			switch dC.DataType {
+		if mConfig.IsSlice {
+			switch mConfig.DataType {
 			case module.StringType:
-				err = execCfgSlStmt[string](ctx, stmt, id, ref, dC.Value)
+				err = execCfgSlStmt[string](ctx, stmt, dID, ref, val)
 			case module.BoolType:
-				err = execCfgSlStmt[bool](ctx, stmt, id, ref, dC.Value)
+				err = execCfgSlStmt[bool](ctx, stmt, dID, ref, val)
 			case module.Int64Type:
-				err = execCfgSlStmt[int64](ctx, stmt, id, ref, dC.Value)
+				err = execCfgSlStmt[int64](ctx, stmt, dID, ref, val)
 			case module.Float64Type:
-				err = execCfgSlStmt[float64](ctx, stmt, id, ref, dC.Value)
+				err = execCfgSlStmt[float64](ctx, stmt, dID, ref, val)
 			default:
-				err = fmt.Errorf("unknown data type '%s'", dC.DataType)
+				err = fmt.Errorf("unknown data type '%s'", val)
 			}
 			if err != nil {
 				return
 			}
 		} else {
-			if _, err = stmt.ExecContext(ctx, id, ref, dC.Value); err != nil {
+			if _, err = stmt.ExecContext(ctx, dID, ref, val); err != nil {
 				return
 			}
 		}
@@ -131,36 +135,36 @@ func execCfgSlStmt[T any](ctx context.Context, stmt *sql.Stmt, depId string, ref
 	return nil
 }
 
-func insertInstance(ctx context.Context, ef func(context.Context, string, ...any) (sql.Result, error), qwf func(context.Context, string, ...any) *sql.Row, depId string, modPath string, timestamp time.Time) (string, error) {
-	res, err := ef(ctx, "INSERT INTO `instances` (`id`, `dep_id`, `mod_path`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?)", depId, modPath, timestamp, timestamp)
-	if err != nil {
-		return "", err
-	}
-	i, err := res.LastInsertId()
-	if err != nil {
-		return "", err
-	}
-	row := qwf(ctx, "SELECT `id` FROM `instances` WHERE `index` = ?", i)
-	var id string
-	if err = row.Scan(&id); err != nil {
-		return "", err
-	}
-	if id == "" {
-		return "", errors.New("generating id failed")
-	}
-	return id, nil
-}
-
-func insertContainers(ctx context.Context, pf func(context.Context, string) (*sql.Stmt, error), instId string, m map[string]string) error {
-	stmt, err := pf(ctx, "INSERT INTO `containers` (`i_id`, `s_ref`, `c_id`) VALUES (?, ?, ?)")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	for ref, id := range m {
-		if _, err = stmt.ExecContext(ctx, instId, ref, id); err != nil {
-			return err
-		}
-	}
-	return nil
-}
+//func insertInstance(ctx context.Context, ef func(context.Context, string, ...any) (sql.Result, error), qwf func(context.Context, string, ...any) *sql.Row, depId string, modPath string, timestamp time.Time) (string, error) {
+//	res, err := ef(ctx, "INSERT INTO `instances` (`id`, `dep_id`, `mod_path`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?)", depId, modPath, timestamp, timestamp)
+//	if err != nil {
+//		return "", err
+//	}
+//	i, err := res.LastInsertId()
+//	if err != nil {
+//		return "", err
+//	}
+//	row := qwf(ctx, "SELECT `id` FROM `instances` WHERE `index` = ?", i)
+//	var id string
+//	if err = row.Scan(&id); err != nil {
+//		return "", err
+//	}
+//	if id == "" {
+//		return "", errors.New("generating id failed")
+//	}
+//	return id, nil
+//}
+//
+//func insertContainers(ctx context.Context, pf func(context.Context, string) (*sql.Stmt, error), instId string, m map[string]string) error {
+//	stmt, err := pf(ctx, "INSERT INTO `containers` (`i_id`, `s_ref`, `c_id`) VALUES (?, ?, ?)")
+//	if err != nil {
+//		return err
+//	}
+//	defer stmt.Close()
+//	for ref, id := range m {
+//		if _, err = stmt.ExecContext(ctx, instId, ref, id); err != nil {
+//			return err
+//		}
+//	}
+//	return nil
+//}
