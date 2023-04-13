@@ -60,23 +60,22 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
 	dbCtx, dbCf := context.WithTimeout(ctx, h.dbTimeout)
 	defer dbCf()
-
-	dRs, rad, err := parseHostRes(hostRes, m.HostResources)
+	hRes, hResAD, err := parseHostRes(hostRes, m.HostResources)
 	if err != nil {
 		return "", model.NewInvalidInputError(err)
 	}
-	dSs, sad, err := parseSecrets(secrets, m.Secrets)
+	sec, secAD, err := parseSecrets(secrets, m.Secrets)
 	if err != nil {
 		return "", model.NewInvalidInputError(err)
 	}
-	if len(rad) > 0 || len(sad) > 0 {
-		return "", model.NewInternalError(errors.New("auto resource discovery not implemented"))
+	if len(hResAD) > 0 || len(secAD) > 0 {
+		return "", model.NewInternalError(errors.New("host resource and secret discovery not implemented"))
 	}
-	dCs, err := parseConfigs(configs, m.Configs)
+	cfg, err := parseConfigs(configs, m.Configs)
 	if err != nil {
 		return "", model.NewInvalidInputError(err)
 	}
-	if err = h.validateConfigs(dCs, m.Configs); err != nil {
+	if err = h.validateConfigs(cfg, m.Configs); err != nil {
 		return "", err
 	}
 	dName := m.Name
@@ -89,7 +88,7 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 		return "", err
 	}
 	defer tx.Rollback()
-	dID, err := h.storageHandler.CreateDep(dbCtx, tx, m.ID, dName, dRs, dSs, dCs, timestamp)
+	dID, err := h.storageHandler.CreateDep(dbCtx, tx, m.ID, dName, hRes, sec, cfg, timestamp)
 	if err != nil {
 		return "", err
 	}
