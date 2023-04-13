@@ -22,6 +22,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"io"
+	"time"
 )
 
 type ModuleHandler interface {
@@ -56,17 +57,17 @@ type DeploymentHandler interface {
 type DepStorageHandler interface {
 	BeginTransaction(ctx context.Context) (driver.Tx, error)
 	ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
-	CreateDep(ctx context.Context, tx driver.Tx, dep *model.Deployment) (string, error)
-	ReadDep(ctx context.Context, id string) (*model.Deployment, error)
-	UpdateDep(ctx context.Context, tx driver.Tx, dep *model.Deployment) error
-	DeleteDep(ctx context.Context, id string) error
+	CreateDep(ctx context.Context, tx driver.Tx, mID, name string, hostResources map[string]string, secrets map[string]string, configs map[string]model.DepConfig, timestamp time.Time) (string, error)
+	ReadDep(ctx context.Context, dID string) (*model.Deployment, error)
+	UpdateDep(ctx context.Context, tx driver.Tx, dID, name string, hostResources map[string]string, secrets map[string]string, configs map[string]model.DepConfig, timestamp time.Time) error
+	DeleteDep(ctx context.Context, dID string) error
 	ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.DepInstanceMeta, error)
-	CreateInst(ctx context.Context, tx driver.Tx, inst *model.DepInstanceMeta) (string, error)
-	ReadInst(ctx context.Context, id string) (*model.DepInstance, error)
-	UpdateInst(ctx context.Context, tx driver.Tx, inst *model.DepInstanceMeta) error
-	DeleteInst(ctx context.Context, id string) error
-	CreateInstCtr(ctx context.Context, tx driver.Tx, iId, sRef string) (string, error)
-	DeleteInstCtr(ctx context.Context, cId string) error
+	CreateInst(ctx context.Context, tx driver.Tx, dID string, timestamp time.Time) (string, error)
+	ReadInst(ctx context.Context, iID string) (*model.DepInstance, error)
+	UpdateInst(ctx context.Context, tx driver.Tx, iID string, timestamp time.Time) error
+	DeleteInst(ctx context.Context, iID string) error
+	CreateInstCtr(ctx context.Context, tx driver.Tx, iID, sRef string) (string, error)
+	DeleteInstCtr(ctx context.Context, cID string) error
 }
 
 type Validator func(params map[string]any) error

@@ -70,9 +70,9 @@ func insertResources(ctx context.Context, pf func(context.Context, string) (*sql
 	return nil
 }
 
-func insertConfigs(ctx context.Context, pf func(context.Context, string) (*sql.Stmt, error), depId string, depConfigs map[string]model.DepConfig) (err error) {
+func insertConfigs(ctx context.Context, pf func(context.Context, string) (*sql.Stmt, error), id string, configs map[string]model.DepConfig) (err error) {
 	stmtMap := make(map[string]*sql.Stmt)
-	for ref, dC := range depConfigs {
+	for ref, dC := range configs {
 		var stmt *sql.Stmt
 		key := dC.DataType + strconv.FormatBool(dC.IsSlice)
 		if stmt = stmtMap[key]; stmt == nil {
@@ -86,13 +86,13 @@ func insertConfigs(ctx context.Context, pf func(context.Context, string) (*sql.S
 		if dC.IsSlice {
 			switch dC.DataType {
 			case module.StringType:
-				err = execCfgSlStmt[string](ctx, stmt, depId, ref, dC.Value)
+				err = execCfgSlStmt[string](ctx, stmt, id, ref, dC.Value)
 			case module.BoolType:
-				err = execCfgSlStmt[bool](ctx, stmt, depId, ref, dC.Value)
+				err = execCfgSlStmt[bool](ctx, stmt, id, ref, dC.Value)
 			case module.Int64Type:
-				err = execCfgSlStmt[int64](ctx, stmt, depId, ref, dC.Value)
+				err = execCfgSlStmt[int64](ctx, stmt, id, ref, dC.Value)
 			case module.Float64Type:
-				err = execCfgSlStmt[float64](ctx, stmt, depId, ref, dC.Value)
+				err = execCfgSlStmt[float64](ctx, stmt, id, ref, dC.Value)
 			default:
 				err = fmt.Errorf("unknown data type '%s'", dC.DataType)
 			}
@@ -100,7 +100,7 @@ func insertConfigs(ctx context.Context, pf func(context.Context, string) (*sql.S
 				return
 			}
 		} else {
-			if _, err = stmt.ExecContext(ctx, depId, ref, dC.Value); err != nil {
+			if _, err = stmt.ExecContext(ctx, id, ref, dC.Value); err != nil {
 				return
 			}
 		}

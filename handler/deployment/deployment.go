@@ -71,23 +71,21 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 	if err = h.validateConfigs(deployment.Configs, m.Configs); err != nil {
 		return "", err
 	}
-	deployment.Created = time.Now().UTC()
+	dName := m.Name
+	if name != nil {
+		dName = *name
+	}
+	timestamp := time.Now().UTC()
 	tx, err := h.storageHandler.BeginTransaction(dbCtx)
 	if err != nil {
 		return "", err
 	}
 	defer tx.Rollback()
-	dID, err := h.storageHandler.CreateDep(dbCtx, tx, deployment)
+	dID, err := h.storageHandler.CreateDep(dbCtx, tx, m.ID, dName, dRs, dSs, dCs, timestamp)
 	if err != nil {
 		return "", err
 	}
-	instance := model.DepInstance{
-		DepInstanceMeta: model.DepInstanceMeta{
-			DepID:   dID,
-			Created: deployment.Created,
-		},
-	}
-	iID, err := h.storageHandler.CreateInst(dbCtx, tx, &instance.DepInstanceMeta)
+	iID, err := h.storageHandler.CreateInst(dbCtx, tx, dID, timestamp)
 	if err != nil {
 		return "", err
 	}
