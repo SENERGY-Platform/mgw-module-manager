@@ -20,7 +20,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"math"
 )
 
@@ -64,8 +63,8 @@ func parseSecrets(s map[string]string, mSs map[string]module.Secret) (map[string
 	return dSs, ad, nil
 }
 
-func parseConfigs(cfgs map[string]any, mCs module.Configs) (map[string]model.DepConfig, error) {
-	dCs := make(map[string]model.DepConfig)
+func parseConfigs(cfgs map[string]any, mCs module.Configs) (map[string]any, error) {
+	dCs := make(map[string]any)
 	for ref, mC := range mCs {
 		val, ok := cfgs[ref]
 		if !ok {
@@ -83,11 +82,7 @@ func parseConfigs(cfgs map[string]any, mCs module.Configs) (map[string]model.Dep
 			if err != nil {
 				return nil, fmt.Errorf("parsing config '%s' failed: %s", ref, err)
 			}
-			dCs[ref] = model.DepConfig{
-				Value:    v,
-				DataType: mC.DataType,
-				IsSlice:  mC.IsSlice,
-			}
+			dCs[ref] = v
 		}
 	}
 	return dCs, nil
