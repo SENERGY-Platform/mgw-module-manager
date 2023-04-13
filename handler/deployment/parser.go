@@ -20,8 +20,78 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"math"
 )
+
+func parseHostRes(hrs map[string]string, mHRs map[string]module.HostResource) (map[string]string, []string, error) {
+	dRs := make(map[string]string)
+	var ad []string
+	for ref, mRH := range mHRs {
+		id, ok := hrs[ref]
+		if ok {
+			dRs[ref] = id
+		} else {
+			if mRH.Required {
+				if len(mRH.Tags) > 0 {
+					ad = append(ad, ref)
+				} else {
+					return nil, nil, fmt.Errorf("host resource '%s' required", ref)
+				}
+			}
+		}
+	}
+	return dRs, ad, nil
+}
+
+func parseSecrets(s map[string]string, mSs map[string]module.Secret) (map[string]string, []string, error) {
+	dSs := make(map[string]string)
+	var ad []string
+	for ref, mS := range mSs {
+		id, ok := s[ref]
+		if ok {
+			dSs[ref] = id
+		} else {
+			if mS.Required {
+				if len(mS.Tags) > 0 {
+					ad = append(ad, ref)
+				} else {
+					return nil, nil, fmt.Errorf("secret '%s' required", ref)
+				}
+			}
+		}
+	}
+	return dSs, ad, nil
+}
+
+func parseConfigs(cfgs map[string]any, mCs module.Configs) (map[string]model.DepConfig, error) {
+	dCs := make(map[string]model.DepConfig)
+	for ref, mC := range mCs {
+		val, ok := cfgs[ref]
+		if !ok {
+			if mC.Default == nil && mC.Required {
+				return nil, fmt.Errorf("config '%s' requried", ref)
+			}
+		} else {
+			var v any
+			var err error
+			if mC.IsSlice {
+				v, err = parseCfgValSlice(val, mC.DataType)
+			} else {
+				v, err = parseCfgVal(val, mC.DataType)
+			}
+			if err != nil {
+				return nil, fmt.Errorf("parsing config '%s' failed: %s", ref, err)
+			}
+			dCs[ref] = model.DepConfig{
+				Value:    v,
+				DataType: mC.DataType,
+				IsSlice:  mC.IsSlice,
+			}
+		}
+	}
+	return dCs, nil
+}
 
 func parseCfgVal(val any, dataType module.DataType) (v any, err error) {
 	switch dataType {

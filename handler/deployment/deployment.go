@@ -19,7 +19,6 @@ package deployment
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
@@ -61,14 +60,23 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
 	dbCtx, dbCf := context.WithTimeout(ctx, h.dbTimeout)
 	defer dbCf()
-	deployment, rad, sad, err := genDeployment(m, name, hostRes, secrets, configs)
+
+	dRs, rad, err := parseHostRes(hostRes, m.HostResources)
+	if err != nil {
+		return "", model.NewInvalidInputError(err)
+	}
+	dSs, sad, err := parseSecrets(secrets, m.Secrets)
 	if err != nil {
 		return "", model.NewInvalidInputError(err)
 	}
 	if len(rad) > 0 || len(sad) > 0 {
 		return "", model.NewInternalError(errors.New("auto resource discovery not implemented"))
 	}
-	if err = h.validateConfigs(deployment.Configs, m.Configs); err != nil {
+	dCs, err := parseConfigs(configs, m.Configs)
+	if err != nil {
+		return "", model.NewInvalidInputError(err)
+	}
+	if err = h.validateConfigs(dCs, m.Configs); err != nil {
 		return "", err
 	}
 	dName := m.Name
