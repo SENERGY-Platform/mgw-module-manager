@@ -58,8 +58,6 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 }
 
 func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
-	dbCtx, dbCf := context.WithTimeout(ctx, h.dbTimeout)
-	defer dbCf()
 	hRes, hResAD, err := parseHostRes(hostRes, m.HostResources)
 	if err != nil {
 		return "", model.NewInvalidInputError(err)
@@ -83,6 +81,8 @@ func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, ho
 		dName = *name
 	}
 	timestamp := time.Now().UTC()
+	dbCtx, dbCf := context.WithTimeout(ctx, h.dbTimeout)
+	defer dbCf()
 	tx, err := h.storageHandler.BeginTransaction(dbCtx)
 	if err != nil {
 		return "", err
