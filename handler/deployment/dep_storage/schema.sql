@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `containers`
     `index` BIGINT AUTO_INCREMENT NOT NULL,
     `i_id`  CHAR(36)              NOT NULL,
     `s_ref` VARCHAR(256)          NOT NULL,
-    `c_id`  CHAR(36)              NOT NULL,
+    `c_id`  VARCHAR(256)          NOT NULL,
     UNIQUE KEY (`c_id`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (`i_id`) REFERENCES `instances` (`id`)
