@@ -329,8 +329,20 @@ func (h *StorageHandler) DeleteInst(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *StorageHandler) CreateInstCtr(ctx context.Context, itf driver.Tx, iId, sRef string) (string, error) {
-	panic("not implemented")
+func (h *StorageHandler) CreateInstCtr(ctx context.Context, itf driver.Tx, iID, cID, sRef string) error {
+	tx := itf.(*sql.Tx)
+	res, err := tx.ExecContext(ctx, "INSERT INTO `containers` (`i_id`, `s_ref`, `c_id`) VALUES (?, ?, ?)", iID, sRef, cID)
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	if n < 1 {
+		return model.NewNotFoundError(errors.New("no rows affected"))
+	}
+	return nil
 }
 
 func (h *StorageHandler) DeleteInstCtr(ctx context.Context, cId string) error {
