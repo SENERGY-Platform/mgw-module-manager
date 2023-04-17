@@ -20,93 +20,146 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/SENERGY-Platform/go-service-base/srv-base"
+	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"io"
+	"gopkg.in/yaml.v3"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
 )
 
-const FileName = "Modfile"
+const (
+	fileName = "Modfile"
+	modDir   = "modules"
+	inclDir  = "deployments"
+)
 
-var FileExtensions = []string{"yaml", "yml"}
+var mfExtensions = []string{"yaml", "yml"}
 
 type StorageHandler struct {
-	WorkdirPath string
-	Delimiter   string
+	wrkSpacePath string
+	delimiter    string
+	mfDecoders   modfile.Decoders
+	mfGenerators modfile.Generators
+	perm         fs.FileMode
 }
 
-func NewStorageHandler(workdirPath string, delimiter string) (*StorageHandler, error) {
-	if !path.IsAbs(workdirPath) {
-		return nil, fmt.Errorf("workdir path must be absolute")
+func NewStorageHandler(workspacePath string, delimiter string, mfDecoders modfile.Decoders, mfGenerators modfile.Generators, perm fs.FileMode) (*StorageHandler, error) {
+	if !path.IsAbs(workspacePath) {
+		return nil, fmt.Errorf("workspace path must be absolute")
 	}
 	return &StorageHandler{
-		WorkdirPath: workdirPath,
-		Delimiter:   delimiter,
+		wrkSpacePath: workspacePath,
+		delimiter:    delimiter,
+		mfDecoders:   mfDecoders,
+		mfGenerators: mfGenerators,
+		perm:         perm,
 	}, nil
 }
 
-func (h *StorageHandler) List(ctx context.Context) ([]string, error) {
-	dir, err := os.ReadDir(h.WorkdirPath)
-	if err != nil {
-		return nil, model.NewInternalError(wrapErr(err, h.WorkdirPath))
+func (h *StorageHandler) InitWorkspace() error {
+	if err := os.MkdirAll(path.Join(h.wrkSpacePath, modDir), h.perm); err != nil {
+		return err
 	}
-	var mIds []string
+	if err := os.MkdirAll(path.Join(h.wrkSpacePath, inclDir), h.perm); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *StorageHandler) List(ctx context.Context) ([]model.ModuleMeta, error) {
+	dir, err := os.ReadDir(path.Join(h.wrkSpacePath, modDir))
+	if err != nil {
+		return nil, model.NewInternalError(wrapErr(err, h.wrkSpacePath))
+	}
+	var mm []model.ModuleMeta
 	for _, entry := range dir {
 		if entry.IsDir() {
-			mIds = append(mIds, dirToId(entry.Name(), h.Delimiter))
+			m, err := h.readModFile(path.Join(h.wrkSpacePath, modDir, entry.Name()))
+			if err != nil {
+				continue
+			}
+			mm = append(mm, model.ModuleMeta{
+				ID:             m.ID,
+				Name:           m.Name,
+				Description:    m.Description,
+				Tags:           m.Tags,
+				License:        m.License,
+				Author:         m.Author,
+				Version:        m.Version,
+				Type:           m.Type,
+				DeploymentType: m.DeploymentType,
+			})
+		}
+		if ctx.Err() != nil {
+			return nil, model.NewInternalError(err)
 		}
 	}
-	return mIds, nil
+	return mm, nil
 }
 
-func (h *StorageHandler) Open(ctx context.Context, id string) (io.ReadCloser, error) {
-	p := path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))
+func (h *StorageHandler) Get(_ context.Context, mID string) (*module.Module, error) {
+	p := path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter))
 	if _, err := os.Stat(p); err != nil {
-		return nil, model.NewNotFoundError(wrapErr(err, h.WorkdirPath))
+		return nil, model.NewNotFoundError(wrapErr(err, h.wrkSpacePath))
 	}
-	p, err := detectModFile(p)
+	m, err := h.readModFile(p)
 	if err != nil {
-		return nil, model.NewInternalError(wrapErr(err, h.WorkdirPath))
+		return nil, model.NewInternalError(err)
 	}
-	f, e := os.Open(p)
-	if e != nil {
-		return nil, model.NewInternalError(wrapErr(err, h.WorkdirPath))
-	}
-	return f, nil
+	return m, nil
 }
 
-func (h *StorageHandler) Delete(ctx context.Context, id string) error {
-	if err := os.RemoveAll(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))); err != nil {
-		return model.NewInternalError(wrapErr(err, h.WorkdirPath))
+func (h *StorageHandler) Add(ctx context.Context, mID string) error {
+	panic("not implemented")
+}
+
+func (h *StorageHandler) Delete(_ context.Context, mID string) error {
+	if err := os.RemoveAll(path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter))); err != nil {
+		return model.NewInternalError(wrapErr(err, h.wrkSpacePath))
 	}
 	return nil
 }
 
-func (h *StorageHandler) CopyTo(ctx context.Context, id string, dstPath string) error {
-	err := copyDir(path.Join(h.WorkdirPath, idToDir(id, h.Delimiter)), dstPath)
+func (h *StorageHandler) CreateInclDir(_ context.Context, mID, iID string) (string, error) {
+	p := path.Join(h.wrkSpacePath, inclDir, iID)
+	if err := copyDir(path.Join(h.wrkSpacePath, modDir, mID), p); err != nil {
+		_ = os.RemoveAll(p)
+		return "", model.NewInternalError(wrapErr(err, h.wrkSpacePath))
+	}
+	return p, nil
+}
+
+func (h *StorageHandler) DeleteInclDir(_ context.Context, iID string) error {
+	if err := os.RemoveAll(path.Join(h.wrkSpacePath, inclDir, iID)); err != nil {
+		return model.NewInternalError(wrapErr(err, h.wrkSpacePath))
+	}
+	return nil
+}
+
+func (h *StorageHandler) readModFile(p string) (*module.Module, error) {
+	mfp, err := detectModFile(p)
 	if err != nil {
-		return model.NewInternalError(wrapErr(err, h.WorkdirPath))
+		return nil, wrapErr(err, h.wrkSpacePath)
 	}
-	return nil
-}
-
-func (h *StorageHandler) CopyFrom(ctx context.Context, id string, srcPath string) error {
-	dstPath := path.Join(h.WorkdirPath, idToDir(id, h.Delimiter))
-	if ok, err := checkIfExist(dstPath); err != nil {
-		return model.NewInternalError(wrapErr(err, h.WorkdirPath))
-	} else if ok {
-		return model.NewInternalError(errors.New("already exists"))
+	f, err := os.Open(mfp)
+	if err != nil {
+		return nil, wrapErr(err, h.wrkSpacePath)
 	}
-	if err := copyDir(srcPath, dstPath); err != nil {
-		if e := os.RemoveAll(dstPath); e != nil {
-			srv_base.Logger.Errorf("cleanup failed: %s", e)
-		}
-		return model.NewInternalError(wrapErr(err, h.WorkdirPath))
+	yd := yaml.NewDecoder(f)
+	mf := modfile.New(h.mfDecoders, h.mfGenerators)
+	err = yd.Decode(&mf)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	m, err := mf.GetModule()
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func copyDir(src string, dst string) error {
@@ -116,10 +169,6 @@ func copyDir(src string, dst string) error {
 
 func idToDir(id string, delimiter string) string {
 	return strings.Replace(id, "/", delimiter, -1)
-}
-
-func dirToId(dir string, delimiter string) string {
-	return strings.Replace(dir, delimiter, "/", -1)
 }
 
 func checkIfExist(p string) (ok bool, err error) {
@@ -133,11 +182,11 @@ func checkIfExist(p string) (ok bool, err error) {
 }
 
 func detectModFile(p string) (string, error) {
-	p = path.Join(p, FileName)
+	p = path.Join(p, fileName)
 	if ok, err := checkIfExist(p); err != nil || ok {
 		return p, err
 	}
-	for _, ext := range FileExtensions {
+	for _, ext := range mfExtensions {
 		tp := p + "." + ext
 		if ok, err := checkIfExist(tp); err != nil || ok {
 			return tp, err
