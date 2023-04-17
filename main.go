@@ -87,6 +87,10 @@ func main() {
 		srv_base.Logger.Error(err)
 		return
 	}
+	if err := moduleStorageHandler.InitWorkspace(); err != nil {
+		srv_base.Logger.Error(err)
+		return
+	}
 
 	cfgDefs, err := validation.LoadDefs(config.ConfigDefsPath)
 	if err != nil {
