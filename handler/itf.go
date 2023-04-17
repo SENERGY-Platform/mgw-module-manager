@@ -34,11 +34,12 @@ type ModuleHandler interface {
 }
 
 type ModStorageHandler interface {
-	List(ctx context.Context) ([]string, error)
-	Open(ctx context.Context, id string) (io.ReadCloser, error)
-	Delete(ctx context.Context, id string) error
-	CopyTo(ctx context.Context, id string, dstPath string) error
-	CopyFrom(ctx context.Context, id string, srcPath string) error
+	List(ctx context.Context) ([]model.ModuleMeta, error)
+	Get(ctx context.Context, mID string) (*module.Module, error)
+	Add(ctx context.Context, mID string) error
+	Delete(ctx context.Context, mID string) error
+	CreateInclDir(ctx context.Context, mID, iID string) (string, error)
+	DeleteInclDir(ctx context.Context, iID string) error
 }
 
 type ModTransferHandler interface {
