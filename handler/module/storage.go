@@ -70,7 +70,7 @@ func (h *StorageHandler) InitWorkspace() error {
 	return nil
 }
 
-func (h *StorageHandler) List(ctx context.Context) ([]model.ModuleMeta, error) {
+func (h *StorageHandler) List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
 	dir, err := os.ReadDir(path.Join(h.wrkSpacePath, modDir))
 	if err != nil {
 		return nil, model.NewInternalError(wrapErr(err, h.wrkSpacePath))
