@@ -24,7 +24,7 @@ import (
 
 type Api interface {
 	AddModule(ctx context.Context, id string) error
-	GetModules(ctx context.Context) ([]*module.Module, error)
+	GetModules(ctx context.Context) ([]model.ModuleMeta, error)
 	GetModule(ctx context.Context, id string) (*module.Module, error)
 	DeleteModule(ctx context.Context, id string) error
 	PrepareDeployment(ctx context.Context, id string) (model.InputTemplate, error)
