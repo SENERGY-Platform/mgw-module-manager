@@ -21,7 +21,6 @@ import (
 	"database/sql/driver"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"io"
 	"time"
 )
 
