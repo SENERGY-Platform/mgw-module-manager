@@ -33,11 +33,12 @@ type ModuleHandler interface {
 }
 
 type ModStorageHandler interface {
-	List(ctx context.Context) ([]model.ModuleMeta, error)
+	List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error)
 	Get(ctx context.Context, mID string) (*module.Module, error)
 	Add(ctx context.Context, mID string) error
 	Delete(ctx context.Context, mID string) error
 	CreateInclDir(ctx context.Context, mID, iID string) (string, error)
+	ListInclDir(ctx context.Context, iID string) ([]string, error)
 	DeleteInclDir(ctx context.Context, iID string) error
 }
 
