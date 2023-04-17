@@ -77,7 +77,12 @@ func main() {
 
 	srv_base.Logger.Debugf("config: %s", srv_base.ToJsonStr(config))
 
-	moduleStorageHandler, err := module.NewStorageHandler(config.ModuleFileHandler.WorkdirPath, config.ModuleFileHandler.Delimiter)
+	mfDecoders := make(modfile.Decoders)
+	mfDecoders.Add(v1dec.GetDecoder)
+	mfGenerators := make(modfile.Generators)
+	mfGenerators.Add(v1gen.GetGenerator)
+
+	moduleStorageHandler, err := module.NewStorageHandler(config.ModuleFileHandler.WorkdirPath, config.ModuleFileHandler.Delimiter, mfDecoders, mfGenerators, 0660)
 	if err != nil {
 		srv_base.Logger.Error(err)
 		return
@@ -94,12 +99,7 @@ func main() {
 		return
 	}
 
-	mfDecoders := make(modfile.Decoders)
-	mfDecoders.Add(v1dec.GetDecoder)
-	mfGenerators := make(modfile.Generators)
-	mfGenerators.Add(v1gen.GetGenerator)
-
-	moduleHandler := module.NewHandler(moduleStorageHandler, nil, configValidationHandler, mfDecoders, mfGenerators)
+	moduleHandler := module.NewHandler(moduleStorageHandler, nil, configValidationHandler)
 
 	dbCtx, dbCtxCf := context.WithCancel(context.Background())
 	defer dbCtxCf()

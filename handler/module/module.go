@@ -30,11 +30,9 @@ type Handler struct {
 	storageHandler          handler.ModStorageHandler
 	transferHandler         handler.ModTransferHandler
 	configValidationHandler handler.CfgValidationHandler
-	mfDecoders              modfile.Decoders
-	mfGenerators            modfile.Generators
 }
 
-func NewHandler(storageHandler handler.ModStorageHandler, transferHandler handler.ModTransferHandler, configValidationHandler handler.CfgValidationHandler, mfDecoders modfile.Decoders, mfGenerators modfile.Generators) *Handler {
+func NewHandler(storageHandler handler.ModStorageHandler, transferHandler handler.ModTransferHandler, configValidationHandler handler.CfgValidationHandler) *Handler {
 	return &Handler{
 		storageHandler:          storageHandler,
 		transferHandler:         transferHandler,
