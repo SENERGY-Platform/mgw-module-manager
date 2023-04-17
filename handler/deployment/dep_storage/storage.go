@@ -345,6 +345,6 @@ func (h *StorageHandler) CreateInstCtr(ctx context.Context, itf driver.Tx, iID, 
 	return nil
 }
 
-func (h *StorageHandler) DeleteInstCtr(ctx context.Context, cId string) error {
+func (h *StorageHandler) DeleteInstCtr(ctx context.Context, cID string) error {
 	panic("not implemented")
 }
