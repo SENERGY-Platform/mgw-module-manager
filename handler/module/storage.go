@@ -133,6 +133,10 @@ func (h *StorageHandler) CreateInclDir(_ context.Context, mID, iID string) (stri
 	return p, nil
 }
 
+func (h *StorageHandler) ListInclDir(_ context.Context, iID string) ([]string, error) {
+	return walkDir(path.Join(h.wrkSpacePath, inclDir, iID))
+}
+
 func (h *StorageHandler) DeleteInclDir(_ context.Context, iID string) error {
 	if err := os.RemoveAll(path.Join(h.wrkSpacePath, inclDir, iID)); err != nil {
 		return model.NewInternalError(wrapErr(err, h.wrkSpacePath))
@@ -160,6 +164,25 @@ func (h *StorageHandler) readModFile(p string) (*module.Module, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+func walkDir(p string) ([]string, error) {
+	var items []string
+	dir, err := os.ReadDir(p)
+	if err != nil {
+		return nil, err
+	}
+	for _, entry := range dir {
+		items = append(items, path.Join(p, entry.Name()))
+		if entry.IsDir() {
+			subItems, err := walkDir(path.Join(p, entry.Name()))
+			if err != nil {
+				return nil, err
+			}
+			items = append(items, subItems...)
+		}
+	}
+	return items, nil
 }
 
 func copyDir(src string, dst string) error {
