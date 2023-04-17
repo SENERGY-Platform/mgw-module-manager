@@ -26,8 +26,8 @@ func (a *Api) AddModule(ctx context.Context, id string) error {
 	panic("not implemented")
 }
 
-func (a *Api) GetModules(ctx context.Context) ([]model.ModuleMeta, error) {
-	return a.moduleHandler.List(ctx)
+func (a *Api) GetModules(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
+	return a.moduleHandler.List(ctx, filter)
 }
 
 func (a *Api) GetModule(ctx context.Context, id string) (*module.Module, error) {
