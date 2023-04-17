@@ -32,3 +32,6 @@ type ModuleMeta struct {
 	Type           module.ModuleType     `json:"type"`
 	DeploymentType module.DeploymentType `json:"deployment_type"`
 }
+
+type ModFilter struct {
+}
