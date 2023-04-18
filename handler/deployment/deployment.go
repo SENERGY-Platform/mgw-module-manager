@@ -27,6 +27,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"path"
 	"time"
 )
 
@@ -270,7 +271,7 @@ func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepReq
 		return "", model.NewInternalError(err)
 	}
 	for _, ref := range order {
-		cID, err := h.createContainer(ctx, m.Services[ref], ref, dID, iID, m.DeploymentType, envValues, volumes, depMap, hostRes, secrets)
+		cID, err := h.createContainer(ctx, m.Services[ref], ref, dID, iID, inclDirPath, configs, volumes, depMap, hostRes, secrets)
 		if err != nil {
 			return "", err
 		}
@@ -284,6 +285,46 @@ func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepReq
 		return "", model.NewInternalError(err)
 	}
 	return dID, nil
+}
+
+func (h *Handler) createContainer(ctx context.Context, srv *module.Service, ref, dID, iID, inclDirPath string, configs, volumes, depMap, hostRes, secrets map[string]string) (string, error) {
+	envVars, err := getEnvVars(srv, configs, depMap, dID, iID)
+	if err != nil {
+		return "", model.NewInternalError(err)
+	}
+	mounts := getMounts(srv, volumes, inclDirPath, dID, iID)
+	ports := getPorts(srv.Ports)
+	name := getSrvName(dID, ref)
+	retries := int(srv.RunConfig.MaxRetries)
+	stopTimeout := srv.RunConfig.StopTimeout
+	c := cew_model.Container{
+		Name:    name,
+		Image:   srv.Image,
+		EnvVars: envVars,
+		Labels:  map[string]string{"mgw_did": dID, "mgw_iid": iID, "mgw_sref": ref},
+		Mounts:  mounts,
+		Ports:   ports,
+		Networks: []cew_model.ContainerNet{
+			{
+				Name:        "module-net",
+				DomainNames: []string{name},
+			},
+		},
+		RunConfig: cew_model.RunConfig{
+			RestartStrategy: cew_model.RestartOnFail,
+			Retries:         &retries,
+			StopTimeout:     &stopTimeout,
+			StopSignal:      srv.RunConfig.StopSignal,
+			PseudoTTY:       srv.RunConfig.PseudoTTY,
+		},
+	}
+	httpCtx, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	cID, err := h.cewClient.CreateContainer(httpCtx, c)
+	if err != nil {
+		return "", model.NewInternalError(err)
+	}
+	return cID, nil
 }
 
 func getEnvVars(srv *module.Service, configs, depMap map[string]string, dID, iID string) (map[string]string, error) {
