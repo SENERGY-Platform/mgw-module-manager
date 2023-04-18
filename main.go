@@ -117,7 +117,7 @@ func main() {
 	cewClient := client.New(http.DefaultClient, config.HttpClient.CewBaseUrl)
 
 	depStorageHandler := dep_storage.NewStorageHandler(db)
-	deploymentHandler := deployment.NewHandler(depStorageHandler, configValidationHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout))
+	deploymentHandler := deployment.NewHandler(depStorageHandler, configValidationHandler, moduleHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout))
 
 	mApi := api.New(moduleHandler, deploymentHandler)
 
