@@ -32,15 +32,17 @@ import (
 type Handler struct {
 	storageHandler handler.DepStorageHandler
 	cfgVltHandler  handler.CfgValidationHandler
+	moduleHandler  handler.ModuleHandler
 	cewClient      client.CewClient
 	dbTimeout      time.Duration
 	httpTimeout    time.Duration
 }
 
-func NewHandler(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient client.CewClient, dbTimeout time.Duration, httpTimeout time.Duration) *Handler {
+func NewHandler(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, moduleHandler handler.ModuleHandler, cewClient client.CewClient, dbTimeout time.Duration, httpTimeout time.Duration) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cfgVltHandler:  cfgVltHandler,
+		moduleHandler:  moduleHandler,
 		cewClient:      cewClient,
 		dbTimeout:      dbTimeout,
 		httpTimeout:    httpTimeout,
