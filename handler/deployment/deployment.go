@@ -360,6 +360,24 @@ func getMounts(srv *module.Service, volumes map[string]string, inclDirPath, dID,
 	return mounts
 }
 
+func getPorts(sPorts []module.Port) (ports []cew_model.Port) {
+	for _, port := range sPorts {
+		p := cew_model.Port{
+			Number:   int(port.Number),
+			Protocol: port.Protocol,
+		}
+		if len(port.Bindings) > 0 {
+			var bindings []cew_model.PortBinding
+			for _, n := range port.Bindings {
+				bindings = append(bindings, cew_model.PortBinding{Number: int(n)})
+			}
+			p.Bindings = bindings
+		}
+		ports = append(ports, p)
+	}
+	return ports
+}
+
 func getName(mName string, userInput *string) string {
 	if userInput != nil {
 		return *userInput
