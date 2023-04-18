@@ -37,8 +37,6 @@ func NewHandler(storageHandler handler.ModStorageHandler, transferHandler handle
 		storageHandler:          storageHandler,
 		transferHandler:         transferHandler,
 		configValidationHandler: configValidationHandler,
-		mfDecoders:              mfDecoders,
-		mfGenerators:            mfGenerators,
 	}
 }
 
