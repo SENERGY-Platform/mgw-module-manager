@@ -227,3 +227,10 @@ func (h *Handler) getVolumes(ctx context.Context, mVolumes util.Set[string], dID
 	}
 	return volumes, nil
 }
+
+func getName(mName string, userInput *string) string {
+	if userInput != nil {
+		return *userInput
+	}
+	return mName
+}
