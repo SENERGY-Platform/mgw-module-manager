@@ -63,7 +63,7 @@ func parseSecrets(s map[string]string, mSs map[string]module.Secret) (map[string
 	return dSs, ad, nil
 }
 
-func parseConfigs(cfgs map[string]any, mCs module.Configs) (map[string]any, error) {
+func getUserConfigs(cfgs map[string]any, mCs module.Configs) (map[string]any, error) {
 	dCs := make(map[string]any)
 	for ref, mC := range mCs {
 		val, ok := cfgs[ref]

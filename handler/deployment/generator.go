@@ -41,7 +41,7 @@ func genHash(str ...string) string {
 	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(hash.Sum(nil))
 }
 
-func getConfigEnvValues(mConfigs module.Configs, dConfigs map[string]any) (map[string]string, error) {
+func getConfigsWithDefaults(mConfigs module.Configs, dConfigs map[string]any) (map[string]string, error) {
 	envVals := make(map[string]string)
 	for ref, mConfig := range mConfigs {
 		val, ok := dConfigs[ref]

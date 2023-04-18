@@ -142,18 +142,18 @@ func (h *Handler) validateConfigs(dCs map[string]any, mCs module.Configs) error 
 }
 
 func (h *Handler) getConfigs(mConfigs module.Configs, userInput map[string]any) (map[string]string, map[string]any, error) {
-	userValues, err := parseConfigs(userInput, mConfigs)
+	userConfigs, err := getUserConfigs(userInput, mConfigs)
 	if err != nil {
 		return nil, nil, model.NewInvalidInputError(err)
 	}
-	if err = h.validateConfigs(userValues, mConfigs); err != nil {
+	if err = h.validateConfigs(userConfigs, mConfigs); err != nil {
 		return nil, nil, err
 	}
-	envValues, err := getConfigEnvValues(mConfigs, userValues)
+	configs, err := getConfigsWithDefaults(mConfigs, userConfigs)
 	if err != nil {
 		return nil, nil, model.NewInvalidInputError(err)
 	}
-	return envValues, userValues, nil
+	return configs, userConfigs, nil
 }
 
 func (h *Handler) getHostRes(mHostRes map[string]module.HostResource, userInput map[string]string) (map[string]string, error) {
