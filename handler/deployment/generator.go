@@ -21,7 +21,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"path"
 	"strconv"
 	"strings"
 )
