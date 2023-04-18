@@ -126,7 +126,7 @@ func (h *StorageHandler) Delete(_ context.Context, mID string) error {
 
 func (h *StorageHandler) CreateInclDir(_ context.Context, mID, iID string) (string, error) {
 	p := path.Join(h.wrkSpacePath, inclDir, iID)
-	if err := copyDir(path.Join(h.wrkSpacePath, modDir, mID), p); err != nil {
+	if err := copyDir(path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter)), p); err != nil {
 		_ = os.RemoveAll(p)
 		return "", model.NewInternalError(wrapErr(err, h.wrkSpacePath))
 	}
