@@ -114,7 +114,7 @@ func (h *Handler) Delete(ctx context.Context, id string) error {
 	return h.storageHandler.DeleteDep(ctxWt, id)
 }
 
-func (h *Handler) Update(ctx context.Context, m *module.Module, id string, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) error {
+func (h *Handler) Update(ctx context.Context, dID string, drb model.DepRequestBase) error {
 	panic("not implemented")
 }
 

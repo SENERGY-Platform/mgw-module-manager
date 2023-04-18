@@ -53,7 +53,7 @@ type DeploymentHandler interface {
 	Get(ctx context.Context, dID string) (*model.Deployment, error)
 	Create(ctx context.Context, dr model.DepRequest) (string, error)
 	Delete(ctx context.Context, dID string) error
-	Update(ctx context.Context, module *module.Module, dID string, name *string, hostResources map[string]string, secrets map[string]string, configs map[string]any) error
+	Update(ctx context.Context, dID string, drb model.DepRequestBase) error
 	Start(ctx context.Context, dID string) error
 	Stop(ctx context.Context, dID string) error
 }
