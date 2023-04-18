@@ -7,7 +7,7 @@ require (
 	github.com/SENERGY-Platform/go-service-base v0.6.0
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.3.1
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.8.0
-	github.com/SENERGY-Platform/mgw-module-lib v0.7.0
+	github.com/SENERGY-Platform/mgw-module-lib v0.7.1
 	github.com/SENERGY-Platform/mgw-module-manager/lib v0.0.0-00010101000000-000000000000
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-sql-driver/mysql v1.7.0

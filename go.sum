@@ -10,8 +10,8 @@ github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.5.0 h1:DIa/7dk7G
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.5.0/go.mod h1:Z/vKGb78xJLubp/trhcYobmVazbfcB3NHxrJWf3SzAQ=
 github.com/SENERGY-Platform/mgw-modfile-lib v0.8.0 h1:nvxdzeT4YPzAqNn+TWWXerw6zgpMuG0Vr3LFblh3cq4=
 github.com/SENERGY-Platform/mgw-modfile-lib v0.8.0/go.mod h1:kI6qsh+hg6O+vq4KNQqmIro5t51bMrrm7d/MkzU5p8k=
-github.com/SENERGY-Platform/mgw-module-lib v0.7.0 h1:XSmV2MMTRdrcmPVDmf3Sa2f1UiZsBNO4L0bVdZQNt44=
-github.com/SENERGY-Platform/mgw-module-lib v0.7.0/go.mod h1:JhBC4Xodrx8sq5hGKtk11Zie6ZPYWMG2tx3vP9vqGf8=
+github.com/SENERGY-Platform/mgw-module-lib v0.7.1 h1:8GgqqCHMK/Lq8iPwin2MOpNZQYqv2E5S2y+gXHbnOrM=
+github.com/SENERGY-Platform/mgw-module-lib v0.7.1/go.mod h1:JhBC4Xodrx8sq5hGKtk11Zie6ZPYWMG2tx3vP9vqGf8=
 github.com/bytedance/sonic v1.5.0/go.mod h1:ED5hyg4y6t3/9Ku1R6dU/4KyJ48DZ4jPhfY1O2AihPM=
 github.com/bytedance/sonic v1.8.0 h1:ea0Xadu+sHlu7x5O3gKhRpQ1IKiMrSiHttPF0ybECuA=
 github.com/bytedance/sonic v1.8.0/go.mod h1:i736AoUSYt75HyZLoJW9ERYxcy6eaN6h4BZXU064P/U=
