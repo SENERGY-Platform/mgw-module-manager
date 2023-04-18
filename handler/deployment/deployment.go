@@ -286,6 +286,28 @@ func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepReq
 	return dID, nil
 }
 
+func getEnvVars(srv *module.Service, configs, depMap map[string]string, dID, iID string) (map[string]string, error) {
+	envVars := make(map[string]string)
+	for eVar, cRef := range srv.Configs {
+		if val, ok := configs[cRef]; ok {
+			envVars[eVar] = val
+		}
+	}
+	for eVar, sRef := range srv.SrvReferences {
+		envVars[eVar] = getSrvName(dID, sRef)
+	}
+	for eVar, target := range srv.ExtDependencies {
+		val, ok := depMap[target.ID]
+		if !ok {
+			return nil, fmt.Errorf("service '%s' of '%s' not deployed but required", target.Service, target.ID)
+		}
+		envVars[eVar] = getSrvName(val, target.Service)
+	}
+	envVars["MGW_DID"] = dID
+	envVars["MGW_IID"] = iID
+	return envVars, nil
+}
+
 func getName(mName string, userInput *string) string {
 	if userInput != nil {
 		return *userInput
