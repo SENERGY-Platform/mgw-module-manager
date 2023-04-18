@@ -228,6 +228,19 @@ func (h *Handler) getVolumes(ctx context.Context, mVolumes util.Set[string], dID
 	return volumes, nil
 }
 
+func (h *Handler) getDeployments(ctx context.Context, modules map[string]*module.Module, deployments map[string]string) error {
+	for mID := range modules {
+		ds, err := h.storageHandler.ListDep(ctx, model.DepFilter{ModuleID: mID})
+		if err != nil {
+			return err
+		}
+		if len(ds) > 0 {
+			deployments[mID] = ds[0].ID
+		}
+	}
+	return nil
+}
+
 func getName(mName string, userInput *string) string {
 	if userInput != nil {
 		return *userInput
