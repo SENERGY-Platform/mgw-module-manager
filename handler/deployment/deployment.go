@@ -181,6 +181,17 @@ func (h *Handler) getConfigs(mConfigs module.Configs, userInput map[string]any) 
 	return envValues, userValues, nil
 }
 
+func (h *Handler) getHostRes(mHostRes map[string]module.HostResource, userInput map[string]string) (map[string]string, error) {
+	hostRes, missing, err := parseHostRes(userInput, mHostRes)
+	if err != nil {
+		return nil, model.NewInvalidInputError(err)
+	}
+	if len(missing) > 0 {
+		return nil, model.NewInternalError(errors.New("host resource discovery not implemented"))
+	}
+	return hostRes, nil
+}
+
 func (h *Handler) createVolume(ctx context.Context, dID, iID, v string) (string, error) {
 	httpCtx, cf := context.WithTimeout(ctx, h.httpTimeout)
 	defer cf()
