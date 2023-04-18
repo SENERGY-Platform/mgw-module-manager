@@ -149,7 +149,7 @@ func (h *Handler) getConfigs(mConfigs module.Configs, userInput map[string]any) 
 	if err = h.validateConfigs(userValues, mConfigs); err != nil {
 		return nil, nil, err
 	}
-	envValues, err := genConfigEnvValues(mConfigs, userValues)
+	envValues, err := getConfigEnvValues(mConfigs, userValues)
 	if err != nil {
 		return nil, nil, model.NewInvalidInputError(err)
 	}
