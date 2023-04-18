@@ -22,6 +22,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
+	"github.com/SENERGY-Platform/mgw-module-lib/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"time"
@@ -239,6 +241,73 @@ func (h *Handler) getDeployments(ctx context.Context, modules map[string]*module
 		}
 	}
 	return nil
+}
+
+func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepRequestBase, depMap map[string]string) (string, error) {
+	envValues, userValues, err := h.getConfigs(m.Configs, drb.Configs)
+	if err != nil {
+		return "", err
+	}
+	hostRes, err := h.getHostRes(m.HostResources, drb.HostResources)
+	if err != nil {
+		return "", err
+	}
+	secrets, err := h.getSecrets(m.Secrets, drb.Secrets)
+	if err != nil {
+		return "", err
+	}
+	name := getName(m.Name, drb.Name)
+	timestamp := time.Now().UTC()
+	dbCtx, dbCf := context.WithTimeout(ctx, h.dbTimeout)
+	defer dbCf()
+	tx, err := h.storageHandler.BeginTransaction(dbCtx)
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+	dID, err := h.storageHandler.CreateDep(dbCtx, tx, m.ID, name, timestamp)
+	if err != nil {
+		return "", err
+	}
+	if len(hostRes) > 0 {
+		if err = h.storageHandler.CreateDepHostRes(dbCtx, tx, hostRes, dID); err != nil {
+			return "", err
+		}
+	}
+	if len(secrets) > 0 {
+		if err = h.storageHandler.CreateDepSecrets(dbCtx, tx, secrets, dID); err != nil {
+			return "", err
+		}
+	}
+	if len(userValues) > 0 {
+		if err = h.storageHandler.CreateDepConfigs(dbCtx, tx, m.Configs, userValues, dID); err != nil {
+			return "", err
+		}
+	}
+	iID, err := h.storageHandler.CreateInst(dbCtx, tx, dID, timestamp)
+	if err != nil {
+		return "", err
+	}
+	volumes, err := h.getVolumes(ctx, m.Volumes, dID, iID)
+	order, err := getSrvOrder(m.Services)
+	if err != nil {
+		return "", model.NewInternalError(err)
+	}
+	for _, ref := range order {
+		cID, err := h.createContainer(ctx, m.Services[ref], ref, dID, iID, m.DeploymentType, envValues, volumes, depMap, hostRes, secrets)
+		if err != nil {
+			return "", err
+		}
+		err = h.storageHandler.CreateInstCtr(dbCtx, tx, iID, cID, ref)
+		if err != nil {
+			return "", err
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return "", model.NewInternalError(err)
+	}
+	return dID, nil
 }
 
 func getName(mName string, userInput *string) string {
