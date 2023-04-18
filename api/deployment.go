@@ -18,7 +18,6 @@ package api
 
 import (
 	"context"
-	"errors"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
@@ -37,38 +36,7 @@ func (a *Api) PrepareDeployment(ctx context.Context, id string) (model.InputTemp
 }
 
 func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error) {
-	m, err := a.moduleHandler.Get(ctx, dr.ModuleID)
-	if err != nil {
-		return "", err
-	}
-	if m.DeploymentType == module.SingleDeployment {
-		dLst, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: m.ID})
-		if err != nil {
-			return "", err
-		}
-		if len(dLst) > 0 {
-			return "", model.NewInvalidInputError(errors.New("already deployed"))
-		}
-	}
-	depMap := make(map[string]string)
-	if len(m.Dependencies) > 0 {
-		dms := make(map[string]*module.Module)
-		if err := a.getReqModules(ctx, m, dms); err != nil {
-			return "", err
-		}
-		order, err := getOrder(dms)
-		if err != nil {
-			return "", model.NewInternalError(err)
-		}
-		for _, dmID := range order {
-			ddID, err := a.createDeployment(ctx, dms[dmID], dr.Dependencies[dmID])
-			if err != nil {
-				return "", err
-			}
-			depMap[dmID] = ddID
-		}
-	}
-	return a.createDeployment(ctx, m, dr.DepRequestBase)
+	return a.deploymentHandler.Create(ctx, dr)
 }
 
 func (a *Api) GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
@@ -88,15 +56,7 @@ func (a *Api) StopDeployment(ctx context.Context, id string) error {
 }
 
 func (a *Api) UpdateDeployment(ctx context.Context, id string, dr model.DepRequest) error {
-	m, err := a.moduleHandler.Get(ctx, dr.ModuleID)
-	if err != nil {
-		return err
-	}
-	err = a.deploymentHandler.Update(ctx, m, id, dr.Name, dr.HostResources, dr.Secrets, dr.Configs)
-	if err != nil {
-		return err
-	}
-	return nil
+	panic("not implemented")
 }
 
 func (a *Api) DeleteDeployment(ctx context.Context, id string) error {
