@@ -178,3 +178,15 @@ func (h *Handler) createVolume(ctx context.Context, dID, iID, v string) (string,
 	}
 	return vName, nil
 }
+
+func (h *Handler) getVolumes(ctx context.Context, mVolumes util.Set[string], dID, iID string) (map[string]string, error) {
+	volumes := make(map[string]string)
+	for ref := range mVolumes {
+		name, err := h.createVolume(ctx, dID, iID, ref)
+		if err != nil {
+			return nil, err
+		}
+		volumes[ref] = name
+	}
+	return volumes, nil
+}
