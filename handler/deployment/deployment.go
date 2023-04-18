@@ -216,7 +216,7 @@ func (h *Handler) getDeployments(ctx context.Context, modules map[string]*module
 }
 
 func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepRequestBase, depMap map[string]string) (string, error) {
-	envValues, userValues, err := h.getConfigs(m.Configs, drb.Configs)
+	configs, userConfigs, err := h.getConfigs(m.Configs, drb.Configs)
 	if err != nil {
 		return "", err
 	}
@@ -251,8 +251,8 @@ func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepReq
 			return "", err
 		}
 	}
-	if len(userValues) > 0 {
-		if err = h.storageHandler.CreateDepConfigs(dbCtx, tx, m.Configs, userValues, dID); err != nil {
+	if len(userConfigs) > 0 {
+		if err = h.storageHandler.CreateDepConfigs(dbCtx, tx, m.Configs, userConfigs, dID); err != nil {
 			return "", err
 		}
 	}
