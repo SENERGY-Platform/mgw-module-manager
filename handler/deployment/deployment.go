@@ -192,6 +192,17 @@ func (h *Handler) getHostRes(mHostRes map[string]module.HostResource, userInput 
 	return hostRes, nil
 }
 
+func (h *Handler) getSecrets(mSecrets map[string]module.Secret, userInput map[string]string) (map[string]string, error) {
+	secrets, missing, err := parseSecrets(userInput, mSecrets)
+	if err != nil {
+		return nil, model.NewInvalidInputError(err)
+	}
+	if len(missing) > 0 {
+		return nil, model.NewInternalError(errors.New("secret discovery not implemented"))
+	}
+	return secrets, nil
+}
+
 func (h *Handler) createVolume(ctx context.Context, dID, iID, v string) (string, error) {
 	httpCtx, cf := context.WithTimeout(ctx, h.httpTimeout)
 	defer cf()
