@@ -18,6 +18,7 @@ package http_engine
 
 import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -26,7 +27,7 @@ const modIdParam = "m"
 
 func getModulesH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		modules, err := a.GetModules(gc.Request.Context())
+		modules, err := a.GetModules(gc.Request.Context(), model.ModFilter{})
 		if err != nil {
 			_ = gc.Error(err)
 			return
