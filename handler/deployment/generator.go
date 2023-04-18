@@ -17,6 +17,8 @@
 package deployment
 
 import (
+	"crypto/sha1"
+	"encoding/base64"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"path"
@@ -25,7 +27,7 @@ import (
 )
 
 func genVolumeName(s, v string) string {
-	return fmt.Sprintf("%s_%s", s, v)
+	return "MGW_" + genHash(s, v)
 }
 
 func genBindMountPath(s, p string) string {
@@ -33,7 +35,15 @@ func genBindMountPath(s, p string) string {
 }
 
 func genSrvName(s, r string) string {
-	return fmt.Sprintf("%s_%s", s, r)
+	return "MGW_" + genHash(s, r)
+}
+
+func genHash(str ...string) string {
+	hash := sha1.New()
+	for _, s := range str {
+		hash.Write([]byte(s))
+	}
+	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(hash.Sum(nil))
 }
 
 func genConfigEnvValues(mConfigs module.Configs, dConfigs map[string]any) (map[string]string, error) {
