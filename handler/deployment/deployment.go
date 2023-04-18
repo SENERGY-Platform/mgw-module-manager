@@ -61,80 +61,49 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 	return h.storageHandler.ReadDep(ctxWt, id)
 }
 
-func (h *Handler) Create(ctx context.Context, m *module.Module, name *string, hostRes map[string]string, secrets map[string]string, configs map[string]any) (string, error) {
-	hRes, hResAD, err := parseHostRes(hostRes, m.HostResources)
-	if err != nil {
-		return "", model.NewInvalidInputError(err)
-	}
-	sec, secAD, err := parseSecrets(secrets, m.Secrets)
-	if err != nil {
-		return "", model.NewInvalidInputError(err)
-	}
-	if len(hResAD) > 0 || len(secAD) > 0 {
-		return "", model.NewInternalError(errors.New("host resource and secret discovery not implemented"))
-	}
-	cfg, err := parseConfigs(configs, m.Configs)
-	if err != nil {
-		return "", model.NewInvalidInputError(err)
-	}
-	if err = h.validateConfigs(cfg, m.Configs); err != nil {
-		return "", err
-	}
-	cfgEnvVals, err := genConfigEnvValues(m.Configs, cfg)
-	if err != nil {
-		return "", model.NewInvalidInputError(err)
-	}
-	dName := m.Name
-	if name != nil {
-		dName = *name
-	}
-	timestamp := time.Now().UTC()
-	dbCtx, dbCf := context.WithTimeout(ctx, h.dbTimeout)
-	defer dbCf()
-	tx, err := h.storageHandler.BeginTransaction(dbCtx)
+func (h *Handler) Create(ctx context.Context, dr model.DepRequest) (string, error) {
+	m, dms, err := h.moduleHandler.GetWithDep(ctx, dr.ModuleID)
 	if err != nil {
 		return "", err
 	}
-	defer tx.Rollback()
-	dID, err := h.storageHandler.CreateDep(dbCtx, tx, m.ID, dName, timestamp)
-	if err != nil {
-		return "", err
-	}
-	if len(hRes) > 0 {
-		err = h.storageHandler.CreateDepHostRes(dbCtx, tx, hRes, dID)
-		if err != nil {
+	if m.DeploymentType == module.SingleDeployment {
+		ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+		defer cf()
+		if l, err := h.storageHandler.ListDep(ctxWt, model.DepFilter{ModuleID: m.ID}); err != nil {
 			return "", err
+		} else if len(l) > 0 {
+			return "", model.NewInvalidInputError(errors.New("already deployed"))
 		}
 	}
-	if len(sec) > 0 {
-		err = h.storageHandler.CreateDepSecrets(dbCtx, tx, sec, dID)
+	depMap := make(map[string]string)
+	if len(dms) > 0 {
+		for dmID := range dms {
+			if l, err := h.storageHandler.ListDep(ctx, model.DepFilter{ModuleID: dmID}); err != nil {
+				return "", err
+			} else if len(l) > 0 {
+				depMap[dmID] = l[0].ID
+			}
+		}
+		order, err := getModOrder(dms)
 		if err != nil {
-			return "", err
+			return "", model.NewInternalError(err)
+		}
+		var depNew []string
+		for _, dmID := range order {
+			if _, ok := depMap[dmID]; !ok {
+				dID, err := h.create(ctx, dms[dmID], dr.Dependencies[dmID], depMap)
+				if err != nil {
+					//for _, id := range depNew {
+					//	h.Delete(ctx, id)
+					//}
+					return "", err
+				}
+				depMap[dmID] = dID
+				depNew = append(depNew, dID)
+			}
 		}
 	}
-	if len(cfg) > 0 {
-		err = h.storageHandler.CreateDepConfigs(dbCtx, tx, m.Configs, cfg, dID)
-		if err != nil {
-			return "", err
-		}
-	}
-	iID, err := h.storageHandler.CreateInst(dbCtx, tx, dID, timestamp)
-	if err != nil {
-		return "", err
-	}
-
-	for v := range m.Volumes {
-		vName, err := h.createVolume(ctx, dID, iID, v)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return "", model.NewInternalError(err)
-	}
-	return dID, nil
+	return h.create(ctx, m, dr.DepRequestBase, depMap)
 }
 
 func (h *Handler) Delete(ctx context.Context, id string) error {
