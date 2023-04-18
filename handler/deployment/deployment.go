@@ -166,6 +166,21 @@ func (h *Handler) validateConfigs(dCs map[string]any, mCs module.Configs) error 
 	return nil
 }
 
+func (h *Handler) getConfigs(mConfigs module.Configs, userInput map[string]any) (map[string]string, map[string]any, error) {
+	userValues, err := parseConfigs(userInput, mConfigs)
+	if err != nil {
+		return nil, nil, model.NewInvalidInputError(err)
+	}
+	if err = h.validateConfigs(userValues, mConfigs); err != nil {
+		return nil, nil, err
+	}
+	envValues, err := genConfigEnvValues(mConfigs, userValues)
+	if err != nil {
+		return nil, nil, model.NewInvalidInputError(err)
+	}
+	return envValues, userValues, nil
+}
+
 func (h *Handler) createVolume(ctx context.Context, dID, iID, v string) (string, error) {
 	httpCtx, cf := context.WithTimeout(ctx, h.httpTimeout)
 	defer cf()
