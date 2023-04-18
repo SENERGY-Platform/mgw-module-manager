@@ -18,12 +18,9 @@ package module
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/go-service-base/srv-base"
-	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"gopkg.in/yaml.v3"
 )
 
 type Handler struct {
@@ -40,60 +37,59 @@ func NewHandler(storageHandler handler.ModStorageHandler, transferHandler handle
 	}
 }
 
-func (h *Handler) List(ctx context.Context) ([]*module.Module, error) {
-	mIds, err := h.storageHandler.List(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var modules []*module.Module
-	for _, id := range mIds {
-		file, err := h.storageHandler.Open(ctx, id)
-		if err != nil {
-			srv_base.Logger.Errorf("opening module '%s' failed: %s", id, err)
-			continue
-		}
-		yd := yaml.NewDecoder(file)
-		mf := modfile.New(h.mfDecoders, h.mfGenerators)
-		if err = yd.Decode(&mf); err != nil {
-			srv_base.Logger.Errorf("decoding modfile '%s' failed: %s", id, err)
-			continue
-		}
-		m, err := mf.GetModule()
-		if err != nil {
-			srv_base.Logger.Errorf("getting module '%s' failed: %s", id, err)
-			continue
-		}
-		modules = append(modules, m)
-	}
-	return modules, nil
+func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
+	return h.storageHandler.List(ctx, filter)
 }
 
-func (h *Handler) Get(ctx context.Context, id string) (*module.Module, error) {
-	file, err := h.storageHandler.Open(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	yd := yaml.NewDecoder(file)
-	mf := modfile.New(h.mfDecoders, h.mfGenerators)
-	err = yd.Decode(&mf)
-	if err != nil {
-		return nil, model.NewInternalError(err)
-	}
-	m, err := mf.GetModule()
-	if err != nil {
-		return nil, model.NewInternalError(err)
-	}
-	return m, nil
+func (h *Handler) Get(ctx context.Context, mID string) (*module.Module, error) {
+	return h.storageHandler.Get(ctx, mID)
 }
 
-func (h *Handler) Add(ctx context.Context, id string) error {
+func (h *Handler) GetWithDep(ctx context.Context, mID string) (*module.Module, map[string]*module.Module, error) {
+	m, err := h.storageHandler.Get(ctx, mID)
+	if err != nil {
+		return nil, nil, err
+	}
+	dep := make(map[string]*module.Module)
+	if err := h.getDep(ctx, m.Dependencies, dep); err != nil {
+		return nil, nil, err
+	}
+	return m, dep, nil
+}
+
+func (h *Handler) Add(ctx context.Context, mID string) error {
 	panic("not implemented")
 }
 
-func (h *Handler) Delete(ctx context.Context, id string) error {
-	return h.storageHandler.Delete(ctx, id)
+func (h *Handler) Delete(ctx context.Context, mID string) error {
+	return h.storageHandler.Delete(ctx, mID)
 }
 
-func (h *Handler) Update(ctx context.Context, id string) error {
+func (h *Handler) Update(ctx context.Context, mID string) error {
 	panic("not implemented")
+}
+
+func (h *Handler) CreateInclDir(ctx context.Context, mID, iID string) (string, error) {
+	return h.storageHandler.CreateInclDir(ctx, mID, iID)
+}
+
+func (h *Handler) DeleteInclDir(ctx context.Context, iID string) error {
+	return h.storageHandler.DeleteInclDir(ctx, iID)
+}
+
+func (h *Handler) getDep(ctx context.Context, dep map[string]string, modules map[string]*module.Module) error {
+	for id := range dep {
+		if _, ok := modules[id]; !ok {
+			m, err := h.storageHandler.Get(ctx, id)
+			if err != nil {
+				return err
+			}
+			modules[id] = m
+			err = h.getDep(ctx, m.Dependencies, modules)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
