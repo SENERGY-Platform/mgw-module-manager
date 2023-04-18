@@ -19,6 +19,7 @@ package deployment
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
