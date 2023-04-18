@@ -26,15 +26,11 @@ import (
 	"strings"
 )
 
-func genVolumeName(s, v string) string {
+func getVolumeName(s, v string) string {
 	return "MGW_" + genHash(s, v)
 }
 
-func genBindMountPath(s, p string) string {
-	return path.Join(s, p)
-}
-
-func genSrvName(s, r string) string {
+func getSrvName(s, r string) string {
 	return "MGW_" + genHash(s, r)
 }
 

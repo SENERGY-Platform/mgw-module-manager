@@ -181,7 +181,7 @@ func (h *Handler) createVolume(ctx context.Context, dID, iID, v string) (string,
 	httpCtx, cf := context.WithTimeout(ctx, h.httpTimeout)
 	defer cf()
 	vName, err := h.cewClient.CreateVolume(httpCtx, cew_model.Volume{
-		Name:   genVolumeName(iID, v),
+		Name:   getVolumeName(iID, v),
 		Labels: map[string]string{"d_id": dID, "i_id": iID},
 	})
 	if err != nil {
