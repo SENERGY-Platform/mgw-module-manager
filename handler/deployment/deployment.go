@@ -260,6 +260,10 @@ func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepReq
 	if err != nil {
 		return "", err
 	}
+	inclDirPath, err := h.moduleHandler.CreateInclDir(ctx, m.ID, dID)
+	if err != nil {
+		return "", err
+	}
 	volumes, err := h.getVolumes(ctx, m.Volumes, dID, iID)
 	order, err := getSrvOrder(m.Services)
 	if err != nil {
