@@ -308,6 +308,58 @@ func getEnvVars(srv *module.Service, configs, depMap map[string]string, dID, iID
 	return envVars, nil
 }
 
+func getMounts(srv *module.Service, volumes map[string]string, inclDirPath, dID, iID string) []cew_model.Mount {
+	var mounts []cew_model.Mount
+	vLabels := map[string]string{"mgw_did": dID, "mgw_iid": iID}
+	for mntPoint, vName := range srv.Volumes {
+		mounts = append(mounts, cew_model.Mount{
+			Type:   cew_model.VolumeMount,
+			Source: volumes[vName],
+			Target: mntPoint,
+			Labels: vLabels,
+		})
+	}
+	for mntPoint, mount := range srv.BindMounts {
+		mounts = append(mounts, cew_model.Mount{
+			Type:     cew_model.BindMount,
+			Source:   path.Join(inclDirPath, mount.Source),
+			Target:   mntPoint,
+			ReadOnly: mount.ReadOnly,
+		})
+	}
+	for mntPoint, mount := range srv.Tmpfs {
+		mounts = append(mounts, cew_model.Mount{
+			Type:   cew_model.TmpfsMount,
+			Target: mntPoint,
+			Size:   int64(mount.Size),
+			Mode:   mount.Mode,
+		})
+	}
+	//for mntPoint, target := range srv.HostResources {
+	//	src, ok := hostRes[target.Ref]
+	//	if ok {
+	//		mounts = append(mounts, cew_model.Mount{
+	//			Type:     cew_model.BindMount,
+	//			Source:   "",
+	//			Target:   mntPoint,
+	//			ReadOnly: target.ReadOnly,
+	//		})
+	//	}
+	//}
+	//for mntPoint, sRef := range srv.Secrets {
+	//	src, ok := hostRes[sRef]
+	//	if ok {
+	//		mounts = append(mounts, cew_model.Mount{
+	//			Type:     cew_model.BindMount,
+	//			Source:   "",
+	//			Target:   mntPoint,
+	//			ReadOnly: true,
+	//		})
+	//	}
+	//}
+	return mounts
+}
+
 func getName(mName string, userInput *string) string {
 	if userInput != nil {
 		return *userInput
