@@ -157,7 +157,7 @@ func (h *Handler) getConfigs(mConfigs module.Configs, userInput map[string]any) 
 }
 
 func (h *Handler) getHostRes(mHostRes map[string]module.HostResource, userInput map[string]string) (map[string]string, error) {
-	hostRes, missing, err := parseHostRes(userInput, mHostRes)
+	hostRes, missing, err := getUserHostRes(userInput, mHostRes)
 	if err != nil {
 		return nil, model.NewInvalidInputError(err)
 	}
@@ -168,7 +168,7 @@ func (h *Handler) getHostRes(mHostRes map[string]module.HostResource, userInput 
 }
 
 func (h *Handler) getSecrets(mSecrets map[string]module.Secret, userInput map[string]string) (map[string]string, error) {
-	secrets, missing, err := parseSecrets(userInput, mSecrets)
+	secrets, missing, err := getUserSecrets(userInput, mSecrets)
 	if err != nil {
 		return nil, model.NewInvalidInputError(err)
 	}

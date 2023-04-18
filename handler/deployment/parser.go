@@ -23,7 +23,7 @@ import (
 	"math"
 )
 
-func parseHostRes(hrs map[string]string, mHRs map[string]module.HostResource) (map[string]string, []string, error) {
+func getUserHostRes(hrs map[string]string, mHRs map[string]module.HostResource) (map[string]string, []string, error) {
 	dRs := make(map[string]string)
 	var ad []string
 	for ref, mRH := range mHRs {
@@ -43,7 +43,7 @@ func parseHostRes(hrs map[string]string, mHRs map[string]module.HostResource) (m
 	return dRs, ad, nil
 }
 
-func parseSecrets(s map[string]string, mSs map[string]module.Secret) (map[string]string, []string, error) {
+func getUserSecrets(s map[string]string, mSs map[string]module.Secret) (map[string]string, []string, error) {
 	dSs := make(map[string]string)
 	var ad []string
 	for ref, mS := range mSs {
