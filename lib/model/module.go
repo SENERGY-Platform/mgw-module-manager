@@ -34,4 +34,10 @@ type ModuleMeta struct {
 }
 
 type ModFilter struct {
+	Name           string
+	Author         string
+	Type           string
+	DeploymentType string
+	InDependencies map[string]struct{}
+	Tags           map[string]struct{}
 }

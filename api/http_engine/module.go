@@ -25,9 +25,43 @@ import (
 
 const modIdParam = "m"
 
+type modulesQuery struct {
+	Name           string   `form:"name"`
+	Author         string   `form:"author"`
+	Type           string   `form:"type"`
+	DeploymentType string   `form:"deployment_type"`
+	InDependencies []string `form:"in_dependency"`
+	Tags           []string `form:"tag"`
+}
+
 func getModulesH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		modules, err := a.GetModules(gc.Request.Context(), model.ModFilter{})
+		query := modulesQuery{}
+		if err := gc.ShouldBindQuery(&query); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		filter := model.ModFilter{
+			Name:           query.Name,
+			Author:         query.Author,
+			Type:           query.Type,
+			DeploymentType: query.DeploymentType,
+		}
+		if len(query.InDependencies) > 0 {
+			s := make(map[string]struct{})
+			for _, i := range query.InDependencies {
+				s[i] = struct{}{}
+			}
+			filter.InDependencies = s
+		}
+		if len(query.Tags) > 0 {
+			s := make(map[string]struct{})
+			for _, i := range query.Tags {
+				s[i] = struct{}{}
+			}
+			filter.Tags = s
+		}
+		modules, err := a.GetModules(gc.Request.Context(), filter)
 		if err != nil {
 			_ = gc.Error(err)
 			return
