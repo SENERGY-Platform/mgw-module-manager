@@ -281,8 +281,26 @@ func (h *StorageHandler) DeleteDepSecrets(ctx context.Context, itf driver.Tx, dI
 	return nil
 }
 
+func genListInstFilter(filter model.DepInstFilter) (string, []any) {
+	var fc []string
+	var val []any
+	if filter.DepID != "" {
+		fc = append(fc, "`dep_id` = ?")
+		val = append(val, filter.DepID)
+	}
+	if len(fc) > 0 {
+		return " WHERE " + strings.Join(fc, " AND "), val
+	}
+	return "", nil
+}
+
 func (h *StorageHandler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.DepInstanceMeta, error) {
-	rows, err := h.db.QueryContext(ctx, "SELECT `id`, `dep_id`, `created`, `updated` FROM `instances` ORDER BY `created`")
+	q := "SELECT `id`, `dep_id`, `created`, `updated` FROM `instances`"
+	fc, val := genListInstFilter(filter)
+	if fc != "" {
+		q += fc
+	}
+	rows, err := h.db.QueryContext(ctx, q+" ORDER BY `created`", val...)
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
