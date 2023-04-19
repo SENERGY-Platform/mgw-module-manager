@@ -82,17 +82,19 @@ func (h *StorageHandler) List(ctx context.Context, filter model.ModFilter) ([]mo
 			if err != nil {
 				continue
 			}
-			mm = append(mm, model.ModuleMeta{
-				ID:             m.ID,
-				Name:           m.Name,
-				Description:    m.Description,
-				Tags:           m.Tags,
-				License:        m.License,
-				Author:         m.Author,
-				Version:        m.Version,
-				Type:           m.Type,
-				DeploymentType: m.DeploymentType,
-			})
+			if filterMod(filter, m) {
+				mm = append(mm, model.ModuleMeta{
+					ID:             m.ID,
+					Name:           m.Name,
+					Description:    m.Description,
+					Tags:           m.Tags,
+					License:        m.License,
+					Author:         m.Author,
+					Version:        m.Version,
+					Type:           m.Type,
+					DeploymentType: m.DeploymentType,
+				})
+			}
 		}
 		if ctx.Err() != nil {
 			return nil, model.NewInternalError(err)
@@ -215,6 +217,52 @@ func detectModFile(p string) (string, error) {
 		}
 	}
 	return "", errors.New("modfile not found")
+}
+
+func filterMod(filter model.ModFilter, m *module.Module) bool {
+	if filter.Name != "" {
+		if m.Name != filter.Name {
+			return false
+		}
+	}
+	if filter.Type != "" {
+		if m.Type != filter.Type {
+			return false
+		}
+	}
+	if filter.DeploymentType != "" {
+		if m.DeploymentType != filter.DeploymentType {
+			return false
+		}
+	}
+	if filter.Author != "" {
+		if m.Author != filter.Author {
+			return false
+		}
+	}
+	if len(filter.Tags) > 0 {
+		var ok bool
+		for tag := range filter.Tags {
+			if _, ok = m.Tags[tag]; ok {
+				break
+			}
+		}
+		if !ok {
+			return false
+		}
+	}
+	if len(filter.InDependencies) > 0 {
+		var ok bool
+		for tag := range filter.InDependencies {
+			if _, ok = m.Dependencies[tag]; ok {
+				break
+			}
+		}
+		if !ok {
+			return false
+		}
+	}
+	return true
 }
 
 type FileHandlerError struct {
