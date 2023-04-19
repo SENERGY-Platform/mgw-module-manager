@@ -19,41 +19,10 @@ package dep_storage
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"strconv"
 	"strings"
-	"time"
 )
-
-func insertDeployment(ctx context.Context, ef func(context.Context, string, ...any) (sql.Result, error), qwf func(context.Context, string, ...any) *sql.Row, modId string, depName string, timestamp time.Time) (string, error) {
-	res, err := ef(ctx, "INSERT INTO `deployments` (`id`, `module_id`, `name`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?)", modId, depName, timestamp, timestamp)
-	if err != nil {
-		return "", err
-	}
-	i, err := res.LastInsertId()
-	if err != nil {
-		return "", err
-	}
-	row := qwf(ctx, "SELECT `id` FROM `deployments` WHERE `index` = ?", i)
-	var id string
-	if err = row.Scan(&id); err != nil {
-		return "", err
-	}
-	if id == "" {
-		return "", errors.New("generating id failed")
-	}
-	return id, nil
-}
-
-func insertHostResources(ctx context.Context, pf func(context.Context, string) (*sql.Stmt, error), depId string, m map[string]string) error {
-	return insertResources(ctx, pf, "INSERT INTO `host_resources` (`dep_id`, `ref`, `res_id`) VALUES (?, ?, ?)", depId, m)
-}
-
-func insertSecrets(ctx context.Context, pf func(context.Context, string) (*sql.Stmt, error), depId string, m map[string]string) error {
-	return insertResources(ctx, pf, "INSERT INTO `secrets` (`dep_id`, `ref`, `sec_id`) VALUES (?, ?, ?)", depId, m)
-}
 
 func insertResources(ctx context.Context, pf func(context.Context, string) (*sql.Stmt, error), query string, depId string, m map[string]string) error {
 	stmt, err := pf(ctx, query)
@@ -67,49 +36,6 @@ func insertResources(ctx context.Context, pf func(context.Context, string) (*sql
 		}
 	}
 	return nil
-}
-
-func insertConfigs(ctx context.Context, pf func(context.Context, string) (*sql.Stmt, error), mConfigs module.Configs, dConfigs map[string]any, dID string) (err error) {
-	stmtMap := make(map[string]*sql.Stmt)
-	for ref, val := range dConfigs {
-		mConfig, ok := mConfigs[ref]
-		if !ok {
-			err = fmt.Errorf("config '%s' not defined", ref)
-			return
-		}
-		var stmt *sql.Stmt
-		key := mConfig.DataType + strconv.FormatBool(mConfig.IsSlice)
-		if stmt = stmtMap[key]; stmt == nil {
-			stmt, err = pf(ctx, genCfgInsertQuery(mConfig.DataType, mConfig.IsSlice))
-			if err != nil {
-				return
-			}
-			defer stmt.Close()
-			stmtMap[key] = stmt
-		}
-		if mConfig.IsSlice {
-			switch mConfig.DataType {
-			case module.StringType:
-				err = execCfgSlStmt[string](ctx, stmt, dID, ref, val)
-			case module.BoolType:
-				err = execCfgSlStmt[bool](ctx, stmt, dID, ref, val)
-			case module.Int64Type:
-				err = execCfgSlStmt[int64](ctx, stmt, dID, ref, val)
-			case module.Float64Type:
-				err = execCfgSlStmt[float64](ctx, stmt, dID, ref, val)
-			default:
-				err = fmt.Errorf("unknown data type '%s'", val)
-			}
-			if err != nil {
-				return
-			}
-		} else {
-			if _, err = stmt.ExecContext(ctx, dID, ref, val); err != nil {
-				return
-			}
-		}
-	}
-	return
 }
 
 func genCfgInsertQuery(dataType module.DataType, isSlice bool) string {

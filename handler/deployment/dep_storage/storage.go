@@ -21,8 +21,10 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
+	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -100,19 +102,69 @@ func (h *StorageHandler) ListDep(ctx context.Context, filter model.DepFilter) ([
 
 func (h *StorageHandler) CreateDep(ctx context.Context, itf driver.Tx, mID, name string, timestamp time.Time) (string, error) {
 	tx := itf.(*sql.Tx)
-	var id string
-	id, err := insertDeployment(ctx, tx.ExecContext, tx.QueryRowContext, mID, name, timestamp)
+	res, err := tx.ExecContext(ctx, "INSERT INTO `deployments` (`id`, `module_id`, `name`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?)", mID, name, timestamp, timestamp)
 	if err != nil {
 		return "", model.NewInternalError(err)
+	}
+	i, err := res.LastInsertId()
+	if err != nil {
+		return "", model.NewInternalError(err)
+	}
+	row := tx.QueryRowContext(ctx, "SELECT `id` FROM `deployments` WHERE `index` = ?", i)
+	var id string
+	if err = row.Scan(&id); err != nil {
+		return "", model.NewInternalError(err)
+	}
+	if id == "" {
+		return "", model.NewInternalError(errors.New("generating id failed"))
 	}
 	return id, nil
 }
 
 func (h *StorageHandler) CreateDepConfigs(ctx context.Context, itf driver.Tx, mConfigs module.Configs, dConfigs map[string]any, dID string) error {
 	tx := itf.(*sql.Tx)
-	err := insertConfigs(ctx, tx.PrepareContext, mConfigs, dConfigs, dID)
-	if err != nil {
-		return model.NewInternalError(err)
+	stmtMap := make(map[string]*sql.Stmt)
+	defer func() {
+		for _, stmt := range stmtMap {
+			stmt.Close()
+		}
+	}()
+	for ref, val := range dConfigs {
+		mConfig, ok := mConfigs[ref]
+		if !ok {
+			return model.NewInternalError(fmt.Errorf("config '%s' not defined", ref))
+		}
+		var stmt *sql.Stmt
+		key := mConfig.DataType + strconv.FormatBool(mConfig.IsSlice)
+		if stmt = stmtMap[key]; stmt == nil {
+			stmt, err := tx.PrepareContext(ctx, genCfgInsertQuery(mConfig.DataType, mConfig.IsSlice))
+			if err != nil {
+				return model.NewInternalError(err)
+			}
+			stmtMap[key] = stmt
+		}
+		if mConfig.IsSlice {
+			var err error
+			switch mConfig.DataType {
+			case module.StringType:
+				err = execCfgSlStmt[string](ctx, stmt, dID, ref, val)
+			case module.BoolType:
+				err = execCfgSlStmt[bool](ctx, stmt, dID, ref, val)
+			case module.Int64Type:
+				err = execCfgSlStmt[int64](ctx, stmt, dID, ref, val)
+			case module.Float64Type:
+				err = execCfgSlStmt[float64](ctx, stmt, dID, ref, val)
+			default:
+				err = fmt.Errorf("unknown data type '%s'", val)
+			}
+			if err != nil {
+				return model.NewInternalError(err)
+			}
+		} else {
+			if _, err := stmt.ExecContext(ctx, dID, ref, val); err != nil {
+				return model.NewInternalError(err)
+			}
+		}
 	}
 	return nil
 }
