@@ -75,5 +75,4 @@ type DepFilter struct {
 
 type DepInstFilter struct {
 	DepID string
-	IsSub bool
 }
