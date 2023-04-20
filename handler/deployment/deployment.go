@@ -260,6 +260,15 @@ func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepReq
 			return "", err
 		}
 	}
+	if len(m.Dependencies) > 0 {
+		var depReq []string
+		for rmID := range m.Dependencies {
+			depReq = append(depReq, depMap[rmID])
+		}
+		if err = h.storageHandler.CreateDepReq(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, depReq, dID); err != nil {
+			return "", err
+		}
+	}
 	iID, err := h.storageHandler.CreateInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID, timestamp)
 	if err != nil {
 		return "", err
