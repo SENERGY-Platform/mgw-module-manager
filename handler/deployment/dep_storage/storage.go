@@ -187,6 +187,21 @@ func (h *StorageHandler) CreateDepSecrets(ctx context.Context, itf driver.Tx, se
 	return nil
 }
 
+func (h *StorageHandler) CreateDepReq(ctx context.Context, itf driver.Tx, depReq []string, dID string) error {
+	tx := itf.(*sql.Tx)
+	stmt, err := tx.PrepareContext(ctx, "INSERT INTO `dependencies` (`dep_id`, `req_id`) VALUES (?, ?)")
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	defer stmt.Close()
+	for _, id := range depReq {
+		if _, err = stmt.ExecContext(ctx, dID, id); err != nil {
+			return model.NewInternalError(err)
+		}
+	}
+	return nil
+}
+
 func (h *StorageHandler) ReadDep(ctx context.Context, id string) (*model.Deployment, error) {
 	depMeta, err := selectDeployment(ctx, h.db.QueryRowContext, id)
 	if err != nil {
