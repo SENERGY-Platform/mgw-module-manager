@@ -94,7 +94,7 @@ func (h *Handler) Create(ctx context.Context, dr model.DepRequest) (string, erro
 		var depNew []string
 		for _, dmID := range order {
 			if _, ok := depMap[dmID]; !ok {
-				dID, err := h.create(ctx, dms[dmID], dr.Dependencies[dmID], depMap)
+				dID, err := h.create(ctx, dms[dmID], dr.Dependencies[dmID], depMap, true)
 				if err != nil {
 					//for _, id := range depNew {
 					//	h.Delete(ctx, id)
@@ -219,7 +219,7 @@ func (h *Handler) getDeployments(ctx context.Context, modules map[string]*module
 	return nil
 }
 
-func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepRequestBase, depMap map[string]string) (string, error) {
+func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepRequestBase, depMap map[string]string, indirect bool) (string, error) {
 	configs, userConfigs, err := h.getConfigs(m.Configs, drb.Configs)
 	if err != nil {
 		return "", err
@@ -241,7 +241,7 @@ func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepReq
 		return "", err
 	}
 	defer tx.Rollback()
-	dID, err := h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, m.ID, name, timestamp)
+	dID, err := h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, m.ID, name, indirect, timestamp)
 	if err != nil {
 		return "", err
 	}

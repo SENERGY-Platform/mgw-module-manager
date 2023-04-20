@@ -65,7 +65,7 @@ func genListDepFilter(filter model.DepFilter) (string, []any) {
 }
 
 func (h *StorageHandler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
-	q := "SELECT `id`, `module_id`, `name`, `created`, `updated` FROM `deployments`"
+	q := "SELECT `id`, `module_id`, `name`, `indirect`, `created`, `updated` FROM `deployments`"
 	fc, val := genListDepFilter(filter)
 	if fc != "" {
 		q += fc
@@ -79,7 +79,7 @@ func (h *StorageHandler) ListDep(ctx context.Context, filter model.DepFilter) ([
 	for rows.Next() {
 		var dm model.DepMeta
 		var ct, ut []uint8
-		if err = rows.Scan(&dm.ID, &dm.ModuleID, &dm.Name, &ct, &ut); err != nil {
+		if err = rows.Scan(&dm.ID, &dm.ModuleID, &dm.Name, &dm.Indirect, &ct, &ut); err != nil {
 			return nil, model.NewInternalError(err)
 		}
 		tc, err := time.Parse(tLayout, string(ct))
@@ -100,9 +100,9 @@ func (h *StorageHandler) ListDep(ctx context.Context, filter model.DepFilter) ([
 	return dms, nil
 }
 
-func (h *StorageHandler) CreateDep(ctx context.Context, itf driver.Tx, mID, name string, timestamp time.Time) (string, error) {
+func (h *StorageHandler) CreateDep(ctx context.Context, itf driver.Tx, mID, name string, indirect bool, timestamp time.Time) (string, error) {
 	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "INSERT INTO `deployments` (`id`, `module_id`, `name`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?)", mID, name, timestamp, timestamp)
+	res, err := tx.ExecContext(ctx, "INSERT INTO `deployments` (`id`, `module_id`, `name`, `indirect`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?, ?)", mID, name, indirect, timestamp, timestamp)
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}
@@ -219,9 +219,9 @@ func (h *StorageHandler) ReadDep(ctx context.Context, id string) (*model.Deploym
 	return &dep, nil
 }
 
-func (h *StorageHandler) UpdateDep(ctx context.Context, itf driver.Tx, dID, name string, timestamp time.Time) error {
+func (h *StorageHandler) UpdateDep(ctx context.Context, itf driver.Tx, dID, name string, indirect bool, timestamp time.Time) error {
 	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `updated` = ? WHERE `id` = ?", name, timestamp, dID)
+	res, err := tx.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", name, indirect, timestamp, dID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
