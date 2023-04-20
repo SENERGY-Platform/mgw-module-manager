@@ -297,7 +297,7 @@ func (h *Handler) createContainer(ctx context.Context, srv *module.Service, ref,
 	}
 	mounts := getMounts(srv, volumes, inclDirPath, dID, iID)
 	ports := getPorts(srv.Ports)
-	name := getSrvName(dID, ref)
+	name := getSrvName(iID, ref)
 	retries := int(srv.RunConfig.MaxRetries)
 	stopTimeout := srv.RunConfig.StopTimeout
 	c := cew_model.Container{
