@@ -27,6 +27,7 @@ import (
 	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/ctx_handler"
 	"path"
 	"time"
 )
@@ -68,10 +69,10 @@ func (h *Handler) Create(ctx context.Context, dr model.DepRequest) (string, erro
 	if err != nil {
 		return "", err
 	}
+	ch := ctx_handler.New()
+	defer ch.CancelAll()
 	if m.DeploymentType == module.SingleDeployment {
-		ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-		defer cf()
-		if l, err := h.storageHandler.ListDep(ctxWt, model.DepFilter{ModuleID: m.ID}); err != nil {
+		if l, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{ModuleID: m.ID}); err != nil {
 			return "", err
 		} else if len(l) > 0 {
 			return "", model.NewInvalidInputError(errors.New("already deployed"))
@@ -80,7 +81,7 @@ func (h *Handler) Create(ctx context.Context, dr model.DepRequest) (string, erro
 	depMap := make(map[string]string)
 	if len(dms) > 0 {
 		for dmID := range dms {
-			if l, err := h.storageHandler.ListDep(ctx, model.DepFilter{ModuleID: dmID}); err != nil {
+			if l, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{ModuleID: dmID}); err != nil {
 				return "", err
 			} else if len(l) > 0 {
 				depMap[dmID] = l[0].ID
@@ -204,8 +205,10 @@ func (h *Handler) getVolumes(ctx context.Context, mVolumes ml_util.Set[string], 
 }
 
 func (h *Handler) getDeployments(ctx context.Context, modules map[string]*module.Module, deployments map[string]string) error {
+	ch := ctx_handler.New()
+	defer ch.CancelAll()
 	for mID := range modules {
-		ds, err := h.storageHandler.ListDep(ctx, model.DepFilter{ModuleID: mID})
+		ds, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{ModuleID: mID})
 		if err != nil {
 			return err
 		}
@@ -231,33 +234,33 @@ func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepReq
 	}
 	name := getName(m.Name, drb.Name)
 	timestamp := time.Now().UTC()
-	dbCtx, dbCf := context.WithTimeout(ctx, h.dbTimeout)
-	defer dbCf()
-	tx, err := h.storageHandler.BeginTransaction(dbCtx)
+	ch := ctx_handler.New()
+	defer ch.CancelAll()
+	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {
 		return "", err
 	}
 	defer tx.Rollback()
-	dID, err := h.storageHandler.CreateDep(dbCtx, tx, m.ID, name, timestamp)
+	dID, err := h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, m.ID, name, timestamp)
 	if err != nil {
 		return "", err
 	}
 	if len(hostRes) > 0 {
-		if err = h.storageHandler.CreateDepHostRes(dbCtx, tx, hostRes, dID); err != nil {
+		if err = h.storageHandler.CreateDepHostRes(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, hostRes, dID); err != nil {
 			return "", err
 		}
 	}
 	if len(secrets) > 0 {
-		if err = h.storageHandler.CreateDepSecrets(dbCtx, tx, secrets, dID); err != nil {
+		if err = h.storageHandler.CreateDepSecrets(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, secrets, dID); err != nil {
 			return "", err
 		}
 	}
 	if len(userConfigs) > 0 {
-		if err = h.storageHandler.CreateDepConfigs(dbCtx, tx, m.Configs, userConfigs, dID); err != nil {
+		if err = h.storageHandler.CreateDepConfigs(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, m.Configs, userConfigs, dID); err != nil {
 			return "", err
 		}
 	}
-	iID, err := h.storageHandler.CreateInst(dbCtx, tx, dID, timestamp)
+	iID, err := h.storageHandler.CreateInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID, timestamp)
 	if err != nil {
 		return "", err
 	}
@@ -275,7 +278,7 @@ func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepReq
 		if err != nil {
 			return "", err
 		}
-		err = h.storageHandler.CreateInstCtr(dbCtx, tx, iID, cID, ref)
+		err = h.storageHandler.CreateInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, iID, cID, ref)
 		if err != nil {
 			return "", err
 		}
