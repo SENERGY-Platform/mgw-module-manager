@@ -26,6 +26,17 @@ CREATE TABLE IF NOT EXISTS `deployments`
     UNIQUE KEY (`id`),
     PRIMARY KEY (`index`)
 );
+CREATE TABLE IF NOT EXISTS `dependencies`
+(
+    `index`  BIGINT AUTO_INCREMENT NOT NULL,
+    `dep_id` CHAR(36)              NOT NULL,
+    `req_id` CHAR(36)              NOT NULL,
+    UNIQUE KEY (`dep_id`, `req_id`),
+    PRIMARY KEY (`index`),
+    FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
+        ON DELETE CASCADE
+        ON UPDATE RESTRICT
+);
 CREATE TABLE IF NOT EXISTS `instances`
 (
     `index`   BIGINT AUTO_INCREMENT NOT NULL,
