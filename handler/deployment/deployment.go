@@ -24,7 +24,7 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
-	"github.com/SENERGY-Platform/mgw-module-lib/util"
+	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"path"
@@ -191,7 +191,7 @@ func (h *Handler) createVolume(ctx context.Context, dID, iID, v string) (string,
 	return vName, nil
 }
 
-func (h *Handler) getVolumes(ctx context.Context, mVolumes util.Set[string], dID, iID string) (map[string]string, error) {
+func (h *Handler) getVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID, iID string) (map[string]string, error) {
 	volumes := make(map[string]string)
 	for ref := range mVolumes {
 		name, err := h.createVolume(ctx, dID, iID, ref)
