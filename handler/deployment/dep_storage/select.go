@@ -190,7 +190,7 @@ func selectInstance(ctx context.Context, qwf func(context.Context, string, ...an
 }
 
 func selectContainers(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), instID string) (map[string]string, error) {
-	rows, err := qf(ctx, "SELECT `s_ref`, `c_id` FROM `secrets` WHERE `i_id` = ?", instID)
+	rows, err := qf(ctx, "SELECT `s_ref`, `c_id` FROM `containers` WHERE `i_id` = ?", instID)
 	if err != nil {
 		return nil, err
 	}
