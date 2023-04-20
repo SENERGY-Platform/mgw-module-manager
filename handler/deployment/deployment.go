@@ -310,7 +310,7 @@ func (h *Handler) createContainer(ctx context.Context, srv *module.Service, ref,
 		Networks: []cew_model.ContainerNet{
 			{
 				Name:        "module-net",
-				DomainNames: []string{name},
+				DomainNames: []string{getSrvName(dID, ref), name},
 			},
 		},
 		RunConfig: cew_model.RunConfig{
