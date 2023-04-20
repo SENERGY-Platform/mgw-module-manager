@@ -110,9 +110,46 @@ func (h *Handler) Create(ctx context.Context, dr model.DepRequest) (string, erro
 }
 
 func (h *Handler) Delete(ctx context.Context, id string) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	return h.storageHandler.DeleteDep(ctxWt, id)
+	ch := ctx_handler.New()
+	defer ch.CancelAll()
+	d, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), id)
+	if err != nil {
+		return err
+	}
+	depReqBy, err := h.storageHandler.ListDepReqBy(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), d.ID)
+	if err != nil {
+		return err
+	}
+	if len(depReqBy) > 0 {
+		return model.NewInternalError(fmt.Errorf("deplyoment is required by '%d' deplyoments", len(depReqBy)))
+	}
+	il, err := h.storageHandler.ListInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepInstFilter{DepID: d.ID})
+	if err != nil {
+		return err
+	}
+	for _, im := range il {
+		i, err := h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), im.ID)
+		if err != nil {
+			return err
+		}
+		for _, cID := range i.Containers {
+			err := h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	volumes, err := h.cewClient.GetVolumes(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.VolumeFilter{Labels: map[string]string{"d_id": d.ID}})
+	if err != nil {
+		return err
+	}
+	for _, volume := range volumes {
+		err := h.cewClient.RemoveVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), volume.Name)
+		if err != nil {
+			return err
+		}
+	}
+	return h.storageHandler.DeleteDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), id)
 }
 
 func (h *Handler) Update(ctx context.Context, dID string, drb model.DepRequestBase) error {
