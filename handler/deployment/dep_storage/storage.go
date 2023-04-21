@@ -58,6 +58,10 @@ func genListDepFilter(filter model.DepFilter) (string, []any) {
 		fc = append(fc, "`module_id` = ?")
 		val = append(val, filter.ModuleID)
 	}
+	if filter.Indirect {
+		fc = append(fc, "`indirect` = ?")
+		val = append(val, filter.Indirect)
+	}
 	if len(fc) > 0 {
 		return " WHERE " + strings.Join(fc, " AND "), val
 	}

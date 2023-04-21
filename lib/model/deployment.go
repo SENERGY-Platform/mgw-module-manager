@@ -74,6 +74,7 @@ type DepRequest struct {
 type DepFilter struct {
 	ModuleID string
 	Name     string
+	Indirect bool
 }
 
 type DepInstFilter struct {
