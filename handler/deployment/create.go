@@ -22,6 +22,7 @@ import (
 	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/ctx_handler"
@@ -383,4 +384,46 @@ func getName(mName string, userInput *string) string {
 		return *userInput
 	}
 	return mName
+}
+
+func getModOrder(modules map[string]*module.Module) (order []string, err error) {
+	if len(modules) > 1 {
+		nodes := make(tsort.Nodes)
+		for _, m := range modules {
+			if len(m.Dependencies) > 0 {
+				reqIDs := make(map[string]struct{})
+				for i := range m.Dependencies {
+					reqIDs[i] = struct{}{}
+				}
+				nodes.Add(m.ID, reqIDs, nil)
+			}
+		}
+		order, err = tsort.GetTopOrder(nodes)
+		if err != nil {
+			return nil, err
+		}
+	} else if len(modules) > 0 {
+		for _, m := range modules {
+			order = append(order, m.ID)
+		}
+	}
+	return
+}
+
+func getSrvOrder(services map[string]*module.Service) (order []string, err error) {
+	if len(services) > 1 {
+		nodes := make(tsort.Nodes)
+		for ref, srv := range services {
+			nodes.Add(ref, srv.RequiredSrv, srv.RequiredBySrv)
+		}
+		order, err = tsort.GetTopOrder(nodes)
+		if err != nil {
+			return nil, err
+		}
+	} else if len(services) > 0 {
+		for ref := range services {
+			order = append(order, ref)
+		}
+	}
+	return
 }
