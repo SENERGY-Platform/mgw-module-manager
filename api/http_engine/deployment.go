@@ -25,14 +25,19 @@ import (
 
 const depIdParam = "d"
 
-type deploymentsQuery struct {
+type getDeploymentsQuery struct {
 	Name     string `form:"name"`
 	ModuleID string `form:"module_id"`
+	Indirect bool   `form:"indirect"`
+}
+
+type deleteDeploymentQuery struct {
+	Orphans bool `form:"orphans"`
 }
 
 func getDeploymentsH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		query := deploymentsQuery{}
+		query := getDeploymentsQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
@@ -40,6 +45,7 @@ func getDeploymentsH(a lib.Api) gin.HandlerFunc {
 		filter := model.DepFilter{
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
+			Indirect: query.Indirect,
 		}
 		deployments, err := a.GetDeployments(gc.Request.Context(), filter)
 		if err != nil {
@@ -97,7 +103,12 @@ func putDeploymentH(a lib.Api) gin.HandlerFunc {
 
 func deleteDeploymentH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		err := a.DeleteDeployment(gc.Request.Context(), gc.Param(depIdParam))
+		query := deleteDeploymentQuery{}
+		if err := gc.ShouldBindQuery(&query); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		err := a.DeleteDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Orphans)
 		if err != nil {
 			_ = gc.Error(err)
 			return
