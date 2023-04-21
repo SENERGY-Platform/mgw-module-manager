@@ -105,11 +105,11 @@ func (h *StorageHandler) ListDep(ctx context.Context, filter model.DepFilter) ([
 	return listDep(ctx, h.db.QueryContext, q, val...)
 }
 
-func (h *StorageHandler) ListDepReq(ctx context.Context, dID string) ([]model.DepMeta, error) {
+func (h *StorageHandler) ListRequiredDep(ctx context.Context, dID string) ([]model.DepMeta, error) {
 	return listDep(ctx, h.db.QueryContext, "SELECT `id`, `module_id`, `name`, `indirect`, `created`, `updated` FROM `deployments` WHERE `id` IN (SELECT `req_id` FROM `dependencies` WHERE `dep_id` = ?)", dID)
 }
 
-func (h *StorageHandler) ListDepReqBy(ctx context.Context, dID string) ([]model.DepMeta, error) {
+func (h *StorageHandler) ListDepRequiring(ctx context.Context, dID string) ([]model.DepMeta, error) {
 	return listDep(ctx, h.db.QueryContext, "SELECT `id`, `module_id`, `name`, `indirect`, `created`, `updated` FROM `deployments` WHERE `id` IN (SELECT `dep_id` FROM `dependencies` WHERE `req_id` = ?)", dID)
 }
 

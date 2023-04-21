@@ -68,7 +68,7 @@ func (h *Handler) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	depReqBy, err := h.storageHandler.ListDepReqBy(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), d.ID)
+	depReqBy, err := h.storageHandler.ListDepRequiring(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), d.ID)
 	if err != nil {
 		return err
 	}
