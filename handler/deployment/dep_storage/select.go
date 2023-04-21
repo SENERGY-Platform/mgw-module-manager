@@ -208,3 +208,31 @@ func selectContainers(ctx context.Context, qf func(ctx context.Context, query st
 	}
 	return m, nil
 }
+
+func selectRequiredDep(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), dID string) ([]string, error) {
+	return selectReq(ctx, qf, "SELECT `req_id` FROM `dependencies` WHERE `dep_id` = ?", dID)
+}
+
+func selectDepRequiring(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), dID string) ([]string, error) {
+	return selectReq(ctx, qf, "SELECT `dep_id` FROM `dependencies` WHERE `req_id` = ?", dID)
+}
+
+func selectReq(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), query, dID string) ([]string, error) {
+	rows, err := qf(ctx, query, dID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var IDs []string
+	for rows.Next() {
+		var id string
+		if err = rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		IDs = append(IDs, id)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return IDs, nil
+}
