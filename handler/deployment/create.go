@@ -62,9 +62,11 @@ func (h *Handler) Create(ctx context.Context, dr model.DepRequest) (string, erro
 			if _, ok := depMap[dmID]; !ok {
 				dID, err := h.create(ctx, dms[dmID], dr.Dependencies[dmID], depMap, true)
 				if err != nil {
-					//for _, id := range depNew {
-					//	h.Delete(ctx, id)
-					//}
+					for _, id := range depNew {
+						if err := h.delete(ctx, id, true); err != nil {
+							return "", err
+						}
+					}
 					return "", err
 				}
 				depMap[dmID] = dID
