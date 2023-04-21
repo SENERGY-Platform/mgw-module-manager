@@ -35,6 +35,8 @@ type Deployment struct {
 	HostResources map[string]string    `json:"host_resources"` // {ref:resourceID}
 	Secrets       map[string]string    `json:"secrets"`        // {ref:secretID}
 	Configs       map[string]DepConfig `json:"configs"`        // {ref:value}
+	RequiredDep   []string             `json:"required_dep"`   // deployments required by this deployment
+	DepRequiring  []string             `json:"dep_requiring"`  // deployments requiring this deployment
 }
 
 type DepConfig struct {
