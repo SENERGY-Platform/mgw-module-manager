@@ -34,5 +34,5 @@ type Api interface {
 	StartDeployment(ctx context.Context, id string) error
 	StopDeployment(ctx context.Context, id string) error
 	UpdateDeployment(ctx context.Context, id string, dr model.DepRequest) error
-	DeleteDeployment(ctx context.Context, id string) error
+	DeleteDeployment(ctx context.Context, id string, orphans bool) error
 }

@@ -59,8 +59,8 @@ func (a *Api) UpdateDeployment(ctx context.Context, id string, dr model.DepReque
 	panic("not implemented")
 }
 
-func (a *Api) DeleteDeployment(ctx context.Context, id string) error {
-	return a.deploymentHandler.Delete(ctx, id)
+func (a *Api) DeleteDeployment(ctx context.Context, id string, orphans bool) error {
+	return a.deploymentHandler.Delete(ctx, id, orphans)
 }
 
 func (a *Api) getDepInputTemplates(ctx context.Context, m *module.Module, itm map[string]model.InputTemplateBase) error {

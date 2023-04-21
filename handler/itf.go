@@ -52,7 +52,7 @@ type DeploymentHandler interface {
 	List(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
 	Get(ctx context.Context, dID string) (*model.Deployment, error)
 	Create(ctx context.Context, dr model.DepRequest) (string, error)
-	Delete(ctx context.Context, dID string) error
+	Delete(ctx context.Context, dID string, orphans bool) error
 	Update(ctx context.Context, dID string, drb model.DepRequestBase) error
 	Start(ctx context.Context, dID string) error
 	Stop(ctx context.Context, dID string) error
