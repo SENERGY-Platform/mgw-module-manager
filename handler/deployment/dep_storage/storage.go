@@ -226,11 +226,21 @@ func (h *StorageHandler) ReadDep(ctx context.Context, id string) (*model.Deploym
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
+	reqDep, err := selectRequiredDep(ctx, h.db.QueryContext, id)
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	depReq, err := selectDepRequiring(ctx, h.db.QueryContext, id)
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
 	dep := model.Deployment{
 		DepMeta:       depMeta,
 		HostResources: hostRes,
 		Secrets:       secrets,
 		Configs:       configs,
+		RequiredDep:   reqDep,
+		DepRequiring:  depReq,
 	}
 	return &dep, nil
 }
