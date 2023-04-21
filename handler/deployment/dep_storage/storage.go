@@ -64,8 +64,14 @@ func genListDepFilter(filter model.DepFilter) (string, []any) {
 	return "", nil
 }
 
-func listDep(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), query string, args ...any) ([]model.DepMeta, error) {
-	rows, err := qf(ctx, query, args...)
+func (h *StorageHandler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
+	q := "SELECT `id`, `module_id`, `name`, `indirect`, `created`, `updated` FROM `deployments`"
+	fc, val := genListDepFilter(filter)
+	if fc != "" {
+		q += fc
+	}
+	q += " ORDER BY `name`"
+	rows, err := h.db.QueryContext(ctx, q, val...)
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
@@ -93,24 +99,6 @@ func listDep(ctx context.Context, qf func(ctx context.Context, query string, arg
 		return nil, model.NewInternalError(err)
 	}
 	return dms, nil
-}
-
-func (h *StorageHandler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
-	q := "SELECT `id`, `module_id`, `name`, `indirect`, `created`, `updated` FROM `deployments`"
-	fc, val := genListDepFilter(filter)
-	if fc != "" {
-		q += fc
-	}
-	q += " ORDER BY `name`"
-	return listDep(ctx, h.db.QueryContext, q, val...)
-}
-
-func (h *StorageHandler) ListRequiredDep(ctx context.Context, dID string) ([]model.DepMeta, error) {
-	return listDep(ctx, h.db.QueryContext, "SELECT `id`, `module_id`, `name`, `indirect`, `created`, `updated` FROM `deployments` WHERE `id` IN (SELECT `req_id` FROM `dependencies` WHERE `dep_id` = ?)", dID)
-}
-
-func (h *StorageHandler) ListDepRequiring(ctx context.Context, dID string) ([]model.DepMeta, error) {
-	return listDep(ctx, h.db.QueryContext, "SELECT `id`, `module_id`, `name`, `indirect`, `created`, `updated` FROM `deployments` WHERE `id` IN (SELECT `dep_id` FROM `dependencies` WHERE `req_id` = ?)", dID)
 }
 
 func (h *StorageHandler) CreateDep(ctx context.Context, itf driver.Tx, mID, name string, indirect bool, timestamp time.Time) (string, error) {

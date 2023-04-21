@@ -68,12 +68,8 @@ func (h *Handler) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	depRequiring, err := h.storageHandler.ListDepRequiring(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), d.ID)
-	if err != nil {
-		return err
-	}
-	if len(depRequiring) > 0 {
-		return model.NewInternalError(fmt.Errorf("deplyoment is required by '%d' deplyoments", len(depRequiring)))
+	if len(d.DepRequiring) > 0 {
+		return model.NewInternalError(fmt.Errorf("deplyoment is required by: %s", strings.Join(d.DepRequiring, ", ")))
 	}
 	il, err := h.storageHandler.ListInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepInstFilter{DepID: d.ID})
 	if err != nil {

@@ -61,8 +61,6 @@ type DeploymentHandler interface {
 type DepStorageHandler interface {
 	BeginTransaction(ctx context.Context) (driver.Tx, error)
 	ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
-	ListRequiredDep(ctx context.Context, dID string) ([]model.DepMeta, error)
-	ListDepRequiring(ctx context.Context, dID string) ([]model.DepMeta, error)
 	CreateDep(ctx context.Context, tx driver.Tx, mID, name string, indirect bool, timestamp time.Time) (string, error)
 	CreateDepConfigs(ctx context.Context, tx driver.Tx, mConfigs module.Configs, dConfigs map[string]any, dID string) error
 	CreateDepHostRes(ctx context.Context, tx driver.Tx, hostResources map[string]string, dID string) error
