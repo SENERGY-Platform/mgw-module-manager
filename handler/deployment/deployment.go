@@ -18,14 +18,12 @@ package deployment
 
 import (
 	"context"
-	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/ctx_handler"
-	"strings"
 	"time"
 )
 
@@ -63,87 +61,6 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 
 func (h *Handler) Update(ctx context.Context, dID string, drb model.DepRequestBase) error {
 	panic("not implemented")
-}
-
-func (h *Handler) Stop(ctx context.Context, id string) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	d, err := h.storageHandler.ReadDep(ctxWt, id)
-	if err != nil {
-		return err
-	}
-	if len(d.DepRequiring) > 0 {
-		return model.NewInternalError(fmt.Errorf("deplyoment is required by: %s", strings.Join(d.DepRequiring, ", ")))
-	}
-	if len(d.RequiredDep) > 0 {
-		reqDep := make(map[string]*model.Deployment)
-		if err = h.getReqDep(ctx, d, reqDep); err != nil {
-			return err
-		}
-		order, err := h.getDepOrder(reqDep)
-		if err != nil {
-			return model.NewInternalError(err)
-		}
-		for i := len(order) - 1; i >= 0; i-- {
-			rd := reqDep[order[i]]
-			if isNotReq(rd.DepRequiring, reqDep, d.ID) {
-				if err = h.stop(ctx, rd); err != nil {
-					return err
-				}
-			}
-		}
-	}
-	return h.stop(ctx, d)
-}
-
-func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
-	ch := ctx_handler.New()
-	defer ch.CancelAll()
-	m, err := h.moduleHandler.Get(ctx, dep.ModuleID)
-	if err != nil {
-		return err
-	}
-	order, err := getSrvOrder(m.Services)
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	instances, err := h.storageHandler.ListInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepInstFilter{DepID: dep.ID})
-	if err != nil {
-		return err
-	}
-	if len(instances) != 1 {
-		return model.NewInternalError(fmt.Errorf("invalid number of instances: %d", len(instances)))
-	}
-	instance, err := h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instances[0].ID)
-	if err != nil {
-		return err
-	}
-	for i := len(order) - 1; i >= 0; i-- {
-		cID, ok := instance.Containers[order[i]]
-		if !ok {
-			return model.NewInternalError(fmt.Errorf("no container for service reference '%s'", order[i]))
-		}
-		_, err = h.cewClient.StopContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
-		if err != nil {
-			return err
-		}
-	}
-	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID, dep.Name, true, dep.Indirect, time.Now().UTC()); err != nil {
-		return err
-	}
-	return nil
-}
-
-func isNotReq(sl []string, m map[string]*model.Deployment, id string) bool {
-	for _, s := range sl {
-		if s == id {
-			continue
-		}
-		if _, ok := m[s]; !ok {
-			return false
-		}
-	}
-	return true
 }
 
 func (h *Handler) getReqDep(ctx context.Context, dep *model.Deployment, reqDep map[string]*model.Deployment) error {
