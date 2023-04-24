@@ -72,6 +72,12 @@ type DepRequest struct {
 	Dependencies map[string]DepRequestBase `json:"dependencies"`
 }
 
+type DepCtrlCmd = string
+
+type DepCtrlRequest struct {
+	Cmd DepCtrlCmd `json:"cmd"`
+}
+
 type DepFilter struct {
 	ModuleID string
 	Name     string

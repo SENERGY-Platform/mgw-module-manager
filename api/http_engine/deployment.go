@@ -17,6 +17,7 @@
 package http_engine
 
 import (
+	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
@@ -95,6 +96,34 @@ func putDeploymentH(a lib.Api) gin.HandlerFunc {
 		err = a.UpdateDeployment(gc.Request.Context(), gc.Param(depIdParam), depReq)
 		if err != nil {
 			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
+func postDeploymentCtrlH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		var ctrlReq model.DepCtrlRequest
+		if err := gc.ShouldBindJSON(&ctrlReq); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		switch ctrlReq.Cmd {
+		case model.StartCmd:
+			err := a.StartDeployment(gc.Request.Context(), gc.Param(depIdParam))
+			if err != nil {
+				_ = gc.Error(err)
+				return
+			}
+		case model.StopCmd:
+			err := a.StopDeployment(gc.Request.Context(), gc.Param(depIdParam))
+			if err != nil {
+				_ = gc.Error(err)
+				return
+			}
+		default:
+			_ = gc.Error(model.NewInvalidInputError(fmt.Errorf("unknown command '%s'", ctrlReq.Cmd)))
 			return
 		}
 		gc.Status(http.StatusOK)
