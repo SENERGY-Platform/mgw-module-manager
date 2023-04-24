@@ -411,21 +411,3 @@ func getModOrder(modules map[string]*module.Module) (order []string, err error) 
 	}
 	return
 }
-
-func getSrvOrder(services map[string]*module.Service) (order []string, err error) {
-	if len(services) > 1 {
-		nodes := make(tsort.Nodes)
-		for ref, srv := range services {
-			nodes.Add(ref, srv.RequiredSrv, srv.RequiredBySrv)
-		}
-		order, err = tsort.GetTopOrder(nodes)
-		if err != nil {
-			return nil, err
-		}
-	} else if len(services) > 0 {
-		for ref := range services {
-			order = append(order, ref)
-		}
-	}
-	return
-}

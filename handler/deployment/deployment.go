@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
@@ -108,6 +109,24 @@ func (h *Handler) getDepOrder(dep map[string]*model.Deployment) (order []string,
 	} else if len(dep) > 0 {
 		for _, d := range dep {
 			order = append(order, d.ID)
+		}
+	}
+	return
+}
+
+func getSrvOrder(services map[string]*module.Service) (order []string, err error) {
+	if len(services) > 1 {
+		nodes := make(tsort.Nodes)
+		for ref, srv := range services {
+			nodes.Add(ref, srv.RequiredSrv, srv.RequiredBySrv)
+		}
+		order, err = tsort.GetTopOrder(nodes)
+		if err != nil {
+			return nil, err
+		}
+	} else if len(services) > 0 {
+		for ref := range services {
+			order = append(order, ref)
 		}
 	}
 	return
