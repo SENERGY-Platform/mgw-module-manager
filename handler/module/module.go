@@ -51,7 +51,7 @@ func (h *Handler) GetWithDep(ctx context.Context, mID string) (*module.Module, m
 		return nil, nil, err
 	}
 	dep := make(map[string]*module.Module)
-	if err := h.getDep(ctx, m.Dependencies, dep); err != nil {
+	if err := h.getReqMod(ctx, m, dep); err != nil {
 		return nil, nil, err
 	}
 	return m, dep, nil
@@ -77,16 +77,15 @@ func (h *Handler) DeleteInclDir(ctx context.Context, iID string) error {
 	return h.storageHandler.DeleteInclDir(ctx, iID)
 }
 
-func (h *Handler) getDep(ctx context.Context, dep map[string]string, modules map[string]*module.Module) error {
-	for id := range dep {
-		if _, ok := modules[id]; !ok {
-			m, err := h.storageHandler.Get(ctx, id)
+func (h *Handler) getReqMod(ctx context.Context, mod *module.Module, reqMod map[string]*module.Module) error {
+	for mID := range mod.Dependencies {
+		if _, ok := reqMod[mID]; !ok {
+			m, err := h.storageHandler.Get(ctx, mID)
 			if err != nil {
 				return err
 			}
-			modules[id] = m
-			err = h.getDep(ctx, m.Dependencies, modules)
-			if err != nil {
+			reqMod[mID] = m
+			if err = h.getReqMod(ctx, m, reqMod); err != nil {
 				return err
 			}
 		}
