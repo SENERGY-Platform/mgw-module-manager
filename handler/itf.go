@@ -67,7 +67,7 @@ type DepStorageHandler interface {
 	CreateDepSecrets(ctx context.Context, tx driver.Tx, secrets map[string]string, dID string) error
 	CreateDepReq(ctx context.Context, tx driver.Tx, depReq []string, dID string) error
 	ReadDep(ctx context.Context, dID string) (*model.Deployment, error)
-	UpdateDep(ctx context.Context, tx driver.Tx, dID, name string, stopped, indirect bool, timestamp time.Time) error
+	UpdateDep(ctx context.Context, dID, name string, stopped, indirect bool, timestamp time.Time) error
 	DeleteDep(ctx context.Context, dID string) error
 	DeleteDepConfigs(ctx context.Context, tx driver.Tx, dID string) error
 	DeleteDepHostRes(ctx context.Context, tx driver.Tx, dID string) error
@@ -75,7 +75,7 @@ type DepStorageHandler interface {
 	ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.DepInstanceMeta, error)
 	CreateInst(ctx context.Context, tx driver.Tx, dID string, timestamp time.Time) (string, error)
 	ReadInst(ctx context.Context, iID string) (*model.DepInstance, error)
-	UpdateInst(ctx context.Context, tx driver.Tx, iID string, timestamp time.Time) error
+	UpdateInst(ctx context.Context, iID string, timestamp time.Time) error
 	DeleteInst(ctx context.Context, iID string) error
 	CreateInstCtr(ctx context.Context, tx driver.Tx, iID, cID, sRef string) error
 	DeleteInstCtr(ctx context.Context, cID string) error

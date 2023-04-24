@@ -249,9 +249,8 @@ func (h *StorageHandler) ReadDep(ctx context.Context, id string) (*model.Deploym
 	return &dep, nil
 }
 
-func (h *StorageHandler) UpdateDep(ctx context.Context, itf driver.Tx, dID, name string, stopped, indirect bool, timestamp time.Time) error {
-	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `stopped` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", name, stopped, indirect, timestamp, dID)
+func (h *StorageHandler) UpdateDep(ctx context.Context, dID, name string, stopped, indirect bool, timestamp time.Time) error {
+	res, err := h.db.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `stopped` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", name, stopped, indirect, timestamp, dID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
@@ -398,9 +397,8 @@ func (h *StorageHandler) ReadInst(ctx context.Context, id string) (*model.DepIns
 	return &inst, nil
 }
 
-func (h *StorageHandler) UpdateInst(ctx context.Context, itf driver.Tx, id string, timestamp time.Time) error {
-	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "UPDATE `instances` SET `updated` = ? WHERE `id` = ?", timestamp, id)
+func (h *StorageHandler) UpdateInst(ctx context.Context, id string, timestamp time.Time) error {
+	res, err := h.db.ExecContext(ctx, "UPDATE `instances` SET `updated` = ? WHERE `id` = ?", timestamp, id)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
