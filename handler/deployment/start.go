@@ -38,7 +38,7 @@ func (h *Handler) Start(ctx context.Context, id string) error {
 		}
 		order, err := h.getDepOrder(reqDep)
 		if err != nil {
-			return err
+			return model.NewInternalError(err)
 		}
 		for _, rdID := range order {
 			rd := reqDep[rdID]
