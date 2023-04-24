@@ -18,9 +18,11 @@ package deployment
 
 import (
 	"context"
+	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/ctx_handler"
 	"time"
 )
 
@@ -66,4 +68,22 @@ func (h *Handler) Start(ctx context.Context, id string) error {
 
 func (h *Handler) Stop(ctx context.Context, id string) error {
 	panic("not implemented")
+}
+
+func (h *Handler) getReqDep(ctx context.Context, dep *model.Deployment, reqDep map[string]*model.Deployment) error {
+	ch := ctx_handler.New()
+	defer ch.CancelAll()
+	for _, dID := range dep.RequiredDep {
+		if _, ok := reqDep[dID]; !ok {
+			d, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID)
+			if err != nil {
+				return err
+			}
+			reqDep[dID] = d
+			if err = h.getReqDep(ctx, d, reqDep); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
