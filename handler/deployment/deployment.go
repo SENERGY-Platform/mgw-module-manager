@@ -178,7 +178,7 @@ func (h *Handler) getDepOrder(dep map[string]*model.Deployment) (order []string,
 		}
 		order, err = tsort.GetTopOrder(nodes)
 		if err != nil {
-			return nil, err
+			return
 		}
 	} else if len(dep) > 0 {
 		for _, d := range dep {
