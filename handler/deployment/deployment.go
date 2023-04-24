@@ -18,7 +18,6 @@ package deployment
 
 import (
 	"context"
-	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
@@ -62,70 +61,6 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 
 func (h *Handler) Update(ctx context.Context, dID string, drb model.DepRequestBase) error {
 	panic("not implemented")
-}
-
-func (h *Handler) Start(ctx context.Context, id string) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	d, err := h.storageHandler.ReadDep(ctxWt, id)
-	if err != nil {
-		return err
-	}
-	if len(d.RequiredDep) > 0 {
-		reqDep := make(map[string]*model.Deployment)
-		if err = h.getReqDep(ctx, d, reqDep); err != nil {
-			return err
-		}
-		order, err := h.getDepOrder(reqDep)
-		if err != nil {
-			return err
-		}
-		for _, rdID := range order {
-			rd := reqDep[rdID]
-			if err = h.start(ctx, rd); err != nil {
-				return err
-			}
-		}
-	}
-	return h.start(ctx, d)
-}
-
-func (h *Handler) start(ctx context.Context, dep *model.Deployment) error {
-	ch := ctx_handler.New()
-	defer ch.CancelAll()
-	m, err := h.moduleHandler.Get(ctx, dep.ModuleID)
-	if err != nil {
-		return err
-	}
-	order, err := getSrvOrder(m.Services)
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	instances, err := h.storageHandler.ListInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepInstFilter{DepID: dep.ID})
-	if err != nil {
-		return err
-	}
-	if len(instances) != 1 {
-		return model.NewInternalError(fmt.Errorf("invalid number of instances: %d", len(instances)))
-	}
-	instance, err := h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instances[0].ID)
-	if err != nil {
-		return err
-	}
-	for _, sRef := range order {
-		cID, ok := instance.Containers[sRef]
-		if !ok {
-			return model.NewInternalError(fmt.Errorf("no container for service reference '%s'", sRef))
-		}
-		err = h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
-		if err != nil {
-			return err
-		}
-	}
-	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID, dep.Name, false, dep.Indirect, time.Now().UTC()); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (h *Handler) Stop(ctx context.Context, id string) error {
