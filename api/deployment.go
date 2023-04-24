@@ -48,11 +48,11 @@ func (a *Api) GetDeployment(ctx context.Context, id string) (*model.Deployment, 
 }
 
 func (a *Api) StartDeployment(ctx context.Context, id string) error {
-	panic("not implemented")
+	return a.deploymentHandler.Start(ctx, id)
 }
 
 func (a *Api) StopDeployment(ctx context.Context, id string) error {
-	panic("not implemented")
+	return a.deploymentHandler.Stop(ctx, id)
 }
 
 func (a *Api) UpdateDeployment(ctx context.Context, id string, dr model.DepRequest) error {
