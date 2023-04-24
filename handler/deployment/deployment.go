@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/ctx_handler"
