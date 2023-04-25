@@ -87,12 +87,25 @@ func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
 	return nil
 }
 
-func isNotReq(sl []string, m map[string]*model.Deployment, id string) bool {
+func (h *Handler) getExtDepReq(ctx context.Context, sl []string, m map[string]*model.Deployment) ([]*model.Deployment, error) {
+	ch := ctx_handler.New()
+	defer ch.CancelAll()
+	var ext []*model.Deployment
 	for _, s := range sl {
-		if s == id {
-			continue
-		}
 		if _, ok := m[s]; !ok {
+			d, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), s)
+			if err != nil {
+				return nil, err
+			}
+			ext = append(ext, d)
+		}
+	}
+	return ext, nil
+}
+
+func allDepReqStopped(ext []*model.Deployment) bool {
+	for _, d := range ext {
+		if !d.Stopped {
 			return false
 		}
 	}
