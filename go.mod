@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/SENERGY-Platform/gin-middleware v0.1.0
 	github.com/SENERGY-Platform/go-service-base v0.6.0
-	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.3.1
+	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.3.2
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.5.0
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.8.0
 	github.com/SENERGY-Platform/mgw-module-lib v0.7.1
