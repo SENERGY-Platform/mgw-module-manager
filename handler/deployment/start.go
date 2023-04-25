@@ -61,14 +61,7 @@ func (h *Handler) start(ctx context.Context, dep *model.Deployment) error {
 	if err != nil {
 		return model.NewInternalError(err)
 	}
-	instances, err := h.storageHandler.ListInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepInstFilter{DepID: dep.ID})
-	if err != nil {
-		return err
-	}
-	if len(instances) != 1 {
-		return model.NewInternalError(fmt.Errorf("invalid number of instances: %d", len(instances)))
-	}
-	instance, err := h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instances[0].ID)
+	instance, err := h.getCurrentInst(ctx, dep.ID)
 	if err != nil {
 		return err
 	}

@@ -18,6 +18,7 @@ package deployment
 
 import (
 	"context"
+	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
@@ -103,6 +104,19 @@ func (h *Handler) getDepOrder(dep map[string]*model.Deployment) (order []string,
 		}
 	}
 	return
+}
+
+func (h *Handler) getCurrentInst(ctx context.Context, dID string) (*model.DepInstance, error) {
+	ch := ctx_handler.New()
+	defer ch.CancelAll()
+	instances, err := h.storageHandler.ListInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepInstFilter{DepID: dID})
+	if err != nil {
+		return nil, err
+	}
+	if len(instances) != 1 {
+		return nil, model.NewInternalError(fmt.Errorf("invalid number of instances: %d", len(instances)))
+	}
+	return h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instances[0].ID)
 }
 
 func getSrvOrder(services map[string]*module.Service) (order []string, err error) {
