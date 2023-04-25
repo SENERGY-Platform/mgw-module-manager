@@ -91,9 +91,8 @@ func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
 		if !ok {
 			return model.NewInternalError(fmt.Errorf("no container for service reference '%s'", order[i]))
 		}
-		_, err = h.cewClient.StopContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
-		if err != nil {
-			return err
+		if err = h.stopContainer(ctx, cID); err != nil {
+			return model.NewInternalError(err)
 		}
 	}
 	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID, dep.Name, true, dep.Indirect, time.Now().UTC()); err != nil {
