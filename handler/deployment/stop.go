@@ -55,14 +55,20 @@ func (h *Handler) Stop(ctx context.Context, id string) error {
 		}
 		for i := len(order) - 1; i >= 0; i-- {
 			rd := reqDep[order[i]]
-			if isNotReq(rd.DepRequiring, reqDep, d.ID) {
-				if err = h.stop(ctx, rd); err != nil {
+			if len(rd.DepRequiring) > 0 {
+				extDepReq, err := h.getExtDepReq(ctx, d.DepRequiring, reqDep)
+				if err != nil {
 					return err
+				}
+				if allDepReqStopped(extDepReq) {
+					if err = h.stop(ctx, rd); err != nil {
+						return err
+					}
 				}
 			}
 		}
 	}
-	return h.stop(ctx, d)
+	return nil
 }
 
 func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
