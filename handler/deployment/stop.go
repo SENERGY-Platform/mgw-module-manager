@@ -18,10 +18,10 @@ package deployment
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/ctx_handler"
-	"strings"
 	"time"
 )
 
@@ -33,7 +33,16 @@ func (h *Handler) Stop(ctx context.Context, id string) error {
 		return err
 	}
 	if len(d.DepRequiring) > 0 {
-		return model.NewInternalError(fmt.Errorf("deplyoment is required by: %s", strings.Join(d.DepRequiring, ", ")))
+		extDepReq, err := h.getExtDepReq(ctx, d.DepRequiring, nil)
+		if err != nil {
+			return err
+		}
+		if !allDepReqStopped(extDepReq) {
+			return model.NewInternalError(errors.New("required by running deployments"))
+		}
+	}
+	if err = h.stop(ctx, d); err != nil {
+		return err
 	}
 	if len(d.RequiredDep) > 0 {
 		reqDep := make(map[string]*model.Deployment)
