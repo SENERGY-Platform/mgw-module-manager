@@ -96,6 +96,37 @@ func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
 	return nil
 }
 
+func (h *Handler) stopContainer(ctx context.Context, cID string) error {
+	ch := ctx_handler.New()
+	defer ch.CancelAll()
+	jID, err := h.cewClient.StopContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
+	if err != nil {
+		return err
+	}
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			c, cf := context.WithTimeout(context.Background(), h.httpTimeout)
+			_ = h.cewClient.CancelJob(c, jID)
+			cf()
+			return ctx.Err()
+		case <-ticker.C:
+			j, err := h.cewClient.GetJob(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), jID)
+			if err != nil {
+				return err
+			}
+			if j.Error != nil {
+				return fmt.Errorf("%v", j.Error)
+			}
+			if j.Completed != nil {
+				return nil
+			}
+		}
+	}
+}
+
 func (h *Handler) getExtDepReq(ctx context.Context, sl []string, m map[string]*model.Deployment) ([]*model.Deployment, error) {
 	ch := ctx_handler.New()
 	defer ch.CancelAll()
