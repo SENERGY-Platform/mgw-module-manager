@@ -61,7 +61,19 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 }
 
 func (h *Handler) GetTemplate(ctx context.Context, mID string) (*model.DepTemplate, error) {
-	panic("not implemented")
+	m, rms, err := h.moduleHandler.GetWithDep(ctx, mID)
+	if err != nil {
+		return nil, err
+	}
+	dt := model.DepTemplate{ModuleID: m.ID, DepTemplateBase: getDepTemplateBase(m)}
+	if len(rms) > 0 {
+		rdt := make(map[string]model.DepTemplateBase)
+		for _, rm := range rms {
+			rdt[rm.ID] = getDepTemplateBase(rm)
+		}
+		dt.Dependencies = rdt
+	}
+	return &dt, nil
 }
 
 func (h *Handler) Update(ctx context.Context, dID string, drb model.DepRequestBase) error {
@@ -139,4 +151,44 @@ func getSrvOrder(services map[string]*module.Service) (order []string, err error
 		}
 	}
 	return
+}
+
+func getDepTemplateBase(m *module.Module) model.DepTemplateBase {
+	it := model.DepTemplateBase{
+		HostResources: make(map[string]model.DepTemplateHostRes),
+		Secrets:       make(map[string]model.DepTemplateSecret),
+		Configs:       make(map[string]model.DepTemplateConfig),
+		InputGroups:   m.Inputs.Groups,
+	}
+	for ref, input := range m.Inputs.Resources {
+		it.HostResources[ref] = model.DepTemplateHostRes{
+			Input:        input,
+			HostResource: m.HostResources[ref],
+		}
+	}
+	for ref, input := range m.Inputs.Secrets {
+		it.Secrets[ref] = model.DepTemplateSecret{
+			Input:  input,
+			Secret: m.Secrets[ref],
+		}
+	}
+	for ref, input := range m.Inputs.Configs {
+		cv := m.Configs[ref]
+		itc := model.DepTemplateConfig{
+			Input:    input,
+			Default:  cv.Default,
+			Options:  cv.Options,
+			OptExt:   cv.OptExt,
+			Type:     cv.Type,
+			TypeOpt:  make(map[string]any),
+			DataType: cv.DataType,
+			IsList:   cv.IsSlice,
+			Required: cv.Required,
+		}
+		for key, opt := range cv.TypeOpt {
+			itc.TypeOpt[key] = opt.Value
+		}
+		it.Configs[ref] = itc
+	}
+	return it
 }
