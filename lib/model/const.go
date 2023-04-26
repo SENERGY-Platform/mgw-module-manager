@@ -24,6 +24,6 @@ const (
 const (
 	ModulesPath     = "modules"
 	DeploymentsPath = "deployments"
-	DepTemplatePath = "input_template"
+	DepTemplatePath = "dep_template"
 	DepCtrlPath     = "ctrl"
 )
