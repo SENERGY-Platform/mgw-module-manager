@@ -83,7 +83,7 @@ func main() {
 	mfGenerators := make(modfile.Generators)
 	mfGenerators.Add(v1gen.GetGenerator)
 
-	modStorageHandler, err := mod_storage_hdl.New(config.ModuleFileHandler.WorkdirPath, config.ModuleFileHandler.Delimiter, mfDecoders, mfGenerators, 0770)
+	modStorageHandler, err := mod_storage_hdl.New(config.ModStorageHandler.WorkdirPath, config.ModStorageHandler.Delimiter, mfDecoders, mfGenerators, 0770)
 	if err != nil {
 		util.Logger.Error(err)
 		return

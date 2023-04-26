@@ -35,14 +35,14 @@ type HttpClientConfig struct {
 	Timeout    int64  `json:"timeout" env_var:"HTTP_TIMEOUT"`
 }
 
-type ModuleFileHandlerConfig struct {
-	WorkdirPath string `json:"workdir_path" env_var:"MFH_WORKDIR_PATH"`
-	Delimiter   string `json:"delimiter" env_var:"MFH_DELIMITER"`
+type ModStorageHandlerConfig struct {
+	WorkdirPath string `json:"workdir_path" env_var:"MSH_WORKDIR_PATH"`
+	Delimiter   string `json:"delimiter" env_var:"MSH_DELIMITER"`
 }
 
 type Config struct {
 	ServerPort        uint                    `json:"server_port" env_var:"SERVER_PORT"`
-	ModuleFileHandler ModuleFileHandlerConfig `json:"module_file_handler" env_var:"MFH_CONFIG"`
+	ModStorageHandler ModStorageHandlerConfig `json:"module_storage_handler" env_var:"MSH_CONFIG"`
 	Logger            srv_base.LoggerConfig   `json:"logger" env_var:"LOGGER_CONFIG"`
 	ConfigDefsPath    string                  `json:"config_defs_path" env_var:"CONFIG_DEFS_PATH"`
 	Database          DatabaseConfig          `json:"database" env_var:"DATABASE_CONFIG"`
@@ -51,7 +51,7 @@ type Config struct {
 
 func NewConfig(path *string) (*Config, error) {
 	cfg := Config{
-		ModuleFileHandler: ModuleFileHandlerConfig{
+		ModStorageHandler: ModStorageHandlerConfig{
 			WorkdirPath: "/opt/manager",
 			Delimiter:   "_",
 		},
