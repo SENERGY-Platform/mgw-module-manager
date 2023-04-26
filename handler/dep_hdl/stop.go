@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"time"
 )
@@ -114,7 +115,10 @@ func (h *Handler) stopContainer(ctx context.Context, cID string) error {
 		select {
 		case <-ctx.Done():
 			c, cf := context.WithTimeout(context.Background(), h.httpTimeout)
-			_ = h.cewClient.CancelJob(c, jID)
+			err = h.cewClient.CancelJob(c, jID)
+			if err != nil {
+				util.Logger.Error(err)
+			}
 			cf()
 			return ctx.Err()
 		case <-ticker.C:
