@@ -83,12 +83,12 @@ func main() {
 	mfGenerators := make(modfile.Generators)
 	mfGenerators.Add(v1gen.GetGenerator)
 
-	moduleStorageHandler, err := mod_storage_hdl.New(config.ModuleFileHandler.WorkdirPath, config.ModuleFileHandler.Delimiter, mfDecoders, mfGenerators, 0770)
+	modStorageHandler, err := mod_storage_hdl.New(config.ModuleFileHandler.WorkdirPath, config.ModuleFileHandler.Delimiter, mfDecoders, mfGenerators, 0770)
 	if err != nil {
 		util.Logger.Error(err)
 		return
 	}
-	if err := moduleStorageHandler.InitWorkspace(); err != nil {
+	if err := modStorageHandler.InitWorkspace(); err != nil {
 		util.Logger.Error(err)
 		return
 	}
@@ -98,13 +98,13 @@ func main() {
 		util.Logger.Error(err)
 		return
 	}
-	configValidationHandler, err := cfg_valid_hdl.New(cfgDefs, inputValidators)
+	cfgValidHandler, err := cfg_valid_hdl.New(cfgDefs, inputValidators)
 	if err != nil {
 		util.Logger.Error(err)
 		return
 	}
 
-	moduleHandler := mod_hdl.New(moduleStorageHandler, nil, configValidationHandler)
+	modHandler := mod_hdl.New(modStorageHandler, nil, cfgValidHandler)
 
 	dbCtx, dbCtxCf := context.WithCancel(context.Background())
 	defer dbCtxCf()
@@ -118,9 +118,9 @@ func main() {
 	cewClient := client.New(http.DefaultClient, config.HttpClient.CewBaseUrl)
 
 	depStorageHandler := dep_storage_hdl.New(db)
-	deploymentHandler := dep_hdl.New(depStorageHandler, configValidationHandler, moduleHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout))
+	depHandler := dep_hdl.New(depStorageHandler, cfgValidHandler, modHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout))
 
-	mApi := api.New(moduleHandler, deploymentHandler)
+	mApi := api.New(modHandler, depHandler)
 
 	gin.SetMode(gin.ReleaseMode)
 	httpHandler := gin.New()
