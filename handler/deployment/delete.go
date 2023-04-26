@@ -45,6 +45,9 @@ func (h *Handler) delete(ctx context.Context, dID string, orphans bool) error {
 	if err := h.removeVolumes(ctx, dID); err != nil {
 		return err
 	}
+	if err := h.moduleHandler.DeleteInclDir(ctx, dID); err != nil {
+		return err
+	}
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	if err := h.storageHandler.DeleteDep(ctxWt, dID); err != nil {
