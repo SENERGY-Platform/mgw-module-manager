@@ -28,7 +28,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1dec"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1gen"
 	"github.com/SENERGY-Platform/mgw-module-manager/api"
-	"github.com/SENERGY-Platform/mgw-module-manager/api/http_engine"
+	"github.com/SENERGY-Platform/mgw-module-manager/api/http_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl/validators"
