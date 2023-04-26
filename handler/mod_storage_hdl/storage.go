@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package mod_storage
+package mod_storage_hdl
 
 import (
 	"context"
@@ -39,7 +39,7 @@ const (
 
 var mfExtensions = []string{"yaml", "yml"}
 
-type StorageHandler struct {
+type Handler struct {
 	wrkSpacePath string
 	delimiter    string
 	mfDecoders   modfile.Decoders
@@ -47,11 +47,11 @@ type StorageHandler struct {
 	perm         fs.FileMode
 }
 
-func NewStorageHandler(workspacePath string, delimiter string, mfDecoders modfile.Decoders, mfGenerators modfile.Generators, perm fs.FileMode) (*StorageHandler, error) {
+func New(workspacePath string, delimiter string, mfDecoders modfile.Decoders, mfGenerators modfile.Generators, perm fs.FileMode) (*Handler, error) {
 	if !path.IsAbs(workspacePath) {
 		return nil, fmt.Errorf("workspace path must be absolute")
 	}
-	return &StorageHandler{
+	return &Handler{
 		wrkSpacePath: workspacePath,
 		delimiter:    delimiter,
 		mfDecoders:   mfDecoders,
@@ -60,7 +60,7 @@ func NewStorageHandler(workspacePath string, delimiter string, mfDecoders modfil
 	}, nil
 }
 
-func (h *StorageHandler) InitWorkspace() error {
+func (h *Handler) InitWorkspace() error {
 	if err := os.MkdirAll(path.Join(h.wrkSpacePath, modDir), h.perm); err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (h *StorageHandler) InitWorkspace() error {
 	return nil
 }
 
-func (h *StorageHandler) List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
+func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
 	dir, err := os.ReadDir(path.Join(h.wrkSpacePath, modDir))
 	if err != nil {
 		return nil, model.NewInternalError(wrapErr(err, h.wrkSpacePath))
@@ -103,7 +103,7 @@ func (h *StorageHandler) List(ctx context.Context, filter model.ModFilter) ([]mo
 	return mm, nil
 }
 
-func (h *StorageHandler) Get(_ context.Context, mID string) (*module.Module, error) {
+func (h *Handler) Get(_ context.Context, mID string) (*module.Module, error) {
 	p := path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter))
 	if _, err := os.Stat(p); err != nil {
 		return nil, model.NewNotFoundError(wrapErr(err, h.wrkSpacePath))
@@ -115,18 +115,18 @@ func (h *StorageHandler) Get(_ context.Context, mID string) (*module.Module, err
 	return m, nil
 }
 
-func (h *StorageHandler) Add(ctx context.Context, mID string) error {
+func (h *Handler) Add(ctx context.Context, mID string) error {
 	panic("not implemented")
 }
 
-func (h *StorageHandler) Delete(_ context.Context, mID string) error {
+func (h *Handler) Delete(_ context.Context, mID string) error {
 	if err := os.RemoveAll(path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter))); err != nil {
 		return model.NewInternalError(wrapErr(err, h.wrkSpacePath))
 	}
 	return nil
 }
 
-func (h *StorageHandler) CreateInclDir(_ context.Context, mID, iID string) (string, error) {
+func (h *Handler) CreateInclDir(_ context.Context, mID, iID string) (string, error) {
 	p := path.Join(h.wrkSpacePath, inclDir, iID)
 	if err := copyDir(path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter)), p); err != nil {
 		_ = os.RemoveAll(p)
@@ -135,18 +135,18 @@ func (h *StorageHandler) CreateInclDir(_ context.Context, mID, iID string) (stri
 	return p, nil
 }
 
-func (h *StorageHandler) ListInclDir(_ context.Context, iID string) ([]string, error) {
+func (h *Handler) ListInclDir(_ context.Context, iID string) ([]string, error) {
 	return walkDir(path.Join(h.wrkSpacePath, inclDir, iID), nil)
 }
 
-func (h *StorageHandler) DeleteInclDir(_ context.Context, iID string) error {
+func (h *Handler) DeleteInclDir(_ context.Context, iID string) error {
 	if err := os.RemoveAll(path.Join(h.wrkSpacePath, inclDir, iID)); err != nil {
 		return model.NewInternalError(wrapErr(err, h.wrkSpacePath))
 	}
 	return nil
 }
 
-func (h *StorageHandler) readModFile(p string) (*module.Module, error) {
+func (h *Handler) readModFile(p string) (*module.Module, error) {
 	mfp, err := detectModFile(p)
 	if err != nil {
 		return nil, wrapErr(err, h.wrkSpacePath)

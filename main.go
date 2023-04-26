@@ -32,7 +32,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_storage_hdl"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_storage_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/validation"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/validation/validators"
@@ -83,7 +83,7 @@ func main() {
 	mfGenerators := make(modfile.Generators)
 	mfGenerators.Add(v1gen.GetGenerator)
 
-	moduleStorageHandler, err := mod_storage.NewStorageHandler(config.ModuleFileHandler.WorkdirPath, config.ModuleFileHandler.Delimiter, mfDecoders, mfGenerators, 0770)
+	moduleStorageHandler, err := mod_storage_hdl.New(config.ModuleFileHandler.WorkdirPath, config.ModuleFileHandler.Delimiter, mfDecoders, mfGenerators, 0770)
 	if err != nil {
 		util.Logger.Error(err)
 		return
