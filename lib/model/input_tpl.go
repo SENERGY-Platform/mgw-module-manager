@@ -20,30 +20,30 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 )
 
-type InputTemplateBase struct {
-	HostResources map[string]InputTemplateHostRes `json:"host_resources"` // {ref:ResourceInput}
-	Secrets       map[string]InputTemplateSecret  `json:"secrets"`        // {ref:SecretInput}
-	Configs       map[string]InputTemplateConfig  `json:"configs"`        // {ref:ConfigInput}
-	InputGroups   map[string]module.InputGroup    `json:"input_groups"`   // {ref:InputGroup}
+type DepTemplateBase struct {
+	HostResources map[string]DepTemplateHostRes `json:"host_resources"` // {ref:ResourceInput}
+	Secrets       map[string]DepTemplateSecret  `json:"secrets"`        // {ref:SecretInput}
+	Configs       map[string]DepTemplateConfig  `json:"configs"`        // {ref:ConfigInput}
+	InputGroups   map[string]module.InputGroup  `json:"input_groups"`   // {ref:InputGroup}
 }
 
-type InputTemplate struct {
+type DepTemplate struct {
 	ModuleID string `json:"module_id"`
-	InputTemplateBase
-	Dependencies map[string]InputTemplateBase `json:"dependencies"`
+	DepTemplateBase
+	Dependencies map[string]DepTemplateBase `json:"dependencies"`
 }
 
-type InputTemplateHostRes struct {
+type DepTemplateHostRes struct {
 	module.Input
 	module.HostResource
 }
 
-type InputTemplateSecret struct {
+type DepTemplateSecret struct {
 	module.Input
 	module.Secret
 }
 
-type InputTemplateConfig struct {
+type DepTemplateConfig struct {
 	module.Input
 	Default  any             `json:"default"`
 	Options  any             `json:"options"`

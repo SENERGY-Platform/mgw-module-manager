@@ -22,17 +22,17 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func (a *Api) GetDeploymentTemplate(ctx context.Context, id string) (model.InputTemplate, error) {
+func (a *Api) GetDeploymentTemplate(ctx context.Context, id string) (model.DepTemplate, error) {
 	m, err := a.moduleHandler.Get(ctx, id)
 	if err != nil {
-		return model.InputTemplate{}, err
+		return model.DepTemplate{}, err
 	}
-	itm := make(map[string]model.InputTemplateBase)
+	itm := make(map[string]model.DepTemplateBase)
 	err = a.getDepInputTemplates(ctx, m, itm)
 	if err != nil {
-		return model.InputTemplate{}, err
+		return model.DepTemplate{}, err
 	}
-	return model.InputTemplate{ModuleID: m.ID, InputTemplateBase: genInputTemplate(m), Dependencies: itm}, nil
+	return model.DepTemplate{ModuleID: m.ID, DepTemplateBase: genInputTemplate(m), Dependencies: itm}, nil
 }
 
 func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error) {
@@ -63,7 +63,7 @@ func (a *Api) DeleteDeployment(ctx context.Context, id string, orphans bool) err
 	return a.deploymentHandler.Delete(ctx, id, orphans)
 }
 
-func (a *Api) getDepInputTemplates(ctx context.Context, m *module.Module, itm map[string]model.InputTemplateBase) error {
+func (a *Api) getDepInputTemplates(ctx context.Context, m *module.Module, itm map[string]model.DepTemplateBase) error {
 	for mdID := range m.Dependencies {
 		if _, ok := itm[mdID]; !ok {
 			ds, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: mdID})
@@ -86,28 +86,28 @@ func (a *Api) getDepInputTemplates(ctx context.Context, m *module.Module, itm ma
 	return nil
 }
 
-func genInputTemplate(m *module.Module) model.InputTemplateBase {
-	it := model.InputTemplateBase{
-		HostResources: make(map[string]model.InputTemplateHostRes),
-		Secrets:       make(map[string]model.InputTemplateSecret),
-		Configs:       make(map[string]model.InputTemplateConfig),
+func genInputTemplate(m *module.Module) model.DepTemplateBase {
+	it := model.DepTemplateBase{
+		HostResources: make(map[string]model.DepTemplateHostRes),
+		Secrets:       make(map[string]model.DepTemplateSecret),
+		Configs:       make(map[string]model.DepTemplateConfig),
 		InputGroups:   m.Inputs.Groups,
 	}
 	for ref, input := range m.Inputs.Resources {
-		it.HostResources[ref] = model.InputTemplateHostRes{
+		it.HostResources[ref] = model.DepTemplateHostRes{
 			Input:        input,
 			HostResource: m.HostResources[ref],
 		}
 	}
 	for ref, input := range m.Inputs.Secrets {
-		it.Secrets[ref] = model.InputTemplateSecret{
+		it.Secrets[ref] = model.DepTemplateSecret{
 			Input:  input,
 			Secret: m.Secrets[ref],
 		}
 	}
 	for ref, input := range m.Inputs.Configs {
 		cv := m.Configs[ref]
-		itc := model.InputTemplateConfig{
+		itc := model.DepTemplateConfig{
 			Input:    input,
 			Default:  cv.Default,
 			Options:  cv.Options,
