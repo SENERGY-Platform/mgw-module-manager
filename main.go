@@ -63,7 +63,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	logFile, err := srv_base.InitLogger(config.Logger)
+	logFile, err := util.InitLogger(config.Logger)
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		var logFileError *srv_base.LogFileError
@@ -75,7 +75,7 @@ func main() {
 		defer logFile.Close()
 	}
 
-	srv_base.Logger.Debugf("config: %s", srv_base.ToJsonStr(config))
+	util.Logger.Debugf("config: %s", srv_base.ToJsonStr(config))
 
 	mfDecoders := make(modfile.Decoders)
 	mfDecoders.Add(v1dec.GetDecoder)
@@ -84,22 +84,22 @@ func main() {
 
 	moduleStorageHandler, err := module.NewStorageHandler(config.ModuleFileHandler.WorkdirPath, config.ModuleFileHandler.Delimiter, mfDecoders, mfGenerators, 0770)
 	if err != nil {
-		srv_base.Logger.Error(err)
+		util.Logger.Error(err)
 		return
 	}
 	if err := moduleStorageHandler.InitWorkspace(); err != nil {
-		srv_base.Logger.Error(err)
+		util.Logger.Error(err)
 		return
 	}
 
 	cfgDefs, err := validation.LoadDefs(config.ConfigDefsPath)
 	if err != nil {
-		srv_base.Logger.Error(err)
+		util.Logger.Error(err)
 		return
 	}
 	configValidationHandler, err := validation.NewConfigValidationHandler(cfgDefs, inputValidators)
 	if err != nil {
-		srv_base.Logger.Error(err)
+		util.Logger.Error(err)
 		return
 	}
 
@@ -109,7 +109,7 @@ func main() {
 	defer dbCtxCf()
 	db, err := util.InitDB(dbCtx, config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd, config.Database.Name, 10, 10, time.Duration(config.Database.Timeout))
 	if err != nil {
-		srv_base.Logger.Error(err)
+		util.Logger.Error(err)
 		return
 	}
 	defer db.Close()
@@ -123,15 +123,15 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	httpEngine := gin.New()
-	httpEngine.Use(gin_mw.LoggerHandler(srv_base.Logger), gin_mw.ErrorHandler(http_engine.GetStatusCode, ", "), gin.Recovery())
+	httpEngine.Use(gin_mw.LoggerHandler(util.Logger), gin_mw.ErrorHandler(http_engine.GetStatusCode, ", "), gin.Recovery())
 	httpEngine.UseRawPath = true
 
 	http_engine.SetRoutes(httpEngine, mApi)
 
 	listener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
-		srv_base.Logger.Error(err)
+		util.Logger.Error(err)
 		return
 	}
-	srv_base.StartServer(&http.Server{Handler: httpEngine}, listener, srv_base_types.DefaultShutdownSignals)
+	srv_base.StartServer(&http.Server{Handler: httpEngine}, listener, srv_base_types.DefaultShutdownSignals, util.Logger)
 }
