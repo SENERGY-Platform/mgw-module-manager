@@ -30,8 +30,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/api"
 	"github.com/SENERGY-Platform/mgw-module-manager/api/http_engine"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_storage_hdl"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler/deployment"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_storage"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/validation"
@@ -118,7 +118,7 @@ func main() {
 	cewClient := client.New(http.DefaultClient, config.HttpClient.CewBaseUrl)
 
 	depStorageHandler := dep_storage_hdl.New(db)
-	deploymentHandler := deployment.NewHandler(depStorageHandler, configValidationHandler, moduleHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout))
+	deploymentHandler := dep_hdl.New(depStorageHandler, configValidationHandler, moduleHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout))
 
 	mApi := api.New(moduleHandler, deploymentHandler)
 

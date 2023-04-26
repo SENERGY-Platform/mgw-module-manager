@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package deployment
+package dep_hdl
 
 import (
 	"context"
