@@ -18,6 +18,8 @@ package dep_hdl
 
 import (
 	"context"
+	"crypto/sha1"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
@@ -26,7 +28,10 @@ import (
 	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/ctx_handler"
+	"math"
 	"path"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -410,4 +415,309 @@ func getModOrder(modules map[string]*module.Module) (order []string, err error) 
 		}
 	}
 	return
+}
+
+func getVolumeName(s, v string) string {
+	return "MGW_" + genHash(s, v)
+}
+
+func getSrvName(s, r string) string {
+	return "MGW_" + genHash(s, r)
+}
+
+func genHash(str ...string) string {
+	hash := sha1.New()
+	for _, s := range str {
+		hash.Write([]byte(s))
+	}
+	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(hash.Sum(nil))
+}
+
+func getConfigsWithDefaults(mConfigs module.Configs, dConfigs map[string]any) (map[string]string, error) {
+	envVals := make(map[string]string)
+	for ref, mConfig := range mConfigs {
+		val, ok := dConfigs[ref]
+		if !ok {
+			if mConfig.Required {
+				if mConfig.Default != nil {
+					val = mConfig.Default
+				} else {
+					return nil, fmt.Errorf("config '%s' required", ref)
+				}
+			} else {
+				if mConfig.Default != nil {
+					val = mConfig.Default
+				} else {
+					continue
+				}
+			}
+		}
+		var s string
+		var err error
+		if mConfig.IsSlice {
+			s, err = toStringList(val, mConfig.Delimiter, mConfig.DataType)
+		} else {
+			s, err = toString(val, mConfig.DataType)
+		}
+		if err != nil {
+			return nil, err
+		}
+		envVals[ref] = s
+	}
+	return envVals, nil
+}
+
+func toStringList(val any, d string, dataType module.DataType) (string, error) {
+	var sSl []string
+	switch dataType {
+	case module.StringType:
+		sl, err := toSlice[string](val)
+		if err != nil {
+			return "", err
+		}
+		sSl = sl
+	case module.BoolType:
+		sl, err := toSlice[bool](val)
+		if err != nil {
+			return "", err
+		}
+		for _, b := range sl {
+			sSl = append(sSl, strconv.FormatBool(b))
+		}
+	case module.Int64Type:
+		sl, err := toSlice[int64](val)
+		if err != nil {
+			return "", err
+		}
+		for _, i := range sl {
+			sSl = append(sSl, strconv.FormatInt(i, 10))
+		}
+	case module.Float64Type:
+		sl, err := toSlice[float64](val)
+		if err != nil {
+			return "", err
+		}
+		for _, f := range sl {
+			sSl = append(sSl, strconv.FormatFloat(f, 'f', -1, 64))
+		}
+	default:
+		return "", fmt.Errorf("unknown data type '%s'", dataType)
+	}
+	return strings.Join(sSl, d), nil
+}
+
+func toSlice[T any](val any) ([]T, error) {
+	sl, ok := val.([]T)
+	if !ok {
+		return nil, fmt.Errorf("invalid data type '%T'", val)
+	}
+	return sl, nil
+}
+
+func toString(val any, dataType module.DataType) (string, error) {
+	switch dataType {
+	case module.StringType:
+		s, err := parseString(val)
+		if err != nil {
+			return "", err
+		}
+		return s, nil
+	case module.BoolType:
+		b, err := parseBool(val)
+		if err != nil {
+			return "", err
+		}
+		return strconv.FormatBool(b), nil
+	case module.Int64Type:
+		i, err := parseInt64(val)
+		if err != nil {
+			return "", err
+		}
+		return strconv.FormatInt(i, 10), nil
+	case module.Float64Type:
+		f, err := parseFloat64(val)
+		if err != nil {
+			return "", err
+		}
+		return strconv.FormatFloat(f, 'f', -1, 64), nil
+	default:
+		return "", fmt.Errorf("unknown data type '%s'", dataType)
+	}
+}
+
+func getUserHostRes(hrs map[string]string, mHRs map[string]module.HostResource) (map[string]string, []string, error) {
+	dRs := make(map[string]string)
+	var ad []string
+	for ref, mRH := range mHRs {
+		id, ok := hrs[ref]
+		if ok {
+			dRs[ref] = id
+		} else {
+			if mRH.Required {
+				if len(mRH.Tags) > 0 {
+					ad = append(ad, ref)
+				} else {
+					return nil, nil, fmt.Errorf("host resource '%s' required", ref)
+				}
+			}
+		}
+	}
+	return dRs, ad, nil
+}
+
+func getUserSecrets(s map[string]string, mSs map[string]module.Secret) (map[string]string, []string, error) {
+	dSs := make(map[string]string)
+	var ad []string
+	for ref, mS := range mSs {
+		id, ok := s[ref]
+		if ok {
+			dSs[ref] = id
+		} else {
+			if mS.Required {
+				if len(mS.Tags) > 0 {
+					ad = append(ad, ref)
+				} else {
+					return nil, nil, fmt.Errorf("secret '%s' required", ref)
+				}
+			}
+		}
+	}
+	return dSs, ad, nil
+}
+
+func getUserConfigs(cfgs map[string]any, mCs module.Configs) (map[string]any, error) {
+	dCs := make(map[string]any)
+	for ref, mC := range mCs {
+		val, ok := cfgs[ref]
+		if !ok {
+			if mC.Default == nil && mC.Required {
+				return nil, fmt.Errorf("config '%s' requried", ref)
+			}
+		} else {
+			var v any
+			var err error
+			if mC.IsSlice {
+				v, err = parseCfgValSlice(val, mC.DataType)
+			} else {
+				v, err = parseCfgVal(val, mC.DataType)
+			}
+			if err != nil {
+				return nil, fmt.Errorf("parsing config '%s' failed: %s", ref, err)
+			}
+			dCs[ref] = v
+		}
+	}
+	return dCs, nil
+}
+
+func parseCfgVal(val any, dataType module.DataType) (v any, err error) {
+	switch dataType {
+	case module.StringType:
+		v, err = parseString(val)
+	case module.BoolType:
+		v, err = parseBool(val)
+	case module.Int64Type:
+		v, err = parseInt64(val)
+	case module.Float64Type:
+		v, err = parseFloat64(val)
+	default:
+		return nil, fmt.Errorf("unknown data type '%s'", dataType)
+	}
+	return
+}
+
+func parseCfgValSlice(val any, dataType module.DataType) (v any, err error) {
+	vSl, ok := val.([]any)
+	if !ok {
+		return nil, fmt.Errorf("invalid data type '%T'", val)
+	}
+	if len(vSl) == 0 {
+		return nil, errors.New("no values to parse")
+	}
+	switch dataType {
+	case module.StringType:
+		v, err = toTSlice(vSl, parseString)
+	case module.BoolType:
+		v, err = toTSlice(vSl, parseBool)
+	case module.Int64Type:
+		v, err = toTSlice(vSl, parseInt64)
+	case module.Float64Type:
+		v, err = toTSlice(vSl, parseFloat64)
+	default:
+		return nil, fmt.Errorf("unknown data type '%s'", dataType)
+	}
+	return
+}
+
+func toTSlice[T any](sl []any, pf func(any) (T, error)) ([]T, error) {
+	var vSl []T
+	for _, v := range sl {
+		val, err := pf(v)
+		if err != nil {
+			return nil, err
+		}
+		vSl = append(vSl, val)
+	}
+	return vSl, nil
+}
+
+func parseString(val any) (string, error) {
+	v, ok := val.(string)
+	if !ok {
+		return "", fmt.Errorf("invalid data type '%T'", val)
+	}
+	return v, nil
+}
+
+func parseBool(val any) (bool, error) {
+	v, ok := val.(bool)
+	if !ok {
+		return false, fmt.Errorf("invalid data type '%T'", val)
+	}
+	return v, nil
+}
+
+func float64ToInt64(val float64) (int64, error) {
+	i, fr := math.Modf(val)
+	if fr > 0 {
+		return 0, fmt.Errorf("invalid data type '%T'", val)
+	}
+	return int64(i), nil
+}
+
+func parseInt64(val any) (int64, error) {
+	var i int64
+	var err error
+	switch v := val.(type) {
+	case int:
+		i = int64(v)
+	case int8:
+		i = int64(v)
+	case int16:
+		i = int64(v)
+	case int32:
+		i = int64(v)
+	case int64:
+		i = v
+	case float32:
+		i, err = float64ToInt64(float64(v))
+	case float64:
+		i, err = float64ToInt64(v)
+	default:
+		err = fmt.Errorf("invalid data type '%T'", val)
+	}
+	return i, err
+}
+
+func parseFloat64(val any) (float64, error) {
+	var f float64
+	switch v := val.(type) {
+	case float32:
+		f = float64(v)
+	case float64:
+		f = v
+	default:
+		return f, fmt.Errorf("invalid data type '%T'", val)
+	}
+	return f, nil
 }
