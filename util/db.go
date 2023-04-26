@@ -20,7 +20,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	srv_base "github.com/SENERGY-Platform/go-service-base/srv-base"
 	"github.com/go-sql-driver/mysql"
 	"time"
 )
@@ -53,7 +52,7 @@ func createDB(db *sql.DB, ctx context.Context, name string) error {
 		return err
 	}
 	if n > 0 {
-		srv_base.Logger.Infof("created database '%s'", name)
+		Logger.Infof("created database '%s'", name)
 	}
 	return nil
 }
