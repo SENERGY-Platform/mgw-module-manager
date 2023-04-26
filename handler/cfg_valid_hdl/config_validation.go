@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package validation
+package cfg_valid_hdl
 
 import (
 	"encoding/json"
@@ -28,19 +28,19 @@ import (
 	"strings"
 )
 
-type ConfigValidationHandler struct {
+type Handler struct {
 	definitions map[string]model.ConfigDefinition
 	validators  map[string]handler.Validator
 }
 
-func NewConfigValidationHandler(definitions map[string]model.ConfigDefinition, validators map[string]handler.Validator) (*ConfigValidationHandler, error) {
+func New(definitions map[string]model.ConfigDefinition, validators map[string]handler.Validator) (*Handler, error) {
 	if err := validateDefs(definitions, validators); err != nil {
 		return nil, err
 	}
-	return &ConfigValidationHandler{definitions: definitions, validators: validators}, nil
+	return &Handler{definitions: definitions, validators: validators}, nil
 }
 
-func (h *ConfigValidationHandler) ValidateBase(cType string, cTypeOpts module.ConfigTypeOptions, dataType module.DataType) error {
+func (h *Handler) ValidateBase(cType string, cTypeOpts module.ConfigTypeOptions, dataType module.DataType) error {
 	cDef, ok := h.definitions[cType]
 	if !ok {
 		return fmt.Errorf("config type '%s' not defined", cType)
@@ -48,7 +48,7 @@ func (h *ConfigValidationHandler) ValidateBase(cType string, cTypeOpts module.Co
 	return vltBase(cDef, cTypeOpts, dataType)
 }
 
-func (h *ConfigValidationHandler) ValidateTypeOptions(cType string, cTypeOpts module.ConfigTypeOptions) error {
+func (h *Handler) ValidateTypeOptions(cType string, cTypeOpts module.ConfigTypeOptions) error {
 	cDef, ok := h.definitions[cType]
 	if !ok {
 		return fmt.Errorf("config type '%s' not defined", cType)
@@ -56,7 +56,7 @@ func (h *ConfigValidationHandler) ValidateTypeOptions(cType string, cTypeOpts mo
 	return vltTypeOpts(cDef.Validators, cTypeOpts, h.validators)
 }
 
-func (h *ConfigValidationHandler) ValidateValue(cType string, cTypeOpts module.ConfigTypeOptions, value any, isSlice bool, dataType module.DataType) error {
+func (h *Handler) ValidateValue(cType string, cTypeOpts module.ConfigTypeOptions, value any, isSlice bool, dataType module.DataType) error {
 	cDef, ok := h.definitions[cType]
 	if !ok {
 		return fmt.Errorf("config type '%s' not defined", cType)
@@ -79,7 +79,7 @@ func (h *ConfigValidationHandler) ValidateValue(cType string, cTypeOpts module.C
 	}
 }
 
-func (h *ConfigValidationHandler) ValidateValInOpt(cOpt any, value any, isSlice bool, dataType module.DataType) (err error) {
+func (h *Handler) ValidateValInOpt(cOpt any, value any, isSlice bool, dataType module.DataType) (err error) {
 	var ok bool
 	switch dataType {
 	case module.StringType:

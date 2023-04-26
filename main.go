@@ -30,12 +30,12 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/api"
 	"github.com/SENERGY-Platform/mgw-module-manager/api/http_engine"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl/validators"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_storage_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_storage_hdl"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler/validation"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler/validation/validators"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/gin-gonic/gin"
 	"net"
@@ -93,12 +93,12 @@ func main() {
 		return
 	}
 
-	cfgDefs, err := validation.LoadDefs(config.ConfigDefsPath)
+	cfgDefs, err := cfg_valid_hdl.LoadDefs(config.ConfigDefsPath)
 	if err != nil {
 		util.Logger.Error(err)
 		return
 	}
-	configValidationHandler, err := validation.NewConfigValidationHandler(cfgDefs, inputValidators)
+	configValidationHandler, err := cfg_valid_hdl.New(cfgDefs, inputValidators)
 	if err != nil {
 		util.Logger.Error(err)
 		return

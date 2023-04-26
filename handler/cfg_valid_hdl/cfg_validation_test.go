@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package validation
+package cfg_valid_hdl
 
 import (
 	"errors"
