@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dep_storage
+package dep_storage_hdl
 
 import (
 	"context"

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dep_storage
+package dep_storage_hdl
 
 import (
 	"context"
@@ -31,15 +31,15 @@ import (
 
 const tLayout = "2006-01-02 15:04:05.000000"
 
-type StorageHandler struct {
+type Handler struct {
 	db *sql.DB
 }
 
-func NewStorageHandler(db *sql.DB) *StorageHandler {
-	return &StorageHandler{db: db}
+func New(db *sql.DB) *Handler {
+	return &Handler{db: db}
 }
 
-func (h *StorageHandler) BeginTransaction(ctx context.Context) (driver.Tx, error) {
+func (h *Handler) BeginTransaction(ctx context.Context) (driver.Tx, error) {
 	tx, e := h.db.BeginTx(ctx, nil)
 	if e != nil {
 		return nil, model.NewInternalError(e)
@@ -68,7 +68,7 @@ func genListDepFilter(filter model.DepFilter) (string, []any) {
 	return "", nil
 }
 
-func (h *StorageHandler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
+func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
 	q := "SELECT `id`, `module_id`, `name`, `stopped`, `indirect`, `created`, `updated` FROM `deployments`"
 	fc, val := genListDepFilter(filter)
 	if fc != "" {
@@ -105,7 +105,7 @@ func (h *StorageHandler) ListDep(ctx context.Context, filter model.DepFilter) ([
 	return dms, nil
 }
 
-func (h *StorageHandler) CreateDep(ctx context.Context, itf driver.Tx, mID, name string, indirect bool, timestamp time.Time) (string, error) {
+func (h *Handler) CreateDep(ctx context.Context, itf driver.Tx, mID, name string, indirect bool, timestamp time.Time) (string, error) {
 	tx := itf.(*sql.Tx)
 	res, err := tx.ExecContext(ctx, "INSERT INTO `deployments` (`id`, `module_id`, `name`, `stopped`, `indirect`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?, ?, ?)", mID, name, true, indirect, timestamp, timestamp)
 	if err != nil {
@@ -126,7 +126,7 @@ func (h *StorageHandler) CreateDep(ctx context.Context, itf driver.Tx, mID, name
 	return id, nil
 }
 
-func (h *StorageHandler) CreateDepConfigs(ctx context.Context, itf driver.Tx, mConfigs module.Configs, dConfigs map[string]any, dID string) error {
+func (h *Handler) CreateDepConfigs(ctx context.Context, itf driver.Tx, mConfigs module.Configs, dConfigs map[string]any, dID string) error {
 	tx := itf.(*sql.Tx)
 	stmtMap := make(map[string]*sql.Stmt)
 	defer func() {
@@ -174,7 +174,7 @@ func (h *StorageHandler) CreateDepConfigs(ctx context.Context, itf driver.Tx, mC
 	return nil
 }
 
-func (h *StorageHandler) CreateDepHostRes(ctx context.Context, itf driver.Tx, hostResources map[string]string, dID string) error {
+func (h *Handler) CreateDepHostRes(ctx context.Context, itf driver.Tx, hostResources map[string]string, dID string) error {
 	tx := itf.(*sql.Tx)
 	err := insertResources(ctx, tx.PrepareContext, "INSERT INTO `host_resources` (`dep_id`, `ref`, `res_id`) VALUES (?, ?, ?)", dID, hostResources)
 	if err != nil {
@@ -183,7 +183,7 @@ func (h *StorageHandler) CreateDepHostRes(ctx context.Context, itf driver.Tx, ho
 	return nil
 }
 
-func (h *StorageHandler) CreateDepSecrets(ctx context.Context, itf driver.Tx, secrets map[string]string, dID string) error {
+func (h *Handler) CreateDepSecrets(ctx context.Context, itf driver.Tx, secrets map[string]string, dID string) error {
 	tx := itf.(*sql.Tx)
 	err := insertResources(ctx, tx.PrepareContext, "INSERT INTO `secrets` (`dep_id`, `ref`, `sec_id`) VALUES (?, ?, ?)", dID, secrets)
 	if err != nil {
@@ -192,7 +192,7 @@ func (h *StorageHandler) CreateDepSecrets(ctx context.Context, itf driver.Tx, se
 	return nil
 }
 
-func (h *StorageHandler) CreateDepReq(ctx context.Context, itf driver.Tx, depReq []string, dID string) error {
+func (h *Handler) CreateDepReq(ctx context.Context, itf driver.Tx, depReq []string, dID string) error {
 	tx := itf.(*sql.Tx)
 	stmt, err := tx.PrepareContext(ctx, "INSERT INTO `dependencies` (`dep_id`, `req_id`) VALUES (?, ?)")
 	if err != nil {
@@ -207,7 +207,7 @@ func (h *StorageHandler) CreateDepReq(ctx context.Context, itf driver.Tx, depReq
 	return nil
 }
 
-func (h *StorageHandler) ReadDep(ctx context.Context, id string) (*model.Deployment, error) {
+func (h *Handler) ReadDep(ctx context.Context, id string) (*model.Deployment, error) {
 	depMeta, err := selectDeployment(ctx, h.db.QueryRowContext, id)
 	if err != nil {
 		return nil, err
@@ -249,7 +249,7 @@ func (h *StorageHandler) ReadDep(ctx context.Context, id string) (*model.Deploym
 	return &dep, nil
 }
 
-func (h *StorageHandler) UpdateDep(ctx context.Context, dID, name string, stopped, indirect bool, timestamp time.Time) error {
+func (h *Handler) UpdateDep(ctx context.Context, dID, name string, stopped, indirect bool, timestamp time.Time) error {
 	res, err := h.db.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `stopped` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", name, stopped, indirect, timestamp, dID)
 	if err != nil {
 		return model.NewInternalError(err)
@@ -264,7 +264,7 @@ func (h *StorageHandler) UpdateDep(ctx context.Context, dID, name string, stoppe
 	return nil
 }
 
-func (h *StorageHandler) DeleteDep(ctx context.Context, id string) error {
+func (h *Handler) DeleteDep(ctx context.Context, id string) error {
 	res, err := h.db.ExecContext(ctx, "DELETE FROM `deployments` WHERE `id` = ?", id)
 	if err != nil {
 		return model.NewInternalError(err)
@@ -279,7 +279,7 @@ func (h *StorageHandler) DeleteDep(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *StorageHandler) DeleteDepConfigs(ctx context.Context, itf driver.Tx, dID string) error {
+func (h *Handler) DeleteDepConfigs(ctx context.Context, itf driver.Tx, dID string) error {
 	tx := itf.(*sql.Tx)
 	_, err := tx.ExecContext(ctx, "DELETE FROM `configs` WHERE `dep_id` = ?", dID)
 	if err != nil {
@@ -292,7 +292,7 @@ func (h *StorageHandler) DeleteDepConfigs(ctx context.Context, itf driver.Tx, dI
 	return nil
 }
 
-func (h *StorageHandler) DeleteDepHostRes(ctx context.Context, itf driver.Tx, dID string) error {
+func (h *Handler) DeleteDepHostRes(ctx context.Context, itf driver.Tx, dID string) error {
 	tx := itf.(*sql.Tx)
 	_, err := tx.ExecContext(ctx, "DELETE FROM `host_resources` WHERE `dep_id` = ?", dID)
 	if err != nil {
@@ -301,7 +301,7 @@ func (h *StorageHandler) DeleteDepHostRes(ctx context.Context, itf driver.Tx, dI
 	return nil
 }
 
-func (h *StorageHandler) DeleteDepSecrets(ctx context.Context, itf driver.Tx, dID string) error {
+func (h *Handler) DeleteDepSecrets(ctx context.Context, itf driver.Tx, dID string) error {
 	tx := itf.(*sql.Tx)
 	_, err := tx.ExecContext(ctx, "DELETE FROM `secrets` WHERE `dep_id` = ?", dID)
 	if err != nil {
@@ -323,7 +323,7 @@ func genListInstFilter(filter model.DepInstFilter) (string, []any) {
 	return "", nil
 }
 
-func (h *StorageHandler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.DepInstanceMeta, error) {
+func (h *Handler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.DepInstanceMeta, error) {
 	q := "SELECT `id`, `dep_id`, `created`, `updated` FROM `instances`"
 	fc, val := genListInstFilter(filter)
 	if fc != "" {
@@ -359,7 +359,7 @@ func (h *StorageHandler) ListInst(ctx context.Context, filter model.DepInstFilte
 	return dims, nil
 }
 
-func (h *StorageHandler) CreateInst(ctx context.Context, itf driver.Tx, dID string, timestamp time.Time) (string, error) {
+func (h *Handler) CreateInst(ctx context.Context, itf driver.Tx, dID string, timestamp time.Time) (string, error) {
 	tx := itf.(*sql.Tx)
 	res, err := tx.ExecContext(ctx, "INSERT INTO `instances` (`id`, `dep_id`, `created`, `updated`) VALUES (UUID(), ?, ?, ?)", dID, timestamp, timestamp)
 	if err != nil {
@@ -380,7 +380,7 @@ func (h *StorageHandler) CreateInst(ctx context.Context, itf driver.Tx, dID stri
 	return id, nil
 }
 
-func (h *StorageHandler) ReadInst(ctx context.Context, id string) (*model.DepInstance, error) {
+func (h *Handler) ReadInst(ctx context.Context, id string) (*model.DepInstance, error) {
 	instMeta, err := selectInstance(ctx, h.db.QueryRowContext, id)
 	if err != nil {
 		return nil, err
@@ -397,7 +397,7 @@ func (h *StorageHandler) ReadInst(ctx context.Context, id string) (*model.DepIns
 	return &inst, nil
 }
 
-func (h *StorageHandler) UpdateInst(ctx context.Context, id string, timestamp time.Time) error {
+func (h *Handler) UpdateInst(ctx context.Context, id string, timestamp time.Time) error {
 	res, err := h.db.ExecContext(ctx, "UPDATE `instances` SET `updated` = ? WHERE `id` = ?", timestamp, id)
 	if err != nil {
 		return model.NewInternalError(err)
@@ -412,7 +412,7 @@ func (h *StorageHandler) UpdateInst(ctx context.Context, id string, timestamp ti
 	return nil
 }
 
-func (h *StorageHandler) DeleteInst(ctx context.Context, id string) error {
+func (h *Handler) DeleteInst(ctx context.Context, id string) error {
 	res, err := h.db.ExecContext(ctx, "DELETE FROM `instances` WHERE `id` = ?", id)
 	if err != nil {
 		return model.NewInternalError(err)
@@ -427,7 +427,7 @@ func (h *StorageHandler) DeleteInst(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *StorageHandler) CreateInstCtr(ctx context.Context, itf driver.Tx, iID, cID, sRef string) error {
+func (h *Handler) CreateInstCtr(ctx context.Context, itf driver.Tx, iID, cID, sRef string) error {
 	tx := itf.(*sql.Tx)
 	res, err := tx.ExecContext(ctx, "INSERT INTO `containers` (`i_id`, `s_ref`, `c_id`) VALUES (?, ?, ?)", iID, sRef, cID)
 	if err != nil {
@@ -443,6 +443,6 @@ func (h *StorageHandler) CreateInstCtr(ctx context.Context, itf driver.Tx, iID, 
 	return nil
 }
 
-func (h *StorageHandler) DeleteInstCtr(ctx context.Context, cID string) error {
+func (h *Handler) DeleteInstCtr(ctx context.Context, cID string) error {
 	panic("not implemented")
 }
