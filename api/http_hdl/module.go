@@ -81,7 +81,7 @@ func getModuleH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func getInputTemplateH(a lib.Api) gin.HandlerFunc {
+func getDeploymentTemplateH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		inputTemplate, err := a.GetDeploymentTemplate(gc.Request.Context(), gc.Param(modIdParam))
 		if err != nil {
