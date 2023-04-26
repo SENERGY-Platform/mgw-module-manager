@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package module
+package mod_hdl
 
 import (
 	"context"
@@ -29,7 +29,7 @@ type Handler struct {
 	configValidationHandler handler.CfgValidationHandler
 }
 
-func NewHandler(storageHandler handler.ModStorageHandler, transferHandler handler.ModTransferHandler, configValidationHandler handler.CfgValidationHandler) *Handler {
+func New(storageHandler handler.ModStorageHandler, transferHandler handler.ModTransferHandler, configValidationHandler handler.CfgValidationHandler) *Handler {
 	return &Handler{
 		storageHandler:          storageHandler,
 		transferHandler:         transferHandler,

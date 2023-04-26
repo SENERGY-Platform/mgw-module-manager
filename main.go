@@ -32,8 +32,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_storage_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_storage_hdl"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/validation"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/validation/validators"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
@@ -104,7 +104,7 @@ func main() {
 		return
 	}
 
-	moduleHandler := module.NewHandler(moduleStorageHandler, nil, configValidationHandler)
+	moduleHandler := mod_hdl.New(moduleStorageHandler, nil, configValidationHandler)
 
 	dbCtx, dbCtxCf := context.WithCancel(context.Background())
 	defer dbCtxCf()
