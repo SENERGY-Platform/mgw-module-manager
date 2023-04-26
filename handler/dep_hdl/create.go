@@ -68,8 +68,8 @@ func (h *Handler) Create(ctx context.Context, dr model.DepRequest) (string, erro
 				dID, err := h.create(ctx, dms[dmID], dr.Dependencies[dmID], depMap, true)
 				if err != nil {
 					for _, id := range depNew {
-						if err := h.delete(ctx, id, true); err != nil {
-							return "", err
+						if er := h.delete(ctx, id, true); er != nil {
+							util.Logger.Error(er)
 						}
 					}
 					return "", err
