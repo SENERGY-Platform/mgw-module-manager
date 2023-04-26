@@ -21,7 +21,7 @@ import (
 	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/ctx_handler"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"strings"
 )
 
@@ -68,7 +68,7 @@ func (h *Handler) delete(ctx context.Context, dID string, orphans bool) error {
 }
 
 func (h *Handler) removeContainer(ctx context.Context, dID string) error {
-	ch := ctx_handler.New()
+	ch := context_hdl.New()
 	defer ch.CancelAll()
 	il, err := h.storageHandler.ListInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepInstFilter{DepID: dID})
 	if err != nil {
@@ -90,7 +90,7 @@ func (h *Handler) removeContainer(ctx context.Context, dID string) error {
 }
 
 func (h *Handler) removeVolumes(ctx context.Context, dID string) error {
-	ch := ctx_handler.New()
+	ch := context_hdl.New()
 	defer ch.CancelAll()
 	volumes, err := h.cewClient.GetVolumes(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.VolumeFilter{Labels: map[string]string{"d_id": dID}})
 	if err != nil {
@@ -106,7 +106,7 @@ func (h *Handler) removeVolumes(ctx context.Context, dID string) error {
 }
 
 func (h *Handler) getOrphans(ctx context.Context) ([]model.DepMeta, error) {
-	ch := ctx_handler.New()
+	ch := context_hdl.New()
 	defer ch.CancelAll()
 	dms, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{Indirect: true})
 	if err != nil {

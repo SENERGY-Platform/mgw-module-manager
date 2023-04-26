@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/ctx_handler"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"time"
 )
 
@@ -72,7 +72,7 @@ func (h *Handler) Stop(ctx context.Context, id string) error {
 }
 
 func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
-	ch := ctx_handler.New()
+	ch := context_hdl.New()
 	defer ch.CancelAll()
 	m, err := h.moduleHandler.Get(ctx, dep.ModuleID)
 	if err != nil {
@@ -102,7 +102,7 @@ func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
 }
 
 func (h *Handler) stopContainer(ctx context.Context, cID string) error {
-	ch := ctx_handler.New()
+	ch := context_hdl.New()
 	defer ch.CancelAll()
 	jID, err := h.cewClient.StopContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
 	if err != nil {
@@ -133,7 +133,7 @@ func (h *Handler) stopContainer(ctx context.Context, cID string) error {
 }
 
 func (h *Handler) getExtDepReq(ctx context.Context, sl []string, m map[string]*model.Deployment) ([]*model.Deployment, error) {
-	ch := ctx_handler.New()
+	ch := context_hdl.New()
 	defer ch.CancelAll()
 	var ext []*model.Deployment
 	for _, s := range sl {

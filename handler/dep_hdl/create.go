@@ -27,7 +27,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/ctx_handler"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"math"
 	"path"
 	"strconv"
@@ -40,7 +40,7 @@ func (h *Handler) Create(ctx context.Context, dr model.DepRequest) (string, erro
 	if err != nil {
 		return "", err
 	}
-	ch := ctx_handler.New()
+	ch := context_hdl.New()
 	defer ch.CancelAll()
 	if m.DeploymentType == module.SingleDeployment {
 		if l, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{ModuleID: m.ID}); err != nil {
@@ -160,7 +160,7 @@ func (h *Handler) getVolumes(ctx context.Context, mVolumes ml_util.Set[string], 
 }
 
 func (h *Handler) getDeployments(ctx context.Context, modules map[string]*module.Module, deployments map[string]string) error {
-	ch := ctx_handler.New()
+	ch := context_hdl.New()
 	defer ch.CancelAll()
 	for mID := range modules {
 		ds, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{ModuleID: mID})
@@ -189,7 +189,7 @@ func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepReq
 	}
 	name := getName(m.Name, drb.Name)
 	timestamp := time.Now().UTC()
-	ch := ctx_handler.New()
+	ch := context_hdl.New()
 	defer ch.CancelAll()
 	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {

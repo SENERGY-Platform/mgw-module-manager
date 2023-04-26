@@ -24,7 +24,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/ctx_handler"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"time"
 )
 
@@ -65,7 +65,7 @@ func (h *Handler) Update(ctx context.Context, dID string, drb model.DepRequestBa
 }
 
 func (h *Handler) getReqDep(ctx context.Context, dep *model.Deployment, reqDep map[string]*model.Deployment) error {
-	ch := ctx_handler.New()
+	ch := context_hdl.New()
 	defer ch.CancelAll()
 	for _, dID := range dep.RequiredDep {
 		if _, ok := reqDep[dID]; !ok {
@@ -107,7 +107,7 @@ func (h *Handler) getDepOrder(dep map[string]*model.Deployment) (order []string,
 }
 
 func (h *Handler) getCurrentInst(ctx context.Context, dID string) (*model.DepInstance, error) {
-	ch := ctx_handler.New()
+	ch := context_hdl.New()
 	defer ch.CancelAll()
 	instances, err := h.storageHandler.ListInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepInstFilter{DepID: dID})
 	if err != nil {

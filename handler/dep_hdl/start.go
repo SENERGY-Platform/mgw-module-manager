@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/ctx_handler"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"time"
 )
 
@@ -51,7 +51,7 @@ func (h *Handler) Start(ctx context.Context, id string) error {
 }
 
 func (h *Handler) start(ctx context.Context, dep *model.Deployment) error {
-	ch := ctx_handler.New()
+	ch := context_hdl.New()
 	defer ch.CancelAll()
 	m, err := h.moduleHandler.Get(ctx, dep.ModuleID)
 	if err != nil {
