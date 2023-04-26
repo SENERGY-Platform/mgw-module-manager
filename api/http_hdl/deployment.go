@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package http_engine
+package http_hdl
 
 import (
 	"fmt"

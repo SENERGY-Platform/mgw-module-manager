@@ -123,16 +123,16 @@ func main() {
 	mApi := api.New(moduleHandler, deploymentHandler)
 
 	gin.SetMode(gin.ReleaseMode)
-	httpEngine := gin.New()
-	httpEngine.Use(gin_mw.LoggerHandler(util.Logger), gin_mw.ErrorHandler(http_engine.GetStatusCode, ", "), gin.Recovery())
-	httpEngine.UseRawPath = true
+	httpHandler := gin.New()
+	httpHandler.Use(gin_mw.LoggerHandler(util.Logger), gin_mw.ErrorHandler(http_hdl.GetStatusCode, ", "), gin.Recovery())
+	httpHandler.UseRawPath = true
 
-	http_engine.SetRoutes(httpEngine, mApi)
+	http_hdl.SetRoutes(httpHandler, mApi)
 
 	listener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
 		util.Logger.Error(err)
 		return
 	}
-	srv_base.StartServer(&http.Server{Handler: httpEngine}, listener, srv_base_types.DefaultShutdownSignals, util.Logger)
+	srv_base.StartServer(&http.Server{Handler: httpHandler}, listener, srv_base_types.DefaultShutdownSignals, util.Logger)
 }
