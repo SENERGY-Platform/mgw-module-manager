@@ -18,17 +18,18 @@ package http_engine
 
 import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
 )
 
 func SetRoutes(e *gin.Engine, a lib.Api) {
-	e.GET("modules", getModulesH(a))
-	e.GET("modules/:"+modIdParam, getModuleH(a))
-	e.GET("modules/:"+modIdParam+"/input_template", getInputTemplateH(a))
-	e.GET("deployments", getDeploymentsH(a))
-	e.GET("deployments/:"+depIdParam, getDeploymentH(a))
-	e.PUT("deployments/:"+depIdParam, putDeploymentH(a))
-	e.POST("deployments/:"+depIdParam+"/ctrl", postDeploymentCtrlH(a))
-	e.DELETE("deployments/:"+depIdParam, deleteDeploymentH(a))
-	e.POST("deployments", postDeploymentH(a))
+	e.GET(model.ModulesPath, getModulesH(a))
+	e.GET(model.ModulesPath+"/:"+modIdParam, getModuleH(a))
+	e.GET(model.ModulesPath+"/:"+modIdParam+"/"+model.DepTemplatePath, getInputTemplateH(a))
+	e.GET(model.DeploymentsPath, getDeploymentsH(a))
+	e.POST(model.DeploymentsPath, postDeploymentH(a))
+	e.GET(model.DeploymentsPath+"/:"+depIdParam, getDeploymentH(a))
+	e.PUT(model.DeploymentsPath+"/:"+depIdParam, putDeploymentH(a))
+	e.POST(model.DeploymentsPath+"/:"+depIdParam+"/"+model.DepCtrlPath, postDeploymentCtrlH(a))
+	e.DELETE(model.DeploymentsPath+"/:"+depIdParam, deleteDeploymentH(a))
 }

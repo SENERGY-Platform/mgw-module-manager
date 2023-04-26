@@ -20,3 +20,10 @@ const (
 	StartCmd = "start"
 	StopCmd  = "stop"
 )
+
+const (
+	ModulesPath     = "modules"
+	DeploymentsPath = "deployments"
+	DepTemplatePath = "input_template"
+	DepCtrlPath     = "ctrl"
+)
