@@ -22,7 +22,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func (a *Api) PrepareDeployment(ctx context.Context, id string) (model.InputTemplate, error) {
+func (a *Api) GetDeploymentTemplate(ctx context.Context, id string) (model.InputTemplate, error) {
 	m, err := a.moduleHandler.Get(ctx, id)
 	if err != nil {
 		return model.InputTemplate{}, err
