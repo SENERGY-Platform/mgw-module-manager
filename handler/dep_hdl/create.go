@@ -27,6 +27,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"math"
 	"path"
