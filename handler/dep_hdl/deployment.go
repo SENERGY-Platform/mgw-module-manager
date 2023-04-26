@@ -60,6 +60,10 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 	return h.storageHandler.ReadDep(ctxWt, id)
 }
 
+func (h *Handler) GetTemplate(ctx context.Context, mID string) (*model.DepTemplate, error) {
+	panic("not implemented")
+}
+
 func (h *Handler) Update(ctx context.Context, dID string, drb model.DepRequestBase) error {
 	panic("not implemented")
 }
