@@ -51,8 +51,8 @@ func (a *Api) StartDeployment(ctx context.Context, id string) error {
 	return a.deploymentHandler.Start(ctx, id)
 }
 
-func (a *Api) StopDeployment(ctx context.Context, id string) error {
-	return a.deploymentHandler.Stop(ctx, id)
+func (a *Api) StopDeployment(ctx context.Context, id string, dependencies bool) error {
+	return a.deploymentHandler.Stop(ctx, id, dependencies)
 }
 
 func (a *Api) UpdateDeployment(ctx context.Context, id string, dr model.DepRequest) error {

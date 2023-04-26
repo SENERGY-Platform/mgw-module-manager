@@ -55,7 +55,7 @@ type DeploymentHandler interface {
 	Delete(ctx context.Context, dID string, orphans bool) error
 	Update(ctx context.Context, dID string, drb model.DepRequestBase) error
 	Start(ctx context.Context, dID string) error
-	Stop(ctx context.Context, dID string) error
+	Stop(ctx context.Context, dID string, dependencies bool) error
 }
 
 type DepStorageHandler interface {

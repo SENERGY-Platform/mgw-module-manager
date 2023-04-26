@@ -36,6 +36,10 @@ type deleteDeploymentQuery struct {
 	Orphans bool `form:"orphans"`
 }
 
+type stopDeploymentQuery struct {
+	Dependencies bool `form:"dependencies"`
+}
+
 func getDeploymentsH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := getDeploymentsQuery{}
@@ -117,7 +121,12 @@ func postDeploymentCtrlH(a lib.Api) gin.HandlerFunc {
 				return
 			}
 		case model.StopCmd:
-			err := a.StopDeployment(gc.Request.Context(), gc.Param(depIdParam))
+			query := stopDeploymentQuery{}
+			if err := gc.ShouldBindQuery(&query); err != nil {
+				_ = gc.Error(model.NewInvalidInputError(err))
+				return
+			}
+			err := a.StopDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Dependencies)
 			if err != nil {
 				_ = gc.Error(err)
 				return
