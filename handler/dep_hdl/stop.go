@@ -57,7 +57,7 @@ func (h *Handler) Stop(ctx context.Context, id string, dependencies bool) error 
 		for i := len(order) - 1; i >= 0; i-- {
 			rd := reqDep[order[i]]
 			if len(rd.DepRequiring) > 0 {
-				extDepReq, err := h.getExtDepReq(ctx, d.DepRequiring, reqDep)
+				extDepReq, err := h.getExtDepReq(ctx, rd.DepRequiring, reqDep)
 				if err != nil {
 					return err
 				}
