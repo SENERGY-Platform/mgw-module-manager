@@ -253,8 +253,8 @@ func filterMod(filter model.ModFilter, m *module.Module) bool {
 	}
 	if len(filter.InDependencies) > 0 {
 		var ok bool
-		for tag := range filter.InDependencies {
-			if _, ok = m.Dependencies[tag]; ok {
+		for id := range filter.InDependencies {
+			if _, ok = m.Dependencies[id]; ok {
 				break
 			}
 		}
