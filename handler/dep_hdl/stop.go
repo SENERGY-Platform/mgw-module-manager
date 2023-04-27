@@ -56,14 +56,16 @@ func (h *Handler) Stop(ctx context.Context, id string, dependencies bool) error 
 		}
 		for i := len(order) - 1; i >= 0; i-- {
 			rd := reqDep[order[i]]
-			if len(rd.DepRequiring) > 0 {
-				extDepReq, err := h.getExtDepReq(ctx, rd.DepRequiring, reqDep)
-				if err != nil {
-					return err
-				}
-				if allDepReqStopped(extDepReq) {
-					if err = h.stop(ctx, rd); err != nil {
+			if rd.Indirect {
+				if len(rd.DepRequiring) > 0 {
+					extDepReq, err := h.getExtDepReq(ctx, rd.DepRequiring, reqDep)
+					if err != nil {
 						return err
+					}
+					if allDepReqStopped(extDepReq) {
+						if err = h.stop(ctx, rd); err != nil {
+							return err
+						}
 					}
 				}
 			}
