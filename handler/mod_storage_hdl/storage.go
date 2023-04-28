@@ -23,6 +23,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"gopkg.in/yaml.v3"
 	"io/fs"
 	"os"
@@ -126,20 +127,20 @@ func (h *Handler) Delete(_ context.Context, mID string) error {
 	return nil
 }
 
-func (h *Handler) CreateInclDir(_ context.Context, mID, iID string) (string, error) {
+func (h *Handler) MakeInclDir(_ context.Context, mID, iID string) (util.DirFS, error) {
 	p := path.Join(h.wrkSpacePath, inclDir, iID)
 	if err := copyDir(path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter)), p); err != nil {
 		_ = os.RemoveAll(p)
 		return "", model.NewInternalError(wrapErr(err, h.wrkSpacePath))
 	}
-	return p, nil
+	return util.NewDirFS(p)
 }
 
-func (h *Handler) ListInclDir(_ context.Context, iID string) ([]string, error) {
-	return walkDir(path.Join(h.wrkSpacePath, inclDir, iID), nil)
+func (h *Handler) GetInclDir(_ context.Context, iID string) (util.DirFS, error) {
+	return util.NewDirFS(path.Join(h.wrkSpacePath, inclDir, iID))
 }
 
-func (h *Handler) DeleteInclDir(_ context.Context, iID string) error {
+func (h *Handler) RemoveInclDir(_ context.Context, iID string) error {
 	if err := os.RemoveAll(path.Join(h.wrkSpacePath, inclDir, iID)); err != nil {
 		return model.NewInternalError(wrapErr(err, h.wrkSpacePath))
 	}

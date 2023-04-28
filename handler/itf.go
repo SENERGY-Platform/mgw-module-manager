@@ -21,6 +21,7 @@ import (
 	"database/sql/driver"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"time"
 )
 
@@ -40,9 +41,9 @@ type ModStorageHandler interface {
 	Get(ctx context.Context, mID string) (*module.Module, error)
 	Add(ctx context.Context, mID string) error
 	Delete(ctx context.Context, mID string) error
-	CreateInclDir(ctx context.Context, mID, iID string) (string, error)
-	ListInclDir(ctx context.Context, iID string) ([]string, error)
-	DeleteInclDir(ctx context.Context, iID string) error
+	GetInclDir(ctx context.Context, iID string) (util.DirFS, error)
+	MakeInclDir(ctx context.Context, mID, iID string) (util.DirFS, error)
+	RemoveInclDir(ctx context.Context, iID string) error
 }
 
 type ModTransferHandler interface {
