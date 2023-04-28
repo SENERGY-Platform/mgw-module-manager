@@ -26,13 +26,15 @@ import (
 type Handler struct {
 	storageHandler          handler.ModStorageHandler
 	transferHandler         handler.ModTransferHandler
+	modFileHandler          handler.ModFileHandler
 	configValidationHandler handler.CfgValidationHandler
 }
 
-func New(storageHandler handler.ModStorageHandler, transferHandler handler.ModTransferHandler, configValidationHandler handler.CfgValidationHandler) *Handler {
+func New(storageHandler handler.ModStorageHandler, transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler, configValidationHandler handler.CfgValidationHandler) *Handler {
 	return &Handler{
 		storageHandler:          storageHandler,
 		transferHandler:         transferHandler,
+		modFileHandler:          modFileHandler,
 		configValidationHandler: configValidationHandler,
 	}
 }
