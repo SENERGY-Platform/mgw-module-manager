@@ -25,7 +25,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"io/fs"
 	"os"
-	"os/exec"
 	"path"
 	"strings"
 )
@@ -133,7 +132,7 @@ func (h *Handler) Delete(_ context.Context, mID string) error {
 
 func (h *Handler) MakeInclDir(_ context.Context, mID, iID string) (util.DirFS, error) {
 	p := path.Join(h.wrkSpacePath, inclDir, iID)
-	if err := copyDir(path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter)), p); err != nil {
+	if err := util.CopyDir(path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter)), p); err != nil {
 		_ = os.RemoveAll(p)
 		return "", model.NewInternalError(err)
 	}
@@ -157,11 +156,6 @@ func (h *Handler) RemoveInclDir(_ context.Context, iID string) error {
 		return model.NewInternalError(err)
 	}
 	return nil
-}
-
-func copyDir(src string, dst string) error {
-	cmd := exec.Command("cp", "-R", "--no-dereference", "--preserve=mode,timestamps", "--no-preserve=context,links,xattr", src, dst)
-	return cmd.Run()
 }
 
 func idToDir(id string, delimiter string) string {
