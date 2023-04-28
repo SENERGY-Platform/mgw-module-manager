@@ -119,8 +119,13 @@ func (h *Handler) Get(_ context.Context, mID string) (*module.Module, error) {
 	return m, nil
 }
 
-func (h *Handler) Add(ctx context.Context, dir util.DirFS) error {
-	panic("not implemented")
+func (h *Handler) Add(_ context.Context, dir util.DirFS, mID string) error {
+	defer os.RemoveAll(dir.Path())
+	err := util.CopyDir(dir.Path(), path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter)))
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	return nil
 }
 
 func (h *Handler) Delete(_ context.Context, mID string) error {
