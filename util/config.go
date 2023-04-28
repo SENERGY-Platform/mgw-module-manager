@@ -40,6 +40,11 @@ type ModStorageHandlerConfig struct {
 	Delimiter   string `json:"delimiter" env_var:"MSH_DELIMITER"`
 }
 
+type ModTransferHandlerConfig struct {
+	WorkdirPath string `json:"workdir_path" env_var:"MTH_WORKDIR_PATH"`
+	Timeout     int64  `json:"timeout" env_var:"MTH_TIMEOUT"`
+}
+
 type Config struct {
 	ServerPort        uint                    `json:"server_port" env_var:"SERVER_PORT"`
 	ModStorageHandler ModStorageHandlerConfig `json:"module_storage_handler" env_var:"MSH_CONFIG"`
@@ -54,6 +59,10 @@ func NewConfig(path *string) (*Config, error) {
 		ModStorageHandler: ModStorageHandlerConfig{
 			WorkdirPath: "/opt/manager",
 			Delimiter:   "_",
+		},
+		ModTransferHandler: ModTransferHandlerConfig{
+			WorkdirPath: "/opt/manager",
+			Timeout:     30000000000,
 		},
 		Logger: srv_base.LoggerConfig{
 			Level:        level.Warning,
