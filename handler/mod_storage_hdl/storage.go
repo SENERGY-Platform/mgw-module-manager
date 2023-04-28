@@ -74,7 +74,7 @@ func (h *Handler) InitWorkspace() error {
 func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
 	dir, err := os.ReadDir(path.Join(h.wrkSpacePath, modDir))
 	if err != nil {
-		return nil, model.NewInternalError(wrapErr(err, h.wrkSpacePath))
+		return nil, model.NewInternalError(err)
 	}
 	var mm []model.ModuleMeta
 	for _, entry := range dir {
@@ -107,7 +107,7 @@ func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Mod
 func (h *Handler) Get(_ context.Context, mID string) (*module.Module, error) {
 	p := path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter))
 	if _, err := os.Stat(p); err != nil {
-		return nil, model.NewNotFoundError(wrapErr(err, h.wrkSpacePath))
+		return nil, model.NewNotFoundError(err)
 	}
 	m, err := h.readModFile(p)
 	if err != nil {
@@ -122,7 +122,7 @@ func (h *Handler) Add(ctx context.Context, mID string) error {
 
 func (h *Handler) Delete(_ context.Context, mID string) error {
 	if err := os.RemoveAll(path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter))); err != nil {
-		return model.NewInternalError(wrapErr(err, h.wrkSpacePath))
+		return model.NewInternalError(err)
 	}
 	return nil
 }
@@ -131,18 +131,26 @@ func (h *Handler) MakeInclDir(_ context.Context, mID, iID string) (util.DirFS, e
 	p := path.Join(h.wrkSpacePath, inclDir, iID)
 	if err := copyDir(path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter)), p); err != nil {
 		_ = os.RemoveAll(p)
-		return "", model.NewInternalError(wrapErr(err, h.wrkSpacePath))
+		return "", model.NewInternalError(err)
 	}
-	return util.NewDirFS(p)
+	dir, err := util.NewDirFS(p)
+	if err != nil {
+		return "", model.NewInternalError(err)
+	}
+	return dir, nil
 }
 
 func (h *Handler) GetInclDir(_ context.Context, iID string) (util.DirFS, error) {
-	return util.NewDirFS(path.Join(h.wrkSpacePath, inclDir, iID))
+	dir, err := util.NewDirFS(path.Join(h.wrkSpacePath, inclDir, iID))
+	if err != nil {
+		return "", model.NewInternalError(err)
+	}
+	return dir, nil
 }
 
 func (h *Handler) RemoveInclDir(_ context.Context, iID string) error {
 	if err := os.RemoveAll(path.Join(h.wrkSpacePath, inclDir, iID)); err != nil {
-		return model.NewInternalError(wrapErr(err, h.wrkSpacePath))
+		return model.NewInternalError(err)
 	}
 	return nil
 }
@@ -150,11 +158,11 @@ func (h *Handler) RemoveInclDir(_ context.Context, iID string) error {
 func (h *Handler) readModFile(p string) (*module.Module, error) {
 	mfp, err := detectModFile(p)
 	if err != nil {
-		return nil, wrapErr(err, h.wrkSpacePath)
+		return nil, err
 	}
 	f, err := os.Open(mfp)
 	if err != nil {
-		return nil, wrapErr(err, h.wrkSpacePath)
+		return nil, err
 	}
 	yd := yaml.NewDecoder(f)
 	mf := modfile.New(h.mfDecoders, h.mfGenerators)
@@ -246,24 +254,4 @@ func filterMod(filter model.ModFilter, m *module.Module) bool {
 		}
 	}
 	return true
-}
-
-type FileHandlerError struct {
-	msg string
-	err error
-}
-
-func wrapErr(err error, s string) error {
-	return &FileHandlerError{
-		msg: strings.Replace(err.Error(), s, "", -1),
-		err: err,
-	}
-}
-
-func (e *FileHandlerError) Error() string {
-	return e.msg
-}
-
-func (e *FileHandlerError) Unwrap() error {
-	return e.err
 }
