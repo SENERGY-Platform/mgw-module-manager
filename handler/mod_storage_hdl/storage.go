@@ -169,24 +169,6 @@ func (h *Handler) readModFile(p string) (*module.Module, error) {
 	return m, nil
 }
 
-func walkDir(p string, items []string) ([]string, error) {
-	dir, err := os.ReadDir(p)
-	if err != nil {
-		return nil, err
-	}
-	for _, entry := range dir {
-		items = append(items, path.Join(p, entry.Name()))
-		if entry.IsDir() {
-			i, err := walkDir(path.Join(p, entry.Name()), items)
-			if err != nil {
-				return nil, err
-			}
-			items = i
-		}
-	}
-	return items, nil
-}
-
 func copyDir(src string, dst string) error {
 	cmd := exec.Command("cp", "-R", "--no-dereference", "--preserve=mode,timestamps", "--no-preserve=context,links,xattr", src, dst)
 	return cmd.Run()
