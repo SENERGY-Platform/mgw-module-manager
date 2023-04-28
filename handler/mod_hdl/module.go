@@ -18,9 +18,17 @@ package mod_hdl
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"github.com/SENERGY-Platform/mgw-module-lib/validation"
+	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"os"
+	"sort"
+	"strings"
 )
 
 type Handler struct {
@@ -59,8 +67,40 @@ func (h *Handler) GetWithDep(ctx context.Context, mID string) (*module.Module, m
 	return m, dep, nil
 }
 
-func (h *Handler) Add(ctx context.Context, mID string) error {
-	panic("not implemented")
+func (h *Handler) Add(ctx context.Context, mID, version string) error {
+	var sub string
+	var ver string
+	if version != "" {
+		i := strings.LastIndex(version, "/")
+		if i > 0 {
+			sub = version[:i]
+			ver = version[i+1:]
+		} else {
+			ver = version
+		}
+	} else {
+		verList, err := h.transferHandler.ListVersions(ctx, mID)
+		if err != nil {
+			return err
+		}
+		if len(verList) == 0 {
+			return model.NewInternalError(errors.New("no versions available"))
+		}
+		sort.Strings(verList)
+		ver = verList[len(verList)-1]
+	}
+	if !sem_ver.IsValidSemVer(ver) {
+		return model.NewInvalidInputError(fmt.Errorf("version '%s' invalid", version))
+	}
+	dir, err := h.transferHandler.Get(ctx, mID, ver, sub)
+	if err != nil {
+		return err
+	}
+	if err = h.validateModule(dir, mID); err != nil {
+		os.RemoveAll(dir.Path())
+		return err
+	}
+	return h.storageHandler.Add(ctx, dir, mID)
 }
 
 func (h *Handler) Delete(ctx context.Context, mID string) error {
@@ -92,6 +132,34 @@ func (h *Handler) getReqMod(ctx context.Context, mod *module.Module, reqMod map[
 			}
 			reqMod[mID] = m
 			if err = h.getReqMod(ctx, m, reqMod); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (h *Handler) validateModule(dir util.DirFS, mID string) error {
+	m, err := h.modFileHandler.GetModule(dir)
+	if err != nil {
+		return err
+	}
+	if mID != m.ID {
+		return fmt.Errorf("module ID missmatch: %s != %s", mID, m.ID)
+	}
+	err = validation.Validate(m)
+	if err != nil {
+		return err
+	}
+	for _, cv := range m.Configs {
+		if err := h.configValidationHandler.ValidateBase(cv.Type, cv.TypeOpt, cv.DataType); err != nil {
+			return err
+		}
+		if err := h.configValidationHandler.ValidateTypeOptions(cv.Type, cv.TypeOpt); err != nil {
+			return err
+		}
+		if cv.Default != nil {
+			if err := h.configValidationHandler.ValidateValue(cv.Type, cv.TypeOpt, cv.Default, cv.IsSlice, cv.DataType); err != nil {
 				return err
 			}
 		}

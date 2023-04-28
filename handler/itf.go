@@ -29,7 +29,7 @@ type ModuleHandler interface {
 	List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error)
 	Get(ctx context.Context, mID string) (*module.Module, error)
 	GetWithDep(ctx context.Context, mID string) (*module.Module, map[string]*module.Module, error)
-	Add(ctx context.Context, mID string) error
+	Add(ctx context.Context, mID, ver string) error
 	Delete(ctx context.Context, mID string) error
 	Update(ctx context.Context, mID string) error
 	CreateInclDir(ctx context.Context, mID, iID string) (string, error)
