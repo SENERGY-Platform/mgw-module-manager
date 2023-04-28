@@ -36,6 +36,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_storage_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_storage_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_transfer_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/modfile_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/gin-gonic/gin"
