@@ -108,7 +108,9 @@ func main() {
 		return
 	}
 
-	modHandler := mod_hdl.New(modStorageHandler, nil, modFileHandler, cfgValidHandler)
+	modTransferHandler := mod_transfer_hdl.New(config.ModTransferHandler.WorkdirPath, time.Duration(config.ModTransferHandler.Timeout))
+
+	modHandler := mod_hdl.New(modStorageHandler, modTransferHandler, modFileHandler, cfgValidHandler)
 
 	dbCtx, dbCtxCf := context.WithCancel(context.Background())
 	defer dbCtxCf()
