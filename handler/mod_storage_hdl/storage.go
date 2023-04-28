@@ -18,13 +18,11 @@ package mod_storage_hdl
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
-	"gopkg.in/yaml.v3"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -41,23 +39,21 @@ const (
 var mfExtensions = []string{"yaml", "yml"}
 
 type Handler struct {
-	wrkSpacePath string
-	delimiter    string
-	mfDecoders   modfile.Decoders
-	mfGenerators modfile.Generators
-	perm         fs.FileMode
+	wrkSpacePath   string
+	delimiter      string
+	perm           fs.FileMode
+	modFileHandler handler.ModFileHandler
 }
 
-func New(workspacePath string, delimiter string, mfDecoders modfile.Decoders, mfGenerators modfile.Generators, perm fs.FileMode) (*Handler, error) {
+func New(workspacePath string, delimiter string, perm fs.FileMode, modFileHandler handler.ModFileHandler) (*Handler, error) {
 	if !path.IsAbs(workspacePath) {
 		return nil, fmt.Errorf("workspace path must be absolute")
 	}
 	return &Handler{
-		wrkSpacePath: workspacePath,
-		delimiter:    delimiter,
-		mfDecoders:   mfDecoders,
-		mfGenerators: mfGenerators,
-		perm:         perm,
+		wrkSpacePath:   workspacePath,
+		delimiter:      delimiter,
+		perm:           perm,
+		modFileHandler: modFileHandler,
 	}, nil
 }
 
@@ -72,14 +68,22 @@ func (h *Handler) InitWorkspace() error {
 }
 
 func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
-	dir, err := os.ReadDir(path.Join(h.wrkSpacePath, modDir))
+	dir, err := util.NewDirFS(path.Join(h.wrkSpacePath, modDir))
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	dirEntries, err := fs.ReadDir(dir, ".")
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
 	var mm []model.ModuleMeta
-	for _, entry := range dir {
+	for _, entry := range dirEntries {
 		if entry.IsDir() {
-			m, err := h.readModFile(path.Join(h.wrkSpacePath, modDir, entry.Name()))
+			sub, err := dir.Sub(entry.Name())
+			if err != nil {
+				return nil, err
+			}
+			m, err := h.modFileHandler.GetModule(sub)
 			if err != nil {
 				continue
 			}
@@ -105,13 +109,13 @@ func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Mod
 }
 
 func (h *Handler) Get(_ context.Context, mID string) (*module.Module, error) {
-	p := path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter))
-	if _, err := os.Stat(p); err != nil {
+	dir, err := util.NewDirFS(path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter)))
+	if err != nil {
 		return nil, model.NewNotFoundError(err)
 	}
-	m, err := h.readModFile(p)
+	m, err := h.modFileHandler.GetModule(dir)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return nil, err
 	}
 	return m, nil
 }
@@ -155,28 +159,6 @@ func (h *Handler) RemoveInclDir(_ context.Context, iID string) error {
 	return nil
 }
 
-func (h *Handler) readModFile(p string) (*module.Module, error) {
-	mfp, err := detectModFile(p)
-	if err != nil {
-		return nil, err
-	}
-	f, err := os.Open(mfp)
-	if err != nil {
-		return nil, err
-	}
-	yd := yaml.NewDecoder(f)
-	mf := modfile.New(h.mfDecoders, h.mfGenerators)
-	err = yd.Decode(&mf)
-	if err != nil {
-		return nil, err
-	}
-	m, err := mf.GetModule()
-	if err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 func copyDir(src string, dst string) error {
 	cmd := exec.Command("cp", "-R", "--no-dereference", "--preserve=mode,timestamps", "--no-preserve=context,links,xattr", src, dst)
 	return cmd.Run()
@@ -184,30 +166,6 @@ func copyDir(src string, dst string) error {
 
 func idToDir(id string, delimiter string) string {
 	return strings.Replace(id, "/", delimiter, -1)
-}
-
-func checkIfExist(p string) (ok bool, err error) {
-	_, err = os.Stat(p)
-	if err == nil {
-		ok = true
-	} else if err != nil && os.IsNotExist(err) {
-		err = nil
-	}
-	return
-}
-
-func detectModFile(p string) (string, error) {
-	p = path.Join(p, fileName)
-	if ok, err := checkIfExist(p); err != nil || ok {
-		return p, err
-	}
-	for _, ext := range mfExtensions {
-		tp := p + "." + ext
-		if ok, err := checkIfExist(tp); err != nil || ok {
-			return tp, err
-		}
-	}
-	return "", errors.New("modfile not found")
 }
 
 func filterMod(filter model.ModFilter, m *module.Module) bool {

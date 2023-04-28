@@ -107,7 +107,7 @@ func main() {
 		return
 	}
 
-	modHandler := mod_hdl.New(modStorageHandler, nil, cfgValidHandler)
+	modHandler := mod_hdl.New(modStorageHandler, nil, modFileHandler, cfgValidHandler)
 
 	dbCtx, dbCtxCf := context.WithCancel(context.Background())
 	defer dbCtxCf()
