@@ -116,7 +116,7 @@ func (h *Handler) Get(_ context.Context, mID string) (*module.Module, error) {
 	return m, nil
 }
 
-func (h *Handler) Add(ctx context.Context, mID string) error {
+func (h *Handler) Add(ctx context.Context, dir util.DirFS) error {
 	panic("not implemented")
 }
 
