@@ -36,6 +36,10 @@ type ModuleHandler interface {
 	DeleteInclDir(ctx context.Context, iID string) error
 }
 
+type ModFileHandler interface {
+	GetModule(dir util.DirFS) (*module.Module, error)
+}
+
 type ModStorageHandler interface {
 	List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error)
 	Get(ctx context.Context, mID string) (*module.Module, error)
