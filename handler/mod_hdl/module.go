@@ -67,19 +67,19 @@ func (h *Handler) GetWithDep(ctx context.Context, mID string) (*module.Module, m
 	return m, dep, nil
 }
 
-func (h *Handler) Add(ctx context.Context, mID, version string) error {
+func (h *Handler) Add(ctx context.Context, mr model.ModRequest) error {
 	var sub string
 	var ver string
-	if version != "" {
-		i := strings.LastIndex(version, "/")
+	if mr.Version != "" {
+		i := strings.LastIndex(mr.Version, "/")
 		if i > 0 {
-			sub = version[:i]
-			ver = version[i+1:]
+			sub = mr.Version[:i]
+			ver = mr.Version[i+1:]
 		} else {
-			ver = version
+			ver = mr.Version
 		}
 	} else {
-		verList, err := h.transferHandler.ListVersions(ctx, mID)
+		verList, err := h.transferHandler.ListVersions(ctx, mr.ID)
 		if err != nil {
 			return err
 		}
@@ -90,17 +90,17 @@ func (h *Handler) Add(ctx context.Context, mID, version string) error {
 		ver = verList[len(verList)-1]
 	}
 	if !sem_ver.IsValidSemVer(ver) {
-		return model.NewInvalidInputError(fmt.Errorf("version '%s' invalid", version))
+		return model.NewInvalidInputError(fmt.Errorf("version '%s' invalid", ver))
 	}
-	dir, err := h.transferHandler.Get(ctx, mID, ver, sub)
+	dir, err := h.transferHandler.Get(ctx, mr.ID, ver, sub)
 	if err != nil {
 		return err
 	}
-	if err = h.validateModule(dir, mID); err != nil {
+	if err = h.validateModule(dir, mr.ID); err != nil {
 		os.RemoveAll(dir.Path())
 		return err
 	}
-	return h.storageHandler.Add(ctx, dir, mID)
+	return h.storageHandler.Add(ctx, dir, mr.ID)
 }
 
 func (h *Handler) Delete(ctx context.Context, mID string) error {

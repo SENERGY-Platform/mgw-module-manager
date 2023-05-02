@@ -41,3 +41,8 @@ type ModFilter struct {
 	InDependencies map[string]struct{}
 	Tags           map[string]struct{}
 }
+
+type ModRequest struct {
+	ID      string `json:"id"`
+	Version string `json:"version"`
+}
