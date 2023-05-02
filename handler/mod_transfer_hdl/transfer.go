@@ -124,7 +124,7 @@ func (h *Handler) Get(ctx context.Context, mID, ver string) (dir util.DirFS, err
 		return "", model.NewInternalError(err)
 	}
 	var p string
-	if sub == "" {
+	if mPath == "" {
 		err = os.RemoveAll(path.Join(tDir, ".git"))
 		if err != nil {
 			return "", model.NewInternalError(err)
@@ -135,8 +135,7 @@ func (h *Handler) Get(ctx context.Context, mID, ver string) (dir util.DirFS, err
 		if err != nil {
 			return "", model.NewInternalError(err)
 		}
-		p = path.Join(tDir, sub)
-		err = util.CopyDir(path.Join(tDir, sub), p)
+		err = util.CopyDir(path.Join(tDir, mPath), p)
 		if err != nil {
 			os.RemoveAll(p)
 			return "", model.NewInternalError(err)
