@@ -25,7 +25,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"os"
 	"sort"
 )
@@ -96,7 +95,11 @@ func (h *Handler) Add(ctx context.Context, mr model.ModRequest) error {
 	if err != nil {
 		return err
 	}
-	if err = h.validateModule(dir, mr.ID); err != nil {
+	m, err = h.modFileHandler.GetModule(dir)
+	if err != nil {
+		return err
+	}
+	if err = h.validateModule(m, mr.ID); err != nil {
 		os.RemoveAll(dir.Path())
 		return err
 	}
@@ -139,27 +142,23 @@ func (h *Handler) getReqMod(ctx context.Context, mod *module.Module, reqMod map[
 	return nil
 }
 
-func (h *Handler) validateModule(dir util.DirFS, mID string) error {
-	m, err := h.modFileHandler.GetModule(dir)
-	if err != nil {
-		return err
-	}
+func (h *Handler) validateModule(m *module.Module, mID string) error {
 	if mID != m.ID {
 		return fmt.Errorf("module ID missmatch: %s != %s", mID, m.ID)
 	}
-	err = validation.Validate(m)
+	err := validation.Validate(m)
 	if err != nil {
 		return err
 	}
 	for _, cv := range m.Configs {
-		if err := h.configValidationHandler.ValidateBase(cv.Type, cv.TypeOpt, cv.DataType); err != nil {
+		if err = h.configValidationHandler.ValidateBase(cv.Type, cv.TypeOpt, cv.DataType); err != nil {
 			return err
 		}
-		if err := h.configValidationHandler.ValidateTypeOptions(cv.Type, cv.TypeOpt); err != nil {
+		if err = h.configValidationHandler.ValidateTypeOptions(cv.Type, cv.TypeOpt); err != nil {
 			return err
 		}
 		if cv.Default != nil {
-			if err := h.configValidationHandler.ValidateValue(cv.Type, cv.TypeOpt, cv.Default, cv.IsSlice, cv.DataType); err != nil {
+			if err = h.configValidationHandler.ValidateValue(cv.Type, cv.TypeOpt, cv.Default, cv.IsSlice, cv.DataType); err != nil {
 				return err
 			}
 		}
