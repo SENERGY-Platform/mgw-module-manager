@@ -108,7 +108,15 @@ func main() {
 		return
 	}
 
-	modTransferHandler := mod_transfer_hdl.New(config.ModTransferHandler.WorkdirPath, time.Duration(config.ModTransferHandler.Timeout))
+	modTransferHandler, err := mod_transfer_hdl.New(config.ModTransferHandler.WorkdirPath, 0770, time.Duration(config.ModTransferHandler.Timeout))
+	if err != nil {
+		util.Logger.Error(err)
+		return
+	}
+	if err := modTransferHandler.InitWorkspace(); err != nil {
+		util.Logger.Error(err)
+		return
+	}
 
 	modHandler := mod_hdl.New(modStorageHandler, modTransferHandler, modFileHandler, cfgValidHandler)
 
