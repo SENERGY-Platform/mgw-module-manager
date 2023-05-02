@@ -53,10 +53,11 @@ func (h *Handler) ListVersions(ctx context.Context, mID string) ([]string, error
 		return nil, model.NewInternalError(err)
 	}
 	defer os.RemoveAll(dir)
+	rPath, mPath := parseModID(mID)
 	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
 	defer cf()
 	repo, err := git.PlainCloneContext(ctxWt, dir, false, &git.CloneOptions{
-		URL:               "https://" + mID + ".git",
+		URL:               "https://" + rPath + ".git",
 		NoCheckout:        true,
 		RecurseSubmodules: git.NoRecurseSubmodules,
 		Tags:              git.AllTags,
