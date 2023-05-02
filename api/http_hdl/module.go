@@ -81,6 +81,23 @@ func getModuleH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
+func postModuleH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		var modReq model.ModRequest
+		err := gc.ShouldBindJSON(&modReq)
+		if err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		err = a.AddModule(gc.Request.Context(), modReq)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
 func getDeploymentTemplateH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		inputTemplate, err := a.GetDeploymentTemplate(gc.Request.Context(), gc.Param(modIdParam))
