@@ -109,11 +109,12 @@ func (h *Handler) Get(ctx context.Context, mID, ver string) (dir util.DirFS, err
 			os.RemoveAll(tDir)
 		}
 	}()
+	rPath, mPath := parseModID(mID)
 	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
 	defer cf()
 	_, err = git.PlainCloneContext(ctxWt, tDir, false, &git.CloneOptions{
-		URL:               "https://" + mID + ".git",
-		ReferenceName:     plumbing.NewTagReferenceName(path.Join(sub, ver)),
+		URL:               "https://" + rPath + ".git",
+		ReferenceName:     plumbing.NewTagReferenceName(path.Join(mPath, ver)),
 		SingleBranch:      true,
 		Depth:             1,
 		RecurseSubmodules: git.NoRecurseSubmodules,
