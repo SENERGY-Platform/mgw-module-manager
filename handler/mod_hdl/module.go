@@ -28,7 +28,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"os"
 	"sort"
-	"strings"
 )
 
 type Handler struct {
