@@ -34,8 +34,6 @@ const (
 	inclDir = "deployments"
 )
 
-var mfExtensions = []string{"yaml", "yml"}
-
 type Handler struct {
 	modWrkSpcPath     string
 	inclDirWrkSpcPath string
