@@ -25,6 +25,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"os"
 	"sort"
 )
@@ -76,22 +77,7 @@ func (h *Handler) Add(ctx context.Context, mr model.ModRequest) error {
 	if m != nil {
 		return model.NewInternalError(errors.New("already installed"))
 	}
-	ver := mr.Version
-	if ver == "" {
-		verList, err := h.transferHandler.ListVersions(ctx, mr.ID)
-		if err != nil {
-			return err
-		}
-		if len(verList) == 0 {
-			return model.NewInternalError(errors.New("no versions available"))
-		}
-		sort.Strings(verList)
-		ver = verList[len(verList)-1]
-	}
-	if !sem_ver.IsValidSemVer(ver) {
-		return model.NewInvalidInputError(fmt.Errorf("version '%s' invalid", ver))
-	}
-	dir, err := h.transferHandler.Get(ctx, mr.ID, ver)
+	dir, err := h.getRemote(ctx, mr.ID, mr.Version)
 	if err != nil {
 		return err
 	}
@@ -104,6 +90,28 @@ func (h *Handler) Add(ctx context.Context, mr model.ModRequest) error {
 		return err
 	}
 	return h.storageHandler.Add(ctx, dir, mr.ID)
+}
+
+func (h *Handler) getRemote(ctx context.Context, mID, ver string) (util.DirFS, error) {
+	if ver == "" {
+		verList, err := h.transferHandler.ListVersions(ctx, mID)
+		if err != nil {
+			return "", err
+		}
+		if len(verList) == 0 {
+			return "", model.NewInternalError(errors.New("no versions available"))
+		}
+		sort.Strings(verList)
+		ver = verList[len(verList)-1]
+	}
+	if !sem_ver.IsValidSemVer(ver) {
+		return "", model.NewInvalidInputError(fmt.Errorf("version '%s' invalid", ver))
+	}
+	dir, err := h.transferHandler.Get(ctx, mID, ver)
+	if err != nil {
+		return "", err
+	}
+	return dir, nil
 }
 
 func (h *Handler) Delete(ctx context.Context, mID string) error {
