@@ -18,13 +18,16 @@ package mod_transfer_hdl
 
 import (
 	"context"
+	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"io"
+	"io/fs"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
