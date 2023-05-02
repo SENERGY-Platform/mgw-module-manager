@@ -31,17 +31,27 @@ import (
 	"time"
 )
 
+const wrkSpcDir = "transfer"
+
 type Handler struct {
 	wrkSpcPath  string
+	perm        fs.FileMode
 	httpTimeout time.Duration
 }
 
-func New(workspacePath string, httpTimeout time.Duration) *Handler {
-	return &Handler{wrkSpcPath: workspacePath, httpTimeout: httpTimeout}
+func New(workspacePath string, perm fs.FileMode, httpTimeout time.Duration) (*Handler, error) {
+	if !path.IsAbs(workspacePath) {
+		return nil, fmt.Errorf("workspace path must be absolute")
+	}
+	return &Handler{
+		wrkSpcPath:  path.Join(workspacePath, wrkSpcDir),
+		perm:        perm,
+		httpTimeout: httpTimeout,
+	}, nil
 }
 
 func (h *Handler) InitWorkspace() error {
-	if err := os.MkdirAll(h.wrkSpcPath, 0777); err != nil {
+	if err := os.MkdirAll(h.wrkSpcPath, h.perm); err != nil {
 		return err
 	}
 	return nil
