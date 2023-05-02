@@ -19,6 +19,6 @@ package util
 import "os/exec"
 
 func CopyDir(src string, dst string) error {
-	cmd := exec.Command("cp", "-R", "--no-dereference", "--preserve=mode,timestamps", "--no-preserve=context,links,xattr", src, dst)
+	cmd := exec.Command("cp", "-R", "--no-dereference", "--preserve=mode,timestamps", "--no-preserve=context,links,xattr", src+"/.", dst)
 	return cmd.Run()
 }
