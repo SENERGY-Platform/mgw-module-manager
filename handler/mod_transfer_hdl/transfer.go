@@ -79,7 +79,22 @@ func (h *Handler) ListVersions(ctx context.Context, mID string) ([]string, error
 			}
 			return nil, model.NewInternalError(err)
 		}
-		versions = append(versions, ref.Name().Short())
+		tag := ref.Name().Short()
+		var ver string
+		if mPath != "" {
+			if strings.Contains(tag, mPath) {
+				ver = strings.Replace(tag, mPath+"/", "", 1)
+			} else {
+				continue
+			}
+		} else {
+			if strings.Count(tag, "/") == 0 {
+				ver = tag
+			} else {
+				continue
+			}
+		}
+		versions = append(versions, ver)
 	}
 	return versions, nil
 }
