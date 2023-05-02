@@ -67,17 +67,18 @@ func (h *Handler) GetWithDep(ctx context.Context, mID string) (*module.Module, m
 }
 
 func (h *Handler) Add(ctx context.Context, mr model.ModRequest) error {
-	var sub string
-	var ver string
-	if mr.Version != "" {
-		i := strings.LastIndex(mr.Version, "/")
-		if i > 0 {
-			sub = mr.Version[:i]
-			ver = mr.Version[i+1:]
-		} else {
-			ver = mr.Version
+	m, err := h.storageHandler.Get(ctx, mr.ID)
+	if err != nil {
+		var nfe *model.NotFoundError
+		if !errors.As(err, &nfe) {
+			return err
 		}
-	} else {
+	}
+	if m != nil {
+		return model.NewInternalError(errors.New("already installed"))
+	}
+	ver := mr.Version
+	if ver == "" {
 		verList, err := h.transferHandler.ListVersions(ctx, mr.ID)
 		if err != nil {
 			return err
