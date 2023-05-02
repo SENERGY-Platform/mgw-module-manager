@@ -25,7 +25,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"os"
 	"sort"
 )
@@ -77,41 +76,87 @@ func (h *Handler) Add(ctx context.Context, mr model.ModRequest) error {
 	if m != nil {
 		return model.NewInternalError(errors.New("already installed"))
 	}
-	dir, err := h.getRemote(ctx, mr.ID, mr.Version)
-	if err != nil {
-		return err
-	}
-	m, err = h.modFileHandler.GetModule(dir)
-	if err != nil {
-		return err
-	}
-	if err = h.validateModule(m, mr.ID); err != nil {
-		os.RemoveAll(dir.Path())
-		return err
-	}
-	return h.storageHandler.Add(ctx, dir, mr.ID)
+	return h.add(ctx, mr.ID, mr.Version, "")
 }
 
-func (h *Handler) getRemote(ctx context.Context, mID, ver string) (util.DirFS, error) {
+func (h *Handler) add(ctx context.Context, mID, ver, verRng string) error {
 	if ver == "" {
-		verList, err := h.transferHandler.ListVersions(ctx, mID)
+		var err error
+		ver, err = h.getVersion(ctx, mID, verRng)
 		if err != nil {
-			return "", err
+			return err
 		}
-		if len(verList) == 0 {
-			return "", model.NewInternalError(errors.New("no versions available"))
+	} else {
+		if !sem_ver.IsValidSemVer(ver) {
+			return model.NewInvalidInputError(fmt.Errorf("version '%s' invalid", ver))
 		}
-		sort.Strings(verList)
-		ver = verList[len(verList)-1]
-	}
-	if !sem_ver.IsValidSemVer(ver) {
-		return "", model.NewInvalidInputError(fmt.Errorf("version '%s' invalid", ver))
 	}
 	dir, err := h.transferHandler.Get(ctx, mID, ver)
 	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(dir.Path())
+	m, err := h.modFileHandler.GetModule(dir)
+	if err != nil {
+		return err
+	}
+	if err = h.validateModule(m, mID); err != nil {
+		return err
+	}
+	for dmID, dmVerRng := range m.Dependencies {
+		dm, err := h.storageHandler.Get(ctx, dmID)
+		if err != nil {
+			var nfe *model.NotFoundError
+			if !errors.As(err, &nfe) {
+				return err
+			}
+			err = h.add(ctx, dmID, "", dmVerRng)
+			if err != nil {
+				return err
+			}
+			continue
+		}
+		ok, err := sem_ver.InSemVerRange(dmVerRng, dm.Version)
+		if err != nil {
+			return model.NewInternalError(err)
+		}
+		if !ok {
+			return fmt.Errorf("'%s' of '%s' does not satsify '%s'", dm.Version, dm.ID, dmVerRng)
+		}
+	}
+	err = h.storageHandler.Add(ctx, dir, mID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Handler) getVersion(ctx context.Context, mID, verRng string) (string, error) {
+	verList, err := h.transferHandler.ListVersions(ctx, mID)
+	if err != nil {
 		return "", err
 	}
-	return dir, nil
+	sort.Strings(verList)
+	var ver string
+	for i := len(verList) - 1; i >= 0; i-- {
+		v := verList[i]
+		if verRng != "" {
+			ok, _ := sem_ver.InSemVerRange(verRng, v)
+			if ok {
+				ver = v
+				break
+			}
+		} else {
+			if sem_ver.IsValidSemVer(v) {
+				ver = v
+				break
+			}
+		}
+	}
+	if ver == "" {
+		return "", model.NewInternalError(errors.New("no versions available"))
+	}
+	return ver, nil
 }
 
 func (h *Handler) Delete(ctx context.Context, mID string) error {
