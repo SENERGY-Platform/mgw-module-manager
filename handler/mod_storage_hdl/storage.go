@@ -30,18 +30,18 @@ import (
 )
 
 const (
-	fileName = "Modfile"
-	modDir   = "modules"
-	inclDir  = "deployments"
+	modDir  = "modules"
+	inclDir = "deployments"
 )
 
 var mfExtensions = []string{"yaml", "yml"}
 
 type Handler struct {
-	wrkSpacePath   string
-	delimiter      string
-	perm           fs.FileMode
-	modFileHandler handler.ModFileHandler
+	modWrkSpcPath     string
+	inclDirWrkSpcPath string
+	delimiter         string
+	perm              fs.FileMode
+	modFileHandler    handler.ModFileHandler
 }
 
 func New(workspacePath string, delimiter string, perm fs.FileMode, modFileHandler handler.ModFileHandler) (*Handler, error) {
@@ -49,25 +49,26 @@ func New(workspacePath string, delimiter string, perm fs.FileMode, modFileHandle
 		return nil, fmt.Errorf("workspace path must be absolute")
 	}
 	return &Handler{
-		wrkSpacePath:   workspacePath,
-		delimiter:      delimiter,
-		perm:           perm,
-		modFileHandler: modFileHandler,
+		modWrkSpcPath:     path.Join(workspacePath, modDir),
+		inclDirWrkSpcPath: path.Join(workspacePath, inclDir),
+		delimiter:         delimiter,
+		perm:              perm,
+		modFileHandler:    modFileHandler,
 	}, nil
 }
 
 func (h *Handler) InitWorkspace() error {
-	if err := os.MkdirAll(path.Join(h.wrkSpacePath, modDir), h.perm); err != nil {
+	if err := os.MkdirAll(h.modWrkSpcPath, h.perm); err != nil {
 		return err
 	}
-	if err := os.MkdirAll(path.Join(h.wrkSpacePath, inclDir), h.perm); err != nil {
+	if err := os.MkdirAll(h.inclDirWrkSpcPath, h.perm); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
-	dir, err := util.NewDirFS(path.Join(h.wrkSpacePath, modDir))
+	dir, err := util.NewDirFS(h.modWrkSpcPath)
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
@@ -108,7 +109,7 @@ func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Mod
 }
 
 func (h *Handler) Get(_ context.Context, mID string) (*module.Module, error) {
-	dir, err := util.NewDirFS(path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter)))
+	dir, err := util.NewDirFS(path.Join(h.modWrkSpcPath, idToDir(mID, h.delimiter)))
 	if err != nil {
 		return nil, model.NewNotFoundError(err)
 	}
@@ -121,7 +122,7 @@ func (h *Handler) Get(_ context.Context, mID string) (*module.Module, error) {
 
 func (h *Handler) Add(_ context.Context, dir util.DirFS, mID string) error {
 	defer os.RemoveAll(dir.Path())
-	err := util.CopyDir(dir.Path(), path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter)))
+	err := util.CopyDir(dir.Path(), path.Join(h.modWrkSpcPath, idToDir(mID, h.delimiter)))
 	if err != nil {
 		return model.NewInternalError(err)
 	}
@@ -129,15 +130,15 @@ func (h *Handler) Add(_ context.Context, dir util.DirFS, mID string) error {
 }
 
 func (h *Handler) Delete(_ context.Context, mID string) error {
-	if err := os.RemoveAll(path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter))); err != nil {
+	if err := os.RemoveAll(path.Join(h.modWrkSpcPath, idToDir(mID, h.delimiter))); err != nil {
 		return model.NewInternalError(err)
 	}
 	return nil
 }
 
 func (h *Handler) MakeInclDir(_ context.Context, mID, iID string) (util.DirFS, error) {
-	p := path.Join(h.wrkSpacePath, inclDir, iID)
-	if err := util.CopyDir(path.Join(h.wrkSpacePath, modDir, idToDir(mID, h.delimiter)), p); err != nil {
+	p := path.Join(h.inclDirWrkSpcPath, iID)
+	if err := util.CopyDir(path.Join(h.modWrkSpcPath, idToDir(mID, h.delimiter)), p); err != nil {
 		_ = os.RemoveAll(p)
 		return "", model.NewInternalError(err)
 	}
@@ -149,7 +150,7 @@ func (h *Handler) MakeInclDir(_ context.Context, mID, iID string) (util.DirFS, e
 }
 
 func (h *Handler) GetInclDir(_ context.Context, iID string) (util.DirFS, error) {
-	dir, err := util.NewDirFS(path.Join(h.wrkSpacePath, inclDir, iID))
+	dir, err := util.NewDirFS(path.Join(h.inclDirWrkSpcPath, iID))
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}
@@ -157,7 +158,7 @@ func (h *Handler) GetInclDir(_ context.Context, iID string) (util.DirFS, error) 
 }
 
 func (h *Handler) RemoveInclDir(_ context.Context, iID string) error {
-	if err := os.RemoveAll(path.Join(h.wrkSpacePath, inclDir, iID)); err != nil {
+	if err := os.RemoveAll(path.Join(h.inclDirWrkSpcPath, iID)); err != nil {
 		return model.NewInternalError(err)
 	}
 	return nil
