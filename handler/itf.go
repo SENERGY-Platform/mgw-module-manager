@@ -52,7 +52,7 @@ type ModStorageHandler interface {
 
 type ModTransferHandler interface {
 	ListVersions(ctx context.Context, mID string) ([]string, error)
-	Get(ctx context.Context, mID, ver, sub string) (util.DirFS, error)
+	Get(ctx context.Context, mID, ver string) (util.DirFS, error)
 }
 
 type DeploymentHandler interface {

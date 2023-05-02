@@ -80,7 +80,7 @@ func (h *Handler) ListVersions(ctx context.Context, mID string) ([]string, error
 	return versions, nil
 }
 
-func (h *Handler) Get(ctx context.Context, mID, ver, sub string) (dir util.DirFS, err error) {
+func (h *Handler) Get(ctx context.Context, mID, ver string) (dir util.DirFS, err error) {
 	tDir, err := os.MkdirTemp(h.wrkSpcPath, "clone_")
 	if err != nil {
 		return "", model.NewInternalError(err)

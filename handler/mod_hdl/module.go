@@ -92,7 +92,7 @@ func (h *Handler) Add(ctx context.Context, mr model.ModRequest) error {
 	if !sem_ver.IsValidSemVer(ver) {
 		return model.NewInvalidInputError(fmt.Errorf("version '%s' invalid", ver))
 	}
-	dir, err := h.transferHandler.Get(ctx, mr.ID, ver, sub)
+	dir, err := h.transferHandler.Get(ctx, mr.ID, ver)
 	if err != nil {
 		return err
 	}
