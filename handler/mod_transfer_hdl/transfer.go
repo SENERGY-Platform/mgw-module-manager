@@ -129,3 +129,15 @@ func (h *Handler) Get(ctx context.Context, mID, ver string) (dir util.DirFS, err
 	}
 	return dir, nil
 }
+
+func parseModID(mID string) (repo string, pth string) {
+	c := strings.Count(mID, "/")
+	if c > 2 {
+		i := strings.LastIndex(mID, "/")
+		repo = mID[:i]
+		pth = mID[i+1:]
+	} else {
+		repo = mID
+	}
+	return
+}
