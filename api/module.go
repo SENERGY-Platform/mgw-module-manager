@@ -22,8 +22,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func (a *Api) AddModule(ctx context.Context, id string) error {
-	panic("not implemented")
+func (a *Api) AddModule(ctx context.Context, mr model.ModRequest) error {
+	return a.moduleHandler.Add(ctx, mr)
 }
 
 func (a *Api) GetModules(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
