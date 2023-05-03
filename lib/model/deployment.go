@@ -55,7 +55,13 @@ type DepInstanceMeta struct {
 
 type DepInstance struct {
 	DepInstanceMeta
-	Containers map[string]string `json:"containers"`
+	Containers []Container `json:"containers"`
+}
+
+type Container struct {
+	ID    string
+	Ref   string
+	Order uint
 }
 
 type DepRequestBase struct {
