@@ -58,7 +58,6 @@ type ModTransferHandler interface {
 type DeploymentHandler interface {
 	List(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
 	Get(ctx context.Context, dID string) (*model.Deployment, error)
-	GetTemplate(ctx context.Context, mID string) (*model.DepTemplate, error)
 	Create(ctx context.Context, dr model.DepRequest) (string, error)
 	Delete(ctx context.Context, dID string, orphans bool) error
 	Update(ctx context.Context, dID string, drb model.DepRequestBase) error
