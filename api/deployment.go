@@ -18,11 +18,16 @@ package api
 
 import (
 	"context"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_tmplt_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
 func (a *Api) GetDeploymentTemplate(ctx context.Context, id string) (*model.DepTemplate, error) {
-	return a.deploymentHandler.GetTemplate(ctx, id)
+	mod, reqMod, err := a.moduleHandler.GetWithDep(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return dep_tmplt_hdl.GetTemplate(mod, reqMod)
 }
 
 func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error) {
