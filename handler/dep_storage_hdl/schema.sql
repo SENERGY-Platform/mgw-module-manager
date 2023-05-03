@@ -51,15 +51,16 @@ CREATE TABLE IF NOT EXISTS `instances`
         ON DELETE CASCADE
         ON UPDATE RESTRICT
 );
-CREATE TABLE IF NOT EXISTS `containers`
+CREATE TABLE IF NOT EXISTS `inst_containers`
 (
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `i_id`  CHAR(36)              NOT NULL,
-    `s_ref` VARCHAR(256)          NOT NULL,
-    `c_id`  VARCHAR(256)          NOT NULL,
-    UNIQUE KEY (`c_id`),
+    `index`   BIGINT AUTO_INCREMENT NOT NULL,
+    `inst_id` CHAR(36)              NOT NULL,
+    `srv_ref` VARCHAR(256)          NOT NULL,
+    `order`   BIGINT                NOT NULL,
+    `ctr_id`  VARCHAR(256)          NOT NULL,
+    UNIQUE KEY (`ctr_id`),
     PRIMARY KEY (`index`),
-    FOREIGN KEY (`i_id`) REFERENCES `instances` (`id`)
+    FOREIGN KEY (`inst_id`) REFERENCES `instances` (`id`)
         ON DELETE CASCADE
         ON UPDATE RESTRICT
 );
