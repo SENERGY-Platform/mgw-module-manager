@@ -189,24 +189,24 @@ func selectInstance(ctx context.Context, qwf func(context.Context, string, ...an
 	return dim, nil
 }
 
-func selectContainers(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), instID string) (map[string]string, error) {
-	rows, err := qf(ctx, "SELECT `s_ref`, `c_id` FROM `containers` WHERE `i_id` = ?", instID)
+func selectContainers(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), instID string) ([]model.Container, error) {
+	rows, err := qf(ctx, "SELECT `srv_ref`, `order`, `ctr_id` FROM `inst_containers` WHERE `inst_id` = ?", instID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	m := make(map[string]string)
+	var containers []model.Container
 	for rows.Next() {
-		var sRef, cId string
-		if err = rows.Scan(&sRef, &cId); err != nil {
+		var ctr model.Container
+		if err = rows.Scan(&ctr.Ref, &ctr.Order, &ctr.ID); err != nil {
 			return nil, err
 		}
-		m[sRef] = cId
+		containers = append(containers, ctr)
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
-	return m, nil
+	return containers, nil
 }
 
 func selectRequiredDep(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), dID string) ([]string, error) {

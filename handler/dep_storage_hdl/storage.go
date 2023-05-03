@@ -427,9 +427,9 @@ func (h *Handler) DeleteInst(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *Handler) CreateInstCtr(ctx context.Context, itf driver.Tx, iID, cID, sRef string) error {
+func (h *Handler) CreateInstCtr(ctx context.Context, itf driver.Tx, iID, cID, sRef string, order uint) error {
 	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "INSERT INTO `containers` (`i_id`, `s_ref`, `c_id`) VALUES (?, ?, ?)", iID, sRef, cID)
+	res, err := tx.ExecContext(ctx, "INSERT INTO `inst_containers` (`inst_id`, `srv_ref`, `order`, `ctr_id`) VALUES (?, ?, ?, ?)", iID, sRef, order, cID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
