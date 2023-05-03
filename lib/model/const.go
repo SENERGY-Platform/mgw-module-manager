@@ -27,3 +27,8 @@ const (
 	DepTemplatePath = "dep_template"
 	DepCtrlPath     = "ctrl"
 )
+
+const (
+	Ascending  SortDirection = 0
+	Descending SortDirection = 1
+)
