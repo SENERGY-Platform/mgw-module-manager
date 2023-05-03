@@ -359,6 +359,35 @@ func (h *Handler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]m
 	return dims, nil
 }
 
+func (h *Handler) ListInstCtr(ctx context.Context, iID string, filter model.CtrFilter) ([]model.Container, error) {
+	q := "SELECT `srv_ref`, `order`, `ctr_id` FROM `inst_containers` WHERE `inst_id` = ? ORDER BY `order` "
+	switch filter.SortOrder {
+	case model.Ascending:
+		q += "ASC"
+	case model.Descending:
+		q += "DESC"
+	default:
+		return nil, model.NewInvalidInputError(errors.New("invalid sort direction"))
+	}
+	rows, err := h.db.QueryContext(ctx, q, iID)
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	defer rows.Close()
+	var containers []model.Container
+	for rows.Next() {
+		var ctr model.Container
+		if err = rows.Scan(&ctr.Ref, &ctr.Order, &ctr.ID); err != nil {
+			return nil, model.NewInternalError(err)
+		}
+		containers = append(containers, ctr)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	return containers, nil
+}
+
 func (h *Handler) CreateInst(ctx context.Context, itf driver.Tx, dID string, timestamp time.Time) (string, error) {
 	tx := itf.(*sql.Tx)
 	res, err := tx.ExecContext(ctx, "INSERT INTO `instances` (`id`, `dep_id`, `created`, `updated`) VALUES (UUID(), ?, ?, ?)", dID, timestamp, timestamp)
