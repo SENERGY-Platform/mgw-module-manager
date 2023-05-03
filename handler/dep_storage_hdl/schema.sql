@@ -64,6 +64,20 @@ CREATE TABLE IF NOT EXISTS `inst_containers`
         ON DELETE CASCADE
         ON UPDATE RESTRICT
 );
+CREATE TABLE IF NOT EXISTS `sub_containers`
+(
+    `index`  BIGINT AUTO_INCREMENT NOT NULL,
+    `dep_id` CHAR(36)              NOT NULL,
+    `grp_id` VARCHAR(256)          NOT NULL,
+    `ref`    VARCHAR(256)          NOT NULL,
+    `order`  BIGINT                NOT NULL,
+    `ctr_id` VARCHAR(256)          NOT NULL,
+    UNIQUE KEY (`ctr_id`),
+    PRIMARY KEY (`index`),
+    FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)
+        ON DELETE CASCADE
+        ON UPDATE RESTRICT
+);
 CREATE TABLE IF NOT EXISTS `host_resources`
 (
     `index`  BIGINT AUTO_INCREMENT NOT NULL,
