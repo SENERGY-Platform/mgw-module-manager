@@ -380,21 +380,28 @@ func (h *Handler) CreateInst(ctx context.Context, itf driver.Tx, dID string, tim
 	return id, nil
 }
 
-func (h *Handler) ReadInst(ctx context.Context, id string) (*model.DepInstance, error) {
-	instMeta, err := selectInstance(ctx, h.db.QueryRowContext, id)
+func (h *Handler) ReadInst(ctx context.Context, id string) (model.DepInstanceMeta, error) {
+	row := h.db.QueryRowContext(ctx, "SELECT `id`, `dep_id`, `created`, `updated` FROM `instances` WHERE `id` = ?", id)
+	var dim model.DepInstanceMeta
+	var ct, ut []uint8
+	err := row.Scan(&dim.ID, &dim.DepID, &ct, &ut)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return model.DepInstanceMeta{}, model.NewNotFoundError(err)
+		}
+		return model.DepInstanceMeta{}, model.NewInternalError(err)
 	}
-	instMeta.ID = id
-	containers, err := selectContainers(ctx, h.db.QueryContext, id)
+	tc, err := time.Parse(tLayout, string(ct))
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.DepInstanceMeta{}, model.NewInternalError(err)
 	}
-	inst := model.DepInstance{
-		DepInstanceMeta: instMeta,
-		Containers:      containers,
+	tu, err := time.Parse(tLayout, string(ut))
+	if err != nil {
+		return model.DepInstanceMeta{}, model.NewInternalError(err)
 	}
-	return &inst, nil
+	dim.Created = tc
+	dim.Updated = tu
+	return dim, nil
 }
 
 func (h *Handler) UpdateInst(ctx context.Context, id string, timestamp time.Time) error {

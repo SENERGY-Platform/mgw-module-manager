@@ -165,50 +165,6 @@ func selectListConfigs(ctx context.Context, qf func(ctx context.Context, query s
 	return nil
 }
 
-func selectInstance(ctx context.Context, qwf func(context.Context, string, ...any) *sql.Row, instID string) (model.DepInstanceMeta, error) {
-	row := qwf(ctx, "SELECT `dep_id`, `created`, `updated` FROM `instances` WHERE `id` = ?", instID)
-	var dim model.DepInstanceMeta
-	var ct, ut []uint8
-	err := row.Scan(&dim.DepID, &ct, &ut)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return model.DepInstanceMeta{}, model.NewNotFoundError(err)
-		}
-		return model.DepInstanceMeta{}, model.NewInternalError(err)
-	}
-	tc, err := time.Parse(tLayout, string(ct))
-	if err != nil {
-		return model.DepInstanceMeta{}, model.NewInternalError(err)
-	}
-	tu, err := time.Parse(tLayout, string(ut))
-	if err != nil {
-		return model.DepInstanceMeta{}, model.NewInternalError(err)
-	}
-	dim.Created = tc
-	dim.Updated = tu
-	return dim, nil
-}
-
-func selectContainers(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), instID string) ([]model.Container, error) {
-	rows, err := qf(ctx, "SELECT `srv_ref`, `order`, `ctr_id` FROM `inst_containers` WHERE `inst_id` = ?", instID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var containers []model.Container
-	for rows.Next() {
-		var ctr model.Container
-		if err = rows.Scan(&ctr.Ref, &ctr.Order, &ctr.ID); err != nil {
-			return nil, err
-		}
-		containers = append(containers, ctr)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-	return containers, nil
-}
-
 func selectRequiredDep(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), dID string) ([]string, error) {
 	return selectReq(ctx, qf, "SELECT `req_id` FROM `dependencies` WHERE `dep_id` = ?", dID)
 }
