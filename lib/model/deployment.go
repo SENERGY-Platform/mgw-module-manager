@@ -64,6 +64,12 @@ type Container struct {
 	Order uint
 }
 
+type SortDirection = int
+
+type CtrFilter struct {
+	SortOrder SortDirection
+}
+
 type DepRequestBase struct {
 	Name           *string           `json:"name"`           // defaults to module name if nil
 	HostResources  map[string]string `json:"host_resources"` // {ref:resourceID}
