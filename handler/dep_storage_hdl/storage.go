@@ -212,7 +212,6 @@ func (h *Handler) ReadDep(ctx context.Context, id string) (*model.Deployment, er
 	if err != nil {
 		return nil, err
 	}
-	depMeta.ID = id
 	hostRes, err := selectHostResources(ctx, h.db.QueryContext, id)
 	if err != nil {
 		return nil, model.NewInternalError(err)
