@@ -25,6 +25,9 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
+	"io/fs"
+	"os"
+	"path"
 	"time"
 )
 
