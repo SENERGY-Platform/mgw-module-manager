@@ -46,6 +46,7 @@ func (h *Handler) GetModule(dir util.DirFS) (*module.Module, error) {
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
+	defer f.Close()
 	yd := yaml.NewDecoder(f)
 	mf := modfile.New(h.mfDecoders, h.mfGenerators)
 	err = yd.Decode(&mf)
