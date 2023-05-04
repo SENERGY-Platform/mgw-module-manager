@@ -23,6 +23,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_tmplt_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 )
 
 func (a *Api) GetDeploymentTemplate(ctx context.Context, id string) (*model.DepTemplate, error) {
@@ -50,29 +51,27 @@ func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string
 		if err != nil {
 			return "", model.NewInternalError(err)
 		}
-		for _, rmID := range order {
-			depList, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: rmID})
-			if err != nil {
-				return "", err
+		var er error
+		var dIDs []string
+		defer func() {
+			if er != nil {
+				for _, id := range dIDs {
+					e := a.DeleteDeployment(context.Background(), id, true)
+					if e != nil {
+						util.Logger.Error(e)
+					}
+				}
 			}
-			if len(depList) == 0 {
-				rMod, err := a.moduleHandler.Get(ctx, rmID)
-				if err != nil {
-					return "", err
-				}
-				dir, err := a.moduleHandler.GetIncl(ctx, rmID)
-				if err != nil {
-					return "", err
-				}
-				_, err = a.deploymentHandler.Create(ctx, rMod, dr.Dependencies[rmID], dir, true)
-				if err != nil {
-					//for _, id := range depNew {
-					//	if er := h.delete(ctx, id, true); er != nil {
-					//		util.Logger.Error(er)
-					//	}
-					//}
-					return "", err
-				}
+		}()
+		var ok bool
+		var dID string
+		for _, rmID := range order {
+			ok, dID, er = a.createDepIfNotExist(ctx, rmID, dr.Dependencies[rmID])
+			if er != nil {
+				return "", er
+			}
+			if ok {
+				dIDs = append(dIDs, dID)
 			}
 		}
 	}
