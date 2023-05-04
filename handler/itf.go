@@ -28,12 +28,11 @@ import (
 type ModuleHandler interface {
 	List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error)
 	Get(ctx context.Context, mID string) (*module.Module, error)
-	GetWithDep(ctx context.Context, mID string) (*module.Module, map[string]*module.Module, error)
+	GetReq(ctx context.Context, mID string) (*module.Module, map[string]*module.Module, error)
+	GetIncl(ctx context.Context, mID string) (util.DirFS, error)
 	Add(ctx context.Context, mr model.ModRequest) error
 	Delete(ctx context.Context, mID string) error
 	Update(ctx context.Context, mID string) error
-	CreateInclDir(ctx context.Context, mID, iID string) (string, error)
-	DeleteInclDir(ctx context.Context, iID string) error
 }
 
 type ModFileHandler interface {
