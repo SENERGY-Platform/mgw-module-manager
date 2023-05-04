@@ -25,6 +25,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"io/fs"
 	"os"
 	"sort"
 )
@@ -63,6 +65,22 @@ func (h *Handler) GetReq(ctx context.Context, mID string) (*module.Module, map[s
 		return nil, nil, err
 	}
 	return m, dep, nil
+}
+
+func (h *Handler) GetIncl(ctx context.Context, mID string) (util.DirFS, error) {
+	mod, dir, err := h.storageHandler.GetDir(ctx, mID)
+	if err != nil {
+		return "", err
+	}
+	for _, srv := range mod.Services {
+		for _, bindMount := range srv.BindMounts {
+			_, err = fs.Stat(dir, bindMount.Source)
+			if err != nil {
+				return "", err
+			}
+		}
+	}
+	return dir, nil
 }
 
 func (h *Handler) Add(ctx context.Context, mr model.ModRequest) error {
