@@ -33,12 +33,13 @@ func (h *Handler) Stop(ctx context.Context, id string, dependencies bool) error 
 		return err
 	}
 	if len(d.DepRequiring) > 0 {
-		extDepReq, err := h.getExtDepReq(ctx, d.DepRequiring, nil)
+		depReq, err := h.getDepFromIDs(ctx, d.DepRequiring)
 		if err != nil {
 			return err
 		}
-		if !allDepReqStopped(extDepReq) {
-			return model.NewInternalError(errors.New("required by running deployments"))
+		ok, rd := allDepStopped(depReq)
+		if !ok {
+			return model.NewInternalError(fmt.Errorf("required by '%s'", rd.ID))
 		}
 	}
 	if err = h.stop(ctx, d); err != nil {
@@ -57,11 +58,12 @@ func (h *Handler) Stop(ctx context.Context, id string, dependencies bool) error 
 			rd := reqDep[order[i]]
 			if rd.Indirect {
 				if len(rd.DepRequiring) > 0 {
-					extDepReq, err := h.getExtDepReq(ctx, rd.DepRequiring, reqDep)
+					depReq, err := h.getDepFromIDs(ctx, rd.DepRequiring)
 					if err != nil {
 						return err
 					}
-					if allDepReqStopped(extDepReq) {
+					ok, _ := allDepStopped(depReq)
+					if ok {
 						if err = h.stop(ctx, rd); err != nil {
 							return err
 						}
@@ -129,27 +131,25 @@ func (h *Handler) stopContainer(ctx context.Context, cID string) error {
 	}
 }
 
-func (h *Handler) getExtDepReq(ctx context.Context, sl []string, m map[string]*model.Deployment) ([]*model.Deployment, error) {
+func (h *Handler) getDepFromIDs(ctx context.Context, dIDs []string) ([]*model.Deployment, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	var ext []*model.Deployment
-	for _, s := range sl {
-		if _, ok := m[s]; !ok {
-			d, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), s)
-			if err != nil {
-				return nil, err
-			}
-			ext = append(ext, d)
+	var dep []*model.Deployment
+	for _, dID := range dIDs {
+		d, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID)
+		if err != nil {
+			return nil, err
 		}
+		dep = append(dep, d)
 	}
-	return ext, nil
+	return dep, nil
 }
 
-func allDepReqStopped(ext []*model.Deployment) bool {
-	for _, d := range ext {
+func allDepStopped(dep []*model.Deployment) (bool, *model.Deployment) {
+	for _, d := range dep {
 		if !d.Stopped {
-			return false
+			return false, d
 		}
 	}
-	return true
+	return true, nil
 }
