@@ -31,8 +31,6 @@ import (
 	"time"
 )
 
-const wrkSpcDir = "transfer"
-
 type Handler struct {
 	wrkSpcPath  string
 	perm        fs.FileMode
@@ -44,7 +42,7 @@ func New(workspacePath string, perm fs.FileMode, httpTimeout time.Duration) (*Ha
 		return nil, fmt.Errorf("workspace path must be absolute")
 	}
 	return &Handler{
-		wrkSpcPath:  path.Join(workspacePath, wrkSpcDir),
+		wrkSpcPath:  workspacePath,
 		perm:        perm,
 		httpTimeout: httpTimeout,
 	}, nil
