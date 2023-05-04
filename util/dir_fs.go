@@ -19,7 +19,6 @@ package util
 import (
 	"io/fs"
 	"os"
-	"path"
 )
 
 type DirFS string
@@ -37,7 +36,18 @@ func (d DirFS) Open(name string) (fs.File, error) {
 	if !fs.ValidPath(name) {
 		return nil, &os.PathError{Op: "open", Path: name, Err: os.ErrInvalid}
 	}
-	f, err := os.Open(path.Join(string(d), name))
+	f, err := os.Open(string(d) + "/" + name)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+func (d DirFS) Stat(name string) (fs.FileInfo, error) {
+	if !fs.ValidPath(name) {
+		return nil, &os.PathError{Op: "stat", Path: name, Err: os.ErrInvalid}
+	}
+	f, err := os.Stat(string(d) + "/" + name)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +61,7 @@ func (d DirFS) Sub(name string) (DirFS, error) {
 	if name == "." {
 		return d, nil
 	}
-	return NewDirFS(path.Join(string(d), name))
+	return NewDirFS(string(d) + "/" + name)
 }
 
 func (d DirFS) Path() string {
