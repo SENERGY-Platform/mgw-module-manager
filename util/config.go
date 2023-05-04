@@ -45,10 +45,15 @@ type ModTransferHandlerConfig struct {
 	Timeout     int64  `json:"timeout" env_var:"MTH_TIMEOUT"`
 }
 
+type DepHandlerConfig struct {
+	WorkdirPath string `json:"workdir_path" env_var:"DH_WORKDIR_PATH"`
+}
+
 type Config struct {
 	ServerPort         uint                     `json:"server_port" env_var:"SERVER_PORT"`
 	ModStorageHandler  ModStorageHandlerConfig  `json:"module_storage_handler" env_var:"MSH_CONFIG"`
 	ModTransferHandler ModTransferHandlerConfig `json:"module_transfer_handler" env_var:"MTH_CONFIG"`
+	DepHandler         DepHandlerConfig         `json:"deployment_handler" env_var:"DH_CONFIG"`
 	Logger             srv_base.LoggerConfig    `json:"logger" env_var:"LOGGER_CONFIG"`
 	ConfigDefsPath     string                   `json:"config_defs_path" env_var:"CONFIG_DEFS_PATH"`
 	Database           DatabaseConfig           `json:"database" env_var:"DATABASE_CONFIG"`
@@ -64,6 +69,9 @@ func NewConfig(path *string) (*Config, error) {
 		ModTransferHandler: ModTransferHandlerConfig{
 			WorkdirPath: "/opt/manager",
 			Timeout:     30000000000,
+		},
+		DepHandler: DepHandlerConfig{
+			WorkdirPath: "/opt/manager",
 		},
 		Logger: srv_base.LoggerConfig{
 			Level:        level.Warning,
