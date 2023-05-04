@@ -111,6 +111,29 @@ func (a *Api) DeleteDeployment(ctx context.Context, id string, orphans bool) err
 	return a.deploymentHandler.Delete(ctx, id, orphans)
 }
 
+func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.DepRequestBase) (bool, string, error) {
+	depList, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: mID})
+	if err != nil {
+		return false, "", err
+	}
+	if len(depList) == 0 {
+		rMod, err := a.moduleHandler.Get(ctx, mID)
+		if err != nil {
+			return false, "", err
+		}
+		dir, err := a.moduleHandler.GetIncl(ctx, mID)
+		if err != nil {
+			return false, "", err
+		}
+		dID, err := a.deploymentHandler.Create(ctx, rMod, depReq, dir, true)
+		if err != nil {
+			return false, "", err
+		}
+		return true, dID, nil
+	}
+	return false, "", nil
+}
+
 func getModOrder(modules map[string]*module.Module) (order []string, err error) {
 	if len(modules) > 1 {
 		nodes := make(tsort.Nodes)
