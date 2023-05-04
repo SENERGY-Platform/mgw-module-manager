@@ -37,16 +37,87 @@ import (
 )
 
 func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, inclDir util.DirFS, indirect bool) (string, error) {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	if mod.DeploymentType == module.SingleDeployment {
-		if l, err := h.storageHandler.ListDep(ctxWt, model.DepFilter{ModuleID: mod.ID}); err != nil {
+	depMap, err := h.getDepMap(ctx, mod.Dependencies)
+	if err != nil {
+		return "", err
+	}
+	configs, userConfigs, err := h.getConfigs(mod.Configs, depReq.Configs)
+	if err != nil {
+		return "", err
+	}
+	hostRes, err := h.getHostRes(mod.HostResources, depReq.HostResources)
+	if err != nil {
+		return "", err
+	}
+	secrets, err := h.getSecrets(mod.Secrets, depReq.Secrets)
+	if err != nil {
+		return "", err
+	}
+	name := getName(mod.Name, depReq.Name)
+	timestamp := time.Now().UTC()
+	tx, err := h.storageHandler.BeginTransaction(ctx)
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	dID, err := h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.ID, name, indirect, timestamp)
+	if err != nil {
+		return "", err
+	}
+	if len(hostRes) > 0 {
+		if err = h.storageHandler.CreateDepHostRes(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, hostRes, dID); err != nil {
 			return "", err
-		} else if len(l) > 0 {
-			return "", model.NewInvalidInputError(errors.New("already deployed"))
 		}
 	}
-	return h.create(ctx, mod, depReq, inclDir, indirect)
+	if len(secrets) > 0 {
+		if err = h.storageHandler.CreateDepSecrets(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, secrets, dID); err != nil {
+			return "", err
+		}
+	}
+	if len(userConfigs) > 0 {
+		if err = h.storageHandler.CreateDepConfigs(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.Configs, userConfigs, dID); err != nil {
+			return "", err
+		}
+	}
+	if len(mod.Dependencies) > 0 {
+		var dr []string
+		for rmID := range mod.Dependencies {
+			dr = append(dr, depMap[rmID])
+		}
+		if err = h.storageHandler.CreateDepReq(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dr, dID); err != nil {
+			return "", err
+		}
+	}
+	iID, err := h.storageHandler.CreateInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID, timestamp)
+	if err != nil {
+		return "", err
+	}
+	depDirPth, err := h.mkDepDir(dID, inclDir)
+	if err != nil {
+		return "", err
+	}
+	volumes, err := h.getVolumes(ctx, mod.Volumes, dID, iID)
+	order, err := getSrvOrder(mod.Services)
+	if err != nil {
+		return "", model.NewInternalError(err)
+	}
+	for i := 0; i < len(order); i++ {
+		cID, err := h.createContainer(ctx, mod.Services[order[i]], order[i], dID, iID, depDirPth, configs, volumes, depMap, hostRes, secrets)
+		if err != nil {
+			return "", err
+		}
+		err = h.storageHandler.CreateInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, iID, cID, order[i], uint(i))
+		if err != nil {
+			return "", err
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return "", model.NewInternalError(err)
+	}
+	return dID, nil
 }
 
 func (h *Handler) mkDepDir(dID string, inclDir util.DirFS) (string, error) {
@@ -165,90 +236,6 @@ func (h *Handler) getDeployments(ctx context.Context, modules map[string]*module
 		}
 	}
 	return nil
-}
-
-func (h *Handler) create(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, inclDir util.DirFS, indirect bool) (string, error) {
-	depMap, err := h.getDepMap(ctx, mod.Dependencies)
-	if err != nil {
-		return "", err
-	}
-	configs, userConfigs, err := h.getConfigs(mod.Configs, depReq.Configs)
-	if err != nil {
-		return "", err
-	}
-	hostRes, err := h.getHostRes(mod.HostResources, depReq.HostResources)
-	if err != nil {
-		return "", err
-	}
-	secrets, err := h.getSecrets(mod.Secrets, depReq.Secrets)
-	if err != nil {
-		return "", err
-	}
-	name := getName(mod.Name, depReq.Name)
-	timestamp := time.Now().UTC()
-	tx, err := h.storageHandler.BeginTransaction(ctx)
-	if err != nil {
-		return "", err
-	}
-	defer tx.Rollback()
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	dID, err := h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.ID, name, indirect, timestamp)
-	if err != nil {
-		return "", err
-	}
-	if len(hostRes) > 0 {
-		if err = h.storageHandler.CreateDepHostRes(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, hostRes, dID); err != nil {
-			return "", err
-		}
-	}
-	if len(secrets) > 0 {
-		if err = h.storageHandler.CreateDepSecrets(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, secrets, dID); err != nil {
-			return "", err
-		}
-	}
-	if len(userConfigs) > 0 {
-		if err = h.storageHandler.CreateDepConfigs(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.Configs, userConfigs, dID); err != nil {
-			return "", err
-		}
-	}
-	if len(mod.Dependencies) > 0 {
-		var dr []string
-		for rmID := range mod.Dependencies {
-			dr = append(dr, depMap[rmID])
-		}
-		if err = h.storageHandler.CreateDepReq(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dr, dID); err != nil {
-			return "", err
-		}
-	}
-	iID, err := h.storageHandler.CreateInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID, timestamp)
-	if err != nil {
-		return "", err
-	}
-	depDirPth, err := h.mkDepDir(dID, inclDir)
-	if err != nil {
-		return "", err
-	}
-	volumes, err := h.getVolumes(ctx, mod.Volumes, dID, iID)
-	order, err := getSrvOrder(mod.Services)
-	if err != nil {
-		return "", model.NewInternalError(err)
-	}
-	for i := 0; i < len(order); i++ {
-		cID, err := h.createContainer(ctx, mod.Services[order[i]], order[i], dID, iID, depDirPth, configs, volumes, depMap, hostRes, secrets)
-		if err != nil {
-			return "", err
-		}
-		err = h.storageHandler.CreateInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, iID, cID, order[i], uint(i))
-		if err != nil {
-			return "", err
-		}
-	}
-	err = tx.Commit()
-	if err != nil {
-		return "", model.NewInternalError(err)
-	}
-	return dID, nil
 }
 
 func (h *Handler) createContainer(ctx context.Context, srv *module.Service, ref, dID, iID, inclDirPath string, configs, volumes, depMap, hostRes, secrets map[string]string) (string, error) {

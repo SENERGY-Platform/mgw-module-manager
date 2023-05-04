@@ -18,6 +18,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_tmplt_hdl"
@@ -36,6 +37,13 @@ func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string
 	mod, reqMod, err := a.moduleHandler.GetReq(ctx, dr.ModuleID)
 	if err != nil {
 		return "", err
+	}
+	if mod.DeploymentType == module.SingleDeployment {
+		if l, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: mod.ID}); err != nil {
+			return "", err
+		} else if len(l) > 0 {
+			return "", model.NewInvalidInputError(errors.New("already deployed"))
+		}
 	}
 	if len(reqMod) > 0 {
 		order, err := getModOrder(reqMod)
