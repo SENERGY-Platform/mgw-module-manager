@@ -118,7 +118,9 @@ func main() {
 		return
 	}
 
-	modHandler := mod_hdl.New(modStorageHandler, modTransferHandler, modFileHandler, cfgValidHandler)
+	cewClient := client.New(http.DefaultClient, config.HttpClient.CewBaseUrl)
+
+	modHandler := mod_hdl.New(modStorageHandler, modTransferHandler, modFileHandler, cfgValidHandler, cewClient, time.Duration(config.HttpClient.Timeout))
 
 	dbCtx, dbCtxCf := context.WithCancel(context.Background())
 	defer dbCtxCf()
@@ -128,8 +130,6 @@ func main() {
 		return
 	}
 	defer db.Close()
-
-	cewClient := client.New(http.DefaultClient, config.HttpClient.CewBaseUrl)
 
 	depStorageHandler := dep_storage_hdl.New(db)
 	depHandler, err := dep_hdl.New(depStorageHandler, cfgValidHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, 0770)
