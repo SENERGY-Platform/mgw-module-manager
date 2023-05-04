@@ -29,57 +29,50 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"math"
+	"os"
 	"path"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func (h *Handler) Create(ctx context.Context, dr model.DepRequest) (string, error) {
-	m, dms, err := h.moduleHandler.GetWithDep(ctx, dr.ModuleID)
-	if err != nil {
-		return "", err
-	}
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	if m.DeploymentType == module.SingleDeployment {
-		if l, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{ModuleID: m.ID}); err != nil {
+func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, inclDir util.DirFS, indirect bool) (string, error) {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	if mod.DeploymentType == module.SingleDeployment {
+		if l, err := h.storageHandler.ListDep(ctxWt, model.DepFilter{ModuleID: mod.ID}); err != nil {
 			return "", err
 		} else if len(l) > 0 {
 			return "", model.NewInvalidInputError(errors.New("already deployed"))
 		}
 	}
-	depMap := make(map[string]string)
-	if len(dms) > 0 {
-		for dmID := range dms {
-			if l, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{ModuleID: dmID}); err != nil {
-				return "", err
-			} else if len(l) > 0 {
-				depMap[dmID] = l[0].ID
-			}
-		}
-		order, err := getModOrder(dms)
-		if err != nil {
-			return "", model.NewInternalError(err)
-		}
-		var depNew []string
-		for _, dmID := range order {
-			if _, ok := depMap[dmID]; !ok {
-				dID, err := h.create(ctx, dms[dmID], dr.Dependencies[dmID], depMap, true)
-				if err != nil {
-					for _, id := range depNew {
-						if er := h.delete(ctx, id, true); er != nil {
-							util.Logger.Error(er)
-						}
-					}
-					return "", err
-				}
-				depMap[dmID] = dID
-				depNew = append(depNew, dID)
-			}
-		}
+	return h.create(ctx, mod, depReq, inclDir, indirect)
+}
+
+func (h *Handler) mkDepDir(dID string, inclDir util.DirFS) (string, error) {
+	p := path.Join(h.wrkSpcPath, dID)
+	if err := util.CopyDir(inclDir.Path(), p); err != nil {
+		_ = os.RemoveAll(p)
+		return "", model.NewInternalError(err)
 	}
-	return h.create(ctx, m, dr.DepRequestBase, depMap, false)
+	return p, nil
+}
+
+func (h *Handler) getDepMap(ctx context.Context, mDependencies map[string]string) (map[string]string, error) {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	depMap := make(map[string]string)
+	for rmID := range mDependencies {
+		depList, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{ModuleID: rmID})
+		if err != nil {
+			return nil, err
+		}
+		if len(depList) == 0 {
+			return nil, model.NewInternalError(fmt.Errorf("dependency '%s' not deployed", rmID))
+		}
+		depMap[rmID] = depList[0].ID
+	}
+	return depMap, nil
 }
 
 func (h *Handler) validateConfigs(dCs map[string]any, mCs module.Configs) error {
@@ -174,29 +167,33 @@ func (h *Handler) getDeployments(ctx context.Context, modules map[string]*module
 	return nil
 }
 
-func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepRequestBase, depMap map[string]string, indirect bool) (string, error) {
-	configs, userConfigs, err := h.getConfigs(m.Configs, drb.Configs)
+func (h *Handler) create(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, inclDir util.DirFS, indirect bool) (string, error) {
+	depMap, err := h.getDepMap(ctx, mod.Dependencies)
 	if err != nil {
 		return "", err
 	}
-	hostRes, err := h.getHostRes(m.HostResources, drb.HostResources)
+	configs, userConfigs, err := h.getConfigs(mod.Configs, depReq.Configs)
 	if err != nil {
 		return "", err
 	}
-	secrets, err := h.getSecrets(m.Secrets, drb.Secrets)
+	hostRes, err := h.getHostRes(mod.HostResources, depReq.HostResources)
 	if err != nil {
 		return "", err
 	}
-	name := getName(m.Name, drb.Name)
+	secrets, err := h.getSecrets(mod.Secrets, depReq.Secrets)
+	if err != nil {
+		return "", err
+	}
+	name := getName(mod.Name, depReq.Name)
 	timestamp := time.Now().UTC()
-	ch := context_hdl.New()
-	defer ch.CancelAll()
 	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {
 		return "", err
 	}
 	defer tx.Rollback()
-	dID, err := h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, m.ID, name, indirect, timestamp)
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	dID, err := h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.ID, name, indirect, timestamp)
 	if err != nil {
 		return "", err
 	}
@@ -211,16 +208,16 @@ func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepReq
 		}
 	}
 	if len(userConfigs) > 0 {
-		if err = h.storageHandler.CreateDepConfigs(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, m.Configs, userConfigs, dID); err != nil {
+		if err = h.storageHandler.CreateDepConfigs(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.Configs, userConfigs, dID); err != nil {
 			return "", err
 		}
 	}
-	if len(m.Dependencies) > 0 {
-		var depReq []string
-		for rmID := range m.Dependencies {
-			depReq = append(depReq, depMap[rmID])
+	if len(mod.Dependencies) > 0 {
+		var dr []string
+		for rmID := range mod.Dependencies {
+			dr = append(dr, depMap[rmID])
 		}
-		if err = h.storageHandler.CreateDepReq(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, depReq, dID); err != nil {
+		if err = h.storageHandler.CreateDepReq(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dr, dID); err != nil {
 			return "", err
 		}
 	}
@@ -228,21 +225,21 @@ func (h *Handler) create(ctx context.Context, m *module.Module, drb model.DepReq
 	if err != nil {
 		return "", err
 	}
-	inclDirPath, err := h.moduleHandler.CreateInclDir(ctx, m.ID, dID)
+	depDirPth, err := h.mkDepDir(dID, inclDir)
 	if err != nil {
 		return "", err
 	}
-	volumes, err := h.getVolumes(ctx, m.Volumes, dID, iID)
-	order, err := getSrvOrder(m.Services)
+	volumes, err := h.getVolumes(ctx, mod.Volumes, dID, iID)
+	order, err := getSrvOrder(mod.Services)
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}
-	for _, ref := range order {
-		cID, err := h.createContainer(ctx, m.Services[ref], ref, dID, iID, inclDirPath, configs, volumes, depMap, hostRes, secrets)
+	for i := 0; i < len(order); i++ {
+		cID, err := h.createContainer(ctx, mod.Services[order[i]], order[i], dID, iID, depDirPth, configs, volumes, depMap, hostRes, secrets)
 		if err != nil {
 			return "", err
 		}
-		err = h.storageHandler.CreateInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, iID, cID, ref)
+		err = h.storageHandler.CreateInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, iID, cID, order[i], uint(i))
 		if err != nil {
 			return "", err
 		}
