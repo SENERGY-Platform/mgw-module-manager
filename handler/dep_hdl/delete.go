@@ -22,6 +22,8 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
+	"os"
+	"path"
 	"strings"
 )
 
@@ -45,7 +47,7 @@ func (h *Handler) delete(ctx context.Context, dID string, orphans bool) error {
 	if err := h.removeVolumes(ctx, dID); err != nil {
 		return err
 	}
-	if err := h.moduleHandler.DeleteInclDir(ctx, dID); err != nil {
+	if err := h.rmDepDir(ctx, dID); err != nil {
 		return err
 	}
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
@@ -63,6 +65,13 @@ func (h *Handler) delete(ctx context.Context, dID string, orphans bool) error {
 				return err
 			}
 		}
+	}
+	return nil
+}
+
+func (h *Handler) rmDepDir(_ context.Context, dID string) error {
+	if err := os.RemoveAll(path.Join(h.wrkSpcPath, dID)); err != nil {
+		return model.NewInternalError(err)
 	}
 	return nil
 }
