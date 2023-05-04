@@ -53,7 +53,7 @@ func (h *Handler) Get(ctx context.Context, mID string) (*module.Module, error) {
 	return h.storageHandler.Get(ctx, mID)
 }
 
-func (h *Handler) GetWithDep(ctx context.Context, mID string) (*module.Module, map[string]*module.Module, error) {
+func (h *Handler) GetReq(ctx context.Context, mID string) (*module.Module, map[string]*module.Module, error) {
 	m, err := h.storageHandler.Get(ctx, mID)
 	if err != nil {
 		return nil, nil, err
