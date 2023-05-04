@@ -106,16 +106,24 @@ func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Mod
 	return mm, nil
 }
 
-func (h *Handler) Get(_ context.Context, mID string) (*module.Module, error) {
-	dir, err := util.NewDirFS(path.Join(h.modWrkSpcPath, idToDir(mID, h.delimiter)))
-	if err != nil {
-		return nil, model.NewNotFoundError(err)
-	}
-	m, err := h.modFileHandler.GetModule(dir)
+func (h *Handler) Get(ctx context.Context, mID string) (*module.Module, error) {
+	m, _, err := h.GetDir(ctx, mID)
 	if err != nil {
 		return nil, err
 	}
 	return m, nil
+}
+
+func (h *Handler) GetDir(_ context.Context, mID string) (*module.Module, util.DirFS, error) {
+	dir, err := util.NewDirFS(path.Join(h.wrkSpcPath, idToDir(mID, h.delimiter)))
+	if err != nil {
+		return nil, "", model.NewNotFoundError(err)
+	}
+	m, err := h.modFileHandler.GetModule(dir)
+	if err != nil {
+		return nil, "", err
+	}
+	return m, dir, nil
 }
 
 func (h *Handler) Add(_ context.Context, dir util.DirFS, mID string) error {
