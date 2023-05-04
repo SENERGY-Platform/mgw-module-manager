@@ -23,7 +23,7 @@ import (
 )
 
 func (a *Api) GetDeploymentTemplate(ctx context.Context, id string) (*model.DepTemplate, error) {
-	mod, reqMod, err := a.moduleHandler.GetWithDep(ctx, id)
+	mod, reqMod, err := a.moduleHandler.GetReq(ctx, id)
 	if err != nil {
 		return nil, err
 	}
