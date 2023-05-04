@@ -18,6 +18,8 @@ package api
 
 import (
 	"context"
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_tmplt_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
