@@ -322,7 +322,7 @@ func genListInstFilter(filter model.DepInstFilter) (string, []any) {
 	return "", nil
 }
 
-func (h *Handler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.DepInstanceMeta, error) {
+func (h *Handler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.DepInstance, error) {
 	q := "SELECT `id`, `dep_id`, `created`, `updated` FROM `instances`"
 	fc, val := genListInstFilter(filter)
 	if fc != "" {
@@ -333,9 +333,9 @@ func (h *Handler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]m
 		return nil, model.NewInternalError(err)
 	}
 	defer rows.Close()
-	var dims []model.DepInstanceMeta
+	var dims []model.DepInstance
 	for rows.Next() {
-		var dim model.DepInstanceMeta
+		var dim model.DepInstance
 		var ct, ut []uint8
 		if err = rows.Scan(&dim.ID, &dim.DepID, &ct, &ut); err != nil {
 			return nil, model.NewInternalError(err)
