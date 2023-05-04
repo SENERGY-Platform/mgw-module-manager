@@ -53,24 +53,16 @@ func (h *Handler) Start(ctx context.Context, id string) error {
 func (h *Handler) start(ctx context.Context, dep *model.Deployment) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	m, err := h.moduleHandler.Get(ctx, dep.ModuleID)
-	if err != nil {
-		return err
-	}
-	order, err := getSrvOrder(m.Services)
-	if err != nil {
-		return model.NewInternalError(err)
-	}
 	instance, err := h.getCurrentInst(ctx, dep.ID)
 	if err != nil {
 		return err
 	}
-	for _, sRef := range order {
-		cID, ok := instance.Containers[sRef]
-		if !ok {
-			return model.NewInternalError(fmt.Errorf("no container for service reference '%s'", sRef))
-		}
-		err = h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
+	containers, err := h.storageHandler.ListInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instance.ID, model.CtrFilter{SortOrder: model.Ascending})
+	if err != nil {
+		return err
+	}
+	for _, ctr := range containers {
+		err = h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
 		if err != nil {
 			return err
 		}
