@@ -185,18 +185,6 @@ func (h *Handler) Update(ctx context.Context, mID string) error {
 	panic("not implemented")
 }
 
-func (h *Handler) CreateInclDir(ctx context.Context, mID, iID string) (string, error) {
-	dir, err := h.storageHandler.MakeInclDir(ctx, mID, iID)
-	if err != nil {
-		return "", err
-	}
-	return dir.Path(), nil
-}
-
-func (h *Handler) DeleteInclDir(ctx context.Context, iID string) error {
-	return h.storageHandler.RemoveInclDir(ctx, iID)
-}
-
 func (h *Handler) getReqMod(ctx context.Context, mod *module.Module, reqMod map[string]*module.Module) error {
 	for mID := range mod.Dependencies {
 		if _, ok := reqMod[mID]; !ok {
