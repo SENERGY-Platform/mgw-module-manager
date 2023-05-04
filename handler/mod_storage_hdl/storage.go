@@ -126,35 +126,7 @@ func (h *Handler) Add(_ context.Context, dir util.DirFS, mID string) error {
 }
 
 func (h *Handler) Delete(_ context.Context, mID string) error {
-	if err := os.RemoveAll(path.Join(h.modWrkSpcPath, idToDir(mID, h.delimiter))); err != nil {
-		return model.NewInternalError(err)
-	}
-	return nil
-}
-
-func (h *Handler) MakeInclDir(_ context.Context, mID, iID string) (util.DirFS, error) {
-	p := path.Join(h.inclDirWrkSpcPath, iID)
-	if err := util.CopyDir(path.Join(h.modWrkSpcPath, idToDir(mID, h.delimiter)), p); err != nil {
-		_ = os.RemoveAll(p)
-		return "", model.NewInternalError(err)
-	}
-	dir, err := util.NewDirFS(p)
-	if err != nil {
-		return "", model.NewInternalError(err)
-	}
-	return dir, nil
-}
-
-func (h *Handler) GetInclDir(_ context.Context, iID string) (util.DirFS, error) {
-	dir, err := util.NewDirFS(path.Join(h.inclDirWrkSpcPath, iID))
-	if err != nil {
-		return "", model.NewInternalError(err)
-	}
-	return dir, nil
-}
-
-func (h *Handler) RemoveInclDir(_ context.Context, iID string) error {
-	if err := os.RemoveAll(path.Join(h.inclDirWrkSpcPath, iID)); err != nil {
+	if err := os.RemoveAll(path.Join(h.wrkSpcPath, idToDir(mID, h.delimiter))); err != nil {
 		return model.NewInternalError(err)
 	}
 	return nil
