@@ -18,7 +18,6 @@ package dep_hdl
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
@@ -77,24 +76,16 @@ func (h *Handler) Stop(ctx context.Context, id string, dependencies bool) error 
 func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	m, err := h.moduleHandler.Get(ctx, dep.ModuleID)
-	if err != nil {
-		return err
-	}
-	order, err := getSrvOrder(m.Services)
-	if err != nil {
-		return model.NewInternalError(err)
-	}
 	instance, err := h.getCurrentInst(ctx, dep.ID)
 	if err != nil {
 		return err
 	}
-	for i := len(order) - 1; i >= 0; i-- {
-		cID, ok := instance.Containers[order[i]]
-		if !ok {
-			return model.NewInternalError(fmt.Errorf("no container for service reference '%s'", order[i]))
-		}
-		if err = h.stopContainer(ctx, cID); err != nil {
+	containers, err := h.storageHandler.ListInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instance.ID, model.CtrFilter{SortOrder: model.Descending})
+	if err != nil {
+		return err
+	}
+	for _, ctr := range containers {
+		if err = h.stopContainer(ctx, ctr.ID); err != nil {
 			return model.NewInternalError(err)
 		}
 	}
