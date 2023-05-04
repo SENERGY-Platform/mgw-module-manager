@@ -79,17 +79,17 @@ func (h *Handler) rmDepDir(_ context.Context, dID string) error {
 func (h *Handler) removeContainer(ctx context.Context, dID string) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	il, err := h.storageHandler.ListInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepInstFilter{DepID: dID})
+	instances, err := h.storageHandler.ListInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepInstFilter{DepID: dID})
 	if err != nil {
 		return err
 	}
-	for _, im := range il {
-		i, err := h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), im.ID)
+	for _, instance := range instances {
+		containers, err := h.storageHandler.ListInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instance.ID, model.CtrFilter{})
 		if err != nil {
 			return err
 		}
-		for _, cID := range i.Containers {
-			err := h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
+		for _, ctr := range containers {
+			err := h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
 			if err != nil {
 				return err
 			}
