@@ -408,24 +408,24 @@ func (h *Handler) CreateInst(ctx context.Context, itf driver.Tx, dID string, tim
 	return id, nil
 }
 
-func (h *Handler) ReadInst(ctx context.Context, id string) (model.DepInstanceMeta, error) {
+func (h *Handler) ReadInst(ctx context.Context, id string) (model.DepInstance, error) {
 	row := h.db.QueryRowContext(ctx, "SELECT `id`, `dep_id`, `created`, `updated` FROM `instances` WHERE `id` = ?", id)
-	var dim model.DepInstanceMeta
+	var dim model.DepInstance
 	var ct, ut []uint8
 	err := row.Scan(&dim.ID, &dim.DepID, &ct, &ut)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.DepInstanceMeta{}, model.NewNotFoundError(err)
+			return model.DepInstance{}, model.NewNotFoundError(err)
 		}
-		return model.DepInstanceMeta{}, model.NewInternalError(err)
+		return model.DepInstance{}, model.NewInternalError(err)
 	}
 	tc, err := time.Parse(tLayout, string(ct))
 	if err != nil {
-		return model.DepInstanceMeta{}, model.NewInternalError(err)
+		return model.DepInstance{}, model.NewInternalError(err)
 	}
 	tu, err := time.Parse(tLayout, string(ut))
 	if err != nil {
-		return model.DepInstanceMeta{}, model.NewInternalError(err)
+		return model.DepInstance{}, model.NewInternalError(err)
 	}
 	dim.Created = tc
 	dim.Updated = tu
