@@ -79,9 +79,9 @@ type DepStorageHandler interface {
 	DeleteDepConfigs(ctx context.Context, tx driver.Tx, dID string) error
 	DeleteDepHostRes(ctx context.Context, tx driver.Tx, dID string) error
 	DeleteDepSecrets(ctx context.Context, tx driver.Tx, dID string) error
-	ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.DepInstanceMeta, error)
+	ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.DepInstance, error)
 	CreateInst(ctx context.Context, tx driver.Tx, dID string, timestamp time.Time) (string, error)
-	ReadInst(ctx context.Context, iID string) (model.DepInstanceMeta, error)
+	ReadInst(ctx context.Context, iID string) (model.DepInstance, error)
 	UpdateInst(ctx context.Context, iID string, timestamp time.Time) error
 	DeleteInst(ctx context.Context, iID string) error
 	ListInstCtr(ctx context.Context, iID string, filter model.CtrFilter) ([]model.Container, error)
