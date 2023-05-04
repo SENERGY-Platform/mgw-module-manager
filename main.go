@@ -132,7 +132,11 @@ func main() {
 	cewClient := client.New(http.DefaultClient, config.HttpClient.CewBaseUrl)
 
 	depStorageHandler := dep_storage_hdl.New(db)
-	depHandler := dep_hdl.New(depStorageHandler, cfgValidHandler, modHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout))
+	depHandler, err := dep_hdl.New(depStorageHandler, cfgValidHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, 0770)
+	if err != nil {
+		util.Logger.Error(err)
+		return
+	}
 
 	mApi := api.New(modHandler, depHandler)
 

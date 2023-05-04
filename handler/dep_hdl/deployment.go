@@ -31,21 +31,33 @@ import (
 type Handler struct {
 	storageHandler handler.DepStorageHandler
 	cfgVltHandler  handler.CfgValidationHandler
-	moduleHandler  handler.ModuleHandler
 	cewClient      client.CewClient
 	dbTimeout      time.Duration
 	httpTimeout    time.Duration
+	wrkSpcPath     string
+	perm           fs.FileMode
 }
 
-func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, moduleHandler handler.ModuleHandler, cewClient client.CewClient, dbTimeout time.Duration, httpTimeout time.Duration) *Handler {
+func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient client.CewClient, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath string, perm fs.FileMode) (*Handler, error) {
+	if !path.IsAbs(workspacePath) {
+		return nil, fmt.Errorf("workspace path must be absolute")
+	}
 	return &Handler{
 		storageHandler: storageHandler,
 		cfgVltHandler:  cfgVltHandler,
-		moduleHandler:  moduleHandler,
 		cewClient:      cewClient,
 		dbTimeout:      dbTimeout,
 		httpTimeout:    httpTimeout,
+		wrkSpcPath:     workspacePath,
+		perm:           perm,
+	}, nil
+}
+
+func (h *Handler) InitWorkspace() error {
+	if err := os.MkdirAll(h.wrkSpcPath, h.perm); err != nil {
+		return err
 	}
+	return nil
 }
 
 func (h *Handler) List(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
