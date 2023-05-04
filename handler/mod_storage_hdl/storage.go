@@ -29,17 +29,11 @@ import (
 	"strings"
 )
 
-const (
-	modDir  = "modules"
-	inclDir = "deployments"
-)
-
 type Handler struct {
-	modWrkSpcPath     string
-	inclDirWrkSpcPath string
-	delimiter         string
-	perm              fs.FileMode
-	modFileHandler    handler.ModFileHandler
+	wrkSpcPath     string
+	delimiter      string
+	perm           fs.FileMode
+	modFileHandler handler.ModFileHandler
 }
 
 func New(workspacePath string, delimiter string, perm fs.FileMode, modFileHandler handler.ModFileHandler) (*Handler, error) {
@@ -47,26 +41,22 @@ func New(workspacePath string, delimiter string, perm fs.FileMode, modFileHandle
 		return nil, fmt.Errorf("workspace path must be absolute")
 	}
 	return &Handler{
-		modWrkSpcPath:     path.Join(workspacePath, modDir),
-		inclDirWrkSpcPath: path.Join(workspacePath, inclDir),
-		delimiter:         delimiter,
-		perm:              perm,
-		modFileHandler:    modFileHandler,
+		wrkSpcPath:     workspacePath,
+		delimiter:      delimiter,
+		perm:           perm,
+		modFileHandler: modFileHandler,
 	}, nil
 }
 
 func (h *Handler) InitWorkspace() error {
-	if err := os.MkdirAll(h.modWrkSpcPath, h.perm); err != nil {
-		return err
-	}
-	if err := os.MkdirAll(h.inclDirWrkSpcPath, h.perm); err != nil {
+	if err := os.MkdirAll(h.wrkSpcPath, h.perm); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
-	dir, err := util.NewDirFS(h.modWrkSpcPath)
+	dir, err := util.NewDirFS(h.wrkSpcPath)
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
@@ -128,7 +118,7 @@ func (h *Handler) GetDir(_ context.Context, mID string) (*module.Module, util.Di
 
 func (h *Handler) Add(_ context.Context, dir util.DirFS, mID string) error {
 	defer os.RemoveAll(dir.Path())
-	err := util.CopyDir(dir.Path(), path.Join(h.modWrkSpcPath, idToDir(mID, h.delimiter)))
+	err := util.CopyDir(dir.Path(), path.Join(h.wrkSpcPath, idToDir(mID, h.delimiter)))
 	if err != nil {
 		return model.NewInternalError(err)
 	}
