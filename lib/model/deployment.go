@@ -46,16 +46,11 @@ type DepConfig struct {
 	IsSlice  bool            `json:"is_slice"`
 }
 
-type DepInstanceMeta struct {
+type DepInstance struct {
 	ID      string    `json:"id"`
 	DepID   string    `json:"dep_id"`
 	Created time.Time `json:"created"`
 	Updated time.Time `json:"updated"`
-}
-
-type DepInstance struct {
-	DepInstanceMeta
-	Containers []Container `json:"containers"`
 }
 
 type Container struct {
