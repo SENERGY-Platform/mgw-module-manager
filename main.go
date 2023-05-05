@@ -30,6 +30,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/api"
 	"github.com/SENERGY-Platform/mgw-module-manager/api/http_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/cew_job_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl/validators"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_hdl"
@@ -120,7 +121,9 @@ func main() {
 
 	cewClient := client.New(http.DefaultClient, config.HttpClient.CewBaseUrl)
 
-	modHandler := mod_hdl.New(modStorageHandler, modTransferHandler, modFileHandler, cfgValidHandler, cewClient, time.Duration(config.HttpClient.Timeout))
+	cewJobHandler := cew_job_hdl.New(cewClient, time.Duration(config.HttpClient.Timeout))
+
+	modHandler := mod_hdl.New(modStorageHandler, modTransferHandler, modFileHandler, cfgValidHandler, cewJobHandler, cewClient, time.Duration(config.HttpClient.Timeout))
 
 	dbCtx, dbCtxCf := context.WithCancel(context.Background())
 	defer dbCtxCf()

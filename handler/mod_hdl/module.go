@@ -38,18 +38,20 @@ type Handler struct {
 	transferHandler         handler.ModTransferHandler
 	modFileHandler          handler.ModFileHandler
 	configValidationHandler handler.CfgValidationHandler
-	httpTimeout             time.Duration
+	cewJobHandler           handler.CewJobHandler
 	cewClient               client.CewClient
+	httpTimeout             time.Duration
 }
 
-func New(storageHandler handler.ModStorageHandler, transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler, configValidationHandler handler.CfgValidationHandler, cewClient client.CewClient, httpTimeout time.Duration) *Handler {
+func New(storageHandler handler.ModStorageHandler, transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler, configValidationHandler handler.CfgValidationHandler, cewJobHandler handler.CewJobHandler, cewClient client.CewClient, httpTimeout time.Duration) *Handler {
 	return &Handler{
 		storageHandler:          storageHandler,
 		transferHandler:         transferHandler,
 		modFileHandler:          modFileHandler,
 		configValidationHandler: configValidationHandler,
-		httpTimeout:             httpTimeout,
+		cewJobHandler:           cewJobHandler,
 		cewClient:               cewClient,
+		httpTimeout:             httpTimeout,
 	}
 }
 
