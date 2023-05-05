@@ -3,7 +3,7 @@ module github.com/SENERGY-Platform/mgw-module-manager
 go 1.19
 
 require (
-	github.com/SENERGY-Platform/gin-middleware v0.1.0
+	github.com/SENERGY-Platform/gin-middleware v0.3.0
 	github.com/SENERGY-Platform/go-service-base v0.7.0
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.3.2
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.5.0
