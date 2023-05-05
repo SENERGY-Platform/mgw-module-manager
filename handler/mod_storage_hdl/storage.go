@@ -34,6 +34,7 @@ type Handler struct {
 	delimiter      string
 	perm           fs.FileMode
 	modFileHandler handler.ModFileHandler
+	indexHandler   *indexHandler
 }
 
 func New(workspacePath string, delimiter string, perm fs.FileMode, modFileHandler handler.ModFileHandler) (*Handler, error) {
@@ -45,6 +46,7 @@ func New(workspacePath string, delimiter string, perm fs.FileMode, modFileHandle
 		delimiter:      delimiter,
 		perm:           perm,
 		modFileHandler: modFileHandler,
+		indexHandler:   newIndexHandler(workspacePath),
 	}, nil
 }
 
@@ -52,45 +54,27 @@ func (h *Handler) InitWorkspace() error {
 	if err := os.MkdirAll(h.wrkSpcPath, h.perm); err != nil {
 		return err
 	}
-	return nil
+	return h.indexHandler.Init()
 }
 
 func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
-	dir, err := util.NewDirFS(h.wrkSpcPath)
-	if err != nil {
-		return nil, model.NewInternalError(err)
-	}
-	dirEntries, err := fs.ReadDir(dir, ".")
-	if err != nil {
-		return nil, model.NewInternalError(err)
-	}
+	items := h.indexHandler.List()
 	var mm []model.ModuleMeta
-	for _, entry := range dirEntries {
-		if entry.IsDir() {
-			sub, err := dir.Sub(entry.Name())
-			if err != nil {
-				return nil, err
-			}
-			m, err := h.modFileHandler.GetModule(sub)
-			if err != nil {
-				continue
-			}
-			if filterMod(filter, m) {
-				mm = append(mm, model.ModuleMeta{
-					ID:             m.ID,
-					Name:           m.Name,
-					Description:    m.Description,
-					Tags:           m.Tags,
-					License:        m.License,
-					Author:         m.Author,
-					Version:        m.Version,
-					Type:           m.Type,
-					DeploymentType: m.DeploymentType,
-				})
-			}
+	for _, i := range items {
+		dir, err := util.NewDirFS(path.Join(h.wrkSpcPath, i.Dir))
+		if err != nil {
+			return nil, err
+		}
+		m, err := h.modFileHandler.GetModule(dir)
+		if err != nil {
+			util.Logger.Error(err)
+			continue
+		}
+		if filterMod(filter, m) {
+			mm = append(mm, getModMeta(m, i))
 		}
 		if ctx.Err() != nil {
-			return nil, model.NewInternalError(err)
+			return nil, model.NewInternalError(ctx.Err())
 		}
 	}
 	return mm, nil
@@ -105,9 +89,13 @@ func (h *Handler) Get(ctx context.Context, mID string) (*module.Module, error) {
 }
 
 func (h *Handler) GetDir(_ context.Context, mID string) (*module.Module, util.DirFS, error) {
-	dir, err := util.NewDirFS(path.Join(h.wrkSpcPath, idToDir(mID, h.delimiter)))
+	i, err := h.indexHandler.Get(mID)
 	if err != nil {
-		return nil, "", model.NewNotFoundError(err)
+		return nil, "", err
+	}
+	dir, err := util.NewDirFS(path.Join(h.wrkSpcPath, i.Dir))
+	if err != nil {
+		return nil, "", model.NewInternalError(err)
 	}
 	m, err := h.modFileHandler.GetModule(dir)
 	if err != nil {
@@ -116,9 +104,12 @@ func (h *Handler) GetDir(_ context.Context, mID string) (*module.Module, util.Di
 	return m, dir, nil
 }
 
-func (h *Handler) Add(_ context.Context, dir util.DirFS, mID string) error {
-	defer os.RemoveAll(dir.Path())
-	err := util.CopyDir(dir.Path(), path.Join(h.wrkSpcPath, idToDir(mID, h.delimiter)))
+func (h *Handler) Add(_ context.Context, dir util.DirFS, mID string, indirect bool) error {
+	err := h.indexHandler.Add(mID, idToDir(mID, h.delimiter), indirect)
+	if err != nil {
+		return err
+	}
+	err = util.CopyDir(dir.Path(), path.Join(h.wrkSpcPath, idToDir(mID, h.delimiter)))
 	if err != nil {
 		return model.NewInternalError(err)
 	}
@@ -126,10 +117,14 @@ func (h *Handler) Add(_ context.Context, dir util.DirFS, mID string) error {
 }
 
 func (h *Handler) Delete(_ context.Context, mID string) error {
-	if err := os.RemoveAll(path.Join(h.wrkSpcPath, idToDir(mID, h.delimiter))); err != nil {
+	i, err := h.indexHandler.Get(mID)
+	if err != nil {
+		return err
+	}
+	if err := os.RemoveAll(path.Join(h.wrkSpcPath, i.Dir)); err != nil {
 		return model.NewInternalError(err)
 	}
-	return nil
+	return h.indexHandler.Delete(mID)
 }
 
 func idToDir(id string, delimiter string) string {
