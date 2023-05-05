@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"time"
 )
@@ -98,37 +97,20 @@ func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
 }
 
 func (h *Handler) stopContainer(ctx context.Context, cID string) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	jID, err := h.cewClient.StopContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	jID, err := h.cewClient.StopContainer(ctxWt, cID)
 	if err != nil {
 		return err
 	}
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			c, cf := context.WithTimeout(context.Background(), h.httpTimeout)
-			err = h.cewClient.CancelJob(c, jID)
-			if err != nil {
-				util.Logger.Error(err)
-			}
-			cf()
-			return ctx.Err()
-		case <-ticker.C:
-			j, err := h.cewClient.GetJob(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), jID)
-			if err != nil {
-				return err
-			}
-			if j.Error != nil {
-				return fmt.Errorf("%v", j.Error)
-			}
-			if j.Completed != nil {
-				return nil
-			}
-		}
+	job, err := h.cewJobHandler.AwaitJob(ctx, jID)
+	if err != nil {
+		return err
 	}
+	if job.Error != nil {
+		return fmt.Errorf("%v", job.Error)
+	}
+	return nil
 }
 
 func (h *Handler) getDepFromIDs(ctx context.Context, dIDs []string) ([]*model.Deployment, error) {
