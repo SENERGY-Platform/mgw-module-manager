@@ -150,9 +150,32 @@ func (h *Handler) add(ctx context.Context, mID, ver, verRng string) error {
 			return fmt.Errorf("'%s' of '%s' does not satsify '%s'", dm.Version, dm.ID, dmVerRng)
 		}
 	}
+	for _, srv := range m.Services {
+		err = h.addImage(ctx, srv.Image)
+		if err != nil {
+			return err
+		}
+	}
 	err = h.storageHandler.Add(ctx, dir, mID)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (h *Handler) addImage(ctx context.Context, img string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	jID, err := h.cewClient.AddImage(ctxWt, img)
+	if err != nil {
+		return err
+	}
+	job, err := h.cewJobHandler.AwaitJob(ctx, jID)
+	if err != nil {
+		return err
+	}
+	if job.Error != nil {
+		return fmt.Errorf("%v", job.Error)
 	}
 	return nil
 }
