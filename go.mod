@@ -10,6 +10,7 @@ require (
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.8.0
 	github.com/SENERGY-Platform/mgw-module-lib v0.7.1
 	github.com/SENERGY-Platform/mgw-module-manager/lib v0.0.0-00010101000000-000000000000
+	github.com/gin-contrib/requestid v0.0.6
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/go-sql-driver/mysql v1.7.0
@@ -33,6 +34,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.11.2 // indirect
 	github.com/goccy/go-json v0.10.0 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
