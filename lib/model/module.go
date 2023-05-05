@@ -31,6 +31,7 @@ type ModuleMeta struct {
 	Version        string                `json:"version"`
 	Type           module.ModuleType     `json:"type"`
 	DeploymentType module.DeploymentType `json:"deployment_type"`
+	Indirect       bool                  `json:"indirect"`
 }
 
 type ModFilter struct {
