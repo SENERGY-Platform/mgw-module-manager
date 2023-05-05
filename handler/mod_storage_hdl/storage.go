@@ -181,3 +181,18 @@ func filterMod(filter model.ModFilter, m *module.Module) bool {
 	}
 	return true
 }
+
+func getModMeta(m *module.Module, i item) model.ModuleMeta {
+	return model.ModuleMeta{
+		ID:             m.ID,
+		Name:           m.Name,
+		Description:    m.Description,
+		Tags:           m.Tags,
+		License:        m.License,
+		Author:         m.Author,
+		Version:        m.Version,
+		Type:           m.Type,
+		DeploymentType: m.DeploymentType,
+		Indirect:       i.Indirect,
+	}
+}
