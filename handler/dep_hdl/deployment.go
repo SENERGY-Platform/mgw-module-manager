@@ -34,6 +34,7 @@ import (
 type Handler struct {
 	storageHandler handler.DepStorageHandler
 	cfgVltHandler  handler.CfgValidationHandler
+	cewJobHandler  handler.CewJobHandler
 	cewClient      client.CewClient
 	dbTimeout      time.Duration
 	httpTimeout    time.Duration
@@ -41,13 +42,14 @@ type Handler struct {
 	perm           fs.FileMode
 }
 
-func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient client.CewClient, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath string, perm fs.FileMode) (*Handler, error) {
+func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewJobHandler handler.CewJobHandler, cewClient client.CewClient, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath string, perm fs.FileMode) (*Handler, error) {
 	if !path.IsAbs(workspacePath) {
 		return nil, fmt.Errorf("workspace path must be absolute")
 	}
 	return &Handler{
 		storageHandler: storageHandler,
 		cfgVltHandler:  cfgVltHandler,
+		cewJobHandler:  cewJobHandler,
 		cewClient:      cewClient,
 		dbTimeout:      dbTimeout,
 		httpTimeout:    httpTimeout,

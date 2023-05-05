@@ -135,7 +135,7 @@ func main() {
 	defer db.Close()
 
 	depStorageHandler := dep_storage_hdl.New(db)
-	depHandler, err := dep_hdl.New(depStorageHandler, cfgValidHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, 0770)
+	depHandler, err := dep_hdl.New(depStorageHandler, cfgValidHandler, cewJobHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, 0770)
 	if err != nil {
 		util.Logger.Error(err)
 		return
