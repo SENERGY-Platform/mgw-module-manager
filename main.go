@@ -39,6 +39,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_storage_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_transfer_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/modfile_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/gin-gonic/gin"
 	"net"
@@ -57,7 +58,7 @@ var inputValidators = map[string]handler.Validator{
 }
 
 func main() {
-	srv_base.PrintInfo("mgw-module-manager", version)
+	srv_base.PrintInfo(model.ServiceName, version)
 
 	flags := util.NewFlags()
 

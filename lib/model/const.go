@@ -16,6 +16,8 @@
 
 package model
 
+const ServiceName = "mgw-module-manager"
+
 const (
 	StartCmd = "start"
 	StopCmd  = "stop"
