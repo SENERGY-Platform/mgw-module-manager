@@ -41,6 +41,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/modfile_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"net"
 	"net/http"
@@ -146,7 +147,9 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	httpHandler := gin.New()
-	httpHandler.Use(gin_mw.LoggerHandler(util.Logger), gin_mw.ErrorHandler(http_hdl.GetStatusCode, ", "), gin.Recovery())
+	httpHandler.Use(gin_mw.StaticHeaderHandler(http_hdl.GetStaticHeader(version, model.ServiceName)), requestid.New(), gin_mw.LoggerHandler(util.Logger, func(gc *gin.Context) string {
+		return requestid.Get(gc)
+	}), gin_mw.ErrorHandler(http_hdl.GetStatusCode, ", "), gin.Recovery())
 	httpHandler.UseRawPath = true
 
 	http_hdl.SetRoutes(httpHandler, mApi)
