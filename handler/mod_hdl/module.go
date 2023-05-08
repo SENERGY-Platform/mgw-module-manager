@@ -140,7 +140,7 @@ func (h *Handler) add(ctx context.Context, mID, ver, verRng string, indirect boo
 			if !errors.As(err, &nfe) {
 				return err
 			}
-			err = h.add(ctx, dmID, "", dmVerRng)
+			err = h.add(ctx, dmID, "", dmVerRng, true)
 			if err != nil {
 				return err
 			}
@@ -160,7 +160,7 @@ func (h *Handler) add(ctx context.Context, mID, ver, verRng string, indirect boo
 			return err
 		}
 	}
-	err = h.storageHandler.Add(ctx, dir, mID)
+	err = h.storageHandler.Add(ctx, dir, mID, name, indirect)
 	if err != nil {
 		return err
 	}
