@@ -23,6 +23,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"io/fs"
 	"time"
 )
 
@@ -37,7 +38,8 @@ type ModuleHandler interface {
 }
 
 type ModFileHandler interface {
-	GetModule(dir util.DirFS) (*module.Module, error)
+	GetModule(file fs.File) (*module.Module, error)
+	GetModFile(dir util.DirFS) (fs.File, string, error)
 }
 
 type ModStorageHandler interface {
