@@ -56,21 +56,22 @@ func (h *Handler) GetModule(file fs.File) (*module.Module, error) {
 	return m, nil
 }
 
-func getModFile(dir util.DirFS) (fs.File, error) {
+func (h *Handler) GetModFile(dir util.DirFS) (fs.File, string, error) {
 	dirEntries, err := fs.ReadDir(dir, ".")
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	for _, entry := range dirEntries {
 		if !entry.IsDir() {
-			if strings.Contains(entry.Name(), fileName) {
-				f, err := dir.Open(entry.Name())
+			eName := entry.Name()
+			if strings.Contains(eName, fileName) {
+				f, err := dir.Open(eName)
 				if err != nil {
-					return nil, err
+					return nil, "", err
 				}
-				return f, nil
+				return f, eName, nil
 			}
 		}
 	}
-	return nil, errors.New("missing modfile")
+	return nil, "", errors.New("missing modfile")
 }
