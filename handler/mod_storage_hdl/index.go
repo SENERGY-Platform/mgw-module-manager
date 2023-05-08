@@ -19,7 +19,7 @@ package mod_storage_hdl
 import (
 	"encoding/json"
 	"errors"
-	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"io"
 	"io/fs"
 	"os"
