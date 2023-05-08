@@ -24,12 +24,11 @@ import (
 type DirFS string
 
 func NewDirFS(path string) (DirFS, error) {
-	d := DirFS(path)
-	_, err := fs.Stat(d, ".")
+	_, err := os.Stat(path)
 	if err != nil {
 		return "", err
 	}
-	return d, nil
+	return DirFS(path), nil
 }
 
 func (d DirFS) Open(name string) (fs.File, error) {
