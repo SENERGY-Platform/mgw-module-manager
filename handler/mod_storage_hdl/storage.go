@@ -112,12 +112,13 @@ func (h *Handler) GetDir(_ context.Context, mID string) (model.Module, util.DirF
 	}, dir, nil
 }
 
-func (h *Handler) Add(_ context.Context, dir util.DirFS, mID string, indirect bool) error {
-	err := h.indexHandler.Add(mID, idToDir(mID, h.delimiter), indirect)
+func (h *Handler) Add(_ context.Context, dir util.DirFS, mID, modFile string, indirect bool) error {
+	dirName := uuid.NewString()
+	err := h.indexHandler.Add(mID, dirName, modFile, indirect)
 	if err != nil {
 		return err
 	}
-	err = util.CopyDir(dir.Path(), path.Join(h.wrkSpcPath, idToDir(mID, h.delimiter)))
+	err = util.CopyDir(dir.Path(), path.Join(h.wrkSpcPath, dirName))
 	if err != nil {
 		return model.NewInternalError(err)
 	}
