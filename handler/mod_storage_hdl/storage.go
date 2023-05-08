@@ -31,19 +31,17 @@ import (
 
 type Handler struct {
 	wrkSpcPath     string
-	delimiter      string
 	perm           fs.FileMode
 	modFileHandler handler.ModFileHandler
 	indexHandler   *indexHandler
 }
 
-func New(workspacePath string, delimiter string, perm fs.FileMode, modFileHandler handler.ModFileHandler) (*Handler, error) {
+func New(workspacePath string, perm fs.FileMode, modFileHandler handler.ModFileHandler) (*Handler, error) {
 	if !path.IsAbs(workspacePath) {
 		return nil, fmt.Errorf("workspace path must be absolute")
 	}
 	return &Handler{
 		wrkSpcPath:     workspacePath,
-		delimiter:      delimiter,
 		perm:           perm,
 		modFileHandler: modFileHandler,
 		indexHandler:   newIndexHandler(workspacePath),

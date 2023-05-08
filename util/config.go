@@ -37,7 +37,6 @@ type HttpClientConfig struct {
 
 type ModStorageHandlerConfig struct {
 	WorkdirPath string `json:"workdir_path" env_var:"MSH_WORKDIR_PATH"`
-	Delimiter   string `json:"delimiter" env_var:"MSH_DELIMITER"`
 }
 
 type ModTransferHandlerConfig struct {
@@ -64,7 +63,6 @@ func NewConfig(path *string) (*Config, error) {
 	cfg := Config{
 		ModStorageHandler: ModStorageHandlerConfig{
 			WorkdirPath: "/opt/mgw-module-manager/modules",
-			Delimiter:   "_",
 		},
 		ModTransferHandler: ModTransferHandlerConfig{
 			WorkdirPath: "/opt/mgw-module-manager/transfer",
