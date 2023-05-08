@@ -136,10 +136,6 @@ func (h *Handler) Delete(_ context.Context, mID string) error {
 	return h.indexHandler.Delete(mID)
 }
 
-func idToDir(id string, delimiter string) string {
-	return strings.Replace(id, "/", delimiter, -1)
-}
-
 func filterMod(filter model.ModFilter, m *module.Module) bool {
 	if filter.Name != "" {
 		if m.Name != filter.Name {
