@@ -122,7 +122,11 @@ func (h *Handler) add(ctx context.Context, mID, ver, verRng string, indirect boo
 		return err
 	}
 	defer os.RemoveAll(dir.Path())
-	m, err := h.modFileHandler.GetModule(dir)
+	f, name, err := h.modFileHandler.GetModFile(dir)
+	if err != nil {
+		return err
+	}
+	m, err := h.modFileHandler.GetModule(f)
 	if err != nil {
 		return err
 	}
