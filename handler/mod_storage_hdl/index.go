@@ -25,14 +25,18 @@ import (
 	"os"
 	"path"
 	"sync"
+	"time"
 )
 
 const indexFile = "index"
 
 type item struct {
-	ID       string `json:"id"`
-	Dir      string `json:"dir"`
-	Indirect bool   `json:"indirect"`
+	ID       string    `json:"id"`
+	Dir      string    `json:"dir"`
+	ModFile  string    `json:"modfile"`
+	Indirect bool      `json:"indirect"`
+	Added    time.Time `json:"added"`
+	Updated  time.Time `json:"updated"`
 }
 
 type indexHandler struct {
@@ -83,17 +87,21 @@ func (h *indexHandler) Get(id string) (item, error) {
 	return i, nil
 }
 
-func (h *indexHandler) Add(id, dir string, indirect bool) error {
+func (h *indexHandler) Add(id, dir, modFile string, indirect bool) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	_, ok := h.index[id]
 	if ok {
 		return model.NewInvalidInputError(errors.New("already exists"))
 	}
+	t := time.Now().UTC()
 	h.index[id] = item{
 		ID:       id,
 		Dir:      dir,
+		ModFile:  modFile,
 		Indirect: indirect,
+		Added:    t,
+		Updated:  t,
 	}
 	return h.write()
 }
