@@ -105,7 +105,7 @@ func (h *Handler) Add(ctx context.Context, mr model.ModRequest) error {
 	return h.add(ctx, mr.ID, mr.Version, "", false)
 }
 
-func (h *Handler) add(ctx context.Context, mID, ver, verRng string) error {
+func (h *Handler) add(ctx context.Context, mID, ver, verRng string, indirect bool) error {
 	if ver == "" {
 		var err error
 		ver, err = h.getVersion(ctx, mID, verRng)
