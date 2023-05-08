@@ -19,7 +19,7 @@ package cew_job_hdl
 import (
 	"context"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
-	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"time"
@@ -37,7 +37,7 @@ func New(cewClient client.CewClient, httpTimeout time.Duration) *Handler {
 	}
 }
 
-func (h *Handler) AwaitJob(ctx context.Context, jID string) (model.Job, error) {
+func (h *Handler) AwaitJob(ctx context.Context, jID string) (cew_model.Job, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	ticker := time.NewTicker(time.Second)
@@ -51,11 +51,11 @@ func (h *Handler) AwaitJob(ctx context.Context, jID string) (model.Job, error) {
 				util.Logger.Error(err)
 			}
 			cf()
-			return model.Job{}, ctx.Err()
+			return cew_model.Job{}, ctx.Err()
 		case <-ticker.C:
 			j, err := h.cewClient.GetJob(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), jID)
 			if err != nil {
-				return model.Job{}, err
+				return cew_model.Job{}, err
 			}
 			if j.Completed != nil {
 				return j, nil
