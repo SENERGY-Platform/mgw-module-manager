@@ -67,12 +67,12 @@ func (h *indexHandler) Init() error {
 	return h.read()
 }
 
-func (h *indexHandler) List() map[string]item {
+func (h *indexHandler) List() []item {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	index := make(map[string]item)
-	for key, val := range h.index {
-		index[key] = val
+	var index []item
+	for _, i := range h.index {
+		index = append(index, i)
 	}
 	return index
 }
