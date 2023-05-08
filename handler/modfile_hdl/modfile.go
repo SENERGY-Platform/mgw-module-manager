@@ -41,15 +41,11 @@ func New(mfDecoders modfile.Decoders, mfGenerators modfile.Generators) *Handler 
 	}
 }
 
-func (h *Handler) GetModule(dir util.DirFS) (*module.Module, error) {
-	f, err := getModFile(dir)
-	if err != nil {
-		return nil, model.NewInternalError(err)
-	}
-	defer f.Close()
-	yd := yaml.NewDecoder(f)
+func (h *Handler) GetModule(file fs.File) (*module.Module, error) {
+	defer file.Close()
+	yd := yaml.NewDecoder(file)
 	mf := modfile.New(h.mfDecoders, h.mfGenerators)
-	err = yd.Decode(&mf)
+	err := yd.Decode(&mf)
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
