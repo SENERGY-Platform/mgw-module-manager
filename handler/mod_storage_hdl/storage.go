@@ -61,11 +61,12 @@ func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Mod
 	items := h.indexHandler.List()
 	var mm []model.ModuleMeta
 	for _, i := range items {
-		dir, err := util.NewDirFS(path.Join(h.wrkSpcPath, i.Dir))
+		f, err := os.Open(path.Join(h.wrkSpcPath, i.Dir, i.ModFile))
 		if err != nil {
-			return nil, err
+			util.Logger.Error(err)
+			continue
 		}
-		m, err := h.modFileHandler.GetModule(dir)
+		m, err := h.modFileHandler.GetModule(f)
 		if err != nil {
 			util.Logger.Error(err)
 			continue
