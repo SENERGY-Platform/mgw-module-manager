@@ -98,11 +98,18 @@ func (h *Handler) GetDir(_ context.Context, mID string) (model.Module, util.DirF
 	if err != nil {
 		return model.Module{}, "", model.NewInternalError(err)
 	}
-	m, err := h.modFileHandler.GetModule(dir)
+	f, err := dir.Open(i.ModFile)
 	if err != nil {
 		return model.Module{}, "", model.NewInternalError(err)
 	}
-	return m, dir, nil
+	m, err := h.modFileHandler.GetModule(f)
+	if err != nil {
+		return model.Module{}, "", err
+	}
+	return model.Module{
+		Module:      m,
+		ModuleExtra: getModExtra(i),
+	}, dir, nil
 }
 
 func (h *Handler) Add(_ context.Context, dir util.DirFS, mID string, indirect bool) error {
