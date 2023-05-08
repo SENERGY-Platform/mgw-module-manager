@@ -31,7 +31,7 @@ func (a *Api) GetDeploymentTemplate(ctx context.Context, id string) (*model.DepT
 	if err != nil {
 		return nil, err
 	}
-	return dep_tmplt_hdl.GetTemplate(mod, reqMod)
+	return dep_tmplt_hdl.GetTemplate(mod.Module, reqMod)
 }
 
 func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error) {
@@ -79,7 +79,7 @@ func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string
 	if err != nil {
 		return "", err
 	}
-	dID, err := a.deploymentHandler.Create(ctx, mod, dr.DepRequestBase, dir, false)
+	dID, err := a.deploymentHandler.Create(ctx, mod.Module, dr.DepRequestBase, dir, false)
 	if err != nil {
 		return "", err
 	}
@@ -124,7 +124,7 @@ func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.
 		if err != nil {
 			return false, "", err
 		}
-		dID, err := a.deploymentHandler.Create(ctx, rMod, depReq, dir, true)
+		dID, err := a.deploymentHandler.Create(ctx, rMod.Module, depReq, dir, true)
 		if err != nil {
 			return false, "", err
 		}

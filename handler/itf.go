@@ -28,8 +28,8 @@ import (
 
 type ModuleHandler interface {
 	List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error)
-	Get(ctx context.Context, mID string) (*module.Module, error)
-	GetReq(ctx context.Context, mID string) (*module.Module, map[string]*module.Module, error)
+	Get(ctx context.Context, mID string) (model.Module, error)
+	GetReq(ctx context.Context, mID string) (model.Module, map[string]*module.Module, error)
 	GetIncl(ctx context.Context, mID string) (util.DirFS, error)
 	Add(ctx context.Context, mr model.ModRequest) error
 	Delete(ctx context.Context, mID string) error
@@ -42,9 +42,9 @@ type ModFileHandler interface {
 
 type ModStorageHandler interface {
 	List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error)
-	Get(ctx context.Context, mID string) (*module.Module, error)
-	GetDir(ctx context.Context, mID string) (*module.Module, util.DirFS, error)
-	Add(ctx context.Context, dir util.DirFS, mID string, indirect bool) error
+	Get(ctx context.Context, mID string) (model.Module, error)
+	GetDir(ctx context.Context, mID string) (model.Module, util.DirFS, error)
+	Add(ctx context.Context, dir util.DirFS, mID, modFile string, indirect bool) error
 	Delete(ctx context.Context, mID string) error
 }
 

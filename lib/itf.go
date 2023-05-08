@@ -18,14 +18,13 @@ package lib
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
 type Api interface {
 	AddModule(ctx context.Context, mr model.ModRequest) error
 	GetModules(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error)
-	GetModule(ctx context.Context, id string) (*module.Module, error)
+	GetModule(ctx context.Context, id string) (model.Module, error)
 	DeleteModule(ctx context.Context, id string) error
 	GetDeploymentTemplate(ctx context.Context, id string) (*model.DepTemplate, error)
 	CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error)

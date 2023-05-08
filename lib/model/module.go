@@ -19,7 +19,19 @@ package model
 import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/util"
+	"time"
 )
+
+type Module struct {
+	*module.Module
+	ModuleExtra
+}
+
+type ModuleExtra struct {
+	Indirect bool      `json:"indirect"`
+	Added    time.Time `json:"added"`
+	Updated  time.Time `json:"updated"`
+}
 
 type ModuleMeta struct {
 	ID             string                `json:"id"`
@@ -31,7 +43,7 @@ type ModuleMeta struct {
 	Version        string                `json:"version"`
 	Type           module.ModuleType     `json:"type"`
 	DeploymentType module.DeploymentType `json:"deployment_type"`
-	Indirect       bool                  `json:"indirect"`
+	ModuleExtra
 }
 
 type ModFilter struct {

@@ -80,26 +80,26 @@ func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Mod
 	return mm, nil
 }
 
-func (h *Handler) Get(ctx context.Context, mID string) (*module.Module, error) {
+func (h *Handler) Get(ctx context.Context, mID string) (model.Module, error) {
 	m, _, err := h.GetDir(ctx, mID)
 	if err != nil {
-		return nil, err
+		return model.Module{}, err
 	}
 	return m, nil
 }
 
-func (h *Handler) GetDir(_ context.Context, mID string) (*module.Module, util.DirFS, error) {
+func (h *Handler) GetDir(_ context.Context, mID string) (model.Module, util.DirFS, error) {
 	i, err := h.indexHandler.Get(mID)
 	if err != nil {
-		return nil, "", err
+		return model.Module{}, "", err
 	}
 	dir, err := util.NewDirFS(path.Join(h.wrkSpcPath, i.Dir))
 	if err != nil {
-		return nil, "", model.NewInternalError(err)
+		return model.Module{}, "", model.NewInternalError(err)
 	}
 	m, err := h.modFileHandler.GetModule(dir)
 	if err != nil {
-		return nil, "", err
+		return model.Module{}, "", model.NewInternalError(err)
 	}
 	return m, dir, nil
 }
@@ -188,6 +188,14 @@ func getModMeta(m *module.Module, i item) model.ModuleMeta {
 		Version:        m.Version,
 		Type:           m.Type,
 		DeploymentType: m.DeploymentType,
-		Indirect:       i.Indirect,
+		ModuleExtra:    getModExtra(i),
+	}
+}
+
+func getModExtra(i item) model.ModuleExtra {
+	return model.ModuleExtra{
+		Indirect: i.Indirect,
+		Added:    i.Added,
+		Updated:  i.Updated,
 	}
 }

@@ -30,7 +30,7 @@ func (a *Api) GetModules(ctx context.Context, filter model.ModFilter) ([]model.M
 	return a.moduleHandler.List(ctx, filter)
 }
 
-func (a *Api) GetModule(ctx context.Context, id string) (*module.Module, error) {
+func (a *Api) GetModule(ctx context.Context, id string) (model.Module, error) {
 	return a.moduleHandler.Get(ctx, id)
 }
 

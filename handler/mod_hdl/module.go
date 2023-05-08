@@ -59,18 +59,18 @@ func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Mod
 	return h.storageHandler.List(ctx, filter)
 }
 
-func (h *Handler) Get(ctx context.Context, mID string) (*module.Module, error) {
+func (h *Handler) Get(ctx context.Context, mID string) (model.Module, error) {
 	return h.storageHandler.Get(ctx, mID)
 }
 
-func (h *Handler) GetReq(ctx context.Context, mID string) (*module.Module, map[string]*module.Module, error) {
+func (h *Handler) GetReq(ctx context.Context, mID string) (model.Module, map[string]*module.Module, error) {
 	m, err := h.storageHandler.Get(ctx, mID)
 	if err != nil {
-		return nil, nil, err
+		return model.Module{}, nil, err
 	}
 	dep := make(map[string]*module.Module)
-	if err := h.getReqMod(ctx, m, dep); err != nil {
-		return nil, nil, err
+	if err := h.getReqMod(ctx, m.Module, dep); err != nil {
+		return model.Module{}, nil, err
 	}
 	return m, dep, nil
 }
@@ -99,10 +99,10 @@ func (h *Handler) Add(ctx context.Context, mr model.ModRequest) error {
 			return err
 		}
 	}
-	if m != nil {
+	if m.Module != nil {
 		return model.NewInternalError(errors.New("already installed"))
 	}
-	return h.add(ctx, mr.ID, mr.Version, "")
+	return h.add(ctx, mr.ID, mr.Version, "", false)
 }
 
 func (h *Handler) add(ctx context.Context, mID, ver, verRng string) error {
@@ -223,8 +223,8 @@ func (h *Handler) getReqMod(ctx context.Context, mod *module.Module, reqMod map[
 			if err != nil {
 				return err
 			}
-			reqMod[mID] = m
-			if err = h.getReqMod(ctx, m, reqMod); err != nil {
+			reqMod[mID] = m.Module
+			if err = h.getReqMod(ctx, m.Module, reqMod); err != nil {
 				return err
 			}
 		}
