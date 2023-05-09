@@ -20,6 +20,7 @@ import (
 	"context"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 	"time"
 )
 
@@ -35,7 +36,7 @@ func (h *Handler) Start(ctx context.Context, id string) error {
 		if err = h.getReqDep(ctx, d, reqDep); err != nil {
 			return err
 		}
-		order, err := h.getDepOrder(reqDep)
+		order, err := sorting.GetDepOrder(reqDep)
 		if err != nil {
 			return model.NewInternalError(err)
 		}

@@ -99,30 +99,6 @@ func (h *Handler) getReqDep(ctx context.Context, dep *model.Deployment, reqDep m
 	return nil
 }
 
-func (h *Handler) getDepOrder(dep map[string]*model.Deployment) (order []string, err error) {
-	if len(dep) > 1 {
-		nodes := make(tsort.Nodes)
-		for _, d := range dep {
-			if len(d.RequiredDep) > 0 {
-				reqIDs := make(map[string]struct{})
-				for _, i := range d.RequiredDep {
-					reqIDs[i] = struct{}{}
-				}
-				nodes.Add(d.ID, reqIDs, nil)
-			}
-		}
-		order, err = tsort.GetTopOrder(nodes)
-		if err != nil {
-			return
-		}
-	} else if len(dep) > 0 {
-		for _, d := range dep {
-			order = append(order, d.ID)
-		}
-	}
-	return
-}
-
 func (h *Handler) getCurrentInst(ctx context.Context, dID string) (model.DepInstance, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()

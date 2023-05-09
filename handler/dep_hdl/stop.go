@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 	"time"
 )
 
@@ -49,7 +50,7 @@ func (h *Handler) Stop(ctx context.Context, id string, dependencies bool) error 
 		if err = h.getReqDep(ctx, d, reqDep); err != nil {
 			return err
 		}
-		order, err := h.getDepOrder(reqDep)
+		order, err := sorting.GetDepOrder(reqDep)
 		if err != nil {
 			return model.NewInternalError(err)
 		}
