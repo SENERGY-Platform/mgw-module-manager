@@ -34,4 +34,7 @@ func SetRoutes(e *gin.Engine, a lib.Api) {
 	e.PUT(model.DeploymentsPath+"/:"+depIdParam, putDeploymentH(a))
 	e.POST(model.DeploymentsPath+"/:"+depIdParam+"/"+model.DepCtrlPath, postDeploymentCtrlH(a))
 	e.DELETE(model.DeploymentsPath+"/:"+depIdParam, deleteDeploymentH(a))
+	e.GET("/"+model.JobsPath, getJobsH(a))
+	e.GET("/"+model.JobsPath+"/:"+jobIdParam, getJobH(a))
+	e.POST("/"+model.JobsPath+"/:"+jobIdParam+"/"+model.JobsCancelPath, postJobCancelH(a))
 }
