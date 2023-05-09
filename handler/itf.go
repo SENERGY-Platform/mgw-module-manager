@@ -22,7 +22,7 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
 	"time"
 )
@@ -31,7 +31,7 @@ type ModuleHandler interface {
 	List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error)
 	Get(ctx context.Context, mID string) (model.Module, error)
 	GetReq(ctx context.Context, mID string) (model.Module, map[string]model.Module, error)
-	GetIncl(ctx context.Context, mID string) (util.DirFS, error)
+	GetIncl(ctx context.Context, mID string) (dir_fs.DirFS, error)
 	Add(ctx context.Context, mr model.ModRequest) error
 	Delete(ctx context.Context, mID string) error
 	Update(ctx context.Context, mID string) error
@@ -39,26 +39,26 @@ type ModuleHandler interface {
 
 type ModFileHandler interface {
 	GetModule(file fs.File) (*module.Module, error)
-	GetModFile(dir util.DirFS) (fs.File, string, error)
+	GetModFile(dir dir_fs.DirFS) (fs.File, string, error)
 }
 
 type ModStorageHandler interface {
 	List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error)
 	Get(ctx context.Context, mID string) (model.Module, error)
-	GetDir(ctx context.Context, mID string) (model.Module, util.DirFS, error)
-	Add(ctx context.Context, dir util.DirFS, mID, modFile string, indirect bool) error
+	GetDir(ctx context.Context, mID string) (model.Module, dir_fs.DirFS, error)
+	Add(ctx context.Context, dir dir_fs.DirFS, mID, modFile string, indirect bool) error
 	Delete(ctx context.Context, mID string) error
 }
 
 type ModTransferHandler interface {
 	ListVersions(ctx context.Context, mID string) ([]string, error)
-	Get(ctx context.Context, mID, ver string) (util.DirFS, error)
+	Get(ctx context.Context, mID, ver string) (dir_fs.DirFS, error)
 }
 
 type DeploymentHandler interface {
 	List(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
 	Get(ctx context.Context, dID string) (*model.Deployment, error)
-	Create(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, incl util.DirFS, indirect bool) (string, error)
+	Create(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, incl dir_fs.DirFS, indirect bool) (string, error)
 	Delete(ctx context.Context, dID string, orphans bool) error
 	Update(ctx context.Context, dID string, drb model.DepRequestBase) error
 	Start(ctx context.Context, dID string) error

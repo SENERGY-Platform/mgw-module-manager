@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package util
+package dir_fs
 
 import (
 	"io/fs"
@@ -23,7 +23,7 @@ import (
 
 type DirFS string
 
-func NewDirFS(path string) (DirFS, error) {
+func New(path string) (DirFS, error) {
 	_, err := os.Stat(path)
 	if err != nil {
 		return "", err
@@ -60,7 +60,7 @@ func (d DirFS) Sub(name string) (DirFS, error) {
 	if name == "." {
 		return d, nil
 	}
-	return NewDirFS(string(d) + "/" + name)
+	return New(string(d) + "/" + name)
 }
 
 func (d DirFS) Path() string {

@@ -28,6 +28,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"math"
 	"os"
 	"path"
@@ -36,7 +37,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, inclDir util.DirFS, indirect bool) (string, error) {
+func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, inclDir dir_fs.DirFS, indirect bool) (string, error) {
 	depMap, err := h.getDepMap(ctx, mod.Dependencies)
 	if err != nil {
 		return "", err
@@ -120,7 +121,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	return dID, nil
 }
 
-func (h *Handler) mkDepDir(dID string, inclDir util.DirFS) (string, error) {
+func (h *Handler) mkDepDir(dID string, inclDir dir_fs.DirFS) (string, error) {
 	p := path.Join(h.wrkSpcPath, dID)
 	if err := util.CopyDir(inclDir.Path(), p); err != nil {
 		_ = os.RemoveAll(p)

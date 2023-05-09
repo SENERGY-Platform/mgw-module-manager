@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"io"
@@ -107,7 +108,7 @@ func (h *Handler) ListVersions(ctx context.Context, mID string) ([]string, error
 	return versions, nil
 }
 
-func (h *Handler) Get(ctx context.Context, mID, ver string) (dir util.DirFS, err error) {
+func (h *Handler) Get(ctx context.Context, mID, ver string) (dir dir_fs.DirFS, err error) {
 	tDir, err := os.MkdirTemp(h.wrkSpcPath, "clone_")
 	if err != nil {
 		return "", model.NewInternalError(err)
@@ -150,7 +151,7 @@ func (h *Handler) Get(ctx context.Context, mID, ver string) (dir util.DirFS, err
 		}
 		os.RemoveAll(tDir)
 	}
-	dir, err = util.NewDirFS(p)
+	dir, err = dir_fs.New(p)
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}

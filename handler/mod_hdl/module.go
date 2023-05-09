@@ -26,7 +26,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
 	"os"
 	"sort"
@@ -75,7 +75,7 @@ func (h *Handler) GetReq(ctx context.Context, mID string) (model.Module, map[str
 	return m, dep, nil
 }
 
-func (h *Handler) GetIncl(ctx context.Context, mID string) (util.DirFS, error) {
+func (h *Handler) GetIncl(ctx context.Context, mID string) (dir_fs.DirFS, error) {
 	mod, dir, err := h.storageHandler.GetDir(ctx, mID)
 	if err != nil {
 		return "", err

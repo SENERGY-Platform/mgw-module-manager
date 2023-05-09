@@ -23,6 +23,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/google/uuid"
 	"io/fs"
 	"os"
@@ -87,12 +88,12 @@ func (h *Handler) Get(ctx context.Context, mID string) (model.Module, error) {
 	return m, nil
 }
 
-func (h *Handler) GetDir(_ context.Context, mID string) (model.Module, util.DirFS, error) {
+func (h *Handler) GetDir(_ context.Context, mID string) (model.Module, dir_fs.DirFS, error) {
 	i, err := h.indexHandler.Get(mID)
 	if err != nil {
 		return model.Module{}, "", err
 	}
-	dir, err := util.NewDirFS(path.Join(h.wrkSpcPath, i.Dir))
+	dir, err := dir_fs.New(path.Join(h.wrkSpcPath, i.Dir))
 	if err != nil {
 		return model.Module{}, "", model.NewInternalError(err)
 	}
@@ -110,7 +111,7 @@ func (h *Handler) GetDir(_ context.Context, mID string) (model.Module, util.DirF
 	}, dir, nil
 }
 
-func (h *Handler) Add(_ context.Context, dir util.DirFS, mID, modFile string, indirect bool) error {
+func (h *Handler) Add(_ context.Context, dir dir_fs.DirFS, mID, modFile string, indirect bool) error {
 	dirName := uuid.NewString()
 	err := h.indexHandler.Add(mID, dirName, modFile, indirect)
 	if err != nil {
