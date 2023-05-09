@@ -63,12 +63,12 @@ func (h *Handler) Get(ctx context.Context, mID string) (model.Module, error) {
 	return h.storageHandler.Get(ctx, mID)
 }
 
-func (h *Handler) GetReq(ctx context.Context, mID string) (model.Module, map[string]*module.Module, error) {
+func (h *Handler) GetReq(ctx context.Context, mID string) (model.Module, map[string]model.Module, error) {
 	m, err := h.storageHandler.Get(ctx, mID)
 	if err != nil {
 		return model.Module{}, nil, err
 	}
-	dep := make(map[string]*module.Module)
+	dep := make(map[string]model.Module)
 	if err := h.getReqMod(ctx, m.Module, dep); err != nil {
 		return model.Module{}, nil, err
 	}

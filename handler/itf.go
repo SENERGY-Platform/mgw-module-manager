@@ -30,7 +30,7 @@ import (
 type ModuleHandler interface {
 	List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error)
 	Get(ctx context.Context, mID string) (model.Module, error)
-	GetReq(ctx context.Context, mID string) (model.Module, map[string]*module.Module, error)
+	GetReq(ctx context.Context, mID string) (model.Module, map[string]model.Module, error)
 	GetIncl(ctx context.Context, mID string) (util.DirFS, error)
 	Add(ctx context.Context, mr model.ModRequest) error
 	Delete(ctx context.Context, mID string) error
