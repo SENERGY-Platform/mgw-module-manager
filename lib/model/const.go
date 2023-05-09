@@ -28,6 +28,8 @@ const (
 	DeploymentsPath = "deployments"
 	DepTemplatePath = "dep_template"
 	DepCtrlPath     = "ctrl"
+	JobsPath        = "jobs"
+	JobsCancelPath  = "cancel"
 )
 
 const (
