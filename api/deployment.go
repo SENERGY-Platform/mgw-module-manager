@@ -98,8 +98,15 @@ func (a *Api) StartDeployment(ctx context.Context, id string) error {
 	return a.deploymentHandler.Start(ctx, id)
 }
 
-func (a *Api) StopDeployment(ctx context.Context, id string, dependencies bool) error {
-	return a.deploymentHandler.Stop(ctx, id, dependencies)
+func (a *Api) StopDeployment(_ context.Context, id string, dependencies bool) (string, error) {
+	return a.jobHandler.Create(fmt.Sprintf("stop deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
+		defer cf()
+		err := a.deploymentHandler.Stop(ctx, id, dependencies)
+		if err == nil {
+			err = ctx.Err()
+		}
+		return err
+	})
 }
 
 func (a *Api) UpdateDeployment(ctx context.Context, id string, dr model.DepRequest) error {

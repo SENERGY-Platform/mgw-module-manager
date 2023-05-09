@@ -120,22 +120,23 @@ func postDeploymentCtrlH(a lib.Api) gin.HandlerFunc {
 				_ = gc.Error(err)
 				return
 			}
+			gc.Status(http.StatusOK)
 		case model.StopCmd:
 			query := stopDeploymentQuery{}
 			if err := gc.ShouldBindQuery(&query); err != nil {
 				_ = gc.Error(model.NewInvalidInputError(err))
 				return
 			}
-			err := a.StopDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Dependencies)
+			jID, err := a.StopDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Dependencies)
 			if err != nil {
 				_ = gc.Error(err)
 				return
 			}
+			gc.String(http.StatusOK, jID)
 		default:
 			_ = gc.Error(model.NewInvalidInputError(fmt.Errorf("unknown command '%s'", ctrlReq.Cmd)))
 			return
 		}
-		gc.Status(http.StatusOK)
 	}
 }
 
