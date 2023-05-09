@@ -22,6 +22,30 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
+func GetModOrder(modules map[string]model.Module) (order []string, err error) {
+	if len(modules) > 1 {
+		nodes := make(tsort.Nodes)
+		for _, m := range modules {
+			if len(m.Dependencies) > 0 {
+				reqIDs := make(map[string]struct{})
+				for i := range m.Dependencies {
+					reqIDs[i] = struct{}{}
+				}
+				nodes.Add(m.ID, reqIDs, nil)
+			}
+		}
+		order, err = tsort.GetTopOrder(nodes)
+		if err != nil {
+			return nil, err
+		}
+	} else if len(modules) > 0 {
+		for _, m := range modules {
+			order = append(order, m.ID)
+		}
+	}
+	return
+}
+
 func GetDepOrder(dep map[string]*model.Deployment) (order []string, err error) {
 	if len(dep) > 1 {
 		nodes := make(tsort.Nodes)
