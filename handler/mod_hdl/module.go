@@ -220,14 +220,14 @@ func (h *Handler) Update(ctx context.Context, mID string) error {
 	panic("not implemented")
 }
 
-func (h *Handler) getReqMod(ctx context.Context, mod *module.Module, reqMod map[string]*module.Module) error {
+func (h *Handler) getReqMod(ctx context.Context, mod *module.Module, reqMod map[string]model.Module) error {
 	for mID := range mod.Dependencies {
 		if _, ok := reqMod[mID]; !ok {
 			m, err := h.storageHandler.Get(ctx, mID)
 			if err != nil {
 				return err
 			}
-			reqMod[mID] = m.Module
+			reqMod[mID] = m
 			if err = h.getReqMod(ctx, m.Module, reqMod); err != nil {
 				return err
 			}
