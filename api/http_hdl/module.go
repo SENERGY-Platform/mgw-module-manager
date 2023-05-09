@@ -34,6 +34,10 @@ type modulesQuery struct {
 	Tags           []string `form:"tag"`
 }
 
+type deleteModuleQuery struct {
+	Orphans bool `form:"orphans"`
+}
+
 func getModulesH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := modulesQuery{}
