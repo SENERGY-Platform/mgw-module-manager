@@ -29,6 +29,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 	"math"
 	"os"
 	"path"
@@ -100,7 +101,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 		return "", err
 	}
 	volumes, err := h.getVolumes(ctx, mod.Volumes, dID, iID)
-	order, err := getSrvOrder(mod.Services)
+	order, err := sorting.GetSrvOrder(mod.Services)
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}

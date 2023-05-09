@@ -20,8 +20,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
@@ -110,22 +108,4 @@ func (h *Handler) getCurrentInst(ctx context.Context, dID string) (model.DepInst
 		return model.DepInstance{}, model.NewInternalError(fmt.Errorf("invalid number of instances: %d", len(instances)))
 	}
 	return h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instances[0].ID)
-}
-
-func getSrvOrder(services map[string]*module.Service) (order []string, err error) {
-	if len(services) > 1 {
-		nodes := make(tsort.Nodes)
-		for ref, srv := range services {
-			nodes.Add(ref, srv.RequiredSrv, srv.RequiredBySrv)
-		}
-		order, err = tsort.GetTopOrder(nodes)
-		if err != nil {
-			return nil, err
-		}
-	} else if len(services) > 0 {
-		for ref := range services {
-			order = append(order, ref)
-		}
-	}
-	return
 }
