@@ -21,7 +21,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"gopkg.in/yaml.v3"
 	"io/fs"
 	"strings"
@@ -56,7 +56,7 @@ func (h *Handler) GetModule(file fs.File) (*module.Module, error) {
 	return m, nil
 }
 
-func (h *Handler) GetModFile(dir util.DirFS) (fs.File, string, error) {
+func (h *Handler) GetModFile(dir dir_fs.DirFS) (fs.File, string, error) {
 	dirEntries, err := fs.ReadDir(dir, ".")
 	if err != nil {
 		return nil, "", err
