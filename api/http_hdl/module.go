@@ -102,6 +102,22 @@ func postModuleH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
+func deleteModuleH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		query := deleteModuleQuery{}
+		if err := gc.ShouldBindQuery(&query); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		err := a.DeleteModule(gc.Request.Context(), gc.Param(modIdParam), query.Orphans)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
 func getDeploymentTemplateH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		inputTemplate, err := a.GetDeploymentTemplate(gc.Request.Context(), gc.Param(modIdParam))
