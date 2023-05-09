@@ -45,7 +45,7 @@ func (h *Handler) delete(ctx context.Context, dID string, orphans bool) error {
 		return err
 	}
 	if err := h.removeVolumes(ctx, dID); err != nil {
-		return err
+		return model.NewInternalError(err)
 	}
 	if err := h.rmDepDir(ctx, dID); err != nil {
 		return err
@@ -91,7 +91,7 @@ func (h *Handler) removeContainer(ctx context.Context, dID string) error {
 		for _, ctr := range containers {
 			err := h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
 			if err != nil {
-				return err
+				return model.NewInternalError(err)
 			}
 		}
 	}

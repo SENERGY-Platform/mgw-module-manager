@@ -63,7 +63,7 @@ func (h *Handler) start(ctx context.Context, dep *model.Deployment) error {
 	for _, ctr := range containers {
 		err = h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
 		if err != nil {
-			return err
+			return model.NewInternalError(err)
 		}
 	}
 	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID, dep.Name, false, dep.Indirect, time.Now().UTC()); err != nil {

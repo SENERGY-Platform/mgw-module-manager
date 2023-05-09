@@ -20,6 +20,7 @@ import (
 	"context"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"time"
@@ -51,11 +52,11 @@ func (h *Handler) AwaitJob(ctx context.Context, jID string) (cew_model.Job, erro
 				util.Logger.Error(err)
 			}
 			cf()
-			return cew_model.Job{}, ctx.Err()
+			return cew_model.Job{}, model.NewInternalError(ctx.Err())
 		case <-ticker.C:
 			j, err := h.cewClient.GetJob(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), jID)
 			if err != nil {
-				return cew_model.Job{}, err
+				return cew_model.Job{}, model.NewInternalError(err)
 			}
 			if j.Completed != nil {
 				return j, nil

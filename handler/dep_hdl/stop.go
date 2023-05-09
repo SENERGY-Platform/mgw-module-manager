@@ -87,7 +87,7 @@ func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
 	}
 	for _, ctr := range containers {
 		if err = h.stopContainer(ctx, ctr.ID); err != nil {
-			return model.NewInternalError(err)
+			return err
 		}
 	}
 	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID, dep.Name, true, dep.Indirect, time.Now().UTC()); err != nil {
@@ -101,14 +101,14 @@ func (h *Handler) stopContainer(ctx context.Context, cID string) error {
 	defer cf()
 	jID, err := h.cewClient.StopContainer(ctxWt, cID)
 	if err != nil {
-		return err
+		return model.NewInternalError(err)
 	}
 	job, err := h.cewJobHandler.AwaitJob(ctx, jID)
 	if err != nil {
 		return err
 	}
 	if job.Error != nil {
-		return fmt.Errorf("%v", job.Error)
+		return model.NewInternalError(fmt.Errorf("%v", job.Error))
 	}
 	return nil
 }

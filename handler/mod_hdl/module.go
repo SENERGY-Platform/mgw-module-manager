@@ -172,14 +172,14 @@ func (h *Handler) addImage(ctx context.Context, img string) error {
 	defer cf()
 	jID, err := h.cewClient.AddImage(ctxWt, img)
 	if err != nil {
-		return err
+		return model.NewInternalError(err)
 	}
 	job, err := h.cewJobHandler.AwaitJob(ctx, jID)
 	if err != nil {
 		return err
 	}
 	if job.Error != nil {
-		return fmt.Errorf("%v", job.Error)
+		return model.NewInternalError(fmt.Errorf("%v", job.Error))
 	}
 	return nil
 }
