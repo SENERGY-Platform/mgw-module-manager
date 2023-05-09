@@ -30,6 +30,7 @@ import (
 	"io/fs"
 	"os"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -213,6 +214,17 @@ func (h *Handler) getVersion(ctx context.Context, mID, verRng string) (string, e
 }
 
 func (h *Handler) Delete(ctx context.Context, mID string) error {
+	l, err := h.storageHandler.List(ctx, model.ModFilter{InDependencies: map[string]struct{}{mID: {}}})
+	if err != nil {
+		return err
+	}
+	if len(l) > 0 {
+		var ids []string
+		for _, meta := range l {
+			ids = append(ids, meta.ID)
+		}
+		return model.NewInternalError(fmt.Errorf("module is required by: %s", strings.Join(ids, ", ")))
+	}
 	return h.storageHandler.Delete(ctx, mID)
 }
 
