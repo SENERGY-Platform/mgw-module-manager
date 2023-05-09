@@ -93,12 +93,12 @@ func postModuleH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		err = a.AddModule(gc.Request.Context(), modReq)
+		jID, err := a.AddModule(gc.Request.Context(), modReq)
 		if err != nil {
 			_ = gc.Error(err)
 			return
 		}
-		gc.Status(http.StatusOK)
+		gc.String(http.StatusOK, jID)
 	}
 }
 

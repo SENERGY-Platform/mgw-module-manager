@@ -19,11 +19,19 @@ package api
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func (a *Api) AddModule(ctx context.Context, mr model.ModRequest) error {
-	return a.moduleHandler.Add(ctx, mr)
+func (a *Api) AddModule(_ context.Context, mr model.ModRequest) (string, error) {
+	return a.jobHandler.Create(fmt.Sprintf("add module '%s'", mr.ID), func(ctx context.Context, cf context.CancelFunc) error {
+		defer cf()
+		err := a.moduleHandler.Add(ctx, mr)
+		if err == nil {
+			err = ctx.Err()
+		}
+		return err
+	})
 }
 
 func (a *Api) GetModules(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
