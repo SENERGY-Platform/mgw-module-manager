@@ -186,5 +186,12 @@ func main() {
 		util.Logger.Error(err)
 		return
 	}
+
+	err = ccHandler.RunAsync(config.Jobs.MaxNumber, time.Duration(config.Jobs.JHInterval*1000))
+	if err != nil {
+		util.Logger.Error(err)
+		return
+	}
+
 	srv_base.StartServer(&http.Server{Handler: httpHandler}, listener, srv_base_types.DefaultShutdownSignals, util.Logger)
 }
