@@ -18,7 +18,7 @@ package api
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"errors"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
@@ -34,6 +34,13 @@ func (a *Api) GetModule(ctx context.Context, id string) (model.Module, error) {
 	return a.moduleHandler.Get(ctx, id)
 }
 
-func (a *Api) DeleteModule(ctx context.Context, id string) error {
-	panic("not implemented")
+func (a *Api) DeleteModule(ctx context.Context, id string, orphans bool) error {
+	l, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: id})
+	if err != nil {
+		return err
+	}
+	if len(l) > 0 {
+		return model.NewInvalidInputError(errors.New("deployment exists"))
+	}
+	return a.moduleHandler.Delete(ctx, id)
 }
