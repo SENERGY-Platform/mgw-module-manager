@@ -21,12 +21,12 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func GetTemplate(mod *module.Module, reqMod map[string]*module.Module) (*model.DepTemplate, error) {
+func GetTemplate(mod *module.Module, reqMod map[string]model.Module) (*model.DepTemplate, error) {
 	dt := model.DepTemplate{ModuleID: mod.ID, DepTemplateBase: getDepTemplateBase(mod)}
 	if len(reqMod) > 0 {
 		rdt := make(map[string]model.DepTemplateBase)
 		for _, rm := range reqMod {
-			rdt[rm.ID] = getDepTemplateBase(rm)
+			rdt[rm.ID] = getDepTemplateBase(rm.Module)
 		}
 		dt.Dependencies = rdt
 	}
