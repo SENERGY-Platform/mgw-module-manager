@@ -48,6 +48,14 @@ type DepHandlerConfig struct {
 	WorkdirPath string `json:"workdir_path" env_var:"DH_WORKDIR_PATH"`
 }
 
+type JobsConfig struct {
+	BufferSize  int   `json:"buffer_size" env_var:"JOBS_BUFFER_SIZE"`
+	MaxNumber   int   `json:"max_number" env_var:"JOBS_MAX_NUMBER"`
+	CCHInterval int   `json:"cch_interval" env_var:"JOBS_CCH_INTERVAL"`
+	JHInterval  int   `json:"jh_interval" env_var:"JOBS_JH_INTERVAL"`
+	MaxAge      int64 `json:"max_age" env_var:"JOBS_MAX_AGE"`
+}
+
 type Config struct {
 	ServerPort         uint                     `json:"server_port" env_var:"SERVER_PORT"`
 	ModStorageHandler  ModStorageHandlerConfig  `json:"module_storage_handler" env_var:"MSH_CONFIG"`
@@ -57,6 +65,7 @@ type Config struct {
 	ConfigDefsPath     string                   `json:"config_defs_path" env_var:"CONFIG_DEFS_PATH"`
 	Database           DatabaseConfig           `json:"database" env_var:"DATABASE_CONFIG"`
 	HttpClient         HttpClientConfig         `json:"http_client" env_var:"HTTP_CLIENT_CONFIG"`
+	Jobs               JobsConfig               `json:"jobs" env_var:"JOBS_CONFIG"`
 }
 
 func NewConfig(path *string) (*Config, error) {
@@ -86,6 +95,13 @@ func NewConfig(path *string) (*Config, error) {
 		HttpClient: HttpClientConfig{
 			CewBaseUrl: "http://api-gateway/cew",
 			Timeout:    10000000000,
+		},
+		Jobs: JobsConfig{
+			BufferSize:  50,
+			MaxNumber:   10,
+			CCHInterval: 500000,
+			JHInterval:  500000,
+			MaxAge:      3600000000,
 		},
 	}
 	err := srv_base.LoadConfig(path, &cfg, nil, nil, nil)
