@@ -20,10 +20,10 @@ import (
 	"context"
 	"errors"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_tmplt_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/dep_tmplt"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 )
 
 func (a *Api) GetDeploymentTemplate(ctx context.Context, id string) (*model.DepTemplate, error) {
@@ -31,7 +31,7 @@ func (a *Api) GetDeploymentTemplate(ctx context.Context, id string) (*model.DepT
 	if err != nil {
 		return nil, err
 	}
-	return dep_tmplt_hdl.GetTemplate(mod.Module, reqMod)
+	return dep_tmplt.GetTemplate(mod.Module, reqMod)
 }
 
 func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error) {
@@ -47,7 +47,7 @@ func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string
 		}
 	}
 	if len(reqMod) > 0 {
-		order, err := getModOrder(reqMod)
+		order, err := sorting.GetModOrder(reqMod)
 		if err != nil {
 			return "", model.NewInternalError(err)
 		}
@@ -131,28 +131,4 @@ func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.
 		return true, dID, nil
 	}
 	return false, "", nil
-}
-
-func getModOrder(modules map[string]*module.Module) (order []string, err error) {
-	if len(modules) > 1 {
-		nodes := make(tsort.Nodes)
-		for _, m := range modules {
-			if len(m.Dependencies) > 0 {
-				reqIDs := make(map[string]struct{})
-				for i := range m.Dependencies {
-					reqIDs[i] = struct{}{}
-				}
-				nodes.Add(m.ID, reqIDs, nil)
-			}
-		}
-		order, err = tsort.GetTopOrder(nodes)
-		if err != nil {
-			return nil, err
-		}
-	} else if len(modules) > 0 {
-		for _, m := range modules {
-			order = append(order, m.ID)
-		}
-	}
-	return
 }
