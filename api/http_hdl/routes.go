@@ -26,6 +26,7 @@ func SetRoutes(e *gin.Engine, a lib.Api) {
 	e.GET(model.ModulesPath, getModulesH(a))
 	e.POST(model.ModulesPath, postModuleH(a))
 	e.GET(model.ModulesPath+"/:"+modIdParam, getModuleH(a))
+	e.DELETE(model.ModulesPath+"/:"+modIdParam, deleteModuleH(a))
 	e.GET(model.ModulesPath+"/:"+modIdParam+"/"+model.DepTemplatePath, getDeploymentTemplateH(a))
 	e.GET(model.DeploymentsPath, getDeploymentsH(a))
 	e.POST(model.DeploymentsPath, postDeploymentH(a))
