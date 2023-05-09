@@ -22,6 +22,7 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 	"os"
 	"path"
 	"strings"
@@ -37,10 +38,31 @@ func (h *Handler) Delete(ctx context.Context, id string, orphans bool) error {
 	if len(d.DepRequiring) > 0 {
 		return model.NewInternalError(fmt.Errorf("deplyoment is required by: %s", strings.Join(d.DepRequiring, ", ")))
 	}
-	return h.delete(ctx, id, orphans)
+	if err = h.delete(ctx, id); err != nil {
+		return err
+	}
+	if orphans && len(d.RequiredDep) > 0 {
+		reqDep := make(map[string]*model.Deployment)
+		if err = h.getReqDep(ctx, d, reqDep); err != nil {
+			return err
+		}
+		order, err := sorting.GetDepOrder(reqDep)
+		if err != nil {
+			return model.NewInternalError(err)
+		}
+		for i := len(order) - 1; i >= 0; i-- {
+			rd := reqDep[order[i]]
+			if rd.Indirect && len(rd.DepRequiring) == 0 {
+				if err = h.delete(ctx, rd.ID); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
 }
 
-func (h *Handler) delete(ctx context.Context, dID string, orphans bool) error {
+func (h *Handler) delete(ctx context.Context, dID string) error {
 	if err := h.removeContainer(ctx, dID); err != nil {
 		return err
 	}
@@ -54,17 +76,6 @@ func (h *Handler) delete(ctx context.Context, dID string, orphans bool) error {
 	defer cf()
 	if err := h.storageHandler.DeleteDep(ctxWt, dID); err != nil {
 		return err
-	}
-	if orphans {
-		od, err := h.getOrphans(ctx)
-		if err != nil {
-			return err
-		}
-		for _, odm := range od {
-			if err := h.delete(ctx, odm.ID, true); err != nil {
-				return err
-			}
-		}
 	}
 	return nil
 }
