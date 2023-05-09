@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dep_tmplt_hdl
+package dep_tmplt
 
 import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
