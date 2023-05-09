@@ -101,3 +101,10 @@ type CfgValidationHandler interface {
 	ValidateValue(cType string, cTypeOpt module.ConfigTypeOptions, value any, isSlice bool, dataType module.DataType) error
 	ValidateValInOpt(cOpt any, value any, isSlice bool, dataType module.DataType) error
 }
+
+type JobHandler interface {
+	List(filter model.JobFilter) []model.Job
+	Get(id string) (model.Job, error)
+	Create(desc string, tFunc func(context.Context, context.CancelFunc) error) (string, error)
+	Cancel(id string) error
+}

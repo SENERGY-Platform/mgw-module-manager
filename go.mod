@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/SENERGY-Platform/gin-middleware v0.3.0
+	github.com/SENERGY-Platform/go-cc-job-handler v0.1.0
 	github.com/SENERGY-Platform/go-service-base v0.7.0
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.3.3
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.5.0
@@ -14,6 +15,7 @@ require (
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/go-sql-driver/mysql v1.7.0
+	github.com/google/uuid v1.3.0
 	github.com/y-du/go-log-level v0.2.2
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -34,7 +36,6 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.11.2 // indirect
 	github.com/goccy/go-json v0.10.0 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
