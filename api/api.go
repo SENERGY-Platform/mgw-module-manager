@@ -23,8 +23,13 @@ import (
 type Api struct {
 	moduleHandler     handler.ModuleHandler
 	deploymentHandler handler.DeploymentHandler
+	jobHandler        handler.JobHandler
 }
 
-func New(moduleHandler handler.ModuleHandler, deploymentHandler handler.DeploymentHandler) *Api {
-	return &Api{moduleHandler: moduleHandler, deploymentHandler: deploymentHandler}
+func New(moduleHandler handler.ModuleHandler, deploymentHandler handler.DeploymentHandler, jobHandler handler.JobHandler) *Api {
+	return &Api{
+		moduleHandler:     moduleHandler,
+		deploymentHandler: deploymentHandler,
+		jobHandler:        jobHandler,
+	}
 }

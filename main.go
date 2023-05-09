@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/gin-middleware"
+	"github.com/SENERGY-Platform/go-cc-job-handler/ccjh"
 	"github.com/SENERGY-Platform/go-service-base/srv-base"
 	"github.com/SENERGY-Platform/go-service-base/srv-base/types"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
@@ -35,6 +36,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl/validators"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_storage_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/job_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_storage_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_transfer_hdl"
@@ -143,7 +145,32 @@ func main() {
 		return
 	}
 
-	mApi := api.New(modHandler, depHandler)
+	ccHandler := ccjh.New(config.Jobs.BufferSize)
+
+	jobCtx, cFunc := context.WithCancel(context.Background())
+	jobHandler := job_hdl.New(jobCtx, ccHandler)
+
+	defer func() {
+		ccHandler.Stop()
+		cFunc()
+		if ccHandler.Active() > 0 {
+			util.Logger.Info("waiting for active jobs to cancel ...")
+			ctx, cf := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cf()
+			for ccHandler.Active() != 0 {
+				select {
+				case <-ctx.Done():
+					util.Logger.Error("canceling jobs took too long")
+					return
+				default:
+					time.Sleep(50 * time.Millisecond)
+				}
+			}
+			util.Logger.Info("jobs canceled")
+		}
+	}()
+
+	mApi := api.New(modHandler, depHandler, jobHandler)
 
 	gin.SetMode(gin.ReleaseMode)
 	httpHandler := gin.New()
