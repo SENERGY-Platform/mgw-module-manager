@@ -85,7 +85,7 @@ func postDeploymentH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, id)
+		gc.String(http.StatusOK, id)
 	}
 }
 
