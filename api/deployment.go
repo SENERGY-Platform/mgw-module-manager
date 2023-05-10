@@ -23,6 +23,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/input_tmplt"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 )
 
@@ -109,8 +110,19 @@ func (a *Api) DeleteDeployment(ctx context.Context, id string, orphans bool) err
 	return a.deploymentHandler.Delete(ctx, id, orphans)
 }
 
-func (a *Api) GetDepUpdateTemplate(ctx context.Context, id string) (model.DepUpdateTemplate, error) {
-	panic("not implemented")
+func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (model.DepUpdateTemplate, error) {
+	dep, err := a.deploymentHandler.Get(ctx, id)
+	if err != nil {
+		return model.DepUpdateTemplate{}, err
+	}
+	mod, err := a.moduleHandler.Get(ctx, dep.ModuleID)
+	if err != nil {
+		return model.DepUpdateTemplate{}, err
+	}
+	return model.DepUpdateTemplate{
+		Name:          dep.Name,
+		InputTemplate: input_tmplt.GetDepUpTemplate(mod.Module, dep),
+	}, nil
 }
 
 func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.DepRequestBase) (bool, string, error) {
