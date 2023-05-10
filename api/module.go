@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/dep_tmplt"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/input_tmplt"
 )
 
 func (a *Api) AddModule(_ context.Context, mr model.ModRequest) (string, error) {
@@ -59,11 +59,11 @@ func (a *Api) GetDeploymentTemplate(ctx context.Context, id string) (*model.DepT
 	if err != nil {
 		return nil, err
 	}
-	dt := model.DepTemplate{ModuleID: mod.ID, InputTemplate: dep_tmplt.GetDepTemplate(mod.Module)}
+	dt := model.DepTemplate{ModuleID: mod.ID, InputTemplate: input_tmplt.GetDepTemplate(mod.Module)}
 	if len(reqMod) > 0 {
 		rdt := make(map[string]model.InputTemplate)
 		for _, rm := range reqMod {
-			rdt[rm.ID] = dep_tmplt.GetDepTemplate(rm.Module)
+			rdt[rm.ID] = input_tmplt.GetDepTemplate(rm.Module)
 		}
 		dt.Dependencies = rdt
 	}
