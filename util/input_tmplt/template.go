@@ -21,27 +21,27 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func GetModDepTemplate(m *module.Module) model.InputTemplate {
+func GetModDepTemplate(mod *module.Module) model.InputTemplate {
 	it := model.InputTemplate{
 		HostResources: make(map[string]model.InputTemplateHostRes),
 		Secrets:       make(map[string]model.InputTemplateSecret),
 		Configs:       make(map[string]model.InputTemplateConfig),
-		InputGroups:   m.Inputs.Groups,
+		InputGroups:   mod.Inputs.Groups,
 	}
-	for ref, input := range m.Inputs.Resources {
+	for ref, input := range mod.Inputs.Resources {
 		it.HostResources[ref] = model.InputTemplateHostRes{
 			Input:        input,
-			HostResource: m.HostResources[ref],
+			HostResource: mod.HostResources[ref],
 		}
 	}
-	for ref, input := range m.Inputs.Secrets {
+	for ref, input := range mod.Inputs.Secrets {
 		it.Secrets[ref] = model.InputTemplateSecret{
 			Input:  input,
-			Secret: m.Secrets[ref],
+			Secret: mod.Secrets[ref],
 		}
 	}
-	for ref, input := range m.Inputs.Configs {
-		cv := m.Configs[ref]
+	for ref, input := range mod.Inputs.Configs {
+		cv := mod.Configs[ref]
 		itc := model.InputTemplateConfig{
 			Input:    input,
 			Default:  cv.Default,
