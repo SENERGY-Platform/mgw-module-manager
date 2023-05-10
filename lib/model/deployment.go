@@ -94,3 +94,8 @@ type DepFilter struct {
 type DepInstFilter struct {
 	DepID string
 }
+
+type DepUpdateTemplate struct {
+	Name string `json:"name"`
+	InputTemplate
+}
