@@ -95,7 +95,7 @@ type DepInstFilter struct {
 	DepID string
 }
 
-type DepTemplateBase struct {
+type InputTemplate struct {
 	HostResources map[string]DepTemplateHostRes `json:"host_resources"` // {ref:ResourceInput}
 	Secrets       map[string]DepTemplateSecret  `json:"secrets"`        // {ref:SecretInput}
 	Configs       map[string]DepTemplateConfig  `json:"configs"`        // {ref:ConfigInput}
@@ -104,8 +104,8 @@ type DepTemplateBase struct {
 
 type DepTemplate struct {
 	ModuleID string `json:"module_id"`
-	DepTemplateBase
-	Dependencies map[string]DepTemplateBase `json:"dependencies"`
+	InputTemplate
+	Dependencies map[string]InputTemplate `json:"dependencies"`
 }
 
 type DepTemplateHostRes struct {
