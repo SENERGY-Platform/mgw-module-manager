@@ -60,3 +60,54 @@ func GetModDepTemplate(mod *module.Module) model.InputTemplate {
 	}
 	return it
 }
+
+func GetDepUpTemplate(mod *module.Module, dep *model.Deployment) model.InputTemplate {
+	it := model.InputTemplate{
+		HostResources: make(map[string]model.InputTemplateHostRes),
+		Secrets:       make(map[string]model.InputTemplateSecret),
+		Configs:       make(map[string]model.InputTemplateConfig),
+		InputGroups:   mod.Inputs.Groups,
+	}
+	for ref, input := range mod.Inputs.Resources {
+		hr := model.InputTemplateHostRes{
+			Input:        input,
+			HostResource: mod.HostResources[ref],
+		}
+		if hrID, ok := dep.HostResources[ref]; ok {
+			hr.Value = hrID
+		}
+		it.HostResources[ref] = hr
+	}
+	for ref, input := range mod.Inputs.Secrets {
+		s := model.InputTemplateSecret{
+			Input:  input,
+			Secret: mod.Secrets[ref],
+		}
+		if sID, ok := dep.Secrets[ref]; ok {
+			s.Value = sID
+		}
+		it.Secrets[ref] = s
+	}
+	for ref, input := range mod.Inputs.Configs {
+		cv := mod.Configs[ref]
+		itc := model.InputTemplateConfig{
+			Input:    input,
+			Default:  cv.Default,
+			Options:  cv.Options,
+			OptExt:   cv.OptExt,
+			Type:     cv.Type,
+			TypeOpt:  make(map[string]any),
+			DataType: cv.DataType,
+			IsList:   cv.IsSlice,
+			Required: cv.Required,
+		}
+		for key, opt := range cv.TypeOpt {
+			itc.TypeOpt[key] = opt.Value
+		}
+		if dc, ok := dep.Configs[ref]; ok {
+			itc.Value = dc.Value
+		}
+		it.Configs[ref] = itc
+	}
+	return it
+}
