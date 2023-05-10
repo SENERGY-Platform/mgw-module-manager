@@ -44,11 +44,11 @@ func (a *Api) GetModule(ctx context.Context, id string) (model.Module, error) {
 }
 
 func (a *Api) DeleteModule(ctx context.Context, id string, orphans bool) error {
-	l, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: id})
+	ok, err := a.modDeployed(ctx, id)
 	if err != nil {
 		return err
 	}
-	if len(l) > 0 {
+	if ok {
 		return model.NewInvalidInputError(errors.New("deployment exists"))
 	}
 	return a.moduleHandler.Delete(ctx, id)
@@ -68,4 +68,15 @@ func (a *Api) GetModuleDepTemplate(ctx context.Context, id string) (model.ModDep
 		dt.Dependencies = rdt
 	}
 	return dt, nil
+}
+
+func (a *Api) modDeployed(ctx context.Context, id string) (bool, error) {
+	l, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: id})
+	if err != nil {
+		return false, err
+	}
+	if len(l) > 0 {
+		return true, nil
+	}
+	return false, nil
 }
