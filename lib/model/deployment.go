@@ -94,32 +94,3 @@ type DepFilter struct {
 type DepInstFilter struct {
 	DepID string
 }
-
-type InputTemplate struct {
-	HostResources map[string]InputTemplateHostRes `json:"host_resources"` // {ref:ResourceInput}
-	Secrets       map[string]InputTemplateSecret  `json:"secrets"`        // {ref:SecretInput}
-	Configs       map[string]InputTemplateConfig  `json:"configs"`        // {ref:ConfigInput}
-	InputGroups   map[string]module.InputGroup    `json:"input_groups"`   // {ref:InputGroup}
-}
-
-type InputTemplateHostRes struct {
-	module.Input
-	module.HostResource
-}
-
-type InputTemplateSecret struct {
-	module.Input
-	module.Secret
-}
-
-type InputTemplateConfig struct {
-	module.Input
-	Default  any             `json:"default"`
-	Options  any             `json:"options"`
-	OptExt   bool            `json:"opt_ext"`
-	Type     string          `json:"type"`
-	TypeOpt  map[string]any  `json:"type_opt"`
-	DataType module.DataType `json:"data_type"`
-	IsList   bool            `json:"is_list"`
-	Required bool            `json:"required"`
-}
