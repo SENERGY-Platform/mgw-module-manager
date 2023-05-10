@@ -59,11 +59,11 @@ func (a *Api) GetDeploymentTemplate(ctx context.Context, id string) (*model.DepT
 	if err != nil {
 		return nil, err
 	}
-	dt := model.DepTemplate{ModuleID: mod.ID, DepTemplateBase: dep_tmplt.GetDepTemplateBase(mod.Module)}
+	dt := model.DepTemplate{ModuleID: mod.ID, DepTemplateBase: dep_tmplt.GetDepTemplate(mod.Module)}
 	if len(reqMod) > 0 {
 		rdt := make(map[string]model.DepTemplateBase)
 		for _, rm := range reqMod {
-			rdt[rm.ID] = dep_tmplt.GetDepTemplateBase(rm.Module)
+			rdt[rm.ID] = dep_tmplt.GetDepTemplate(rm.Module)
 		}
 		dt.Dependencies = rdt
 	}
