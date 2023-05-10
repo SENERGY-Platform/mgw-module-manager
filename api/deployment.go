@@ -109,6 +109,10 @@ func (a *Api) DeleteDeployment(ctx context.Context, id string, orphans bool) err
 	return a.deploymentHandler.Delete(ctx, id, orphans)
 }
 
+func (a *Api) GetDepUpdateTemplate(ctx context.Context, id string) (model.DepUpdateTemplate, error) {
+	panic("not implemented")
+}
+
 func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.DepRequestBase) (bool, string, error) {
 	depList, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: mID})
 	if err != nil {
