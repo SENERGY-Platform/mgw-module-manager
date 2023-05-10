@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/dep_tmplt"
 )
 
 func (a *Api) AddModule(_ context.Context, mr model.ModRequest) (string, error) {
@@ -51,4 +52,12 @@ func (a *Api) DeleteModule(ctx context.Context, id string, orphans bool) error {
 		return model.NewInvalidInputError(errors.New("deployment exists"))
 	}
 	return a.moduleHandler.Delete(ctx, id)
+}
+
+func (a *Api) GetDeploymentTemplate(ctx context.Context, id string) (*model.DepTemplate, error) {
+	mod, reqMod, err := a.moduleHandler.GetReq(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return dep_tmplt.GetTemplate(mod.Module, reqMod)
 }

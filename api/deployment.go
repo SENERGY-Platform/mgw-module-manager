@@ -23,17 +23,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/dep_tmplt"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 )
-
-func (a *Api) GetDeploymentTemplate(ctx context.Context, id string) (*model.DepTemplate, error) {
-	mod, reqMod, err := a.moduleHandler.GetReq(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return dep_tmplt.GetTemplate(mod.Module, reqMod)
-}
 
 func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error) {
 	mod, reqMod, err := a.moduleHandler.GetReq(ctx, dr.ModuleID)
