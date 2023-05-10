@@ -26,8 +26,10 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -224,6 +226,18 @@ func (h *Handler) Delete(ctx context.Context, mID string) error {
 			ids = append(ids, meta.ID)
 		}
 		return model.NewInternalError(fmt.Errorf("module is required by: %s", strings.Join(ids, ", ")))
+	}
+	mod, err := h.storageHandler.Get(ctx, mID)
+	if err != nil {
+		return err
+	}
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	for _, srv := range mod.Services {
+		err = h.cewClient.RemoveImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), url.QueryEscape(srv.Image))
+		if err != nil {
+			return err
+		}
 	}
 	return h.storageHandler.Delete(ctx, mID)
 }
