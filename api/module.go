@@ -54,12 +54,12 @@ func (a *Api) DeleteModule(ctx context.Context, id string, orphans bool) error {
 	return a.moduleHandler.Delete(ctx, id)
 }
 
-func (a *Api) GetModuleDepTemplate(ctx context.Context, id string) (*model.ModDepTemplate, error) {
+func (a *Api) GetModuleDepTemplate(ctx context.Context, id string) (*model.ModDeployTemplate, error) {
 	mod, reqMod, err := a.moduleHandler.GetReq(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	dt := model.ModDepTemplate{ModuleID: mod.ID, InputTemplate: input_tmplt.GetModDepTemplate(mod.Module)}
+	dt := model.ModDeployTemplate{ModuleID: mod.ID, InputTemplate: input_tmplt.GetModDepTemplate(mod.Module)}
 	if len(reqMod) > 0 {
 		rdt := make(map[string]model.InputTemplate)
 		for _, rm := range reqMod {

@@ -26,7 +26,7 @@ type Api interface {
 	GetModules(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error)
 	GetModule(ctx context.Context, id string) (model.Module, error)
 	DeleteModule(ctx context.Context, id string, orphans bool) error
-	GetModuleDepTemplate(ctx context.Context, id string) (*model.ModDepTemplate, error)
+	GetModuleDepTemplate(ctx context.Context, id string) (*model.ModDeployTemplate, error)
 	CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error)
 	GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
 	GetDeployment(ctx context.Context, id string) (*model.Deployment, error)
