@@ -118,7 +118,7 @@ func deleteModuleH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func getDeploymentTemplateH(a lib.Api) gin.HandlerFunc {
+func getModuleDepTemplateH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		inputTemplate, err := a.GetModuleDepTemplate(gc.Request.Context(), gc.Param(modIdParam))
 		if err != nil {
