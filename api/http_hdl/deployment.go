@@ -155,3 +155,14 @@ func deleteDeploymentH(a lib.Api) gin.HandlerFunc {
 		gc.Status(http.StatusOK)
 	}
 }
+
+func getDeploymentUpdateTemplateH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		inputTemplate, err := a.GetDeploymentUpdateTemplate(gc.Request.Context(), gc.Param(depIdParam))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, inputTemplate)
+	}
+}
