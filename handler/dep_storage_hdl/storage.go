@@ -139,10 +139,11 @@ func (h *Handler) CreateDepConfigs(ctx context.Context, itf driver.Tx, mConfigs 
 		if !ok {
 			return model.NewInternalError(fmt.Errorf("config '%s' not defined", ref))
 		}
-		var stmt *sql.Stmt
 		key := mConfig.DataType + strconv.FormatBool(mConfig.IsSlice)
-		if stmt = stmtMap[key]; stmt == nil {
-			stmt, err := tx.PrepareContext(ctx, genCfgInsertQuery(mConfig.DataType, mConfig.IsSlice))
+		stmt, ok := stmtMap[key]
+		if !ok {
+			var err error
+			stmt, err = tx.PrepareContext(ctx, genCfgInsertQuery(mConfig.DataType, mConfig.IsSlice))
 			if err != nil {
 				return model.NewInternalError(err)
 			}
