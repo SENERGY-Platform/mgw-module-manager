@@ -28,15 +28,18 @@ type InputTemplate struct {
 type InputTemplateHostRes struct {
 	module.Input
 	module.HostResource
+	Value any `json:"value"`
 }
 
 type InputTemplateSecret struct {
 	module.Input
 	module.Secret
+	Value any `json:"value"`
 }
 
 type InputTemplateConfig struct {
 	module.Input
+	Value    any             `json:"value"`
 	Default  any             `json:"default"`
 	Options  any             `json:"options"`
 	OptExt   bool            `json:"opt_ext"`
