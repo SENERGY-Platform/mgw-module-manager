@@ -136,6 +136,9 @@ func (h *Handler) add(ctx context.Context, mID, ver, verRng string, indirect boo
 	if err = h.validateModule(m, mID); err != nil {
 		return err
 	}
+	if indirect && m.DeploymentType == module.MultipleDeployment {
+		return model.NewInternalError(fmt.Errorf("dependencies with deployment type '%s' not supported", module.MultipleDeployment))
+	}
 	for dmID, dmVerRng := range m.Dependencies {
 		dm, err := h.storageHandler.Get(ctx, dmID)
 		if err != nil {
@@ -148,6 +151,9 @@ func (h *Handler) add(ctx context.Context, mID, ver, verRng string, indirect boo
 				return err
 			}
 			continue
+		}
+		if dm.DeploymentType == module.MultipleDeployment {
+			return model.NewInternalError(fmt.Errorf("dependencies with deployment type '%s' not supported", module.MultipleDeployment))
 		}
 		ok, err := sem_ver.InSemVerRange(dmVerRng, dm.Version)
 		if err != nil {
