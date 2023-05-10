@@ -24,12 +24,13 @@ const (
 )
 
 const (
-	ModulesPath     = "modules"
-	DeploymentsPath = "deployments"
-	DepTemplatePath = "dep_template"
-	DepCtrlPath     = "ctrl"
-	JobsPath        = "jobs"
-	JobsCancelPath  = "cancel"
+	ModulesPath           = "modules"
+	DeploymentsPath       = "deployments"
+	DepTemplatePath       = "dep_template"
+	DepUpdateTemplatePath = "update_template"
+	DepCtrlPath           = "ctrl"
+	JobsPath              = "jobs"
+	JobsCancelPath        = "cancel"
 )
 
 const (
