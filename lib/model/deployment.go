@@ -102,12 +102,6 @@ type InputTemplate struct {
 	InputGroups   map[string]module.InputGroup    `json:"input_groups"`   // {ref:InputGroup}
 }
 
-type DepTemplate struct {
-	ModuleID string `json:"module_id"`
-	InputTemplate
-	Dependencies map[string]InputTemplate `json:"dependencies"`
-}
-
 type InputTemplateHostRes struct {
 	module.Input
 	module.HostResource
