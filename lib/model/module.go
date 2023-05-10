@@ -60,7 +60,7 @@ type ModRequest struct {
 	Version string `json:"version"`
 }
 
-type DepTemplate struct {
+type ModDepTemplate struct {
 	ModuleID string `json:"module_id"`
 	InputTemplate
 	Dependencies map[string]InputTemplate `json:"dependencies"`
