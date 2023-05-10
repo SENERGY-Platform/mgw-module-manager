@@ -54,7 +54,7 @@ func (a *Api) DeleteModule(ctx context.Context, id string, orphans bool) error {
 	return a.moduleHandler.Delete(ctx, id)
 }
 
-func (a *Api) GetModuleDepTemplate(ctx context.Context, id string) (model.ModDeployTemplate, error) {
+func (a *Api) GetModuleDeployTemplate(ctx context.Context, id string) (model.ModDeployTemplate, error) {
 	mod, reqMod, err := a.moduleHandler.GetReq(ctx, id)
 	if err != nil {
 		return model.ModDeployTemplate{}, err
