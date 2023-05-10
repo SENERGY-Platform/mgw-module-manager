@@ -21,7 +21,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func GetDepTemplate(m *module.Module) model.InputTemplate {
+func GetModDepTemplate(m *module.Module) model.InputTemplate {
 	it := model.InputTemplate{
 		HostResources: make(map[string]model.InputTemplateHostRes),
 		Secrets:       make(map[string]model.InputTemplateSecret),
