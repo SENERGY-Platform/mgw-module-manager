@@ -96,10 +96,10 @@ type DepInstFilter struct {
 }
 
 type InputTemplate struct {
-	HostResources map[string]DepTemplateHostRes `json:"host_resources"` // {ref:ResourceInput}
-	Secrets       map[string]DepTemplateSecret  `json:"secrets"`        // {ref:SecretInput}
-	Configs       map[string]DepTemplateConfig  `json:"configs"`        // {ref:ConfigInput}
-	InputGroups   map[string]module.InputGroup  `json:"input_groups"`   // {ref:InputGroup}
+	HostResources map[string]InputTemplateHostRes `json:"host_resources"` // {ref:ResourceInput}
+	Secrets       map[string]InputTemplateSecret  `json:"secrets"`        // {ref:SecretInput}
+	Configs       map[string]InputTemplateConfig  `json:"configs"`        // {ref:ConfigInput}
+	InputGroups   map[string]module.InputGroup    `json:"input_groups"`   // {ref:InputGroup}
 }
 
 type DepTemplate struct {
@@ -108,17 +108,17 @@ type DepTemplate struct {
 	Dependencies map[string]InputTemplate `json:"dependencies"`
 }
 
-type DepTemplateHostRes struct {
+type InputTemplateHostRes struct {
 	module.Input
 	module.HostResource
 }
 
-type DepTemplateSecret struct {
+type InputTemplateSecret struct {
 	module.Input
 	module.Secret
 }
 
-type DepTemplateConfig struct {
+type InputTemplateConfig struct {
 	module.Input
 	Default  any             `json:"default"`
 	Options  any             `json:"options"`

@@ -23,26 +23,26 @@ import (
 
 func GetDepTemplate(m *module.Module) model.InputTemplate {
 	it := model.InputTemplate{
-		HostResources: make(map[string]model.DepTemplateHostRes),
-		Secrets:       make(map[string]model.DepTemplateSecret),
-		Configs:       make(map[string]model.DepTemplateConfig),
+		HostResources: make(map[string]model.InputTemplateHostRes),
+		Secrets:       make(map[string]model.InputTemplateSecret),
+		Configs:       make(map[string]model.InputTemplateConfig),
 		InputGroups:   m.Inputs.Groups,
 	}
 	for ref, input := range m.Inputs.Resources {
-		it.HostResources[ref] = model.DepTemplateHostRes{
+		it.HostResources[ref] = model.InputTemplateHostRes{
 			Input:        input,
 			HostResource: m.HostResources[ref],
 		}
 	}
 	for ref, input := range m.Inputs.Secrets {
-		it.Secrets[ref] = model.DepTemplateSecret{
+		it.Secrets[ref] = model.InputTemplateSecret{
 			Input:  input,
 			Secret: m.Secrets[ref],
 		}
 	}
 	for ref, input := range m.Inputs.Configs {
 		cv := m.Configs[ref]
-		itc := model.DepTemplateConfig{
+		itc := model.InputTemplateConfig{
 			Input:    input,
 			Default:  cv.Default,
 			Options:  cv.Options,
