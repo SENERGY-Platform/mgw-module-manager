@@ -103,6 +103,9 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 		return "", err
 	}
 	volumes, err := h.createVolumes(ctx, mod.Volumes, dID, iID)
+	if err != nil {
+		return "", err
+	}
 	order, err := sorting.GetSrvOrder(mod.Services)
 	if err != nil {
 		return "", model.NewInternalError(err)
