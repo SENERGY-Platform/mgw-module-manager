@@ -81,23 +81,3 @@ func toFloat64(val any) (float64, error) {
 	}
 	return f, nil
 }
-
-func toSliceT[T any](val any) ([]T, error) {
-	sl, ok := val.([]T)
-	if !ok {
-		return nil, fmt.Errorf("invalid data type '%T'", val)
-	}
-	return sl, nil
-}
-
-func sliceToSliceT[T any](sl []any, pf func(any) (T, error)) ([]T, error) {
-	var vSl []T
-	for _, v := range sl {
-		val, err := pf(v)
-		if err != nil {
-			return nil, err
-		}
-		vSl = append(vSl, val)
-	}
-	return vSl, nil
-}
