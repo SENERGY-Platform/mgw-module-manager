@@ -100,7 +100,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	volumes, err := h.getVolumes(ctx, mod.Volumes, dID, iID)
+	volumes, err := h.createVolumes(ctx, mod.Volumes, dID, iID)
 	order, err := sorting.GetSrvOrder(mod.Services)
 	if err != nil {
 		return "", model.NewInternalError(err)
@@ -213,7 +213,7 @@ func (h *Handler) createVolume(ctx context.Context, dID, iID, v string) (string,
 	return vName, nil
 }
 
-func (h *Handler) getVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID, iID string) (map[string]string, error) {
+func (h *Handler) createVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID, iID string) (map[string]string, error) {
 	volumes := make(map[string]string)
 	for ref := range mVolumes {
 		name, err := h.createVolume(ctx, dID, iID, ref)
