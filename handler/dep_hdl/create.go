@@ -129,19 +129,19 @@ func (h *Handler) mkDepDir(dID string, inclDir dir_fs.DirFS) (string, error) {
 	return p, nil
 }
 
-func (h *Handler) getDepMap(ctx context.Context, mDependencies map[string]string) (map[string]string, error) {
+func (h *Handler) getDepMap(ctx context.Context, reqMod map[string]string) (map[string]string, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	depMap := make(map[string]string)
-	for rmID := range mDependencies {
-		depList, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{ModuleID: rmID})
+	for mID := range reqMod {
+		depList, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{ModuleID: mID})
 		if err != nil {
 			return nil, err
 		}
 		if len(depList) == 0 {
-			return nil, model.NewInternalError(fmt.Errorf("dependency '%s' not deployed", rmID))
+			return nil, model.NewInternalError(fmt.Errorf("dependency '%s' not deployed", mID))
 		}
-		depMap[rmID] = depList[0].ID
+		depMap[mID] = depList[0].ID
 	}
 	return depMap, nil
 }
