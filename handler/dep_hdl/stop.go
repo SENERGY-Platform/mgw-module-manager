@@ -76,13 +76,25 @@ func (h *Handler) Stop(ctx context.Context, id string, dependencies bool) error 
 }
 
 func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
 	instance, err := h.getCurrentInst(ctx, dep.ID)
 	if err != nil {
 		return err
 	}
-	containers, err := h.storageHandler.ListInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instance.ID, model.CtrFilter{SortOrder: model.Descending})
+	if err = h.stopInstance(ctx, instance.ID); err != nil {
+		return err
+	}
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	if err = h.storageHandler.UpdateDep(ctxWt, dep.ID, dep.Name, true, dep.Indirect, time.Now().UTC()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Handler) stopInstance(ctx context.Context, iID string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	containers, err := h.storageHandler.ListInstCtr(ctxWt, iID, model.CtrFilter{SortOrder: model.Descending})
 	if err != nil {
 		return err
 	}
@@ -90,9 +102,6 @@ func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
 		if err = h.stopContainer(ctx, ctr.ID); err != nil {
 			return err
 		}
-	}
-	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID, dep.Name, true, dep.Indirect, time.Now().UTC()); err != nil {
-		return err
 	}
 	return nil
 }
