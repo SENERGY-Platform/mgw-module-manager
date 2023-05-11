@@ -55,7 +55,7 @@ func ToString(val any, dataType module.DataType) (string, error) {
 	}
 }
 
-func ToStringList(val any, d string, dataType module.DataType) (string, error) {
+func ToStringList(val any, delimiter string, dataType module.DataType) (string, error) {
 	var sSl []string
 	switch dataType {
 	case module.StringType:
@@ -91,7 +91,7 @@ func ToStringList(val any, d string, dataType module.DataType) (string, error) {
 	default:
 		return "", fmt.Errorf("unknown data type '%s'", dataType)
 	}
-	return strings.Join(sSl, d), nil
+	return strings.Join(sSl, delimiter), nil
 }
 
 func ParseCfgVal(val any, dataType module.DataType) (v any, err error) {
