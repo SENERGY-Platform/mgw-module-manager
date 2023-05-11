@@ -49,7 +49,41 @@ func UserInputToConfigs(userInput map[string]any, modConfigs module.Configs) (ma
 	return configs, nil
 }
 
-func ToString(val any, dataType module.DataType) (string, error) {
+func ConfigsToStringValues(modConfigs module.Configs, userConfigs map[string]any) (map[string]string, error) {
+	values := make(map[string]string)
+	for ref, mConfig := range modConfigs {
+		val, ok := userConfigs[ref]
+		if !ok {
+			if mConfig.Required {
+				if mConfig.Default != nil {
+					val = mConfig.Default
+				} else {
+					return nil, fmt.Errorf("config '%s' required", ref)
+				}
+			} else {
+				if mConfig.Default != nil {
+					val = mConfig.Default
+				} else {
+					continue
+				}
+			}
+		}
+		var s string
+		var err error
+		if mConfig.IsSlice {
+			s, err = dataTypeToStringList(val, mConfig.Delimiter, mConfig.DataType)
+		} else {
+			s, err = dataTypeToString(val, mConfig.DataType)
+		}
+		if err != nil {
+			return nil, err
+		}
+		values[ref] = s
+	}
+	return values, nil
+}
+
+func dataTypeToString(val any, dataType module.DataType) (string, error) {
 	switch dataType {
 	case module.StringType:
 		s, err := toString(val)
@@ -80,7 +114,7 @@ func ToString(val any, dataType module.DataType) (string, error) {
 	}
 }
 
-func ToStringList(val any, delimiter string, dataType module.DataType) (string, error) {
+func dataTypeToStringList(val any, delimiter string, dataType module.DataType) (string, error) {
 	var sSl []string
 	switch dataType {
 	case module.StringType:

@@ -169,7 +169,7 @@ func (h *Handler) getDepConfigs(mConfigs module.Configs, userInput map[string]an
 	if err = h.validateConfigs(userConfigs, mConfigs); err != nil {
 		return nil, nil, err
 	}
-	configs, err := getConfigsWithDefaults(mConfigs, userConfigs)
+	configs, err := parser.ConfigsToStringValues(mConfigs, userConfigs)
 	if err != nil {
 		return nil, nil, model.NewInvalidInputError(err)
 	}
@@ -383,40 +383,6 @@ func genHash(str ...string) string {
 		hash.Write([]byte(s))
 	}
 	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(hash.Sum(nil))
-}
-
-func getConfigsWithDefaults(mConfigs module.Configs, dConfigs map[string]any) (map[string]string, error) {
-	envVals := make(map[string]string)
-	for ref, mConfig := range mConfigs {
-		val, ok := dConfigs[ref]
-		if !ok {
-			if mConfig.Required {
-				if mConfig.Default != nil {
-					val = mConfig.Default
-				} else {
-					return nil, fmt.Errorf("config '%s' required", ref)
-				}
-			} else {
-				if mConfig.Default != nil {
-					val = mConfig.Default
-				} else {
-					continue
-				}
-			}
-		}
-		var s string
-		var err error
-		if mConfig.IsSlice {
-			s, err = parser.ToStringList(val, mConfig.Delimiter, mConfig.DataType)
-		} else {
-			s, err = parser.ToString(val, mConfig.DataType)
-		}
-		if err != nil {
-			return nil, err
-		}
-		envVals[ref] = s
-	}
-	return envVals, nil
 }
 
 func getUserHostRes(hrs map[string]string, mHRs map[string]module.HostResource) (map[string]string, []string, error) {
