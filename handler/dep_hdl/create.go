@@ -471,9 +471,9 @@ func getUserConfigs(cfgs map[string]any, mCs module.Configs) (map[string]any, er
 			var v any
 			var err error
 			if mC.IsSlice {
-				v, err = parser.ParseCfgValSlice(val, mC.DataType)
+				v, err = parser.ToDataTypeSlice(val, mC.DataType)
 			} else {
-				v, err = parser.ParseCfgVal(val, mC.DataType)
+				v, err = parser.ToDataType(val, mC.DataType)
 			}
 			if err != nil {
 				return nil, fmt.Errorf("parsing config '%s' failed: %s", ref, err)

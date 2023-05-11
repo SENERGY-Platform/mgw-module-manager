@@ -94,7 +94,7 @@ func ToStringList(val any, delimiter string, dataType module.DataType) (string, 
 	return strings.Join(sSl, delimiter), nil
 }
 
-func ParseCfgVal(val any, dataType module.DataType) (v any, err error) {
+func ToDataType(val any, dataType module.DataType) (v any, err error) {
 	switch dataType {
 	case module.StringType:
 		v, err = toString(val)
@@ -110,7 +110,7 @@ func ParseCfgVal(val any, dataType module.DataType) (v any, err error) {
 	return
 }
 
-func ParseCfgValSlice(val any, dataType module.DataType) (v any, err error) {
+func ToDataTypeSlice(val any, dataType module.DataType) (v any, err error) {
 	vSl, ok := val.([]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid data type '%T'", val)
