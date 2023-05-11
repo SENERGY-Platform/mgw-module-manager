@@ -219,21 +219,6 @@ func (h *Handler) createVolumes(ctx context.Context, mVolumes ml_util.Set[string
 	return volumes, nil
 }
 
-func (h *Handler) getDeployments(ctx context.Context, modules map[string]*module.Module, deployments map[string]string) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	for mID := range modules {
-		ds, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{ModuleID: mID})
-		if err != nil {
-			return err
-		}
-		if len(ds) > 0 {
-			deployments[mID] = ds[0].ID
-		}
-	}
-	return nil
-}
-
 func (h *Handler) createContainer(ctx context.Context, srv *module.Service, ref, dID, iID, inclDirPath string, configs, volumes, depMap, hostRes, secrets map[string]string) (string, error) {
 	envVars, err := getEnvVars(srv, configs, depMap, dID, iID)
 	if err != nil {
