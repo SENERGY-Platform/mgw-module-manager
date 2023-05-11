@@ -102,8 +102,16 @@ func (a *Api) StopDeployment(_ context.Context, id string, dependencies bool) (s
 	})
 }
 
-func (a *Api) UpdateDeployment(ctx context.Context, id string, dr model.DepRequest) error {
-	panic("not implemented")
+func (a *Api) UpdateDeployment(ctx context.Context, dID string, depReq model.DepRequestBase) error {
+	dep, err := a.deploymentHandler.Get(ctx, dID)
+	if err != nil {
+		return err
+	}
+	mod, err := a.moduleHandler.Get(ctx, dep.ModuleID)
+	if err != nil {
+		return err
+	}
+	return a.deploymentHandler.Update(ctx, mod.Module, dep, depReq)
 }
 
 func (a *Api) DeleteDeployment(ctx context.Context, id string, orphans bool) error {
