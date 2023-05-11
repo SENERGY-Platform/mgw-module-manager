@@ -151,7 +151,7 @@ func (h *Handler) getReqModDepMap(ctx context.Context, reqMod map[string]string)
 	return depMap, nil
 }
 
-func (h *Handler) prepareDep(mod *module.Module, depReq model.DepRequestBase) (name string, userConfigs map[string]any, hostRes map[string]string, secrets map[string]string, err error) {
+func (h *Handler) prepareDep(mod *module.Module, depReq model.DepRequestBase) (name string, userConfigs map[string]any, hostRes, secrets map[string]string, err error) {
 	name = getName(mod.Name, depReq.Name)
 	userConfigs, err = h.getUserConfigs(mod.Configs, depReq.Configs)
 	if err != nil {
