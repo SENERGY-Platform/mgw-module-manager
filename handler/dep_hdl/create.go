@@ -162,7 +162,7 @@ func (h *Handler) validateConfigs(dCs map[string]any, mCs module.Configs) error 
 }
 
 func (h *Handler) getDepConfigs(mConfigs module.Configs, userInput map[string]any) (map[string]string, map[string]any, error) {
-	userConfigs, err := parseUserConfigs(userInput, mConfigs)
+	userConfigs, err := parseUserInput(userInput, mConfigs)
 	if err != nil {
 		return nil, nil, model.NewInvalidInputError(err)
 	}
@@ -459,10 +459,10 @@ func getUserSecrets(s map[string]string, mSs map[string]module.Secret) (map[stri
 	return dSs, ad, nil
 }
 
-func parseUserConfigs(userConfigs map[string]any, modConfigs module.Configs) (map[string]any, error) {
+func parseUserInput(userInput map[string]any, modConfigs module.Configs) (map[string]any, error) {
 	configs := make(map[string]any)
 	for ref, modConfig := range modConfigs {
-		val, ok := userConfigs[ref]
+		val, ok := userInput[ref]
 		if !ok {
 			if modConfig.Default == nil && modConfig.Required {
 				return nil, fmt.Errorf("config '%s' requried", ref)
