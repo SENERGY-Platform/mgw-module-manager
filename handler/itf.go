@@ -60,7 +60,7 @@ type DeploymentHandler interface {
 	Get(ctx context.Context, dID string) (*model.Deployment, error)
 	Create(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, incl dir_fs.DirFS, indirect bool) (string, error)
 	Delete(ctx context.Context, dID string, orphans bool) error
-	Update(ctx context.Context, dID string, drb model.DepRequestBase) error
+	Update(ctx context.Context, mod *module.Module, dep *model.Deployment, depReq model.DepRequestBase) error
 	Start(ctx context.Context, dID string) error
 	Stop(ctx context.Context, dID string, dependencies bool) error
 }
