@@ -24,6 +24,31 @@ import (
 	"strings"
 )
 
+func UserInputToConfigs(userInput map[string]any, modConfigs module.Configs) (map[string]any, error) {
+	configs := make(map[string]any)
+	for ref, modConfig := range modConfigs {
+		val, ok := userInput[ref]
+		if !ok {
+			if modConfig.Default == nil && modConfig.Required {
+				return nil, fmt.Errorf("config '%s' requried", ref)
+			}
+		} else {
+			var v any
+			var err error
+			if modConfig.IsSlice {
+				v, err = ToDataTypeSlice(val, modConfig.DataType)
+			} else {
+				v, err = ToDataType(val, modConfig.DataType)
+			}
+			if err != nil {
+				return nil, fmt.Errorf("parsing config '%s' failed: %s", ref, err)
+			}
+			configs[ref] = v
+		}
+	}
+	return configs, nil
+}
+
 func ToString(val any, dataType module.DataType) (string, error) {
 	switch dataType {
 	case module.StringType:

@@ -162,7 +162,7 @@ func (h *Handler) validateConfigs(dCs map[string]any, mCs module.Configs) error 
 }
 
 func (h *Handler) getDepConfigs(mConfigs module.Configs, userInput map[string]any) (map[string]string, map[string]any, error) {
-	userConfigs, err := parseUserInput(userInput, mConfigs)
+	userConfigs, err := parser.UserInputToConfigs(userInput, mConfigs)
 	if err != nil {
 		return nil, nil, model.NewInvalidInputError(err)
 	}
@@ -457,29 +457,4 @@ func getUserSecrets(s map[string]string, mSs map[string]module.Secret) (map[stri
 		}
 	}
 	return dSs, ad, nil
-}
-
-func parseUserInput(userInput map[string]any, modConfigs module.Configs) (map[string]any, error) {
-	configs := make(map[string]any)
-	for ref, modConfig := range modConfigs {
-		val, ok := userInput[ref]
-		if !ok {
-			if modConfig.Default == nil && modConfig.Required {
-				return nil, fmt.Errorf("config '%s' requried", ref)
-			}
-		} else {
-			var v any
-			var err error
-			if modConfig.IsSlice {
-				v, err = parser.ToDataTypeSlice(val, modConfig.DataType)
-			} else {
-				v, err = parser.ToDataType(val, modConfig.DataType)
-			}
-			if err != nil {
-				return nil, fmt.Errorf("parsing config '%s' failed: %s", ref, err)
-			}
-			configs[ref] = v
-		}
-	}
-	return configs, nil
 }
