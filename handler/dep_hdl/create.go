@@ -41,7 +41,11 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	configs, userConfigs, err := h.getDepConfigs(mod.Configs, depReq.Configs)
+	userConfigs, err := h.getUserConfigs(mod.Configs, depReq.Configs)
+	if err != nil {
+		return "", err
+	}
+	stringValues, err := parser.ConfigsToStringValues(mod.Configs, userConfigs)
 	if err != nil {
 		return "", err
 	}
@@ -104,7 +108,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 		return "", model.NewInternalError(err)
 	}
 	for i := 0; i < len(order); i++ {
-		cID, err := h.createContainer(ctx, mod.Services[order[i]], order[i], dID, iID, depDirPth, configs, volumes, reqModDepMap, hostRes, secrets)
+		cID, err := h.createContainer(ctx, mod.Services[order[i]], order[i], dID, iID, depDirPth, stringValues, volumes, reqModDepMap, hostRes, secrets)
 		if err != nil {
 			return "", err
 		}
@@ -161,19 +165,15 @@ func (h *Handler) validateConfigs(dCs map[string]any, mCs module.Configs) error 
 	return nil
 }
 
-func (h *Handler) getDepConfigs(mConfigs module.Configs, userInput map[string]any) (map[string]string, map[string]any, error) {
-	userConfigs, err := parser.UserInputToConfigs(userInput, mConfigs)
+func (h *Handler) getUserConfigs(modConfigs module.Configs, userInput map[string]any) (map[string]any, error) {
+	userConfigs, err := parser.UserInputToConfigs(userInput, modConfigs)
 	if err != nil {
-		return nil, nil, model.NewInvalidInputError(err)
+		return nil, model.NewInvalidInputError(err)
 	}
-	if err = h.validateConfigs(userConfigs, mConfigs); err != nil {
-		return nil, nil, err
+	if err = h.validateConfigs(userConfigs, modConfigs); err != nil {
+		return nil, err
 	}
-	configs, err := parser.ConfigsToStringValues(mConfigs, userConfigs)
-	if err != nil {
-		return nil, nil, model.NewInvalidInputError(err)
-	}
-	return configs, userConfigs, nil
+	return userConfigs, nil
 }
 
 func (h *Handler) getHostRes(mHostRes map[string]module.HostResource, userInput map[string]string) (map[string]string, error) {
