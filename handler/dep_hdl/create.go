@@ -37,7 +37,7 @@ import (
 )
 
 func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, inclDir dir_fs.DirFS, indirect bool) (string, error) {
-	depMap, err := h.getDepMap(ctx, mod.Dependencies)
+	depMap, err := h.getReqModDepMap(ctx, mod.Dependencies)
 	if err != nil {
 		return "", err
 	}
@@ -129,7 +129,7 @@ func (h *Handler) mkDepDir(dID string, inclDir dir_fs.DirFS) (string, error) {
 	return p, nil
 }
 
-func (h *Handler) getDepMap(ctx context.Context, reqMod map[string]string) (map[string]string, error) {
+func (h *Handler) getReqModDepMap(ctx context.Context, reqMod map[string]string) (map[string]string, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	depMap := make(map[string]string)
