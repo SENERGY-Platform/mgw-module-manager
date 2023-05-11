@@ -41,7 +41,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	configs, userConfigs, err := h.getConfigs(mod.Configs, depReq.Configs)
+	configs, userConfigs, err := h.getDepConfigs(mod.Configs, depReq.Configs)
 	if err != nil {
 		return "", err
 	}
@@ -161,8 +161,8 @@ func (h *Handler) validateConfigs(dCs map[string]any, mCs module.Configs) error 
 	return nil
 }
 
-func (h *Handler) getConfigs(mConfigs module.Configs, userInput map[string]any) (map[string]string, map[string]any, error) {
-	userConfigs, err := getUserConfigs(userInput, mConfigs)
+func (h *Handler) getDepConfigs(mConfigs module.Configs, userInput map[string]any) (map[string]string, map[string]any, error) {
+	userConfigs, err := parseUserConfigs(userInput, mConfigs)
 	if err != nil {
 		return nil, nil, model.NewInvalidInputError(err)
 	}
@@ -459,27 +459,27 @@ func getUserSecrets(s map[string]string, mSs map[string]module.Secret) (map[stri
 	return dSs, ad, nil
 }
 
-func getUserConfigs(cfgs map[string]any, mCs module.Configs) (map[string]any, error) {
-	dCs := make(map[string]any)
-	for ref, mC := range mCs {
-		val, ok := cfgs[ref]
+func parseUserConfigs(userConfigs map[string]any, modConfigs module.Configs) (map[string]any, error) {
+	configs := make(map[string]any)
+	for ref, modConfig := range modConfigs {
+		val, ok := userConfigs[ref]
 		if !ok {
-			if mC.Default == nil && mC.Required {
+			if modConfig.Default == nil && modConfig.Required {
 				return nil, fmt.Errorf("config '%s' requried", ref)
 			}
 		} else {
 			var v any
 			var err error
-			if mC.IsSlice {
-				v, err = parser.ToDataTypeSlice(val, mC.DataType)
+			if modConfig.IsSlice {
+				v, err = parser.ToDataTypeSlice(val, modConfig.DataType)
 			} else {
-				v, err = parser.ToDataType(val, mC.DataType)
+				v, err = parser.ToDataType(val, modConfig.DataType)
 			}
 			if err != nil {
 				return nil, fmt.Errorf("parsing config '%s' failed: %s", ref, err)
 			}
-			dCs[ref] = v
+			configs[ref] = v
 		}
 	}
-	return dCs, nil
+	return configs, nil
 }
