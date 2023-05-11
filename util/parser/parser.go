@@ -24,6 +24,37 @@ import (
 	"strings"
 )
 
+func ToString(val any, dataType module.DataType) (string, error) {
+	switch dataType {
+	case module.StringType:
+		s, err := toString(val)
+		if err != nil {
+			return "", err
+		}
+		return s, nil
+	case module.BoolType:
+		b, err := toBool(val)
+		if err != nil {
+			return "", err
+		}
+		return strconv.FormatBool(b), nil
+	case module.Int64Type:
+		i, err := toInt64(val)
+		if err != nil {
+			return "", err
+		}
+		return strconv.FormatInt(i, 10), nil
+	case module.Float64Type:
+		f, err := toFloat64(val)
+		if err != nil {
+			return "", err
+		}
+		return strconv.FormatFloat(f, 'f', -1, 64), nil
+	default:
+		return "", fmt.Errorf("unknown data type '%s'", dataType)
+	}
+}
+
 func ToStringList(val any, d string, dataType module.DataType) (string, error) {
 	var sSl []string
 	switch dataType {
@@ -61,37 +92,6 @@ func ToStringList(val any, d string, dataType module.DataType) (string, error) {
 		return "", fmt.Errorf("unknown data type '%s'", dataType)
 	}
 	return strings.Join(sSl, d), nil
-}
-
-func ToString(val any, dataType module.DataType) (string, error) {
-	switch dataType {
-	case module.StringType:
-		s, err := toString(val)
-		if err != nil {
-			return "", err
-		}
-		return s, nil
-	case module.BoolType:
-		b, err := toBool(val)
-		if err != nil {
-			return "", err
-		}
-		return strconv.FormatBool(b), nil
-	case module.Int64Type:
-		i, err := toInt64(val)
-		if err != nil {
-			return "", err
-		}
-		return strconv.FormatInt(i, 10), nil
-	case module.Float64Type:
-		f, err := toFloat64(val)
-		if err != nil {
-			return "", err
-		}
-		return strconv.FormatFloat(f, 'f', -1, 64), nil
-	default:
-		return "", fmt.Errorf("unknown data type '%s'", dataType)
-	}
 }
 
 func ParseCfgVal(val any, dataType module.DataType) (v any, err error) {
