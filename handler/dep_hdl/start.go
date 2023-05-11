@@ -51,13 +51,25 @@ func (h *Handler) Start(ctx context.Context, id string) error {
 }
 
 func (h *Handler) start(ctx context.Context, dep *model.Deployment) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
 	instance, err := h.getCurrentInst(ctx, dep.ID)
 	if err != nil {
 		return err
 	}
-	containers, err := h.storageHandler.ListInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instance.ID, model.CtrFilter{SortOrder: model.Ascending})
+	if err = h.startInstance(ctx, instance.ID); err != nil {
+		return err
+	}
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	if err = h.storageHandler.UpdateDep(ctxWt, dep.ID, dep.Name, false, dep.Indirect, time.Now().UTC()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Handler) startInstance(ctx context.Context, iID string) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	containers, err := h.storageHandler.ListInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), iID, model.CtrFilter{SortOrder: model.Ascending})
 	if err != nil {
 		return err
 	}
@@ -66,9 +78,6 @@ func (h *Handler) start(ctx context.Context, dep *model.Deployment) error {
 		if err != nil {
 			return model.NewInternalError(err)
 		}
-	}
-	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID, dep.Name, false, dep.Indirect, time.Now().UTC()); err != nil {
-		return err
 	}
 	return nil
 }
