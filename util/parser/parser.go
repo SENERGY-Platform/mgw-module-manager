@@ -28,13 +28,13 @@ func ToStringList(val any, d string, dataType module.DataType) (string, error) {
 	var sSl []string
 	switch dataType {
 	case module.StringType:
-		sl, err := toSlice[string](val)
+		sl, err := toSliceT[string](val)
 		if err != nil {
 			return "", err
 		}
 		sSl = sl
 	case module.BoolType:
-		sl, err := toSlice[bool](val)
+		sl, err := toSliceT[bool](val)
 		if err != nil {
 			return "", err
 		}
@@ -42,7 +42,7 @@ func ToStringList(val any, d string, dataType module.DataType) (string, error) {
 			sSl = append(sSl, strconv.FormatBool(b))
 		}
 	case module.Int64Type:
-		sl, err := toSlice[int64](val)
+		sl, err := toSliceT[int64](val)
 		if err != nil {
 			return "", err
 		}
@@ -50,7 +50,7 @@ func ToStringList(val any, d string, dataType module.DataType) (string, error) {
 			sSl = append(sSl, strconv.FormatInt(i, 10))
 		}
 	case module.Float64Type:
-		sl, err := toSlice[float64](val)
+		sl, err := toSliceT[float64](val)
 		if err != nil {
 			return "", err
 		}
@@ -66,25 +66,25 @@ func ToStringList(val any, d string, dataType module.DataType) (string, error) {
 func ToString(val any, dataType module.DataType) (string, error) {
 	switch dataType {
 	case module.StringType:
-		s, err := parseString(val)
+		s, err := toString(val)
 		if err != nil {
 			return "", err
 		}
 		return s, nil
 	case module.BoolType:
-		b, err := parseBool(val)
+		b, err := toBool(val)
 		if err != nil {
 			return "", err
 		}
 		return strconv.FormatBool(b), nil
 	case module.Int64Type:
-		i, err := parseInt64(val)
+		i, err := toInt64(val)
 		if err != nil {
 			return "", err
 		}
 		return strconv.FormatInt(i, 10), nil
 	case module.Float64Type:
-		f, err := parseFloat64(val)
+		f, err := toFloat64(val)
 		if err != nil {
 			return "", err
 		}
@@ -97,13 +97,13 @@ func ToString(val any, dataType module.DataType) (string, error) {
 func ParseCfgVal(val any, dataType module.DataType) (v any, err error) {
 	switch dataType {
 	case module.StringType:
-		v, err = parseString(val)
+		v, err = toString(val)
 	case module.BoolType:
-		v, err = parseBool(val)
+		v, err = toBool(val)
 	case module.Int64Type:
-		v, err = parseInt64(val)
+		v, err = toInt64(val)
 	case module.Float64Type:
-		v, err = parseFloat64(val)
+		v, err = toFloat64(val)
 	default:
 		return nil, fmt.Errorf("unknown data type '%s'", dataType)
 	}
@@ -120,13 +120,13 @@ func ParseCfgValSlice(val any, dataType module.DataType) (v any, err error) {
 	}
 	switch dataType {
 	case module.StringType:
-		v, err = toTSlice(vSl, parseString)
+		v, err = sliceToSliceT(vSl, toString)
 	case module.BoolType:
-		v, err = toTSlice(vSl, parseBool)
+		v, err = sliceToSliceT(vSl, toBool)
 	case module.Int64Type:
-		v, err = toTSlice(vSl, parseInt64)
+		v, err = sliceToSliceT(vSl, toInt64)
 	case module.Float64Type:
-		v, err = toTSlice(vSl, parseFloat64)
+		v, err = sliceToSliceT(vSl, toFloat64)
 	default:
 		return nil, fmt.Errorf("unknown data type '%s'", dataType)
 	}

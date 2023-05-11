@@ -21,7 +21,7 @@ import (
 	"math"
 )
 
-func parseString(val any) (string, error) {
+func toString(val any) (string, error) {
 	v, ok := val.(string)
 	if !ok {
 		return "", fmt.Errorf("invalid data type '%T'", val)
@@ -29,7 +29,7 @@ func parseString(val any) (string, error) {
 	return v, nil
 }
 
-func parseBool(val any) (bool, error) {
+func toBool(val any) (bool, error) {
 	v, ok := val.(bool)
 	if !ok {
 		return false, fmt.Errorf("invalid data type '%T'", val)
@@ -45,7 +45,7 @@ func float64ToInt64(val float64) (int64, error) {
 	return int64(i), nil
 }
 
-func parseInt64(val any) (int64, error) {
+func toInt64(val any) (int64, error) {
 	var i int64
 	var err error
 	switch v := val.(type) {
@@ -69,7 +69,7 @@ func parseInt64(val any) (int64, error) {
 	return i, err
 }
 
-func parseFloat64(val any) (float64, error) {
+func toFloat64(val any) (float64, error) {
 	var f float64
 	switch v := val.(type) {
 	case float32:
@@ -82,7 +82,7 @@ func parseFloat64(val any) (float64, error) {
 	return f, nil
 }
 
-func toSlice[T any](val any) ([]T, error) {
+func toSliceT[T any](val any) ([]T, error) {
 	sl, ok := val.([]T)
 	if !ok {
 		return nil, fmt.Errorf("invalid data type '%T'", val)
@@ -90,7 +90,7 @@ func toSlice[T any](val any) ([]T, error) {
 	return sl, nil
 }
 
-func toTSlice[T any](sl []any, pf func(any) (T, error)) ([]T, error) {
+func sliceToSliceT[T any](sl []any, pf func(any) (T, error)) ([]T, error) {
 	var vSl []T
 	for _, v := range sl {
 		val, err := pf(v)
