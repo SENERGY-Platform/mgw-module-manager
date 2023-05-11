@@ -36,9 +36,9 @@ func UserInputToConfigs(userInput map[string]any, modConfigs module.Configs) (ma
 			var v any
 			var err error
 			if modConfig.IsSlice {
-				v, err = ToDataTypeSlice(val, modConfig.DataType)
+				v, err = toDataTypeSlice(val, modConfig.DataType)
 			} else {
-				v, err = ToDataType(val, modConfig.DataType)
+				v, err = toDataType(val, modConfig.DataType)
 			}
 			if err != nil {
 				return nil, fmt.Errorf("parsing config '%s' failed: %s", ref, err)
@@ -119,7 +119,7 @@ func ToStringList(val any, delimiter string, dataType module.DataType) (string, 
 	return strings.Join(sSl, delimiter), nil
 }
 
-func ToDataType(val any, dataType module.DataType) (v any, err error) {
+func toDataType(val any, dataType module.DataType) (v any, err error) {
 	switch dataType {
 	case module.StringType:
 		v, err = toString(val)
@@ -135,7 +135,7 @@ func ToDataType(val any, dataType module.DataType) (v any, err error) {
 	return
 }
 
-func ToDataTypeSlice(val any, dataType module.DataType) (v any, err error) {
+func toDataTypeSlice(val any, dataType module.DataType) (v any, err error) {
 	vSl, ok := val.([]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid data type '%T'", val)
