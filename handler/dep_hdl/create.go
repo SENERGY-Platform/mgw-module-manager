@@ -37,7 +37,7 @@ import (
 )
 
 func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, inclDir dir_fs.DirFS, indirect bool) (string, error) {
-	depMap, err := h.getReqModDepMap(ctx, mod.Dependencies)
+	reqModDepMap, err := h.getReqModDepMap(ctx, mod.Dependencies)
 	if err != nil {
 		return "", err
 	}
@@ -84,7 +84,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if len(mod.Dependencies) > 0 {
 		var dr []string
 		for rmID := range mod.Dependencies {
-			dr = append(dr, depMap[rmID])
+			dr = append(dr, reqModDepMap[rmID])
 		}
 		if err = h.storageHandler.CreateDepReq(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dr, dID); err != nil {
 			return "", err
@@ -104,7 +104,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 		return "", model.NewInternalError(err)
 	}
 	for i := 0; i < len(order); i++ {
-		cID, err := h.createContainer(ctx, mod.Services[order[i]], order[i], dID, iID, depDirPth, configs, volumes, depMap, hostRes, secrets)
+		cID, err := h.createContainer(ctx, mod.Services[order[i]], order[i], dID, iID, depDirPth, configs, volumes, reqModDepMap, hostRes, secrets)
 		if err != nil {
 			return "", err
 		}
