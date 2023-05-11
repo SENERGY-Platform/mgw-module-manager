@@ -20,7 +20,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"math"
 	"strconv"
 	"strings"
 )
@@ -62,14 +61,6 @@ func ToStringList(val any, d string, dataType module.DataType) (string, error) {
 		return "", fmt.Errorf("unknown data type '%s'", dataType)
 	}
 	return strings.Join(sSl, d), nil
-}
-
-func toSlice[T any](val any) ([]T, error) {
-	sl, ok := val.([]T)
-	if !ok {
-		return nil, fmt.Errorf("invalid data type '%T'", val)
-	}
-	return sl, nil
 }
 
 func ToString(val any, dataType module.DataType) (string, error) {
@@ -140,77 +131,4 @@ func ParseCfgValSlice(val any, dataType module.DataType) (v any, err error) {
 		return nil, fmt.Errorf("unknown data type '%s'", dataType)
 	}
 	return
-}
-
-func toTSlice[T any](sl []any, pf func(any) (T, error)) ([]T, error) {
-	var vSl []T
-	for _, v := range sl {
-		val, err := pf(v)
-		if err != nil {
-			return nil, err
-		}
-		vSl = append(vSl, val)
-	}
-	return vSl, nil
-}
-
-func parseString(val any) (string, error) {
-	v, ok := val.(string)
-	if !ok {
-		return "", fmt.Errorf("invalid data type '%T'", val)
-	}
-	return v, nil
-}
-
-func parseBool(val any) (bool, error) {
-	v, ok := val.(bool)
-	if !ok {
-		return false, fmt.Errorf("invalid data type '%T'", val)
-	}
-	return v, nil
-}
-
-func float64ToInt64(val float64) (int64, error) {
-	i, fr := math.Modf(val)
-	if fr > 0 {
-		return 0, fmt.Errorf("invalid data type '%T'", val)
-	}
-	return int64(i), nil
-}
-
-func parseInt64(val any) (int64, error) {
-	var i int64
-	var err error
-	switch v := val.(type) {
-	case int:
-		i = int64(v)
-	case int8:
-		i = int64(v)
-	case int16:
-		i = int64(v)
-	case int32:
-		i = int64(v)
-	case int64:
-		i = v
-	case float32:
-		i, err = float64ToInt64(float64(v))
-	case float64:
-		i, err = float64ToInt64(v)
-	default:
-		err = fmt.Errorf("invalid data type '%T'", val)
-	}
-	return i, err
-}
-
-func parseFloat64(val any) (float64, error) {
-	var f float64
-	switch v := val.(type) {
-	case float32:
-		f = float64(v)
-	case float64:
-		f = v
-	default:
-		return f, fmt.Errorf("invalid data type '%T'", val)
-	}
-	return f, nil
 }
