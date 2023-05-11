@@ -148,7 +148,7 @@ func (h *Handler) prepareDep(mod *module.Module, depReq model.DepRequestBase) (n
 	name = getName(mod.Name, depReq.Name)
 	userConfigs, err = h.getUserConfigs(mod.Configs, depReq.Configs)
 	if err != nil {
-		return "", nil, nil, nil, err
+		return "", nil, nil, nil, model.NewInvalidInputError(err)
 	}
 	hostRes, err = h.getHostRes(mod.HostResources, depReq.HostResources)
 	if err != nil {
@@ -161,28 +161,21 @@ func (h *Handler) prepareDep(mod *module.Module, depReq model.DepRequestBase) (n
 	return
 }
 
-func (h *Handler) validateConfigs(dCs map[string]any, mCs module.Configs) error {
-	for ref, val := range dCs {
-		mC := mCs[ref]
-		if err := h.cfgVltHandler.ValidateValue(mC.Type, mC.TypeOpt, val, mC.IsSlice, mC.DataType); err != nil {
-			return model.NewInvalidInputError(err)
-		}
-		if mC.Options != nil && !mC.OptExt {
-			if err := h.cfgVltHandler.ValidateValInOpt(mC.Options, val, mC.IsSlice, mC.DataType); err != nil {
-				return model.NewInvalidInputError(err)
-			}
-		}
-	}
-	return nil
-}
-
 func (h *Handler) getUserConfigs(modConfigs module.Configs, userInput map[string]any) (map[string]any, error) {
 	userConfigs, err := parser.UserInputToConfigs(userInput, modConfigs)
 	if err != nil {
-		return nil, model.NewInvalidInputError(err)
-	}
-	if err = h.validateConfigs(userConfigs, modConfigs); err != nil {
 		return nil, err
+	}
+	for ref, val := range userConfigs {
+		mC := modConfigs[ref]
+		if err = h.cfgVltHandler.ValidateValue(mC.Type, mC.TypeOpt, val, mC.IsSlice, mC.DataType); err != nil {
+			return nil, err
+		}
+		if mC.Options != nil && !mC.OptExt {
+			if err = h.cfgVltHandler.ValidateValInOpt(mC.Options, val, mC.IsSlice, mC.DataType); err != nil {
+				return nil, err
+			}
+		}
 	}
 	return userConfigs, nil
 }
