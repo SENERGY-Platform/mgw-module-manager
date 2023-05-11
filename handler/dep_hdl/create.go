@@ -41,7 +41,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	userConfigs, err := h.getUserConfigs(mod.Configs, depReq.Configs)
+	name, userConfigs, hostRes, secrets, err := h.prepareDep(mod, depReq)
 	if err != nil {
 		return "", err
 	}
@@ -49,16 +49,6 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	hostRes, err := h.getHostRes(mod.HostResources, depReq.HostResources)
-	if err != nil {
-		return "", err
-	}
-	secrets, err := h.getSecrets(mod.Secrets, depReq.Secrets)
-	if err != nil {
-		return "", err
-	}
-	name := getName(mod.Name, depReq.Name)
-	timestamp := time.Now().UTC()
 	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {
 		return "", err
@@ -66,6 +56,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	defer tx.Rollback()
 	ch := context_hdl.New()
 	defer ch.CancelAll()
+	timestamp := time.Now().UTC()
 	dID, err := h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.ID, name, indirect, timestamp)
 	if err != nil {
 		return "", err
@@ -151,6 +142,23 @@ func (h *Handler) getReqModDepMap(ctx context.Context, reqMod map[string]string)
 		depMap[mID] = depList[0].ID
 	}
 	return depMap, nil
+}
+
+func (h *Handler) prepareDep(mod *module.Module, depReq model.DepRequestBase) (name string, userConfigs map[string]any, hostRes map[string]string, secrets map[string]string, err error) {
+	name = getName(mod.Name, depReq.Name)
+	userConfigs, err = h.getUserConfigs(mod.Configs, depReq.Configs)
+	if err != nil {
+		return "", nil, nil, nil, err
+	}
+	hostRes, err = h.getHostRes(mod.HostResources, depReq.HostResources)
+	if err != nil {
+		return "", nil, nil, nil, err
+	}
+	secrets, err = h.getSecrets(mod.Secrets, depReq.Secrets)
+	if err != nil {
+		return "", nil, nil, nil, err
+	}
+	return
 }
 
 func (h *Handler) validateConfigs(dCs map[string]any, mCs module.Configs) error {
