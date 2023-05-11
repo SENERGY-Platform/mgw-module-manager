@@ -200,25 +200,17 @@ func (h *Handler) getSecrets(mSecrets map[string]module.Secret, userInput map[st
 	return secrets, nil
 }
 
-func (h *Handler) createVolume(ctx context.Context, dID, iID, v string) (string, error) {
-	httpCtx, cf := context.WithTimeout(ctx, h.httpTimeout)
-	defer cf()
-	vName, err := h.cewClient.CreateVolume(httpCtx, cew_model.Volume{
-		Name:   getVolumeName(iID, v),
-		Labels: map[string]string{"d_id": dID, "i_id": iID},
-	})
-	if err != nil {
-		return "", model.NewInternalError(err)
-	}
-	return vName, nil
-}
-
 func (h *Handler) createVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID, iID string) (map[string]string, error) {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
 	volumes := make(map[string]string)
 	for ref := range mVolumes {
-		name, err := h.createVolume(ctx, dID, iID, ref)
+		name, err := h.cewClient.CreateVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.Volume{
+			Name:   getVolumeName(iID, ref),
+			Labels: map[string]string{"d_id": dID, "i_id": iID},
+		})
 		if err != nil {
-			return nil, err
+			return nil, model.NewInternalError(err)
 		}
 		volumes[ref] = name
 	}
