@@ -19,7 +19,6 @@ package dep_hdl
 import (
 	"context"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 	"time"
 )
@@ -62,22 +61,6 @@ func (h *Handler) start(ctx context.Context, dep *model.Deployment) error {
 	defer cf()
 	if err = h.storageHandler.UpdateDep(ctxWt, dep.ID, dep.Name, false, dep.Indirect, time.Now().UTC()); err != nil {
 		return err
-	}
-	return nil
-}
-
-func (h *Handler) startInstance(ctx context.Context, iID string) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	containers, err := h.storageHandler.ListInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), iID, model.CtrFilter{SortOrder: model.Ascending})
-	if err != nil {
-		return err
-	}
-	for _, ctr := range containers {
-		err = h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
-		if err != nil {
-			return model.NewInternalError(err)
-		}
 	}
 	return nil
 }

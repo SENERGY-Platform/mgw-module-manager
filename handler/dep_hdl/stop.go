@@ -91,38 +91,6 @@ func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
 	return nil
 }
 
-func (h *Handler) stopInstance(ctx context.Context, iID string) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	containers, err := h.storageHandler.ListInstCtr(ctxWt, iID, model.CtrFilter{SortOrder: model.Descending})
-	if err != nil {
-		return err
-	}
-	for _, ctr := range containers {
-		if err = h.stopContainer(ctx, ctr.ID); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (h *Handler) stopContainer(ctx context.Context, cID string) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
-	defer cf()
-	jID, err := h.cewClient.StopContainer(ctxWt, cID)
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	job, err := h.cewJobHandler.AwaitJob(ctx, jID)
-	if err != nil {
-		return err
-	}
-	if job.Error != nil {
-		return model.NewInternalError(fmt.Errorf("%v", job.Error))
-	}
-	return nil
-}
-
 func (h *Handler) getDepFromIDs(ctx context.Context, dIDs []string) ([]*model.Deployment, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
