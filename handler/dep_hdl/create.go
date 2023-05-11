@@ -77,11 +77,11 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 		}
 	}
 	if len(mod.Dependencies) > 0 {
-		var dr []string
-		for rmID := range mod.Dependencies {
-			dr = append(dr, reqModDepMap[rmID])
+		var dIDs []string
+		for mID := range mod.Dependencies {
+			dIDs = append(dIDs, reqModDepMap[mID])
 		}
-		if err = h.storageHandler.CreateDepReq(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dr, dID); err != nil {
+		if err = h.storageHandler.CreateDepReq(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dIDs, dID); err != nil {
 			return "", err
 		}
 	}
