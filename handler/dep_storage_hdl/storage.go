@@ -249,9 +249,8 @@ func (h *Handler) ReadDep(ctx context.Context, id string) (*model.Deployment, er
 	return &dep, nil
 }
 
-func (h *Handler) UpdateDep(ctx context.Context, itf driver.Tx, dID, name string, stopped, indirect bool, timestamp time.Time) error {
-	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `stopped` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", name, stopped, indirect, timestamp, dID)
+func (h *Handler) UpdateDep(ctx context.Context, dID, name string, stopped, indirect bool, timestamp time.Time) error {
+	res, err := h.db.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `stopped` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", name, stopped, indirect, timestamp, dID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
