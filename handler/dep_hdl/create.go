@@ -75,7 +75,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err = h.createVolumes(ctx, mod.Volumes, dID); err != nil {
 		return "", err
 	}
-	_, err = h.createInstance(ctx, tx, mod, dID, depDirPth, stringValues, hostRes, secrets, volumes, reqModDepMap)
+	_, err = h.createInstance(ctx, tx, mod, dID, depDirPth, stringValues, hostRes, secrets, reqModDepMap)
 	if err != nil {
 		return "", err
 	}
