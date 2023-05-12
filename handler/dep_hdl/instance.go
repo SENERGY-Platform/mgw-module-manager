@@ -226,3 +226,29 @@ func getPorts(sPorts []module.Port) (ports []cew_model.Port) {
 	}
 	return ports
 }
+
+func getContainer(srv *module.Service, ref, name, dID, iID string, envVars map[string]string, mounts []cew_model.Mount, ports []cew_model.Port) cew_model.Container {
+	retries := int(srv.RunConfig.MaxRetries)
+	stopTimeout := srv.RunConfig.StopTimeout
+	return cew_model.Container{
+		Name:    name,
+		Image:   srv.Image,
+		EnvVars: envVars,
+		Labels:  map[string]string{"mgw_did": dID, "mgw_iid": iID, "mgw_sref": ref},
+		Mounts:  mounts,
+		Ports:   ports,
+		Networks: []cew_model.ContainerNet{
+			{
+				Name:        "module-net",
+				DomainNames: []string{getSrvName(dID, ref), name},
+			},
+		},
+		RunConfig: cew_model.RunConfig{
+			RestartStrategy: cew_model.RestartOnFail,
+			Retries:         &retries,
+			StopTimeout:     &stopTimeout,
+			StopSignal:      srv.RunConfig.StopSignal,
+			PseudoTTY:       srv.RunConfig.PseudoTTY,
+		},
+	}
+}
