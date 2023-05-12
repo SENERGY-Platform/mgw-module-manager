@@ -18,6 +18,7 @@ package dep_hdl
 
 import (
 	"context"
+	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
@@ -71,8 +72,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	volumes, err := h.createVolumes(ctx, mod.Volumes, dID)
-	if err != nil {
+	if err = h.createVolumes(ctx, mod.Volumes, dID); err != nil {
 		return "", err
 	}
 	_, err = h.createInstance(ctx, tx, mod, dID, depDirPth, stringValues, hostRes, secrets, volumes, reqModDepMap)
@@ -95,21 +95,23 @@ func (h *Handler) mkDepDir(dID string, inclDir dir_fs.DirFS) (string, error) {
 	return p, nil
 }
 
-func (h *Handler) createVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID string) (map[string]string, error) {
+func (h *Handler) createVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID string) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	volumes := make(map[string]string)
 	for ref := range mVolumes {
-		name, err := h.cewClient.CreateVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.Volume{
-			Name:   getVolumeName(dID, ref),
+		name := getVolumeName(dID, ref)
+		n, err := h.cewClient.CreateVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.Volume{
+			Name:   name,
 			Labels: map[string]string{"d_id": dID},
 		})
 		if err != nil {
-			return nil, model.NewInternalError(err)
+			return model.NewInternalError(err)
 		}
-		volumes[ref] = name
+		if n != name {
+			return model.NewInternalError(fmt.Errorf("volume name missmatch: %s != %s", n, name))
+		}
 	}
-	return volumes, nil
+	return nil
 }
 
 func getVolumeName(s, v string) string {
