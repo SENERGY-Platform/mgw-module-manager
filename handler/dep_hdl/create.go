@@ -276,13 +276,11 @@ func getEnvVars(srv *module.Service, configs, depMap map[string]string, dID, iID
 
 func getMounts(srv *module.Service, volumes map[string]string, inclDirPath, dID, iID string) []cew_model.Mount {
 	var mounts []cew_model.Mount
-	vLabels := map[string]string{"mgw_did": dID, "mgw_iid": iID}
 	for mntPoint, vName := range srv.Volumes {
 		mounts = append(mounts, cew_model.Mount{
 			Type:   cew_model.VolumeMount,
 			Source: volumes[vName],
 			Target: mntPoint,
-			Labels: vLabels,
 		})
 	}
 	for mntPoint, mount := range srv.BindMounts {
