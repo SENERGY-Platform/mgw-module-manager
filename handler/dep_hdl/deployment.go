@@ -18,8 +18,10 @@ package dep_hdl
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
@@ -92,6 +94,27 @@ func (h *Handler) getReqDep(ctx context.Context, dep *model.Deployment, reqDep m
 			if err = h.getReqDep(ctx, d, reqDep); err != nil {
 				return err
 			}
+		}
+	}
+	return nil
+}
+
+func (h *Handler) storeDep(ctx context.Context, tx driver.Tx, dID string, hostRes, secrets map[string]string, modConfigs module.Configs, userConfigs map[string]any) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	if len(hostRes) > 0 {
+		if err := h.storageHandler.CreateDepHostRes(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, hostRes, dID); err != nil {
+			return err
+		}
+	}
+	if len(secrets) > 0 {
+		if err := h.storageHandler.CreateDepSecrets(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, secrets, dID); err != nil {
+			return err
+		}
+	}
+	if len(userConfigs) > 0 {
+		if err := h.storageHandler.CreateDepConfigs(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, modConfigs, userConfigs, dID); err != nil {
+			return err
 		}
 	}
 	return nil

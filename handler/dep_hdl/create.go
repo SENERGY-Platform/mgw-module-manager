@@ -56,20 +56,8 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	if len(hostRes) > 0 {
-		if err = h.storageHandler.CreateDepHostRes(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, hostRes, dID); err != nil {
-			return "", err
-		}
-	}
-	if len(secrets) > 0 {
-		if err = h.storageHandler.CreateDepSecrets(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, secrets, dID); err != nil {
-			return "", err
-		}
-	}
-	if len(userConfigs) > 0 {
-		if err = h.storageHandler.CreateDepConfigs(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.Configs, userConfigs, dID); err != nil {
-			return "", err
-		}
+	if err = h.storeDep(ctx, tx, dID, hostRes, secrets, mod.Configs, userConfigs); err != nil {
+		return "", err
 	}
 	if len(mod.Dependencies) > 0 {
 		var dIDs []string
