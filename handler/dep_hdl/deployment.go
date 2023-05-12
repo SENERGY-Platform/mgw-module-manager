@@ -19,6 +19,7 @@ package dep_hdl
 import (
 	"context"
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
@@ -115,6 +116,47 @@ func (h *Handler) prepareDep(mod *module.Module, depReq model.DepRequestBase) (n
 		return "", nil, nil, nil, err
 	}
 	return
+}
+
+func (h *Handler) getUserConfigs(modConfigs module.Configs, userInput map[string]any) (map[string]any, error) {
+	userConfigs, err := parser.UserInputToConfigs(userInput, modConfigs)
+	if err != nil {
+		return nil, err
+	}
+	for ref, val := range userConfigs {
+		mC := modConfigs[ref]
+		if err = h.cfgVltHandler.ValidateValue(mC.Type, mC.TypeOpt, val, mC.IsSlice, mC.DataType); err != nil {
+			return nil, err
+		}
+		if mC.Options != nil && !mC.OptExt {
+			if err = h.cfgVltHandler.ValidateValInOpt(mC.Options, val, mC.IsSlice, mC.DataType); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return userConfigs, nil
+}
+
+func (h *Handler) getHostRes(mHostRes map[string]module.HostResource, userInput map[string]string) (map[string]string, error) {
+	hostRes, missing, err := getUserHostRes(userInput, mHostRes)
+	if err != nil {
+		return nil, model.NewInvalidInputError(err)
+	}
+	if len(missing) > 0 {
+		return nil, model.NewInternalError(errors.New("host resource discovery not implemented"))
+	}
+	return hostRes, nil
+}
+
+func (h *Handler) getSecrets(mSecrets map[string]module.Secret, userInput map[string]string) (map[string]string, error) {
+	secrets, missing, err := getUserSecrets(userInput, mSecrets)
+	if err != nil {
+		return nil, model.NewInvalidInputError(err)
+	}
+	if len(missing) > 0 {
+		return nil, model.NewInternalError(errors.New("secret discovery not implemented"))
+	}
+	return secrets, nil
 }
 
 func (h *Handler) storeDep(ctx context.Context, tx driver.Tx, dID string, hostRes, secrets map[string]string, modConfigs module.Configs, userConfigs map[string]any) error {
