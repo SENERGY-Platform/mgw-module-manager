@@ -323,7 +323,7 @@ func genListInstFilter(filter model.DepInstFilter) (string, []any) {
 	return "", nil
 }
 
-func (h *Handler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.DepInstance, error) {
+func (h *Handler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.Instance, error) {
 	q := "SELECT `id`, `dep_id`, `created` FROM `instances`"
 	fc, val := genListInstFilter(filter)
 	if fc != "" {
@@ -334,9 +334,9 @@ func (h *Handler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]m
 		return nil, model.NewInternalError(err)
 	}
 	defer rows.Close()
-	var dims []model.DepInstance
+	var dims []model.Instance
 	for rows.Next() {
-		var dim model.DepInstance
+		var dim model.Instance
 		var ct []uint8
 		if err = rows.Scan(&dim.ID, &dim.DepID, &ct); err != nil {
 			return nil, model.NewInternalError(err)
@@ -404,20 +404,20 @@ func (h *Handler) CreateInst(ctx context.Context, itf driver.Tx, dID string, tim
 	return id, nil
 }
 
-func (h *Handler) ReadInst(ctx context.Context, id string) (model.DepInstance, error) {
+func (h *Handler) ReadInst(ctx context.Context, id string) (model.Instance, error) {
 	row := h.db.QueryRowContext(ctx, "SELECT `id`, `dep_id`, `created` FROM `instances` WHERE `id` = ?", id)
-	var dim model.DepInstance
+	var dim model.Instance
 	var ct []uint8
 	err := row.Scan(&dim.ID, &dim.DepID, &ct)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.DepInstance{}, model.NewNotFoundError(err)
+			return model.Instance{}, model.NewNotFoundError(err)
 		}
-		return model.DepInstance{}, model.NewInternalError(err)
+		return model.Instance{}, model.NewInternalError(err)
 	}
 	tc, err := time.Parse(tLayout, string(ct))
 	if err != nil {
-		return model.DepInstance{}, model.NewInternalError(err)
+		return model.Instance{}, model.NewInternalError(err)
 	}
 	dim.Created = tc
 	return dim, nil
