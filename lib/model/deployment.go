@@ -46,7 +46,7 @@ type DepConfig struct {
 	IsSlice  bool            `json:"is_slice"`
 }
 
-type DepInstance struct {
+type Instance struct {
 	ID      string    `json:"id"`
 	DepID   string    `json:"dep_id"`
 	Created time.Time `json:"created"`

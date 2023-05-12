@@ -27,15 +27,15 @@ import (
 	"time"
 )
 
-func (h *Handler) getCurrentInst(ctx context.Context, dID string) (model.DepInstance, error) {
+func (h *Handler) getCurrentInst(ctx context.Context, dID string) (model.Instance, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	instances, err := h.storageHandler.ListInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepInstFilter{DepID: dID})
 	if err != nil {
-		return model.DepInstance{}, err
+		return model.Instance{}, err
 	}
 	if len(instances) != 1 {
-		return model.DepInstance{}, model.NewInternalError(fmt.Errorf("invalid number of instances: %d", len(instances)))
+		return model.Instance{}, model.NewInternalError(fmt.Errorf("invalid number of instances: %d", len(instances)))
 	}
 	return h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instances[0].ID)
 }
