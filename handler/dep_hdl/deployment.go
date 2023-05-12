@@ -104,7 +104,7 @@ func (h *Handler) getReqDep(ctx context.Context, dep *model.Deployment, reqDep m
 }
 
 func (h *Handler) prepareDep(mod *module.Module, depReq model.DepRequestBase) (name string, userConfigs map[string]any, hostRes, secrets map[string]string, err error) {
-	name = getName(mod.Name, depReq.Name)
+	name = getDepName(mod.Name, depReq.Name)
 	userConfigs, err = h.getUserConfigs(mod.Configs, depReq.Configs)
 	if err != nil {
 		return "", nil, nil, nil, model.NewInvalidInputError(err)
@@ -214,7 +214,7 @@ func (h *Handler) getReqModDepMap(ctx context.Context, reqMod map[string]string)
 	return depMap, nil
 }
 
-func getName(mName string, userInput *string) string {
+func getDepName(mName string, userInput *string) string {
 	if userInput != nil {
 		return *userInput
 	}
