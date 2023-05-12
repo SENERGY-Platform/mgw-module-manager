@@ -119,3 +119,18 @@ func (h *Handler) storeDep(ctx context.Context, tx driver.Tx, dID string, hostRe
 	}
 	return nil
 }
+
+func (h *Handler) wipeDep(ctx context.Context, tx driver.Tx, dID string) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	if err := h.storageHandler.DeleteDepHostRes(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID); err != nil {
+		return err
+	}
+	if err := h.storageHandler.DeleteDepSecrets(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID); err != nil {
+		return err
+	}
+	if err := h.storageHandler.DeleteDepConfigs(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID); err != nil {
+		return err
+	}
+	return nil
+}
