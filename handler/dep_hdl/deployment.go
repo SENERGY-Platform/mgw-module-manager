@@ -229,6 +229,10 @@ func getSrvName(s, r string) string {
 	return "MGW_" + genHash(s, r)
 }
 
+func getVolumeName(dID, name string) string {
+	return "MGW_" + genHash(dID, name)
+}
+
 func genHash(str ...string) string {
 	hash := sha1.New()
 	for _, s := range str {

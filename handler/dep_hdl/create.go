@@ -113,7 +113,3 @@ func (h *Handler) createVolumes(ctx context.Context, mVolumes ml_util.Set[string
 	}
 	return nil
 }
-
-func getVolumeName(dID, name string) string {
-	return "MGW_" + genHash(dID, name)
-}
