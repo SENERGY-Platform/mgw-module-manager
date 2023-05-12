@@ -93,7 +93,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	volumes, err := h.createVolumes(ctx, mod.Volumes, dID, iID)
+	volumes, err := h.createVolumes(ctx, mod.Volumes, dID)
 	if err != nil {
 		return "", err
 	}
@@ -209,14 +209,14 @@ func (h *Handler) getSecrets(mSecrets map[string]module.Secret, userInput map[st
 	return secrets, nil
 }
 
-func (h *Handler) createVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID, iID string) (map[string]string, error) {
+func (h *Handler) createVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID string) (map[string]string, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	volumes := make(map[string]string)
 	for ref := range mVolumes {
 		name, err := h.cewClient.CreateVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.Volume{
-			Name:   getVolumeName(iID, ref),
-			Labels: map[string]string{"d_id": dID, "i_id": iID},
+			Name:   getVolumeName(dID, ref),
+			Labels: map[string]string{"d_id": dID},
 		})
 		if err != nil {
 			return nil, model.NewInternalError(err)
