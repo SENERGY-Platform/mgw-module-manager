@@ -117,23 +117,6 @@ func (h *Handler) getReqModDepMap(ctx context.Context, reqMod map[string]string)
 	return depMap, nil
 }
 
-func (h *Handler) prepareDep(mod *module.Module, depReq model.DepRequestBase) (name string, userConfigs map[string]any, hostRes, secrets map[string]string, err error) {
-	name = getName(mod.Name, depReq.Name)
-	userConfigs, err = h.getUserConfigs(mod.Configs, depReq.Configs)
-	if err != nil {
-		return "", nil, nil, nil, model.NewInvalidInputError(err)
-	}
-	hostRes, err = h.getHostRes(mod.HostResources, depReq.HostResources)
-	if err != nil {
-		return "", nil, nil, nil, err
-	}
-	secrets, err = h.getSecrets(mod.Secrets, depReq.Secrets)
-	if err != nil {
-		return "", nil, nil, nil, err
-	}
-	return
-}
-
 func (h *Handler) getUserConfigs(modConfigs module.Configs, userInput map[string]any) (map[string]any, error) {
 	userConfigs, err := parser.UserInputToConfigs(userInput, modConfigs)
 	if err != nil {

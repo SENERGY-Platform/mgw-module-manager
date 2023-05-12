@@ -25,6 +25,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
 	"io/fs"
 	"os"
 	"path"
@@ -97,6 +98,23 @@ func (h *Handler) getReqDep(ctx context.Context, dep *model.Deployment, reqDep m
 		}
 	}
 	return nil
+}
+
+func (h *Handler) prepareDep(mod *module.Module, depReq model.DepRequestBase) (name string, userConfigs map[string]any, hostRes, secrets map[string]string, err error) {
+	name = getName(mod.Name, depReq.Name)
+	userConfigs, err = h.getUserConfigs(mod.Configs, depReq.Configs)
+	if err != nil {
+		return "", nil, nil, nil, model.NewInvalidInputError(err)
+	}
+	hostRes, err = h.getHostRes(mod.HostResources, depReq.HostResources)
+	if err != nil {
+		return "", nil, nil, nil, err
+	}
+	secrets, err = h.getSecrets(mod.Secrets, depReq.Secrets)
+	if err != nil {
+		return "", nil, nil, nil, err
+	}
+	return
 }
 
 func (h *Handler) storeDep(ctx context.Context, tx driver.Tx, dID string, hostRes, secrets map[string]string, modConfigs module.Configs, userConfigs map[string]any) error {
