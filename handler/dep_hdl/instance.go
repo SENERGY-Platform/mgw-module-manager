@@ -60,7 +60,7 @@ func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.
 		if err != nil {
 			return "", model.NewInternalError(err)
 		}
-		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, getMounts(srv, volumes, hostRes, secrets, depDirPth), getPorts(srv.Ports))
+		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, getMounts(srv, hostRes, secrets, dID, depDirPth), getPorts(srv.Ports))
 		cID, err := h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container)
 		if err != nil {
 			return "", model.NewInternalError(err)
@@ -159,12 +159,12 @@ func getEnvVars(srv *module.Service, configs, depMap map[string]string, dID, iID
 	return envVars, nil
 }
 
-func getMounts(srv *module.Service, volumes, hostRes, secrets map[string]string, depDirPth string) []cew_model.Mount {
+func getMounts(srv *module.Service, hostRes, secrets map[string]string, dID, depDirPth string) []cew_model.Mount {
 	var mounts []cew_model.Mount
-	for mntPoint, vName := range srv.Volumes {
+	for mntPoint, name := range srv.Volumes {
 		mounts = append(mounts, cew_model.Mount{
 			Type:   cew_model.VolumeMount,
-			Source: volumes[vName],
+			Source: getVolumeName(dID, name),
 			Target: mntPoint,
 		})
 	}
