@@ -453,7 +453,3 @@ func (h *Handler) CreateInstCtr(ctx context.Context, itf driver.Tx, iID, cID, sR
 	}
 	return nil
 }
-
-func (h *Handler) DeleteInstCtr(ctx context.Context, cID string) error {
-	panic("not implemented")
-}

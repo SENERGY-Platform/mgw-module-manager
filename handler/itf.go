@@ -85,7 +85,6 @@ type DepStorageHandler interface {
 	DeleteInst(ctx context.Context, iID string) error
 	ListInstCtr(ctx context.Context, iID string, filter model.CtrFilter) ([]model.Container, error)
 	CreateInstCtr(ctx context.Context, tx driver.Tx, iID, cID, sRef string, order uint) error
-	DeleteInstCtr(ctx context.Context, cID string) error
 }
 
 type CewJobHandler interface {
