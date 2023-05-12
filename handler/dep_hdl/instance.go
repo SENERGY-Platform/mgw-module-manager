@@ -18,9 +18,13 @@ package dep_hdl
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
+	"time"
 )
 
 func (h *Handler) getCurrentInst(ctx context.Context, dID string) (model.DepInstance, error) {
@@ -34,6 +38,37 @@ func (h *Handler) getCurrentInst(ctx context.Context, dID string) (model.DepInst
 		return model.DepInstance{}, model.NewInternalError(fmt.Errorf("invalid number of instances: %d", len(instances)))
 	}
 	return h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instances[0].ID)
+}
+
+func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.Module, dID, depDirPth string, stringValues, hostRes, secrets, reqModDepMap, volumes map[string]string) (string, error) {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	iID, err := h.storageHandler.CreateInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID, time.Now().UTC())
+	if err != nil {
+		return "", err
+	}
+	order, err := sorting.GetSrvOrder(mod.Services)
+	if err != nil {
+		return "", model.NewInternalError(err)
+	}
+	for i := 0; i < len(order); i++ {
+		ref := order[i]
+		srv := mod.Services[ref]
+		envVars, err := getEnvVars(srv, stringValues, reqModDepMap, dID, iID)
+		if err != nil {
+			return "", model.NewInternalError(err)
+		}
+		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, getMounts(srv, volumes, hostRes, secrets, depDirPth), getPorts(srv.Ports))
+		cID, err := h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container)
+		if err != nil {
+			return "", model.NewInternalError(err)
+		}
+		err = h.storageHandler.CreateInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, iID, cID, order[i], uint(i))
+		if err != nil {
+			return "", err
+		}
+	}
+	return iID, nil
 }
 
 func (h *Handler) startInstance(ctx context.Context, iID string) error {
