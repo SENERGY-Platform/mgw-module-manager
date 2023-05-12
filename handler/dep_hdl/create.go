@@ -100,23 +100,6 @@ func (h *Handler) mkDepDir(dID string, inclDir dir_fs.DirFS) (string, error) {
 	return p, nil
 }
 
-func (h *Handler) getReqModDepMap(ctx context.Context, reqMod map[string]string) (map[string]string, error) {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	depMap := make(map[string]string)
-	for mID := range reqMod {
-		depList, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{ModuleID: mID})
-		if err != nil {
-			return nil, err
-		}
-		if len(depList) == 0 {
-			return nil, model.NewInternalError(fmt.Errorf("dependency '%s' not deployed", mID))
-		}
-		depMap[mID] = depList[0].ID
-	}
-	return depMap, nil
-}
-
 func (h *Handler) getUserConfigs(modConfigs module.Configs, userInput map[string]any) (map[string]any, error) {
 	userConfigs, err := parser.UserInputToConfigs(userInput, modConfigs)
 	if err != nil {

@@ -152,3 +152,20 @@ func (h *Handler) wipeDep(ctx context.Context, tx driver.Tx, dID string) error {
 	}
 	return nil
 }
+
+func (h *Handler) getReqModDepMap(ctx context.Context, reqMod map[string]string) (map[string]string, error) {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	depMap := make(map[string]string)
+	for mID := range reqMod {
+		depList, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{ModuleID: mID})
+		if err != nil {
+			return nil, err
+		}
+		if len(depList) == 0 {
+			return nil, model.NewInternalError(fmt.Errorf("dependency '%s' not deployed", mID))
+		}
+		depMap[mID] = depList[0].ID
+	}
+	return depMap, nil
+}
