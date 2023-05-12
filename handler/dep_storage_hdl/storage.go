@@ -423,21 +423,6 @@ func (h *Handler) ReadInst(ctx context.Context, id string) (model.DepInstance, e
 	return dim, nil
 }
 
-func (h *Handler) UpdateInst(ctx context.Context, id string, timestamp time.Time) error {
-	res, err := h.db.ExecContext(ctx, "UPDATE `instances` SET `updated` = ? WHERE `id` = ?", timestamp, id)
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	n, err := res.RowsAffected()
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	if n < 1 {
-		return model.NewNotFoundError(errors.New("no rows affected"))
-	}
-	return nil
-}
-
 func (h *Handler) DeleteInst(ctx context.Context, id string) error {
 	res, err := h.db.ExecContext(ctx, "DELETE FROM `instances` WHERE `id` = ?", id)
 	if err != nil {

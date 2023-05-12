@@ -82,7 +82,6 @@ type DepStorageHandler interface {
 	ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.DepInstance, error)
 	CreateInst(ctx context.Context, tx driver.Tx, dID string, timestamp time.Time) (string, error)
 	ReadInst(ctx context.Context, iID string) (model.DepInstance, error)
-	UpdateInst(ctx context.Context, iID string, timestamp time.Time) error
 	DeleteInst(ctx context.Context, iID string) error
 	ListInstCtr(ctx context.Context, iID string, filter model.CtrFilter) ([]model.Container, error)
 	CreateInstCtr(ctx context.Context, tx driver.Tx, iID, cID, sRef string, order uint) error
