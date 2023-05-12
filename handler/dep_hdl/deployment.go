@@ -225,3 +225,43 @@ func genHash(str ...string) string {
 	}
 	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(hash.Sum(nil))
 }
+
+func getUserHostRes(hrs map[string]string, mHRs map[string]module.HostResource) (map[string]string, []string, error) {
+	dRs := make(map[string]string)
+	var ad []string
+	for ref, mRH := range mHRs {
+		id, ok := hrs[ref]
+		if ok {
+			dRs[ref] = id
+		} else {
+			if mRH.Required {
+				if len(mRH.Tags) > 0 {
+					ad = append(ad, ref)
+				} else {
+					return nil, nil, fmt.Errorf("host resource '%s' required", ref)
+				}
+			}
+		}
+	}
+	return dRs, ad, nil
+}
+
+func getUserSecrets(s map[string]string, mSs map[string]module.Secret) (map[string]string, []string, error) {
+	dSs := make(map[string]string)
+	var ad []string
+	for ref, mS := range mSs {
+		id, ok := s[ref]
+		if ok {
+			dSs[ref] = id
+		} else {
+			if mS.Required {
+				if len(mS.Tags) > 0 {
+					ad = append(ad, ref)
+				} else {
+					return nil, nil, fmt.Errorf("secret '%s' required", ref)
+				}
+			}
+		}
+	}
+	return dSs, ad, nil
+}

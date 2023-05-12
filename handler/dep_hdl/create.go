@@ -18,9 +18,6 @@ package dep_hdl
 
 import (
 	"context"
-	"crypto/sha1"
-	"encoding/base64"
-	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
@@ -151,44 +148,4 @@ func getName(mName string, userInput *string) string {
 
 func getVolumeName(s, v string) string {
 	return "MGW_" + genHash(s, v)
-}
-
-func getUserHostRes(hrs map[string]string, mHRs map[string]module.HostResource) (map[string]string, []string, error) {
-	dRs := make(map[string]string)
-	var ad []string
-	for ref, mRH := range mHRs {
-		id, ok := hrs[ref]
-		if ok {
-			dRs[ref] = id
-		} else {
-			if mRH.Required {
-				if len(mRH.Tags) > 0 {
-					ad = append(ad, ref)
-				} else {
-					return nil, nil, fmt.Errorf("host resource '%s' required", ref)
-				}
-			}
-		}
-	}
-	return dRs, ad, nil
-}
-
-func getUserSecrets(s map[string]string, mSs map[string]module.Secret) (map[string]string, []string, error) {
-	dSs := make(map[string]string)
-	var ad []string
-	for ref, mS := range mSs {
-		id, ok := s[ref]
-		if ok {
-			dSs[ref] = id
-		} else {
-			if mS.Required {
-				if len(mS.Tags) > 0 {
-					ad = append(ad, ref)
-				} else {
-					return nil, nil, fmt.Errorf("secret '%s' required", ref)
-				}
-			}
-		}
-	}
-	return dSs, ad, nil
 }
