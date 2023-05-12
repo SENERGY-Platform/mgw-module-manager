@@ -44,7 +44,6 @@ CREATE TABLE IF NOT EXISTS `instances`
     `id`      CHAR(36)              NOT NULL,
     `dep_id`  CHAR(36)              NOT NULL,
     `created` TIMESTAMP(6)          NOT NULL,
-    `updated` TIMESTAMP(6)          NOT NULL,
     UNIQUE KEY (`id`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`)

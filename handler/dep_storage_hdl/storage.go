@@ -324,7 +324,7 @@ func genListInstFilter(filter model.DepInstFilter) (string, []any) {
 }
 
 func (h *Handler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.DepInstance, error) {
-	q := "SELECT `id`, `dep_id`, `created`, `updated` FROM `instances`"
+	q := "SELECT `id`, `dep_id`, `created` FROM `instances`"
 	fc, val := genListInstFilter(filter)
 	if fc != "" {
 		q += fc
@@ -337,20 +337,15 @@ func (h *Handler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]m
 	var dims []model.DepInstance
 	for rows.Next() {
 		var dim model.DepInstance
-		var ct, ut []uint8
-		if err = rows.Scan(&dim.ID, &dim.DepID, &ct, &ut); err != nil {
+		var ct []uint8
+		if err = rows.Scan(&dim.ID, &dim.DepID, &ct); err != nil {
 			return nil, model.NewInternalError(err)
 		}
 		tc, err := time.Parse(tLayout, string(ct))
 		if err != nil {
 			return nil, model.NewInternalError(err)
 		}
-		tu, err := time.Parse(tLayout, string(ut))
-		if err != nil {
-			return nil, model.NewInternalError(err)
-		}
 		dim.Created = tc
-		dim.Updated = tu
 		dims = append(dims, dim)
 	}
 	if err = rows.Err(); err != nil {
@@ -390,7 +385,7 @@ func (h *Handler) ListInstCtr(ctx context.Context, iID string, filter model.CtrF
 
 func (h *Handler) CreateInst(ctx context.Context, itf driver.Tx, dID string, timestamp time.Time) (string, error) {
 	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "INSERT INTO `instances` (`id`, `dep_id`, `created`, `updated`) VALUES (UUID(), ?, ?, ?)", dID, timestamp, timestamp)
+	res, err := tx.ExecContext(ctx, "INSERT INTO `instances` (`id`, `dep_id`, `created`) VALUES (UUID(), ?, ?)", dID, timestamp)
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}
@@ -410,10 +405,10 @@ func (h *Handler) CreateInst(ctx context.Context, itf driver.Tx, dID string, tim
 }
 
 func (h *Handler) ReadInst(ctx context.Context, id string) (model.DepInstance, error) {
-	row := h.db.QueryRowContext(ctx, "SELECT `id`, `dep_id`, `created`, `updated` FROM `instances` WHERE `id` = ?", id)
+	row := h.db.QueryRowContext(ctx, "SELECT `id`, `dep_id`, `created` FROM `instances` WHERE `id` = ?", id)
 	var dim model.DepInstance
-	var ct, ut []uint8
-	err := row.Scan(&dim.ID, &dim.DepID, &ct, &ut)
+	var ct []uint8
+	err := row.Scan(&dim.ID, &dim.DepID, &ct)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return model.DepInstance{}, model.NewNotFoundError(err)
@@ -424,12 +419,7 @@ func (h *Handler) ReadInst(ctx context.Context, id string) (model.DepInstance, e
 	if err != nil {
 		return model.DepInstance{}, model.NewInternalError(err)
 	}
-	tu, err := time.Parse(tLayout, string(ut))
-	if err != nil {
-		return model.DepInstance{}, model.NewInternalError(err)
-	}
 	dim.Created = tc
-	dim.Updated = tu
 	return dim, nil
 }
 

@@ -50,7 +50,6 @@ type DepInstance struct {
 	ID      string    `json:"id"`
 	DepID   string    `json:"dep_id"`
 	Created time.Time `json:"created"`
-	Updated time.Time `json:"updated"`
 }
 
 type Container struct {
