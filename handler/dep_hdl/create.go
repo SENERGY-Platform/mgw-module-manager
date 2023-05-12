@@ -108,7 +108,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 		if err != nil {
 			return "", model.NewInternalError(err)
 		}
-		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, getMounts(srv, volumes, depDirPth, dID, iID), getPorts(srv.Ports))
+		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, getMounts(srv, volumes, hostRes, secrets, depDirPth), getPorts(srv.Ports))
 		cID, err := h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container)
 		if err != nil {
 			return "", model.NewInternalError(err)
