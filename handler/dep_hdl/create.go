@@ -27,7 +27,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
 	"os"
-	"path"
 	"time"
 )
 
@@ -88,7 +87,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 }
 
 func (h *Handler) mkDepDir(dID string, inclDir dir_fs.DirFS) (string, error) {
-	p := path.Join(h.wrkSpcPath, dID)
+	p := h.getDepDirName(dID)
 	if err := util.CopyDir(inclDir.Path(), p); err != nil {
 		_ = os.RemoveAll(p)
 		return "", model.NewInternalError(err)

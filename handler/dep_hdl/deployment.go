@@ -214,6 +214,10 @@ func (h *Handler) getReqModDepMap(ctx context.Context, reqMod map[string]string)
 	return depMap, nil
 }
 
+func (h *Handler) getDepDirName(s string) string {
+	return path.Join(h.wrkSpcPath, s)
+}
+
 func getDepName(mName string, userInput *string) string {
 	if userInput != nil {
 		return *userInput
