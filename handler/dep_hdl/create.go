@@ -30,7 +30,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 	"os"
 	"path"
 	"time"
@@ -85,10 +84,6 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 			return "", err
 		}
 	}
-	iID, err := h.storageHandler.CreateInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID, timestamp)
-	if err != nil {
-		return "", err
-	}
 	depDirPth, err := h.mkDepDir(dID, inclDir)
 	if err != nil {
 		return "", err
@@ -97,26 +92,9 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	order, err := sorting.GetSrvOrder(mod.Services)
+	_, err = h.createInstance(ctx, tx, mod, dID, depDirPth, stringValues, hostRes, secrets, volumes, reqModDepMap)
 	if err != nil {
-		return "", model.NewInternalError(err)
-	}
-	for i := 0; i < len(order); i++ {
-		ref := order[i]
-		srv := mod.Services[ref]
-		envVars, err := getEnvVars(srv, stringValues, reqModDepMap, dID, iID)
-		if err != nil {
-			return "", model.NewInternalError(err)
-		}
-		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, getMounts(srv, volumes, hostRes, secrets, depDirPth), getPorts(srv.Ports))
-		cID, err := h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container)
-		if err != nil {
-			return "", model.NewInternalError(err)
-		}
-		err = h.storageHandler.CreateInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, iID, cID, order[i], uint(i))
-		if err != nil {
-			return "", err
-		}
+		return "", err
 	}
 	err = tx.Commit()
 	if err != nil {
