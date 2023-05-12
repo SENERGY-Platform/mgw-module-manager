@@ -139,13 +139,6 @@ func getContainer(srv *module.Service, ref, name, dID, iID string, envVars map[s
 	}
 }
 
-func getName(mName string, userInput *string) string {
-	if userInput != nil {
-		return *userInput
-	}
-	return mName
-}
-
 func getVolumeName(s, v string) string {
 	return "MGW_" + genHash(s, v)
 }
