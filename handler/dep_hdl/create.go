@@ -153,18 +153,6 @@ func getVolumeName(s, v string) string {
 	return "MGW_" + genHash(s, v)
 }
 
-func getSrvName(s, r string) string {
-	return "MGW_" + genHash(s, r)
-}
-
-func genHash(str ...string) string {
-	hash := sha1.New()
-	for _, s := range str {
-		hash.Write([]byte(s))
-	}
-	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(hash.Sum(nil))
-}
-
 func getUserHostRes(hrs map[string]string, mHRs map[string]module.HostResource) (map[string]string, []string, error) {
 	dRs := make(map[string]string)
 	var ad []string

@@ -18,7 +18,9 @@ package dep_hdl
 
 import (
 	"context"
+	"crypto/sha1"
 	"database/sql/driver"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
@@ -210,4 +212,16 @@ func (h *Handler) getReqModDepMap(ctx context.Context, reqMod map[string]string)
 		depMap[mID] = depList[0].ID
 	}
 	return depMap, nil
+}
+
+func getSrvName(s, r string) string {
+	return "MGW_" + genHash(s, r)
+}
+
+func genHash(str ...string) string {
+	hash := sha1.New()
+	for _, s := range str {
+		hash.Write([]byte(s))
+	}
+	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(hash.Sum(nil))
 }
