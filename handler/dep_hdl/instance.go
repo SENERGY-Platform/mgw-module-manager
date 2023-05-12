@@ -20,10 +20,12 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
+	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
+	"path"
 	"time"
 )
 
@@ -133,4 +135,94 @@ func (h *Handler) stopContainer(ctx context.Context, cID string) error {
 		return model.NewInternalError(fmt.Errorf("%v", job.Error))
 	}
 	return nil
+}
+
+func getEnvVars(srv *module.Service, configs, depMap map[string]string, dID, iID string) (map[string]string, error) {
+	envVars := make(map[string]string)
+	for eVar, cRef := range srv.Configs {
+		if val, ok := configs[cRef]; ok {
+			envVars[eVar] = val
+		}
+	}
+	for eVar, sRef := range srv.SrvReferences {
+		envVars[eVar] = getSrvName(dID, sRef)
+	}
+	for eVar, target := range srv.ExtDependencies {
+		val, ok := depMap[target.ID]
+		if !ok {
+			return nil, fmt.Errorf("service '%s' of '%s' not deployed but required", target.Service, target.ID)
+		}
+		envVars[eVar] = getSrvName(val, target.Service)
+	}
+	envVars["MGW_DID"] = dID
+	envVars["MGW_IID"] = iID
+	return envVars, nil
+}
+
+func getMounts(srv *module.Service, volumes, hostRes, secrets map[string]string, depDirPth string) []cew_model.Mount {
+	var mounts []cew_model.Mount
+	for mntPoint, vName := range srv.Volumes {
+		mounts = append(mounts, cew_model.Mount{
+			Type:   cew_model.VolumeMount,
+			Source: volumes[vName],
+			Target: mntPoint,
+		})
+	}
+	for mntPoint, mount := range srv.BindMounts {
+		mounts = append(mounts, cew_model.Mount{
+			Type:     cew_model.BindMount,
+			Source:   path.Join(depDirPth, mount.Source),
+			Target:   mntPoint,
+			ReadOnly: mount.ReadOnly,
+		})
+	}
+	for mntPoint, mount := range srv.Tmpfs {
+		mounts = append(mounts, cew_model.Mount{
+			Type:   cew_model.TmpfsMount,
+			Target: mntPoint,
+			Size:   int64(mount.Size),
+			Mode:   mount.Mode,
+		})
+	}
+	//for mntPoint, target := range srv.HostResources {
+	//	src, ok := hostRes[target.Ref]
+	//	if ok {
+	//		mounts = append(mounts, cew_model.Mount{
+	//			Type:     cew_model.BindMount,
+	//			Source:   "",
+	//			Target:   mntPoint,
+	//			ReadOnly: target.ReadOnly,
+	//		})
+	//	}
+	//}
+	//for mntPoint, sRef := range srv.Secrets {
+	//	src, ok := secrets[sRef]
+	//	if ok {
+	//		mounts = append(mounts, cew_model.Mount{
+	//			Type:     cew_model.BindMount,
+	//			Source:   "",
+	//			Target:   mntPoint,
+	//			ReadOnly: true,
+	//		})
+	//	}
+	//}
+	return mounts
+}
+
+func getPorts(sPorts []module.Port) (ports []cew_model.Port) {
+	for _, port := range sPorts {
+		p := cew_model.Port{
+			Number:   int(port.Number),
+			Protocol: port.Protocol,
+		}
+		if len(port.Bindings) > 0 {
+			var bindings []cew_model.PortBinding
+			for _, n := range port.Bindings {
+				bindings = append(bindings, cew_model.PortBinding{Number: int(n)})
+			}
+			p.Bindings = bindings
+		}
+		ports = append(ports, p)
+	}
+	return ports
 }
