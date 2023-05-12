@@ -44,10 +44,6 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	stringValues, err := parser.ConfigsToStringValues(mod.Configs, userConfigs)
-	if err != nil {
-		return "", err
-	}
 	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {
 		return "", err
@@ -83,6 +79,10 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 		if err = h.storageHandler.CreateDepReq(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dIDs, dID); err != nil {
 			return "", err
 		}
+	}
+	stringValues, err := parser.ConfigsToStringValues(mod.Configs, userConfigs)
+	if err != nil {
+		return "", err
 	}
 	depDirPth, err := h.mkDepDir(dID, inclDir)
 	if err != nil {
