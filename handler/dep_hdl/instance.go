@@ -71,6 +71,22 @@ func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.
 	return iID, nil
 }
 
+func (h *Handler) removeInstance(ctx context.Context, iID string) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	containers, err := h.storageHandler.ListInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), iID, model.CtrFilter{})
+	if err != nil {
+		return err
+	}
+	for _, ctr := range containers {
+		err = h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
+		if err != nil {
+			return model.NewInternalError(err)
+		}
+	}
+	return h.storageHandler.DeleteInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), iID)
+}
+
 func (h *Handler) startInstance(ctx context.Context, iID string) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
