@@ -53,8 +53,7 @@ func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}
-	for i := 0; i < len(order); i++ {
-		ref := order[i]
+	for i, ref := range order {
 		srv := mod.Services[ref]
 		envVars, err := getEnvVars(srv, stringValues, reqModDepMap, dID, iID)
 		if err != nil {
@@ -65,7 +64,7 @@ func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.
 		if err != nil {
 			return "", model.NewInternalError(err)
 		}
-		err = h.storageHandler.CreateInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, iID, cID, order[i], uint(i))
+		err = h.storageHandler.CreateInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, iID, cID, ref, uint(i))
 		if err != nil {
 			return "", err
 		}
