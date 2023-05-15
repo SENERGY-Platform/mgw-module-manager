@@ -42,34 +42,36 @@ func (h *Handler) getCurrentInst(ctx context.Context, dID string) (model.Instanc
 	return h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instances[0].ID)
 }
 
-func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.Module, dID, depDirPth string, stringValues, hostRes, secrets, reqModDepMap map[string]string) (string, error) {
+func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.Module, dID, depDirPth string, stringValues, hostRes, secrets, reqModDepMap map[string]string) (string, []string, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	iID, err := h.storageHandler.CreateInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID, time.Now().UTC())
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 	order, err := sorting.GetSrvOrder(mod.Services)
 	if err != nil {
-		return "", model.NewInternalError(err)
+		return "", nil, model.NewInternalError(err)
 	}
+	var cIDs []string
 	for i, ref := range order {
 		srv := mod.Services[ref]
 		envVars, err := getEnvVars(srv, stringValues, reqModDepMap, dID, iID)
 		if err != nil {
-			return "", model.NewInternalError(err)
+			return "", nil, model.NewInternalError(err)
 		}
 		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, getMounts(srv, hostRes, secrets, dID, depDirPth), getPorts(srv.Ports))
 		cID, err := h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container)
 		if err != nil {
-			return "", model.NewInternalError(err)
+			return "", cIDs, model.NewInternalError(err)
 		}
+		cIDs = append(cIDs, cID)
 		err = h.storageHandler.CreateInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, iID, cID, ref, uint(i))
 		if err != nil {
-			return "", err
+			return "", cIDs, err
 		}
 	}
-	return iID, nil
+	return iID, cIDs, nil
 }
 
 func (h *Handler) removeInstance(ctx context.Context, iID string) error {
