@@ -119,9 +119,11 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Dep
 			for _, cID := range ctrIDs {
 				if !dep.Stopped {
 					_ = h.stopContainer(ctx, cID)
-					_ = h.startInstance(ctx, currentInst.ID)
 				}
 				_ = h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
+			}
+			if !dep.Stopped {
+				_ = h.startInstance(ctx, currentInst.ID)
 			}
 		}
 		ch.CancelAll()
