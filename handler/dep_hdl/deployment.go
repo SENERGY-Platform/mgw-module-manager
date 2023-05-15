@@ -109,7 +109,7 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Dep
 	if err = h.storeDep(ctx, tx, dep.ID, hostRes, secrets, mod.Configs, userConfigs); err != nil {
 		return err
 	}
-	newInstID, err := h.createInstance(ctx, tx, mod, dep.ID, h.getDepDirName(dep.ID), stringValues, hostRes, secrets, reqModDepMap)
+	_, ctrIDs, err := h.createInstance(ctx, tx, mod, dep.ID, h.getDepDirName(dep.ID), stringValues, hostRes, secrets, reqModDepMap)
 	if err != nil {
 		return err
 	}
@@ -118,6 +118,12 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Dep
 	if !dep.Stopped {
 		if err = h.stopInstance(ctx, currentInst.ID); err != nil {
 			return err
+		}
+		for _, cID := range ctrIDs {
+			err = h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
+			if err != nil {
+				return model.NewInternalError(err)
+			}
 		}
 	}
 	if err = h.removeInstance(ctx, currentInst.ID); err != nil {
@@ -129,11 +135,6 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Dep
 	}
 	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID, name, dep.Stopped, dep.Indirect, time.Now().UTC()); err != nil {
 		return err
-	}
-	if !dep.Stopped {
-		if err = h.startInstance(ctx, newInstID); err != nil {
-			return err
-		}
 	}
 	return nil
 }
