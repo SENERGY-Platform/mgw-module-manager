@@ -113,6 +113,19 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Dep
 	if err != nil {
 		return err
 	}
+	defer func() {
+		ch := context_hdl.New()
+		if err != nil {
+			for _, cID := range ctrIDs {
+				if !dep.Stopped {
+					_ = h.stopContainer(ctx, cID)
+					_ = h.startInstance(ctx, currentInst.ID)
+				}
+				_ = h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
+			}
+		}
+		ch.CancelAll()
+	}()
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	if !dep.Stopped {
