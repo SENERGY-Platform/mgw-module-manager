@@ -206,10 +206,6 @@ func getDepName(mName string, userInput *string) string {
 	return mName
 }
 
-func getSrvName(s, r string) string {
-	return "MGW_" + genHash(s, r)
-}
-
 func getVolumeName(dID, name string) string {
 	return "MGW_" + genHash(dID, name)
 }

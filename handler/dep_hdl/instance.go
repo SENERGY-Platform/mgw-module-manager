@@ -257,3 +257,7 @@ func getContainer(srv *module.Service, ref, name, dID, iID string, envVars map[s
 		},
 	}
 }
+
+func getSrvName(s, r string) string {
+	return "MGW_" + genHash(s, r)
+}
