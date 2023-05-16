@@ -89,22 +89,16 @@ func (h *Handler) rmDepDir(_ context.Context, dID string) error {
 }
 
 func (h *Handler) removeContainer(ctx context.Context, dID string) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	instances, err := h.storageHandler.ListInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepInstFilter{DepID: dID})
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	instances, err := h.storageHandler.ListInst(ctxWt, model.DepInstFilter{DepID: dID})
 	if err != nil {
 		return err
 	}
 	for _, instance := range instances {
-		containers, err := h.storageHandler.ListInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instance.ID, model.CtrFilter{})
+		err = h.removeInstance(ctx, instance.ID)
 		if err != nil {
 			return err
-		}
-		for _, ctr := range containers {
-			err := h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
-			if err != nil {
-				return model.NewInternalError(err)
-			}
 		}
 	}
 	return nil
