@@ -134,7 +134,7 @@ func (h *Handler) add(ctx context.Context, mID, ver, verRng string, indirect boo
 	if err != nil {
 		return err
 	}
-	if err = h.validateModule(m, mID); err != nil {
+	if err = h.validateModule(m, mID, ver); err != nil {
 		return err
 	}
 	if indirect && m.DeploymentType == module.MultipleDeployment {
@@ -272,9 +272,12 @@ func (h *Handler) getReqMod(ctx context.Context, mod *module.Module, reqMod map[
 	return nil
 }
 
-func (h *Handler) validateModule(m *module.Module, mID string) error {
+func (h *Handler) validateModule(m *module.Module, mID, ver string) error {
 	if mID != m.ID {
-		return fmt.Errorf("module ID missmatch: %s != %s", mID, m.ID)
+		return fmt.Errorf("module ID mismatch: %s != %s", mID, m.ID)
+	}
+	if ver != m.Version {
+		return fmt.Errorf("version mismatch: %s != %s", ver, m.Version)
 	}
 	err := validation.Validate(m)
 	if err != nil {
