@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/validation"
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
@@ -242,7 +243,10 @@ func (h *Handler) Delete(ctx context.Context, mID string) error {
 	for _, srv := range mod.Services {
 		err = h.cewClient.RemoveImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), url.QueryEscape(srv.Image))
 		if err != nil {
-			return err
+			var nfe *cew_model.NotFoundError
+			if !errors.As(err, &nfe) {
+				return model.NewInternalError(err)
+			}
 		}
 	}
 	return h.storageHandler.Delete(ctx, mID)
