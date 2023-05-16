@@ -19,6 +19,7 @@ package dep_hdl
 import (
 	"context"
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
@@ -84,7 +85,10 @@ func (h *Handler) removeInstance(ctx context.Context, iID string) error {
 	for _, ctr := range containers {
 		err = h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
 		if err != nil {
-			return model.NewInternalError(err)
+			var nfe *cew_model.NotFoundError
+			if !errors.As(err, &nfe) {
+				return model.NewInternalError(err)
+			}
 		}
 	}
 	return h.storageHandler.DeleteInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), iID)
