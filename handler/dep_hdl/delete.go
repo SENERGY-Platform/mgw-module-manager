@@ -18,6 +18,7 @@ package dep_hdl
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
@@ -119,7 +120,10 @@ func (h *Handler) removeVolumes(ctx context.Context, dID string) error {
 	for _, volume := range volumes {
 		err := h.cewClient.RemoveVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), volume.Name)
 		if err != nil {
-			return err
+			var nfe *cew_model.NotFoundError
+			if !errors.As(err, &nfe) {
+				return err
+			}
 		}
 	}
 	return nil
