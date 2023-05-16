@@ -122,23 +122,3 @@ func (h *Handler) removeVolumes(ctx context.Context, dID string) error {
 	}
 	return nil
 }
-
-func (h *Handler) getOrphans(ctx context.Context) ([]model.DepMeta, error) {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	dms, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{Indirect: true})
-	if err != nil {
-		return nil, err
-	}
-	var orphans []model.DepMeta
-	for _, dm := range dms {
-		d, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dm.ID)
-		if err != nil {
-			return nil, err
-		}
-		if len(d.DepRequiring) == 0 {
-			orphans = append(orphans, dm)
-		}
-	}
-	return orphans, nil
-}
