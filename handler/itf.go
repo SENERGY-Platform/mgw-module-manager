@@ -56,7 +56,7 @@ type ModTransferHandler interface {
 }
 
 type ModStagingHandler interface {
-	Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string, updateReq bool) (map[string]model.StageItem, dir_fs.DirFS, error)
+	Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string, updateReq bool) (Stage, error)
 }
 
 type DeploymentHandler interface {

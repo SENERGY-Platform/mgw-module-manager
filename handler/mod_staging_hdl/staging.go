@@ -30,7 +30,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
 	"os"
-	"path"
 	"sort"
 	"time"
 )
@@ -66,26 +65,26 @@ func (h *Handler) InitWorkspace() error {
 	return nil
 }
 
-func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string, updateReq bool) (map[string]model.StageItem, dir_fs.DirFS, error) {
+func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string, updateReq bool) (handler.Stage, error) {
 	stgPth, err := os.MkdirTemp(h.wrkSpcPath, "stg_")
 	if err != nil {
-		return nil, "", model.NewInternalError(err)
+		return nil, model.NewInternalError(err)
 	}
-	stgDir, err := dir_fs.New(stgPth)
+	stg := &stage{
+		items:       make(map[string]handler.StageItem),
+		path:        stgPth,
+		cewClient:   h.cewClient,
+		httpTimeout: h.httpTimeout,
+	}
+	err = h.add(ctx, modules, stg, mID, ver, "", false, updateReq)
 	if err != nil {
-		_ = os.RemoveAll(stgPth)
-		return nil, "", model.NewInternalError(err)
+		stg.Remove()
+		return nil, err
 	}
-	stgInfo := make(map[string]model.StageItem)
-	err = h.add(ctx, modules, stgInfo, stgPth, mID, ver, "", false, updateReq)
-	if err != nil {
-		_ = os.RemoveAll(stgPth)
-		return nil, "", err
-	}
-	return stgInfo, stgDir, nil
+	return stg, nil
 }
 
-func (h *Handler) add(ctx context.Context, modules map[string]*module.Module, stgInfo map[string]model.StageItem, stgPth, mID, ver, verRng string, indirect, updateReq bool) error {
+func (h *Handler) add(ctx context.Context, modules map[string]*module.Module, stg *stage, mID, ver, verRng string, indirect, updateReq bool) error {
 	if ver == "" {
 		var err error
 		ver, err = h.getVersion(ctx, mID, verRng)
@@ -119,7 +118,7 @@ func (h *Handler) add(ctx context.Context, modules map[string]*module.Module, st
 	for dmID, dmVerRng := range m.Dependencies {
 		dm, ok := modules[dmID]
 		if !ok {
-			err = h.add(ctx, modules, stgInfo, stgPth, dmID, "", dmVerRng, true, updateReq)
+			err = h.add(ctx, modules, stg, dmID, "", dmVerRng, true, updateReq)
 			if err != nil {
 				return err
 			}
@@ -145,7 +144,7 @@ func (h *Handler) add(ctx context.Context, modules map[string]*module.Module, st
 			return err
 		}
 	}
-	modPth, err := os.MkdirTemp(stgPth, "mod_")
+	modPth, err := os.MkdirTemp(stg.path, "mod_")
 	if err != nil {
 		return err
 	}
@@ -153,11 +152,15 @@ func (h *Handler) add(ctx context.Context, modules map[string]*module.Module, st
 	if err != nil {
 		return err
 	}
-	stgInfo[m.ID] = model.StageItem{
-		Module:   m,
-		ModFile:  name,
-		DirName:  path.Base(modPth),
-		Indirect: indirect,
+	modDir, err := dir_fs.New(modPth)
+	if err != nil {
+		return err
+	}
+	stg.items[m.ID] = item{
+		module:   m,
+		modFile:  name,
+		dir:      modDir,
+		indirect: indirect,
 	}
 	return nil
 }
