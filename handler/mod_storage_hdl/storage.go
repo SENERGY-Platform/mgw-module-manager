@@ -116,7 +116,7 @@ func (h *Handler) GetDir(_ context.Context, mID string) (model.Module, dir_fs.Di
 
 func (h *Handler) Add(_ context.Context, mod model.Module, modDir dir_fs.DirFS, modFile string) error {
 	dirName := uuid.NewString()
-	err := h.indexHandler.Add(mID, dirName, modFile, indirect)
+	err := h.indexHandler.Add(mod.ID, dirName, modFile, mod.Indirect, mod.Added)
 	if err != nil {
 		return err
 	}

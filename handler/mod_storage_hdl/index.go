@@ -87,21 +87,20 @@ func (h *indexHandler) Get(id string) (item, error) {
 	return i, nil
 }
 
-func (h *indexHandler) Add(id, dir, modFile string, indirect bool) error {
+func (h *indexHandler) Add(id, dir, modFile string, indirect bool, timestamp time.Time) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	_, ok := h.index[id]
 	if ok {
 		return model.NewInvalidInputError(errors.New("already exists"))
 	}
-	t := time.Now().UTC()
 	h.index[id] = item{
 		ID:       id,
 		Dir:      dir,
 		ModFile:  modFile,
 		Indirect: indirect,
-		Added:    t,
-		Updated:  t,
+		Added:    timestamp,
+		Updated:  timestamp,
 	}
 	return h.write()
 }
