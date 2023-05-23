@@ -32,7 +32,7 @@ type ModuleHandler interface {
 	Get(ctx context.Context, mID string) (model.Module, error)
 	GetReq(ctx context.Context, mID string) (model.Module, map[string]model.Module, error)
 	GetIncl(ctx context.Context, mID string) (dir_fs.DirFS, error)
-	Add(ctx context.Context, mr model.ModRequest) error
+	Add(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string, indirect bool) error
 	Delete(ctx context.Context, mID string) error
 	Update(ctx context.Context, mID string) error
 }

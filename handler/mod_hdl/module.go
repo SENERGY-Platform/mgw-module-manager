@@ -83,6 +83,23 @@ func (h *Handler) GetIncl(ctx context.Context, mID string) (dir_fs.DirFS, error)
 	return dir, nil
 }
 
+func (h *Handler) Add(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string, indirect bool) error {
+	t := time.Now().UTC()
+	m := model.Module{
+		Module: mod,
+		ModuleExtra: model.ModuleExtra{
+			Indirect: indirect,
+			Added:    t,
+			Updated:  t,
+		},
+	}
+	err := h.storageHandler.Add(ctx, m, modDir, modFile)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (h *Handler) Delete(ctx context.Context, mID string) error {
 	l, err := h.storageHandler.List(ctx, model.ModFilter{InDependencies: map[string]struct{}{mID: {}}})
 	if err != nil {
