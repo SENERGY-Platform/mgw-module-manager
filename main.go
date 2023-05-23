@@ -98,7 +98,7 @@ func main() {
 		util.Logger.Error(err)
 		return
 	}
-	if err := modStorageHandler.InitWorkspace(); err != nil {
+	if err := modStorageHandler.Init(); err != nil {
 		util.Logger.Error(err)
 		return
 	}

@@ -51,7 +51,7 @@ func New(workspacePath string, perm fs.FileMode, modFileHandler handler.ModFileH
 	}, nil
 }
 
-func (h *Handler) InitWorkspace() error {
+func (h *Handler) Init() error {
 	if err := os.MkdirAll(h.wrkSpcPath, h.perm); err != nil {
 		return err
 	}
