@@ -149,30 +149,3 @@ func (h *Handler) getReqMod(ctx context.Context, mod *module.Module, reqMod map[
 	}
 	return nil
 }
-
-func (h *Handler) validateModule(m *module.Module, mID, ver string) error {
-	if mID != m.ID {
-		return fmt.Errorf("module ID mismatch: %s != %s", mID, m.ID)
-	}
-	if ver != m.Version {
-		return fmt.Errorf("version mismatch: %s != %s", ver, m.Version)
-	}
-	err := validation.Validate(m)
-	if err != nil {
-		return err
-	}
-	for _, cv := range m.Configs {
-		if err = h.configValidationHandler.ValidateBase(cv.Type, cv.TypeOpt, cv.DataType); err != nil {
-			return err
-		}
-		if err = h.configValidationHandler.ValidateTypeOptions(cv.Type, cv.TypeOpt); err != nil {
-			return err
-		}
-		if cv.Default != nil {
-			if err = h.configValidationHandler.ValidateValue(cv.Type, cv.TypeOpt, cv.Default, cv.IsSlice, cv.DataType); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
