@@ -56,9 +56,9 @@ func (h *Handler) InitWorkspace() error {
 	return h.indexHandler.Init()
 }
 
-func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
+func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Module, error) {
 	items := h.indexHandler.List()
-	var mm []model.ModuleMeta
+	var mm []model.Module
 	for _, i := range items {
 		f, err := os.Open(path.Join(h.wrkSpcPath, i.Dir, i.ModFile))
 		if err != nil {
@@ -71,7 +71,10 @@ func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Mod
 			continue
 		}
 		if filterMod(filter, m) {
-			mm = append(mm, getModMeta(m, i))
+			mm = append(mm, model.Module{
+				Module:      m,
+				ModuleExtra: getModExtra(i),
+			})
 		}
 		if ctx.Err() != nil {
 			return nil, model.NewInternalError(ctx.Err())
