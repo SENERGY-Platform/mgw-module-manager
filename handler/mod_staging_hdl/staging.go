@@ -66,7 +66,7 @@ func (h *Handler) InitWorkspace() error {
 	return nil
 }
 
-func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string, updateReq bool) (map[string]model.StageInfo, dir_fs.DirFS, error) {
+func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string, updateReq bool) (map[string]model.StageItem, dir_fs.DirFS, error) {
 	stgPth, err := os.MkdirTemp(h.wrkSpcPath, "stg_")
 	if err != nil {
 		return nil, "", model.NewInternalError(err)
@@ -76,7 +76,7 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 		_ = os.RemoveAll(stgPth)
 		return nil, "", model.NewInternalError(err)
 	}
-	stgInfo := make(map[string]model.StageInfo)
+	stgInfo := make(map[string]model.StageItem)
 	err = h.add(ctx, modules, stgInfo, stgPth, mID, ver, "", false, updateReq)
 	if err != nil {
 		_ = os.RemoveAll(stgPth)
@@ -85,7 +85,7 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	return stgInfo, stgDir, nil
 }
 
-func (h *Handler) add(ctx context.Context, modules map[string]*module.Module, stgInfo map[string]model.StageInfo, stgPth, mID, ver, verRng string, indirect, updateReq bool) error {
+func (h *Handler) add(ctx context.Context, modules map[string]*module.Module, stgInfo map[string]model.StageItem, stgPth, mID, ver, verRng string, indirect, updateReq bool) error {
 	if ver == "" {
 		var err error
 		ver, err = h.getVersion(ctx, mID, verRng)

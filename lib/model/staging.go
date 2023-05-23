@@ -16,9 +16,11 @@
 
 package model
 
-import "github.com/SENERGY-Platform/mgw-module-lib/module"
+import (
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
+)
 
-type StageInfo struct {
+type StageItem struct {
 	Module   *module.Module
 	ModFile  string
 	DirName  string
