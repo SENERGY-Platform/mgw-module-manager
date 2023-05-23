@@ -86,3 +86,18 @@ func (a *Api) modDeployed(ctx context.Context, id string) (bool, error) {
 	}
 	return false, nil
 }
+
+func getModMeta(m model.Module) model.ModuleMeta {
+	return model.ModuleMeta{
+		ID:             m.ID,
+		Name:           m.Name,
+		Description:    m.Description,
+		Tags:           m.Tags,
+		License:        m.License,
+		Author:         m.Author,
+		Version:        m.Version,
+		Type:           m.Type,
+		DeploymentType: m.DeploymentType,
+		ModuleExtra:    m.ModuleExtra,
+	}
+}
