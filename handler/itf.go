@@ -95,8 +95,6 @@ type CewJobHandler interface {
 	AwaitJob(ctx context.Context, jID string) (cew_model.Job, error)
 }
 
-type Validator func(params map[string]any) error
-
 type CfgValidationHandler interface {
 	ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error
 	ValidateTypeOptions(cType string, cTypeOpt module.ConfigTypeOptions) error
@@ -110,6 +108,8 @@ type JobHandler interface {
 	Create(desc string, tFunc func(context.Context, context.CancelFunc) error) (string, error)
 	Cancel(id string) error
 }
+
+type Validator func(params map[string]any) error
 
 type StageItem interface {
 	Module() *module.Module
