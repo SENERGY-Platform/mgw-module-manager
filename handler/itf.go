@@ -19,7 +19,6 @@ package handler
 import (
 	"context"
 	"database/sql/driver"
-	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
@@ -89,10 +88,6 @@ type DepStorageHandler interface {
 	DeleteInst(ctx context.Context, iID string) error
 	ListInstCtr(ctx context.Context, iID string, filter model.CtrFilter) ([]model.Container, error)
 	CreateInstCtr(ctx context.Context, tx driver.Tx, iID, cID, sRef string, order uint) error
-}
-
-type CewJobHandler interface {
-	AwaitJob(ctx context.Context, jID string) (cew_model.Job, error)
 }
 
 type CfgValidationHandler interface {
