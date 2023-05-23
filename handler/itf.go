@@ -55,6 +55,10 @@ type ModTransferHandler interface {
 	Get(ctx context.Context, mID, ver string) (dir_fs.DirFS, error)
 }
 
+type ModStagingHandler interface {
+	Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string, updateReq bool) (map[string]model.StageInfo, dir_fs.DirFS, error)
+}
+
 type DeploymentHandler interface {
 	List(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
 	Get(ctx context.Context, dID string) (*model.Deployment, error)
