@@ -38,6 +38,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_storage_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/job_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_staging_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_storage_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_transfer_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/modfile_hdl"
@@ -170,7 +171,13 @@ func main() {
 		}
 	}()
 
-	mApi := api.New(modHandler, depHandler, jobHandler)
+	modStagingHandler := mod_staging_hdl.New(config.ModStagingHandler.WorkdirPath, 0770, modTransferHandler, modFileHandler, cfgValidHandler, cewJobHandler, cewClient, time.Duration(config.HttpClient.Timeout))
+	if err := modStagingHandler.InitWorkspace(); err != nil {
+		util.Logger.Error(err)
+		return
+	}
+
+	mApi := api.New(modHandler, modStagingHandler, depHandler, jobHandler)
 
 	gin.SetMode(gin.ReleaseMode)
 	httpHandler := gin.New()
