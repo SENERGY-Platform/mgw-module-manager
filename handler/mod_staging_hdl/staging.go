@@ -153,7 +153,7 @@ func (h *Handler) add(ctx context.Context, modules map[string]*module.Module, st
 	if err != nil {
 		return err
 	}
-	stgInfo[m.ID] = model.StageInfo{
+	stgInfo[m.ID] = model.StageItem{
 		Module:   m,
 		ModFile:  name,
 		DirName:  path.Base(modPth),
