@@ -37,7 +37,6 @@ import (
 
 type Handler struct {
 	wrkSpcPath              string
-	perm                    fs.FileMode
 	transferHandler         handler.ModTransferHandler
 	modFileHandler          handler.ModFileHandler
 	configValidationHandler handler.CfgValidationHandler
@@ -45,10 +44,9 @@ type Handler struct {
 	httpTimeout             time.Duration
 }
 
-func New(workspacePath string, perm fs.FileMode, transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler, configValidationHandler handler.CfgValidationHandler, cewClient client.CewClient, httpTimeout time.Duration) *Handler {
+func New(workspacePath string, transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler, configValidationHandler handler.CfgValidationHandler, cewClient client.CewClient, httpTimeout time.Duration) *Handler {
 	return &Handler{
 		wrkSpcPath:              workspacePath,
-		perm:                    perm,
 		transferHandler:         transferHandler,
 		modFileHandler:          modFileHandler,
 		configValidationHandler: configValidationHandler,
@@ -57,8 +55,8 @@ func New(workspacePath string, perm fs.FileMode, transferHandler handler.ModTran
 	}
 }
 
-func (h *Handler) InitWorkspace() error {
-	if err := os.MkdirAll(h.wrkSpcPath, h.perm); err != nil {
+func (h *Handler) InitWorkspace(perm fs.FileMode) error {
+	if err := os.MkdirAll(h.wrkSpcPath, perm); err != nil {
 		return err
 	}
 	return nil

@@ -168,8 +168,8 @@ func main() {
 		}
 	}()
 
-	modStagingHandler := mod_staging_hdl.New(config.ModStagingHandler.WorkdirPath, 0770, modTransferHandler, modFileHandler, cfgValidHandler, cewClient, time.Duration(config.HttpClient.Timeout))
-	if err := modStagingHandler.InitWorkspace(); err != nil {
+	modStagingHandler := mod_staging_hdl.New(config.ModStagingHandler.WorkdirPath, modTransferHandler, modFileHandler, cfgValidHandler, cewClient, time.Duration(config.HttpClient.Timeout))
+	if err := modStagingHandler.InitWorkspace(0770); err != nil {
 		util.Logger.Error(err)
 		return
 	}
