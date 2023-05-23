@@ -56,7 +56,7 @@ func New(storageHandler handler.ModStorageHandler, transferHandler handler.ModTr
 	}
 }
 
-func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
+func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Module, error) {
 	return h.storageHandler.List(ctx, filter)
 }
 
