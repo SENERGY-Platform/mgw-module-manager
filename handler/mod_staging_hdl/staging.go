@@ -31,6 +31,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
 	"os"
+	"path"
 	"sort"
 	"time"
 )
@@ -56,6 +57,9 @@ func New(workspacePath string, transferHandler handler.ModTransferHandler, modFi
 }
 
 func (h *Handler) InitWorkspace(perm fs.FileMode) error {
+	if !path.IsAbs(h.wrkSpcPath) {
+		return fmt.Errorf("workspace path must be absolute")
+	}
 	if err := os.MkdirAll(h.wrkSpcPath, perm); err != nil {
 		return err
 	}
