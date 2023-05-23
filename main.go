@@ -92,12 +92,8 @@ func main() {
 
 	modFileHandler := modfile_hdl.New(mfDecoders, mfGenerators)
 
-	modStorageHandler, err := mod_storage_hdl.New(config.ModStorageHandler.WorkdirPath, 0770, modFileHandler)
-	if err != nil {
-		util.Logger.Error(err)
-		return
-	}
-	if err := modStorageHandler.Init(); err != nil {
+	modStorageHandler := mod_storage_hdl.New(config.ModStorageHandler.WorkdirPath, modFileHandler)
+	if err = modStorageHandler.Init(0770); err != nil {
 		util.Logger.Error(err)
 		return
 	}

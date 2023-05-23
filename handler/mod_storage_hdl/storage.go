@@ -33,26 +33,24 @@ import (
 
 type Handler struct {
 	wrkSpcPath     string
-	perm           fs.FileMode
 	modFileHandler handler.ModFileHandler
 	indexHandler   *indexHandler
 	modules        map[string]model.Module
 }
 
-func New(workspacePath string, perm fs.FileMode, modFileHandler handler.ModFileHandler) (*Handler, error) {
-	if !path.IsAbs(workspacePath) {
-		return nil, fmt.Errorf("workspace path must be absolute")
-	}
+func New(workspacePath string, modFileHandler handler.ModFileHandler) *Handler {
 	return &Handler{
 		wrkSpcPath:     workspacePath,
-		perm:           perm,
 		modFileHandler: modFileHandler,
 		indexHandler:   newIndexHandler(workspacePath),
-	}, nil
+	}
 }
 
-func (h *Handler) Init() error {
-	if err := os.MkdirAll(h.wrkSpcPath, h.perm); err != nil {
+func (h *Handler) Init(perm fs.FileMode) error {
+	if !path.IsAbs(h.wrkSpcPath) {
+		return fmt.Errorf("workspace path must be absolute")
+	}
+	if err := os.MkdirAll(h.wrkSpcPath, perm); err != nil {
 		return err
 	}
 	if err := h.indexHandler.Init(); err != nil {
