@@ -36,7 +36,15 @@ func (a *Api) AddModule(_ context.Context, mr model.ModRequest) (string, error) 
 }
 
 func (a *Api) GetModules(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
-	return a.moduleHandler.List(ctx, filter)
+	modules, err := a.moduleHandler.List(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	var metaList []model.ModuleMeta
+	for _, m := range modules {
+		metaList = append(metaList, getModMeta(m))
+	}
+	return metaList, nil
 }
 
 func (a *Api) GetModule(ctx context.Context, id string) (model.Module, error) {
