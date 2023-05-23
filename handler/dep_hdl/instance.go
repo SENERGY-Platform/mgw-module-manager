@@ -24,6 +24,7 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/cew_job"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 	"path"
@@ -132,7 +133,7 @@ func (h *Handler) stopContainer(ctx context.Context, cID string) error {
 	if err != nil {
 		return model.NewInternalError(err)
 	}
-	job, err := h.cewJobHandler.AwaitJob(ctx, jID)
+	job, err := cew_job.Await(ctx, h.cewClient, jID, h.httpTimeout)
 	if err != nil {
 		return err
 	}

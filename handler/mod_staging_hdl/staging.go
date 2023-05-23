@@ -27,6 +27,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/cew_job"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
 	"os"
@@ -40,19 +41,17 @@ type Handler struct {
 	transferHandler         handler.ModTransferHandler
 	modFileHandler          handler.ModFileHandler
 	configValidationHandler handler.CfgValidationHandler
-	cewJobHandler           handler.CewJobHandler
 	cewClient               client.CewClient
 	httpTimeout             time.Duration
 }
 
-func New(workspacePath string, perm fs.FileMode, transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler, configValidationHandler handler.CfgValidationHandler, cewJobHandler handler.CewJobHandler, cewClient client.CewClient, httpTimeout time.Duration) *Handler {
+func New(workspacePath string, perm fs.FileMode, transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler, configValidationHandler handler.CfgValidationHandler, cewClient client.CewClient, httpTimeout time.Duration) *Handler {
 	return &Handler{
 		wrkSpcPath:              workspacePath,
 		perm:                    perm,
 		transferHandler:         transferHandler,
 		modFileHandler:          modFileHandler,
 		configValidationHandler: configValidationHandler,
-		cewJobHandler:           cewJobHandler,
 		cewClient:               cewClient,
 		httpTimeout:             httpTimeout,
 	}
@@ -172,7 +171,7 @@ func (h *Handler) addImage(ctx context.Context, img string) error {
 	if err != nil {
 		return model.NewInternalError(err)
 	}
-	job, err := h.cewJobHandler.AwaitJob(ctx, jID)
+	job, err := cew_job.Await(ctx, h.cewClient, jID, h.httpTimeout)
 	if err != nil {
 		return err
 	}

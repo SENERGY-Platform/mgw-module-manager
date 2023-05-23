@@ -31,7 +31,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/api"
 	"github.com/SENERGY-Platform/mgw-module-manager/api/http_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler/cew_job_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl/validators"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_hdl"
@@ -137,10 +136,8 @@ func main() {
 	}
 	defer db.Close()
 
-	cewJobHandler := cew_job_hdl.New(cewClient, time.Duration(config.HttpClient.Timeout))
-
 	depStorageHandler := dep_storage_hdl.New(db)
-	depHandler, err := dep_hdl.New(depStorageHandler, cfgValidHandler, cewJobHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, 0770)
+	depHandler, err := dep_hdl.New(depStorageHandler, cfgValidHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, 0770)
 	if err != nil {
 		util.Logger.Error(err)
 		return
@@ -171,7 +168,7 @@ func main() {
 		}
 	}()
 
-	modStagingHandler := mod_staging_hdl.New(config.ModStagingHandler.WorkdirPath, 0770, modTransferHandler, modFileHandler, cfgValidHandler, cewJobHandler, cewClient, time.Duration(config.HttpClient.Timeout))
+	modStagingHandler := mod_staging_hdl.New(config.ModStagingHandler.WorkdirPath, 0770, modTransferHandler, modFileHandler, cfgValidHandler, cewClient, time.Duration(config.HttpClient.Timeout))
 	if err := modStagingHandler.InitWorkspace(); err != nil {
 		util.Logger.Error(err)
 		return
