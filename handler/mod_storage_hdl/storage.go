@@ -18,6 +18,7 @@ package mod_storage_hdl
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
@@ -35,6 +36,7 @@ type Handler struct {
 	perm           fs.FileMode
 	modFileHandler handler.ModFileHandler
 	indexHandler   *indexHandler
+	modules        map[string]model.Module
 }
 
 func New(workspacePath string, perm fs.FileMode, modFileHandler handler.ModFileHandler) (*Handler, error) {
@@ -53,28 +55,18 @@ func (h *Handler) InitWorkspace() error {
 	if err := os.MkdirAll(h.wrkSpcPath, h.perm); err != nil {
 		return err
 	}
-	return h.indexHandler.Init()
+	if err := h.indexHandler.Init(); err != nil {
+		return err
+	}
+	h.loadModules()
+	return nil
 }
 
 func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Module, error) {
-	items := h.indexHandler.List()
 	var mm []model.Module
-	for _, i := range items {
-		f, err := os.Open(path.Join(h.wrkSpcPath, i.Dir, i.ModFile))
-		if err != nil {
-			util.Logger.Error(err)
-			continue
-		}
-		m, err := h.modFileHandler.GetModule(f)
-		if err != nil {
-			util.Logger.Error(err)
-			continue
-		}
-		if filterMod(filter, m) {
-			mm = append(mm, model.Module{
-				Module:      m,
-				ModuleExtra: getModExtra(i),
-			})
+	for _, m := range h.modules {
+		if filterMod(filter, m.Module) {
+			mm = append(mm, m)
 		}
 		if ctx.Err() != nil {
 			return nil, model.NewInternalError(ctx.Err())
@@ -83,16 +75,20 @@ func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Mod
 	return mm, nil
 }
 
-func (h *Handler) Get(ctx context.Context, mID string) (model.Module, error) {
-	m, _, err := h.GetDir(ctx, mID)
-	if err != nil {
-		return model.Module{}, err
+func (h *Handler) Get(_ context.Context, mID string) (model.Module, error) {
+	m, ok := h.modules[mID]
+	if !ok {
+		return model.Module{}, model.NewNotFoundError(errors.New("module not found"))
 	}
 	return m, nil
 }
 
 func (h *Handler) GetDir(_ context.Context, mID string) (model.Module, dir_fs.DirFS, error) {
-	i, err := h.indexHandler.Get(mID)
+	m, ok := h.modules[mID]
+	if !ok {
+		return model.Module{}, "", model.NewNotFoundError(errors.New("module not found"))
+	}
+	i, err := h.indexHandler.Get(m.ID)
 	if err != nil {
 		return model.Module{}, "", err
 	}
@@ -100,18 +96,7 @@ func (h *Handler) GetDir(_ context.Context, mID string) (model.Module, dir_fs.Di
 	if err != nil {
 		return model.Module{}, "", model.NewInternalError(err)
 	}
-	f, err := dir.Open(i.ModFile)
-	if err != nil {
-		return model.Module{}, "", model.NewInternalError(err)
-	}
-	m, err := h.modFileHandler.GetModule(f)
-	if err != nil {
-		return model.Module{}, "", err
-	}
-	return model.Module{
-		Module:      m,
-		ModuleExtra: getModExtra(i),
-	}, dir, nil
+	return m, dir, nil
 }
 
 func (h *Handler) Add(_ context.Context, mod model.Module, modDir dir_fs.DirFS, modFile string) error {
@@ -124,6 +109,7 @@ func (h *Handler) Add(_ context.Context, mod model.Module, modDir dir_fs.DirFS, 
 	if err != nil {
 		return model.NewInternalError(err)
 	}
+	h.modules[mod.ID] = mod
 	return nil
 }
 
@@ -132,10 +118,36 @@ func (h *Handler) Delete(_ context.Context, mID string) error {
 	if err != nil {
 		return err
 	}
-	if err := os.RemoveAll(path.Join(h.wrkSpcPath, i.Dir)); err != nil {
+	if err = os.RemoveAll(path.Join(h.wrkSpcPath, i.Dir)); err != nil {
 		return model.NewInternalError(err)
 	}
-	return h.indexHandler.Delete(mID)
+	if err = h.indexHandler.Delete(mID); err != nil {
+		return model.NewInternalError(err)
+	}
+	delete(h.modules, mID)
+	return nil
+}
+
+func (h *Handler) loadModules() {
+	items := h.indexHandler.List()
+	h.modules = make(map[string]model.Module)
+	for _, i := range items {
+		f, err := os.Open(path.Join(h.wrkSpcPath, i.Dir, i.ModFile))
+		if err != nil {
+			util.Logger.Error(err)
+			continue
+		}
+		m, err := h.modFileHandler.GetModule(f)
+		if err != nil {
+			util.Logger.Error(err)
+			continue
+		}
+		h.modules[m.ID] = model.Module{
+			Module:      m,
+			ModuleExtra: getModExtra(i),
+		}
+	}
+	return
 }
 
 func filterMod(filter model.ModFilter, m *module.Module) bool {
