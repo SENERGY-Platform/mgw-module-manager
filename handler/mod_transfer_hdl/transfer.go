@@ -34,23 +34,21 @@ import (
 
 type Handler struct {
 	wrkSpcPath  string
-	perm        fs.FileMode
 	httpTimeout time.Duration
 }
 
-func New(workspacePath string, perm fs.FileMode, httpTimeout time.Duration) (*Handler, error) {
-	if !path.IsAbs(workspacePath) {
-		return nil, fmt.Errorf("workspace path must be absolute")
-	}
+func New(workspacePath string, httpTimeout time.Duration) *Handler {
 	return &Handler{
 		wrkSpcPath:  workspacePath,
-		perm:        perm,
 		httpTimeout: httpTimeout,
-	}, nil
+	}
 }
 
-func (h *Handler) InitWorkspace() error {
-	if err := os.MkdirAll(h.wrkSpcPath, h.perm); err != nil {
+func (h *Handler) InitWorkspace(perm fs.FileMode) error {
+	if !path.IsAbs(h.wrkSpcPath) {
+		return fmt.Errorf("workspace path must be absolute")
+	}
+	if err := os.MkdirAll(h.wrkSpcPath, perm); err != nil {
 		return err
 	}
 	return nil
