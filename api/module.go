@@ -20,14 +20,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/input_tmplt"
+	"os"
 )
 
 func (a *Api) AddModule(_ context.Context, mr model.ModRequest) (string, error) {
 	return a.jobHandler.Create(fmt.Sprintf("add module '%s'", mr.ID), func(ctx context.Context, cf context.CancelFunc) error {
 		defer cf()
-		err := a.moduleHandler.Add(ctx, mr)
+		err := a.addModule(ctx, mr)
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -93,6 +95,33 @@ func (a *Api) modDeployed(ctx context.Context, id string) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func (a *Api) addModule(ctx context.Context, mr model.ModRequest) error {
+	modules, err := a.moduleHandler.List(ctx, model.ModFilter{})
+	if err != nil {
+		return err
+	}
+	modMap := make(map[string]*module.Module)
+	for _, m := range modules {
+		modMap[m.ID] = m.Module
+	}
+	stgInfo, stgDir, err := a.modStagingHandler.Prepare(ctx, modMap, mr.ID, mr.Version, false)
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(stgDir.Path())
+	for _, info := range stgInfo {
+		modDir, err := stgDir.Sub(info.DirName)
+		if err != nil {
+			return err
+		}
+		err = a.moduleHandler.Add(ctx, info.Module, modDir, info.ModFile, info.Indirect)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func getModMeta(m model.Module) model.ModuleMeta {
