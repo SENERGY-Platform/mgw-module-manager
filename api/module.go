@@ -23,7 +23,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/input_tmplt"
-	"os"
 )
 
 func (a *Api) AddModule(_ context.Context, mr model.ModRequest) (string, error) {
@@ -106,17 +105,13 @@ func (a *Api) addModule(ctx context.Context, mr model.ModRequest) error {
 	for _, m := range modules {
 		modMap[m.ID] = m.Module
 	}
-	stgInfo, stgDir, err := a.modStagingHandler.Prepare(ctx, modMap, mr.ID, mr.Version, false)
+	stage, err := a.modStagingHandler.Prepare(ctx, modMap, mr.ID, mr.Version, false)
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(stgDir.Path())
-	for _, info := range stgInfo {
-		modDir, err := stgDir.Sub(info.DirName)
-		if err != nil {
-			return err
-		}
-		err = a.moduleHandler.Add(ctx, info.Module, modDir, info.ModFile, info.Indirect)
+	defer stage.Remove()
+	for _, item := range stage.Items() {
+		err = a.moduleHandler.Add(ctx, item.Module(), item.Dir(), item.ModFile(), item.Indirect())
 		if err != nil {
 			return err
 		}
