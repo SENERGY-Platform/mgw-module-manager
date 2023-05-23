@@ -23,7 +23,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-lib/validation"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
@@ -35,24 +34,16 @@ import (
 )
 
 type Handler struct {
-	storageHandler          handler.ModStorageHandler
-	transferHandler         handler.ModTransferHandler
-	modFileHandler          handler.ModFileHandler
-	configValidationHandler handler.CfgValidationHandler
-	cewJobHandler           handler.CewJobHandler
-	cewClient               client.CewClient
-	httpTimeout             time.Duration
+	storageHandler handler.ModStorageHandler
+	cewClient      client.CewClient
+	httpTimeout    time.Duration
 }
 
-func New(storageHandler handler.ModStorageHandler, transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler, configValidationHandler handler.CfgValidationHandler, cewJobHandler handler.CewJobHandler, cewClient client.CewClient, httpTimeout time.Duration) *Handler {
+func New(storageHandler handler.ModStorageHandler, cewClient client.CewClient, httpTimeout time.Duration) *Handler {
 	return &Handler{
-		storageHandler:          storageHandler,
-		transferHandler:         transferHandler,
-		modFileHandler:          modFileHandler,
-		configValidationHandler: configValidationHandler,
-		cewJobHandler:           cewJobHandler,
-		cewClient:               cewClient,
-		httpTimeout:             httpTimeout,
+		storageHandler: storageHandler,
+		cewClient:      cewClient,
+		httpTimeout:    httpTimeout,
 	}
 }
 
