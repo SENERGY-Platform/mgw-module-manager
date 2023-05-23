@@ -137,8 +137,8 @@ func main() {
 	defer db.Close()
 
 	depStorageHandler := dep_storage_hdl.New(db)
-	depHandler, err := dep_hdl.New(depStorageHandler, cfgValidHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, 0770)
-	if err != nil {
+	depHandler := dep_hdl.New(depStorageHandler, cfgValidHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath)
+	if err = depHandler.InitWorkspace(0770); err != nil {
 		util.Logger.Error(err)
 		return
 	}

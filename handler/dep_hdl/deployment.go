@@ -42,13 +42,9 @@ type Handler struct {
 	dbTimeout      time.Duration
 	httpTimeout    time.Duration
 	wrkSpcPath     string
-	perm           fs.FileMode
 }
 
-func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient client.CewClient, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath string, perm fs.FileMode) (*Handler, error) {
-	if !path.IsAbs(workspacePath) {
-		return nil, fmt.Errorf("workspace path must be absolute")
-	}
+func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient client.CewClient, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath string) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cfgVltHandler:  cfgVltHandler,
@@ -56,12 +52,14 @@ func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgVali
 		dbTimeout:      dbTimeout,
 		httpTimeout:    httpTimeout,
 		wrkSpcPath:     workspacePath,
-		perm:           perm,
-	}, nil
+	}
 }
 
-func (h *Handler) InitWorkspace() error {
-	if err := os.MkdirAll(h.wrkSpcPath, h.perm); err != nil {
+func (h *Handler) InitWorkspace(perm fs.FileMode) error {
+	if !path.IsAbs(h.wrkSpcPath) {
+		return fmt.Errorf("workspace path must be absolute")
+	}
+	if err := os.MkdirAll(h.wrkSpcPath, perm); err != nil {
 		return err
 	}
 	return nil
