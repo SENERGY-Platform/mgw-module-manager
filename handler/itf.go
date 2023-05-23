@@ -110,3 +110,16 @@ type JobHandler interface {
 	Create(desc string, tFunc func(context.Context, context.CancelFunc) error) (string, error)
 	Cancel(id string) error
 }
+
+type StageItem interface {
+	Module() *module.Module
+	ModFile() string
+	Dir() dir_fs.DirFS
+	Indirect() bool
+}
+
+type Stage interface {
+	Item(mID string) StageItem
+	Items() map[string]StageItem
+	Remove() error
+}
