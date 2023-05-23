@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package model
+package cfg_valid_hdl
 
 import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"

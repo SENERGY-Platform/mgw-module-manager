@@ -22,18 +22,17 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"os"
 	"regexp"
 	"strings"
 )
 
 type Handler struct {
-	definitions map[string]model.ConfigDefinition
+	definitions map[string]ConfigDefinition
 	validators  map[string]handler.Validator
 }
 
-func New(definitions map[string]model.ConfigDefinition, validators map[string]handler.Validator) (*Handler, error) {
+func New(definitions map[string]ConfigDefinition, validators map[string]handler.Validator) (*Handler, error) {
 	if err := validateDefs(definitions, validators); err != nil {
 		return nil, err
 	}
@@ -149,7 +148,7 @@ func vltValSlInOpt[T comparable](val any, opt any) (bool, error) {
 	return k, nil
 }
 
-func vltValSlice[T any](cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]handler.Validator, value any) error {
+func vltValSlice[T any](cDefVlts []ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]handler.Validator, value any) error {
 	valSl, ok := value.([]T)
 	if !ok {
 		return fmt.Errorf("invlaid data type: %T != %T", value, *new(T))
@@ -162,21 +161,21 @@ func vltValSlice[T any](cDefVlts []model.ConfigDefinitionValidator, cTypeOpts mo
 	return nil
 }
 
-func LoadDefs(path string) (map[string]model.ConfigDefinition, error) {
+func LoadDefs(path string) (map[string]ConfigDefinition, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 	decoder := json.NewDecoder(file)
-	var d map[string]model.ConfigDefinition
+	var d map[string]ConfigDefinition
 	if err = decoder.Decode(&d); err != nil {
 		return nil, err
 	}
 	return d, nil
 }
 
-func validateDefs(configDefs map[string]model.ConfigDefinition, validators map[string]handler.Validator) error {
+func validateDefs(configDefs map[string]ConfigDefinition, validators map[string]handler.Validator) error {
 	// missing tests and needs to be cleaned up
 	for ref, cDef := range configDefs {
 		if cDef.DataType == nil || len(cDef.DataType) == 0 {
@@ -211,7 +210,7 @@ func validateDefs(configDefs map[string]model.ConfigDefinition, validators map[s
 	return nil
 }
 
-func vltBase(cDef model.ConfigDefinition, cTypeOpts module.ConfigTypeOptions, dataType module.DataType) error {
+func vltBase(cDef ConfigDefinition, cTypeOpts module.ConfigTypeOptions, dataType module.DataType) error {
 	if _, ok := cDef.DataType[dataType]; !ok {
 		return fmt.Errorf("data type '%s' not supported", dataType)
 	}
@@ -241,7 +240,7 @@ func vltBase(cDef model.ConfigDefinition, cTypeOpts module.ConfigTypeOptions, da
 	return nil
 }
 
-func genVltOptParams(cDefVltParams map[string]model.ConfigDefinitionValidatorParam, cTypeOpts module.ConfigTypeOptions) map[string]any {
+func genVltOptParams(cDefVltParams map[string]ConfigDefinitionValidatorParam, cTypeOpts module.ConfigTypeOptions) map[string]any {
 	vp := make(map[string]any)
 	for name, cDefVP := range cDefVltParams {
 		if cDefVP.Ref != nil {
@@ -272,7 +271,7 @@ func genVltOptParams(cDefVltParams map[string]model.ConfigDefinitionValidatorPar
 	return vp
 }
 
-func vltTypeOpts(cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]handler.Validator) error {
+func vltTypeOpts(cDefVlts []ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]handler.Validator) error {
 	for _, cDefVlt := range cDefVlts {
 		p := genVltOptParams(cDefVlt.Parameter, cTypeOpts)
 		if len(p) > 0 {
@@ -289,7 +288,7 @@ func vltTypeOpts(cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.Co
 	return nil
 }
 
-func genVltValParams(cDefVltParams map[string]model.ConfigDefinitionValidatorParam, cTypeOpts module.ConfigTypeOptions, value any) map[string]any {
+func genVltValParams(cDefVltParams map[string]ConfigDefinitionValidatorParam, cTypeOpts module.ConfigTypeOptions, value any) map[string]any {
 	vp := make(map[string]any)
 	for name, cDefVP := range cDefVltParams {
 		if cDefVP.Ref != nil {
@@ -324,7 +323,7 @@ func genVltValParams(cDefVltParams map[string]model.ConfigDefinitionValidatorPar
 	return vp
 }
 
-func vltValue(cDefVlts []model.ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]handler.Validator, value any) error {
+func vltValue(cDefVlts []ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]handler.Validator, value any) error {
 	for _, cDefVlt := range cDefVlts {
 		p := genVltValParams(cDefVlt.Parameter, cTypeOpts, value)
 		if len(p) > 0 {

@@ -21,13 +21,12 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"reflect"
 	"testing"
 )
 
 func TestGenVltOptParams(t *testing.T) {
-	cDefVP := make(map[string]model.ConfigDefinitionValidatorParam)
+	cDefVP := make(map[string]ConfigDefinitionValidatorParam)
 	var cTypeO module.ConfigTypeOptions
 	if b := genVltOptParams(cDefVP, cTypeO); len(b) != 0 {
 		t.Errorf("len(%v) != 0", b)
@@ -36,7 +35,7 @@ func TestGenVltOptParams(t *testing.T) {
 	str := "test"
 	vRef := "value"
 	oRef := ".opt"
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: str,
 		Ref:   nil,
 	}
@@ -48,7 +47,7 @@ func TestGenVltOptParams(t *testing.T) {
 		t.Errorf("%v != %v", a, b)
 	}
 	// ------------------------------
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: str,
 		Ref:   &vRef,
 	}
@@ -58,7 +57,7 @@ func TestGenVltOptParams(t *testing.T) {
 	}
 	// ------------------------------
 	cTypeO = make(module.ConfigTypeOptions)
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: str,
 		Ref:   &oRef,
 	}
@@ -68,7 +67,7 @@ func TestGenVltOptParams(t *testing.T) {
 	}
 	// ------------------------------
 	cTypeO.SetString("opt", str)
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: nil,
 		Ref:   &oRef,
 	}
@@ -77,7 +76,7 @@ func TestGenVltOptParams(t *testing.T) {
 		t.Errorf("%v != %v", a, b)
 	}
 	// ------------------------------
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: "val",
 		Ref:   &oRef,
 	}
@@ -86,7 +85,7 @@ func TestGenVltOptParams(t *testing.T) {
 		t.Errorf("%v != %v", a, b)
 	}
 	// ------------------------------
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: nil,
 		Ref:   &vRef,
 	}
@@ -94,7 +93,7 @@ func TestGenVltOptParams(t *testing.T) {
 		t.Errorf("len(%v) != 0", b)
 	}
 	// ------------------------------
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: nil,
 		Ref:   &vRef,
 	}
@@ -103,7 +102,7 @@ func TestGenVltOptParams(t *testing.T) {
 	}
 	// ------------------------------
 	oRef2 := ".opt2"
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: nil,
 		Ref:   &oRef2,
 	}
@@ -113,7 +112,7 @@ func TestGenVltOptParams(t *testing.T) {
 }
 
 func TestGenVltValParams(t *testing.T) {
-	cDefVP := make(map[string]model.ConfigDefinitionValidatorParam)
+	cDefVP := make(map[string]ConfigDefinitionValidatorParam)
 	var cTypeO module.ConfigTypeOptions
 	if b := genVltValParams(cDefVP, cTypeO, nil); len(b) != 0 {
 		t.Errorf("len(%v) != 0", b)
@@ -122,7 +121,7 @@ func TestGenVltValParams(t *testing.T) {
 	str := "test"
 	vRef := "value"
 	oRef := ".opt"
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: str,
 		Ref:   nil,
 	}
@@ -134,7 +133,7 @@ func TestGenVltValParams(t *testing.T) {
 		t.Errorf("%v != %v", a, b)
 	}
 	// ------------------------------
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: nil,
 		Ref:   &vRef,
 	}
@@ -143,7 +142,7 @@ func TestGenVltValParams(t *testing.T) {
 		t.Errorf("%v != %v", a, b)
 	}
 	// ------------------------------
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: "test2",
 		Ref:   &vRef,
 	}
@@ -153,7 +152,7 @@ func TestGenVltValParams(t *testing.T) {
 	}
 	// ------------------------------
 	cTypeO = make(module.ConfigTypeOptions)
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: str,
 		Ref:   &oRef,
 	}
@@ -162,7 +161,7 @@ func TestGenVltValParams(t *testing.T) {
 		t.Errorf("%v != %v", a, b)
 	}
 	// ------------------------------
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: nil,
 		Ref:   &oRef,
 	}
@@ -171,7 +170,7 @@ func TestGenVltValParams(t *testing.T) {
 	}
 	// ------------------------------
 	cTypeO.SetString("opt", str)
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: nil,
 		Ref:   &oRef,
 	}
@@ -180,7 +179,7 @@ func TestGenVltValParams(t *testing.T) {
 		t.Errorf("%v != %v", a, b)
 	}
 	// ------------------------------
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: "test2",
 		Ref:   &oRef,
 	}
@@ -189,7 +188,7 @@ func TestGenVltValParams(t *testing.T) {
 		t.Errorf("%v != %v", a, b)
 	}
 	// ------------------------------
-	cDefVP[""] = model.ConfigDefinitionValidatorParam{
+	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: nil,
 		Ref:   &vRef,
 	}
@@ -199,16 +198,16 @@ func TestGenVltValParams(t *testing.T) {
 }
 
 func TestVltOptions(t *testing.T) {
-	var cDefVlts []model.ConfigDefinitionValidator
+	var cDefVlts []ConfigDefinitionValidator
 	vlts := make(map[string]handler.Validator)
 	if err := vltTypeOpts(cDefVlts, nil, vlts); err != nil {
 		t.Error("err != nil")
 	}
 	// ------------------------------
-	cDefVlts = []model.ConfigDefinitionValidator{
+	cDefVlts = []ConfigDefinitionValidator{
 		{
 			Name: "vlt",
-			Parameter: map[string]model.ConfigDefinitionValidatorParam{
+			Parameter: map[string]ConfigDefinitionValidatorParam{
 				"": {
 					Value: "val",
 					Ref:   nil,
@@ -235,10 +234,10 @@ func TestVltOptions(t *testing.T) {
 	}
 	// ------------------------------
 	vRef := "value"
-	cDefVlts = []model.ConfigDefinitionValidator{
+	cDefVlts = []ConfigDefinitionValidator{
 		{
 			Name: "vlt",
-			Parameter: map[string]model.ConfigDefinitionValidatorParam{
+			Parameter: map[string]ConfigDefinitionValidatorParam{
 				"a": {
 					Value: "val",
 					Ref:   nil,
@@ -256,16 +255,16 @@ func TestVltOptions(t *testing.T) {
 }
 
 func TestVltValue(t *testing.T) {
-	var cDefVlts []model.ConfigDefinitionValidator
+	var cDefVlts []ConfigDefinitionValidator
 	vlts := make(map[string]handler.Validator)
 	if err := vltValue(cDefVlts, nil, vlts, nil); err != nil {
 		t.Error("err != nil")
 	}
 	// ------------------------------
-	cDefVlts = []model.ConfigDefinitionValidator{
+	cDefVlts = []ConfigDefinitionValidator{
 		{
 			Name: "vlt",
-			Parameter: map[string]model.ConfigDefinitionValidatorParam{
+			Parameter: map[string]ConfigDefinitionValidatorParam{
 				"": {
 					Value: "val",
 					Ref:   nil,
@@ -292,10 +291,10 @@ func TestVltValue(t *testing.T) {
 	}
 	// ------------------------------
 	vRef := "value"
-	cDefVlts = []model.ConfigDefinitionValidator{
+	cDefVlts = []ConfigDefinitionValidator{
 		{
 			Name: "vlt",
-			Parameter: map[string]model.ConfigDefinitionValidatorParam{
+			Parameter: map[string]ConfigDefinitionValidatorParam{
 				"a": {
 					Value: "val",
 					Ref:   nil,
@@ -313,7 +312,7 @@ func TestVltValue(t *testing.T) {
 }
 
 func TestVltBase(t *testing.T) {
-	var cDef model.ConfigDefinition
+	var cDef ConfigDefinition
 	var cTypeOpts module.ConfigTypeOptions
 	if err := vltBase(cDef, cTypeOpts, ""); err == nil {
 		t.Error("err == nil")
@@ -321,7 +320,7 @@ func TestVltBase(t *testing.T) {
 	// ------------------------------
 	dt := "dt"
 	opt := "opt"
-	cDef = model.ConfigDefinition{
+	cDef = ConfigDefinition{
 		DataType:   util.Set[string]{dt: {}},
 		Options:    nil,
 		Validators: nil,
@@ -330,9 +329,9 @@ func TestVltBase(t *testing.T) {
 		t.Error("err != nil")
 	}
 	// ------------------------------
-	cDef = model.ConfigDefinition{
+	cDef = ConfigDefinition{
 		DataType: util.Set[string]{dt: {}},
-		Options: map[string]model.ConfigDefinitionOption{
+		Options: map[string]ConfigDefinitionOption{
 			opt: {},
 		},
 		Validators: nil,
@@ -341,9 +340,9 @@ func TestVltBase(t *testing.T) {
 		t.Error("err != nil")
 	}
 	// ------------------------------
-	cDef = model.ConfigDefinition{
+	cDef = ConfigDefinition{
 		DataType: util.Set[string]{dt: {}},
-		Options: map[string]model.ConfigDefinitionOption{
+		Options: map[string]ConfigDefinitionOption{
 			opt: {
 				Required: true,
 			},
@@ -356,7 +355,7 @@ func TestVltBase(t *testing.T) {
 	// ------------------------------
 	cTypeOpts = make(module.ConfigTypeOptions)
 	cTypeOpts.SetString(opt, dt)
-	cDef = model.ConfigDefinition{
+	cDef = ConfigDefinition{
 		DataType:   util.Set[string]{dt: {}},
 		Options:    nil,
 		Validators: nil,
@@ -365,9 +364,9 @@ func TestVltBase(t *testing.T) {
 		t.Error("err == nil")
 	}
 	// ------------------------------
-	cDef = model.ConfigDefinition{
+	cDef = ConfigDefinition{
 		DataType: util.Set[string]{dt: {}},
-		Options: map[string]model.ConfigDefinitionOption{
+		Options: map[string]ConfigDefinitionOption{
 			opt: {},
 		},
 		Validators: nil,
@@ -376,9 +375,9 @@ func TestVltBase(t *testing.T) {
 		t.Error("err == nil")
 	}
 	// ------------------------------
-	cDef = model.ConfigDefinition{
+	cDef = ConfigDefinition{
 		DataType: util.Set[string]{dt: {}},
-		Options: map[string]model.ConfigDefinitionOption{
+		Options: map[string]ConfigDefinitionOption{
 			opt: {
 				DataType: util.Set[string]{dt: {}},
 			},
@@ -389,9 +388,9 @@ func TestVltBase(t *testing.T) {
 		t.Error("err == nil")
 	}
 	// ------------------------------
-	cDef = model.ConfigDefinition{
+	cDef = ConfigDefinition{
 		DataType: util.Set[string]{dt: {}},
-		Options: map[string]model.ConfigDefinitionOption{
+		Options: map[string]ConfigDefinitionOption{
 			opt: {
 				Inherit: true,
 			},
@@ -402,9 +401,9 @@ func TestVltBase(t *testing.T) {
 		t.Error("err == nil")
 	}
 	// ------------------------------
-	cDef = model.ConfigDefinition{
+	cDef = ConfigDefinition{
 		DataType: util.Set[string]{dt: {}},
-		Options: map[string]model.ConfigDefinitionOption{
+		Options: map[string]ConfigDefinitionOption{
 			opt: {
 				DataType: util.Set[string]{module.StringType: {}},
 			},
@@ -415,9 +414,9 @@ func TestVltBase(t *testing.T) {
 		t.Error("err != nil")
 	}
 	// ------------------------------
-	cDef = model.ConfigDefinition{
+	cDef = ConfigDefinition{
 		DataType: util.Set[string]{module.StringType: {}},
-		Options: map[string]model.ConfigDefinitionOption{
+		Options: map[string]ConfigDefinitionOption{
 			opt: {
 				Inherit: true,
 			},
