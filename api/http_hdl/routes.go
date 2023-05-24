@@ -20,6 +20,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
+	"sort"
 )
 
 func SetRoutes(e *gin.Engine, a lib.Api) {
@@ -38,4 +39,16 @@ func SetRoutes(e *gin.Engine, a lib.Api) {
 	e.GET("/"+model.JobsPath, getJobsH(a))
 	e.GET("/"+model.JobsPath+"/:"+jobIdParam, getJobH(a))
 	e.POST("/"+model.JobsPath+"/:"+jobIdParam+"/"+model.JobsCancelPath, postJobCancelH(a))
+}
+
+func GetRoutes(e *gin.Engine) [][2]string {
+	routes := e.Routes()
+	sort.Slice(routes, func(i, j int) bool {
+		return routes[i].Path < routes[j].Path
+	})
+	var rInfo [][2]string
+	for _, info := range routes {
+		rInfo = append(rInfo, [2]string{info.Method, info.Path})
+	}
+	return rInfo
 }
