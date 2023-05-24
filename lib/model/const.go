@@ -19,6 +19,12 @@ package model
 const ServiceName = "mgw-module-manager"
 
 const (
+	HeaderRequestID = "X-Request-ID"
+	HeaderApiVer    = "X-Api-Version"
+	HeaderSrvName   = "X-Service"
+)
+
+const (
 	StartCmd = "start"
 	StopCmd  = "stop"
 )
