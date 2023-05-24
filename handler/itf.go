@@ -113,7 +113,7 @@ type StageItem interface {
 }
 
 type Stage interface {
-	Item(mID string) StageItem
+	Get(mID string) StageItem
 	Items() map[string]StageItem
 	Remove() error
 }

@@ -39,7 +39,7 @@ type item struct {
 	indirect bool
 }
 
-func (s stage) Item(mID string) handler.StageItem {
+func (s stage) Get(mID string) handler.StageItem {
 	return s.items[mID]
 }
 
