@@ -118,3 +118,9 @@ type Stage interface {
 	Items() map[string]StageItem
 	Remove() error
 }
+
+type ModRepo interface {
+	Versions() []string
+	Get(ver string) (dir_fs.DirFS, bool)
+	Remove() error
+}
