@@ -180,6 +180,7 @@ func main() {
 	httpHandler.UseRawPath = true
 
 	http_hdl.SetRoutes(httpHandler, mApi)
+	util.Logger.Debugf("routes: %s", srv_base.ToJsonStr(http_hdl.GetRoutes(httpHandler)))
 
 	listener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
