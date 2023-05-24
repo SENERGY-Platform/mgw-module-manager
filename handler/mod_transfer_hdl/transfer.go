@@ -19,6 +19,7 @@ package mod_transfer_hdl
 import (
 	"context"
 	"fmt"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
@@ -54,16 +55,27 @@ func (h *Handler) InitWorkspace(perm fs.FileMode) error {
 	return nil
 }
 
-func (h *Handler) ListVersions(ctx context.Context, mID string) ([]string, error) {
-	dir, err := os.MkdirTemp(h.wrkSpcPath, "list_")
+func (h *Handler) Get(ctx context.Context, mID string) (handler.ModRepo, error) {
+	rPth, err := os.MkdirTemp(h.wrkSpcPath, "repo_")
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() {
+		if err != nil {
+			os.RemoveAll(rPth)
+		}
+	}()
+	var cPth string
+	cPth, err = os.MkdirTemp(rPth, "clone_")
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	defer os.RemoveAll(cPth)
 	rPath, mPath := parseModID(mID)
 	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
 	defer cf()
-	repo, err := git.PlainCloneContext(ctxWt, dir, false, &git.CloneOptions{
+	var repo *git.Repository
+	repo, err = git.PlainCloneContext(ctxWt, cPth, false, &git.CloneOptions{
 		URL:               "https://" + rPath + ".git",
 		NoCheckout:        true,
 		RecurseSubmodules: git.NoRecurseSubmodules,
@@ -72,19 +84,70 @@ func (h *Handler) ListVersions(ctx context.Context, mID string) ([]string, error
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
-	iter, err := repo.Tags()
+	var versions map[string]dir_fs.DirFS
+	versions, err = getVersions(repo, rPth, cPth, mPath)
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
+	return &modRepo{
+		versions: versions,
+		path:     rPth,
+	}, nil
+}
+
+func parseModID(mID string) (repo string, pth string) {
+	c := strings.Count(mID, "/")
+	if c > 2 {
+		i := strings.LastIndex(mID, "/")
+		repo = mID[:i]
+		pth = mID[i+1:]
+	} else {
+		repo = mID
+	}
+	return
+}
+
+func storeVersion(wt *git.Worktree, hash plumbing.Hash, rPath, cPath, mPath string) (dir_fs.DirFS, error) {
+	if err := wt.Checkout(&git.CheckoutOptions{
+		Hash:  hash,
+		Force: true,
+	}); err != nil {
+		return "", err
+	}
+	vPth, err := os.MkdirTemp(rPath, "ver_")
+	if err != nil {
+		return "", err
+	}
+	err = util.CopyDir(path.Join(cPath, mPath), vPth)
+	if err != nil {
+		return "", err
+	}
+	os.RemoveAll(path.Join(vPth, ".git"))
+	dir, err := dir_fs.New(vPth)
+	if err != nil {
+		return "", err
+	}
+	return dir, nil
+}
+
+func getVersions(repo *git.Repository, rPath, cPath, mPath string) (map[string]dir_fs.DirFS, error) {
+	wt, err := repo.Worktree()
+	if err != nil {
+		return nil, err
+	}
+	iter, err := repo.Tags()
+	if err != nil {
+		return nil, err
+	}
 	defer iter.Close()
-	var versions []string
+	versions := make(map[string]dir_fs.DirFS)
 	for {
 		ref, err := iter.Next()
 		if err != nil {
 			if err == io.EOF {
 				break
 			}
-			return nil, model.NewInternalError(err)
+			return nil, err
 		}
 		tag := ref.Name().Short()
 		var ver string
@@ -101,69 +164,11 @@ func (h *Handler) ListVersions(ctx context.Context, mID string) ([]string, error
 				continue
 			}
 		}
-		versions = append(versions, ver)
+		vDir, err := storeVersion(wt, ref.Hash(), rPath, cPath, mPath)
+		if err != nil {
+			return nil, err
+		}
+		versions[ver] = vDir
 	}
 	return versions, nil
-}
-
-func (h *Handler) Get(ctx context.Context, mID, ver string) (dir dir_fs.DirFS, err error) {
-	tDir, err := os.MkdirTemp(h.wrkSpcPath, "clone_")
-	if err != nil {
-		return "", model.NewInternalError(err)
-	}
-	defer func() {
-		if err != nil {
-			os.RemoveAll(tDir)
-		}
-	}()
-	rPath, mPath := parseModID(mID)
-	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
-	defer cf()
-	_, err = git.PlainCloneContext(ctxWt, tDir, false, &git.CloneOptions{
-		URL:               "https://" + rPath + ".git",
-		ReferenceName:     plumbing.NewTagReferenceName(path.Join(mPath, ver)),
-		SingleBranch:      true,
-		Depth:             1,
-		RecurseSubmodules: git.NoRecurseSubmodules,
-		Tags:              git.NoTags,
-	})
-	if err != nil {
-		return "", model.NewInternalError(err)
-	}
-	var p string
-	if mPath == "" {
-		err = os.RemoveAll(path.Join(tDir, ".git"))
-		if err != nil {
-			return "", model.NewInternalError(err)
-		}
-		p = tDir
-	} else {
-		p, err = os.MkdirTemp(h.wrkSpcPath, "clone_")
-		if err != nil {
-			return "", model.NewInternalError(err)
-		}
-		err = util.CopyDir(path.Join(tDir, mPath), p)
-		if err != nil {
-			os.RemoveAll(p)
-			return "", model.NewInternalError(err)
-		}
-		os.RemoveAll(tDir)
-	}
-	dir, err = dir_fs.New(p)
-	if err != nil {
-		return "", model.NewInternalError(err)
-	}
-	return dir, nil
-}
-
-func parseModID(mID string) (repo string, pth string) {
-	c := strings.Count(mID, "/")
-	if c > 2 {
-		i := strings.LastIndex(mID, "/")
-		repo = mID[:i]
-		pth = mID[i+1:]
-	} else {
-		repo = mID
-	}
-	return
 }
