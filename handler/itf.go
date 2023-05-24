@@ -50,8 +50,7 @@ type ModStorageHandler interface {
 }
 
 type ModTransferHandler interface {
-	ListVersions(ctx context.Context, mID string) ([]string, error)
-	Get(ctx context.Context, mID, ver string) (dir_fs.DirFS, error)
+	Get(ctx context.Context, mID string) (ModRepo, error)
 }
 
 type ModStagingHandler interface {
