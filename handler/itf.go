@@ -120,6 +120,6 @@ type Stage interface {
 
 type ModRepo interface {
 	Versions() []string
-	Get(ver string) (dir_fs.DirFS, bool)
+	Get(ver string) (dir_fs.DirFS, error)
 	Remove() error
 }
