@@ -21,8 +21,6 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"io"
@@ -70,7 +68,6 @@ func (h *Handler) Get(ctx context.Context, mID string) (handler.ModRepo, error) 
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
-	defer os.RemoveAll(cPth)
 	rPath, mPath := parseModID(mID)
 	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
 	defer cf()
@@ -84,13 +81,16 @@ func (h *Handler) Get(ctx context.Context, mID string) (handler.ModRepo, error) 
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
-	var versions map[string]dir_fs.DirFS
-	versions, err = getVersions(repo, rPth, cPth, mPath)
+	var versions map[string]plumbing.Hash
+	versions, err = getVersions(repo, mPath)
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
 	return &modRepo{
 		versions: versions,
+		git:      repo,
+		gitPath:  cPth,
+		modPath:  mPath,
 		path:     rPth,
 	}, nil
 }
@@ -107,40 +107,13 @@ func parseModID(mID string) (repo string, pth string) {
 	return
 }
 
-func storeVersion(wt *git.Worktree, hash plumbing.Hash, rPath, cPath, mPath string) (dir_fs.DirFS, error) {
-	if err := wt.Checkout(&git.CheckoutOptions{
-		Hash:  hash,
-		Force: true,
-	}); err != nil {
-		return "", err
-	}
-	vPth, err := os.MkdirTemp(rPath, "ver_")
-	if err != nil {
-		return "", err
-	}
-	err = util.CopyDir(path.Join(cPath, mPath), vPth)
-	if err != nil {
-		return "", err
-	}
-	os.RemoveAll(path.Join(vPth, ".git"))
-	dir, err := dir_fs.New(vPth)
-	if err != nil {
-		return "", err
-	}
-	return dir, nil
-}
-
-func getVersions(repo *git.Repository, rPath, cPath, mPath string) (map[string]dir_fs.DirFS, error) {
-	wt, err := repo.Worktree()
-	if err != nil {
-		return nil, err
-	}
+func getVersions(repo *git.Repository, mPath string) (map[string]plumbing.Hash, error) {
 	iter, err := repo.Tags()
 	if err != nil {
 		return nil, err
 	}
 	defer iter.Close()
-	versions := make(map[string]dir_fs.DirFS)
+	versions := make(map[string]plumbing.Hash)
 	for {
 		ref, err := iter.Next()
 		if err != nil {
@@ -164,11 +137,7 @@ func getVersions(repo *git.Repository, rPath, cPath, mPath string) (map[string]d
 				continue
 			}
 		}
-		vDir, err := storeVersion(wt, ref.Hash(), rPath, cPath, mPath)
-		if err != nil {
-			return nil, err
-		}
-		versions[ver] = vDir
+		versions[ver] = ref.Hash()
 	}
 	return versions, nil
 }
