@@ -86,9 +86,14 @@ func (h *Handler) Get(ctx context.Context, mID string) (handler.ModRepo, error) 
 	if err != nil {
 		return nil, model.NewInternalError(err)
 	}
+	var wt *git.Worktree
+	wt, err = repo.Worktree()
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
 	return &modRepo{
 		versions: versions,
-		git:      repo,
+		gitWt:    wt,
 		gitPath:  cPth,
 		modPath:  mPath,
 		path:     rPth,

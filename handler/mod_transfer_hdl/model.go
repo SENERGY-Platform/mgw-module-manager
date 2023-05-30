@@ -29,7 +29,7 @@ import (
 
 type modRepo struct {
 	versions map[string]plumbing.Hash
-	git      *git.Repository
+	gitWt    *git.Worktree
 	gitPath  string
 	modPath  string
 	path     string
@@ -49,11 +49,7 @@ func (r *modRepo) Get(ver string) (dir_fs.DirFS, error) {
 	if !ok {
 		return "", errors.New("version not found")
 	}
-	wt, err := r.git.Worktree()
-	if err != nil {
-		return "", err
-	}
-	if err := wt.Checkout(&git.CheckoutOptions{
+	if err := r.gitWt.Checkout(&git.CheckoutOptions{
 		Hash:  hash,
 		Force: true,
 	}); err != nil {
