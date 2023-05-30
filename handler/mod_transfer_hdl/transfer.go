@@ -27,6 +27,7 @@ import (
 	"io/fs"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -118,6 +119,13 @@ func getVersions(repo *git.Repository, mPath string) (map[string]plumbing.Hash, 
 		return nil, err
 	}
 	defer iter.Close()
+	var regex *regexp.Regexp
+	if mPath != "" {
+		regex, err = regexp.Compile(`^` + strings.Replace(mPath, "/", "\\/", 0) + `\/(v[0-9]+(?:\.[0-9]+){0,2})$`)
+		if err != nil {
+			return nil, err
+		}
+	}
 	versions := make(map[string]plumbing.Hash)
 	for {
 		ref, err := iter.Next()
@@ -129,9 +137,10 @@ func getVersions(repo *git.Repository, mPath string) (map[string]plumbing.Hash, 
 		}
 		tag := ref.Name().Short()
 		var ver string
-		if mPath != "" {
-			if strings.Contains(tag, mPath) {
-				ver = strings.Replace(tag, mPath+"/", "", 1)
+		if regex != nil {
+			matches := regex.FindStringSubmatch(tag)
+			if len(matches) == 2 {
+				ver = matches[1]
 			} else {
 				continue
 			}
