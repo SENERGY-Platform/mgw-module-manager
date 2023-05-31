@@ -39,30 +39,31 @@ type item struct {
 	indirect bool
 }
 
-func (s stage) Get(mID string) handler.StageItem {
-	return s.items[mID]
+func (s *stage) Get(mID string) (handler.StageItem, bool) {
+	i, ok := s.items[mID]
+	return i, ok
 }
 
-func (s stage) Items() map[string]handler.StageItem {
+func (s *stage) Items() map[string]handler.StageItem {
 	return s.items
 }
 
-func (s stage) Remove() error {
+func (s *stage) Remove() error {
 	return os.RemoveAll(s.path)
 }
 
-func (i item) Module() *module.Module {
+func (i *item) Module() *module.Module {
 	return i.module
 }
 
-func (i item) ModFile() string {
+func (i *item) ModFile() string {
 	return i.modFile
 }
 
-func (i item) Dir() dir_fs.DirFS {
+func (i *item) Dir() dir_fs.DirFS {
 	return i.dir
 }
 
-func (i item) Indirect() bool {
+func (i *item) Indirect() bool {
 	return i.indirect
 }
