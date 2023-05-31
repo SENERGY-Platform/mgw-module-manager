@@ -108,6 +108,7 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, mID, ver, verRn
 		if err != nil {
 			return err
 		}
+		defer modRepo.Remove()
 		if ver == "" {
 			var err error
 			ver, err = getVersion(modRepo.Versions(), verRng)
@@ -119,7 +120,6 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, mID, ver, verRn
 		if err != nil {
 			return err
 		}
-		defer os.RemoveAll(dir.Path())
 		modFile, modFileName, err := h.modFileHandler.GetModFile(dir)
 		if err != nil {
 			return err
