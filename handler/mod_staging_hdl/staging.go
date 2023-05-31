@@ -32,7 +32,6 @@ import (
 	"io/fs"
 	"os"
 	"path"
-	"sort"
 	"time"
 )
 
@@ -66,7 +65,7 @@ func (h *Handler) InitWorkspace(perm fs.FileMode) error {
 	return nil
 }
 
-func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string, updateReq bool) (handler.Stage, error) {
+func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string, dependencies bool) (handler.Stage, error) {
 	stgPth, err := os.MkdirTemp(h.wrkSpcPath, "stg_")
 	if err != nil {
 		return nil, model.NewInternalError(err)
@@ -77,7 +76,8 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 		cewClient:   h.cewClient,
 		httpTimeout: h.httpTimeout,
 	}
-	err = h.add(ctx, modules, stg, mID, ver, "", false, updateReq)
+	items := make(map[string]handler.StageItem)
+	err = h.getStageItems(ctx, items, mID, ver, "", stgPth, false, dependencies)
 	if err != nil {
 		stg.Remove()
 		return nil, err
@@ -85,83 +85,79 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	return stg, nil
 }
 
-func (h *Handler) add(ctx context.Context, modules map[string]*module.Module, stg *stage, mID, ver, verRng string, indirect, updateReq bool) error {
-	if ver == "" {
-		var err error
-		ver, err = h.getVersion(ctx, mID, verRng)
+func (h *Handler) getStageItems(ctx context.Context, items map[string]handler.StageItem, mID, ver, verRng, stgPath string, indirect bool, dependencies bool) error {
+	if i, ok := items[mID]; !ok {
+		modRepo, err := h.transferHandler.Get(ctx, mID)
 		if err != nil {
 			return err
 		}
-	} else {
-		if !sem_ver.IsValidSemVer(ver) {
-			return model.NewInvalidInputError(fmt.Errorf("version '%s' invalid", ver))
-		}
-	}
-	trfDir, err := h.transferHandler.Get(ctx, mID, ver)
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(trfDir.Path())
-	f, name, err := h.modFileHandler.GetModFile(trfDir)
-	if err != nil {
-		return err
-	}
-	m, err := h.modFileHandler.GetModule(f)
-	if err != nil {
-		return err
-	}
-	if err = h.validateModule(m, mID, ver); err != nil {
-		return err
-	}
-	if indirect && m.DeploymentType == module.MultipleDeployment {
-		return model.NewInternalError(fmt.Errorf("dependencies with deployment type '%s' not supported", module.MultipleDeployment))
-	}
-	for dmID, dmVerRng := range m.Dependencies {
-		dm, ok := modules[dmID]
-		if !ok {
-			err = h.add(ctx, modules, stg, dmID, "", dmVerRng, true, updateReq)
+		if ver == "" {
+			var err error
+			ver, err = getVersion(modRepo.Versions(), verRng)
 			if err != nil {
 				return err
 			}
-			continue
 		}
-		if dm.DeploymentType == module.MultipleDeployment {
-			return model.NewInternalError(fmt.Errorf("dependencies with deployment type '%s' not supported", module.MultipleDeployment))
-		}
-		if updateReq {
-
-		}
-		ok, err := sem_ver.InSemVerRange(dmVerRng, dm.Version)
-		if err != nil {
-			return model.NewInternalError(err)
-		}
-		if !ok {
-			return fmt.Errorf("'%s' of '%s' does not satsify '%s'", dm.Version, dm.ID, dmVerRng)
-		}
-	}
-	for _, srv := range m.Services {
-		err = h.addImage(ctx, srv.Image)
+		dir, err := modRepo.Get(ver)
 		if err != nil {
 			return err
 		}
-	}
-	modPth, err := os.MkdirTemp(stg.path, "mod_")
-	if err != nil {
-		return err
-	}
-	err = util.CopyDir(trfDir.Path(), modPth)
-	if err != nil {
-		return err
-	}
-	modDir, err := dir_fs.New(modPth)
-	if err != nil {
-		return err
-	}
-	stg.items[m.ID] = item{
-		module:   m,
-		modFile:  name,
-		dir:      modDir,
-		indirect: indirect,
+		defer os.RemoveAll(dir.Path())
+		modFile, modFileName, err := h.modFileHandler.GetModFile(dir)
+		if err != nil {
+			return err
+		}
+		mod, err := h.modFileHandler.GetModule(modFile)
+		if err != nil {
+			return err
+		}
+		if err = h.validateModule(mod, mID, ver); err != nil {
+			return err
+		}
+		if indirect && mod.DeploymentType == module.MultipleDeployment {
+			return fmt.Errorf("dependencies with deployment type '%s' not supported", module.MultipleDeployment)
+		}
+		for _, srv := range mod.Services {
+			err = h.addImage(ctx, srv.Image)
+			if err != nil {
+				return err
+			}
+		}
+		modPth, err := os.MkdirTemp(stgPath, "mod_")
+		if err != nil {
+			return err
+		}
+		err = util.CopyDir(dir.Path(), modPth)
+		if err != nil {
+			return err
+		}
+		modDir, err := dir_fs.New(modPth)
+		if err != nil {
+			return err
+		}
+		items[mID] = &item{
+			module:   mod,
+			modFile:  modFileName,
+			dir:      modDir,
+			indirect: indirect,
+		}
+		if dependencies {
+			for rmID, rmVerRng := range mod.Dependencies {
+				err = h.getStageItems(ctx, items, rmID, "", rmVerRng, stgPath, true, dependencies)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	} else {
+		mod := i.Module()
+		ok, err := sem_ver.InSemVerRange(verRng, mod.Version)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return errors.New("version can not be satisfied")
+		}
 	}
 	return nil
 }
@@ -183,15 +179,10 @@ func (h *Handler) addImage(ctx context.Context, img string) error {
 	return nil
 }
 
-func (h *Handler) getVersion(ctx context.Context, mID, verRng string) (string, error) {
-	verList, err := h.transferHandler.ListVersions(ctx, mID)
-	if err != nil {
-		return "", err
-	}
-	sort.Strings(verList)
+func getVersion(versions []string, verRng string) (string, error) {
 	var ver string
-	for i := len(verList) - 1; i >= 0; i-- {
-		v := verList[i]
+	for i := len(versions) - 1; i >= 0; i-- {
+		v := versions[i]
 		if verRng != "" {
 			ok, _ := sem_ver.InSemVerRange(verRng, v)
 			if ok {
