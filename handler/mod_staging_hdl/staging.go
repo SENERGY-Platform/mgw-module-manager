@@ -168,12 +168,14 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, mID, ver, verRn
 		}
 	} else {
 		mod := i.Module()
-		ok, err := sem_ver.InSemVerRange(verRng, mod.Version)
-		if err != nil {
-			return err
-		}
-		if !ok {
-			return errors.New("version can not be satisfied")
+		if verRng != "" {
+			ok, err := sem_ver.InSemVerRange(verRng, mod.Version)
+			if err != nil {
+				return err
+			}
+			if !ok {
+				return fmt.Errorf("module '%s' at '%s' but '%s' requires '%s'", mID, mod.Version, reqBy, verRng)
+			}
 		}
 	}
 	return nil
