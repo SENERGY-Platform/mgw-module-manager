@@ -18,7 +18,6 @@ package mod_storage_hdl
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
@@ -76,7 +75,7 @@ func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Mod
 func (h *Handler) Get(_ context.Context, mID string) (model.Module, error) {
 	m, ok := h.modules[mID]
 	if !ok {
-		return model.Module{}, model.NewNotFoundError(errors.New("module not found"))
+		return model.Module{}, model.NewNotFoundError(fmt.Errorf("module '%s' not found", mID))
 	}
 	return m, nil
 }
@@ -84,7 +83,7 @@ func (h *Handler) Get(_ context.Context, mID string) (model.Module, error) {
 func (h *Handler) GetDir(_ context.Context, mID string) (model.Module, dir_fs.DirFS, error) {
 	m, ok := h.modules[mID]
 	if !ok {
-		return model.Module{}, "", model.NewNotFoundError(errors.New("module not found"))
+		return model.Module{}, "", model.NewNotFoundError(fmt.Errorf("module '%s' not found", mID))
 	}
 	i, err := h.indexHandler.Get(m.ID)
 	if err != nil {
