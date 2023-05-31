@@ -19,6 +19,7 @@ package mod_storage_hdl
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"io"
 	"io/fs"
@@ -92,7 +93,7 @@ func (h *indexHandler) Add(id, dir, modFile string, indirect bool, timestamp tim
 	defer h.mu.Unlock()
 	_, ok := h.index[id]
 	if ok {
-		return model.NewInvalidInputError(errors.New("already exists"))
+		return model.NewInvalidInputError(fmt.Errorf("module '%s' already installed", id))
 	}
 	h.index[id] = item{
 		ID:       id,
