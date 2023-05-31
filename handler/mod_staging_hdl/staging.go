@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	"github.com/SENERGY-Platform/mgw-module-lib/validation"
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
@@ -78,6 +79,22 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	}
 	items := make(map[string]handler.StageItem)
 	err = h.getStageItems(ctx, items, mID, ver, "", stgPth, false, dependencies)
+	if err != nil {
+		stg.Remove()
+		return nil, err
+	}
+	nodes := make(tsort.Nodes)
+	for _, si := range stg.items {
+		m := si.Module()
+		if len(m.Dependencies) > 0 {
+			reqIDs := make(map[string]struct{})
+			for i := range m.Dependencies {
+				reqIDs[i] = struct{}{}
+			}
+			nodes.Add(m.ID, reqIDs, nil)
+		}
+	}
+	_, err = tsort.GetTopOrder(nodes)
 	if err != nil {
 		stg.Remove()
 		return nil, err
