@@ -47,7 +47,7 @@ func (r *modRepo) Versions() []string {
 func (r *modRepo) Get(ver string) (dir_fs.DirFS, error) {
 	hash, ok := r.versions[ver]
 	if !ok {
-		return "", errors.New("version not found")
+		return "", errors.New("not found")
 	}
 	if err := r.gitWt.Checkout(&git.CheckoutOptions{
 		Hash:  hash,
