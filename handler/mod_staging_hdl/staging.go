@@ -77,8 +77,7 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 		cewClient:   h.cewClient,
 		httpTimeout: h.httpTimeout,
 	}
-	items := make(map[string]handler.StageItem)
-	err = h.getStageItems(ctx, items, mID, ver, "", stgPth, false, dependencies)
+	err = h.getStageItems(ctx, stg, mID, ver, "", stgPth, "", false, dependencies)
 	if err != nil {
 		stg.Remove()
 		return nil, err
@@ -102,8 +101,9 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	return stg, nil
 }
 
-func (h *Handler) getStageItems(ctx context.Context, items map[string]handler.StageItem, mID, ver, verRng, stgPath string, indirect bool, dependencies bool) error {
-	if i, ok := items[mID]; !ok {
+func (h *Handler) getStageItems(ctx context.Context, stg *stage, mID, ver, verRng, stgPath, reqBy string, indirect bool, dependencies bool) error {
+	i, ok := stg.items[mID]
+	if !ok {
 		modRepo, err := h.transferHandler.Get(ctx, mID)
 		if err != nil {
 			return err
@@ -152,7 +152,7 @@ func (h *Handler) getStageItems(ctx context.Context, items map[string]handler.St
 		if err != nil {
 			return err
 		}
-		items[mID] = &item{
+		stg.items[mID] = &item{
 			module:   mod,
 			modFile:  modFileName,
 			dir:      modDir,
@@ -160,7 +160,7 @@ func (h *Handler) getStageItems(ctx context.Context, items map[string]handler.St
 		}
 		if dependencies {
 			for rmID, rmVerRng := range mod.Dependencies {
-				err = h.getStageItems(ctx, items, rmID, "", rmVerRng, stgPath, true, dependencies)
+				err = h.getStageItems(ctx, stg, rmID, "", rmVerRng, stgPath, mID, true, dependencies)
 				if err != nil {
 					return err
 				}
