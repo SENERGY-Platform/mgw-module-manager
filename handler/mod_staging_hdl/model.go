@@ -26,26 +26,51 @@ import (
 )
 
 type stage struct {
-	items       map[string]handler.StageItem
+	modules     map[string]*module.Module
+	items       map[string]modExtra
 	path        string
 	cewClient   client.CewClient
 	httpTimeout time.Duration
 }
 
 type item struct {
-	module   *module.Module
+	module *module.Module
+	modExtra
+}
+
+type modExtra struct {
 	modFile  string
 	dir      dir_fs.DirFS
 	indirect bool
 }
 
 func (s *stage) Get(mID string) (handler.StageItem, bool) {
-	i, ok := s.items[mID]
-	return i, ok
+	extra, ok := s.items[mID]
+	return &item{module: s.modules[mID], modExtra: extra}, ok
 }
 
 func (s *stage) Items() map[string]handler.StageItem {
-	return s.items
+	items := make(map[string]handler.StageItem)
+	for mID, extra := range s.items {
+		items[mID] = &item{
+			module:   s.modules[mID],
+			modExtra: extra,
+		}
+	}
+	return items
+}
+
+func (s *stage) addItem(mod *module.Module, modFile string, dir dir_fs.DirFS, indirect bool) {
+	s.items[mod.ID] = modExtra{
+		modFile:  modFile,
+		dir:      dir,
+		indirect: indirect,
+	}
+	s.addMod(mod)
+}
+
+func (s *stage) addMod(mod *module.Module) {
+	s.modules[mod.ID] = mod
 }
 
 func (s *stage) Remove() error {
