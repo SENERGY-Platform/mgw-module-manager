@@ -104,81 +104,82 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	return stg, nil
 }
 
-func (h *Handler) getStageItems(ctx context.Context, stg *stage, mID, ver, verRng, stgPath, reqBy string, indirect bool, dependencies bool) error {
-	i, ok := stg.items[mID]
+func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[string]*module.Module, mID, ver, verRng, stgPath, reqBy string, indirect bool, dependencies bool) error {
+	mod, ok := modules[mID]
 	if !ok {
-		modRepo, err := h.transferHandler.Get(ctx, mID)
-		if err != nil {
-			return err
-		}
-		defer modRepo.Remove()
-		if ver == "" {
-			var err error
-			ver, err = getVersion(modRepo.Versions(), verRng)
+		if i, ok := stg.Get(mID); !ok {
+			modRepo, err := h.transferHandler.Get(ctx, mID)
 			if err != nil {
 				return err
 			}
-		}
-		dir, err := modRepo.Get(ver)
-		if err != nil {
-			return err
-		}
-		modFile, modFileName, err := h.modFileHandler.GetModFile(dir)
-		if err != nil {
-			return err
-		}
-		mod, err := h.modFileHandler.GetModule(modFile)
-		if err != nil {
-			return err
-		}
-		if err = h.validateModule(mod, mID, ver); err != nil {
-			return err
-		}
-		if indirect && mod.DeploymentType == module.MultipleDeployment {
-			return fmt.Errorf("dependencies with deployment type '%s' not supported", module.MultipleDeployment)
-		}
-		for _, srv := range mod.Services {
-			err = h.addImage(ctx, srv.Image)
-			if err != nil {
-				return err
-			}
-		}
-		modPth, err := os.MkdirTemp(stgPath, "mod_")
-		if err != nil {
-			return err
-		}
-		err = util.CopyDir(dir.Path(), modPth)
-		if err != nil {
-			return err
-		}
-		modDir, err := dir_fs.New(modPth)
-		if err != nil {
-			return err
-		}
-		stg.items[mID] = &item{
-			module:   mod,
-			modFile:  modFileName,
-			dir:      modDir,
-			indirect: indirect,
-		}
-		if dependencies {
-			for rmID, rmVerRng := range mod.Dependencies {
-				err = h.getStageItems(ctx, stg, rmID, "", rmVerRng, stgPath, mID, true, dependencies)
+			defer modRepo.Remove()
+			if ver == "" {
+				var err error
+				ver, err = getVersion(modRepo.Versions(), verRng)
 				if err != nil {
 					return err
 				}
 			}
-		}
-	} else {
-		mod := i.Module()
-		if verRng != "" {
-			ok, err := sem_ver.InSemVerRange(verRng, mod.Version)
+			dir, err := modRepo.Get(ver)
 			if err != nil {
 				return err
 			}
-			if !ok {
-				return fmt.Errorf("module '%s' at '%s' but '%s' requires '%s'", mID, mod.Version, reqBy, verRng)
+			modFile, modFileName, err := h.modFileHandler.GetModFile(dir)
+			if err != nil {
+				return err
 			}
+			mod, err = h.modFileHandler.GetModule(modFile)
+			if err != nil {
+				return err
+			}
+			if err = h.validateModule(mod, mID, ver); err != nil {
+				return err
+			}
+			if indirect && mod.DeploymentType == module.MultipleDeployment {
+				return fmt.Errorf("dependencies with deployment type '%s' not supported", module.MultipleDeployment)
+			}
+			for _, srv := range mod.Services {
+				err = h.addImage(ctx, srv.Image)
+				if err != nil {
+					return err
+				}
+			}
+			modPth, err := os.MkdirTemp(stgPath, "mod_")
+			if err != nil {
+				return err
+			}
+			err = util.CopyDir(dir.Path(), modPth)
+			if err != nil {
+				return err
+			}
+			modDir, err := dir_fs.New(modPth)
+			if err != nil {
+				return err
+			}
+			stg.addItem(mod, modFileName, modDir, indirect)
+			if dependencies {
+				for rmID, rmVerRng := range mod.Dependencies {
+					err = h.getStageItems(ctx, stg, modules, rmID, "", rmVerRng, stgPath, mID, true, dependencies)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		} else {
+			mod = i.Module()
+		}
+	} else {
+		if _, ok = stg.modules[mID]; !ok {
+			stg.addMod(mod)
+		}
+	}
+	if verRng != "" {
+		ok, err := sem_ver.InSemVerRange(verRng, mod.Version)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return fmt.Errorf("module '%s' at '%s' but '%s' requires '%s'", mID, mod.Version, reqBy, verRng)
 		}
 	}
 	return nil
