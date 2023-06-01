@@ -105,7 +105,7 @@ func (a *Api) addModule(ctx context.Context, mr model.ModRequest) error {
 	for _, m := range modules {
 		modMap[m.ID] = m.Module
 	}
-	stage, err := a.modStagingHandler.Prepare(ctx, modMap, mr.ID, mr.Version, false)
+	stage, err := a.modStagingHandler.Prepare(ctx, modMap, mr.ID, mr.Version)
 	if err != nil {
 		return err
 	}

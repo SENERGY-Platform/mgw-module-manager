@@ -66,7 +66,7 @@ func (h *Handler) InitWorkspace(perm fs.FileMode) error {
 	return nil
 }
 
-func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string, dependencies bool) (handler.Stage, error) {
+func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string) (handler.Stage, error) {
 	stgPth, err := os.MkdirTemp(h.wrkSpcPath, "stg_")
 	if err != nil {
 		return nil, model.NewInternalError(err)
@@ -83,7 +83,7 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 			stg.Remove()
 		}
 	}()
-	err = h.getStageItems(ctx, stg, modules, mID, ver, "", stgPth, "", false, dependencies)
+	err = h.getStageItems(ctx, stg, modules, mID, ver, "", stgPth, "", false)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	return stg, nil
 }
 
-func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[string]*module.Module, mID, ver, verRng, stgPath, reqBy string, indirect bool, dependencies bool) error {
+func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[string]*module.Module, mID, ver, verRng, stgPath, reqBy string, indirect bool) error {
 	mod, ok := modules[mID]
 	if !ok {
 		if i, ok := stg.Get(mID); !ok {
@@ -157,12 +157,10 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[str
 				return err
 			}
 			stg.addItem(mod, modFileName, modDir, indirect)
-			if dependencies {
-				for rmID, rmVerRng := range mod.Dependencies {
-					err = h.getStageItems(ctx, stg, modules, rmID, "", rmVerRng, stgPath, mID, true, dependencies)
-					if err != nil {
-						return err
-					}
+			for rmID, rmVerRng := range mod.Dependencies {
+				err = h.getStageItems(ctx, stg, modules, rmID, "", rmVerRng, stgPath, mID, true)
+				if err != nil {
+					return err
 				}
 			}
 		} else {

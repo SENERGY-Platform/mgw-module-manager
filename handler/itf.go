@@ -54,7 +54,7 @@ type ModTransferHandler interface {
 }
 
 type ModStagingHandler interface {
-	Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string, dependencies bool) (Stage, error)
+	Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string) (Stage, error)
 }
 
 type DeploymentHandler interface {
