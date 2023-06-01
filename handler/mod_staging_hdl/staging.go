@@ -101,6 +101,14 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	if err != nil {
 		return nil, err
 	}
+	for _, stageItem := range stg.Items() {
+		for _, srv := range stageItem.Module().Services {
+			err = h.addImage(ctx, srv.Image)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
 	return stg, nil
 }
 
@@ -137,12 +145,6 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[str
 			}
 			if indirect && mod.DeploymentType == module.MultipleDeployment {
 				return fmt.Errorf("dependencies with deployment type '%s' not supported", module.MultipleDeployment)
-			}
-			for _, srv := range mod.Services {
-				err = h.addImage(ctx, srv.Image)
-				if err != nil {
-					return err
-				}
 			}
 			modPth, err := os.MkdirTemp(stgPath, "mod_")
 			if err != nil {
