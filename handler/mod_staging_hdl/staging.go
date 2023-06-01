@@ -78,9 +78,13 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 		cewClient:   h.cewClient,
 		httpTimeout: h.httpTimeout,
 	}
-	err = h.getStageItems(ctx, stg, mID, ver, "", stgPth, "", false, dependencies)
+	defer func() {
+		if err != nil {
+			stg.Remove()
+		}
+	}()
+	err = h.getStageItems(ctx, stg, modules, mID, ver, "", stgPth, "", false, dependencies)
 	if err != nil {
-		stg.Remove()
 		return nil, err
 	}
 	nodes := make(tsort.Nodes)
@@ -95,7 +99,6 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	}
 	_, err = tsort.GetTopOrder(nodes)
 	if err != nil {
-		stg.Remove()
 		return nil, err
 	}
 	return stg, nil
