@@ -72,7 +72,8 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 		return nil, model.NewInternalError(err)
 	}
 	stg := &stage{
-		items:       make(map[string]handler.StageItem),
+		modules:     make(map[string]*module.Module),
+		items:       make(map[string]modExtra),
 		path:        stgPth,
 		cewClient:   h.cewClient,
 		httpTimeout: h.httpTimeout,
@@ -83,14 +84,13 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 		return nil, err
 	}
 	nodes := make(tsort.Nodes)
-	for _, si := range stg.items {
-		m := si.Module()
-		if len(m.Dependencies) > 0 {
+	for _, mod := range stg.modules {
+		if len(mod.Dependencies) > 0 {
 			reqIDs := make(map[string]struct{})
-			for i := range m.Dependencies {
+			for i := range mod.Dependencies {
 				reqIDs[i] = struct{}{}
 			}
-			nodes.Add(m.ID, reqIDs, nil)
+			nodes.Add(mod.ID, reqIDs, nil)
 		}
 	}
 	_, err = tsort.GetTopOrder(nodes)
