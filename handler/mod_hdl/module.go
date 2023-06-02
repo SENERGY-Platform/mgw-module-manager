@@ -100,12 +100,12 @@ func (h *Handler) Add(ctx context.Context, mod *module.Module, modDir dir_fs.Dir
 	return nil
 }
 
-func (h *Handler) Delete(ctx context.Context, mID string) error {
+func (h *Handler) Delete(ctx context.Context, mID string, force bool) error {
 	l, err := h.storageHandler.List(ctx, model.ModFilter{InDependencies: map[string]struct{}{mID: {}}})
 	if err != nil {
 		return err
 	}
-	if len(l) > 0 {
+	if len(l) > 0 && !force {
 		var ids []string
 		for _, meta := range l {
 			ids = append(ids, meta.ID)
