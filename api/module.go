@@ -52,7 +52,7 @@ func (a *Api) GetModule(ctx context.Context, id string) (model.Module, error) {
 	return a.moduleHandler.Get(ctx, id)
 }
 
-func (a *Api) DeleteModule(ctx context.Context, id string, orphans bool) error {
+func (a *Api) DeleteModule(ctx context.Context, id string, orphans, force bool) error {
 	ok, err := a.modDeployed(ctx, id)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func (a *Api) DeleteModule(ctx context.Context, id string, orphans bool) error {
 	if ok {
 		return model.NewInvalidInputError(errors.New("deployment exists"))
 	}
-	return a.moduleHandler.Delete(ctx, id)
+	return a.moduleHandler.Delete(ctx, id, force)
 }
 
 func (a *Api) GetModuleDeployTemplate(ctx context.Context, id string) (model.ModDeployTemplate, error) {
