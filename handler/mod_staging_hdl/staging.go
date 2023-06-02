@@ -251,3 +251,13 @@ func (h *Handler) validateModule(m *module.Module, mID, ver string) error {
 	}
 	return nil
 }
+
+func getVerRanges(modules map[string]*module.Module, mID string) []string {
+	var verRanges []string
+	for _, mod := range modules {
+		if verRng, ok := mod.Dependencies[mID]; ok {
+			verRanges = append(verRanges, verRng)
+		}
+	}
+	return verRanges
+}
