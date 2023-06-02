@@ -122,8 +122,11 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[str
 			}
 			defer modRepo.Remove()
 			if ver == "" {
-				var err error
-				ver, err = getVersion(modRepo.Versions(), verRng)
+				verRanges := getVerRanges(modules, mID)
+				if verRng != "" {
+					verRanges = append(verRanges, verRng)
+				}
+				ver, err = getVersion(modRepo.Versions(), verRanges)
 				if err != nil {
 					return err
 				}
@@ -202,12 +205,17 @@ func (h *Handler) addImage(ctx context.Context, img string) error {
 	return nil
 }
 
-func getVersion(versions []string, verRng string) (string, error) {
+func getVersion(versions []string, verRanges []string) (string, error) {
 	var ver string
 	for i := len(versions) - 1; i >= 0; i-- {
 		v := versions[i]
-		if verRng != "" {
-			ok, _ := sem_ver.InSemVerRange(verRng, v)
+		if len(verRanges) > 0 {
+			ok := true
+			for _, verRng := range verRanges {
+				if ok, _ = sem_ver.InSemVerRange(verRng, v); !ok {
+					break
+				}
+			}
 			if ok {
 				ver = v
 				break
