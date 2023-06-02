@@ -36,6 +36,7 @@ type modulesQuery struct {
 
 type deleteModuleQuery struct {
 	Orphans bool `form:"orphans"`
+	Force   bool `form:"force"`
 }
 
 func getModulesH(a lib.Api) gin.HandlerFunc {
@@ -109,7 +110,7 @@ func deleteModuleH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		err := a.DeleteModule(gc.Request.Context(), gc.Param(modIdParam), query.Orphans)
+		err := a.DeleteModule(gc.Request.Context(), gc.Param(modIdParam), query.Orphans, query.Force)
 		if err != nil {
 			_ = gc.Error(err)
 			return
