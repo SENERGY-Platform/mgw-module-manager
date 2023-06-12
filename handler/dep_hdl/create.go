@@ -50,7 +50,11 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	timestamp := time.Now().UTC()
-	dID, err := h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.ID, name, indirect, timestamp)
+	inclDir, err := h.mkInclDir(incl)
+	if err != nil {
+		return "", err
+	}
+	dID, err := h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.ID, name, inclDir, indirect, timestamp)
 	if err != nil {
 		return "", err
 	}
@@ -70,14 +74,10 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	depDirPth, err := h.mkDepDir(dID, inclDir)
-	if err != nil {
-		return "", err
-	}
 	if err = h.createVolumes(ctx, mod.Volumes, dID); err != nil {
 		return "", err
 	}
-	_, _, err = h.createInstance(ctx, tx, mod, dID, depDirPth, stringValues, hostRes, secrets, reqModDepMap)
+	_, _, err = h.createInstance(ctx, tx, mod, dID, inclDir, stringValues, hostRes, secrets, reqModDepMap)
 	if err != nil {
 		return "", err
 	}
