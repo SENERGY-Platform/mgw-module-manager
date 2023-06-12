@@ -44,7 +44,7 @@ func (h *Handler) getCurrentInst(ctx context.Context, dID string) (model.Instanc
 	return h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instances[0].ID)
 }
 
-func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.Module, dID, depDirPth string, stringValues, hostRes, secrets, reqModDepMap map[string]string) (string, []string, error) {
+func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.Module, dID, inclDir string, stringValues, hostRes, secrets, reqModDepMap map[string]string) (string, []string, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	iID, err := h.storageHandler.CreateInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID, time.Now().UTC())
@@ -62,7 +62,7 @@ func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.
 		if err != nil {
 			return "", nil, model.NewInternalError(err)
 		}
-		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, getMounts(srv, hostRes, secrets, dID, depDirPth), getPorts(srv.Ports))
+		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, getMounts(srv, hostRes, secrets, dID, path.Join(h.wrkSpcPath, inclDir)), getPorts(srv.Ports))
 		cID, err := h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container)
 		if err != nil {
 			return "", cIDs, model.NewInternalError(err)
