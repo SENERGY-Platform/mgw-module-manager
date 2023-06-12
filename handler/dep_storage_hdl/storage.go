@@ -55,7 +55,7 @@ func genListDepFilter(filter model.DepFilter) (string, []any) {
 		val = append(val, filter.Name)
 	}
 	if filter.ModuleID != "" {
-		fc = append(fc, "`module_id` = ?")
+		fc = append(fc, "`mod_id` = ?")
 		val = append(val, filter.ModuleID)
 	}
 	if filter.Indirect {
@@ -69,7 +69,7 @@ func genListDepFilter(filter model.DepFilter) (string, []any) {
 }
 
 func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
-	q := "SELECT `id`, `module_id`, `name`, `stopped`, `indirect`, `created`, `updated` FROM `deployments`"
+	q := "SELECT `id`, `mod_id`, `name`, `stopped`, `indirect`, `created`, `updated` FROM `deployments`"
 	fc, val := genListDepFilter(filter)
 	if fc != "" {
 		q += fc
@@ -107,7 +107,7 @@ func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.
 
 func (h *Handler) CreateDep(ctx context.Context, itf driver.Tx, mID, name string, indirect bool, timestamp time.Time) (string, error) {
 	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "INSERT INTO `deployments` (`id`, `module_id`, `name`, `stopped`, `indirect`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?, ?, ?)", mID, name, true, indirect, timestamp, timestamp)
+	res, err := tx.ExecContext(ctx, "INSERT INTO `deployments` (`id`, `mod_id`, `name`, `stopped`, `indirect`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?, ?, ?)", mID, name, true, indirect, timestamp, timestamp)
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}

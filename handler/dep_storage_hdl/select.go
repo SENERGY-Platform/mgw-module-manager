@@ -26,7 +26,7 @@ import (
 )
 
 func selectDeployment(ctx context.Context, qwf func(context.Context, string, ...any) *sql.Row, depID string) (model.DepMeta, error) {
-	row := qwf(ctx, "SELECT `id`, `module_id`, `name`, `stopped`, `indirect`, `created`, `updated` FROM `deployments` WHERE `id` = ?", depID)
+	row := qwf(ctx, "SELECT `id`, `mod_id`, `name`, `stopped`, `indirect`, `created`, `updated` FROM `deployments` WHERE `id` = ?", depID)
 	var dm model.DepMeta
 	var ct, ut []uint8
 	err := row.Scan(&dm.ID, &dm.ModuleID, &dm.Name, &dm.Stopped, &dm.Indirect, &ct, &ut)
