@@ -32,19 +32,19 @@ import (
 func (h *Handler) Delete(ctx context.Context, id string, orphans bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	d, err := h.storageHandler.ReadDep(ctxWt, id)
+	dep, err := h.storageHandler.ReadDep(ctxWt, id)
 	if err != nil {
 		return err
 	}
-	if len(d.DepRequiring) > 0 {
-		return model.NewInternalError(fmt.Errorf("deplyoment is required by: %s", strings.Join(d.DepRequiring, ", ")))
+	if len(dep.DepRequiring) > 0 {
+		return model.NewInternalError(fmt.Errorf("deplyoment is required by: %s", strings.Join(dep.DepRequiring, ", ")))
 	}
-	if err = h.delete(ctx, id); err != nil {
+	if err = h.delete(ctx, id, dep.Dir); err != nil {
 		return err
 	}
-	if orphans && len(d.RequiredDep) > 0 {
+	if orphans && len(dep.RequiredDep) > 0 {
 		reqDep := make(map[string]*model.Deployment)
-		if err = h.getReqDep(ctx, d, reqDep); err != nil {
+		if err = h.getReqDep(ctx, dep, reqDep); err != nil {
 			return err
 		}
 		order, err := sorting.GetDepOrder(reqDep)
@@ -54,7 +54,7 @@ func (h *Handler) Delete(ctx context.Context, id string, orphans bool) error {
 		for i := len(order) - 1; i >= 0; i-- {
 			rd := reqDep[order[i]]
 			if rd.Indirect && len(rd.DepRequiring) == 0 {
-				if err = h.delete(ctx, rd.ID); err != nil {
+				if err = h.delete(ctx, rd.ID, rd.Dir); err != nil {
 					return err
 				}
 			}
@@ -63,27 +63,20 @@ func (h *Handler) Delete(ctx context.Context, id string, orphans bool) error {
 	return nil
 }
 
-func (h *Handler) delete(ctx context.Context, dID string) error {
+func (h *Handler) delete(ctx context.Context, dID, inclDir string) error {
 	if err := h.removeContainer(ctx, dID); err != nil {
 		return err
 	}
 	if err := h.removeVolumes(ctx, dID); err != nil {
 		return model.NewInternalError(err)
 	}
-	if err := h.rmDepDir(ctx, dID); err != nil {
-		return err
+	if err := os.RemoveAll(path.Join(h.wrkSpcPath, inclDir)); err != nil {
+		return model.NewInternalError(err)
 	}
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	if err := h.storageHandler.DeleteDep(ctxWt, dID); err != nil {
 		return err
-	}
-	return nil
-}
-
-func (h *Handler) rmDepDir(_ context.Context, dID string) error {
-	if err := os.RemoveAll(path.Join(h.wrkSpcPath, dID)); err != nil {
-		return model.NewInternalError(err)
 	}
 	return nil
 }
