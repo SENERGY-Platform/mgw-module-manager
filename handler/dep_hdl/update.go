@@ -55,7 +55,14 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Dep
 	if err = h.storeDep(ctx, tx, dep.ID, hostRes, secrets, mod.Configs, userConfigs); err != nil {
 		return err
 	}
-	_, ctrIDs, err := h.createInstance(ctx, tx, mod, dep.ID, h.getDepDirName(dep.ID), stringValues, hostRes, secrets, reqModDepMap)
+	inclDir := dep.Dir
+	if incl != "" {
+		inclDir, err = h.mkInclDir(incl)
+		if err != nil {
+			return err
+		}
+	}
+	_, ctrIDs, err := h.createInstance(ctx, tx, mod, dep.ID, inclDir, stringValues, hostRes, secrets, reqModDepMap)
 	if err != nil {
 		return err
 	}
@@ -94,7 +101,7 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Dep
 	if err != nil {
 		return model.NewInternalError(err)
 	}
-	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID, name, dep.Stopped, dep.Indirect, time.Now().UTC()); err != nil {
+	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID, name, inclDir, dep.Stopped, dep.Indirect, time.Now().UTC()); err != nil {
 		return err
 	}
 	return nil
