@@ -27,7 +27,9 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
+	"github.com/google/uuid"
 	"os"
+	"path"
 	"time"
 )
 
@@ -86,13 +88,18 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	return dID, nil
 }
 
-func (h *Handler) mkDepDir(dID string, inclDir dir_fs.DirFS) (string, error) {
-	p := h.getDepDirName(dID)
+func (h *Handler) mkInclDir(inclDir dir_fs.DirFS) (string, error) {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return "", err
+	}
+	strID := id.String()
+	p := path.Join(h.wrkSpcPath, strID)
 	if err := util.CopyDir(inclDir.Path(), p); err != nil {
 		_ = os.RemoveAll(p)
 		return "", model.NewInternalError(err)
 	}
-	return p, nil
+	return strID, nil
 }
 
 func (h *Handler) createVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID string) error {
