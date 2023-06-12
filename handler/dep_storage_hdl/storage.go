@@ -69,7 +69,7 @@ func genListDepFilter(filter model.DepFilter) (string, []any) {
 }
 
 func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
-	q := "SELECT `id`, `mod_id`, `name`, `stopped`, `indirect`, `created`, `updated` FROM `deployments`"
+	q := "SELECT `id`, `mod_id`, `name`, `incl_dir`, `stopped`, `indirect`, `created`, `updated` FROM `deployments`"
 	fc, val := genListDepFilter(filter)
 	if fc != "" {
 		q += fc
@@ -84,7 +84,7 @@ func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.
 	for rows.Next() {
 		var dm model.DepMeta
 		var ct, ut []uint8
-		if err = rows.Scan(&dm.ID, &dm.ModuleID, &dm.Name, &dm.Stopped, &dm.Indirect, &ct, &ut); err != nil {
+		if err = rows.Scan(&dm.ID, &dm.ModuleID, &dm.Name, &dm.InclDir, &dm.Stopped, &dm.Indirect, &ct, &ut); err != nil {
 			return nil, model.NewInternalError(err)
 		}
 		tc, err := time.Parse(tLayout, string(ct))
@@ -105,9 +105,9 @@ func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.
 	return dms, nil
 }
 
-func (h *Handler) CreateDep(ctx context.Context, itf driver.Tx, mID, name string, indirect bool, timestamp time.Time) (string, error) {
+func (h *Handler) CreateDep(ctx context.Context, itf driver.Tx, mID, name, inclDir string, indirect bool, timestamp time.Time) (string, error) {
 	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "INSERT INTO `deployments` (`id`, `mod_id`, `name`, `stopped`, `indirect`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?, ?, ?)", mID, name, true, indirect, timestamp, timestamp)
+	res, err := tx.ExecContext(ctx, "INSERT INTO `deployments` (`id`, `mod_id`, `name`, `incl_dir`, `stopped`, `indirect`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?)", mID, name, inclDir, true, indirect, timestamp, timestamp)
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}
@@ -249,8 +249,8 @@ func (h *Handler) ReadDep(ctx context.Context, id string) (*model.Deployment, er
 	return &dep, nil
 }
 
-func (h *Handler) UpdateDep(ctx context.Context, dID, name string, stopped, indirect bool, timestamp time.Time) error {
-	res, err := h.db.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `stopped` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", name, stopped, indirect, timestamp, dID)
+func (h *Handler) UpdateDep(ctx context.Context, dID, name, inclDir string, stopped, indirect bool, timestamp time.Time) error {
+	res, err := h.db.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `incl_dir` = ?, `stopped` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", name, inclDir, stopped, indirect, timestamp, dID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
