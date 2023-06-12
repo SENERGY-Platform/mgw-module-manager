@@ -165,7 +165,7 @@ func getEnvVars(srv *module.Service, configs, depMap map[string]string, dID, iID
 	return envVars, nil
 }
 
-func getMounts(srv *module.Service, hostRes, secrets map[string]string, dID, depDirPth string) []cew_model.Mount {
+func getMounts(srv *module.Service, hostRes, secrets map[string]string, dID, inclDir string) []cew_model.Mount {
 	var mounts []cew_model.Mount
 	for mntPoint, name := range srv.Volumes {
 		mounts = append(mounts, cew_model.Mount{
@@ -177,7 +177,7 @@ func getMounts(srv *module.Service, hostRes, secrets map[string]string, dID, dep
 	for mntPoint, mount := range srv.BindMounts {
 		mounts = append(mounts, cew_model.Mount{
 			Type:     cew_model.BindMount,
-			Source:   path.Join(depDirPth, mount.Source),
+			Source:   path.Join(inclDir, mount.Source),
 			Target:   mntPoint,
 			ReadOnly: mount.ReadOnly,
 		})
