@@ -25,6 +25,7 @@ type DepMeta struct {
 	ID       string    `json:"id"`
 	ModuleID string    `json:"module_id"`
 	Name     string    `json:"name"`
+	Dir      string    `json:"dir"`
 	Stopped  bool      `json:"stopped"`
 	Indirect bool      `json:"indirect"`
 	Created  time.Time `json:"created"`

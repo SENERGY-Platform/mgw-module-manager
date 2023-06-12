@@ -84,7 +84,7 @@ func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.
 	for rows.Next() {
 		var dm model.DepMeta
 		var ct, ut []uint8
-		if err = rows.Scan(&dm.ID, &dm.ModuleID, &dm.Name, &dm.InclDir, &dm.Stopped, &dm.Indirect, &ct, &ut); err != nil {
+		if err = rows.Scan(&dm.ID, &dm.ModuleID, &dm.Name, &dm.Dir, &dm.Stopped, &dm.Indirect, &ct, &ut); err != nil {
 			return nil, model.NewInternalError(err)
 		}
 		tc, err := time.Parse(tLayout, string(ct))
