@@ -85,7 +85,7 @@ func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
 	}
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	if err = h.storageHandler.UpdateDep(ctxWt, dep.ID, dep.Name, true, dep.Indirect, time.Now().UTC()); err != nil {
+	if err = h.storageHandler.UpdateDep(ctxWt, dep.ID, dep.Name, dep.Dir, true, dep.Indirect, time.Now().UTC()); err != nil {
 		return err
 	}
 	return nil
