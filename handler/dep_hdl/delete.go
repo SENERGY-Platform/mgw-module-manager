@@ -53,7 +53,7 @@ func (h *Handler) Delete(ctx context.Context, id string, orphans bool) error {
 		}
 		for i := len(order) - 1; i >= 0; i-- {
 			rd := reqDep[order[i]]
-			if rd.Indirect && len(rd.DepRequiring) == 0 {
+			if rd.Indirect && !isRequired(reqDep, rd.DepRequiring) {
 				if err = h.delete(ctx, rd.ID, rd.Dir); err != nil {
 					return err
 				}
@@ -114,4 +114,17 @@ func (h *Handler) removeVolumes(ctx context.Context, dID string) error {
 		}
 	}
 	return nil
+}
+
+func isRequired(reqDep map[string]*model.Deployment, depRequiring []string) bool {
+	for _, dID := range depRequiring {
+		if dep, ok := reqDep[dID]; !ok {
+			return true
+		} else {
+			if !dep.Indirect {
+				return true
+			}
+		}
+	}
+	return false
 }
