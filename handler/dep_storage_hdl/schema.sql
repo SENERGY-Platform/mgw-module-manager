@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `deployments`
     `id`       CHAR(36)              NOT NULL,
     `mod_id`   VARCHAR(256)          NOT NULL,
     `name`     VARCHAR(256)          NOT NULL,
-    `incl_dir` VARCHAR(256)          NOT NULL,
+    `dir`      VARCHAR(256)          NOT NULL,
     `stopped`  BOOLEAN               NOT NULL,
     `indirect` BOOLEAN               NOT NULL,
     `created`  TIMESTAMP(6)          NOT NULL,
