@@ -27,7 +27,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Deployment, depReq model.DepRequestBase, incl dir_fs.DirFS) error {
+func (h *Handler) Update(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, incl dir_fs.DirFS, dID, inclDir string, stopped, indirect bool) error {
 	reqModDepMap, err := h.getReqModDepMap(ctx, mod.Dependencies)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Dep
 	if err != nil {
 		return err
 	}
-	currentInst, err := h.getCurrentInst(ctx, dep.ID)
+	currentInst, err := h.getCurrentInst(ctx, dID)
 	if err != nil {
 		return err
 	}
@@ -49,20 +49,19 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Dep
 		return err
 	}
 	defer tx.Rollback()
-	if err = h.wipeDep(ctx, tx, dep.ID); err != nil {
+	if err = h.wipeDep(ctx, tx, dID); err != nil {
 		return err
 	}
-	if err = h.storeDep(ctx, tx, dep.ID, hostRes, secrets, mod.Configs, userConfigs); err != nil {
+	if err = h.storeDep(ctx, tx, dID, hostRes, secrets, mod.Configs, userConfigs); err != nil {
 		return err
 	}
-	inclDir := dep.Dir
 	if incl != "" {
 		inclDir, err = h.mkInclDir(incl)
 		if err != nil {
 			return err
 		}
 	}
-	_, ctrIDs, err := h.createInstance(ctx, tx, mod, dep.ID, inclDir, stringValues, hostRes, secrets, reqModDepMap)
+	_, ctrIDs, err := h.createInstance(ctx, tx, mod, dID, inclDir, stringValues, hostRes, secrets, reqModDepMap)
 	if err != nil {
 		return err
 	}
@@ -70,12 +69,12 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Dep
 		ch := context_hdl.New()
 		if err != nil {
 			for _, cID := range ctrIDs {
-				if !dep.Stopped {
+				if !stopped {
 					_ = h.stopContainer(ctx, cID)
 				}
 				_ = h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
 			}
-			if !dep.Stopped {
+			if !stopped {
 				_ = h.startInstance(ctx, currentInst.ID)
 			}
 		}
@@ -83,7 +82,7 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Dep
 	}()
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	if !dep.Stopped {
+	if !stopped {
 		if err = h.stopInstance(ctx, currentInst.ID); err != nil {
 			return err
 		}
@@ -101,7 +100,7 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Dep
 	if err != nil {
 		return model.NewInternalError(err)
 	}
-	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID, name, inclDir, dep.Stopped, dep.Indirect, time.Now().UTC()); err != nil {
+	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, name, inclDir, stopped, indirect, time.Now().UTC()); err != nil {
 		return err
 	}
 	return nil

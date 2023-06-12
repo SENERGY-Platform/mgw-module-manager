@@ -111,7 +111,7 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depReq model.Dep
 	if err != nil {
 		return err
 	}
-	return a.deploymentHandler.Update(ctx, mod.Module, dep, depReq, "")
+	return a.deploymentHandler.Update(ctx, mod.Module, depReq, "", dID, dep.Dir, dep.Stopped, dep.Indirect)
 }
 
 func (a *Api) DeleteDeployment(ctx context.Context, id string, orphans bool) error {
