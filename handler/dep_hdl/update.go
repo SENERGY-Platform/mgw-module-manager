@@ -22,11 +22,12 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
 	"time"
 )
 
-func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Deployment, depReq model.DepRequestBase) error {
+func (h *Handler) Update(ctx context.Context, mod *module.Module, dep *model.Deployment, depReq model.DepRequestBase, incl dir_fs.DirFS) error {
 	reqModDepMap, err := h.getReqModDepMap(ctx, mod.Dependencies)
 	if err != nil {
 		return err
