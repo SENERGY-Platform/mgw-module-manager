@@ -81,7 +81,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err = h.createVolumes(ctx, mod.Volumes, dID); err != nil {
 		return "", err
 	}
-	// [REMINDER] remove instance if error
+	// [REMINDER] remove containers if error
 	_, _, err = h.createInstance(ctx, tx, mod, dID, inclDir, stringValues, hostRes, secrets, reqModDepMap)
 	if err != nil {
 		return "", err
