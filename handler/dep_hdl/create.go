@@ -50,11 +50,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	dID, err := h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.ID, name, inclDir, indirect, timestamp)
-	if err != nil {
-		return "", err
-	}
-	if err = h.storeDep(ctx, tx, dID, hostRes, secrets, mod.Configs, userConfigs); err != nil {
+	if err = h.storeDepAssets(ctx, tx, dID, hostRes, secrets, mod.Configs, userConfigs); err != nil {
 		return "", err
 	}
 	if len(mod.Dependencies) > 0 {

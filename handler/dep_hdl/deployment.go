@@ -156,7 +156,7 @@ func (h *Handler) getSecrets(mSecrets map[string]module.Secret, userInput map[st
 	return secrets, nil
 }
 
-func (h *Handler) storeDep(ctx context.Context, tx driver.Tx, dID string, hostRes, secrets map[string]string, modConfigs module.Configs, userConfigs map[string]any) error {
+func (h *Handler) storeDepAssets(ctx context.Context, tx driver.Tx, dID string, hostRes, secrets map[string]string, modConfigs module.Configs, userConfigs map[string]any) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	if len(hostRes) > 0 {

@@ -52,7 +52,7 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, depReq model.D
 	if err = h.wipeDep(ctx, tx, dID); err != nil {
 		return err
 	}
-	if err = h.storeDep(ctx, tx, dID, hostRes, secrets, mod.Configs, userConfigs); err != nil {
+	if err = h.storeDepAssets(ctx, tx, dID, hostRes, secrets, mod.Configs, userConfigs); err != nil {
 		return err
 	}
 	if incl != "" {
