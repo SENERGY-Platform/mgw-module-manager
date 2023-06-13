@@ -18,7 +18,6 @@ package dep_hdl
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
@@ -67,15 +66,23 @@ func (h *Handler) delete(ctx context.Context, dID, inclDir string) error {
 	if err := h.removeContainer(ctx, dID); err != nil {
 		return err
 	}
-	if err := h.removeVolumes(ctx, dID); err != nil {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	volumes, err := h.cewClient.GetVolumes(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.VolumeFilter{Labels: map[string]string{"d_id": dID}})
+	if err != nil {
+		return err
+	}
+	var vols []string
+	for _, v := range volumes {
+		vols = append(vols, v.Name)
+	}
+	if err = h.removeVolumes(ctx, vols); err != nil {
 		return model.NewInternalError(err)
 	}
-	if err := os.RemoveAll(path.Join(h.wrkSpcPath, inclDir)); err != nil {
+	if err = os.RemoveAll(path.Join(h.wrkSpcPath, inclDir)); err != nil {
 		return model.NewInternalError(err)
 	}
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	if err := h.storageHandler.DeleteDep(ctxWt, dID); err != nil {
+	if err = h.storageHandler.DeleteDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID); err != nil {
 		return err
 	}
 	return nil
@@ -92,25 +99,6 @@ func (h *Handler) removeContainer(ctx context.Context, dID string) error {
 		err = h.removeInstance(ctx, instance.ID)
 		if err != nil {
 			return err
-		}
-	}
-	return nil
-}
-
-func (h *Handler) removeVolumes(ctx context.Context, dID string) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	volumes, err := h.cewClient.GetVolumes(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.VolumeFilter{Labels: map[string]string{"d_id": dID}})
-	if err != nil {
-		return err
-	}
-	for _, volume := range volumes {
-		err := h.cewClient.RemoveVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), volume.Name)
-		if err != nil {
-			var nfe *cew_model.NotFoundError
-			if !errors.As(err, &nfe) {
-				return err
-			}
 		}
 	}
 	return nil

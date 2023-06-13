@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
@@ -206,6 +207,21 @@ func (h *Handler) mkInclDir(inclDir dir_fs.DirFS) (string, error) {
 		return "", model.NewInternalError(err)
 	}
 	return strID, nil
+}
+
+func (h *Handler) removeVolumes(ctx context.Context, volumes []string) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	for _, name := range volumes {
+		err := h.cewClient.RemoveVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), name)
+		if err != nil {
+			var nfe *cew_model.NotFoundError
+			if !errors.As(err, &nfe) {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func getDepName(mName string, userInput *string) string {
