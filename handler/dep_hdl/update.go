@@ -24,6 +24,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
+	"os"
+	"path"
 	"time"
 )
 
@@ -60,8 +62,14 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, depReq model.D
 		if err != nil {
 			return err
 		}
+		defer func() {
+			if err != nil {
+				os.RemoveAll(path.Join(h.wrkSpcPath, inclDir))
+			}
+		}()
 	}
-	_, ctrIDs, err := h.createInstance(ctx, tx, mod, dID, inclDir, stringValues, hostRes, secrets, reqModDepMap)
+	var ctrIDs []string
+	_, ctrIDs, err = h.createInstance(ctx, tx, mod, dID, inclDir, stringValues, hostRes, secrets, reqModDepMap)
 	if err != nil {
 		return err
 	}
