@@ -102,6 +102,7 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, depReq model.D
 		}
 	}
 	if err = h.removeInstance(ctx, currentInst.ID); err != nil {
+		// [REMINDER] can lead to state with no running instances
 		return err
 	}
 	err = tx.Commit()
