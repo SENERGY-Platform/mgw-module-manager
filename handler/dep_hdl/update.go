@@ -19,7 +19,9 @@ package dep_hdl
 import (
 	"context"
 	"database/sql/driver"
+	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
@@ -43,6 +45,15 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, depReq model.D
 		return err
 	}
 	currentInst, err := h.getCurrentInst(ctx, dID)
+	if err != nil {
+		return err
+	}
+	missingVol, orphanVol, err := h.diffVolumes(ctx, mod.Volumes, dID)
+	if err != nil {
+		return err
+	}
+	// [REMINDER] remove new volumes if error
+	err = h.createVolumes(ctx, missingVol, dID)
 	if err != nil {
 		return err
 	}
@@ -103,6 +114,10 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, depReq model.D
 	}
 	if err = h.removeInstance(ctx, currentInst.ID); err != nil {
 		// [REMINDER] can lead to state with no running instances
+		return err
+	}
+	if err = h.removeVolumes(ctx, orphanVol); err != nil {
+		// [REMINDER] can lead to inconsistent state
 		return err
 	}
 	err = tx.Commit()
