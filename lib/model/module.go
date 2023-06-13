@@ -61,7 +61,6 @@ type ModAddRequest struct {
 }
 
 type ModDeployTemplate struct {
-	ModuleID string `json:"module_id"`
 	InputTemplate
 	Dependencies map[string]InputTemplate `json:"dependencies"`
 }

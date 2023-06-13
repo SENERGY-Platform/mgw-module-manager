@@ -68,7 +68,7 @@ func (a *Api) GetModuleDeployTemplate(ctx context.Context, id string) (model.Mod
 	if err != nil {
 		return model.ModDeployTemplate{}, err
 	}
-	dt := model.ModDeployTemplate{ModuleID: mod.ID, InputTemplate: input_tmplt.GetModDepTemplate(mod.Module)}
+	dt := model.ModDeployTemplate{InputTemplate: input_tmplt.GetModDepTemplate(mod.Module)}
 	if len(reqMod) > 0 {
 		rdt := make(map[string]model.InputTemplate)
 		for _, rm := range reqMod {
