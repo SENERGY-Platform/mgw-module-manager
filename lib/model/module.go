@@ -55,7 +55,7 @@ type ModFilter struct {
 	Tags           map[string]struct{}
 }
 
-type ModRequest struct {
+type ModAddRequest struct {
 	ID      string `json:"id"`
 	Version string `json:"version"`
 }

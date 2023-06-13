@@ -88,7 +88,7 @@ func getModuleH(a lib.Api) gin.HandlerFunc {
 
 func postModuleH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		var modReq model.ModRequest
+		var modReq model.ModAddRequest
 		err := gc.ShouldBindJSON(&modReq)
 		if err != nil {
 			_ = gc.Error(model.NewInvalidInputError(err))
