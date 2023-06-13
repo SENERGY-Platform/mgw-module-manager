@@ -26,6 +26,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
+	"os"
+	"path"
 	"time"
 )
 
@@ -38,15 +40,28 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
+	stringValues, err := parser.ConfigsToStringValues(mod.Configs, userConfigs)
+	if err != nil {
+		return "", err
+	}
 	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {
 		return "", err
 	}
 	defer tx.Rollback()
+	inclDir, err := h.mkInclDir(incl)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		if err != nil {
+			os.RemoveAll(path.Join(h.wrkSpcPath, inclDir))
+		}
+	}()
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	timestamp := time.Now().UTC()
-	inclDir, err := h.mkInclDir(incl)
+	var dID string
+	dID, err = h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.ID, name, inclDir, indirect, time.Now().UTC())
 	if err != nil {
 		return "", err
 	}
@@ -61,10 +76,6 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 		if err = h.storageHandler.CreateDepReq(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dIDs, dID); err != nil {
 			return "", err
 		}
-	}
-	stringValues, err := parser.ConfigsToStringValues(mod.Configs, userConfigs)
-	if err != nil {
-		return "", err
 	}
 	if err = h.createVolumes(ctx, mod.Volumes, dID); err != nil {
 		return "", err
