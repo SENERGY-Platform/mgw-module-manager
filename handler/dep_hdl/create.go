@@ -94,6 +94,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 }
 
 func (h *Handler) createVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID string) error {
+	// [REMINDER] how to handle created volumes if error?
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	for ref := range mVolumes {
