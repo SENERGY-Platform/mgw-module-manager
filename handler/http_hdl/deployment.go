@@ -97,12 +97,12 @@ func postDeploymentUpdateH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		err = a.UpdateDeployment(gc.Request.Context(), gc.Param(depIdParam), depReq)
+		jID, err := a.UpdateDeployment(gc.Request.Context(), gc.Param(depIdParam), depReq)
 		if err != nil {
 			_ = gc.Error(err)
 			return
 		}
-		gc.Status(http.StatusOK)
+		gc.String(http.StatusOK, jID)
 	}
 }
 
