@@ -129,3 +129,27 @@ func (h *Handler) wipeDep(ctx context.Context, tx driver.Tx, dID string) error {
 	}
 	return nil
 }
+
+func (h *Handler) diffVolumes(ctx context.Context, volumes ml_util.Set[string], dID string) (ml_util.Set[string], []string, error) {
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	vols, err := h.cewClient.GetVolumes(ctxWt, cew_model.VolumeFilter{Labels: map[string]string{"d_id": dID}})
+	if err != nil {
+		return nil, nil, err
+	}
+	var orphans []string
+	existing := make(ml_util.Set[string])
+	for _, v := range vols {
+		if _, ok := volumes[v.Name]; !ok {
+			orphans = append(orphans, v.Name)
+		}
+		existing[v.Name] = struct{}{}
+	}
+	missing := make(ml_util.Set[string])
+	for name := range volumes {
+		if _, ok := existing[name]; !ok {
+			missing[name] = struct{}{}
+		}
+	}
+	return missing, orphans, nil
+}
