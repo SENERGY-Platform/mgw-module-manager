@@ -103,6 +103,7 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	if err != nil {
 		return nil, err
 	}
+	// [REMINDER] handle already downloaded images if error
 	for _, stageItem := range stg.Items() {
 		for _, srv := range stageItem.Module().Services {
 			err = h.addImage(ctx, srv.Image)
