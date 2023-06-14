@@ -19,6 +19,7 @@ package dep_hdl
 import (
 	"context"
 	"database/sql/driver"
+	"errors"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
@@ -32,6 +33,15 @@ import (
 )
 
 func (h *Handler) Update(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, incl dir_fs.DirFS, dID, inclDir string, stopped, indirect bool) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	dep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID)
+	if err != nil {
+		return err
+	}
+	if mod.ID != dep.ModuleID {
+		return model.NewInvalidInputError(errors.New("module ID mismatch"))
+	}
 	reqModDepMap, err := h.getReqModDepMap(ctx, mod.Dependencies)
 	if err != nil {
 		return err
@@ -85,22 +95,20 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, depReq model.D
 		return err
 	}
 	defer func() {
-		ch := context_hdl.New()
+		ch2 := context_hdl.New()
 		if err != nil {
 			for _, cID := range ctrIDs {
 				if !stopped {
 					_ = h.stopContainer(ctx, cID)
 				}
-				_ = h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
+				_ = h.cewClient.RemoveContainer(ch2.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
 			}
 			if !stopped {
 				_ = h.startInstance(ctx, currentInst.ID)
 			}
 		}
-		ch.CancelAll()
+		ch2.CancelAll()
 	}()
-	ch := context_hdl.New()
-	defer ch.CancelAll()
 	if !stopped {
 		if err = h.stopInstance(ctx, currentInst.ID); err != nil {
 			return err
