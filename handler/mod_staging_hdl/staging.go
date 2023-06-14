@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	"github.com/SENERGY-Platform/mgw-module-lib/validation"
@@ -29,6 +30,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/cew_job"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
 	"os"
@@ -189,9 +191,18 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[str
 }
 
 func (h *Handler) addImage(ctx context.Context, img string) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
-	defer cf()
-	jID, err := h.cewClient.AddImage(ctxWt, img)
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	_, err := h.cewClient.GetImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), img)
+	if err != nil {
+		var nfe *cew_model.NotFoundError
+		if !errors.As(err, &nfe) {
+			return model.NewInternalError(err)
+		}
+	} else {
+		return nil
+	}
+	jID, err := h.cewClient.AddImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), img)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
