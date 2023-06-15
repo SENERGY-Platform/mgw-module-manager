@@ -63,6 +63,29 @@ func (a *Api) DeleteModule(ctx context.Context, id string, orphans, force bool) 
 	return a.moduleHandler.Delete(ctx, id, force)
 }
 
+func (a *Api) CheckModuleUpdates(ctx context.Context) (string, error) {
+	modules, err := a.moduleHandler.List(ctx, model.ModFilter{})
+	if err != nil {
+		return "", err
+	}
+	modMap := make(map[string]*module.Module)
+	for _, mod := range modules {
+		modMap[mod.ID] = mod.Module
+	}
+	return a.jobHandler.Create("check for module updates", func(ctx context.Context, cf context.CancelFunc) error {
+		defer cf()
+		err := a.modUpdateHandler.Check(ctx, modMap)
+		if err == nil {
+			err = ctx.Err()
+		}
+		return err
+	})
+}
+
+func (a *Api) GetModuleUpdates(ctx context.Context) map[string]model.ModUpdateInfo {
+	return a.modUpdateHandler.List(ctx)
+}
+
 func (a *Api) GetModuleDeployTemplate(ctx context.Context, id string) (model.ModDeployTemplate, error) {
 	mod, reqMod, err := a.moduleHandler.GetReq(ctx, id)
 	if err != nil {
