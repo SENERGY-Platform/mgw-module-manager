@@ -31,6 +31,7 @@ const (
 
 const (
 	ModulesPath           = "modules"
+	ModUpdatesPath        = "module_updates"
 	DeploymentsPath       = "deployments"
 	DepTemplatePath       = "dep_template"
 	DepUpdateTemplatePath = "update_template"
