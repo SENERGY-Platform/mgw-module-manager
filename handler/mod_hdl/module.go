@@ -130,8 +130,24 @@ func (h *Handler) Delete(ctx context.Context, mID string, force bool) error {
 	return h.storageHandler.Delete(ctx, mID)
 }
 
-func (h *Handler) Update(ctx context.Context, mID string) error {
-	panic("not implemented")
+func (h *Handler) Update(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string, indirect bool) error {
+	m, err := h.storageHandler.Get(ctx, mod.ID)
+	if err != nil {
+		return err
+	}
+	t := time.Now().UTC()
+	if m.Version == mod.Version {
+		if m.Indirect != indirect {
+			m.Indirect = indirect
+			m.Updated = t
+			return h.storageHandler.Update(ctx, m, "", "")
+		}
+		return nil
+	}
+	m.Module = mod
+	m.Indirect = indirect
+	m.Updated = t
+	return h.storageHandler.Update(ctx, m, modDir, modFile)
 }
 
 func (h *Handler) getReqMod(ctx context.Context, mod *module.Module, reqMod map[string]model.Module) error {
