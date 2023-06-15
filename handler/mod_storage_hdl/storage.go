@@ -110,6 +110,30 @@ func (h *Handler) Add(_ context.Context, mod model.Module, modDir dir_fs.DirFS, 
 	return nil
 }
 
+func (h *Handler) Update(_ context.Context, mod model.Module, modDir dir_fs.DirFS, modFile string) error {
+	i, err := h.indexHandler.Get(mod.ID)
+	if err != nil {
+		return err
+	}
+	if modDir == "" || modFile == "" {
+		return h.indexHandler.Update(i.ID, i.Dir, i.ModFile, mod.Indirect, mod.Updated)
+	}
+	dirName := uuid.NewString()
+	err = util.CopyDir(modDir.Path(), path.Join(h.wrkSpcPath, dirName))
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	err = h.indexHandler.Update(i.ID, dirName, modFile, mod.Indirect, mod.Updated)
+	if err != nil {
+		return err
+	}
+	h.modules[mod.ID] = mod
+	if err = os.RemoveAll(path.Join(h.wrkSpcPath, i.Dir)); err != nil {
+		return model.NewInternalError(err)
+	}
+	return nil
+}
+
 func (h *Handler) Delete(_ context.Context, mID string) error {
 	i, err := h.indexHandler.Get(mID)
 	if err != nil {
