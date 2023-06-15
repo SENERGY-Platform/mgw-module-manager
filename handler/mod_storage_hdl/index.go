@@ -83,7 +83,7 @@ func (h *indexHandler) Get(id string) (item, error) {
 	defer h.mu.RUnlock()
 	i, ok := h.index[id]
 	if !ok {
-		return item{}, model.NewNotFoundError(errors.New("index not found"))
+		return item{}, model.NewNotFoundError(fmt.Errorf("module '%s' not found", id))
 	}
 	return i, nil
 }
