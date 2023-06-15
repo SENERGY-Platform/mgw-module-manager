@@ -46,6 +46,7 @@ type ModStorageHandler interface {
 	Get(ctx context.Context, mID string) (model.Module, error)
 	GetDir(ctx context.Context, mID string) (model.Module, dir_fs.DirFS, error)
 	Add(ctx context.Context, mod model.Module, modDir dir_fs.DirFS, modFile string) error
+	Update(ctx context.Context, mod model.Module, modDir dir_fs.DirFS, modFile string) error
 	Delete(ctx context.Context, mID string) error
 }
 
