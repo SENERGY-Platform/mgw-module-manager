@@ -106,6 +106,21 @@ func (h *indexHandler) Add(id, dir, modFile string, indirect bool, timestamp tim
 	return h.write()
 }
 
+func (h *indexHandler) Update(id, dir, modFile string, indirect bool, timestamp time.Time) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	i, ok := h.index[id]
+	if ok {
+		return model.NewNotFoundError(fmt.Errorf("module '%s' not found", id))
+	}
+	i.Dir = dir
+	i.ModFile = modFile
+	i.Indirect = indirect
+	i.Updated = timestamp
+	h.index[id] = i
+	return h.write()
+}
+
 func (h *indexHandler) Delete(id string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
