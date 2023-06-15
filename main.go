@@ -40,6 +40,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_staging_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_storage_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_transfer_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_update_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/modfile_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
@@ -166,7 +167,9 @@ func main() {
 		return
 	}
 
-	mApi := api.New(modHandler, modStagingHandler, depHandler, jobHandler)
+	modUpdateHandler := mod_update_hdl.New(modTransferHandler, modFileHandler)
+
+	mApi := api.New(modHandler, modStagingHandler, modUpdateHandler, depHandler, jobHandler)
 
 	gin.SetMode(gin.ReleaseMode)
 	httpHandler := gin.New()
