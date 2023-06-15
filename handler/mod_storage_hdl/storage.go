@@ -28,6 +28,7 @@ import (
 	"io/fs"
 	"os"
 	"path"
+	"sync"
 )
 
 type Handler struct {
@@ -35,6 +36,7 @@ type Handler struct {
 	modFileHandler handler.ModFileHandler
 	indexHandler   *indexHandler
 	modules        map[string]model.Module
+	mu             sync.RWMutex
 }
 
 func New(workspacePath string, modFileHandler handler.ModFileHandler) *Handler {
@@ -46,6 +48,8 @@ func New(workspacePath string, modFileHandler handler.ModFileHandler) *Handler {
 }
 
 func (h *Handler) Init(perm fs.FileMode) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	if !path.IsAbs(h.wrkSpcPath) {
 		return fmt.Errorf("workspace path must be absolute")
 	}
@@ -60,6 +64,8 @@ func (h *Handler) Init(perm fs.FileMode) error {
 }
 
 func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Module, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
 	var mm []model.Module
 	for _, m := range h.modules {
 		if filterMod(filter, m.Module) {
@@ -73,6 +79,8 @@ func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Mod
 }
 
 func (h *Handler) Get(_ context.Context, mID string) (model.Module, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
 	m, ok := h.modules[mID]
 	if !ok {
 		return model.Module{}, model.NewNotFoundError(fmt.Errorf("module '%s' not found", mID))
@@ -81,6 +89,8 @@ func (h *Handler) Get(_ context.Context, mID string) (model.Module, error) {
 }
 
 func (h *Handler) GetDir(_ context.Context, mID string) (model.Module, dir_fs.DirFS, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
 	m, ok := h.modules[mID]
 	if !ok {
 		return model.Module{}, "", model.NewNotFoundError(fmt.Errorf("module '%s' not found", mID))
@@ -97,6 +107,8 @@ func (h *Handler) GetDir(_ context.Context, mID string) (model.Module, dir_fs.Di
 }
 
 func (h *Handler) Add(_ context.Context, mod model.Module, modDir dir_fs.DirFS, modFile string) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	dirName := uuid.NewString()
 	err := h.indexHandler.Add(mod.ID, dirName, modFile, mod.Indirect, mod.Added)
 	if err != nil {
@@ -111,6 +123,8 @@ func (h *Handler) Add(_ context.Context, mod model.Module, modDir dir_fs.DirFS, 
 }
 
 func (h *Handler) Update(_ context.Context, mod model.Module, modDir dir_fs.DirFS, modFile string) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	i, err := h.indexHandler.Get(mod.ID)
 	if err != nil {
 		return err
@@ -135,6 +149,8 @@ func (h *Handler) Update(_ context.Context, mod model.Module, modDir dir_fs.DirF
 }
 
 func (h *Handler) Delete(_ context.Context, mID string) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	i, err := h.indexHandler.Get(mID)
 	if err != nil {
 		return err
