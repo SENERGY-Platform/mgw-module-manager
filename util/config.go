@@ -73,7 +73,7 @@ type Config struct {
 	Jobs               JobsConfig               `json:"jobs" env_var:"JOBS_CONFIG"`
 }
 
-func NewConfig(path *string) (*Config, error) {
+func NewConfig(path string) (*Config, error) {
 	cfg := Config{
 		ModStorageHandler: ModStorageHandlerConfig{
 			WorkdirPath: "/opt/mgw-module-manager/modules",

@@ -64,9 +64,9 @@ var inputValidators = map[string]handler.Validator{
 func main() {
 	srv_base.PrintInfo(model.ServiceName, version)
 
-	flags := util.NewFlags()
+	util.ParseFlags()
 
-	config, err := util.NewConfig(flags.ConfPath)
+	config, err := util.NewConfig(util.Flags.ConfPath)
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
