@@ -1,6 +1,6 @@
 module github.com/SENERGY-Platform/mgw-module-manager
 
-go 1.19
+go 1.20
 
 require (
 	github.com/SENERGY-Platform/gin-middleware v0.3.0
