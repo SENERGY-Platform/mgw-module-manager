@@ -28,7 +28,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
@@ -202,8 +201,7 @@ func (h *Handler) mkInclDir(inclDir dir_fs.DirFS) (string, error) {
 	}
 	strID := id.String()
 	p := path.Join(h.wrkSpcPath, strID)
-	if err := util.CopyDir(inclDir.Path(), p); err != nil {
-		_ = os.RemoveAll(p)
+	if err = dir_fs.Copy(inclDir, p); err != nil {
 		return "", model.NewInternalError(err)
 	}
 	return strID, nil

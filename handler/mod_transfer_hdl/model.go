@@ -18,7 +18,6 @@ package mod_transfer_hdl
 
 import (
 	"errors"
-	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -59,16 +58,20 @@ func (r *modRepo) Get(ver string) (dir_fs.DirFS, error) {
 	if err != nil {
 		return "", err
 	}
-	err = util.CopyDir(path.Join(r.gitPath, r.modPath), vPth)
+	modDir, err := dir_fs.New(path.Join(r.gitPath, r.modPath))
+	if err != nil {
+		return "", err
+	}
+	err = dir_fs.Copy(modDir, vPth)
 	if err != nil {
 		return "", err
 	}
 	os.RemoveAll(path.Join(vPth, ".git"))
-	dir, err := dir_fs.New(vPth)
+	verDir, err := dir_fs.New(vPth)
 	if err != nil {
 		return "", err
 	}
-	return dir, nil
+	return verDir, nil
 }
 
 func (r *modRepo) Remove() error {

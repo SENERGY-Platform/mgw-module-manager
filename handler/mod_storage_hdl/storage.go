@@ -114,7 +114,7 @@ func (h *Handler) Add(_ context.Context, mod model.Module, modDir dir_fs.DirFS, 
 	if err != nil {
 		return err
 	}
-	err = util.CopyDir(modDir.Path(), path.Join(h.wrkSpcPath, dirName))
+	err = dir_fs.Copy(modDir, path.Join(h.wrkSpcPath, dirName))
 	if err != nil {
 		return model.NewInternalError(err)
 	}
@@ -133,7 +133,7 @@ func (h *Handler) Update(_ context.Context, mod model.Module, modDir dir_fs.DirF
 		return h.indexHandler.Update(i.ID, i.Dir, i.ModFile, mod.Indirect, mod.Updated)
 	}
 	dirName := uuid.NewString()
-	err = util.CopyDir(modDir.Path(), path.Join(h.wrkSpcPath, dirName))
+	err = dir_fs.Copy(modDir, path.Join(h.wrkSpcPath, dirName))
 	if err != nil {
 		return model.NewInternalError(err)
 	}

@@ -28,7 +28,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/cew_job"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
@@ -156,7 +155,7 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[str
 			if err != nil {
 				return err
 			}
-			err = util.CopyDir(dir.Path(), modPth)
+			err = dir_fs.Copy(dir, modPth)
 			if err != nil {
 				return err
 			}
