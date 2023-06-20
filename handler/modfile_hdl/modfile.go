@@ -64,6 +64,7 @@ func (h *Handler) GetModFile(dir dir_fs.DirFS) (fs.File, string, error) {
 	for _, entry := range dirEntries {
 		if !entry.IsDir() {
 			eName := entry.Name()
+			// [REMINDER] this will yield false positives, should use regex instead
 			if strings.Contains(eName, fileName) {
 				f, err := dir.Open(eName)
 				if err != nil {
