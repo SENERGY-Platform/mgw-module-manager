@@ -34,7 +34,7 @@ const (
 	ModUpdatesPath        = "module_updates"
 	DeploymentsPath       = "deployments"
 	DepTemplatePath       = "dep_template"
-	DepUpdateTemplatePath = "update_template"
+	DepUpdateTemplatePath = "upt_template"
 	DepCtrlPath           = "ctrl"
 	JobsPath              = "jobs"
 	JobsCancelPath        = "cancel"
