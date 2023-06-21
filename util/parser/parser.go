@@ -28,7 +28,7 @@ func UserInputToConfigs(userInput map[string]any, modConfigs module.Configs) (ma
 	configs := make(map[string]any)
 	for ref, modConfig := range modConfigs {
 		val, ok := userInput[ref]
-		if !ok {
+		if !ok || val == nil {
 			if modConfig.Default == nil && modConfig.Required {
 				return nil, fmt.Errorf("config '%s' requried", ref)
 			}
