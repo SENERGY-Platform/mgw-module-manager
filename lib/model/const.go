@@ -35,7 +35,8 @@ const (
 	DeploymentsPath       = "deployments"
 	DepTemplatePath       = "dep_template"
 	DepUpdateTemplatePath = "upt_template"
-	DepCtrlPath           = "ctrl"
+	DepStartPath          = "start"
+	DepStopPath           = "stop"
 	JobsPath              = "jobs"
 	JobsCancelPath        = "cancel"
 )
