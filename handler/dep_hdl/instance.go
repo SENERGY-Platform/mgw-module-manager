@@ -62,7 +62,7 @@ func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.
 		if err != nil {
 			return "", nil, model.NewInternalError(err)
 		}
-		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, getMounts(srv, hostRes, secrets, dID, path.Join(h.wrkSpcPath, inclDir)), getPorts(srv.Ports))
+		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, getMounts(srv, hostRes, secrets, dID, path.Join(h.depHostPath, inclDir)), getPorts(srv.Ports))
 		cID, err := h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container)
 		if err != nil {
 			return "", cIDs, model.NewInternalError(err)
