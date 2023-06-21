@@ -81,10 +81,6 @@ type DepRequest struct {
 
 type DepCtrlCmd = string
 
-type DepCtrlRequest struct {
-	Cmd DepCtrlCmd `json:"cmd"`
-}
-
 type DepFilter struct {
 	ModuleID string
 	Name     string
