@@ -50,6 +50,7 @@ type ModStagingHandlerConfig struct {
 
 type DepHandlerConfig struct {
 	WorkdirPath string `json:"workdir_path" env_var:"DH_WORKDIR_PATH"`
+	HostDepPath string `json:"host_dep_path" env_var:"DH_HOST_DEP_PATH"`
 }
 
 type JobsConfig struct {
