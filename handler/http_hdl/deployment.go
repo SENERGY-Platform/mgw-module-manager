@@ -17,7 +17,6 @@
 package http_hdl
 
 import (
-	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
@@ -106,37 +105,30 @@ func postDeploymentUpdateH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func postDeploymentCtrlH(a lib.Api) gin.HandlerFunc {
+func postDeploymentStart(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		var ctrlReq model.DepCtrlRequest
-		if err := gc.ShouldBindJSON(&ctrlReq); err != nil {
+		err := a.StartDeployment(gc.Request.Context(), gc.Param(depIdParam))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
+func postDeploymentStop(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		query := stopDeploymentQuery{}
+		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		switch ctrlReq.Cmd {
-		case model.StartCmd:
-			err := a.StartDeployment(gc.Request.Context(), gc.Param(depIdParam))
-			if err != nil {
-				_ = gc.Error(err)
-				return
-			}
-			gc.Status(http.StatusOK)
-		case model.StopCmd:
-			query := stopDeploymentQuery{}
-			if err := gc.ShouldBindQuery(&query); err != nil {
-				_ = gc.Error(model.NewInvalidInputError(err))
-				return
-			}
-			jID, err := a.StopDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Dependencies)
-			if err != nil {
-				_ = gc.Error(err)
-				return
-			}
-			gc.String(http.StatusOK, jID)
-		default:
-			_ = gc.Error(model.NewInvalidInputError(fmt.Errorf("unknown command '%s'", ctrlReq.Cmd)))
+		jID, err := a.StopDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Dependencies)
+		if err != nil {
+			_ = gc.Error(err)
 			return
 		}
+		gc.String(http.StatusOK, jID)
 	}
 }
 
