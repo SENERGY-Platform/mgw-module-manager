@@ -128,3 +128,75 @@ func (h *Handler) Remove(_ context.Context, mID string) error {
 	delete(h.updates, mID)
 	return nil
 }
+
+func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, stage handler.Stage, mID string) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if err := h.checkForPending(); err != nil {
+		return err
+	}
+	upt, ok := h.updates[mID]
+	if !ok {
+		return model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
+	}
+	stgItems := stage.Items()
+	newIDs := make(map[string]struct{})
+	uptIDs := make(map[string]struct{})
+	for id, item := range stgItems {
+		if ctx.Err() != nil {
+			return model.NewInternalError(ctx.Err())
+		}
+		modOld, ok := modules[id]
+		if !ok {
+			newIDs[id] = struct{}{}
+		} else {
+			modNew := item.Module()
+			if modOld.Version == modNew.Version {
+				continue
+			}
+			modReq := getModRequiring(id, modules)
+			if len(modReq) > 0 {
+				for mrID, verRng := range modReq {
+					if ctx.Err() != nil {
+						return model.NewInternalError(ctx.Err())
+					}
+					if _, ok := stgItems[mrID]; !ok {
+						k, err := sem_ver.InSemVerRange(verRng, modNew.Version)
+						if err != nil {
+							return err
+						}
+						if !k {
+							return fmt.Errorf("module '%s' update '%s' -> '%s' but '%s' requires '%s'", id, modOld.Version, modNew.Version, mrID, verRng)
+						}
+					}
+				}
+			}
+			uptIDs[id] = struct{}{}
+		}
+	}
+	upt.stage = stage
+	upt.newIDs = newIDs
+	upt.uptIDs = uptIDs
+	upt.Pending = true
+	h.updates[mID] = upt
+	return nil
+}
+
+func (h *Handler) checkForPending() error {
+	for id, u := range h.updates {
+		if u.Pending {
+			return model.NewInternalError(fmt.Errorf("update pending for '%s'", id))
+		}
+	}
+	return nil
+}
+
+func getModRequiring(mID string, modules map[string]*module.Module) map[string]string {
+	modReq := make(map[string]string)
+	for _, mod := range modules {
+		if verRng, ok := mod.Dependencies[mID]; ok {
+			modReq[mod.ID] = verRng
+		}
+	}
+	return modReq
+}
