@@ -18,6 +18,7 @@ package mod_update_hdl
 
 import (
 	"context"
+	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
@@ -100,4 +101,14 @@ func (h *Handler) List(_ context.Context) map[string]model.ModUpdateInfo {
 		updates[mID] = upt.ModUpdateInfo
 	}
 	return updates
+}
+
+func (h *Handler) Get(_ context.Context, mID string) (model.ModUpdateInfo, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	upt, ok := h.updates[mID]
+	if !ok {
+		return model.ModUpdateInfo{}, model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
+	}
+	return upt.ModUpdateInfo, nil
 }
