@@ -112,3 +112,19 @@ func (h *Handler) Get(_ context.Context, mID string) (model.ModUpdateInfo, error
 	}
 	return upt.ModUpdateInfo, nil
 }
+
+func (h *Handler) Remove(_ context.Context, mID string) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	upt, ok := h.updates[mID]
+	if !ok {
+		return model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
+	}
+	if upt.stage != nil {
+		if err := upt.stage.Remove(); err != nil {
+			return model.NewInternalError(err)
+		}
+	}
+	delete(h.updates, mID)
+	return nil
+}
