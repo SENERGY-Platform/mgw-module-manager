@@ -41,8 +41,8 @@ func (j *job) CallTarget(cbk func()) {
 	if err != nil {
 		j.meta.Error = err.Error()
 	}
-	t = time.Now().UTC()
-	j.meta.Completed = &t
+	t2 := time.Now().UTC()
+	j.meta.Completed = &t2
 	j.mu.Unlock()
 	cbk()
 }
