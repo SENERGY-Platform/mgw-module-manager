@@ -51,6 +51,9 @@ func New(transferHandler handler.ModTransferHandler, modFileHandler handler.ModF
 func (h *Handler) Check(ctx context.Context, modules map[string]*module.Module) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
+	if err := h.checkForPending(); err != nil {
+		return err
+	}
 	var modRepos []handler.ModRepo
 	defer func() {
 		for _, modRepo := range modRepos {
