@@ -27,10 +27,10 @@ import (
 )
 
 type Handler struct {
-	transferHandler  handler.ModTransferHandler
-	modFileHandler   handler.ModFileHandler
-	availableUpdates map[string]model.ModUpdateInfo
-	mu               sync.RWMutex
+	transferHandler handler.ModTransferHandler
+	modFileHandler  handler.ModFileHandler
+	updates         map[string]update
+	mu              sync.RWMutex
 }
 
 type update struct {
@@ -56,7 +56,7 @@ func (h *Handler) Check(ctx context.Context, modules map[string]*module.Module) 
 			modRepo.Remove()
 		}
 	}()
-	updates := make(map[string]model.ModUpdateInfo)
+	updates := make(map[string]update)
 	for _, mod := range modules {
 		modRepo, err := h.transferHandler.Get(ctx, mod.ID)
 		if err != nil {
@@ -74,13 +74,15 @@ func (h *Handler) Check(ctx context.Context, modules map[string]*module.Module) 
 			}
 		}
 		if len(versions) > 0 {
-			updates[mod.ID] = model.ModUpdateInfo{
-				Versions: versions,
-				Checked:  time.Now().UTC(),
+			updates[mod.ID] = update{
+				ModUpdateInfo: model.ModUpdateInfo{
+					Versions: versions,
+					Checked:  time.Now().UTC(),
+				},
 			}
 		}
 	}
-	h.availableUpdates = updates
+	h.updates = updates
 	return nil
 }
 
@@ -88,8 +90,8 @@ func (h *Handler) List(_ context.Context) map[string]model.ModUpdateInfo {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	updates := make(map[string]model.ModUpdateInfo)
-	for mID, uInfo := range h.availableUpdates {
-		updates[mID] = uInfo
+	for mID, upt := range h.updates {
+		updates[mID] = upt.ModUpdateInfo
 	}
 	return updates
 }
