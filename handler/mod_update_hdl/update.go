@@ -198,6 +198,26 @@ func (h *Handler) GetPending(_ context.Context, mID string) (handler.Stage, map[
 	return upt.stage, upt.newIDs, upt.uptIDs, nil
 }
 
+func (h *Handler) CancelPending(_ context.Context, mID string) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	upt, ok := h.updates[mID]
+	if !ok {
+		return model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
+	}
+	if !upt.Pending {
+		return model.NewInternalError(fmt.Errorf("no update pending for '%s'", mID))
+	}
+	if err := upt.stage.Remove(); err != nil {
+		return model.NewInternalError(err)
+	}
+	upt.stage = nil
+	upt.newIDs = nil
+	upt.uptIDs = nil
+	upt.Pending = false
+	return nil
+}
+
 func (h *Handler) checkForPending() error {
 	for id, u := range h.updates {
 		if u.Pending {
