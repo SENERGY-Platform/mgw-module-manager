@@ -68,4 +68,5 @@ type ModDeployTemplate struct {
 type ModUpdateInfo struct {
 	Versions []string  `json:"versions"`
 	Checked  time.Time `json:"checked"`
+	Pending  bool      `json:"pending"`
 }
