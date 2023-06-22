@@ -58,6 +58,9 @@ func (h *Handler) Check(ctx context.Context, modules map[string]*module.Module) 
 	}()
 	updates := make(map[string]update)
 	for _, mod := range modules {
+		if ctx.Err() != nil {
+			return model.NewInternalError(ctx.Err())
+		}
 		modRepo, err := h.transferHandler.Get(ctx, mod.ID)
 		if err != nil {
 			continue
@@ -65,6 +68,9 @@ func (h *Handler) Check(ctx context.Context, modules map[string]*module.Module) 
 		modRepos = append(modRepos, modRepo)
 		var versions []string
 		for _, ver := range modRepo.Versions() {
+			if ctx.Err() != nil {
+				return model.NewInternalError(ctx.Err())
+			}
 			res, err := sem_ver.CompareSemVer(mod.Version, ver)
 			if err != nil {
 				continue
