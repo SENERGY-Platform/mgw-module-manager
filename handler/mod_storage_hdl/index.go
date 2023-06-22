@@ -110,7 +110,7 @@ func (h *indexHandler) Update(id, dir, modFile string, indirect bool, timestamp 
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	i, ok := h.index[id]
-	if ok {
+	if !ok {
 		return model.NewNotFoundError(fmt.Errorf("module '%s' not found", id))
 	}
 	i.Dir = dir
