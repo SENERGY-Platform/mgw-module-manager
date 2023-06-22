@@ -33,6 +33,13 @@ type Handler struct {
 	mu               sync.RWMutex
 }
 
+type update struct {
+	model.ModUpdateInfo
+	stage  handler.Stage
+	newIDs map[string]struct{}
+	uptIDs map[string]struct{}
+}
+
 func New(transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler) *Handler {
 	return &Handler{
 		transferHandler: transferHandler,
