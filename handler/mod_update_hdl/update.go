@@ -185,6 +185,19 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	return nil
 }
 
+func (h *Handler) GetPending(_ context.Context, mID string) (handler.Stage, map[string]struct{}, map[string]struct{}, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	upt, ok := h.updates[mID]
+	if !ok {
+		return nil, nil, nil, model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
+	}
+	if !upt.Pending {
+		return nil, nil, nil, model.NewInternalError(fmt.Errorf("no update pending for '%s'", mID))
+	}
+	return upt.stage, upt.newIDs, upt.uptIDs, nil
+}
+
 func (h *Handler) checkForPending() error {
 	for id, u := range h.updates {
 		if u.Pending {
