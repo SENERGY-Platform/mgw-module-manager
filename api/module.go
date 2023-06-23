@@ -90,6 +90,32 @@ func (a *Api) GetModuleUpdate(ctx context.Context, id string) (model.ModUpdateIn
 	return a.modUpdateHandler.Get(ctx, id)
 }
 
+func (a *Api) PrepareModuleUpdate(ctx context.Context, id, version string) (string, error) {
+	mui, err := a.modUpdateHandler.Get(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	if !inSlice(version, mui.Versions) {
+		return "", model.NewInvalidInputError(fmt.Errorf("unknown version '%s'", version))
+	}
+	modules, err := a.moduleHandler.List(ctx, model.ModFilter{})
+	if err != nil {
+		return "", err
+	}
+	modMap := make(map[string]*module.Module)
+	for _, mod := range modules {
+		modMap[mod.ID] = mod.Module
+	}
+	return a.jobHandler.Create(fmt.Sprintf("prepare update for module '%s' to '%s'", id, version), func(ctx context.Context, cf context.CancelFunc) error {
+		defer cf()
+		err := a.prepareModuleUpdate(ctx, modMap, id, version)
+		if err == nil {
+			err = ctx.Err()
+		}
+		return err
+	})
+}
+
 func (a *Api) CancelPendingModuleUpdate(ctx context.Context, id string) error {
 	return a.modUpdateHandler.CancelPending(ctx, id)
 }
@@ -150,6 +176,14 @@ func (a *Api) addModule(ctx context.Context, mr model.ModAddRequest) error {
 	return nil
 }
 
+func (a *Api) prepareModuleUpdate(ctx context.Context, modules map[string]*module.Module, id, version string) error {
+	stg, err := a.modStagingHandler.Prepare(ctx, nil, id, version)
+	if err != nil {
+		return err
+	}
+	return a.modUpdateHandler.Prepare(ctx, modules, stg, id)
+}
+
 func getModMeta(m model.Module) model.ModuleMeta {
 	return model.ModuleMeta{
 		ID:             m.ID,
@@ -163,4 +197,13 @@ func getModMeta(m model.Module) model.ModuleMeta {
 		DeploymentType: m.DeploymentType,
 		ModuleExtra:    m.ModuleExtra,
 	}
+}
+
+func inSlice(s string, sl []string) bool {
+	for _, s2 := range sl {
+		if s2 == s {
+			return true
+		}
+	}
+	return false
 }
