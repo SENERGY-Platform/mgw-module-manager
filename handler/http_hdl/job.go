@@ -82,7 +82,7 @@ func getJobH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func postJobCancelH(a lib.Api) gin.HandlerFunc {
+func patchJobCancelH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		err := a.CancelJob(gc.Request.Context(), gc.Param(jobIdParam))
 		if err != nil {

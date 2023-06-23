@@ -35,14 +35,14 @@ func SetRoutes(e *gin.Engine, a lib.Api) {
 	e.GET(model.DeploymentsPath, getDeploymentsH(a))
 	e.POST(model.DeploymentsPath, postDeploymentH(a))
 	e.GET(model.DeploymentsPath+"/:"+depIdParam, getDeploymentH(a))
-	e.PATCH(model.DeploymentsPath+"/:"+depIdParam, postDeploymentUpdateH(a))
-	e.PATCH(model.DeploymentsPath+"/:"+depIdParam+"/"+model.DepStartPath, postDeploymentStart(a))
-	e.PATCH(model.DeploymentsPath+"/:"+depIdParam+"/"+model.DepStopPath, postDeploymentStop(a))
+	e.PATCH(model.DeploymentsPath+"/:"+depIdParam, patchDeploymentUpdateH(a))
+	e.PATCH(model.DeploymentsPath+"/:"+depIdParam+"/"+model.DepStartPath, patchDeploymentStart(a))
+	e.PATCH(model.DeploymentsPath+"/:"+depIdParam+"/"+model.DepStopPath, patchDeploymentStop(a))
 	e.DELETE(model.DeploymentsPath+"/:"+depIdParam, deleteDeploymentH(a))
 	e.GET(model.DeploymentsPath+"/:"+depIdParam+"/"+model.DepUpdateTemplatePath, getDeploymentUpdateTemplateH(a))
 	e.GET("/"+model.JobsPath, getJobsH(a))
 	e.GET("/"+model.JobsPath+"/:"+jobIdParam, getJobH(a))
-	e.PATCH("/"+model.JobsPath+"/:"+jobIdParam+"/"+model.JobsCancelPath, postJobCancelH(a))
+	e.PATCH("/"+model.JobsPath+"/:"+jobIdParam+"/"+model.JobsCancelPath, patchJobCancelH(a))
 }
 
 func GetRoutes(e *gin.Engine) [][2]string {

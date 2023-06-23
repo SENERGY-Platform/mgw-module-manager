@@ -88,7 +88,7 @@ func postDeploymentH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func postDeploymentUpdateH(a lib.Api) gin.HandlerFunc {
+func patchDeploymentUpdateH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		var depReq model.DepRequestBase
 		err := gc.ShouldBindJSON(&depReq)
@@ -105,7 +105,7 @@ func postDeploymentUpdateH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func postDeploymentStart(a lib.Api) gin.HandlerFunc {
+func patchDeploymentStart(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		err := a.StartDeployment(gc.Request.Context(), gc.Param(depIdParam))
 		if err != nil {
@@ -116,7 +116,7 @@ func postDeploymentStart(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func postDeploymentStop(a lib.Api) gin.HandlerFunc {
+func patchDeploymentStop(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := stopDeploymentQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
