@@ -225,7 +225,7 @@ func (h *Handler) removeVolumes(ctx context.Context, volumes []string) error {
 }
 
 func getDepName(mName string, userInput *string) string {
-	if userInput != nil {
+	if userInput != nil && *userInput != "" {
 		return *userInput
 	}
 	return mName
