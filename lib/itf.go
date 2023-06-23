@@ -22,7 +22,7 @@ import (
 )
 
 type Api interface {
-	AddModule(ctx context.Context, mr model.ModAddRequest) (string, error)
+	AddModule(ctx context.Context, id, version string) (string, error)
 	GetModules(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error)
 	GetModule(ctx context.Context, id string) (model.Module, error)
 	DeleteModule(ctx context.Context, id string, orphans, force bool) error

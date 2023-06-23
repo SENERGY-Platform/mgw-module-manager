@@ -94,7 +94,7 @@ func postModuleH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		jID, err := a.AddModule(gc.Request.Context(), modReq)
+		jID, err := a.AddModule(gc.Request.Context(), modReq.ID, modReq.Version)
 		if err != nil {
 			_ = gc.Error(err)
 			return

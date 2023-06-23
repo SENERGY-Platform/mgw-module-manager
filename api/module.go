@@ -25,10 +25,10 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/input_tmplt"
 )
 
-func (a *Api) AddModule(_ context.Context, mr model.ModAddRequest) (string, error) {
-	return a.jobHandler.Create(fmt.Sprintf("add module '%s'", mr.ID), func(ctx context.Context, cf context.CancelFunc) error {
+func (a *Api) AddModule(_ context.Context, id, version string) (string, error) {
+	return a.jobHandler.Create(fmt.Sprintf("add module '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
 		defer cf()
-		err := a.addModule(ctx, mr)
+		err := a.addModule(ctx, id, version)
 		if err == nil {
 			err = ctx.Err()
 		}
