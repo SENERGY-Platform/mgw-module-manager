@@ -27,8 +27,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 )
 
-func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error) {
-	mod, reqMod, err := a.moduleHandler.GetReq(ctx, dr.ModuleID)
+func (a *Api) CreateDeployment(ctx context.Context, id string, depInput model.DepInput, dependencies map[string]model.DepInput) (string, error) {
+	mod, reqMod, err := a.moduleHandler.GetReq(ctx, id)
 	if err != nil {
 		return "", err
 	}
@@ -59,7 +59,7 @@ func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string
 		var ok bool
 		var dID string
 		for _, rmID := range order {
-			ok, dID, er = a.createDepIfNotExist(ctx, rmID, dr.Dependencies[rmID])
+			ok, dID, er = a.createDepIfNotExist(ctx, rmID, dependencies[rmID])
 			if er != nil {
 				return "", er
 			}
@@ -72,7 +72,7 @@ func (a *Api) CreateDeployment(ctx context.Context, dr model.DepRequest) (string
 	if err != nil {
 		return "", err
 	}
-	dID, err := a.deploymentHandler.Create(ctx, mod.Module, dr.DepRequestBase, dir, false)
+	dID, err := a.deploymentHandler.Create(ctx, mod.Module, depInput, dir, false)
 	if err != nil {
 		return "", err
 	}

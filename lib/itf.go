@@ -32,7 +32,7 @@ type Api interface {
 	GetModuleUpdate(ctx context.Context, id string) (model.ModUpdateInfo, error)
 	PrepareModuleUpdate(ctx context.Context, id, version string) (string, error)
 	CancelPendingModuleUpdate(ctx context.Context, id string) error
-	CreateDeployment(ctx context.Context, dr model.DepRequest) (string, error)
+	CreateDeployment(ctx context.Context, id string, depInput model.DepInput, dependencies map[string]model.DepInput) (string, error)
 	GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
 	GetDeployment(ctx context.Context, id string) (*model.Deployment, error)
 	StartDeployment(ctx context.Context, id string) error
