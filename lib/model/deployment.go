@@ -73,7 +73,7 @@ type DepInput struct {
 	SecretRequests map[string]any    // {ref:value}
 }
 
-type DepRequest struct {
+type DepCreateRequest struct {
 	ModuleID string `json:"module_id"`
 	DepInput
 	Dependencies map[string]DepInput `json:"dependencies"`

@@ -73,7 +73,7 @@ func getDeploymentH(a lib.Api) gin.HandlerFunc {
 
 func postDeploymentH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		var depReq model.DepRequest
+		var depReq model.DepCreateRequest
 		err := gc.ShouldBindJSON(&depReq)
 		if err != nil {
 			_ = gc.Error(model.NewInvalidInputError(err))
