@@ -70,3 +70,8 @@ type ModUpdate struct {
 	Checked  time.Time `json:"checked"`
 	Pending  bool      `json:"pending"`
 }
+
+type ModUpdatePrepareRequest struct {
+	ID      string `json:"id"`
+	Version string `json:"version"`
+}
