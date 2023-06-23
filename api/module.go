@@ -86,6 +86,14 @@ func (a *Api) GetModuleUpdates(ctx context.Context) map[string]model.ModUpdateIn
 	return a.modUpdateHandler.List(ctx)
 }
 
+func (a *Api) GetModuleUpdate(ctx context.Context, id string) (model.ModUpdateInfo, error) {
+	return a.modUpdateHandler.Get(ctx, id)
+}
+
+func (a *Api) CancelPendingModuleUpdate(ctx context.Context, id string) error {
+	return a.modUpdateHandler.CancelPending(ctx, id)
+}
+
 func (a *Api) GetModuleDeployTemplate(ctx context.Context, id string) (model.ModDeployTemplate, error) {
 	mod, reqMod, err := a.moduleHandler.GetReq(ctx, id)
 	if err != nil {
