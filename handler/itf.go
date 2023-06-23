@@ -71,9 +71,9 @@ type ModUpdateHandler interface {
 type DeploymentHandler interface {
 	List(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
 	Get(ctx context.Context, dID string) (*model.Deployment, error)
-	Create(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, incl dir_fs.DirFS, indirect bool) (string, error)
+	Create(ctx context.Context, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error)
 	Delete(ctx context.Context, dID string, orphans bool) error
-	Update(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, incl dir_fs.DirFS, dID, inclDir string, stopped, indirect bool) error
+	Update(ctx context.Context, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS, dID, inclDir string, stopped, indirect bool) error
 	Start(ctx context.Context, dID string) error
 	Stop(ctx context.Context, dID string, dependencies bool) error
 }

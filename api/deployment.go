@@ -102,7 +102,7 @@ func (a *Api) StopDeployment(_ context.Context, id string, dependencies bool) (s
 	})
 }
 
-func (a *Api) UpdateDeployment(_ context.Context, dID string, depReq model.DepRequestBase) (string, error) {
+func (a *Api) UpdateDeployment(_ context.Context, dID string, depReq model.DepInput) (string, error) {
 	return a.jobHandler.Create(fmt.Sprintf("update deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
 		defer cf()
 		err := a.updateDeployment(ctx, dID, depReq)
@@ -132,7 +132,7 @@ func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (model
 	}, nil
 }
 
-func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.DepRequestBase) (bool, string, error) {
+func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.DepInput) (bool, string, error) {
 	depList, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: mID})
 	if err != nil {
 		return false, "", err
@@ -155,7 +155,7 @@ func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.
 	return false, "", nil
 }
 
-func (a *Api) updateDeployment(ctx context.Context, dID string, depReq model.DepRequestBase) error {
+func (a *Api) updateDeployment(ctx context.Context, dID string, depReq model.DepInput) error {
 	dep, err := a.deploymentHandler.Get(ctx, dID)
 	if err != nil {
 		return err

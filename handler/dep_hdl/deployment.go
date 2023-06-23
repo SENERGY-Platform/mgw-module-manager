@@ -100,7 +100,7 @@ func (h *Handler) getReqDep(ctx context.Context, dep *model.Deployment, reqDep m
 	return nil
 }
 
-func (h *Handler) prepareDep(mod *module.Module, depReq model.DepRequestBase) (name string, userConfigs map[string]any, hostRes, secrets map[string]string, err error) {
+func (h *Handler) prepareDep(mod *module.Module, depReq model.DepInput) (name string, userConfigs map[string]any, hostRes, secrets map[string]string, err error) {
 	name = getDepName(mod.Name, depReq.Name)
 	userConfigs, err = h.getUserConfigs(mod.Configs, depReq.Configs)
 	if err != nil {

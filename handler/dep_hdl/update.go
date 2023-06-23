@@ -32,7 +32,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Update(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, incl dir_fs.DirFS, dID, inclDir string, stopped, indirect bool) error {
+func (h *Handler) Update(ctx context.Context, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS, dID, inclDir string, stopped, indirect bool) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	dep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID)

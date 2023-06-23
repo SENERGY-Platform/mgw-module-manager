@@ -65,7 +65,7 @@ type CtrFilter struct {
 	SortOrder SortDirection
 }
 
-type DepRequestBase struct {
+type DepInput struct {
 	Name           *string           `json:"name"`           // defaults to module name if nil
 	HostResources  map[string]string `json:"host_resources"` // {ref:resourceID}
 	Secrets        map[string]string `json:"secrets"`        // {ref:secretID}
@@ -75,8 +75,8 @@ type DepRequestBase struct {
 
 type DepRequest struct {
 	ModuleID string `json:"module_id"`
-	DepRequestBase
-	Dependencies map[string]DepRequestBase `json:"dependencies"`
+	DepInput
+	Dependencies map[string]DepInput `json:"dependencies"`
 }
 
 type DepCtrlCmd = string

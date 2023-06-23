@@ -31,7 +31,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.DepRequestBase, incl dir_fs.DirFS, indirect bool) (string, error) {
+func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error) {
 	reqModDepMap, err := h.getReqModDepMap(ctx, mod.Dependencies)
 	if err != nil {
 		return "", err
