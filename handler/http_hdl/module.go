@@ -159,7 +159,7 @@ func postCheckModuleUpdates(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchModulePrepareUpdate(a lib.Api) gin.HandlerFunc {
+func patchPrepareModuleUpdate(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		var modUptReq model.ModUpdatePrepareRequest
 		err := gc.ShouldBindJSON(&modUptReq)
