@@ -79,8 +79,6 @@ type DepCreateRequest struct {
 	Dependencies map[string]DepInput `json:"dependencies"`
 }
 
-type DepCtrlCmd = string
-
 type DepFilter struct {
 	ModuleID string
 	Name     string
