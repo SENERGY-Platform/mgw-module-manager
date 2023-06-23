@@ -148,7 +148,7 @@ func getModuleUpdate(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func postModuleUpdates(a lib.Api) gin.HandlerFunc {
+func postCheckModuleUpdates(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		jID, err := a.CheckModuleUpdates(gc.Request.Context())
 		if err != nil {
