@@ -158,3 +158,20 @@ func postCheckModuleUpdates(a lib.Api) gin.HandlerFunc {
 		gc.String(http.StatusOK, jID)
 	}
 }
+
+func patchModulePrepareUpdate(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		var modUptReq model.ModUpdatePrepareRequest
+		err := gc.ShouldBindJSON(&modUptReq)
+		if err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		jID, err := a.PrepareModuleUpdate(gc.Request.Context(), gc.Param(modIdParam), modUptReq.Version)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.String(http.StatusOK, jID)
+	}
+}
