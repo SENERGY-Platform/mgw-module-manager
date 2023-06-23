@@ -82,11 +82,11 @@ func (a *Api) CheckModuleUpdates(ctx context.Context) (string, error) {
 	})
 }
 
-func (a *Api) GetModuleUpdates(ctx context.Context) map[string]model.ModUpdateInfo {
+func (a *Api) GetModuleUpdates(ctx context.Context) map[string]model.ModUpdate {
 	return a.modUpdateHandler.List(ctx)
 }
 
-func (a *Api) GetModuleUpdate(ctx context.Context, id string) (model.ModUpdateInfo, error) {
+func (a *Api) GetModuleUpdate(ctx context.Context, id string) (model.ModUpdate, error) {
 	return a.modUpdateHandler.Get(ctx, id)
 }
 

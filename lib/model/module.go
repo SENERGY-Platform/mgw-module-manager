@@ -65,7 +65,7 @@ type ModDeployTemplate struct {
 	Dependencies map[string]InputTemplate `json:"dependencies"`
 }
 
-type ModUpdateInfo struct {
+type ModUpdate struct {
 	Versions []string  `json:"versions"`
 	Checked  time.Time `json:"checked"`
 	Pending  bool      `json:"pending"`

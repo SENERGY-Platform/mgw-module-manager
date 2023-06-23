@@ -60,8 +60,8 @@ type ModStagingHandler interface {
 
 type ModUpdateHandler interface {
 	Check(ctx context.Context, modules map[string]*module.Module) error
-	List(ctx context.Context) map[string]model.ModUpdateInfo
-	Get(ctx context.Context, mID string) (model.ModUpdateInfo, error)
+	List(ctx context.Context) map[string]model.ModUpdate
+	Get(ctx context.Context, mID string) (model.ModUpdate, error)
 	Remove(ctx context.Context, mID string) error
 	Prepare(ctx context.Context, modules map[string]*module.Module, stage Stage, mID string) error
 	GetPending(ctx context.Context, mID string) (Stage, map[string]struct{}, map[string]struct{}, error)

@@ -35,7 +35,7 @@ type Handler struct {
 }
 
 type update struct {
-	model.ModUpdateInfo
+	model.ModUpdate
 	stage  handler.Stage
 	newIDs map[string]struct{}
 	uptIDs map[string]struct{}
@@ -85,7 +85,7 @@ func (h *Handler) Check(ctx context.Context, modules map[string]*module.Module) 
 		}
 		if len(versions) > 0 {
 			updates[mod.ID] = update{
-				ModUpdateInfo: model.ModUpdateInfo{
+				ModUpdate: model.ModUpdate{
 					Versions: versions,
 					Checked:  time.Now().UTC(),
 				},
@@ -96,24 +96,24 @@ func (h *Handler) Check(ctx context.Context, modules map[string]*module.Module) 
 	return nil
 }
 
-func (h *Handler) List(_ context.Context) map[string]model.ModUpdateInfo {
+func (h *Handler) List(_ context.Context) map[string]model.ModUpdate {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	updates := make(map[string]model.ModUpdateInfo)
+	updates := make(map[string]model.ModUpdate)
 	for mID, upt := range h.updates {
-		updates[mID] = upt.ModUpdateInfo
+		updates[mID] = upt.ModUpdate
 	}
 	return updates
 }
 
-func (h *Handler) Get(_ context.Context, mID string) (model.ModUpdateInfo, error) {
+func (h *Handler) Get(_ context.Context, mID string) (model.ModUpdate, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	upt, ok := h.updates[mID]
 	if !ok {
-		return model.ModUpdateInfo{}, model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
+		return model.ModUpdate{}, model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
 	}
-	return upt.ModUpdateInfo, nil
+	return upt.ModUpdate, nil
 }
 
 func (h *Handler) Remove(_ context.Context, mID string) error {
