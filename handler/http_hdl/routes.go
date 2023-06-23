@@ -32,6 +32,7 @@ func SetRoutes(e *gin.Engine, a lib.Api) {
 	e.GET(model.ModUpdatesPath, getModuleUpdates(a))
 	e.GET(model.ModUpdatesPath+"/:"+modIdParam, getModuleUpdate(a))
 	e.PATCH(model.ModUpdatesPath+"/:"+modIdParam+"/"+model.ModUptPreparePath, patchPrepareModuleUpdate(a))
+	e.PATCH(model.ModUpdatesPath+"/:"+modIdParam+"/"+model.ModUptCancelPath, patchCancelPendingModuleUpdate(a))
 	e.POST(model.ModUpdatesPath, postCheckModuleUpdates(a))
 	e.GET(model.DeploymentsPath, getDeploymentsH(a))
 	e.POST(model.DeploymentsPath, postDeploymentH(a))
