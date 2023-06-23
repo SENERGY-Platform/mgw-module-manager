@@ -72,6 +72,5 @@ type ModUpdate struct {
 }
 
 type ModUpdatePrepareRequest struct {
-	ID      string `json:"id"`
 	Version string `json:"version"`
 }
