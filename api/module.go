@@ -181,7 +181,12 @@ func (a *Api) prepareModuleUpdate(ctx context.Context, modules map[string]*modul
 	if err != nil {
 		return err
 	}
-	return a.modUpdateHandler.Prepare(ctx, modules, stg, id)
+	err = a.modUpdateHandler.Prepare(ctx, modules, stg, id)
+	if err != nil {
+		stg.Remove()
+		return err
+	}
+	return nil
 }
 
 func getModMeta(m model.Module) model.ModuleMeta {
