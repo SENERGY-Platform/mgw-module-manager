@@ -22,25 +22,25 @@ import (
 )
 
 type Api interface {
-	AddModule(ctx context.Context, id, version string) (string, error)
+	AddModule(ctx context.Context, mID, version string) (string, error)
 	GetModules(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error)
-	GetModule(ctx context.Context, id string) (model.Module, error)
-	DeleteModule(ctx context.Context, id string, orphans, force bool) error
-	GetModuleDeployTemplate(ctx context.Context, id string) (model.ModDeployTemplate, error)
+	GetModule(ctx context.Context, mID string) (model.Module, error)
+	DeleteModule(ctx context.Context, mID string, orphans, force bool) error
+	GetModuleDeployTemplate(ctx context.Context, mID string) (model.ModDeployTemplate, error)
 	CheckModuleUpdates(ctx context.Context) (string, error)
 	GetModuleUpdates(ctx context.Context) map[string]model.ModUpdateInfo
-	GetModuleUpdate(ctx context.Context, id string) (model.ModUpdateInfo, error)
-	PrepareModuleUpdate(ctx context.Context, id, version string) (string, error)
-	CancelPendingModuleUpdate(ctx context.Context, id string) error
-	CreateDeployment(ctx context.Context, id string, depInput model.DepInput, dependencies map[string]model.DepInput) (string, error)
+	GetModuleUpdate(ctx context.Context, mID string) (model.ModUpdateInfo, error)
+	PrepareModuleUpdate(ctx context.Context, mID, version string) (string, error)
+	CancelPendingModuleUpdate(ctx context.Context, mID string) error
+	CreateDeployment(ctx context.Context, mID string, depInput model.DepInput, dependencies map[string]model.DepInput) (string, error)
 	GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
-	GetDeployment(ctx context.Context, id string) (*model.Deployment, error)
-	StartDeployment(ctx context.Context, id string) error
-	StopDeployment(ctx context.Context, id string, dependencies bool) (string, error)
-	UpdateDeployment(ctx context.Context, id string, dr model.DepInput) (string, error)
-	DeleteDeployment(ctx context.Context, id string, orphans bool) error
-	GetDeploymentUpdateTemplate(ctx context.Context, id string) (model.DepUpdateTemplate, error)
+	GetDeployment(ctx context.Context, dID string) (*model.Deployment, error)
+	StartDeployment(ctx context.Context, dID string) error
+	StopDeployment(ctx context.Context, dID string, dependencies bool) (string, error)
+	UpdateDeployment(ctx context.Context, dID string, dr model.DepInput) (string, error)
+	DeleteDeployment(ctx context.Context, dID string, orphans bool) error
+	GetDeploymentUpdateTemplate(ctx context.Context, dID string) (model.DepUpdateTemplate, error)
 	GetJobs(ctx context.Context, filter model.JobFilter) ([]model.Job, error)
-	GetJob(ctx context.Context, id string) (model.Job, error)
-	CancelJob(ctx context.Context, id string) error
+	GetJob(ctx context.Context, jID string) (model.Job, error)
+	CancelJob(ctx context.Context, jID string) error
 }
