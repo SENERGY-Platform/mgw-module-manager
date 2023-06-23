@@ -153,7 +153,7 @@ func (a *Api) modDeployed(ctx context.Context, id string) (bool, error) {
 	return false, nil
 }
 
-func (a *Api) addModule(ctx context.Context, mr model.ModAddRequest) error {
+func (a *Api) addModule(ctx context.Context, id, version string) error {
 	modules, err := a.moduleHandler.List(ctx, model.ModFilter{})
 	if err != nil {
 		return err
@@ -162,7 +162,7 @@ func (a *Api) addModule(ctx context.Context, mr model.ModAddRequest) error {
 	for _, m := range modules {
 		modMap[m.ID] = m.Module
 	}
-	stage, err := a.modStagingHandler.Prepare(ctx, modMap, mr.ID, mr.Version)
+	stage, err := a.modStagingHandler.Prepare(ctx, modMap, id, version)
 	if err != nil {
 		return err
 	}
