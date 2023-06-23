@@ -137,6 +137,17 @@ func getModuleUpdates(a lib.Api) gin.HandlerFunc {
 	}
 }
 
+func getModuleUpdate(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		update, err := a.GetModuleUpdate(gc.Request.Context(), gc.Param(modIdParam))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, update)
+	}
+}
+
 func postModuleUpdates(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		jID, err := a.CheckModuleUpdates(gc.Request.Context())
