@@ -39,7 +39,7 @@ type update struct {
 	stage  handler.Stage
 	newIDs map[string]struct{}
 	uptIDs map[string]struct{}
-	misIDS map[string]struct{}
+	ophIDs map[string]struct{}
 }
 
 func New(transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler) *Handler {
@@ -153,10 +153,10 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	if err != nil {
 		return model.NewInternalError(err)
 	}
-	misIDs := make(map[string]struct{})
+	ophIDs := make(map[string]struct{})
 	for id := range reqMod {
 		if _, ok := stage.Get(id); !ok {
-			misIDs[id] = struct{}{}
+			ophIDs[id] = struct{}{}
 		}
 	}
 	newIDs := make(map[string]struct{})
@@ -196,23 +196,23 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	upt.stage = stage
 	upt.newIDs = newIDs
 	upt.uptIDs = uptIDs
-	upt.misIDS = misIDs
+	upt.ophIDs = ophIDs
 	upt.Pending = true
 	h.updates[mID] = upt
 	return nil
 }
 
-func (h *Handler) GetPending(_ context.Context, mID string) (handler.Stage, map[string]struct{}, map[string]struct{}, error) {
+func (h *Handler) GetPending(_ context.Context, mID string) (handler.Stage, map[string]struct{}, map[string]struct{}, map[string]struct{}, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	upt, ok := h.updates[mID]
 	if !ok {
-		return nil, nil, nil, model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
+		return nil, nil, nil, nil, model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
 	}
 	if !upt.Pending {
-		return nil, nil, nil, model.NewInternalError(fmt.Errorf("no update pending for '%s'", mID))
+		return nil, nil, nil, nil, model.NewInternalError(fmt.Errorf("no update pending for '%s'", mID))
 	}
-	return upt.stage, upt.newIDs, upt.uptIDs, nil
+	return upt.stage, upt.newIDs, upt.uptIDs, upt.ophIDs, nil
 }
 
 func (h *Handler) CancelPending(_ context.Context, mID string) error {
