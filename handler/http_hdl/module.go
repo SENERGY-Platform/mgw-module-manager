@@ -186,3 +186,14 @@ func patchCancelPendingModuleUpdate(a lib.Api) gin.HandlerFunc {
 		gc.Status(http.StatusOK)
 	}
 }
+
+func getPendingModuleUpdateTemplateH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		updateTemplate, err := a.GetModuleUpdateTemplate(gc.Request.Context(), gc.Param(modIdParam))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, updateTemplate)
+	}
+}
