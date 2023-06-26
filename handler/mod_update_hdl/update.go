@@ -237,3 +237,19 @@ func getModRequiring(mID string, modules map[string]*module.Module) map[string]s
 	}
 	return modReq
 }
+
+func getRequiredMod(mod *module.Module, modules map[string]*module.Module, reqMod map[string]*module.Module) error {
+	for id := range mod.Dependencies {
+		if _, ok := reqMod[id]; !ok {
+			m, k := modules[id]
+			if !k {
+				return fmt.Errorf("module '%s' not found", id)
+			}
+			reqMod[id] = m
+			if err := getRequiredMod(m, modules, reqMod); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
