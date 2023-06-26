@@ -39,6 +39,7 @@ type update struct {
 	stage  handler.Stage
 	newIDs map[string]struct{}
 	uptIDs map[string]struct{}
+	misIDS map[string]struct{}
 }
 
 func New(transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler) *Handler {
@@ -143,6 +144,21 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 		return model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
 	}
 	stgItems := stage.Items()
+	mod, ok := modules[mID]
+	if !ok {
+		return model.NewInternalError(fmt.Errorf("module '%s' not found", mID))
+	}
+	reqMod := make(map[string]*module.Module)
+	err := getRequiredMod(mod, modules, reqMod)
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	misIDs := make(map[string]struct{})
+	for id := range reqMod {
+		if _, ok := stage.Get(id); !ok {
+			misIDs[id] = struct{}{}
+		}
+	}
 	newIDs := make(map[string]struct{})
 	uptIDs := make(map[string]struct{})
 	for id, item := range stgItems {
@@ -180,6 +196,7 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	upt.stage = stage
 	upt.newIDs = newIDs
 	upt.uptIDs = uptIDs
+	upt.misIDS = misIDs
 	upt.Pending = true
 	h.updates[mID] = upt
 	return nil
