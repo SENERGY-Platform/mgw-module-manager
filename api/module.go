@@ -120,6 +120,53 @@ func (a *Api) CancelPendingModuleUpdate(ctx context.Context, id string) error {
 	return a.modUpdateHandler.CancelPending(ctx, id)
 }
 
+func (a *Api) GetModuleUpdateTemplate(ctx context.Context, id string) (model.ModUpdateTemplate, error) {
+	stg, newIDs, uptIDs, _, err := a.modUpdateHandler.GetPending(ctx, id)
+	if err != nil {
+		return model.ModUpdateTemplate{}, err
+	}
+	var updateTemplate model.ModUpdateTemplate
+	dep, err := a.deploymentHandler.Get(ctx, id)
+	if err != nil {
+		var nfe *model.NotFoundError
+		if !errors.As(err, &nfe) {
+			return model.ModUpdateTemplate{}, err
+		}
+	} else {
+		stgItem, ok := stg.Get(id)
+		if !ok {
+			return model.ModUpdateTemplate{}, model.NewInternalError(fmt.Errorf("module '%s' not staged", id))
+		}
+		updateTemplate.InputTemplate = input_tmplt.GetDepUpTemplate(stgItem.Module(), dep)
+		for newID := range newIDs {
+			stgItem, ok := stg.Get(newID)
+			if !ok {
+				return model.ModUpdateTemplate{}, model.NewInternalError(fmt.Errorf("module '%s' not staged", newID))
+			}
+			updateTemplate.Dependencies[newID] = input_tmplt.GetModDepTemplate(stgItem.Module())
+		}
+	}
+	for uptID := range uptIDs {
+		if uptID == id {
+			continue
+		}
+		dep, err := a.deploymentHandler.Get(ctx, uptID)
+		if err != nil {
+			var nfe *model.NotFoundError
+			if !errors.As(err, &nfe) {
+				return model.ModUpdateTemplate{}, err
+			}
+			continue
+		}
+		stgItem, ok := stg.Get(uptID)
+		if !ok {
+			return model.ModUpdateTemplate{}, model.NewInternalError(fmt.Errorf("module '%s' not staged", uptID))
+		}
+		updateTemplate.Dependencies[uptID] = input_tmplt.GetDepUpTemplate(stgItem.Module(), dep)
+	}
+	return updateTemplate, nil
+}
+
 func (a *Api) GetModuleDeployTemplate(ctx context.Context, id string) (model.ModDeployTemplate, error) {
 	mod, reqMod, err := a.moduleHandler.GetReq(ctx, id)
 	if err != nil {
