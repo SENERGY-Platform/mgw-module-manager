@@ -25,10 +25,18 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/input_tmplt"
 )
 
-func (a *Api) AddModule(_ context.Context, id, version string) (string, error) {
+func (a *Api) AddModule(ctx context.Context, id, version string) (string, error) {
+	modules, err := a.moduleHandler.List(ctx, model.ModFilter{})
+	if err != nil {
+		return "", err
+	}
+	modMap := make(map[string]*module.Module)
+	for _, m := range modules {
+		modMap[m.ID] = m.Module
+	}
 	return a.jobHandler.Create(fmt.Sprintf("add module '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
 		defer cf()
-		err := a.addModule(ctx, id, version)
+		err := a.addModule(ctx, id, version, modMap)
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -212,15 +220,7 @@ func (a *Api) modDeployed(ctx context.Context, id string) (bool, error) {
 	return false, nil
 }
 
-func (a *Api) addModule(ctx context.Context, id, version string) error {
-	modules, err := a.moduleHandler.List(ctx, model.ModFilter{})
-	if err != nil {
-		return err
-	}
-	modMap := make(map[string]*module.Module)
-	for _, m := range modules {
-		modMap[m.ID] = m.Module
-	}
+func (a *Api) addModule(ctx context.Context, id, version string, modMap map[string]*module.Module) error {
 	stage, err := a.modStagingHandler.Prepare(ctx, modMap, id, version)
 	if err != nil {
 		return err
