@@ -130,14 +130,14 @@ func getModuleDeployTemplateH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func getModuleUpdates(a lib.Api) gin.HandlerFunc {
+func getModuleUpdatesH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		updates := a.GetModuleUpdates(gc.Request.Context())
 		gc.JSON(http.StatusOK, updates)
 	}
 }
 
-func getModuleUpdate(a lib.Api) gin.HandlerFunc {
+func getModuleUpdateH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		update, err := a.GetModuleUpdate(gc.Request.Context(), gc.Param(modIdParam))
 		if err != nil {
@@ -148,7 +148,7 @@ func getModuleUpdate(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func postCheckModuleUpdates(a lib.Api) gin.HandlerFunc {
+func postCheckModuleUpdatesH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		jID, err := a.CheckModuleUpdates(gc.Request.Context())
 		if err != nil {
@@ -159,7 +159,7 @@ func postCheckModuleUpdates(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchPrepareModuleUpdate(a lib.Api) gin.HandlerFunc {
+func patchPrepareModuleUpdateH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		var modUptReq model.ModUpdatePrepareRequest
 		err := gc.ShouldBindJSON(&modUptReq)
@@ -176,7 +176,7 @@ func patchPrepareModuleUpdate(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchCancelPendingModuleUpdate(a lib.Api) gin.HandlerFunc {
+func patchCancelPendingModuleUpdateH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		err := a.CancelPendingModuleUpdate(gc.Request.Context(), gc.Param(modIdParam))
 		if err != nil {

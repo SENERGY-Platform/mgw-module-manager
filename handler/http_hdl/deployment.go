@@ -105,7 +105,7 @@ func patchDeploymentUpdateH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchDeploymentStart(a lib.Api) gin.HandlerFunc {
+func patchDeploymentStartH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		err := a.StartDeployment(gc.Request.Context(), gc.Param(depIdParam))
 		if err != nil {
@@ -116,7 +116,7 @@ func patchDeploymentStart(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchDeploymentStop(a lib.Api) gin.HandlerFunc {
+func patchDeploymentStopH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := stopDeploymentQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
