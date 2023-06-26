@@ -125,14 +125,23 @@ func (a *Api) GetModuleUpdateTemplate(ctx context.Context, id string) (model.Mod
 	if err != nil {
 		return model.ModUpdateTemplate{}, err
 	}
-	var updateTemplate model.ModUpdateTemplate
-	dep, err := a.deploymentHandler.Get(ctx, id)
+	depList, err := a.deploymentHandler.List(ctx, model.DepFilter{})
 	if err != nil {
-		var nfe *model.NotFoundError
-		if !errors.As(err, &nfe) {
+		return model.ModUpdateTemplate{}, err
+	}
+	depMap := make(map[string]string)
+	for _, depMeta := range depList {
+		depMap[depMeta.ModuleID] = depMeta.ID
+	}
+	updateTemplate := model.ModUpdateTemplate{
+		Dependencies: make(map[string]model.InputTemplate),
+	}
+	depID, ok := depMap[id]
+	if ok {
+		dep, err := a.deploymentHandler.Get(ctx, depID)
+		if err != nil {
 			return model.ModUpdateTemplate{}, err
 		}
-	} else {
 		stgItem, ok := stg.Get(id)
 		if !ok {
 			return model.ModUpdateTemplate{}, model.NewInternalError(fmt.Errorf("module '%s' not staged", id))
@@ -150,19 +159,22 @@ func (a *Api) GetModuleUpdateTemplate(ctx context.Context, id string) (model.Mod
 		if uptID == id {
 			continue
 		}
-		dep, err := a.deploymentHandler.Get(ctx, uptID)
-		if err != nil {
-			var nfe *model.NotFoundError
-			if !errors.As(err, &nfe) {
-				return model.ModUpdateTemplate{}, err
+		depID, ok := depMap[id]
+		if ok {
+			dep, err := a.deploymentHandler.Get(ctx, depID)
+			if err != nil {
+				var nfe *model.NotFoundError
+				if !errors.As(err, &nfe) {
+					return model.ModUpdateTemplate{}, err
+				}
+				continue
 			}
-			continue
+			stgItem, ok := stg.Get(uptID)
+			if !ok {
+				return model.ModUpdateTemplate{}, model.NewInternalError(fmt.Errorf("module '%s' not staged", uptID))
+			}
+			updateTemplate.Dependencies[uptID] = input_tmplt.GetDepUpTemplate(stgItem.Module(), dep)
 		}
-		stgItem, ok := stg.Get(uptID)
-		if !ok {
-			return model.ModUpdateTemplate{}, model.NewInternalError(fmt.Errorf("module '%s' not staged", uptID))
-		}
-		updateTemplate.Dependencies[uptID] = input_tmplt.GetDepUpTemplate(stgItem.Module(), dep)
 	}
 	return updateTemplate, nil
 }
