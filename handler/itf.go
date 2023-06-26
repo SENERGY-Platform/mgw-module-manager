@@ -64,7 +64,7 @@ type ModUpdateHandler interface {
 	Get(ctx context.Context, mID string) (model.ModUpdate, error)
 	Remove(ctx context.Context, mID string) error
 	Prepare(ctx context.Context, modules map[string]*module.Module, stage Stage, mID string) error
-	GetPending(ctx context.Context, mID string) (Stage, map[string]struct{}, map[string]struct{}, error)
+	GetPending(ctx context.Context, mID string) (Stage, map[string]struct{}, map[string]struct{}, map[string]struct{}, error)
 	CancelPending(ctx context.Context, mID string) error
 }
 
