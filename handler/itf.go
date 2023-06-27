@@ -86,6 +86,7 @@ type DepStorageHandler interface {
 	CreateDepHostRes(ctx context.Context, tx driver.Tx, hostResources map[string]string, dID string) error
 	CreateDepSecrets(ctx context.Context, tx driver.Tx, secrets map[string]string, dID string) error
 	CreateDepReq(ctx context.Context, tx driver.Tx, depReq []string, dID string) error
+	DeleteDepReq(ctx context.Context, tx driver.Tx, dID string) error
 	ReadDep(ctx context.Context, dID string) (*model.Deployment, error)
 	UpdateDep(ctx context.Context, dID, name, inclDir string, stopped, indirect bool, timestamp time.Time) error
 	DeleteDep(ctx context.Context, dID string) error
