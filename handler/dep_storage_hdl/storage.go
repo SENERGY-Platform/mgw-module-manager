@@ -210,16 +210,9 @@ func (h *Handler) CreateDepReq(ctx context.Context, itf driver.Tx, depReq []stri
 
 func (h *Handler) DeleteDepReq(ctx context.Context, itf driver.Tx, dID string) error {
 	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "DELETE FROM `dependencies` WHERE `dep_id` = ?", dID)
+	_, err := tx.ExecContext(ctx, "DELETE FROM `dependencies` WHERE `dep_id` = ?", dID)
 	if err != nil {
 		return model.NewInternalError(err)
-	}
-	n, err := res.RowsAffected()
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	if n < 1 {
-		return model.NewNotFoundError(errors.New("no rows affected"))
 	}
 	return nil
 }
