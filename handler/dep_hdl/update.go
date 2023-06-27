@@ -78,6 +78,15 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, depReq model.D
 	if err = h.storeDepAssets(ctx, tx, dID, hostRes, secrets, mod.Configs, userConfigs); err != nil {
 		return err
 	}
+	if len(mod.Dependencies) > 0 {
+		var dIDs []string
+		for mID := range mod.Dependencies {
+			dIDs = append(dIDs, reqModDepMap[mID])
+		}
+		if err = h.storageHandler.CreateDepReq(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dIDs, dID); err != nil {
+			return err
+		}
+	}
 	if incl != "" {
 		inclDir, err = h.mkInclDir(incl)
 		if err != nil {
@@ -148,6 +157,9 @@ func (h *Handler) wipeDep(ctx context.Context, tx driver.Tx, dID string) error {
 		return err
 	}
 	if err := h.storageHandler.DeleteDepConfigs(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID); err != nil {
+		return err
+	}
+	if err := h.storageHandler.DeleteDepReq(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID); err != nil {
 		return err
 	}
 	return nil
