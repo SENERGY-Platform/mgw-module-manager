@@ -22,7 +22,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func GetModOrder(modules map[string]model.Module) (order []string, err error) {
+func GetModOrder(modules map[string]*module.Module) (order []string, err error) {
 	if len(modules) > 1 {
 		nodes := make(tsort.Nodes)
 		for _, m := range modules {

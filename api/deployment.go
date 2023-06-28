@@ -40,7 +40,11 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput model.De
 		}
 	}
 	if len(reqMod) > 0 {
-		order, err := sorting.GetModOrder(reqMod)
+		modMap := make(map[string]*module.Module)
+		for _, m := range reqMod {
+			modMap[m.ID] = m.Module
+		}
+		order, err := sorting.GetModOrder(modMap)
 		if err != nil {
 			return "", model.NewInternalError(err)
 		}
