@@ -80,6 +80,12 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, depInput model
 		}
 	}
 	if incl != "" {
+		oldInclDir := inclDir
+		defer func() {
+			if err == nil {
+				os.RemoveAll(path.Join(h.wrkSpcPath, oldInclDir))
+			}
+		}()
 		inclDir, err = h.mkInclDir(incl)
 		if err != nil {
 			return err
