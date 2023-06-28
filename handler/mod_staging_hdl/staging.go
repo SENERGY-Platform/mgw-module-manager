@@ -64,6 +64,7 @@ func (h *Handler) InitWorkspace(perm fs.FileMode) error {
 	if err := os.MkdirAll(h.wrkSpcPath, perm); err != nil {
 		return err
 	}
+	// [REMINDER] clean workspace
 	return nil
 }
 
