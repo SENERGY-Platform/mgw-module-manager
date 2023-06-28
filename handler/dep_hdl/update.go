@@ -19,7 +19,6 @@ package dep_hdl
 import (
 	"context"
 	"database/sql/driver"
-	"errors"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
@@ -35,13 +34,6 @@ import (
 func (h *Handler) Update(ctx context.Context, mod *module.Module, depInput model.DepInput, incl dir_fs.DirFS, dID, inclDir string, stopped, indirect bool) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	dep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID)
-	if err != nil {
-		return err
-	}
-	if mod.ID != dep.ModuleID {
-		return model.NewInvalidInputError(errors.New("module ID mismatch"))
-	}
 	reqModDepMap, err := h.getReqModDepMap(ctx, mod.Dependencies)
 	if err != nil {
 		return err

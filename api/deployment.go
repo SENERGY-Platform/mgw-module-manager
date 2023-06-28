@@ -115,6 +115,9 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.D
 	if err != nil {
 		return "", err
 	}
+	if mod.ID != dep.ModuleID {
+		return "", model.NewInvalidInputError(errors.New("module ID mismatch"))
+	}
 	return a.jobHandler.Create(fmt.Sprintf("update deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
 		defer cf()
 		err := a.deploymentHandler.Update(ctx, mod.Module, depInput, "", dID, dep.Dir, dep.Stopped, dep.Indirect)
