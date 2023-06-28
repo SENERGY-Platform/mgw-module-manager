@@ -106,7 +106,7 @@ func (a *Api) StopDeployment(_ context.Context, id string, dependencies bool) (s
 	})
 }
 
-func (a *Api) UpdateDeployment(ctx context.Context, dID string, depReq model.DepInput) (string, error) {
+func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.DepInput) (string, error) {
 	dep, err := a.deploymentHandler.Get(ctx, dID)
 	if err != nil {
 		return "", err
@@ -117,7 +117,7 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depReq model.Dep
 	}
 	return a.jobHandler.Create(fmt.Sprintf("update deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
 		defer cf()
-		err := a.deploymentHandler.Update(ctx, mod.Module, depReq, "", dID, dep.Dir, dep.Stopped, dep.Indirect)
+		err := a.deploymentHandler.Update(ctx, mod.Module, depInput, "", dID, dep.Dir, dep.Stopped, dep.Indirect)
 		if err == nil {
 			err = ctx.Err()
 		}

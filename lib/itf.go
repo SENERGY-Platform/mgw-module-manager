@@ -38,7 +38,7 @@ type Api interface {
 	GetDeployment(ctx context.Context, dID string) (*model.Deployment, error)
 	StartDeployment(ctx context.Context, dID string) error
 	StopDeployment(ctx context.Context, dID string, dependencies bool) (string, error)
-	UpdateDeployment(ctx context.Context, dID string, dr model.DepInput) (string, error)
+	UpdateDeployment(ctx context.Context, dID string, depInput model.DepInput) (string, error)
 	DeleteDeployment(ctx context.Context, dID string, orphans bool) error
 	GetDeploymentUpdateTemplate(ctx context.Context, dID string) (model.DepUpdateTemplate, error)
 	GetJobs(ctx context.Context, filter model.JobFilter) ([]model.Job, error)
