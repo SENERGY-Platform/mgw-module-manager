@@ -23,6 +23,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/input_tmplt"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 )
 
 func (a *Api) AddModule(ctx context.Context, id, version string) (string, error) {
@@ -126,6 +127,121 @@ func (a *Api) PrepareModuleUpdate(ctx context.Context, id, version string) (stri
 
 func (a *Api) CancelPendingModuleUpdate(ctx context.Context, id string) error {
 	return a.modUpdateHandler.CancelPending(ctx, id)
+}
+
+func (a *Api) UpdateModule(ctx context.Context, id string, depInput model.DepInput, dependencies map[string]model.DepInput, orphans bool) (string, error) {
+	stg, newIDs, uptIDs, _, err := a.modUpdateHandler.GetPending(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	defer stg.Remove()
+	depList, err := a.deploymentHandler.List(ctx, model.DepFilter{})
+	if err != nil {
+		return "", err
+	}
+	var modDep *model.DepMeta
+	depMap := make(map[string]model.DepMeta)
+	for _, depMeta := range depList {
+		depMap[depMeta.ModuleID] = depMeta
+		if depMeta.ModuleID == id {
+			modDep = &depMeta
+		}
+	}
+	newMods := make(map[string]*module.Module)
+	uptMods := make(map[string]*module.Module)
+	for mID := range newIDs {
+		stgItem, ok := stg.Get(mID)
+		if !ok {
+			return "", model.NewInternalError(fmt.Errorf("module '%s' not staged", mID))
+		}
+		mod := stgItem.Module()
+		err = a.moduleHandler.Add(ctx, mod, stgItem.Dir(), stgItem.ModFile(), stgItem.Indirect())
+		if err != nil {
+			return "", err
+		}
+		newMods[mID] = mod
+	}
+	for mID := range uptIDs {
+		stgItem, ok := stg.Get(mID)
+		if !ok {
+			return "", model.NewInternalError(fmt.Errorf("module '%s' not staged", mID))
+		}
+		modOld, err := a.moduleHandler.Get(ctx, mID)
+		if err != nil {
+			return "", err
+		}
+		mod := stgItem.Module()
+		err = a.moduleHandler.Update(ctx, mod, stgItem.Dir(), stgItem.ModFile(), modOld.Indirect)
+		if err != nil {
+			return "", err
+		}
+		uptMods[mID] = mod
+	}
+	if modDep != nil && len(newMods) > 0 {
+		order, err := sorting.GetModOrder(newMods)
+		if err != nil {
+			return "", model.NewInternalError(err)
+		}
+		for _, mID := range order {
+			dir, err := a.moduleHandler.GetIncl(ctx, mID)
+			if err != nil {
+				return "", err
+			}
+			dID, err := a.deploymentHandler.Create(ctx, newMods[mID], dependencies[mID], dir, true)
+			if err != nil {
+				return "", err
+			}
+			if !modDep.Stopped {
+				err = a.deploymentHandler.Start(ctx, dID)
+				if err != nil {
+					return "", err
+				}
+			}
+		}
+	}
+	if len(uptMods) > 0 {
+		order, err := sorting.GetModOrder(uptMods)
+		if err != nil {
+			return "", model.NewInternalError(err)
+		}
+		for _, mID := range order {
+			if mod, ok := uptMods[mID]; ok {
+				if dep, ok := depMap[mID]; ok {
+					dir, err := a.moduleHandler.GetIncl(ctx, mID)
+					if err != nil {
+						return "", err
+					}
+					var dInput model.DepInput
+					if mID == id {
+						dInput = depInput
+					} else {
+						dInput = dependencies[mID]
+					}
+					stopped := dep.Stopped
+					if modDep != nil && !modDep.Stopped {
+						stopped = modDep.Stopped
+					}
+					dInput.Name = &dep.Name
+					err = a.deploymentHandler.Update(ctx, mod, dInput, dir, dep.ID, dep.Dir, stopped, dep.Indirect)
+					if err != nil {
+						return "", err
+					}
+				} else {
+					if modDep != nil {
+						return "", model.NewInternalError(fmt.Errorf("missing deployment for module '%s'", mID))
+					}
+				}
+			}
+		}
+	}
+	// [REMINDER] implement orphan handling
+	for mID := range uptIDs {
+		err = a.modUpdateHandler.Remove(ctx, mID)
+		if err != nil {
+			return "", err
+		}
+	}
+	return "", nil
 }
 
 func (a *Api) GetModuleUpdateTemplate(ctx context.Context, id string) (model.ModUpdateTemplate, error) {
