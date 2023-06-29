@@ -97,12 +97,14 @@ func (h *Handler) Check(ctx context.Context, modules map[string]*module.Module) 
 	return nil
 }
 
-func (h *Handler) List(_ context.Context) map[string]model.ModUpdate {
+func (h *Handler) List(_ context.Context) (updates map[string]model.ModUpdate) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	updates := make(map[string]model.ModUpdate)
-	for mID, upt := range h.updates {
-		updates[mID] = upt.ModUpdate
+	if len(h.updates) > 0 {
+		updates = make(map[string]model.ModUpdate)
+		for mID, upt := range h.updates {
+			updates[mID] = upt.ModUpdate
+		}
 	}
 	return updates
 }
