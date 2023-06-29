@@ -191,6 +191,28 @@ func patchCancelPendingModuleUpdateH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
+func patchModuleUpdateH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		var uptReq model.ModUpdateRequest
+		err := gc.ShouldBindJSON(&uptReq)
+		if err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		query := updateModuleQuery{}
+		if err := gc.ShouldBindQuery(&query); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		id, err := a.UpdateModule(gc.Request.Context(), gc.Param(modIdParam), uptReq.DepInput, uptReq.Dependencies, query.Orphans)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.String(http.StatusOK, id)
+	}
+}
+
 func getPendingModuleUpdateTemplateH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		updateTemplate, err := a.GetModuleUpdateTemplate(gc.Request.Context(), gc.Param(modIdParam))
