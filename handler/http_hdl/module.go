@@ -39,6 +39,10 @@ type deleteModuleQuery struct {
 	Force   bool `form:"force"`
 }
 
+type updateModuleQuery struct {
+	Orphans bool `form:"orphans"`
+}
+
 func getModulesH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := modulesQuery{}
