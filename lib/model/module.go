@@ -76,3 +76,8 @@ type ModUpdate struct {
 type ModUpdatePrepareRequest struct {
 	Version string `json:"version"`
 }
+
+type ModUpdateRequest struct {
+	DepInput
+	Dependencies map[string]DepInput `json:"dependencies"`
+}
