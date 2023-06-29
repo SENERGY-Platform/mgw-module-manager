@@ -170,16 +170,20 @@ func (h *Handler) diffVolumes(ctx context.Context, volumes ml_util.Set[string], 
 	if err != nil {
 		return nil, nil, err
 	}
+	hashedVols := make(ml_util.Set[string])
+	for name := range volumes {
+		hashedVols[getVolumeName(dID, name)] = struct{}{}
+	}
 	var orphans []string
 	existing := make(ml_util.Set[string])
 	for _, v := range vols {
-		if _, ok := volumes[v.Name]; !ok {
+		if _, ok := hashedVols[v.Name]; !ok {
 			orphans = append(orphans, v.Name)
 		}
 		existing[v.Name] = struct{}{}
 	}
 	missing := make(ml_util.Set[string])
-	for name := range volumes {
+	for name := range hashedVols {
 		if _, ok := existing[name]; !ok {
 			missing[name] = struct{}{}
 		}
