@@ -25,11 +25,6 @@ const (
 )
 
 const (
-	StartCmd = "start"
-	StopCmd  = "stop"
-)
-
-const (
 	ModulesPath           = "modules"
 	ModUpdatesPath        = "updates"
 	ModUptPreparePath     = "prepare"
