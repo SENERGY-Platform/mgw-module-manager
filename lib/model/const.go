@@ -31,7 +31,7 @@ const (
 
 const (
 	ModulesPath           = "modules"
-	ModUpdatesPath        = "module_updates"
+	ModUpdatesPath        = "updates"
 	ModUptPreparePath     = "prepare"
 	ModUptCancelPath      = "cancel"
 	DeploymentsPath       = "deployments"
