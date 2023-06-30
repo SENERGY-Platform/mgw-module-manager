@@ -22,12 +22,13 @@ import (
 )
 
 type DatabaseConfig struct {
-	Host    string `json:"host" env_var:"DB_HOST"`
-	Port    uint   `json:"port" env_var:"DB_PORT"`
-	User    string `json:"user" env_var:"DB_USER"`
-	Passwd  string `json:"passwd" env_var:"DB_PASSWD"`
-	Name    string `json:"name" env_var:"DB_NAME"`
-	Timeout int64  `json:"timeout" env_var:"DB_TIMEOUT"`
+	Host       string `json:"host" env_var:"DB_HOST"`
+	Port       uint   `json:"port" env_var:"DB_PORT"`
+	User       string `json:"user" env_var:"DB_USER"`
+	Passwd     string `json:"passwd" env_var:"DB_PASSWD"`
+	Name       string `json:"name" env_var:"DB_NAME"`
+	Timeout    int64  `json:"timeout" env_var:"DB_TIMEOUT"`
+	SchemaPath string `json:"schema_path" env_var:"DB_SCHEMA_PATH"`
 }
 
 type HttpClientConfig struct {
@@ -97,10 +98,11 @@ func NewConfig(path string) (*Config, error) {
 		},
 		ConfigDefsPath: "include/config_definitions.json",
 		Database: DatabaseConfig{
-			Host:    "core-db",
-			Port:    3306,
-			Name:    "module_manager",
-			Timeout: 5000000000,
+			Host:       "core-db",
+			Port:       3306,
+			Name:       "module_manager",
+			Timeout:    5000000000,
+			SchemaPath: "include/dep_storage_schema.sql",
 		},
 		HttpClient: HttpClientConfig{
 			CewBaseUrl: "http://api-gateway/ce-wrapper",
