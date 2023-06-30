@@ -32,6 +32,10 @@ type InvalidInputError struct {
 	cError
 }
 
+type ResourceBusyError struct {
+	cError
+}
+
 func (e *cError) Error() string {
 	return e.err.Error()
 }
@@ -50,4 +54,8 @@ func NewNotFoundError(err error) *NotFoundError {
 
 func NewInvalidInputError(err error) *InvalidInputError {
 	return &InvalidInputError{cError{err: err}}
+}
+
+func NewResourceBusyError(err error) *ResourceBusyError {
+	return &ResourceBusyError{cError{err: err}}
 }
