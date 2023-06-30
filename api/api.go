@@ -18,6 +18,7 @@ package api
 
 import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 )
 
 type Api struct {
@@ -26,6 +27,7 @@ type Api struct {
 	modUpdateHandler  handler.ModUpdateHandler
 	deploymentHandler handler.DeploymentHandler
 	jobHandler        handler.JobHandler
+	mu                *util.RWMutex
 }
 
 func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModStagingHandler, moduleUpdateHandler handler.ModUpdateHandler, deploymentHandler handler.DeploymentHandler, jobHandler handler.JobHandler) *Api {
@@ -35,5 +37,6 @@ func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModSt
 		modUpdateHandler:  moduleUpdateHandler,
 		deploymentHandler: deploymentHandler,
 		jobHandler:        jobHandler,
+		mu:                &util.RWMutex{},
 	}
 }

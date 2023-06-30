@@ -28,6 +28,11 @@ import (
 )
 
 func (a *Api) CreateDeployment(ctx context.Context, id string, depInput model.DepInput, dependencies map[string]model.DepInput) (string, error) {
+	err := a.mu.TryLock(fmt.Sprintf("create deployment for '%s'", id))
+	if err != nil {
+		return "", model.NewResourceBusyError(err)
+	}
+	defer a.mu.Unlock()
 	mod, reqMod, err := a.moduleHandler.GetReq(ctx, id)
 	if err != nil {
 		return "", err
@@ -84,21 +89,41 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput model.De
 }
 
 func (a *Api) GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
+	err := a.mu.TryRLock()
+	if err != nil {
+		return nil, model.NewResourceBusyError(err)
+	}
+	defer a.mu.RUnlock()
 	return a.deploymentHandler.List(ctx, filter)
 }
 
 func (a *Api) GetDeployment(ctx context.Context, id string) (*model.Deployment, error) {
+	err := a.mu.TryRLock()
+	if err != nil {
+		return nil, model.NewResourceBusyError(err)
+	}
+	defer a.mu.RUnlock()
 	return a.deploymentHandler.Get(ctx, id)
 }
 
 func (a *Api) StartDeployment(ctx context.Context, id string) error {
+	err := a.mu.TryLock(fmt.Sprintf("start deployment '%s'", id))
+	if err != nil {
+		return model.NewResourceBusyError(err)
+	}
+	defer a.mu.Unlock()
 	return a.deploymentHandler.Start(ctx, id)
 }
 
 func (a *Api) StopDeployment(_ context.Context, id string, dependencies bool) (string, error) {
 	return a.jobHandler.Create(fmt.Sprintf("stop deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
+		err := a.mu.TryLock(fmt.Sprintf("stop deployment '%s'", id))
+		if err != nil {
+			return err
+		}
+		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.Stop(ctx, id, dependencies)
+		err = a.deploymentHandler.Stop(ctx, id, dependencies)
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -107,18 +132,26 @@ func (a *Api) StopDeployment(_ context.Context, id string, dependencies bool) (s
 }
 
 func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.DepInput) (string, error) {
+	err := a.mu.TryLock(fmt.Sprintf("update deployment '%s'", dID))
+	if err != nil {
+		return "", model.NewResourceBusyError(err)
+	}
 	dep, err := a.deploymentHandler.Get(ctx, dID)
 	if err != nil {
+		a.mu.Unlock()
 		return "", err
 	}
 	mod, err := a.moduleHandler.Get(ctx, dep.ModuleID)
 	if err != nil {
+		a.mu.Unlock()
 		return "", err
 	}
 	if mod.ID != dep.ModuleID {
+		a.mu.Unlock()
 		return "", model.NewInvalidInputError(errors.New("module ID mismatch"))
 	}
-	return a.jobHandler.Create(fmt.Sprintf("update deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(fmt.Sprintf("update deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
+		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Update(ctx, mod.Module, depInput, "", dID, dep.Dir, dep.Stopped, dep.Indirect)
 		if err == nil {
@@ -126,13 +159,28 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.D
 		}
 		return err
 	})
+	if err != nil {
+		a.mu.Unlock()
+		return "", err
+	}
+	return jID, nil
 }
 
 func (a *Api) DeleteDeployment(ctx context.Context, id string, orphans bool) error {
+	err := a.mu.TryLock(fmt.Sprintf("delete deployment '%s'", id))
+	if err != nil {
+		return model.NewResourceBusyError(err)
+	}
+	defer a.mu.Unlock()
 	return a.deploymentHandler.Delete(ctx, id, orphans)
 }
 
 func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (model.DepUpdateTemplate, error) {
+	err := a.mu.TryRLock()
+	if err != nil {
+		return model.DepUpdateTemplate{}, model.NewResourceBusyError(err)
+	}
+	defer a.mu.RUnlock()
 	dep, err := a.deploymentHandler.Get(ctx, id)
 	if err != nil {
 		return model.DepUpdateTemplate{}, err
