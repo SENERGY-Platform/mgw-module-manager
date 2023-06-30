@@ -89,11 +89,6 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput model.De
 }
 
 func (a *Api) GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
-	err := a.mu.TryRLock()
-	if err != nil {
-		return nil, model.NewResourceBusyError(err)
-	}
-	defer a.mu.RUnlock()
 	return a.deploymentHandler.List(ctx, filter)
 }
 
