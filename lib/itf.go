@@ -28,7 +28,7 @@ type Api interface {
 	DeleteModule(ctx context.Context, mID string, orphans, force bool) error
 	GetModuleDeployTemplate(ctx context.Context, mID string) (model.ModDeployTemplate, error)
 	CheckModuleUpdates(ctx context.Context) (string, error)
-	GetModuleUpdates(ctx context.Context) map[string]model.ModUpdate
+	GetModuleUpdates(ctx context.Context) (map[string]model.ModUpdate, error)
 	GetModuleUpdate(ctx context.Context, mID string) (model.ModUpdate, error)
 	PrepareModuleUpdate(ctx context.Context, mID, version string) (string, error)
 	CancelPendingModuleUpdate(ctx context.Context, mID string) error

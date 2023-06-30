@@ -136,7 +136,11 @@ func getModuleDeployTemplateH(a lib.Api) gin.HandlerFunc {
 
 func getModuleUpdatesH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		updates := a.GetModuleUpdates(gc.Request.Context())
+		updates, err := a.GetModuleUpdates(gc.Request.Context())
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
 		gc.JSON(http.StatusOK, updates)
 	}
 }
