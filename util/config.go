@@ -97,6 +97,7 @@ func NewConfig(path string) (*Config, error) {
 		},
 		ConfigDefsPath: "include/config_definitions.json",
 		Database: DatabaseConfig{
+			Host:    "core-db",
 			Port:    3306,
 			Name:    "module_manager",
 			Timeout: 5000000000,
