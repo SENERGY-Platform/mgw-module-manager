@@ -103,7 +103,7 @@ func NewConfig(path string) (*Config, error) {
 			Timeout: 5000000000,
 		},
 		HttpClient: HttpClientConfig{
-			CewBaseUrl: "http://api-gateway/cew",
+			CewBaseUrl: "http://api-gateway/ce-wrapper",
 			Timeout:    10000000000,
 		},
 		Jobs: JobsConfig{
