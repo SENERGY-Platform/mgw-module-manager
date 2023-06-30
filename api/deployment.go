@@ -113,7 +113,7 @@ func (a *Api) StopDeployment(_ context.Context, id string, dependencies bool) (s
 	jID, err := a.jobHandler.Create(fmt.Sprintf("stop deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err = a.deploymentHandler.Stop(ctx, id, dependencies)
+		err := a.deploymentHandler.Stop(ctx, id, dependencies)
 		if err == nil {
 			err = ctx.Err()
 		}
