@@ -77,17 +77,17 @@ type Config struct {
 func NewConfig(path string) (*Config, error) {
 	cfg := Config{
 		ModStorageHandler: ModStorageHandlerConfig{
-			WorkdirPath: "/opt/mgw-module-manager/modules",
+			WorkdirPath: "/opt/module-manager/modules",
 		},
 		ModTransferHandler: ModTransferHandlerConfig{
-			WorkdirPath: "/opt/mgw-module-manager/transfer",
+			WorkdirPath: "/opt/module-manager/transfer",
 			Timeout:     30000000000,
 		},
 		ModStagingHandler: ModStagingHandlerConfig{
-			WorkdirPath: "/opt/mgw-module-manager/staging",
+			WorkdirPath: "/opt/module-manager/staging",
 		},
 		DepHandler: DepHandlerConfig{
-			WorkdirPath: "/opt/mgw-module-manager/deployments",
+			WorkdirPath: "/opt/module-manager/deployments",
 		},
 		Logger: srv_base.LoggerConfig{
 			Level:        level.Warning,
