@@ -17,6 +17,7 @@
 package dep_storage_hdl
 
 import (
+	"bufio"
 	"context"
 	"database/sql"
 	"database/sql/driver"
@@ -24,6 +25,8 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"io"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -37,6 +40,37 @@ type Handler struct {
 
 func New(db *sql.DB) *Handler {
 	return &Handler{db: db}
+}
+
+func (h *Handler) Init(ctx context.Context, schemaPath string) error {
+	file, err := os.Open(schemaPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	reader := bufio.NewReader(file)
+	var stmts []string
+	for {
+		stmt, err := reader.ReadString(';')
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		stmts = append(stmts, strings.TrimSuffix(strings.TrimSpace(stmt), ";"))
+	}
+	tx, err := h.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for _, stmt := range stmts {
+		_, err = tx.ExecContext(ctx, stmt)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 func (h *Handler) BeginTransaction(ctx context.Context) (driver.Tx, error) {
