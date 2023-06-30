@@ -58,11 +58,6 @@ func (a *Api) AddModule(ctx context.Context, id, version string) (string, error)
 }
 
 func (a *Api) GetModules(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
-	err := a.mu.TryRLock()
-	if err != nil {
-		return nil, model.NewResourceBusyError(err)
-	}
-	defer a.mu.RUnlock()
 	modules, err := a.moduleHandler.List(ctx, filter)
 	if err != nil {
 		return nil, err
