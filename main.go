@@ -197,5 +197,10 @@ func main() {
 		return
 	}
 
+	if err = mApi.StartDeployments(); err != nil {
+		util.Logger.Error(err)
+		return
+	}
+
 	srv_base.StartServer(&http.Server{Handler: httpHandler}, listener, srv_base_types.DefaultShutdownSignals, util.Logger)
 }
