@@ -106,11 +106,11 @@ func (a *Api) StartDeployment(ctx context.Context, id string) error {
 }
 
 func (a *Api) StopDeployment(_ context.Context, id string, dependencies bool) (string, error) {
-	return a.jobHandler.Create(fmt.Sprintf("stop deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
-		err := a.mu.TryLock(fmt.Sprintf("stop deployment '%s'", id))
-		if err != nil {
-			return err
-		}
+	err := a.mu.TryLock(fmt.Sprintf("stop deployment '%s'", id))
+	if err != nil {
+		return "", model.NewResourceBusyError(err)
+	}
+	jID, err := a.jobHandler.Create(fmt.Sprintf("stop deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err = a.deploymentHandler.Stop(ctx, id, dependencies)
@@ -119,6 +119,11 @@ func (a *Api) StopDeployment(_ context.Context, id string, dependencies bool) (s
 		}
 		return err
 	})
+	if err != nil {
+		a.mu.Unlock()
+		return "", err
+	}
+	return jID, nil
 }
 
 func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.DepInput) (string, error) {
