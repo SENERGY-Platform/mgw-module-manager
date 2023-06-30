@@ -126,6 +126,64 @@ func (a *Api) StopDeployment(_ context.Context, id string, dependencies bool) (s
 	return jID, nil
 }
 
+func (a *Api) StartDeployments() error {
+	err := a.mu.TryLock("start deployments")
+	if err != nil {
+		return model.NewResourceBusyError(err)
+	}
+	depList, err := a.deploymentHandler.List(context.Background(), model.DepFilter{})
+	if err != nil {
+		a.mu.Unlock()
+		return err
+	}
+	if len(depList) > 0 {
+		depMap := make(map[string]*model.Deployment)
+		for _, depMeta := range depList {
+			dep, err := a.deploymentHandler.Get(context.Background(), depMeta.ID)
+			if err != nil {
+				a.mu.Unlock()
+				return err
+			}
+			depMap[depMeta.ID] = dep
+		}
+		order, err := sorting.GetDepOrder(depMap)
+		if err != nil {
+			a.mu.Unlock()
+			return err
+		}
+		_, err = a.jobHandler.Create("start deployments", func(ctx context.Context, cf context.CancelFunc) error {
+			defer a.mu.Unlock()
+			defer cf()
+			err := a.startDeployments(ctx, depMap, order)
+			if err == nil {
+				err = ctx.Err()
+			}
+			return err
+		})
+		if err != nil {
+			a.mu.Unlock()
+			return err
+		}
+	}
+	return nil
+}
+
+func (a *Api) startDeployments(ctx context.Context, depMap map[string]*model.Deployment, order []string) error {
+	for _, dID := range order {
+		dep, ok := depMap[dID]
+		if !ok {
+			return fmt.Errorf("deployment '%s' does not exist", dID)
+		}
+		if !dep.Stopped {
+			err := a.deploymentHandler.Start(ctx, dID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.DepInput) (string, error) {
 	err := a.mu.TryLock(fmt.Sprintf("update deployment '%s'", dID))
 	if err != nil {
