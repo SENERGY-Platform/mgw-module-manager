@@ -127,16 +127,15 @@ func (a *Api) StopDeployment(_ context.Context, id string, dependencies bool) (s
 }
 
 func (a *Api) StartDeployments() error {
-	err := a.mu.TryLock("start deployments")
-	if err != nil {
-		return model.NewResourceBusyError(err)
-	}
 	depList, err := a.deploymentHandler.List(context.Background(), model.DepFilter{})
 	if err != nil {
-		a.mu.Unlock()
 		return err
 	}
 	if len(depList) > 0 {
+		err = a.mu.TryLock("start deployments")
+		if err != nil {
+			return model.NewResourceBusyError(err)
+		}
 		depMap := make(map[string]*model.Deployment)
 		for _, depMeta := range depList {
 			dep, err := a.deploymentHandler.Get(context.Background(), depMeta.ID)
