@@ -10,10 +10,10 @@ github.com/SENERGY-Platform/go-cc-job-handler v0.1.0 h1:JD8FNOo239AUCpiGKF1/E96X
 github.com/SENERGY-Platform/go-cc-job-handler v0.1.0/go.mod h1:9n2ZEgD4qhPJUIFJPzEDxmkoEY8d5U5oUVHOSnDUglc=
 github.com/SENERGY-Platform/go-service-base v0.8.0 h1:KUo+OugFxoy4X9b7IEm65O/56CWh9zQUedbZ9iO9hA8=
 github.com/SENERGY-Platform/go-service-base v0.8.0/go.mod h1:3ZD/Bo3uqhb3KzR70teqLEHyRCEXBJay9v9vzUpXqmI=
-github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.4.0 h1:ORAvv8z1iEU8CjhyfzgDVfEFvfcMC3+dcTDU23f5o+Y=
-github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.4.0/go.mod h1:EUUxmxI8fRG4pOTFouzjnQqbmC44liEeY4FJuSioVIc=
-github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.6.0 h1:p3q8yVtx4x3UvfJ8e598DC1zakVHqYIaX0Tuxw002/o=
-github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.6.0/go.mod h1:Z/vKGb78xJLubp/trhcYobmVazbfcB3NHxrJWf3SzAQ=
+github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.5.0 h1:tSI8z+onm2XZhEgXR3H66oUe56lb2ABPNYz+/ZrN1Tk=
+github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.5.0/go.mod h1:40qey9gp3Z/SrwH1RaDDPjAu7jBh8PI7GB4TgH21N/w=
+github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.7.0 h1:YLRz1AK8ToFfyge52KCoqHO0lE5CYIuSPOuX+9rwhqY=
+github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.7.0/go.mod h1:Z/vKGb78xJLubp/trhcYobmVazbfcB3NHxrJWf3SzAQ=
 github.com/SENERGY-Platform/mgw-modfile-lib v0.8.3 h1:NLiUH+Th8JYTur3ohkhCBnF2Dhfp5qre+RRJL8mM70o=
 github.com/SENERGY-Platform/mgw-modfile-lib v0.8.3/go.mod h1:cSzpfUlwhDAnLm5MyIKLRduoe4qtsxPSskviZxI+cVc=
 github.com/SENERGY-Platform/mgw-module-lib v0.8.1 h1:HgYZn4GdgI0nCISaPFYGx/FPLKYvZNeUCCxTptp3JLM=
