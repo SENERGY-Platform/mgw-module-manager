@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/cew_job"
@@ -62,7 +63,8 @@ func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.
 		if err != nil {
 			return "", nil, model.NewInternalError(err)
 		}
-		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, getMounts(srv, hostRes, secrets, dID, path.Join(h.depHostPath, inclDir)), getPorts(srv.Ports))
+		mounts, devices := h.getMounts(srv, hostRes, secrets, dID, path.Join(h.depHostPath, inclDir))
+		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, mounts, devices, getPorts(srv.Ports))
 		cID, err := h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container)
 		if err != nil {
 			return "", cIDs, model.NewInternalError(err)
@@ -165,8 +167,9 @@ func getEnvVars(srv *module.Service, configs, depMap map[string]string, dID, iID
 	return envVars, nil
 }
 
-func getMounts(srv *module.Service, hostRes, secrets map[string]string, dID, inclDir string) []cew_model.Mount {
+func (h *Handler) getMounts(srv *module.Service, hostRes map[string]hm_model.Resource, secrets map[string]string, dID, inclDir string) ([]cew_model.Mount, []cew_model.Device) {
 	var mounts []cew_model.Mount
+	var devices []cew_model.Device
 	for mntPoint, name := range srv.Volumes {
 		mounts = append(mounts, cew_model.Mount{
 			Type:   cew_model.VolumeMount,
@@ -190,17 +193,27 @@ func getMounts(srv *module.Service, hostRes, secrets map[string]string, dID, inc
 			Mode:   mount.Mode,
 		})
 	}
-	//for mntPoint, target := range srv.HostResources {
-	//	src, ok := hostRes[target.Ref]
-	//	if ok {
-	//		mounts = append(mounts, cew_model.Mount{
-	//			Type:     cew_model.BindMount,
-	//			Source:   "",
-	//			Target:   mntPoint,
-	//			ReadOnly: target.ReadOnly,
-	//		})
-	//	}
-	//}
+	for mntPoint, target := range srv.HostResources {
+		res, ok := hostRes[target.Ref]
+		if ok {
+			// [REMINDER] throw error if type unknown?
+			switch res.Type {
+			case hm_model.Application:
+				mounts = append(mounts, cew_model.Mount{
+					Type:     cew_model.BindMount,
+					Source:   res.Path,
+					Target:   mntPoint,
+					ReadOnly: target.ReadOnly,
+				})
+			case hm_model.SerialDevice:
+				devices = append(devices, cew_model.Device{
+					Source:   res.Path,
+					Target:   mntPoint,
+					ReadOnly: target.ReadOnly,
+				})
+			}
+		}
+	}
 	//for mntPoint, sRef := range srv.Secrets {
 	//	src, ok := secrets[sRef]
 	//	if ok {
@@ -212,7 +225,7 @@ func getMounts(srv *module.Service, hostRes, secrets map[string]string, dID, inc
 	//		})
 	//	}
 	//}
-	return mounts
+	return mounts, devices
 }
 
 func getPorts(sPorts []module.Port) (ports []cew_model.Port) {
@@ -233,7 +246,7 @@ func getPorts(sPorts []module.Port) (ports []cew_model.Port) {
 	return ports
 }
 
-func getContainer(srv *module.Service, ref, name, dID, iID string, envVars map[string]string, mounts []cew_model.Mount, ports []cew_model.Port) cew_model.Container {
+func getContainer(srv *module.Service, ref, name, dID, iID string, envVars map[string]string, mounts []cew_model.Mount, devices []cew_model.Device, ports []cew_model.Port) cew_model.Container {
 	retries := int(srv.RunConfig.MaxRetries)
 	stopTimeout := srv.RunConfig.StopTimeout
 	return cew_model.Container{
@@ -242,6 +255,7 @@ func getContainer(srv *module.Service, ref, name, dID, iID string, envVars map[s
 		EnvVars: envVars,
 		Labels:  map[string]string{"mgw_did": dID, "mgw_iid": iID, "mgw_sref": ref},
 		Mounts:  mounts,
+		Devices: devices,
 		Ports:   ports,
 		Networks: []cew_model.ContainerNet{
 			{
