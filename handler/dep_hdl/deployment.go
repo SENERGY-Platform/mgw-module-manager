@@ -23,8 +23,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	hm_client "github.com/SENERGY-Platform/mgw-host-manager/client"
+	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
@@ -41,18 +43,20 @@ import (
 type Handler struct {
 	storageHandler handler.DepStorageHandler
 	cfgVltHandler  handler.CfgValidationHandler
-	cewClient      client.CewClient
+	cewClient      cew_client.CewClient
+	hmClient       hm_client.HmClient
 	dbTimeout      time.Duration
 	httpTimeout    time.Duration
 	wrkSpcPath     string
 	depHostPath    string
 }
 
-func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient client.CewClient, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath, depHostPath string) *Handler {
+func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient cew_client.CewClient, hmClient hm_client.HmClient, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath, depHostPath string) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cfgVltHandler:  cfgVltHandler,
 		cewClient:      cewClient,
+		hmClient:       hmClient,
 		dbTimeout:      dbTimeout,
 		httpTimeout:    httpTimeout,
 		wrkSpcPath:     workspacePath,
