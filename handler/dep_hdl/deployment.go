@@ -110,7 +110,7 @@ func (h *Handler) prepareDep(ctx context.Context, mod *module.Module, depReq mod
 	if err != nil {
 		return "", nil, nil, nil, model.NewInvalidInputError(err)
 	}
-	hostRes, err = h.getHostRes(mod.HostResources, depReq.HostResources)
+	hostRes, err = h.getHostRes(ctx, mod.HostResources, depReq.HostResources)
 	if err != nil {
 		return "", nil, nil, nil, err
 	}
@@ -140,13 +140,23 @@ func (h *Handler) getUserConfigs(modConfigs module.Configs, userInput map[string
 	return userConfigs, nil
 }
 
-func (h *Handler) getHostRes(mHostRes map[string]module.HostResource, userInput map[string]string) (map[string]string, error) {
-	hostRes, missing, err := getUserHostRes(userInput, mHostRes)
+func (h *Handler) getHostRes(ctx context.Context, mHostRes map[string]module.HostResource, userInput map[string]string) (map[string]hm_model.Resource, error) {
+	usrHostRes, missing, err := getUserHostRes(userInput, mHostRes)
 	if err != nil {
 		return nil, model.NewInvalidInputError(err)
 	}
 	if len(missing) > 0 {
 		return nil, model.NewInternalError(errors.New("host resource discovery not implemented"))
+	}
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	hostRes := make(map[string]hm_model.Resource)
+	for ref, id := range usrHostRes {
+		res, err := h.hmClient.GetResource(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), id)
+		if err != nil {
+			return nil, model.NewInternalError(err)
+		}
+		hostRes[ref] = res
 	}
 	return hostRes, nil
 }
