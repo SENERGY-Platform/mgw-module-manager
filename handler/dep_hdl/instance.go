@@ -44,7 +44,7 @@ func (h *Handler) getCurrentInst(ctx context.Context, dID string) (model.Instanc
 	return h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instances[0].ID)
 }
 
-func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.Module, dID, inclDir string, stringValues, hostRes, secrets, reqModDepMap map[string]string) (string, []string, error) {
+func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.Module, dID, inclDir string, stringValues map[string]string, hostRes map[string]hm_model.Resource, secrets, reqModDepMap map[string]string) (string, []string, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	iID, err := h.storageHandler.CreateInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID, time.Now().UTC())
