@@ -245,7 +245,7 @@ func genHash(str ...string) string {
 
 func getUserHostRes(userInput map[string]string, mHostRes map[string]module.HostResource) (map[string]string, []string, error) {
 	usrHostRes := make(map[string]string)
-	var ad []string
+	var missing []string
 	for ref, mHR := range mHostRes {
 		id, ok := userInput[ref]
 		if ok {
@@ -253,14 +253,14 @@ func getUserHostRes(userInput map[string]string, mHostRes map[string]module.Host
 		} else {
 			if mHR.Required {
 				if len(mHR.Tags) > 0 {
-					ad = append(ad, ref)
+					missing = append(missing, ref)
 				} else {
 					return nil, nil, fmt.Errorf("host resource '%s' required", ref)
 				}
 			}
 		}
 	}
-	return usrHostRes, ad, nil
+	return usrHostRes, missing, nil
 }
 
 func getUserSecrets(s map[string]string, mSs map[string]module.Secret) (map[string]string, []string, error) {
