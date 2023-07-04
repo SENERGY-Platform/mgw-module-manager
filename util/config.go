@@ -106,8 +106,8 @@ func NewConfig(path string) (*Config, error) {
 			SchemaPath: "include/dep_storage_schema.sql",
 		},
 		HttpClient: HttpClientConfig{
-			CewBaseUrl: "http://api-gateway/ce-wrapper",
-			HmBaseUrl:  "http://api-gateway/host-manager",
+			CewBaseUrl: "http://core-api/ce-wrapper",
+			HmBaseUrl:  "http://core-api/host-manager",
 			Timeout:    10000000000,
 		},
 		Jobs: JobsConfig{
