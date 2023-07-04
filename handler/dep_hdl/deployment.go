@@ -246,13 +246,13 @@ func genHash(str ...string) string {
 func getUserHostRes(userInput map[string]string, mHostRes map[string]module.HostResource) (map[string]string, []string, error) {
 	usrHostRes := make(map[string]string)
 	var ad []string
-	for ref, mRH := range mHostRes {
+	for ref, mHR := range mHostRes {
 		id, ok := userInput[ref]
 		if ok {
 			usrHostRes[ref] = id
 		} else {
-			if mRH.Required {
-				if len(mRH.Tags) > 0 {
+			if mHR.Required {
+				if len(mHR.Tags) > 0 {
 					ad = append(ad, ref)
 				} else {
 					return nil, nil, fmt.Errorf("host resource '%s' required", ref)
