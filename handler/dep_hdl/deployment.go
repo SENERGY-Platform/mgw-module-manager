@@ -172,11 +172,15 @@ func (h *Handler) getSecrets(mSecrets map[string]module.Secret, userInput map[st
 	return secrets, nil
 }
 
-func (h *Handler) storeDepAssets(ctx context.Context, tx driver.Tx, dID string, hostRes, secrets map[string]string, modConfigs module.Configs, userConfigs map[string]any) error {
+func (h *Handler) storeDepAssets(ctx context.Context, tx driver.Tx, dID string, hostRes map[string]hm_model.Resource, secrets map[string]string, modConfigs module.Configs, userConfigs map[string]any) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	if len(hostRes) > 0 {
-		if err := h.storageHandler.CreateDepHostRes(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, hostRes, dID); err != nil {
+		hr := make(map[string]string)
+		for ref, res := range hostRes {
+			hr[ref] = res.ID
+		}
+		if err := h.storageHandler.CreateDepHostRes(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, hr, dID); err != nil {
 			return err
 		}
 	}
