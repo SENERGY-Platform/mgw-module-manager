@@ -38,7 +38,7 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, depInput model
 	if err != nil {
 		return err
 	}
-	name, userConfigs, hostRes, secrets, err := h.prepareDep(mod, depInput)
+	name, userConfigs, hostRes, secrets, err := h.prepareDep(ctx, mod, depInput)
 	if err != nil {
 		return err
 	}

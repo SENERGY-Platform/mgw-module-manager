@@ -36,7 +36,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	name, userConfigs, hostRes, secrets, err := h.prepareDep(mod, depReq)
+	name, userConfigs, hostRes, secrets, err := h.prepareDep(ctx, mod, depReq)
 	if err != nil {
 		return "", err
 	}
