@@ -10,7 +10,7 @@ require (
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.7.1
 	github.com/SENERGY-Platform/mgw-host-manager/client v0.0.2
 	github.com/SENERGY-Platform/mgw-host-manager/lib v0.0.4
-	github.com/SENERGY-Platform/mgw-modfile-lib v0.8.4
+	github.com/SENERGY-Platform/mgw-modfile-lib v0.8.5
 	github.com/SENERGY-Platform/mgw-module-lib v0.8.1
 	github.com/SENERGY-Platform/mgw-module-manager/lib v0.0.0-00010101000000-000000000000
 	github.com/gin-contrib/requestid v0.0.6
