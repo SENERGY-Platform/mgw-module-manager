@@ -14,8 +14,8 @@ github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.5.0 h1:tSI8z+
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.5.0/go.mod h1:40qey9gp3Z/SrwH1RaDDPjAu7jBh8PI7GB4TgH21N/w=
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.7.0 h1:YLRz1AK8ToFfyge52KCoqHO0lE5CYIuSPOuX+9rwhqY=
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.7.0/go.mod h1:Z/vKGb78xJLubp/trhcYobmVazbfcB3NHxrJWf3SzAQ=
-github.com/SENERGY-Platform/mgw-modfile-lib v0.8.3 h1:NLiUH+Th8JYTur3ohkhCBnF2Dhfp5qre+RRJL8mM70o=
-github.com/SENERGY-Platform/mgw-modfile-lib v0.8.3/go.mod h1:cSzpfUlwhDAnLm5MyIKLRduoe4qtsxPSskviZxI+cVc=
+github.com/SENERGY-Platform/mgw-modfile-lib v0.8.4 h1:rKvWVsz8rPoxr6hGqD7iSNTBSdcFXJF5uji27/LmrZ0=
+github.com/SENERGY-Platform/mgw-modfile-lib v0.8.4/go.mod h1:cSzpfUlwhDAnLm5MyIKLRduoe4qtsxPSskviZxI+cVc=
 github.com/SENERGY-Platform/mgw-module-lib v0.8.1 h1:HgYZn4GdgI0nCISaPFYGx/FPLKYvZNeUCCxTptp3JLM=
 github.com/SENERGY-Platform/mgw-module-lib v0.8.1/go.mod h1:C2qGjRiBfl0m+gxD3493QkjdcV8/XlkyKTdLhkbUi/U=
 github.com/acomagu/bufpipe v1.0.4 h1:e3H4WUzM3npvo5uv95QuJM3cQspFNtFBzvJ2oNjKIDQ=
