@@ -20,7 +20,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"database/sql/driver"
-	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
@@ -240,7 +240,7 @@ func genHash(str ...string) string {
 	for _, s := range str {
 		hash.Write([]byte(s))
 	}
-	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(hash.Sum(nil))
+	return hex.EncodeToString(hash.Sum(nil))
 }
 
 func getUserHostRes(hrs map[string]string, mHRs map[string]module.HostResource) (map[string]string, []string, error) {
