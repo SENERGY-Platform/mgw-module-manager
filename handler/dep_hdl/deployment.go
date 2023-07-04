@@ -232,7 +232,7 @@ func getDepName(mName string, userInput *string) string {
 }
 
 func getVolumeName(dID, name string) string {
-	return "MGW_" + genHash(dID, name)
+	return "mgw_" + genHash(dID, name)
 }
 
 func genHash(str ...string) string {
