@@ -33,6 +33,7 @@ type DatabaseConfig struct {
 
 type HttpClientConfig struct {
 	CewBaseUrl string `json:"cew_base_url" env_var:"CEW_BASE_URL"`
+	HmBaseUrl  string `json:"hm_base_url" env_var:"HM_BASE_URL"`
 	Timeout    int64  `json:"timeout" env_var:"HTTP_TIMEOUT"`
 }
 
@@ -106,6 +107,7 @@ func NewConfig(path string) (*Config, error) {
 		},
 		HttpClient: HttpClientConfig{
 			CewBaseUrl: "http://api-gateway/ce-wrapper",
+			HmBaseUrl:  "http://api-gateway/host-manager",
 			Timeout:    10000000000,
 		},
 		Jobs: JobsConfig{
