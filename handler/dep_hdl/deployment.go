@@ -243,13 +243,13 @@ func genHash(str ...string) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
-func getUserHostRes(hrs map[string]string, mHRs map[string]module.HostResource) (map[string]string, []string, error) {
-	dRs := make(map[string]string)
+func getUserHostRes(userInput map[string]string, mHostRes map[string]module.HostResource) (map[string]string, []string, error) {
+	usrHostRes := make(map[string]string)
 	var ad []string
-	for ref, mRH := range mHRs {
-		id, ok := hrs[ref]
+	for ref, mRH := range mHostRes {
+		id, ok := userInput[ref]
 		if ok {
-			dRs[ref] = id
+			usrHostRes[ref] = id
 		} else {
 			if mRH.Required {
 				if len(mRH.Tags) > 0 {
@@ -260,7 +260,7 @@ func getUserHostRes(hrs map[string]string, mHRs map[string]module.HostResource) 
 			}
 		}
 	}
-	return dRs, ad, nil
+	return usrHostRes, ad, nil
 }
 
 func getUserSecrets(s map[string]string, mSs map[string]module.Secret) (map[string]string, []string, error) {
