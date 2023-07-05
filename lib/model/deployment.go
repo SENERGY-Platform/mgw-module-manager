@@ -60,9 +60,9 @@ type Instance struct {
 }
 
 type Container struct {
-	ID    string
-	Ref   string
-	Order uint
+	ID    string `json:"id"`
+	Ref   string `json:"ref"`
+	Order uint   `json:"order"`
 }
 
 type SortDirection = int
