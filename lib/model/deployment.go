@@ -47,6 +47,12 @@ type DepConfig struct {
 	IsSlice  bool            `json:"is_slice"`
 }
 
+type DepInstance struct {
+	ID         string      `json:"id"`
+	Created    time.Time   `json:"created"`
+	Containers []Container `json:"containers"`
+}
+
 type Instance struct {
 	ID      string    `json:"id"`
 	DepID   string    `json:"dep_id"`
