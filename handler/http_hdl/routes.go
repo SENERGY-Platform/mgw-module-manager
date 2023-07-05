@@ -42,6 +42,7 @@ func SetRoutes(e *gin.Engine, a lib.Api) {
 	e.PATCH(model.DeploymentsPath+"/:"+depIdParam, patchDeploymentUpdateH(a))
 	e.PATCH(model.DeploymentsPath+"/:"+depIdParam+"/"+model.DepStartPath, patchDeploymentStartH(a))
 	e.PATCH(model.DeploymentsPath+"/:"+depIdParam+"/"+model.DepStopPath, patchDeploymentStopH(a))
+	e.GET(model.DeploymentsPath+"/:"+depIdParam+"/"+model.DepInstPath, getDeploymentInstanceH(a))
 	e.DELETE(model.DeploymentsPath+"/:"+depIdParam, deleteDeploymentH(a))
 	e.GET(model.DeploymentsPath+"/:"+depIdParam+"/"+model.DepUpdateTemplatePath, getDeploymentUpdateTemplateH(a))
 	e.GET("/"+model.JobsPath, getJobsH(a))
