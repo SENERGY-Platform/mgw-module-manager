@@ -71,6 +71,17 @@ func getDeploymentH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
+func getDeploymentInstanceH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		depInst, err := a.GetDeploymentInstance(gc.Request.Context(), gc.Param(depIdParam))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, depInst)
+	}
+}
+
 func postDeploymentH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		var depReq model.DepCreateRequest
