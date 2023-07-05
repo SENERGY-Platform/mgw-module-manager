@@ -96,6 +96,10 @@ func (a *Api) GetDeployment(ctx context.Context, id string) (*model.Deployment, 
 	return a.deploymentHandler.Get(ctx, id)
 }
 
+func (a *Api) GetDeploymentInstance(ctx context.Context, id string) (model.DepInstance, error) {
+	return a.deploymentHandler.GetInstance(ctx, id)
+}
+
 func (a *Api) StartDeployment(ctx context.Context, id string) error {
 	err := a.mu.TryLock(fmt.Sprintf("start deployment '%s'", id))
 	if err != nil {
