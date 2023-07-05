@@ -86,6 +86,24 @@ func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error)
 	return h.storageHandler.ReadDep(ctxWt, id)
 }
 
+func (h *Handler) GetInstance(ctx context.Context, id string) (model.DepInstance, error) {
+	inst, err := h.getCurrentInst(ctx, id)
+	if err != nil {
+		return model.DepInstance{}, err
+	}
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	ctrs, err := h.storageHandler.ListInstCtr(ctxWt, inst.ID, model.CtrFilter{SortOrder: model.Descending})
+	if err != nil {
+		return model.DepInstance{}, err
+	}
+	return model.DepInstance{
+		ID:         inst.ID,
+		Created:    inst.Created,
+		Containers: ctrs,
+	}, nil
+}
+
 func (h *Handler) getReqDep(ctx context.Context, dep *model.Deployment, reqDep map[string]*model.Deployment) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
