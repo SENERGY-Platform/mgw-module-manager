@@ -63,7 +63,7 @@ func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.
 		if err != nil {
 			return "", nil, model.NewInternalError(err)
 		}
-		mounts, devices := h.getMounts(srv, hostRes, secrets, dID, path.Join(h.depHostPath, inclDir))
+		mounts, devices := h.getMounts(srv, hostRes, secrets, dID, inclDir)
 		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, mounts, devices, getPorts(srv.Ports))
 		cID, err := h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container)
 		if err != nil {
@@ -180,7 +180,7 @@ func (h *Handler) getMounts(srv *module.Service, hostRes map[string]hm_model.Res
 	for mntPoint, mount := range srv.BindMounts {
 		mounts = append(mounts, cew_model.Mount{
 			Type:     cew_model.BindMount,
-			Source:   path.Join(inclDir, mount.Source),
+			Source:   path.Join(h.depHostPath, inclDir, mount.Source),
 			Target:   mntPoint,
 			ReadOnly: mount.ReadOnly,
 		})
