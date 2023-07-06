@@ -45,6 +45,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/modfile_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"net"
@@ -138,7 +139,9 @@ func main() {
 
 	hmClient := hm_client.New(http.DefaultClient, config.HttpClient.HmBaseUrl)
 
-	depHandler := dep_hdl.New(depStorageHandler, cfgValidHandler, cewClient, hmClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, config.DepHandler.HostDepPath)
+	smClient := sm_client.NewClient(config.HttpClient.SmBaseUrl, http.DefaultClient)
+
+	depHandler := dep_hdl.New(depStorageHandler, cfgValidHandler, cewClient, hmClient, smClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, config.DepHandler.HostDepPath, config.DepHandler.HostSecPath)
 	if err = depHandler.InitWorkspace(0770); err != nil {
 		util.Logger.Error(err)
 		return

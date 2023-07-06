@@ -34,6 +34,7 @@ type DatabaseConfig struct {
 type HttpClientConfig struct {
 	CewBaseUrl string `json:"cew_base_url" env_var:"CEW_BASE_URL"`
 	HmBaseUrl  string `json:"hm_base_url" env_var:"HM_BASE_URL"`
+	SmBaseUrl  string `json:"sm_base_url" env_var:"SM_BASE_URL"`
 	Timeout    int64  `json:"timeout" env_var:"HTTP_TIMEOUT"`
 }
 
@@ -53,6 +54,7 @@ type ModStagingHandlerConfig struct {
 type DepHandlerConfig struct {
 	WorkdirPath string `json:"workdir_path" env_var:"DH_WORKDIR_PATH"`
 	HostDepPath string `json:"host_dep_path" env_var:"DH_HOST_DEP_PATH"`
+	HostSecPath string `json:"host_sec_path" env_var:"DH_HOST_SEC_PATH"`
 }
 
 type JobsConfig struct {
@@ -108,6 +110,7 @@ func NewConfig(path string) (*Config, error) {
 		HttpClient: HttpClientConfig{
 			CewBaseUrl: "http://core-api/ce-wrapper",
 			HmBaseUrl:  "http://core-api/host-manager",
+			SmBaseUrl:  "http://secret-manager",
 			Timeout:    10000000000,
 		},
 		Jobs: JobsConfig{

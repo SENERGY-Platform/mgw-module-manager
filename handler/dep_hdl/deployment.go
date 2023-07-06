@@ -33,6 +33,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
+	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
 	"github.com/google/uuid"
 	"io/fs"
 	"os"
@@ -45,22 +46,26 @@ type Handler struct {
 	cfgVltHandler  handler.CfgValidationHandler
 	cewClient      cew_client.CewClient
 	hmClient       hm_client.HmClient
+	smClient       sm_client.Client
 	dbTimeout      time.Duration
 	httpTimeout    time.Duration
 	wrkSpcPath     string
 	depHostPath    string
+	secHostPath    string
 }
 
-func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient cew_client.CewClient, hmClient hm_client.HmClient, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath, depHostPath string) *Handler {
+func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient cew_client.CewClient, hmClient hm_client.HmClient, smClient sm_client.Client, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath, depHostPath, secHostPath string) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cfgVltHandler:  cfgVltHandler,
 		cewClient:      cewClient,
 		hmClient:       hmClient,
+		smClient:       smClient,
 		dbTimeout:      dbTimeout,
 		httpTimeout:    httpTimeout,
 		wrkSpcPath:     workspacePath,
 		depHostPath:    depHostPath,
+		secHostPath:    secHostPath,
 	}
 }
 
