@@ -299,22 +299,22 @@ func getUserHostRes(userInput map[string]string, mHostRes map[string]module.Host
 	return usrHostRes, missing, nil
 }
 
-func getUserSecrets(s map[string]string, mSs map[string]module.Secret) (map[string]string, []string, error) {
-	dSs := make(map[string]string)
-	var ad []string
-	for ref, mS := range mSs {
-		id, ok := s[ref]
+func getUserSecrets(userInput map[string]string, mSecrets map[string]module.Secret) (map[string]string, []string, error) {
+	usrSecrets := make(map[string]string)
+	var missing []string
+	for ref, mS := range mSecrets {
+		id, ok := userInput[ref]
 		if ok {
-			dSs[ref] = id
+			usrSecrets[ref] = id
 		} else {
 			if mS.Required {
 				if len(mS.Tags) > 0 {
-					ad = append(ad, ref)
+					missing = append(missing, ref)
 				} else {
 					return nil, nil, fmt.Errorf("secret '%s' required", ref)
 				}
 			}
 		}
 	}
-	return dSs, ad, nil
+	return usrSecrets, missing, nil
 }
