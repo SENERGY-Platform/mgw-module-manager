@@ -256,15 +256,12 @@ func (h *Handler) validateModule(m *module.Module, mID, ver string) error {
 	if err != nil {
 		return err
 	}
-	for _, cv := range m.Configs {
-		if err = h.configValidationHandler.ValidateBase(cv.Type, cv.TypeOpt, cv.DataType); err != nil {
-			return err
-		}
-		if err = h.configValidationHandler.ValidateTypeOptions(cv.Type, cv.TypeOpt); err != nil {
-			return err
-		}
-		if cv.Default != nil {
-			if err = h.configValidationHandler.ValidateValue(cv.Type, cv.TypeOpt, cv.Default, cv.IsSlice, cv.DataType); err != nil {
+	for ref, cv := range m.Configs {
+		if _, ok := m.Inputs.Configs[ref]; ok {
+			if err = h.configValidationHandler.ValidateBase(cv.Type, cv.TypeOpt, cv.DataType); err != nil {
+				return err
+			}
+			if err = h.configValidationHandler.ValidateTypeOptions(cv.Type, cv.TypeOpt); err != nil {
 				return err
 			}
 		}
