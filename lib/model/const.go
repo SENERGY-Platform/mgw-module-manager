@@ -35,6 +35,7 @@ const (
 	DepStartPath          = "start"
 	DepStopPath           = "stop"
 	DepInstPath           = "instances"
+	DepHealthPath         = "health"
 	JobsPath              = "jobs"
 	JobsCancelPath        = "cancel"
 )
