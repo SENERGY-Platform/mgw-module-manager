@@ -180,3 +180,25 @@ func getDeploymentUpdateTemplateH(a lib.Api) gin.HandlerFunc {
 		gc.JSON(http.StatusOK, inputTemplate)
 	}
 }
+
+func getDeploymentsHealthH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		healthInfo, err := a.GetDeploymentsHealth(gc.Request.Context())
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, healthInfo)
+	}
+}
+
+func getDeploymentHealthH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		healthInfo, err := a.GetDeploymentHealth(gc.Request.Context(), gc.Param(depIdParam))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, healthInfo)
+	}
+}
