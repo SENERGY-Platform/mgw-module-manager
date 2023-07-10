@@ -175,6 +175,32 @@ func (a *Api) StartDeployments() error {
 	return nil
 }
 
+func (a *Api) GetDeploymentsHealth(ctx context.Context) (map[string]model.DepHealthInfo, error) {
+	deployments, err := a.deploymentHandler.List(ctx, model.DepFilter{})
+	if err != nil {
+		return nil, err
+	}
+	instances := make(map[string]model.DepInstance)
+	for _, dep := range deployments {
+		if !dep.Stopped {
+			instance, err := a.deploymentHandler.GetInstance(ctx, dep.ID)
+			if err != nil {
+				return nil, err
+			}
+			instances[dep.ID] = instance
+		}
+	}
+	return a.depHealthHandler.List(ctx, instances)
+}
+
+func (a *Api) GetDeploymentHealth(ctx context.Context, dID string) (model.DepHealthInfo, error) {
+	instance, err := a.deploymentHandler.GetInstance(ctx, dID)
+	if err != nil {
+		return model.DepHealthInfo{}, err
+	}
+	return a.depHealthHandler.Get(ctx, instance)
+}
+
 func (a *Api) startDeployments(ctx context.Context, depMap map[string]*model.Deployment, order []string) error {
 	for _, dID := range order {
 		dep, ok := depMap[dID]
