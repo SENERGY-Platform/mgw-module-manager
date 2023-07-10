@@ -103,6 +103,11 @@ type DepStorageHandler interface {
 	CreateInstCtr(ctx context.Context, tx driver.Tx, iID, cID, sRef string, order uint) error
 }
 
+type DepHealthHandler interface {
+	List(ctx context.Context, instances map[string]model.DepInstance) (map[string]model.DepHealthInfo, error)
+	Get(ctx context.Context, instance model.DepInstance) (model.DepHealthInfo, error)
+}
+
 type CfgValidationHandler interface {
 	ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error
 	ValidateTypeOptions(cType string, cTypeOpt module.ConfigTypeOptions) error
