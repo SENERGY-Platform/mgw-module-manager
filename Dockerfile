@@ -15,4 +15,6 @@ RUN mkdir include
 COPY --from=builder /go/src/app/manager manager
 COPY --from=builder /go/src/app/include include
 
+HEALTHCHECK --interval=10s --timeout=5s --retries=3 CMD wget -nv -t1 --spider 'http://localhost/health-check' || exit 1
+
 ENTRYPOINT ["./manager"]
