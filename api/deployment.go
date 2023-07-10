@@ -96,6 +96,10 @@ func (a *Api) GetDeployment(ctx context.Context, id string) (*model.Deployment, 
 	return a.deploymentHandler.Get(ctx, id)
 }
 
+func (a *Api) GetDeploymentInstances(ctx context.Context) (map[string]model.DepInstance, error) {
+	return a.deploymentHandler.ListInstances(ctx)
+}
+
 func (a *Api) GetDeploymentInstance(ctx context.Context, id string) (model.DepInstance, error) {
 	return a.deploymentHandler.GetInstance(ctx, id)
 }
