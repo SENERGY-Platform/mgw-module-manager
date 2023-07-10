@@ -34,7 +34,7 @@ const (
 	DepUpdateTemplatePath = "upt_template"
 	DepStartPath          = "start"
 	DepStopPath           = "stop"
-	DepInstPath           = "instance"
+	DepInstPath           = "instances"
 	JobsPath              = "jobs"
 	JobsCancelPath        = "cancel"
 )
