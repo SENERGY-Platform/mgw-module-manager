@@ -99,3 +99,16 @@ type DepUpdateTemplate struct {
 	Name string `json:"name"`
 	InputTemplate
 }
+
+type HealthStatus = string
+
+type DepHealthInfo struct {
+	Status     HealthStatus    `json:"status"`
+	Containers []CtrHealthInfo `json:"containers"`
+}
+
+type CtrHealthInfo struct {
+	ID    string `json:"id"`
+	Ref   string `json:"ref"`
+	State string `json:"state"`
+}

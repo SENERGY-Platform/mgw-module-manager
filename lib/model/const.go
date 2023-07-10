@@ -45,6 +45,12 @@ const (
 )
 
 const (
+	DepHealthy   HealthStatus = "healthy"
+	DepUnhealthy HealthStatus = "unhealthy"
+	DepTrans     HealthStatus = "transitioning"
+)
+
+const (
 	JobPending   JobStatus = "pending"
 	JobRunning   JobStatus = "running"
 	JobCanceled  JobStatus = "canceled"
