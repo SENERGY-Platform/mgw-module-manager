@@ -75,7 +75,7 @@ type DeploymentHandler interface {
 	GetInstance(ctx context.Context, dID string) (model.DepInstance, error)
 	Create(ctx context.Context, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error)
 	Delete(ctx context.Context, dID string, orphans bool) error
-	Update(ctx context.Context, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS, dID, inclDir string, stopped, indirect bool) error
+	Update(ctx context.Context, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS, dID, inclDir string, enabled, indirect bool) error
 	Start(ctx context.Context, dID string) error
 	Stop(ctx context.Context, dID string, dependencies bool) error
 }
@@ -90,7 +90,7 @@ type DepStorageHandler interface {
 	CreateDepReq(ctx context.Context, tx driver.Tx, depReq []string, dID string) error
 	DeleteDepReq(ctx context.Context, tx driver.Tx, dID string) error
 	ReadDep(ctx context.Context, dID string) (*model.Deployment, error)
-	UpdateDep(ctx context.Context, dID, name, inclDir string, stopped, indirect bool, timestamp time.Time) error
+	UpdateDep(ctx context.Context, dID, name, inclDir string, enabled, indirect bool, timestamp time.Time) error
 	DeleteDep(ctx context.Context, dID string) error
 	DeleteDepConfigs(ctx context.Context, tx driver.Tx, dID string) error
 	DeleteDepHostRes(ctx context.Context, tx driver.Tx, dID string) error
