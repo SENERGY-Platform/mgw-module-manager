@@ -110,7 +110,7 @@ func (a *Api) StartDeployment(ctx context.Context, id string) error {
 		return model.NewResourceBusyError(err)
 	}
 	defer a.mu.Unlock()
-	return a.deploymentHandler.Start(ctx, id)
+	return a.deploymentHandler.Enable(ctx, id)
 }
 
 func (a *Api) StopDeployment(_ context.Context, id string, dependencies bool) (string, error) {
@@ -121,7 +121,7 @@ func (a *Api) StopDeployment(_ context.Context, id string, dependencies bool) (s
 	jID, err := a.jobHandler.Create(fmt.Sprintf("stop deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.Stop(ctx, id, dependencies)
+		err := a.deploymentHandler.Disable(ctx, id, dependencies)
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -208,7 +208,7 @@ func (a *Api) startDeployments(ctx context.Context, depMap map[string]*model.Dep
 			return fmt.Errorf("deployment '%s' does not exist", dID)
 		}
 		if dep.Enabled {
-			err := a.deploymentHandler.Start(ctx, dID)
+			err := a.deploymentHandler.Enable(ctx, dID)
 			if err != nil {
 				return err
 			}

@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Start(ctx context.Context, id string) error {
+func (h *Handler) Enable(ctx context.Context, id string) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	d, err := h.storageHandler.ReadDep(ctxWt, id)
@@ -41,15 +41,15 @@ func (h *Handler) Start(ctx context.Context, id string) error {
 		}
 		for _, rdID := range order {
 			rd := reqDep[rdID]
-			if err = h.start(ctx, rd); err != nil {
+			if err = h.enable(ctx, rd); err != nil {
 				return err
 			}
 		}
 	}
-	return h.start(ctx, d)
+	return h.enable(ctx, d)
 }
 
-func (h *Handler) start(ctx context.Context, dep *model.Deployment) error {
+func (h *Handler) enable(ctx context.Context, dep *model.Deployment) error {
 	instance, err := h.getCurrentInst(ctx, dep.ID)
 	if err != nil {
 		return err

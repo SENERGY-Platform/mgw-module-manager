@@ -76,8 +76,8 @@ type DeploymentHandler interface {
 	Create(ctx context.Context, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error)
 	Delete(ctx context.Context, dID string, orphans bool) error
 	Update(ctx context.Context, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS, dID, inclDir string, enabled, indirect bool) error
-	Start(ctx context.Context, dID string) error
-	Stop(ctx context.Context, dID string, dependencies bool) error
+	Enable(ctx context.Context, dID string) error
+	Disable(ctx context.Context, dID string, dependencies bool) error
 }
 
 type DepStorageHandler interface {

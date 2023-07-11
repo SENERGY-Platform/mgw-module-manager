@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Stop(ctx context.Context, id string, dependencies bool) error {
+func (h *Handler) Disable(ctx context.Context, id string, dependencies bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	d, err := h.storageHandler.ReadDep(ctxWt, id)
@@ -42,7 +42,7 @@ func (h *Handler) Stop(ctx context.Context, id string, dependencies bool) error 
 			return model.NewInternalError(fmt.Errorf("required by '%s'", rd.ID))
 		}
 	}
-	if err = h.stop(ctx, d); err != nil {
+	if err = h.disable(ctx, d); err != nil {
 		return err
 	}
 	if dependencies && len(d.RequiredDep) > 0 {
@@ -64,7 +64,7 @@ func (h *Handler) Stop(ctx context.Context, id string, dependencies bool) error 
 					}
 					ok, _ := allDepStopped(depReq)
 					if ok {
-						if err = h.stop(ctx, rd); err != nil {
+						if err = h.disable(ctx, rd); err != nil {
 							return err
 						}
 					}
@@ -75,7 +75,7 @@ func (h *Handler) Stop(ctx context.Context, id string, dependencies bool) error 
 	return nil
 }
 
-func (h *Handler) stop(ctx context.Context, dep *model.Deployment) error {
+func (h *Handler) disable(ctx context.Context, dep *model.Deployment) error {
 	instance, err := h.getCurrentInst(ctx, dep.ID)
 	if err != nil {
 		return err
