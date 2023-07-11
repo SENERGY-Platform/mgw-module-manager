@@ -400,7 +400,7 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInp
 			if err != nil {
 				return err
 			}
-			if !modDep.Stopped {
+			if modDep.Enabled {
 				err = a.deploymentHandler.Start(ctx, dID)
 				if err != nil {
 					return err
@@ -426,12 +426,12 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInp
 					} else {
 						dInput = dependencies[mID]
 					}
-					stopped := dep.Stopped
-					if modDep != nil && !modDep.Stopped {
-						stopped = modDep.Stopped
+					enabled := dep.Enabled
+					if modDep != nil && modDep.Enabled {
+						enabled = modDep.Enabled
 					}
 					dInput.Name = &dep.Name
-					err = a.deploymentHandler.Update(ctx, mod, dInput, dir, dep.ID, dep.Dir, stopped, dep.Indirect)
+					err = a.deploymentHandler.Update(ctx, mod, dInput, dir, dep.ID, dep.Dir, enabled, dep.Indirect)
 					if err != nil {
 						return err
 					}

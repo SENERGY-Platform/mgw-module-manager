@@ -182,7 +182,7 @@ func (a *Api) GetDeploymentsHealth(ctx context.Context) (map[string]model.DepHea
 	}
 	instances := make(map[string]model.DepInstance)
 	for _, dep := range deployments {
-		if !dep.Stopped {
+		if dep.Enabled {
 			instance, err := a.deploymentHandler.GetInstance(ctx, dep.ID)
 			if err != nil {
 				return nil, err
@@ -207,7 +207,7 @@ func (a *Api) startDeployments(ctx context.Context, depMap map[string]*model.Dep
 		if !ok {
 			return fmt.Errorf("deployment '%s' does not exist", dID)
 		}
-		if !dep.Stopped {
+		if dep.Enabled {
 			err := a.deploymentHandler.Start(ctx, dID)
 			if err != nil {
 				return err

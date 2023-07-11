@@ -31,7 +31,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Update(ctx context.Context, mod *module.Module, depInput model.DepInput, incl dir_fs.DirFS, dID, inclDir string, stopped, indirect bool) error {
+func (h *Handler) Update(ctx context.Context, mod *module.Module, depInput model.DepInput, incl dir_fs.DirFS, dID, inclDir string, enabled, indirect bool) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	reqModDepMap, err := h.getReqModDepMap(ctx, mod.Dependencies)
@@ -105,18 +105,18 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, depInput model
 		ch2 := context_hdl.New()
 		if err != nil {
 			for _, cID := range ctrIDs {
-				if !stopped {
+				if enabled {
 					_ = h.stopContainer(ctx, cID)
 				}
 				_ = h.cewClient.RemoveContainer(ch2.Add(context.WithTimeout(ctx, h.httpTimeout)), cID)
 			}
-			if !stopped {
+			if enabled {
 				_ = h.startInstance(ctx, currentInst.ID)
 			}
 		}
 		ch2.CancelAll()
 	}()
-	if !stopped {
+	if enabled {
 		if err = h.stopInstance(ctx, currentInst.ID); err != nil {
 			return err
 		}
@@ -139,7 +139,7 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, depInput model
 	if err != nil {
 		return model.NewInternalError(err)
 	}
-	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, name, inclDir, stopped, indirect, time.Now().UTC()); err != nil {
+	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, name, inclDir, enabled, indirect, time.Now().UTC()); err != nil {
 		return err
 	}
 	return nil

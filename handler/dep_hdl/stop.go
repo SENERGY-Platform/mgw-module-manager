@@ -107,7 +107,7 @@ func (h *Handler) getDepFromIDs(ctx context.Context, dIDs []string) ([]*model.De
 
 func allDepStopped(dep []*model.Deployment) (bool, *model.Deployment) {
 	for _, d := range dep {
-		if !d.Stopped {
+		if d.Enabled {
 			return false, d
 		}
 	}
