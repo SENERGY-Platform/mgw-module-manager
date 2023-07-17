@@ -69,6 +69,18 @@ func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgVali
 	}
 }
 
+type secretVariant struct {
+	sm_model.ShortSecret
+	AsMount bool
+	AsEnv   bool
+	Value   string
+}
+
+type secret struct {
+	ID       string
+	Variants map[string]secretVariant
+}
+
 func (h *Handler) InitWorkspace(perm fs.FileMode) error {
 	if !path.IsAbs(h.wrkSpcPath) {
 		return fmt.Errorf("workspace path must be absolute")
