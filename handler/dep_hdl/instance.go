@@ -174,7 +174,7 @@ func getEnvVars(srv *module.Service, configs, depMap map[string]string, secrets 
 	return envVars, nil
 }
 
-func (h *Handler) getMounts(srv *module.Service, hostRes map[string]hm_model.Resource, secrets map[string]string, dID, inclDir string) ([]cew_model.Mount, []cew_model.Device) {
+func (h *Handler) getMounts(srv *module.Service, hostRes map[string]hm_model.Resource, secrets map[string]secret, dID, inclDir string) ([]cew_model.Mount, []cew_model.Device) {
 	var mounts []cew_model.Mount
 	var devices []cew_model.Device
 	for mntPoint, name := range srv.Volumes {
@@ -221,17 +221,18 @@ func (h *Handler) getMounts(srv *module.Service, hostRes map[string]hm_model.Res
 			}
 		}
 	}
-	//for mntPoint, sRef := range srv.Secrets {
-	//	src, ok := secrets[sRef]
-	//	if ok {
-	//		mounts = append(mounts, cew_model.Mount{
-	//			Type:     cew_model.BindMount,
-	//			Source:   "",
-	//			Target:   mntPoint,
-	//			ReadOnly: true,
-	//		})
-	//	}
-	//}
+	for mntPoint, target := range srv.SecretMounts {
+		if sec, ok := secrets[target.Ref]; ok {
+			if variant, ok := sec.Variants[genSecretMapKey(sec.ID, target.Item)]; ok {
+				mounts = append(mounts, cew_model.Mount{
+					Type:     cew_model.BindMount,
+					Source:   path.Join(h.secHostPath, variant.Path),
+					Target:   mntPoint,
+					ReadOnly: true,
+				})
+			}
+		}
+	}
 	return mounts, devices
 }
 
