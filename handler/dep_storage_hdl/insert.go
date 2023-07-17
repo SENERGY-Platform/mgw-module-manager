@@ -24,20 +24,6 @@ import (
 	"strings"
 )
 
-func insertResources(ctx context.Context, pf func(context.Context, string) (*sql.Stmt, error), query string, depId string, m map[string]string) error {
-	stmt, err := pf(ctx, query)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	for ref, id := range m {
-		if _, err = stmt.ExecContext(ctx, depId, ref, id); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func genCfgInsertQuery(dataType module.DataType, isSlice bool) string {
 	table := "configs"
 	cols := []string{"`dep_id`", "`ref`", fmt.Sprintf("`v_%s`", dataType)}

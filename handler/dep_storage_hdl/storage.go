@@ -211,9 +211,15 @@ func (h *Handler) CreateDepConfigs(ctx context.Context, itf driver.Tx, mConfigs 
 
 func (h *Handler) CreateDepHostRes(ctx context.Context, itf driver.Tx, hostResources map[string]string, dID string) error {
 	tx := itf.(*sql.Tx)
-	err := insertResources(ctx, tx.PrepareContext, "INSERT INTO `host_resources` (`dep_id`, `ref`, `res_id`) VALUES (?, ?, ?)", dID, hostResources)
+	stmt, err := tx.PrepareContext(ctx, "INSERT INTO `host_resources` (`dep_id`, `ref`, `res_id`) VALUES (?, ?, ?)")
 	if err != nil {
 		return model.NewInternalError(err)
+	}
+	defer stmt.Close()
+	for ref, id := range hostResources {
+		if _, err = stmt.ExecContext(ctx, dID, ref, id); err != nil {
+			return model.NewInternalError(err)
+		}
 	}
 	return nil
 }
