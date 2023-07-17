@@ -303,6 +303,13 @@ func (h *Handler) removeVolumes(ctx context.Context, volumes []string) error {
 	return nil
 }
 
+func genSecretMapKey(id string, item *string) string {
+	if item != nil {
+		return id + *item
+	}
+	return id
+}
+
 func getDepName(mName string, userInput *string) string {
 	if userInput != nil && *userInput != "" {
 		return *userInput
