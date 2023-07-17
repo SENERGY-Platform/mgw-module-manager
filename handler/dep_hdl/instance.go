@@ -201,8 +201,7 @@ func (h *Handler) getMounts(srv *module.Service, hostRes map[string]hm_model.Res
 		})
 	}
 	for mntPoint, target := range srv.HostResources {
-		res, ok := hostRes[target.Ref]
-		if ok {
+		if res, ok := hostRes[target.Ref]; ok {
 			// [REMINDER] throw error if type unknown?
 			switch res.Type {
 			case hm_model.Application:
