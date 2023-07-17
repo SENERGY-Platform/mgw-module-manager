@@ -33,6 +33,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
+	sm_model "github.com/SENERGY-Platform/mgw-secret-manager/pkg/api_model"
 	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
 	"github.com/google/uuid"
 	"io/fs"
@@ -222,13 +223,74 @@ func (h *Handler) getHostRes(ctx context.Context, mHostRes map[string]module.Hos
 	return hostRes, nil
 }
 
-func (h *Handler) getSecrets(mSecrets map[string]module.Secret, userInput map[string]string) (map[string]string, error) {
-	secrets, missing, err := getUserSecrets(userInput, mSecrets)
+func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string, userInput map[string]string) (map[string]secret, error) {
+	usrSecrets, missing, err := getUserSecrets(userInput, mod.Secrets)
 	if err != nil {
 		return nil, model.NewInvalidInputError(err)
 	}
 	if len(missing) > 0 {
 		return nil, model.NewInternalError(errors.New("secret discovery not implemented"))
+	}
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	secrets := make(map[string]secret)
+	shortSecrets := make(map[string]sm_model.ShortSecret)
+	for ref, sID := range usrSecrets {
+		sec, ok := secrets[ref]
+		if !ok {
+			sec.ID = sID
+			sec.Variants = make(map[string]secretVariant)
+			secrets[ref] = sec
+		}
+		for _, service := range mod.Services {
+			for _, target := range service.SecretMounts {
+				sKey := genSecretMapKey(sID, target.Item)
+				variant, ok := sec.Variants[sKey]
+				if !variant.AsMount {
+					shortSecret, k := shortSecrets[sKey]
+					if !k {
+						s, err, _ := h.smClient.GetSecret(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretPostRequest{
+							ID:        sID,
+							Item:      target.Item,
+							Reference: dID,
+						})
+						if err != nil {
+							return nil, model.NewInternalError(err)
+						}
+						shortSecret = *s
+						shortSecrets[sKey] = shortSecret
+					}
+					if !ok {
+						variant.ShortSecret = shortSecret
+					}
+					variant.AsMount = true
+					sec.Variants[sKey] = variant
+				}
+			}
+			for _, target := range service.SecretVars {
+				sKey := genSecretMapKey(sID, target.Item)
+				variant, ok := sec.Variants[sKey]
+				if !variant.AsEnv {
+					s, err, _ := h.smClient.GetFullSecret(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretPostRequest{
+						ID:        sID,
+						Item:      target.Item,
+						Reference: dID,
+					})
+					if err != nil {
+						return nil, model.NewInternalError(err)
+					}
+					if !ok {
+						variant.ShortSecret = s.ShortSecret
+					}
+					if _, ok := shortSecrets[sKey]; !ok {
+						shortSecrets[sKey] = s.ShortSecret
+					}
+					variant.AsEnv = true
+					variant.Value = s.Value
+					sec.Variants[sKey] = variant
+				}
+			}
+		}
 	}
 	return secrets, nil
 }
