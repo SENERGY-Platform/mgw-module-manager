@@ -45,7 +45,7 @@ func (h *Handler) getCurrentInst(ctx context.Context, dID string) (model.Instanc
 	return h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instances[0].ID)
 }
 
-func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.Module, dID, inclDir string, stringValues map[string]string, hostRes map[string]hm_model.Resource, secrets, reqModDepMap map[string]string) (string, []string, error) {
+func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.Module, dID, inclDir string, stringValues map[string]string, hostRes map[string]hm_model.Resource, secrets map[string]secret, reqModDepMap map[string]string) (string, []string, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	iID, err := h.storageHandler.CreateInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID, time.Now().UTC())
@@ -59,7 +59,7 @@ func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.
 	var cIDs []string
 	for i, ref := range order {
 		srv := mod.Services[ref]
-		envVars, err := getEnvVars(srv, stringValues, reqModDepMap, dID, iID)
+		envVars, err := getEnvVars(srv, stringValues, reqModDepMap, secrets, dID, iID)
 		if err != nil {
 			return "", nil, model.NewInternalError(err)
 		}
@@ -145,7 +145,7 @@ func (h *Handler) stopContainer(ctx context.Context, cID string) error {
 	return nil
 }
 
-func getEnvVars(srv *module.Service, configs, depMap map[string]string, dID, iID string) (map[string]string, error) {
+func getEnvVars(srv *module.Service, configs, depMap map[string]string, secrets map[string]secret, dID, iID string) (map[string]string, error) {
 	envVars := make(map[string]string)
 	for eVar, cRef := range srv.Configs {
 		if val, ok := configs[cRef]; ok {
@@ -161,6 +161,13 @@ func getEnvVars(srv *module.Service, configs, depMap map[string]string, dID, iID
 			return nil, fmt.Errorf("service '%s' of '%s' not deployed but required", target.Service, target.ID)
 		}
 		envVars[eVar] = getSrvName(val, target.Service)
+	}
+	for eVar, target := range srv.SecretVars {
+		if sec, ok := secrets[target.Ref]; ok {
+			if variant, ok := sec.Variants[genSecretMapKey(sec.ID, target.Item)]; ok {
+				envVars[eVar] = variant.Value
+			}
+		}
 	}
 	envVars["MGW_DID"] = dID
 	envVars["MGW_IID"] = iID
