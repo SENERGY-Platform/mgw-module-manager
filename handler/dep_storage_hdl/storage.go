@@ -81,27 +81,6 @@ func (h *Handler) BeginTransaction(ctx context.Context) (driver.Tx, error) {
 	return tx, nil
 }
 
-func genListDepFilter(filter model.DepFilter) (string, []any) {
-	var fc []string
-	var val []any
-	if filter.Name != "" {
-		fc = append(fc, "`name` = ?")
-		val = append(val, filter.Name)
-	}
-	if filter.ModuleID != "" {
-		fc = append(fc, "`mod_id` = ?")
-		val = append(val, filter.ModuleID)
-	}
-	if filter.Indirect {
-		fc = append(fc, "`indirect` = ?")
-		val = append(val, filter.Indirect)
-	}
-	if len(fc) > 0 {
-		return " WHERE " + strings.Join(fc, " AND "), val
-	}
-	return "", nil
-}
-
 func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
 	q := "SELECT `id`, `mod_id`, `name`, `dir`, `enabled`, `indirect`, `created`, `updated` FROM `deployments`"
 	fc, val := genListDepFilter(filter)
@@ -367,19 +346,6 @@ func (h *Handler) DeleteDepSecrets(ctx context.Context, itf driver.Tx, dID strin
 	return nil
 }
 
-func genListInstFilter(filter model.DepInstFilter) (string, []any) {
-	var fc []string
-	var val []any
-	if filter.DepID != "" {
-		fc = append(fc, "`dep_id` = ?")
-		val = append(val, filter.DepID)
-	}
-	if len(fc) > 0 {
-		return " WHERE " + strings.Join(fc, " AND "), val
-	}
-	return "", nil
-}
-
 func (h *Handler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.Instance, error) {
 	q := "SELECT `id`, `dep_id`, `created` FROM `instances`"
 	fc, val := genListInstFilter(filter)
@@ -509,6 +475,40 @@ func (h *Handler) CreateInstCtr(ctx context.Context, itf driver.Tx, iID, cID, sR
 		return model.NewNotFoundError(errors.New("no rows affected"))
 	}
 	return nil
+}
+
+func genListDepFilter(filter model.DepFilter) (string, []any) {
+	var fc []string
+	var val []any
+	if filter.Name != "" {
+		fc = append(fc, "`name` = ?")
+		val = append(val, filter.Name)
+	}
+	if filter.ModuleID != "" {
+		fc = append(fc, "`mod_id` = ?")
+		val = append(val, filter.ModuleID)
+	}
+	if filter.Indirect {
+		fc = append(fc, "`indirect` = ?")
+		val = append(val, filter.Indirect)
+	}
+	if len(fc) > 0 {
+		return " WHERE " + strings.Join(fc, " AND "), val
+	}
+	return "", nil
+}
+
+func genListInstFilter(filter model.DepInstFilter) (string, []any) {
+	var fc []string
+	var val []any
+	if filter.DepID != "" {
+		fc = append(fc, "`dep_id` = ?")
+		val = append(val, filter.DepID)
+	}
+	if len(fc) > 0 {
+		return " WHERE " + strings.Join(fc, " AND "), val
+	}
+	return "", nil
 }
 
 func genCfgInsertQuery(dataType module.DataType, isSlice bool) string {
