@@ -50,7 +50,23 @@ func selectDeployment(ctx context.Context, qwf func(context.Context, string, ...
 }
 
 func selectHostResources(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), depID string) (map[string]string, error) {
-	return selectResources(ctx, qf, "SELECT `ref`, `res_id` FROM `host_resources` WHERE `dep_id` = ?", depID)
+	rows, err := qf(ctx, "SELECT `ref`, `res_id` FROM `host_resources` WHERE `dep_id` = ?", depID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	m := make(map[string]string)
+	for rows.Next() {
+		var ref, rID string
+		if err = rows.Scan(&ref, &rID); err != nil {
+			return nil, err
+		}
+		m[ref] = rID
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func selectSecrets(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), depID string) (map[string]model.DepSecret, error) {
@@ -77,26 +93,6 @@ func selectSecrets(ctx context.Context, qf func(ctx context.Context, query strin
 			AsEnv:   asEnv,
 		})
 		m[ref] = ds
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func selectResources(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), query string, depID string) (map[string]string, error) {
-	rows, err := qf(ctx, query, depID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	m := make(map[string]string)
-	for rows.Next() {
-		var ref, id string
-		if err = rows.Scan(&ref, &id); err != nil {
-			return nil, err
-		}
-		m[ref] = id
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err
