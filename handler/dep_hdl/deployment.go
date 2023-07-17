@@ -294,7 +294,7 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 	return secrets, nil
 }
 
-func (h *Handler) storeDepAssets(ctx context.Context, tx driver.Tx, dID string, hostRes map[string]hm_model.Resource, secrets map[string]string, modConfigs module.Configs, userConfigs map[string]any) error {
+func (h *Handler) storeDepAssets(ctx context.Context, tx driver.Tx, dID string, hostRes map[string]hm_model.Resource, secrets map[string]secret, modConfigs module.Configs, userConfigs map[string]any) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	if len(hostRes) > 0 {
@@ -307,7 +307,22 @@ func (h *Handler) storeDepAssets(ctx context.Context, tx driver.Tx, dID string, 
 		}
 	}
 	if len(secrets) > 0 {
-		if err := h.storageHandler.CreateDepSecrets(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, secrets, dID); err != nil {
+		depSecrets := make(map[string]model.DepSecret)
+		for ref, sec := range secrets {
+			var variants []model.DepSecretVariant
+			for _, variant := range sec.Variants {
+				variants = append(variants, model.DepSecretVariant{
+					Item:    variant.Item,
+					AsMount: variant.AsMount,
+					AsEnv:   variant.AsEnv,
+				})
+			}
+			depSecrets[ref] = model.DepSecret{
+				ID:       sec.ID,
+				Variants: variants,
+			}
+		}
+		if err := h.storageHandler.CreateDepSecrets(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, depSecrets, dID); err != nil {
 			return err
 		}
 	}
