@@ -57,7 +57,7 @@ func (h *Handler) Init(ctx context.Context, schemaPath string) error {
 		} else if err != nil {
 			return err
 		}
-		stmts = append(stmts, strings.TrimSuffix(strings.TrimSpace(stmt), ";"))
+		stmts = append(stmts, strings.TrimSuffix(stmt, ";"))
 	}
 	tx, err := h.db.BeginTx(ctx, nil)
 	if err != nil {
