@@ -83,8 +83,8 @@ func GetDepUpTemplate(mod *module.Module, dep *model.Deployment) model.InputTemp
 			Input:  input,
 			Secret: mod.Secrets[ref],
 		}
-		if sID, ok := dep.Secrets[ref]; ok {
-			s.Value = sID
+		if ds, ok := dep.Secrets[ref]; ok {
+			s.Value = ds.ID
 		}
 		it.Secrets[ref] = s
 	}
