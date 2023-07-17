@@ -41,6 +41,17 @@ type Deployment struct {
 	DepRequiring  []string             `json:"dep_requiring"`  // deployments requiring this deployment
 }
 
+type DepSecret struct {
+	ID       string             `json:"id"`
+	Variants []DepSecretVariant `json:"variants"`
+}
+
+type DepSecretVariant struct {
+	Item    *string `json:"item"`
+	AsMount bool    `json:"as_mount"`
+	AsEnv   bool    `json:"as_env"`
+}
+
 type DepConfig struct {
 	Value    any             `json:"value"`
 	DataType module.DataType `json:"data_type"`
