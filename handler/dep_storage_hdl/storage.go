@@ -510,3 +510,26 @@ func (h *Handler) CreateInstCtr(ctx context.Context, itf driver.Tx, iID, cID, sR
 	}
 	return nil
 }
+
+func genCfgInsertQuery(dataType module.DataType, isSlice bool) string {
+	table := "configs"
+	cols := []string{"`dep_id`", "`ref`", fmt.Sprintf("`v_%s`", dataType)}
+	if isSlice {
+		table = "list_" + table
+		cols = append(cols, "`ord`")
+	}
+	return fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s?)", table, strings.Join(cols, ", "), strings.Repeat("?, ", len(cols)-1))
+}
+
+func execCfgSlStmt[T any](ctx context.Context, stmt *sql.Stmt, depId string, ref string, val any) error {
+	vSl, ok := val.([]T)
+	if !ok {
+		return fmt.Errorf("invalid data type '%T'", val)
+	}
+	for i, v := range vSl {
+		if _, err := stmt.ExecContext(ctx, depId, ref, v, i); err != nil {
+			return err
+		}
+	}
+	return nil
+}
