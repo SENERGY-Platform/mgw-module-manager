@@ -22,6 +22,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
+	sm_model "github.com/SENERGY-Platform/mgw-secret-manager/pkg/api_model"
 	"time"
 )
 
@@ -83,9 +84,23 @@ func (h *Handler) disable(ctx context.Context, dep *model.Deployment) error {
 	if err = h.stopInstance(ctx, instance.ID); err != nil {
 		return err
 	}
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	if err = h.storageHandler.UpdateDep(ctxWt, dep.ID, dep.Name, dep.Dir, false, dep.Indirect, time.Now().UTC()); err != nil {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	for _, depSecret := range dep.Secrets {
+		for _, variant := range depSecret.Variants {
+			if variant.AsMount {
+				err, _ = h.smClient.UnloadSecretFromTMPFS(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretPostRequest{
+					ID:        depSecret.ID,
+					Item:      variant.Item,
+					Reference: dep.ID,
+				})
+				if err != nil {
+					return model.NewInternalError(err)
+				}
+			}
+		}
+	}
+	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID, dep.Name, dep.Dir, false, dep.Indirect, time.Now().UTC()); err != nil {
 		return err
 	}
 	return nil
