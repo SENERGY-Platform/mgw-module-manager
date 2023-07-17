@@ -166,19 +166,18 @@ func (h *Handler) getReqDep(ctx context.Context, dep *model.Deployment, reqDep m
 	return nil
 }
 
-func (h *Handler) prepareDep(ctx context.Context, mod *module.Module, depReq model.DepInput) (name string, userConfigs map[string]any, hostRes map[string]hm_model.Resource, secrets map[string]string, err error) {
-	name = getDepName(mod.Name, depReq.Name)
+func (h *Handler) prepareDep(ctx context.Context, mod *module.Module, dID string, depReq model.DepInput) (userConfigs map[string]any, hostRes map[string]hm_model.Resource, secrets map[string]secret, err error) {
 	userConfigs, err = h.getUserConfigs(mod.Configs, depReq.Configs)
 	if err != nil {
-		return "", nil, nil, nil, model.NewInvalidInputError(err)
+		return nil, nil, nil, model.NewInvalidInputError(err)
 	}
 	hostRes, err = h.getHostRes(ctx, mod.HostResources, depReq.HostResources)
 	if err != nil {
-		return "", nil, nil, nil, err
+		return nil, nil, nil, err
 	}
-	secrets, err = h.getSecrets(mod.Secrets, depReq.Secrets)
+	secrets, err = h.getSecrets(ctx, mod, dID, depReq.Secrets)
 	if err != nil {
-		return "", nil, nil, nil, err
+		return nil, nil, nil, err
 	}
 	return
 }

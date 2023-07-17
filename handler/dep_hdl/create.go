@@ -36,14 +36,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	name, userConfigs, hostRes, secrets, err := h.prepareDep(ctx, mod, depReq)
-	if err != nil {
-		return "", err
-	}
-	stringValues, err := parser.ConfigsToStringValues(mod.Configs, userConfigs)
-	if err != nil {
-		return "", err
-	}
+	name := getDepName(mod.Name, depReq.Name)
 	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {
 		return "", err
@@ -62,6 +55,14 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	defer ch.CancelAll()
 	var dID string
 	dID, err = h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.ID, name, inclDir, indirect, time.Now().UTC())
+	if err != nil {
+		return "", err
+	}
+	userConfigs, hostRes, secrets, err := h.prepareDep(ctx, mod, dID, depReq)
+	if err != nil {
+		return "", err
+	}
+	stringValues, err := parser.ConfigsToStringValues(mod.Configs, userConfigs)
 	if err != nil {
 		return "", err
 	}
