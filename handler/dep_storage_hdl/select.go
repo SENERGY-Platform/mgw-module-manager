@@ -53,8 +53,35 @@ func selectHostResources(ctx context.Context, qf func(ctx context.Context, query
 	return selectResources(ctx, qf, "SELECT `ref`, `res_id` FROM `host_resources` WHERE `dep_id` = ?", depID)
 }
 
-func selectSecrets(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), depID string) (map[string]string, error) {
-	return selectResources(ctx, qf, "SELECT `ref`, `sec_id` FROM `secrets` WHERE `dep_id` = ?", depID)
+func selectSecrets(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), depID string) (map[string]model.DepSecret, error) {
+	rows, err := qf(ctx, "SELECT `ref`, `sec_id`, `item`, `as_mount`, `as_env` FROM `secrets` WHERE `dep_id` = ?", depID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	m := make(map[string]model.DepSecret)
+	for rows.Next() {
+		var ref, sID string
+		var item *string
+		var asMount, asEnv bool
+		if err = rows.Scan(&ref, &sID, &item, &asMount, &asEnv); err != nil {
+			return nil, err
+		}
+		ds, ok := m[ref]
+		if !ok {
+			ds.ID = sID
+		}
+		ds.Variants = append(ds.Variants, model.DepSecretVariant{
+			Item:    item,
+			AsMount: asMount,
+			AsEnv:   asEnv,
+		})
+		m[ref] = ds
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func selectResources(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), query string, depID string) (map[string]string, error) {

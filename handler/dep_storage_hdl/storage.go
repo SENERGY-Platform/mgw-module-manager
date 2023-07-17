@@ -218,11 +218,19 @@ func (h *Handler) CreateDepHostRes(ctx context.Context, itf driver.Tx, hostResou
 	return nil
 }
 
-func (h *Handler) CreateDepSecrets(ctx context.Context, itf driver.Tx, secrets map[string]string, dID string) error {
+func (h *Handler) CreateDepSecrets(ctx context.Context, itf driver.Tx, secrets map[string]model.DepSecret, dID string) error {
 	tx := itf.(*sql.Tx)
-	err := insertResources(ctx, tx.PrepareContext, "INSERT INTO `secrets` (`dep_id`, `ref`, `sec_id`) VALUES (?, ?, ?)", dID, secrets)
+	stmt, err := tx.PrepareContext(ctx, "INSERT INTO `secrets` (`dep_id`, `ref`, `sec_id`, `item`, `as_mount`, `as_env`) VALUES (?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return model.NewInternalError(err)
+	}
+	defer stmt.Close()
+	for ref, secret := range secrets {
+		for _, variant := range secret.Variants {
+			if _, err = stmt.ExecContext(ctx, dID, ref, secret.ID, variant.Item, variant.AsMount, variant.AsEnv); err != nil {
+				return model.NewInternalError(err)
+			}
+		}
 	}
 	return nil
 }

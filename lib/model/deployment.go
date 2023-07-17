@@ -35,8 +35,8 @@ type DepMeta struct {
 type Deployment struct {
 	DepMeta
 	HostResources map[string]string    `json:"host_resources"` // {ref:resourceID}
-	Secrets       map[string]string    `json:"secrets"`        // {ref:secretID}
-	Configs       map[string]DepConfig `json:"configs"`        // {ref:value}
+	Secrets       map[string]DepSecret `json:"secrets"`        // {ref:DepSecret}
+	Configs       map[string]DepConfig `json:"configs"`        // {ref:DepConfig}
 	RequiredDep   []string             `json:"required_dep"`   // deployments required by this deployment
 	DepRequiring  []string             `json:"dep_requiring"`  // deployments requiring this deployment
 }

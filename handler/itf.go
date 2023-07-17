@@ -86,7 +86,7 @@ type DepStorageHandler interface {
 	CreateDep(ctx context.Context, tx driver.Tx, mID, name, inclDir string, indirect bool, timestamp time.Time) (string, error)
 	CreateDepConfigs(ctx context.Context, tx driver.Tx, mConfigs module.Configs, dConfigs map[string]any, dID string) error
 	CreateDepHostRes(ctx context.Context, tx driver.Tx, hostResources map[string]string, dID string) error
-	CreateDepSecrets(ctx context.Context, tx driver.Tx, secrets map[string]string, dID string) error
+	CreateDepSecrets(ctx context.Context, tx driver.Tx, secrets map[string]model.DepSecret, dID string) error
 	CreateDepReq(ctx context.Context, tx driver.Tx, depReq []string, dID string) error
 	DeleteDepReq(ctx context.Context, tx driver.Tx, dID string) error
 	ReadDep(ctx context.Context, dID string) (*model.Deployment, error)
