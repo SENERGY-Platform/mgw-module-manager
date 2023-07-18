@@ -233,7 +233,6 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	secrets := make(map[string]secret)
-	shortSecrets := make(map[string]sm_model.ShortSecret)
 	for ref, sID := range usrSecrets {
 		sec, ok := secrets[ref]
 		if !ok {
@@ -245,32 +244,8 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 			for _, target := range service.SecretMounts {
 				sKey := genSecretMapKey(sID, target.Item)
 				variant, ok := sec.Variants[sKey]
-				if !variant.AsMount {
-					shortSecret, k := shortSecrets[sKey]
-					if !k {
-						s, err, _ := h.smClient.GetSecret(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretPostRequest{
-							ID:        sID,
-							Item:      target.Item,
-							Reference: dID,
-						})
-						if err != nil {
-							return nil, model.NewInternalError(err)
-						}
-						shortSecret = *s
-						shortSecrets[sKey] = shortSecret
-					}
-					if !ok {
-						variant.ShortSecret = shortSecret
-					}
-					variant.AsMount = true
-					sec.Variants[sKey] = variant
-				}
-			}
-			for _, target := range service.SecretVars {
-				sKey := genSecretMapKey(sID, target.Item)
-				variant, ok := sec.Variants[sKey]
-				if !variant.AsEnv {
-					s, err, _ := h.smClient.GetFullSecret(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretPostRequest{
+				if variant.Path == "" {
+					v, err, _ := h.smClient.InitPathVariant(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretVariantRequest{
 						ID:        sID,
 						Item:      target.Item,
 						Reference: dID,
@@ -279,13 +254,29 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 						return nil, model.NewInternalError(err)
 					}
 					if !ok {
-						variant.ShortSecret = s.ShortSecret
+						variant.Item = target.Item
 					}
-					if _, ok := shortSecrets[sKey]; !ok {
-						shortSecrets[sKey] = s.ShortSecret
+					variant.Path = v.Path
+					sec.Variants[sKey] = variant
+				}
+			}
+			for _, target := range service.SecretVars {
+				sKey := genSecretMapKey(sID, target.Item)
+				variant, ok := sec.Variants[sKey]
+				if !variant.AsEnv {
+					v, err, _ := h.smClient.GetValueVariant(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretVariantRequest{
+						ID:        sID,
+						Item:      target.Item,
+						Reference: dID,
+					})
+					if err != nil {
+						return nil, model.NewInternalError(err)
+					}
+					if !ok {
+						variant.Item = target.Item
 					}
 					variant.AsEnv = true
-					variant.Value = s.Value
+					variant.Value = v.Value
 					sec.Variants[sKey] = variant
 				}
 			}
@@ -313,7 +304,7 @@ func (h *Handler) storeDepAssets(ctx context.Context, tx driver.Tx, dID string, 
 			for _, variant := range sec.Variants {
 				variants = append(variants, model.DepSecretVariant{
 					Item:    variant.Item,
-					AsMount: variant.AsMount,
+					AsMount: variant.Path != "",
 					AsEnv:   variant.AsEnv,
 				})
 			}

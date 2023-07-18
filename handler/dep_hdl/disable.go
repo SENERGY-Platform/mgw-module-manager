@@ -89,7 +89,7 @@ func (h *Handler) disable(ctx context.Context, dep *model.Deployment) error {
 	for _, depSecret := range dep.Secrets {
 		for _, variant := range depSecret.Variants {
 			if variant.AsMount {
-				err, _ = h.smClient.UnloadSecretFromTMPFS(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretPostRequest{
+				err, _ = h.smClient.UnloadPathVariant(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretVariantRequest{
 					ID:        depSecret.ID,
 					Item:      variant.Item,
 					Reference: dep.ID,
