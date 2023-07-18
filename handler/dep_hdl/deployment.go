@@ -71,10 +71,10 @@ func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgVali
 }
 
 type secretVariant struct {
-	sm_model.ShortSecret
-	AsMount bool
-	AsEnv   bool
-	Value   string
+	Item  *string
+	Path  string
+	AsEnv bool
+	Value string
 }
 
 type secret struct {
