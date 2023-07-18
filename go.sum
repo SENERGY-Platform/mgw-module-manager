@@ -22,8 +22,8 @@ github.com/SENERGY-Platform/mgw-modfile-lib v0.11.0 h1:qT61MtSjUevQXWuWzEQA6+K30
 github.com/SENERGY-Platform/mgw-modfile-lib v0.11.0/go.mod h1:eQi53Bym2rRdgS4i0iXlD2P7SUmhwgRJB2lyi3PROho=
 github.com/SENERGY-Platform/mgw-module-lib v0.10.0 h1:ScpAMn56q/3t23kW/wRvO+4fwYf9ogAPt2oGADMCQes=
 github.com/SENERGY-Platform/mgw-module-lib v0.10.0/go.mod h1:C2qGjRiBfl0m+gxD3493QkjdcV8/XlkyKTdLhkbUi/U=
-github.com/SENERGY-Platform/mgw-secret-manager/pkg v0.0.9 h1:HtrVXKQGU+uA7NnWbNRjACBrx3OTxsy4END50n9NvT4=
-github.com/SENERGY-Platform/mgw-secret-manager/pkg v0.0.9/go.mod h1:IItmrV9RXNCON4d5DmskIuUzkV8nZe8YKtWIvzMZ69Q=
+github.com/SENERGY-Platform/mgw-secret-manager/pkg v0.1.0 h1:w+Umqt3ID9+qKG6hqjnywgSskbEN+bCptbeDXwLnqmA=
+github.com/SENERGY-Platform/mgw-secret-manager/pkg v0.1.0/go.mod h1:IItmrV9RXNCON4d5DmskIuUzkV8nZe8YKtWIvzMZ69Q=
 github.com/acomagu/bufpipe v1.0.4 h1:e3H4WUzM3npvo5uv95QuJM3cQspFNtFBzvJ2oNjKIDQ=
 github.com/acomagu/bufpipe v1.0.4/go.mod h1:mxdxdup/WdsKVreO5GpW4+M/1CE2sMG4jeGJ2sYmHc4=
 github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be h1:9AeTilPcZAjCFIImctFaOjnTIavg87rW78vTPkQqLI8=
