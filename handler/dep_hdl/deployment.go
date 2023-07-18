@@ -251,7 +251,7 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 						Reference: dID,
 					})
 					if err != nil {
-						return nil, model.NewInternalError(err)
+						return nil, model.NewInternalError(fmt.Errorf("initializing path variant for secret '%s' failed: %s", sID, err))
 					}
 					if !ok {
 						variant.Item = target.Item
@@ -270,7 +270,7 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 						Reference: dID,
 					})
 					if err != nil {
-						return nil, model.NewInternalError(err)
+						return nil, model.NewInternalError(fmt.Errorf("retreiving value variant for secret '%s' failed: %s", sID, err))
 					}
 					if !ok {
 						variant.Item = target.Item

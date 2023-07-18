@@ -18,6 +18,7 @@ package dep_hdl
 
 import (
 	"context"
+	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
@@ -67,7 +68,7 @@ func (h *Handler) enable(ctx context.Context, dep *model.Deployment) error {
 					Reference: dep.ID,
 				})
 				if err != nil {
-					return model.NewInternalError(err)
+					return model.NewInternalError(fmt.Errorf("loading path variant for secret '%s' failed: %s", depSecret.ID, err))
 				}
 			}
 		}

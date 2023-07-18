@@ -95,7 +95,7 @@ func (h *Handler) disable(ctx context.Context, dep *model.Deployment) error {
 					Reference: dep.ID,
 				})
 				if err != nil {
-					return model.NewInternalError(err)
+					return model.NewInternalError(fmt.Errorf("unloading path variant for secret '%s' failed: %s", depSecret.ID, err))
 				}
 			}
 		}
