@@ -8,8 +8,8 @@ require (
 	github.com/SENERGY-Platform/go-service-base v0.8.0
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.6.0
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.9.0
-	github.com/SENERGY-Platform/mgw-host-manager/client v0.0.3
-	github.com/SENERGY-Platform/mgw-host-manager/lib v0.0.5
+	github.com/SENERGY-Platform/mgw-host-manager/client v0.1.0
+	github.com/SENERGY-Platform/mgw-host-manager/lib v0.1.3
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.11.0
 	github.com/SENERGY-Platform/mgw-module-lib v0.10.0
 	github.com/SENERGY-Platform/mgw-module-manager/lib v0.0.0-00010101000000-000000000000
