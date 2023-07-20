@@ -166,7 +166,7 @@ func (h *Handler) getReqDep(ctx context.Context, dep *model.Deployment, reqDep m
 	return nil
 }
 
-func (h *Handler) prepareDep(ctx context.Context, mod *module.Module, dID string, depReq model.DepInput) (userConfigs map[string]any, hostRes map[string]hm_model.Resource, secrets map[string]secret, err error) {
+func (h *Handler) prepareDep(ctx context.Context, mod *module.Module, dID string, depReq model.DepInput) (userConfigs map[string]any, hostRes map[string]hm_model.HostResource, secrets map[string]secret, err error) {
 	userConfigs, err = h.getUserConfigs(mod.Configs, depReq.Configs)
 	if err != nil {
 		return nil, nil, nil, model.NewInvalidInputError(err)
@@ -201,7 +201,7 @@ func (h *Handler) getUserConfigs(modConfigs module.Configs, userInput map[string
 	return userConfigs, nil
 }
 
-func (h *Handler) getHostRes(ctx context.Context, mHostRes map[string]module.HostResource, userInput map[string]string) (map[string]hm_model.Resource, error) {
+func (h *Handler) getHostRes(ctx context.Context, mHostRes map[string]module.HostResource, userInput map[string]string) (map[string]hm_model.HostResource, error) {
 	usrHostRes, missing, err := getUserHostRes(userInput, mHostRes)
 	if err != nil {
 		return nil, model.NewInvalidInputError(err)
@@ -211,9 +211,9 @@ func (h *Handler) getHostRes(ctx context.Context, mHostRes map[string]module.Hos
 	}
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	hostRes := make(map[string]hm_model.Resource)
+	hostRes := make(map[string]hm_model.HostResource)
 	for ref, id := range usrHostRes {
-		res, err := h.hmClient.GetResource(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), id)
+		res, err := h.hmClient.GetHostResource(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), id)
 		if err != nil {
 			return nil, model.NewInternalError(err)
 		}
@@ -285,7 +285,7 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 	return secrets, nil
 }
 
-func (h *Handler) storeDepAssets(ctx context.Context, tx driver.Tx, dID string, hostRes map[string]hm_model.Resource, secrets map[string]secret, modConfigs module.Configs, userConfigs map[string]any) error {
+func (h *Handler) storeDepAssets(ctx context.Context, tx driver.Tx, dID string, hostRes map[string]hm_model.HostResource, secrets map[string]secret, modConfigs module.Configs, userConfigs map[string]any) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	if len(hostRes) > 0 {
