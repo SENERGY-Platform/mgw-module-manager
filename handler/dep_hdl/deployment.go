@@ -327,8 +327,8 @@ func (h *Handler) mkInclDir(inclDir dir_fs.DirFS) (string, error) {
 	return strID, nil
 }
 
-func (h *Handler) createDepVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID string) error {
-	// [REMINDER] handle created volumes if error
+func (h *Handler) createVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID string) error {
+	// [REMINDER] remove created volumes if error
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	for ref := range mVolumes {

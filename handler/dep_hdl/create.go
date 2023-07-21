@@ -55,7 +55,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 		return "", err
 	}
 	// [REMINDER] remove volumes if error
-	if err = h.createDepVolumes(ctx, mod.Volumes, dID); err != nil {
+	if err = h.createVolumes(ctx, mod.Volumes, dID); err != nil {
 		return "", err
 	}
 	// [REMINDER] remove containers if error
