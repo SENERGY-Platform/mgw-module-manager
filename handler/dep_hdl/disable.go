@@ -38,16 +38,16 @@ func (h *Handler) Disable(ctx context.Context, id string, dependencies bool) err
 		if err != nil {
 			return err
 		}
-		ok, rd := allDepStopped(depReq)
+		ok, rdID := allDepStopped(depReq)
 		if !ok {
-			return model.NewInternalError(fmt.Errorf("required by '%s'", rd.ID))
+			return model.NewInternalError(fmt.Errorf("required by '%s'", rdID))
 		}
 	}
 	if err = h.disable(ctx, d); err != nil {
 		return err
 	}
 	if dependencies && len(d.RequiredDep) > 0 {
-		reqDep := make(map[string]*model.Deployment)
+		reqDep := make(map[string]model.Deployment)
 		if err = h.getReqDep(ctx, d, reqDep); err != nil {
 			return err
 		}
@@ -76,7 +76,7 @@ func (h *Handler) Disable(ctx context.Context, id string, dependencies bool) err
 	return nil
 }
 
-func (h *Handler) disable(ctx context.Context, dep *model.Deployment) error {
+func (h *Handler) disable(ctx context.Context, dep model.Deployment) error {
 	instance, err := h.getCurrentInst(ctx, dep.ID)
 	if err != nil {
 		return err
@@ -106,10 +106,10 @@ func (h *Handler) disable(ctx context.Context, dep *model.Deployment) error {
 	return nil
 }
 
-func (h *Handler) getDepFromIDs(ctx context.Context, dIDs []string) ([]*model.Deployment, error) {
+func (h *Handler) getDepFromIDs(ctx context.Context, dIDs []string) ([]model.Deployment, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	var dep []*model.Deployment
+	var dep []model.Deployment
 	for _, dID := range dIDs {
 		d, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID)
 		if err != nil {
@@ -120,11 +120,11 @@ func (h *Handler) getDepFromIDs(ctx context.Context, dIDs []string) ([]*model.De
 	return dep, nil
 }
 
-func allDepStopped(dep []*model.Deployment) (bool, *model.Deployment) {
+func allDepStopped(dep []model.Deployment) (bool, string) {
 	for _, d := range dep {
 		if d.Enabled {
-			return false, d
+			return false, d.ID
 		}
 	}
-	return true, nil
+	return true, ""
 }

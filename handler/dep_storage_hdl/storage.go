@@ -173,37 +173,37 @@ func (h *Handler) DeleteDepAssets(ctx context.Context, itf driver.Tx, dID string
 	return nil
 }
 
-func (h *Handler) ReadDep(ctx context.Context, id string) (*model.Deployment, error) {
+func (h *Handler) ReadDep(ctx context.Context, id string) (model.Deployment, error) {
 	depMeta, err := selectDeployment(ctx, h.db.QueryRowContext, id)
 	if err != nil {
-		return nil, err
+		return model.Deployment{}, err
 	}
 	hostRes, err := selectHostResources(ctx, h.db.QueryContext, id)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.Deployment{}, model.NewInternalError(err)
 	}
 	secrets, err := selectSecrets(ctx, h.db.QueryContext, id)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.Deployment{}, model.NewInternalError(err)
 	}
 	configs := make(map[string]model.DepConfig)
 	err = selectConfigs(ctx, h.db.QueryContext, id, configs)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.Deployment{}, model.NewInternalError(err)
 	}
 	err = selectListConfigs(ctx, h.db.QueryContext, id, configs)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.Deployment{}, model.NewInternalError(err)
 	}
 	reqDep, err := selectRequiredDep(ctx, h.db.QueryContext, id)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.Deployment{}, model.NewInternalError(err)
 	}
 	depReq, err := selectDepRequiring(ctx, h.db.QueryContext, id)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return model.Deployment{}, model.NewInternalError(err)
 	}
-	dep := model.Deployment{
+	return model.Deployment{
 		DepBase: depMeta,
 		DepAssets: model.DepAssets{
 			HostResources: hostRes,
@@ -212,8 +212,7 @@ func (h *Handler) ReadDep(ctx context.Context, id string) (*model.Deployment, er
 			RequiredDep:   reqDep,
 			DepRequiring:  depReq,
 		},
-	}
-	return &dep, nil
+	}, nil
 }
 
 func (h *Handler) UpdateDep(ctx context.Context, dID, name, inclDir string, enabled, indirect bool, timestamp time.Time) error {

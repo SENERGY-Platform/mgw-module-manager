@@ -42,7 +42,7 @@ func (h *Handler) Delete(ctx context.Context, id string, orphans bool) error {
 		return err
 	}
 	if orphans && len(dep.RequiredDep) > 0 {
-		reqDep := make(map[string]*model.Deployment)
+		reqDep := make(map[string]model.Deployment)
 		if err = h.getReqDep(ctx, dep, reqDep); err != nil {
 			return err
 		}
@@ -104,7 +104,7 @@ func (h *Handler) removeContainer(ctx context.Context, dID string) error {
 	return nil
 }
 
-func isRequired(reqDep map[string]*model.Deployment, depRequiring []string) bool {
+func isRequired(reqDep map[string]model.Deployment, depRequiring []string) bool {
 	for _, dID := range depRequiring {
 		if dep, ok := reqDep[dID]; !ok {
 			return true

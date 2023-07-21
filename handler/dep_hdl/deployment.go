@@ -99,7 +99,7 @@ func (h *Handler) List(ctx context.Context, filter model.DepFilter) ([]model.Dep
 	return h.storageHandler.ListDep(ctxWt, filter)
 }
 
-func (h *Handler) Get(ctx context.Context, id string) (*model.Deployment, error) {
+func (h *Handler) Get(ctx context.Context, id string) (model.Deployment, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	return h.storageHandler.ReadDep(ctxWt, id)
@@ -149,7 +149,7 @@ func (h *Handler) GetInstance(ctx context.Context, id string) (model.DepInstance
 	}, nil
 }
 
-func (h *Handler) getReqDep(ctx context.Context, dep *model.Deployment, reqDep map[string]*model.Deployment) error {
+func (h *Handler) getReqDep(ctx context.Context, dep model.Deployment, reqDep map[string]model.Deployment) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	for _, dID := range dep.RequiredDep {

@@ -34,7 +34,7 @@ func (h *Handler) Enable(ctx context.Context, id string) error {
 		return err
 	}
 	if len(d.RequiredDep) > 0 {
-		reqDep := make(map[string]*model.Deployment)
+		reqDep := make(map[string]model.Deployment)
 		if err = h.getReqDep(ctx, d, reqDep); err != nil {
 			return err
 		}
@@ -52,7 +52,7 @@ func (h *Handler) Enable(ctx context.Context, id string) error {
 	return h.enable(ctx, d)
 }
 
-func (h *Handler) enable(ctx context.Context, dep *model.Deployment) error {
+func (h *Handler) enable(ctx context.Context, dep model.Deployment) error {
 	instance, err := h.getCurrentInst(ctx, dep.ID)
 	if err != nil {
 		return err
