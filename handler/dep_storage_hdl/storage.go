@@ -215,8 +215,8 @@ func (h *Handler) ReadDep(ctx context.Context, id string) (model.Deployment, err
 	}, nil
 }
 
-func (h *Handler) UpdateDep(ctx context.Context, dID, name, inclDir string, enabled, indirect bool, timestamp time.Time) error {
-	res, err := h.db.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `dir` = ?, `enabled` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", name, inclDir, enabled, indirect, timestamp, dID)
+func (h *Handler) UpdateDep(ctx context.Context, depBase model.DepBase) error {
+	res, err := h.db.ExecContext(ctx, "UPDATE `deployments` SET `name` = ?, `dir` = ?, `enabled` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", depBase.Name, depBase.Dir, depBase.Enabled, depBase.Indirect, depBase.Updated, depBase.ID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}

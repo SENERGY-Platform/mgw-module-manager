@@ -100,7 +100,9 @@ func (h *Handler) disable(ctx context.Context, dep model.Deployment) error {
 			}
 		}
 	}
-	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID, dep.Name, dep.Dir, false, dep.Indirect, time.Now().UTC()); err != nil {
+	dep.Enabled = false
+	dep.Updated = time.Now().UTC()
+	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.DepBase); err != nil {
 		return err
 	}
 	return nil
