@@ -31,12 +31,12 @@ import (
 	"time"
 )
 
-func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error) {
+func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error) {
 	reqModDepMap, err := h.getReqModDepMap(ctx, mod.Dependencies)
 	if err != nil {
 		return "", err
 	}
-	name := getDepName(mod.Name, depReq.Name)
+	name := getDepName(mod.Name, depInput.Name)
 	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {
 		return "", err
@@ -58,7 +58,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depReq model.D
 	if err != nil {
 		return "", err
 	}
-	userConfigs, hostRes, secrets, err := h.prepareDep(ctx, mod, dID, depReq)
+	userConfigs, hostRes, secrets, err := h.prepareDep(ctx, mod, dID, depInput)
 	if err != nil {
 		return "", err
 	}
