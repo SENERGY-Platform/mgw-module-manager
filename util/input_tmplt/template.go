@@ -61,7 +61,7 @@ func GetModDepTemplate(mod *module.Module) model.InputTemplate {
 	return it
 }
 
-func GetDepUpTemplate(mod *module.Module, dep *model.Deployment) model.InputTemplate {
+func GetDepUpTemplate(mod *module.Module, dep model.Deployment) model.InputTemplate {
 	it := model.InputTemplate{
 		HostResources: make(map[string]model.InputTemplateHostRes),
 		Secrets:       make(map[string]model.InputTemplateSecret),

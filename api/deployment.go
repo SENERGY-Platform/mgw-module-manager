@@ -92,7 +92,7 @@ func (a *Api) GetDeployments(ctx context.Context, filter model.DepFilter) ([]mod
 	return a.deploymentHandler.List(ctx, filter)
 }
 
-func (a *Api) GetDeployment(ctx context.Context, id string) (*model.Deployment, error) {
+func (a *Api) GetDeployment(ctx context.Context, id string) (model.Deployment, error) {
 	return a.deploymentHandler.Get(ctx, id)
 }
 
@@ -144,7 +144,7 @@ func (a *Api) StartDeployments() error {
 		if err != nil {
 			return model.NewResourceBusyError(err)
 		}
-		depMap := make(map[string]*model.Deployment)
+		depMap := make(map[string]model.Deployment)
 		for _, depMeta := range depList {
 			dep, err := a.deploymentHandler.Get(context.Background(), depMeta.ID)
 			if err != nil {
@@ -201,7 +201,7 @@ func (a *Api) GetDeploymentHealth(ctx context.Context, dID string) (model.DepHea
 	return a.depHealthHandler.Get(ctx, instance)
 }
 
-func (a *Api) startDeployments(ctx context.Context, depMap map[string]*model.Deployment, order []string) error {
+func (a *Api) startDeployments(ctx context.Context, depMap map[string]model.Deployment, order []string) error {
 	for _, dID := range order {
 		dep, ok := depMap[dID]
 		if !ok {

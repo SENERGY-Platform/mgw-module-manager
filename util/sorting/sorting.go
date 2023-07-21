@@ -46,7 +46,7 @@ func GetModOrder(modules map[string]*module.Module) (order []string, err error) 
 	return
 }
 
-func GetDepOrder(dep map[string]*model.Deployment) (order []string, err error) {
+func GetDepOrder(dep map[string]model.Deployment) (order []string, err error) {
 	if len(dep) > 1 {
 		nodes := make(tsort.Nodes)
 		for _, d := range dep {
