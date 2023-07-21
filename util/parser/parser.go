@@ -24,66 +24,7 @@ import (
 	"strings"
 )
 
-func UserInputToConfigs(userInput map[string]any, modConfigs module.Configs) (map[string]any, error) {
-	configs := make(map[string]any)
-	for ref, modConfig := range modConfigs {
-		val, ok := userInput[ref]
-		if !ok || val == nil {
-			if modConfig.Default == nil && modConfig.Required {
-				return nil, fmt.Errorf("config '%s' requried", ref)
-			}
-		} else {
-			var v any
-			var err error
-			if modConfig.IsSlice {
-				v, err = toDataTypeSlice(val, modConfig.DataType)
-			} else {
-				v, err = toDataType(val, modConfig.DataType)
-			}
-			if err != nil {
-				return nil, fmt.Errorf("parsing config '%s' failed: %s", ref, err)
-			}
-			configs[ref] = v
-		}
-	}
-	return configs, nil
-}
-
-func ConfigsToStringValues(modConfigs module.Configs, userConfigs map[string]any) (map[string]string, error) {
-	values := make(map[string]string)
-	for ref, mConfig := range modConfigs {
-		val, ok := userConfigs[ref]
-		if !ok {
-			if mConfig.Required {
-				if mConfig.Default != nil {
-					val = mConfig.Default
-				} else {
-					return nil, fmt.Errorf("config '%s' required", ref)
-				}
-			} else {
-				if mConfig.Default != nil {
-					val = mConfig.Default
-				} else {
-					continue
-				}
-			}
-		}
-		var s string
-		var err error
-		if mConfig.IsSlice {
-			s, err = dataTypeToStringList(val, mConfig.Delimiter, mConfig.DataType)
-		} else {
-			s, err = dataTypeToString(val, mConfig.DataType)
-		}
-		if err != nil {
-			return nil, err
-		}
-		values[ref] = s
-	}
-	return values, nil
-}
-
-func dataTypeToString(val any, dataType module.DataType) (string, error) {
+func DataTypeToString(val any, dataType module.DataType) (string, error) {
 	switch dataType {
 	case module.StringType:
 		s, err := toString(val)
@@ -114,7 +55,7 @@ func dataTypeToString(val any, dataType module.DataType) (string, error) {
 	}
 }
 
-func dataTypeToStringList(val any, delimiter string, dataType module.DataType) (string, error) {
+func DataTypeToStringList(val any, delimiter string, dataType module.DataType) (string, error) {
 	var sSl []string
 	switch dataType {
 	case module.StringType:
@@ -153,7 +94,7 @@ func dataTypeToStringList(val any, delimiter string, dataType module.DataType) (
 	return strings.Join(sSl, delimiter), nil
 }
 
-func toDataType(val any, dataType module.DataType) (v any, err error) {
+func AnyToDataType(val any, dataType module.DataType) (v any, err error) {
 	switch dataType {
 	case module.StringType:
 		v, err = toString(val)
@@ -169,7 +110,7 @@ func toDataType(val any, dataType module.DataType) (v any, err error) {
 	return
 }
 
-func toDataTypeSlice(val any, dataType module.DataType) (v any, err error) {
+func AnyToDataTypeSlice(val any, dataType module.DataType) (v any, err error) {
 	vSl, ok := val.([]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid data type '%T'", val)
