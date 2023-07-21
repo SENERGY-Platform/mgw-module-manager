@@ -83,8 +83,8 @@ type DeploymentHandler interface {
 type DepStorageHandler interface {
 	BeginTransaction(ctx context.Context) (driver.Tx, error)
 	ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error)
-	CreateDep(ctx context.Context, itf driver.Tx, depBase model.DepBase) (string, error)
-	CreateDepAssets(ctx context.Context, itf driver.Tx, dID string, depAssets model.DepAssets) error
+	CreateDep(ctx context.Context, tx driver.Tx, depBase model.DepBase) (string, error)
+	CreateDepAssets(ctx context.Context, tx driver.Tx, dID string, depAssets model.DepAssets) error
 	ReadDep(ctx context.Context, dID string) (model.Deployment, error)
 	UpdateDep(ctx context.Context, depBase model.DepBase) error
 	DeleteDep(ctx context.Context, dID string) error
