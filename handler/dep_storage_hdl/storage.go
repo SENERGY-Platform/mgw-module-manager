@@ -275,12 +275,14 @@ func (h *Handler) ReadDep(ctx context.Context, id string) (*model.Deployment, er
 		return nil, model.NewInternalError(err)
 	}
 	dep := model.Deployment{
-		DepMeta:       depMeta,
-		HostResources: hostRes,
-		Secrets:       secrets,
-		Configs:       configs,
-		RequiredDep:   reqDep,
-		DepRequiring:  depReq,
+		DepMeta: depMeta,
+		DepAssets: model.DepAssets{
+			HostResources: hostRes,
+			Secrets:       secrets,
+			Configs:       configs,
+			RequiredDep:   reqDep,
+			DepRequiring:  depReq,
+		},
 	}
 	return &dep, nil
 }

@@ -32,13 +32,17 @@ type DepMeta struct {
 	Updated  time.Time `json:"updated"`
 }
 
-type Deployment struct {
-	DepMeta
+type DepAssets struct {
 	HostResources map[string]string    `json:"host_resources"` // {ref:resourceID}
 	Secrets       map[string]DepSecret `json:"secrets"`        // {ref:DepSecret}
 	Configs       map[string]DepConfig `json:"configs"`        // {ref:DepConfig}
 	RequiredDep   []string             `json:"required_dep"`   // deployments required by this deployment
 	DepRequiring  []string             `json:"dep_requiring"`  // deployments requiring this deployment
+}
+
+type Deployment struct {
+	DepMeta
+	DepAssets
 }
 
 type DepSecret struct {
