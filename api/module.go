@@ -350,10 +350,10 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInp
 	defer stg.Remove()
 	var modDep *model.DepBase
 	depMap := make(map[string]model.DepBase)
-	for _, depMeta := range depList {
-		depMap[depMeta.ModuleID] = depMeta
-		if depMeta.ModuleID == id {
-			modDep = &depMeta
+	for _, depBase := range depList {
+		depMap[depBase.ModuleID] = depBase
+		if depBase.ModuleID == id {
+			modDep = &depBase
 		}
 	}
 	newMods := make(map[string]*module.Module)
