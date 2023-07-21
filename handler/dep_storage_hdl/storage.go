@@ -156,94 +156,6 @@ func (h *Handler) CreateDepAssets(ctx context.Context, itf driver.Tx, dID string
 	return nil
 }
 
-func (h *Handler) createDepConfigs(ctx context.Context, tx *sql.Tx, dID string, depConfigs map[string]model.DepConfig) error {
-	stmtMap := make(map[string]*sql.Stmt)
-	defer func() {
-		for _, stmt := range stmtMap {
-			stmt.Close()
-		}
-	}()
-	for ref, depConfig := range depConfigs {
-		key := depConfig.DataType + strconv.FormatBool(depConfig.IsSlice)
-		stmt, ok := stmtMap[key]
-		if !ok {
-			var err error
-			stmt, err = tx.PrepareContext(ctx, genCfgInsertQuery(depConfig.DataType, depConfig.IsSlice))
-			if err != nil {
-				return model.NewInternalError(err)
-			}
-			stmtMap[key] = stmt
-		}
-		if depConfig.IsSlice {
-			var err error
-			switch depConfig.DataType {
-			case module.StringType:
-				err = execCfgSlStmt[string](ctx, stmt, dID, ref, depConfig)
-			case module.BoolType:
-				err = execCfgSlStmt[bool](ctx, stmt, dID, ref, depConfig)
-			case module.Int64Type:
-				err = execCfgSlStmt[int64](ctx, stmt, dID, ref, depConfig)
-			case module.Float64Type:
-				err = execCfgSlStmt[float64](ctx, stmt, dID, ref, depConfig)
-			default:
-				err = fmt.Errorf("unknown data type '%s'", depConfig)
-			}
-			if err != nil {
-				return model.NewInternalError(err)
-			}
-		} else {
-			if _, err := stmt.ExecContext(ctx, dID, ref, depConfig); err != nil {
-				return model.NewInternalError(err)
-			}
-		}
-	}
-	return nil
-}
-
-func (h *Handler) createDepHostRes(ctx context.Context, tx *sql.Tx, dID string, hostResources map[string]string) error {
-	stmt, err := tx.PrepareContext(ctx, "INSERT INTO `host_resources` (`dep_id`, `ref`, `res_id`) VALUES (?, ?, ?)")
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	defer stmt.Close()
-	for ref, id := range hostResources {
-		if _, err = stmt.ExecContext(ctx, dID, ref, id); err != nil {
-			return model.NewInternalError(err)
-		}
-	}
-	return nil
-}
-
-func (h *Handler) createDepSecrets(ctx context.Context, tx *sql.Tx, dID string, secrets map[string]model.DepSecret) error {
-	stmt, err := tx.PrepareContext(ctx, "INSERT INTO `secrets` (`dep_id`, `ref`, `sec_id`, `item`, `as_mount`, `as_env`) VALUES (?, ?, ?, ?, ?, ?)")
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	defer stmt.Close()
-	for ref, secret := range secrets {
-		for _, variant := range secret.Variants {
-			if _, err = stmt.ExecContext(ctx, dID, ref, secret.ID, variant.Item, variant.AsMount, variant.AsEnv); err != nil {
-				return model.NewInternalError(err)
-			}
-		}
-	}
-	return nil
-}
-
-func (h *Handler) createDepReq(ctx context.Context, tx *sql.Tx, dID string, depReq []string) error {
-	stmt, err := tx.PrepareContext(ctx, "INSERT INTO `dependencies` (`dep_id`, `req_id`) VALUES (?, ?)")
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	defer stmt.Close()
-	for _, id := range depReq {
-		if _, err = stmt.ExecContext(ctx, dID, id); err != nil {
-			return model.NewInternalError(err)
-		}
-	}
-	return nil
-}
-
 func (h *Handler) DeleteDepAssets(ctx context.Context, itf driver.Tx, dID string) error {
 	tx := itf.(*sql.Tx)
 	if err := h.deleteDepHostRes(ctx, tx, dID); err != nil {
@@ -257,14 +169,6 @@ func (h *Handler) DeleteDepAssets(ctx context.Context, itf driver.Tx, dID string
 	}
 	if err := h.deleteDepReq(ctx, tx, dID); err != nil {
 		return err
-	}
-	return nil
-}
-
-func (h *Handler) deleteDepReq(ctx context.Context, tx *sql.Tx, dID string) error {
-	_, err := tx.ExecContext(ctx, "DELETE FROM `dependencies` WHERE `dep_id` = ?", dID)
-	if err != nil {
-		return model.NewInternalError(err)
 	}
 	return nil
 }
@@ -338,34 +242,6 @@ func (h *Handler) DeleteDep(ctx context.Context, id string) error {
 	}
 	if n < 1 {
 		return model.NewNotFoundError(errors.New("no rows affected"))
-	}
-	return nil
-}
-
-func (h *Handler) deleteDepConfigs(ctx context.Context, tx *sql.Tx, dID string) error {
-	_, err := tx.ExecContext(ctx, "DELETE FROM `configs` WHERE `dep_id` = ?", dID)
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	_, err = tx.ExecContext(ctx, "DELETE FROM `list_configs` WHERE `dep_id` = ?", dID)
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	return nil
-}
-
-func (h *Handler) deleteDepHostRes(ctx context.Context, tx *sql.Tx, dID string) error {
-	_, err := tx.ExecContext(ctx, "DELETE FROM `host_resources` WHERE `dep_id` = ?", dID)
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	return nil
-}
-
-func (h *Handler) deleteDepSecrets(ctx context.Context, tx *sql.Tx, dID string) error {
-	_, err := tx.ExecContext(ctx, "DELETE FROM `secrets` WHERE `dep_id` = ?", dID)
-	if err != nil {
-		return model.NewInternalError(err)
 	}
 	return nil
 }
@@ -497,6 +373,130 @@ func (h *Handler) CreateInstCtr(ctx context.Context, itf driver.Tx, iID, cID, sR
 	}
 	if n < 1 {
 		return model.NewNotFoundError(errors.New("no rows affected"))
+	}
+	return nil
+}
+
+func (h *Handler) createDepConfigs(ctx context.Context, tx *sql.Tx, dID string, depConfigs map[string]model.DepConfig) error {
+	stmtMap := make(map[string]*sql.Stmt)
+	defer func() {
+		for _, stmt := range stmtMap {
+			stmt.Close()
+		}
+	}()
+	for ref, depConfig := range depConfigs {
+		key := depConfig.DataType + strconv.FormatBool(depConfig.IsSlice)
+		stmt, ok := stmtMap[key]
+		if !ok {
+			var err error
+			stmt, err = tx.PrepareContext(ctx, genCfgInsertQuery(depConfig.DataType, depConfig.IsSlice))
+			if err != nil {
+				return model.NewInternalError(err)
+			}
+			stmtMap[key] = stmt
+		}
+		if depConfig.IsSlice {
+			var err error
+			switch depConfig.DataType {
+			case module.StringType:
+				err = execCfgSlStmt[string](ctx, stmt, dID, ref, depConfig)
+			case module.BoolType:
+				err = execCfgSlStmt[bool](ctx, stmt, dID, ref, depConfig)
+			case module.Int64Type:
+				err = execCfgSlStmt[int64](ctx, stmt, dID, ref, depConfig)
+			case module.Float64Type:
+				err = execCfgSlStmt[float64](ctx, stmt, dID, ref, depConfig)
+			default:
+				err = fmt.Errorf("unknown data type '%s'", depConfig)
+			}
+			if err != nil {
+				return model.NewInternalError(err)
+			}
+		} else {
+			if _, err := stmt.ExecContext(ctx, dID, ref, depConfig); err != nil {
+				return model.NewInternalError(err)
+			}
+		}
+	}
+	return nil
+}
+
+func (h *Handler) createDepHostRes(ctx context.Context, tx *sql.Tx, dID string, hostResources map[string]string) error {
+	stmt, err := tx.PrepareContext(ctx, "INSERT INTO `host_resources` (`dep_id`, `ref`, `res_id`) VALUES (?, ?, ?)")
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	defer stmt.Close()
+	for ref, id := range hostResources {
+		if _, err = stmt.ExecContext(ctx, dID, ref, id); err != nil {
+			return model.NewInternalError(err)
+		}
+	}
+	return nil
+}
+
+func (h *Handler) createDepSecrets(ctx context.Context, tx *sql.Tx, dID string, secrets map[string]model.DepSecret) error {
+	stmt, err := tx.PrepareContext(ctx, "INSERT INTO `secrets` (`dep_id`, `ref`, `sec_id`, `item`, `as_mount`, `as_env`) VALUES (?, ?, ?, ?, ?, ?)")
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	defer stmt.Close()
+	for ref, secret := range secrets {
+		for _, variant := range secret.Variants {
+			if _, err = stmt.ExecContext(ctx, dID, ref, secret.ID, variant.Item, variant.AsMount, variant.AsEnv); err != nil {
+				return model.NewInternalError(err)
+			}
+		}
+	}
+	return nil
+}
+
+func (h *Handler) createDepReq(ctx context.Context, tx *sql.Tx, dID string, depReq []string) error {
+	stmt, err := tx.PrepareContext(ctx, "INSERT INTO `dependencies` (`dep_id`, `req_id`) VALUES (?, ?)")
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	defer stmt.Close()
+	for _, id := range depReq {
+		if _, err = stmt.ExecContext(ctx, dID, id); err != nil {
+			return model.NewInternalError(err)
+		}
+	}
+	return nil
+}
+
+func (h *Handler) deleteDepReq(ctx context.Context, tx *sql.Tx, dID string) error {
+	_, err := tx.ExecContext(ctx, "DELETE FROM `dependencies` WHERE `dep_id` = ?", dID)
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	return nil
+}
+
+func (h *Handler) deleteDepConfigs(ctx context.Context, tx *sql.Tx, dID string) error {
+	_, err := tx.ExecContext(ctx, "DELETE FROM `configs` WHERE `dep_id` = ?", dID)
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	_, err = tx.ExecContext(ctx, "DELETE FROM `list_configs` WHERE `dep_id` = ?", dID)
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	return nil
+}
+
+func (h *Handler) deleteDepHostRes(ctx context.Context, tx *sql.Tx, dID string) error {
+	_, err := tx.ExecContext(ctx, "DELETE FROM `host_resources` WHERE `dep_id` = ?", dID)
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	return nil
+}
+
+func (h *Handler) deleteDepSecrets(ctx context.Context, tx *sql.Tx, dID string) error {
+	_, err := tx.ExecContext(ctx, "DELETE FROM `secrets` WHERE `dep_id` = ?", dID)
+	if err != nil {
+		return model.NewInternalError(err)
 	}
 	return nil
 }
