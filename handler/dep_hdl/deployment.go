@@ -124,7 +124,7 @@ func (h *Handler) getReqDep(ctx context.Context, dep model.Deployment, reqDep ma
 }
 
 func (h *Handler) getDepAssets(ctx context.Context, mod *module.Module, dID string, depInput model.DepInput) (map[string]hm_model.HostResource, map[string]secret, map[string]model.DepConfig, map[string]string, error) {
-	hostResources, err := h.getHostRes(ctx, mod.HostResources, depInput.HostResources)
+	hostResources, err := h.getHostResources(ctx, mod.HostResources, depInput.HostResources)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -213,7 +213,7 @@ func (h *Handler) getUserConfigs(mConfigs module.Configs, userInput map[string]a
 	return userConfigs, nil
 }
 
-func (h *Handler) getHostRes(ctx context.Context, mHostRes map[string]module.HostResource, userInput map[string]string) (map[string]hm_model.HostResource, error) {
+func (h *Handler) getHostResources(ctx context.Context, mHostRes map[string]module.HostResource, userInput map[string]string) (map[string]hm_model.HostResource, error) {
 	usrHostRes, missing, err := getUserHostRes(userInput, mHostRes)
 	if err != nil {
 		return nil, model.NewInvalidInputError(err)
