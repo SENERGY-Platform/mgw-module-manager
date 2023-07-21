@@ -81,7 +81,7 @@ func (h *Handler) BeginTransaction(ctx context.Context) (driver.Tx, error) {
 	return tx, nil
 }
 
-func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
+func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error) {
 	q := "SELECT `id`, `mod_id`, `name`, `dir`, `enabled`, `indirect`, `created`, `updated` FROM `deployments`"
 	fc, val := genListDepFilter(filter)
 	if fc != "" {
@@ -93,9 +93,9 @@ func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.
 		return nil, model.NewInternalError(err)
 	}
 	defer rows.Close()
-	var dms []model.DepMeta
+	var dms []model.DepBase
 	for rows.Next() {
-		var dm model.DepMeta
+		var dm model.DepBase
 		var ct, ut []uint8
 		if err = rows.Scan(&dm.ID, &dm.ModuleID, &dm.Name, &dm.Dir, &dm.Enabled, &dm.Indirect, &ct, &ut); err != nil {
 			return nil, model.NewInternalError(err)
@@ -275,7 +275,7 @@ func (h *Handler) ReadDep(ctx context.Context, id string) (*model.Deployment, er
 		return nil, model.NewInternalError(err)
 	}
 	dep := model.Deployment{
-		DepMeta: depMeta,
+		DepBase: depMeta,
 		DepAssets: model.DepAssets{
 			HostResources: hostRes,
 			Secrets:       secrets,

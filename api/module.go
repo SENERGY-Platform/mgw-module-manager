@@ -346,10 +346,10 @@ func (a *Api) prepareModuleUpdate(ctx context.Context, modules map[string]*modul
 	return nil
 }
 
-func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInput, dependencies map[string]model.DepInput, orphans bool, stg handler.Stage, newIDs, uptIDs, ophIDs map[string]struct{}, depList []model.DepMeta) error {
+func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInput, dependencies map[string]model.DepInput, orphans bool, stg handler.Stage, newIDs, uptIDs, ophIDs map[string]struct{}, depList []model.DepBase) error {
 	defer stg.Remove()
-	var modDep *model.DepMeta
-	depMap := make(map[string]model.DepMeta)
+	var modDep *model.DepBase
+	depMap := make(map[string]model.DepBase)
 	for _, depMeta := range depList {
 		depMap[depMeta.ModuleID] = depMeta
 		if depMeta.ModuleID == id {

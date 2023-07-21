@@ -88,7 +88,7 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput model.De
 	return dID, nil
 }
 
-func (a *Api) GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
+func (a *Api) GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error) {
 	return a.deploymentHandler.List(ctx, filter)
 }
 

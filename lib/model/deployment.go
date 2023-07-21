@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-type DepMeta struct {
+type DepBase struct {
 	ID       string    `json:"id"`
 	ModuleID string    `json:"module_id"`
 	Name     string    `json:"name"`
@@ -41,7 +41,7 @@ type DepAssets struct {
 }
 
 type Deployment struct {
-	DepMeta
+	DepBase
 	DepAssets
 }
 

@@ -92,7 +92,7 @@ func (h *Handler) InitWorkspace(perm fs.FileMode) error {
 	return nil
 }
 
-func (h *Handler) List(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error) {
+func (h *Handler) List(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	return h.storageHandler.ListDep(ctxWt, filter)

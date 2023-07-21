@@ -69,7 +69,7 @@ type ModUpdateHandler interface {
 }
 
 type DeploymentHandler interface {
-	List(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
+	List(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error)
 	Get(ctx context.Context, dID string) (*model.Deployment, error)
 	ListInstances(ctx context.Context) (map[string]model.DepInstance, error)
 	GetInstance(ctx context.Context, dID string) (model.DepInstance, error)
@@ -82,7 +82,7 @@ type DeploymentHandler interface {
 
 type DepStorageHandler interface {
 	BeginTransaction(ctx context.Context) (driver.Tx, error)
-	ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
+	ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error)
 	CreateDep(ctx context.Context, tx driver.Tx, mID, name, inclDir string, indirect bool, timestamp time.Time) (string, error)
 	CreateDepConfigs(ctx context.Context, tx driver.Tx, mConfigs module.Configs, dConfigs map[string]any, dID string) error
 	CreateDepHostRes(ctx context.Context, tx driver.Tx, hostResources map[string]string, dID string) error

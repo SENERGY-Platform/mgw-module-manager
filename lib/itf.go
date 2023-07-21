@@ -35,7 +35,7 @@ type Api interface {
 	UpdateModule(ctx context.Context, mID string, depInput model.DepInput, dependencies map[string]model.DepInput, orphans bool) (string, error)
 	GetModuleUpdateTemplate(ctx context.Context, id string) (model.ModUpdateTemplate, error)
 	CreateDeployment(ctx context.Context, mID string, depInput model.DepInput, dependencies map[string]model.DepInput) (string, error)
-	GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepMeta, error)
+	GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error)
 	GetDeployment(ctx context.Context, dID string) (*model.Deployment, error)
 	StartDeployment(ctx context.Context, dID string) error
 	StopDeployment(ctx context.Context, dID string, dependencies bool) (string, error)

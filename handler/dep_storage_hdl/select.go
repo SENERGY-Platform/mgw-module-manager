@@ -25,24 +25,24 @@ import (
 	"time"
 )
 
-func selectDeployment(ctx context.Context, qwf func(context.Context, string, ...any) *sql.Row, depID string) (model.DepMeta, error) {
+func selectDeployment(ctx context.Context, qwf func(context.Context, string, ...any) *sql.Row, depID string) (model.DepBase, error) {
 	row := qwf(ctx, "SELECT `id`, `mod_id`, `name`, `dir`, `enabled`, `indirect`, `created`, `updated` FROM `deployments` WHERE `id` = ?", depID)
-	var dm model.DepMeta
+	var dm model.DepBase
 	var ct, ut []uint8
 	err := row.Scan(&dm.ID, &dm.ModuleID, &dm.Name, &dm.Dir, &dm.Enabled, &dm.Indirect, &ct, &ut)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.DepMeta{}, model.NewNotFoundError(err)
+			return model.DepBase{}, model.NewNotFoundError(err)
 		}
-		return model.DepMeta{}, model.NewInternalError(err)
+		return model.DepBase{}, model.NewInternalError(err)
 	}
 	tc, err := time.Parse(tLayout, string(ct))
 	if err != nil {
-		return model.DepMeta{}, model.NewInternalError(err)
+		return model.DepBase{}, model.NewInternalError(err)
 	}
 	tu, err := time.Parse(tLayout, string(ut))
 	if err != nil {
-		return model.DepMeta{}, model.NewInternalError(err)
+		return model.DepBase{}, model.NewInternalError(err)
 	}
 	dm.Created = tc
 	dm.Updated = tu
