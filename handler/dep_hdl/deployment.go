@@ -28,6 +28,7 @@ import (
 	hm_client "github.com/SENERGY-Platform/mgw-host-manager/client"
 	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
@@ -166,35 +167,90 @@ func (h *Handler) getReqDep(ctx context.Context, dep *model.Deployment, reqDep m
 	return nil
 }
 
-func (h *Handler) prepareDep(ctx context.Context, mod *module.Module, dID string, depReq model.DepInput) (userConfigs map[string]any, hostRes map[string]hm_model.HostResource, secrets map[string]secret, err error) {
-	userConfigs, err = h.getUserConfigs(mod.Configs, depReq.Configs)
+func (h *Handler) getDepAssets(ctx context.Context, mod *module.Module, dID string, depInput model.DepInput) (map[string]hm_model.HostResource, map[string]secret, map[string]model.DepConfig, map[string]string, error) {
+	hostResources, err := h.getHostRes(ctx, mod.HostResources, depInput.HostResources)
 	if err != nil {
-		return nil, nil, nil, model.NewInvalidInputError(err)
+		return nil, nil, nil, nil, err
 	}
-	hostRes, err = h.getHostRes(ctx, mod.HostResources, depReq.HostResources)
+	secrets, err := h.getSecrets(ctx, mod, dID, depInput.Secrets)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
-	secrets, err = h.getSecrets(ctx, mod, dID, depReq.Secrets)
+	userConfigs, err := h.getUserConfigs(mod.Configs, depInput.Configs)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
-	return
+	reqModDepMap, err := h.getReqModDepMap(ctx, mod.Dependencies)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	return hostResources, secrets, userConfigs, reqModDepMap, nil
 }
 
-func (h *Handler) getUserConfigs(modConfigs module.Configs, userInput map[string]any) (map[string]any, error) {
-	userConfigs, err := parser.UserInputToConfigs(userInput, modConfigs)
-	if err != nil {
-		return nil, err
+func (h *Handler) createDepAssets(ctx context.Context, tx driver.Tx, mod *module.Module, dID string, hostResources map[string]hm_model.HostResource, secrets map[string]secret, userConfigs map[string]model.DepConfig, reqModDepMap map[string]string) error {
+	var requiredDep []string
+	for mID := range mod.Dependencies {
+		requiredDep = append(requiredDep, reqModDepMap[mID])
 	}
-	for ref, val := range userConfigs {
-		mC := modConfigs[ref]
-		if err = h.cfgVltHandler.ValidateValue(mC.Type, mC.TypeOpt, val, mC.IsSlice, mC.DataType); err != nil {
-			return nil, err
+	depAssets := model.DepAssets{
+		HostResources: make(map[string]string),
+		Secrets:       make(map[string]model.DepSecret),
+		Configs:       userConfigs,
+		RequiredDep:   requiredDep,
+	}
+	for ref, hostResource := range hostResources {
+		depAssets.HostResources[ref] = hostResource.ID
+	}
+	for ref, sec := range secrets {
+		var variants []model.DepSecretVariant
+		for _, variant := range sec.Variants {
+			variants = append(variants, model.DepSecretVariant{
+				Item:    variant.Item,
+				AsMount: variant.Path != "",
+				AsEnv:   variant.AsEnv,
+			})
 		}
-		if mC.Options != nil && !mC.OptExt {
-			if err = h.cfgVltHandler.ValidateValInOpt(mC.Options, val, mC.IsSlice, mC.DataType); err != nil {
-				return nil, err
+		depAssets.Secrets[ref] = model.DepSecret{
+			ID:       sec.ID,
+			Variants: variants,
+		}
+	}
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	return h.storageHandler.CreateDepAssets(ctxWt, tx, dID, depAssets)
+}
+
+func (h *Handler) getUserConfigs(mConfigs module.Configs, userInput map[string]any) (map[string]model.DepConfig, error) {
+	userConfigs := make(map[string]model.DepConfig)
+	for ref, mConfig := range mConfigs {
+		val, ok := userInput[ref]
+		if !ok || val == nil {
+			if mConfig.Default == nil && mConfig.Required {
+				return nil, model.NewInvalidInputError(fmt.Errorf("config '%s' requried", ref))
+			}
+		} else {
+			var v any
+			var err error
+			if mConfig.IsSlice {
+				v, err = parser.AnyToDataTypeSlice(val, mConfig.DataType)
+			} else {
+				v, err = parser.AnyToDataType(val, mConfig.DataType)
+			}
+			if err != nil {
+				return nil, model.NewInvalidInputError(fmt.Errorf("parsing user input '%s' failed: %s", ref, err))
+			}
+			if err = h.cfgVltHandler.ValidateValue(mConfig.Type, mConfig.TypeOpt, v, mConfig.IsSlice, mConfig.DataType); err != nil {
+				return nil, model.NewInvalidInputError(err)
+			}
+			if mConfig.Options != nil && !mConfig.OptExt {
+				if err = h.cfgVltHandler.ValidateValInOpt(mConfig.Options, v, mConfig.IsSlice, mConfig.DataType); err != nil {
+					return nil, model.NewInvalidInputError(err)
+				}
+			}
+			userConfigs[ref] = model.DepConfig{
+				Value:    v,
+				DataType: mConfig.DataType,
+				IsSlice:  mConfig.IsSlice,
 			}
 		}
 	}
@@ -285,46 +341,6 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 	return secrets, nil
 }
 
-func (h *Handler) storeDepAssets(ctx context.Context, tx driver.Tx, dID string, hostRes map[string]hm_model.HostResource, secrets map[string]secret, modConfigs module.Configs, userConfigs map[string]any) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	if len(hostRes) > 0 {
-		hr := make(map[string]string)
-		for ref, res := range hostRes {
-			hr[ref] = res.ID
-		}
-		if err := h.storageHandler.CreateDepHostRes(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, hr, dID); err != nil {
-			return err
-		}
-	}
-	if len(secrets) > 0 {
-		depSecrets := make(map[string]model.DepSecret)
-		for ref, sec := range secrets {
-			var variants []model.DepSecretVariant
-			for _, variant := range sec.Variants {
-				variants = append(variants, model.DepSecretVariant{
-					Item:    variant.Item,
-					AsMount: variant.Path != "",
-					AsEnv:   variant.AsEnv,
-				})
-			}
-			depSecrets[ref] = model.DepSecret{
-				ID:       sec.ID,
-				Variants: variants,
-			}
-		}
-		if err := h.storageHandler.CreateDepSecrets(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, depSecrets, dID); err != nil {
-			return err
-		}
-	}
-	if len(userConfigs) > 0 {
-		if err := h.storageHandler.CreateDepConfigs(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, modConfigs, userConfigs, dID); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (h *Handler) getReqModDepMap(ctx context.Context, reqMod map[string]string) (map[string]string, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
@@ -353,6 +369,26 @@ func (h *Handler) mkInclDir(inclDir dir_fs.DirFS) (string, error) {
 		return "", model.NewInternalError(err)
 	}
 	return strID, nil
+}
+
+func (h *Handler) createDepVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID string) error {
+	// [REMINDER] handle created volumes if error
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	for ref := range mVolumes {
+		name := getVolumeName(dID, ref)
+		n, err := h.cewClient.CreateVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.Volume{
+			Name:   name,
+			Labels: map[string]string{"d_id": dID},
+		})
+		if err != nil {
+			return model.NewInternalError(err)
+		}
+		if n != name {
+			return model.NewInternalError(fmt.Errorf("volume name missmatch: %s != %s", n, name))
+		}
+	}
+	return nil
 }
 
 func (h *Handler) removeVolumes(ctx context.Context, volumes []string) error {

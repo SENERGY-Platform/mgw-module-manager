@@ -18,30 +18,16 @@ package dep_hdl
 
 import (
 	"context"
-	"fmt"
-	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	"database/sql/driver"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
 	"os"
 	"path"
 	"time"
 )
 
 func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error) {
-	reqModDepMap, err := h.getReqModDepMap(ctx, mod.Dependencies)
-	if err != nil {
-		return "", err
-	}
-	name := getDepName(mod.Name, depInput.Name)
-	tx, err := h.storageHandler.BeginTransaction(ctx)
-	if err != nil {
-		return "", err
-	}
-	defer tx.Rollback()
 	inclDir, err := h.mkInclDir(incl)
 	if err != nil {
 		return "", err
@@ -51,39 +37,29 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 			os.RemoveAll(path.Join(h.wrkSpcPath, inclDir))
 		}
 	}()
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	var dID string
-	dID, err = h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.ID, name, inclDir, indirect, time.Now().UTC())
+	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {
 		return "", err
 	}
-	userConfigs, hostRes, secrets, err := h.prepareDep(ctx, mod, dID, depInput)
+	defer tx.Rollback()
+	dID, err := h.createDepBase(ctx, tx, mod, depInput, inclDir, indirect)
 	if err != nil {
 		return "", err
 	}
-	stringValues, err := parser.ConfigsToStringValues(mod.Configs, userConfigs)
+	hostResources, secrets, userConfigs, reqModDepMap, err := h.getDepAssets(ctx, mod, dID, depInput)
 	if err != nil {
 		return "", err
 	}
-	if err = h.storeDepAssets(ctx, tx, dID, hostRes, secrets, mod.Configs, userConfigs); err != nil {
+	err = h.createDepAssets(ctx, tx, mod, dID, hostResources, secrets, userConfigs, reqModDepMap)
+	if err != nil {
 		return "", err
-	}
-	if len(mod.Dependencies) > 0 {
-		var dIDs []string
-		for mID := range mod.Dependencies {
-			dIDs = append(dIDs, reqModDepMap[mID])
-		}
-		if err = h.storageHandler.CreateDepReq(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dIDs, dID); err != nil {
-			return "", err
-		}
 	}
 	// [REMINDER] remove volumes if error
-	if err = h.createVolumes(ctx, mod.Volumes, dID); err != nil {
+	if err = h.createDepVolumes(ctx, mod.Volumes, dID); err != nil {
 		return "", err
 	}
 	// [REMINDER] remove containers if error
-	_, _, err = h.createInstance(ctx, tx, mod, dID, inclDir, stringValues, hostRes, secrets, reqModDepMap)
+	_, _, err = h.createInstance(ctx, tx, mod, dID, inclDir, userConfigs, hostResources, secrets, reqModDepMap)
 	if err != nil {
 		return "", err
 	}
@@ -94,22 +70,22 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 	return dID, nil
 }
 
-func (h *Handler) createVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID string) error {
-	// [REMINDER] how to handle created volumes if error?
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	for ref := range mVolumes {
-		name := getVolumeName(dID, ref)
-		n, err := h.cewClient.CreateVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.Volume{
-			Name:   name,
-			Labels: map[string]string{"d_id": dID},
-		})
-		if err != nil {
-			return model.NewInternalError(err)
-		}
-		if n != name {
-			return model.NewInternalError(fmt.Errorf("volume name missmatch: %s != %s", n, name))
-		}
+func (h *Handler) createDepBase(ctx context.Context, tx driver.Tx, mod *module.Module, depInput model.DepInput, inclDir string, indirect bool) (string, error) {
+	timestamp := time.Now().UTC()
+	depBase := model.DepBase{
+		ModuleID: mod.ID,
+		Name:     getDepName(mod.Name, depInput.Name),
+		Dir:      inclDir,
+		Enabled:  false,
+		Indirect: indirect,
+		Created:  timestamp,
+		Updated:  timestamp,
 	}
-	return nil
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	dID, err := h.storageHandler.CreateDep(ctxWt, tx, depBase)
+	if err != nil {
+		return "", err
+	}
+	return dID, nil
 }

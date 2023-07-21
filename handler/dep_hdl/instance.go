@@ -27,6 +27,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/cew_job"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 	"path"
 	"time"
@@ -45,12 +46,16 @@ func (h *Handler) getCurrentInst(ctx context.Context, dID string) (model.Instanc
 	return h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instances[0].ID)
 }
 
-func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.Module, dID, inclDir string, stringValues map[string]string, hostRes map[string]hm_model.HostResource, secrets map[string]secret, reqModDepMap map[string]string) (string, []string, error) {
+func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.Module, dID, inclDir string, userConfigs map[string]model.DepConfig, hostRes map[string]hm_model.HostResource, secrets map[string]secret, reqModDepMap map[string]string) (string, []string, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	iID, err := h.storageHandler.CreateInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID, time.Now().UTC())
 	if err != nil {
 		return "", nil, err
+	}
+	stringValues, err := userConfigsToStringValues(mod.Configs, userConfigs)
+	if err != nil {
+		return "", nil, model.NewInternalError(err)
 	}
 	order, err := sorting.GetSrvOrder(mod.Services)
 	if err != nil {
@@ -282,4 +287,39 @@ func getContainer(srv *module.Service, ref, name, dID, iID string, envVars map[s
 
 func getSrvName(s, r string) string {
 	return "mgw_" + genHash(s, r)
+}
+
+func userConfigsToStringValues(modConfigs module.Configs, userConfigs map[string]model.DepConfig) (map[string]string, error) {
+	values := make(map[string]string)
+	for ref, mConfig := range modConfigs {
+		depConfig, ok := userConfigs[ref]
+		val := depConfig.Value
+		if !ok {
+			if mConfig.Required {
+				if mConfig.Default != nil {
+					val = mConfig.Default
+				} else {
+					return nil, fmt.Errorf("config '%s' required", ref)
+				}
+			} else {
+				if mConfig.Default != nil {
+					val = mConfig.Default
+				} else {
+					continue
+				}
+			}
+		}
+		var s string
+		var err error
+		if mConfig.IsSlice {
+			s, err = parser.DataTypeToStringList(val, mConfig.Delimiter, mConfig.DataType)
+		} else {
+			s, err = parser.DataTypeToString(val, mConfig.DataType)
+		}
+		if err != nil {
+			return nil, err
+		}
+		values[ref] = s
+	}
+	return values, nil
 }
