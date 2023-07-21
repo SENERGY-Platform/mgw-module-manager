@@ -426,12 +426,11 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInp
 					} else {
 						dInput = dependencies[mID]
 					}
-					enabled := dep.Enabled
 					if modDep != nil && modDep.Enabled {
-						enabled = modDep.Enabled
+						dep.Enabled = modDep.Enabled
 					}
 					dInput.Name = &dep.Name
-					err = a.deploymentHandler.Update(ctx, mod, dInput, dir, dep.ID, dep.Dir, enabled, dep.Indirect)
+					err = a.deploymentHandler.Update(ctx, dep, mod, dInput, dir)
 					if err != nil {
 						return err
 					}

@@ -239,7 +239,7 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.D
 	jID, err := a.jobHandler.Create(fmt.Sprintf("update deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.Update(ctx, mod.Module, depInput, "", dID, dep.Dir, dep.Enabled, dep.Indirect)
+		err := a.deploymentHandler.Update(ctx, dep.DepBase, mod.Module, depInput, "")
 		if err == nil {
 			err = ctx.Err()
 		}
