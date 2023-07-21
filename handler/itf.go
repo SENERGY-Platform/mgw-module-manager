@@ -83,18 +83,12 @@ type DeploymentHandler interface {
 type DepStorageHandler interface {
 	BeginTransaction(ctx context.Context) (driver.Tx, error)
 	ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error)
-	CreateDep(ctx context.Context, tx driver.Tx, mID, name, inclDir string, indirect bool, timestamp time.Time) (string, error)
-	CreateDepConfigs(ctx context.Context, tx driver.Tx, mConfigs module.Configs, dConfigs map[string]any, dID string) error
-	CreateDepHostRes(ctx context.Context, tx driver.Tx, hostResources map[string]string, dID string) error
-	CreateDepSecrets(ctx context.Context, tx driver.Tx, secrets map[string]model.DepSecret, dID string) error
-	CreateDepReq(ctx context.Context, tx driver.Tx, depReq []string, dID string) error
-	DeleteDepReq(ctx context.Context, tx driver.Tx, dID string) error
+	CreateDep(ctx context.Context, itf driver.Tx, depBase model.DepBase) (string, error)
+	CreateDepAssets(ctx context.Context, itf driver.Tx, dID string, depAssets model.DepAssets) error
 	ReadDep(ctx context.Context, dID string) (*model.Deployment, error)
 	UpdateDep(ctx context.Context, dID, name, inclDir string, enabled, indirect bool, timestamp time.Time) error
 	DeleteDep(ctx context.Context, dID string) error
-	DeleteDepConfigs(ctx context.Context, tx driver.Tx, dID string) error
-	DeleteDepHostRes(ctx context.Context, tx driver.Tx, dID string) error
-	DeleteDepSecrets(ctx context.Context, tx driver.Tx, dID string) error
+	DeleteDepAssets(ctx context.Context, itf driver.Tx, dID string) error
 	ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.Instance, error)
 	CreateInst(ctx context.Context, tx driver.Tx, dID string, timestamp time.Time) (string, error)
 	ReadInst(ctx context.Context, iID string) (model.Instance, error)
