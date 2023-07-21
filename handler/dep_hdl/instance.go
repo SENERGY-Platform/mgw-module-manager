@@ -33,6 +33,50 @@ import (
 	"time"
 )
 
+func (h *Handler) ListInstances(ctx context.Context) (map[string]model.DepInstance, error) {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	listDep, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{})
+	if err != nil {
+		return nil, err
+	}
+	depInstances := make(map[string]model.DepInstance)
+	for _, dep := range listDep {
+		inst, err := h.getCurrentInst(ctx, dep.ID)
+		if err != nil {
+			return nil, err
+		}
+		ctrs, err := h.storageHandler.ListInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), inst.ID, model.CtrFilter{SortOrder: model.Descending})
+		if err != nil {
+			return nil, err
+		}
+		depInstances[dep.ID] = model.DepInstance{
+			ID:         inst.ID,
+			Created:    inst.Created,
+			Containers: ctrs,
+		}
+	}
+	return depInstances, nil
+}
+
+func (h *Handler) GetInstance(ctx context.Context, id string) (model.DepInstance, error) {
+	inst, err := h.getCurrentInst(ctx, id)
+	if err != nil {
+		return model.DepInstance{}, err
+	}
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	ctrs, err := h.storageHandler.ListInstCtr(ctxWt, inst.ID, model.CtrFilter{SortOrder: model.Descending})
+	if err != nil {
+		return model.DepInstance{}, err
+	}
+	return model.DepInstance{
+		ID:         inst.ID,
+		Created:    inst.Created,
+		Containers: ctrs,
+	}, nil
+}
+
 func (h *Handler) getCurrentInst(ctx context.Context, dID string) (model.Instance, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
