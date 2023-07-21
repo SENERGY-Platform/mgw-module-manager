@@ -86,7 +86,7 @@ type DepStorageHandler interface {
 	CreateDep(ctx context.Context, tx driver.Tx, depBase model.DepBase) (string, error)
 	CreateDepAssets(ctx context.Context, tx driver.Tx, dID string, depAssets model.DepAssets) error
 	ReadDep(ctx context.Context, dID string) (model.Deployment, error)
-	UpdateDep(ctx context.Context, depBase model.DepBase) error
+	UpdateDep(ctx context.Context, tx driver.Tx, depBase model.DepBase) error
 	DeleteDep(ctx context.Context, dID string) error
 	DeleteDepAssets(ctx context.Context, itf driver.Tx, dID string) error
 	ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.Instance, error)

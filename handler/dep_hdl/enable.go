@@ -78,7 +78,7 @@ func (h *Handler) enable(ctx context.Context, dep model.Deployment) error {
 	}
 	dep.Enabled = true
 	dep.Updated = time.Now().UTC()
-	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.DepBase); err != nil {
+	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), nil, dep.DepBase); err != nil {
 		return err
 	}
 	return nil
