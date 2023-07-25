@@ -173,45 +173,54 @@ func (h *Handler) DeleteDepAssets(ctx context.Context, itf driver.Tx, dID string
 	return nil
 }
 
-func (h *Handler) ReadDep(ctx context.Context, id string) (model.Deployment, error) {
-	depMeta, err := selectDeployment(ctx, h.db.QueryRowContext, id)
+func (h *Handler) ReadDep(ctx context.Context, id string, assets bool) (model.Deployment, error) {
+	var dep model.Deployment
+	var err error
+	dep.DepBase, err = selectDeployment(ctx, h.db.QueryRowContext, id)
 	if err != nil {
 		return model.Deployment{}, err
 	}
+	if assets {
+		dep.DepAssets, err = h.readDepAssets(ctx, id)
+		if err != nil {
+			return model.Deployment{}, err
+		}
+	}
+	return dep, nil
+}
+
+func (h *Handler) readDepAssets(ctx context.Context, id string) (model.DepAssets, error) {
 	hostRes, err := selectHostResources(ctx, h.db.QueryContext, id)
 	if err != nil {
-		return model.Deployment{}, model.NewInternalError(err)
+		return model.DepAssets{}, model.NewInternalError(err)
 	}
 	secrets, err := selectSecrets(ctx, h.db.QueryContext, id)
 	if err != nil {
-		return model.Deployment{}, model.NewInternalError(err)
+		return model.DepAssets{}, model.NewInternalError(err)
 	}
 	configs := make(map[string]model.DepConfig)
 	err = selectConfigs(ctx, h.db.QueryContext, id, configs)
 	if err != nil {
-		return model.Deployment{}, model.NewInternalError(err)
+		return model.DepAssets{}, model.NewInternalError(err)
 	}
 	err = selectListConfigs(ctx, h.db.QueryContext, id, configs)
 	if err != nil {
-		return model.Deployment{}, model.NewInternalError(err)
+		return model.DepAssets{}, model.NewInternalError(err)
 	}
 	reqDep, err := selectRequiredDep(ctx, h.db.QueryContext, id)
 	if err != nil {
-		return model.Deployment{}, model.NewInternalError(err)
+		return model.DepAssets{}, model.NewInternalError(err)
 	}
 	depReq, err := selectDepRequiring(ctx, h.db.QueryContext, id)
 	if err != nil {
-		return model.Deployment{}, model.NewInternalError(err)
+		return model.DepAssets{}, model.NewInternalError(err)
 	}
-	return model.Deployment{
-		DepBase: depMeta,
-		DepAssets: model.DepAssets{
-			HostResources: hostRes,
-			Secrets:       secrets,
-			Configs:       configs,
-			RequiredDep:   reqDep,
-			DepRequiring:  depReq,
-		},
+	return model.DepAssets{
+		HostResources: hostRes,
+		Secrets:       secrets,
+		Configs:       configs,
+		RequiredDep:   reqDep,
+		DepRequiring:  depReq,
 	}, nil
 }
 
