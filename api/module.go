@@ -239,7 +239,7 @@ func (a *Api) GetModuleUpdateTemplate(ctx context.Context, id string) (model.Mod
 	}
 	depID, ok := depMap[id]
 	if ok {
-		dep, err := a.deploymentHandler.Get(ctx, depID)
+		dep, err := a.deploymentHandler.Get(ctx, depID, true, false)
 		if err != nil {
 			return model.ModUpdateTemplate{}, err
 		}
@@ -262,7 +262,7 @@ func (a *Api) GetModuleUpdateTemplate(ctx context.Context, id string) (model.Mod
 		}
 		depID, ok := depMap[id]
 		if ok {
-			dep, err := a.deploymentHandler.Get(ctx, depID)
+			dep, err := a.deploymentHandler.Get(ctx, depID, true, false)
 			if err != nil {
 				var nfe *model.NotFoundError
 				if !errors.As(err, &nfe) {
@@ -426,11 +426,8 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInp
 					} else {
 						dInput = dependencies[mID]
 					}
-					if modDep != nil && modDep.Enabled {
-						dep.Enabled = modDep.Enabled
-					}
 					dInput.Name = &dep.Name
-					err = a.deploymentHandler.Update(ctx, dep, mod, dInput, dir)
+					err = a.deploymentHandler.Update(ctx, dep.ID, mod, dInput, dir)
 					if err != nil {
 						return err
 					}
