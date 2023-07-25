@@ -43,6 +43,7 @@ type DepAssets struct {
 type Deployment struct {
 	DepBase
 	DepAssets
+	Instance DepInstance `json:"instance"`
 }
 
 type DepSecret struct {
