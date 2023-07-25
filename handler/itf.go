@@ -92,7 +92,7 @@ type DepStorageHandler interface {
 	ReadInst(ctx context.Context, iID string) (model.Instance, error)
 	DeleteInst(ctx context.Context, iID string) error
 	ListInstCtr(ctx context.Context, iID string, filter model.CtrFilter) ([]model.Container, error)
-	CreateInstCtr(ctx context.Context, tx driver.Tx, iID, cID, sRef string, order uint) error
+	CreateInstCtr(ctx context.Context, tx driver.Tx, iID string, ctr model.Container) error
 }
 
 type DepHealthHandler interface {
