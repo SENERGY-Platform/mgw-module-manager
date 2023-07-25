@@ -112,9 +112,18 @@ func (h *Handler) removeInstance(ctx context.Context, dep model.Deployment) erro
 		}
 		dep.Instance = instance
 	}
+	if err := h.removeContainers(ctx, dep.Instance.Containers); err != nil {
+		return err
+	}
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	return h.storageHandler.DeleteInst(ctxWt, dep.Instance.ID)
+}
+
+func (h *Handler) removeContainers(ctx context.Context, containers []model.Container) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	for _, ctr := range dep.Instance.Containers {
+	for _, ctr := range containers {
 		err := h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
 		if err != nil {
 			var nfe *cew_model.NotFoundError
@@ -123,7 +132,7 @@ func (h *Handler) removeInstance(ctx context.Context, dep model.Deployment) erro
 			}
 		}
 	}
-	return h.storageHandler.DeleteInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.Instance.ID)
+	return nil
 }
 
 func (h *Handler) startInstance(ctx context.Context, dep model.Deployment) error {
