@@ -77,25 +77,32 @@ func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.
 		ID:      iID,
 		Created: time.Now().UTC(),
 	}
-	// [REMINDER] remove created containers on error
+	defer func() {
+		if err != nil {
+			h.removeContainers(context.Background(), depInstance.Containers)
+		}
+	}()
 	for i, ref := range order {
 		srv := mod.Services[ref]
-		envVars, err := getEnvVars(srv, stringValues, reqModDepMap, secrets, dID, iID)
+		var envVars map[string]string
+		envVars, err = getEnvVars(srv, stringValues, reqModDepMap, secrets, dID, iID)
 		if err != nil {
 			return model.DepInstance{}, model.NewInternalError(err)
 		}
 		mounts, devices := h.getMounts(srv, hostRes, secrets, dID, inclDir)
 		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, mounts, devices, getPorts(srv.Ports))
-		cID, err := h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container)
+		var cID string
+		cID, err = h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container)
 		if err != nil {
 			return model.DepInstance{}, model.NewInternalError(err)
 		}
-		depInstance.Containers = append(depInstance.Containers, model.Container{
+		ctr := model.Container{
 			ID:    cID,
 			Ref:   ref,
 			Order: uint(i),
-		})
-		err = h.storageHandler.CreateInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, iID, cID, ref, uint(i))
+		}
+		depInstance.Containers = append(depInstance.Containers, ctr)
+		err = h.storageHandler.CreateInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, iID, ctr)
 		if err != nil {
 			return model.DepInstance{}, err
 		}
