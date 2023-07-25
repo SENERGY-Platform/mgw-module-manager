@@ -93,15 +93,7 @@ func (a *Api) GetDeployments(ctx context.Context, filter model.DepFilter) ([]mod
 }
 
 func (a *Api) GetDeployment(ctx context.Context, id string) (model.Deployment, error) {
-	return a.deploymentHandler.Get(ctx, id)
-}
-
-func (a *Api) GetDeploymentInstances(ctx context.Context) (map[string]model.DepInstance, error) {
-	return a.deploymentHandler.ListInstances(ctx)
-}
-
-func (a *Api) GetDeploymentInstance(ctx context.Context, id string) (model.DepInstance, error) {
-	return a.deploymentHandler.GetInstance(ctx, id)
+	return a.deploymentHandler.Get(ctx, id, true, true)
 }
 
 func (a *Api) StartDeployment(ctx context.Context, id string) error {
