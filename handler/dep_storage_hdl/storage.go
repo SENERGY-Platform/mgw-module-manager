@@ -412,21 +412,21 @@ func (h *Handler) createDepConfigs(ctx context.Context, tx *sql.Tx, dID string, 
 			var err error
 			switch depConfig.DataType {
 			case module.StringType:
-				err = execCfgSlStmt[string](ctx, stmt, dID, ref, depConfig)
+				err = execCfgSlStmt[string](ctx, stmt, dID, ref, depConfig.Value)
 			case module.BoolType:
-				err = execCfgSlStmt[bool](ctx, stmt, dID, ref, depConfig)
+				err = execCfgSlStmt[bool](ctx, stmt, dID, ref, depConfig.Value)
 			case module.Int64Type:
-				err = execCfgSlStmt[int64](ctx, stmt, dID, ref, depConfig)
+				err = execCfgSlStmt[int64](ctx, stmt, dID, ref, depConfig.Value)
 			case module.Float64Type:
-				err = execCfgSlStmt[float64](ctx, stmt, dID, ref, depConfig)
+				err = execCfgSlStmt[float64](ctx, stmt, dID, ref, depConfig.Value)
 			default:
-				err = fmt.Errorf("unknown data type '%s'", depConfig)
+				err = fmt.Errorf("unknown data type '%s'", depConfig.Value)
 			}
 			if err != nil {
 				return model.NewInternalError(err)
 			}
 		} else {
-			if _, err := stmt.ExecContext(ctx, dID, ref, depConfig); err != nil {
+			if _, err := stmt.ExecContext(ctx, dID, ref, depConfig.Value); err != nil {
 				return model.NewInternalError(err)
 			}
 		}
