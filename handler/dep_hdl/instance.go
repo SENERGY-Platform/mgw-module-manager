@@ -153,7 +153,6 @@ func (h *Handler) startInstance(ctx context.Context, dep model.Deployment) error
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	for _, ctr := range dep.Instance.Containers {
-		fmt.Println(ctr)
 		err := h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
 		if err != nil {
 			return model.NewInternalError(err)
@@ -171,7 +170,6 @@ func (h *Handler) stopInstance(ctx context.Context, dep model.Deployment) error 
 		dep.Instance = instance
 	}
 	for i := len(dep.Instance.Containers) - 1; i >= 0; i-- {
-		fmt.Println(dep.Instance.Containers[i])
 		if err := h.stopContainer(ctx, dep.Instance.Containers[i].ID); err != nil {
 			return err
 		}
