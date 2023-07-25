@@ -214,24 +214,24 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.D
 	if err != nil {
 		return "", model.NewResourceBusyError(err)
 	}
-	dep, err := a.deploymentHandler.Get(ctx, dID)
+	depBase, err := a.deploymentHandler.Get(ctx, dID, false, false)
 	if err != nil {
 		a.mu.Unlock()
 		return "", err
 	}
-	mod, err := a.moduleHandler.Get(ctx, dep.ModuleID)
+	mod, err := a.moduleHandler.Get(ctx, depBase.ModuleID)
 	if err != nil {
 		a.mu.Unlock()
 		return "", err
 	}
-	if mod.ID != dep.ModuleID {
+	if mod.ID != depBase.ModuleID {
 		a.mu.Unlock()
 		return "", model.NewInvalidInputError(errors.New("module ID mismatch"))
 	}
 	jID, err := a.jobHandler.Create(fmt.Sprintf("update deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.Update(ctx, dep.DepBase, mod.Module, depInput, "")
+		err := a.deploymentHandler.Update(ctx, depBase.ID, mod.Module, depInput, "")
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -259,7 +259,7 @@ func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (model
 		return model.DepUpdateTemplate{}, model.NewResourceBusyError(err)
 	}
 	defer a.mu.RUnlock()
-	dep, err := a.deploymentHandler.Get(ctx, id)
+	dep, err := a.deploymentHandler.Get(ctx, id, true, false)
 	if err != nil {
 		return model.DepUpdateTemplate{}, err
 	}
