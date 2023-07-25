@@ -137,13 +137,13 @@ func (a *Api) StartDeployments() error {
 			return model.NewResourceBusyError(err)
 		}
 		depMap := make(map[string]model.Deployment)
-		for _, depMeta := range depList {
-			dep, err := a.deploymentHandler.Get(context.Background(), depMeta.ID)
+		for _, depBase := range depList {
+			dep, err := a.deploymentHandler.Get(context.Background(), depBase.ID, true, false)
 			if err != nil {
 				a.mu.Unlock()
 				return err
 			}
-			depMap[depMeta.ID] = dep
+			depMap[depBase.ID] = dep
 		}
 		order, err := sorting.GetDepOrder(depMap)
 		if err != nil {
@@ -175,22 +175,22 @@ func (a *Api) GetDeploymentsHealth(ctx context.Context) (map[string]model.DepHea
 	instances := make(map[string]model.DepInstance)
 	for _, dep := range deployments {
 		if dep.Enabled {
-			instance, err := a.deploymentHandler.GetInstance(ctx, dep.ID)
+			d, err := a.deploymentHandler.Get(ctx, dep.ID, false, true)
 			if err != nil {
 				return nil, err
 			}
-			instances[dep.ID] = instance
+			instances[dep.ID] = d.Instance
 		}
 	}
 	return a.depHealthHandler.List(ctx, instances)
 }
 
 func (a *Api) GetDeploymentHealth(ctx context.Context, dID string) (model.DepHealthInfo, error) {
-	instance, err := a.deploymentHandler.GetInstance(ctx, dID)
+	dep, err := a.deploymentHandler.Get(ctx, dID, false, true)
 	if err != nil {
 		return model.DepHealthInfo{}, err
 	}
-	return a.depHealthHandler.Get(ctx, instance)
+	return a.depHealthHandler.Get(ctx, dep.Instance)
 }
 
 func (a *Api) startDeployments(ctx context.Context, depMap map[string]model.Deployment, order []string) error {
