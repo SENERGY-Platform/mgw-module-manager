@@ -28,7 +28,6 @@ import (
 	hm_client "github.com/SENERGY-Platform/mgw-host-manager/client"
 	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
@@ -99,10 +98,20 @@ func (h *Handler) List(ctx context.Context, filter model.DepFilter) ([]model.Dep
 	return h.storageHandler.ListDep(ctxWt, filter)
 }
 
-func (h *Handler) Get(ctx context.Context, id string) (model.Deployment, error) {
+func (h *Handler) Get(ctx context.Context, id string, assets, instance bool) (model.Deployment, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	return h.storageHandler.ReadDep(ctxWt, id)
+	dep, err := h.storageHandler.ReadDep(ctxWt, id, assets)
+	if err != nil {
+		return model.Deployment{}, err
+	}
+	if instance {
+		dep.Instance, err = h.getDepInstance(ctx, id)
+		if err != nil {
+			return model.Deployment{}, err
+		}
+	}
+	return dep, err
 }
 
 func (h *Handler) getReqDep(ctx context.Context, dep model.Deployment, reqDep map[string]model.Deployment) error {
@@ -110,7 +119,7 @@ func (h *Handler) getReqDep(ctx context.Context, dep model.Deployment, reqDep ma
 	defer ch.CancelAll()
 	for _, dID := range dep.RequiredDep {
 		if _, ok := reqDep[dID]; !ok {
-			d, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID)
+			d, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, true)
 			if err != nil {
 				return err
 			}
@@ -143,7 +152,7 @@ func (h *Handler) getDepAssets(ctx context.Context, mod *module.Module, dID stri
 	return hostResources, secrets, userConfigs, reqModDepMap, nil
 }
 
-func (h *Handler) createDepAssets(ctx context.Context, tx driver.Tx, mod *module.Module, dID string, hostResources map[string]hm_model.HostResource, secrets map[string]secret, userConfigs map[string]model.DepConfig, reqModDepMap map[string]string) error {
+func (h *Handler) createDepAssets(ctx context.Context, tx driver.Tx, mod *module.Module, dID string, hostResources map[string]hm_model.HostResource, secrets map[string]secret, userConfigs map[string]model.DepConfig, reqModDepMap map[string]string) (model.DepAssets, error) {
 	var requiredDep []string
 	for mID := range mod.Dependencies {
 		requiredDep = append(requiredDep, reqModDepMap[mID])
@@ -173,7 +182,11 @@ func (h *Handler) createDepAssets(ctx context.Context, tx driver.Tx, mod *module
 	}
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	return h.storageHandler.CreateDepAssets(ctxWt, tx, dID, depAssets)
+	err := h.storageHandler.CreateDepAssets(ctxWt, tx, dID, depAssets)
+	if err != nil {
+		return model.DepAssets{}, err
+	}
+	return depAssets, nil
 }
 
 func (h *Handler) getUserConfigs(mConfigs module.Configs, userInput map[string]any) (map[string]model.DepConfig, error) {
@@ -327,13 +340,20 @@ func (h *Handler) mkInclDir(inclDir dir_fs.DirFS) (string, error) {
 	return strID, nil
 }
 
-func (h *Handler) createVolumes(ctx context.Context, mVolumes ml_util.Set[string], dID string) error {
-	// [REMINDER] remove created volumes if error
+func (h *Handler) createVolumes(ctx context.Context, mVolumes []string, dID string) error {
+	var err error
+	var createdVols []string
+	defer func() {
+		if err != nil {
+			h.removeVolumes(context.Background(), createdVols)
+		}
+	}()
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	for ref := range mVolumes {
+	for _, ref := range mVolumes {
 		name := getVolumeName(dID, ref)
-		n, err := h.cewClient.CreateVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.Volume{
+		var n string
+		n, err = h.cewClient.CreateVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.Volume{
 			Name:   name,
 			Labels: map[string]string{"d_id": dID},
 		})
@@ -341,8 +361,10 @@ func (h *Handler) createVolumes(ctx context.Context, mVolumes ml_util.Set[string
 			return model.NewInternalError(err)
 		}
 		if n != name {
-			return model.NewInternalError(fmt.Errorf("volume name missmatch: %s != %s", n, name))
+			err = fmt.Errorf("volume name missmatch: %s != %s", n, name)
+			return model.NewInternalError(err)
 		}
+		createdVols = append(createdVols, n)
 	}
 	return nil
 }
@@ -358,6 +380,36 @@ func (h *Handler) removeVolumes(ctx context.Context, volumes []string) error {
 				return err
 			}
 		}
+	}
+	return nil
+}
+
+func (h *Handler) loadSecrets(ctx context.Context, dep model.Deployment) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	for _, depSecret := range dep.Secrets {
+		for _, variant := range depSecret.Variants {
+			if variant.AsMount {
+				err, _ := h.smClient.LoadPathVariant(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretVariantRequest{
+					ID:        depSecret.ID,
+					Item:      variant.Item,
+					Reference: dep.ID,
+				})
+				if err != nil {
+					return model.NewInternalError(fmt.Errorf("loading path variant for secret '%s' failed: %s", depSecret.ID, err))
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func (h *Handler) unloadSecrets(ctx context.Context, dID string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	err, _ := h.smClient.CleanPathVariants(ctxWt, dID)
+	if err != nil {
+		return model.NewInternalError(fmt.Errorf("unloading path variants for secret '%s' failed: %s", dID, err))
 	}
 	return nil
 }

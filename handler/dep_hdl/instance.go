@@ -33,40 +33,21 @@ import (
 	"time"
 )
 
-func (h *Handler) ListInstances(ctx context.Context) (map[string]model.DepInstance, error) {
+func (h *Handler) getDepInstance(ctx context.Context, id string) (model.DepInstance, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	listDep, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{})
-	if err != nil {
-		return nil, err
-	}
-	depInstances := make(map[string]model.DepInstance)
-	for _, dep := range listDep {
-		inst, err := h.getCurrentInst(ctx, dep.ID)
-		if err != nil {
-			return nil, err
-		}
-		ctrs, err := h.storageHandler.ListInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), inst.ID, model.CtrFilter{SortOrder: model.Descending})
-		if err != nil {
-			return nil, err
-		}
-		depInstances[dep.ID] = model.DepInstance{
-			ID:         inst.ID,
-			Created:    inst.Created,
-			Containers: ctrs,
-		}
-	}
-	return depInstances, nil
-}
-
-func (h *Handler) GetInstance(ctx context.Context, id string) (model.DepInstance, error) {
-	inst, err := h.getCurrentInst(ctx, id)
+	instances, err := h.storageHandler.ListInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepInstFilter{DepID: id})
 	if err != nil {
 		return model.DepInstance{}, err
 	}
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	ctrs, err := h.storageHandler.ListInstCtr(ctxWt, inst.ID, model.CtrFilter{SortOrder: model.Descending})
+	if len(instances) != 1 {
+		return model.DepInstance{}, model.NewInternalError(fmt.Errorf("invalid number of instances: %d", len(instances)))
+	}
+	inst, err := h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instances[0].ID)
+	if err != nil {
+		return model.DepInstance{}, err
+	}
+	ctrs, err := h.storageHandler.ListInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), inst.ID, model.CtrFilter{SortOrder: model.Ascending})
 	if err != nil {
 		return model.DepInstance{}, err
 	}
@@ -77,65 +58,64 @@ func (h *Handler) GetInstance(ctx context.Context, id string) (model.DepInstance
 	}, nil
 }
 
-func (h *Handler) getCurrentInst(ctx context.Context, dID string) (model.Instance, error) {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	instances, err := h.storageHandler.ListInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepInstFilter{DepID: dID})
-	if err != nil {
-		return model.Instance{}, err
-	}
-	if len(instances) != 1 {
-		return model.Instance{}, model.NewInternalError(fmt.Errorf("invalid number of instances: %d", len(instances)))
-	}
-	return h.storageHandler.ReadInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), instances[0].ID)
-}
-
-func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.Module, dID, inclDir string, userConfigs map[string]model.DepConfig, hostRes map[string]hm_model.HostResource, secrets map[string]secret, reqModDepMap map[string]string) (string, []string, error) {
+func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.Module, dID, inclDir string, userConfigs map[string]model.DepConfig, hostRes map[string]hm_model.HostResource, secrets map[string]secret, reqModDepMap map[string]string) (model.DepInstance, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	iID, err := h.storageHandler.CreateInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID, time.Now().UTC())
 	if err != nil {
-		return "", nil, err
+		return model.DepInstance{}, err
 	}
 	stringValues, err := userConfigsToStringValues(mod.Configs, userConfigs)
 	if err != nil {
-		return "", nil, model.NewInternalError(err)
+		return model.DepInstance{}, model.NewInternalError(err)
 	}
 	order, err := sorting.GetSrvOrder(mod.Services)
 	if err != nil {
-		return "", nil, model.NewInternalError(err)
+		return model.DepInstance{}, model.NewInternalError(err)
 	}
-	var cIDs []string
+	depInstance := model.DepInstance{
+		ID:      iID,
+		Created: time.Now().UTC(),
+	}
+	// [REMINDER] remove created containers on error
 	for i, ref := range order {
 		srv := mod.Services[ref]
 		envVars, err := getEnvVars(srv, stringValues, reqModDepMap, secrets, dID, iID)
 		if err != nil {
-			return "", nil, model.NewInternalError(err)
+			return model.DepInstance{}, model.NewInternalError(err)
 		}
 		mounts, devices := h.getMounts(srv, hostRes, secrets, dID, inclDir)
 		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, envVars, mounts, devices, getPorts(srv.Ports))
 		cID, err := h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container)
 		if err != nil {
-			return "", cIDs, model.NewInternalError(err)
+			return model.DepInstance{}, model.NewInternalError(err)
 		}
-		cIDs = append(cIDs, cID)
+		depInstance.Containers = append(depInstance.Containers, model.Container{
+			ID:    cID,
+			Ref:   ref,
+			Order: uint(i),
+		})
 		err = h.storageHandler.CreateInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, iID, cID, ref, uint(i))
 		if err != nil {
-			return "", cIDs, err
+			return model.DepInstance{}, err
 		}
 	}
-	return iID, cIDs, nil
+
+	return depInstance, nil
 }
 
-func (h *Handler) removeInstance(ctx context.Context, iID string) error {
+func (h *Handler) removeInstance(ctx context.Context, dep model.Deployment) error {
+	if dep.Instance.ID == "" {
+		instance, err := h.getDepInstance(ctx, dep.ID)
+		if err != nil {
+			return err
+		}
+		dep.Instance = instance
+	}
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	containers, err := h.storageHandler.ListInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), iID, model.CtrFilter{})
-	if err != nil {
-		return err
-	}
-	for _, ctr := range containers {
-		err = h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
+	for _, ctr := range dep.Instance.Containers {
+		err := h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
 		if err != nil {
 			var nfe *cew_model.NotFoundError
 			if !errors.As(err, &nfe) {
@@ -143,18 +123,22 @@ func (h *Handler) removeInstance(ctx context.Context, iID string) error {
 			}
 		}
 	}
-	return h.storageHandler.DeleteInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), iID)
+	return h.storageHandler.DeleteInst(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.Instance.ID)
 }
 
-func (h *Handler) startInstance(ctx context.Context, iID string) error {
+func (h *Handler) startInstance(ctx context.Context, dep model.Deployment) error {
+	if dep.Instance.ID == "" {
+		instance, err := h.getDepInstance(ctx, dep.ID)
+		if err != nil {
+			return err
+		}
+		dep.Instance = instance
+	}
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	containers, err := h.storageHandler.ListInstCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), iID, model.CtrFilter{SortOrder: model.Ascending})
-	if err != nil {
-		return err
-	}
-	for _, ctr := range containers {
-		err = h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
+	for _, ctr := range dep.Instance.Containers {
+		fmt.Println(ctr)
+		err := h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
 		if err != nil {
 			return model.NewInternalError(err)
 		}
@@ -162,15 +146,17 @@ func (h *Handler) startInstance(ctx context.Context, iID string) error {
 	return nil
 }
 
-func (h *Handler) stopInstance(ctx context.Context, iID string) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	containers, err := h.storageHandler.ListInstCtr(ctxWt, iID, model.CtrFilter{SortOrder: model.Descending})
-	if err != nil {
-		return err
+func (h *Handler) stopInstance(ctx context.Context, dep model.Deployment) error {
+	if dep.Instance.ID == "" {
+		instance, err := h.getDepInstance(ctx, dep.ID)
+		if err != nil {
+			return err
+		}
+		dep.Instance = instance
 	}
-	for _, ctr := range containers {
-		if err = h.stopContainer(ctx, ctr.ID); err != nil {
+	for i := len(dep.Instance.Containers) - 1; i >= 0; i-- {
+		fmt.Println(dep.Instance.Containers[i])
+		if err := h.stopContainer(ctx, dep.Instance.Containers[i].ID); err != nil {
 			return err
 		}
 	}
@@ -192,35 +178,6 @@ func (h *Handler) stopContainer(ctx context.Context, cID string) error {
 		return model.NewInternalError(fmt.Errorf("%v", job.Error))
 	}
 	return nil
-}
-
-func getEnvVars(srv *module.Service, configs, depMap map[string]string, secrets map[string]secret, dID, iID string) (map[string]string, error) {
-	envVars := make(map[string]string)
-	for eVar, cRef := range srv.Configs {
-		if val, ok := configs[cRef]; ok {
-			envVars[eVar] = val
-		}
-	}
-	for eVar, sRef := range srv.SrvReferences {
-		envVars[eVar] = getSrvName(dID, sRef)
-	}
-	for eVar, target := range srv.ExtDependencies {
-		val, ok := depMap[target.ID]
-		if !ok {
-			return nil, fmt.Errorf("service '%s' of '%s' not deployed but required", target.Service, target.ID)
-		}
-		envVars[eVar] = getSrvName(val, target.Service)
-	}
-	for eVar, target := range srv.SecretVars {
-		if sec, ok := secrets[target.Ref]; ok {
-			if variant, ok := sec.Variants[genSecretMapKey(sec.ID, target.Item)]; ok {
-				envVars[eVar] = variant.Value
-			}
-		}
-	}
-	envVars["MGW_DID"] = dID
-	envVars["MGW_IID"] = iID
-	return envVars, nil
 }
 
 func (h *Handler) getMounts(srv *module.Service, hostRes map[string]hm_model.HostResource, secrets map[string]secret, dID, inclDir string) ([]cew_model.Mount, []cew_model.Device) {
@@ -282,6 +239,35 @@ func (h *Handler) getMounts(srv *module.Service, hostRes map[string]hm_model.Hos
 		}
 	}
 	return mounts, devices
+}
+
+func getEnvVars(srv *module.Service, configs, depMap map[string]string, secrets map[string]secret, dID, iID string) (map[string]string, error) {
+	envVars := make(map[string]string)
+	for eVar, cRef := range srv.Configs {
+		if val, ok := configs[cRef]; ok {
+			envVars[eVar] = val
+		}
+	}
+	for eVar, sRef := range srv.SrvReferences {
+		envVars[eVar] = getSrvName(dID, sRef)
+	}
+	for eVar, target := range srv.ExtDependencies {
+		val, ok := depMap[target.ID]
+		if !ok {
+			return nil, fmt.Errorf("service '%s' of '%s' not deployed but required", target.Service, target.ID)
+		}
+		envVars[eVar] = getSrvName(val, target.Service)
+	}
+	for eVar, target := range srv.SecretVars {
+		if sec, ok := secrets[target.Ref]; ok {
+			if variant, ok := sec.Variants[genSecretMapKey(sec.ID, target.Item)]; ok {
+				envVars[eVar] = variant.Value
+			}
+		}
+	}
+	envVars["MGW_DID"] = dID
+	envVars["MGW_IID"] = iID
+	return envVars, nil
 }
 
 func getPorts(sPorts []module.Port) (ports []cew_model.Port) {

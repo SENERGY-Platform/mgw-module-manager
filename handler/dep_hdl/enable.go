@@ -18,18 +18,15 @@ package dep_hdl
 
 import (
 	"context"
-	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
-	sm_model "github.com/SENERGY-Platform/mgw-secret-manager/pkg/api_model"
 	"time"
 )
 
 func (h *Handler) Enable(ctx context.Context, id string) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	d, err := h.storageHandler.ReadDep(ctxWt, id)
+	d, err := h.storageHandler.ReadDep(ctxWt, id, true)
 	if err != nil {
 		return err
 	}
@@ -53,33 +50,15 @@ func (h *Handler) Enable(ctx context.Context, id string) error {
 }
 
 func (h *Handler) enable(ctx context.Context, dep model.Deployment) error {
-	instance, err := h.getCurrentInst(ctx, dep.ID)
-	if err != nil {
+	if err := h.loadSecrets(ctx, dep); err != nil {
 		return err
 	}
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	for _, depSecret := range dep.Secrets {
-		for _, variant := range depSecret.Variants {
-			if variant.AsMount {
-				err, _ = h.smClient.LoadPathVariant(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretVariantRequest{
-					ID:        depSecret.ID,
-					Item:      variant.Item,
-					Reference: dep.ID,
-				})
-				if err != nil {
-					return model.NewInternalError(fmt.Errorf("loading path variant for secret '%s' failed: %s", depSecret.ID, err))
-				}
-			}
-		}
-	}
-	if err = h.startInstance(ctx, instance.ID); err != nil {
+	if err := h.startInstance(ctx, dep); err != nil {
 		return err
 	}
 	dep.Enabled = true
 	dep.Updated = time.Now().UTC()
-	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), nil, dep.DepBase); err != nil {
-		return err
-	}
-	return nil
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	return h.storageHandler.UpdateDep(ctxWt, nil, dep.DepBase)
 }

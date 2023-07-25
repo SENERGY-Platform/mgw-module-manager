@@ -31,14 +31,14 @@ import (
 func (h *Handler) Delete(ctx context.Context, id string, orphans bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	dep, err := h.storageHandler.ReadDep(ctxWt, id)
+	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
 	if err != nil {
 		return err
 	}
 	if len(dep.DepRequiring) > 0 {
 		return model.NewInternalError(fmt.Errorf("deplyoment is required by: %s", strings.Join(dep.DepRequiring, ", ")))
 	}
-	if err = h.delete(ctx, id, dep.Dir); err != nil {
+	if err = h.delete(ctx, dep); err != nil {
 		return err
 	}
 	if orphans && len(dep.RequiredDep) > 0 {
@@ -53,7 +53,7 @@ func (h *Handler) Delete(ctx context.Context, id string, orphans bool) error {
 		for i := len(order) - 1; i >= 0; i-- {
 			rd := reqDep[order[i]]
 			if rd.Indirect && !isRequired(reqDep, rd.DepRequiring) {
-				if err = h.delete(ctx, rd.ID, rd.Dir); err != nil {
+				if err = h.delete(ctx, rd); err != nil {
 					return err
 				}
 			}
@@ -62,13 +62,16 @@ func (h *Handler) Delete(ctx context.Context, id string, orphans bool) error {
 	return nil
 }
 
-func (h *Handler) delete(ctx context.Context, dID, inclDir string) error {
-	if err := h.removeContainer(ctx, dID); err != nil {
+func (h *Handler) delete(ctx context.Context, dep model.Deployment) error {
+	if err := h.unloadSecrets(ctx, dep.ID); err != nil {
+		return err
+	}
+	if err := h.removeInstance(ctx, dep); err != nil {
 		return err
 	}
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	volumes, err := h.cewClient.GetVolumes(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.VolumeFilter{Labels: map[string]string{"d_id": dID}})
+	volumes, err := h.cewClient.GetVolumes(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.VolumeFilter{Labels: map[string]string{"d_id": dep.ID}})
 	if err != nil {
 		return err
 	}
@@ -79,27 +82,11 @@ func (h *Handler) delete(ctx context.Context, dID, inclDir string) error {
 	if err = h.removeVolumes(ctx, vols); err != nil {
 		return model.NewInternalError(err)
 	}
-	if err = os.RemoveAll(path.Join(h.wrkSpcPath, inclDir)); err != nil {
+	if err = os.RemoveAll(path.Join(h.wrkSpcPath, dep.Dir)); err != nil {
 		return model.NewInternalError(err)
 	}
-	if err = h.storageHandler.DeleteDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID); err != nil {
+	if err = h.storageHandler.DeleteDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID); err != nil {
 		return err
-	}
-	return nil
-}
-
-func (h *Handler) removeContainer(ctx context.Context, dID string) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	instances, err := h.storageHandler.ListInst(ctxWt, model.DepInstFilter{DepID: dID})
-	if err != nil {
-		return err
-	}
-	for _, instance := range instances {
-		err = h.removeInstance(ctx, instance.ID)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }

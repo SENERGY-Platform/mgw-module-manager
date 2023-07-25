@@ -42,35 +42,53 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 		return "", err
 	}
 	defer tx.Rollback()
-	dID, err := h.createDepBase(ctx, tx, mod, depInput, inclDir, indirect)
+	var dep model.Deployment
+	dep.DepBase, err = h.createDepBase(ctx, tx, mod, depInput, inclDir, indirect)
 	if err != nil {
 		return "", err
 	}
-	hostResources, secrets, userConfigs, reqModDepMap, err := h.getDepAssets(ctx, mod, dID, depInput)
+	hostResources, secrets, userConfigs, reqModDepMap, err := h.getDepAssets(ctx, mod, dep.ID, depInput)
 	if err != nil {
 		return "", err
 	}
-	err = h.createDepAssets(ctx, tx, mod, dID, hostResources, secrets, userConfigs, reqModDepMap)
+	defer func() {
+		if err != nil {
+			h.unloadSecrets(context.Background(), dep.ID)
+		}
+	}()
+	dep.DepAssets, err = h.createDepAssets(ctx, tx, mod, dep.ID, hostResources, secrets, userConfigs, reqModDepMap)
 	if err != nil {
 		return "", err
 	}
-	// [REMINDER] remove volumes if error
-	if err = h.createVolumes(ctx, mod.Volumes, dID); err != nil {
+	var volumes []string
+	for ref := range mod.Volumes {
+		volumes = append(volumes, ref)
+	}
+	if err = h.createVolumes(ctx, volumes, dep.ID); err != nil {
 		return "", err
 	}
-	// [REMINDER] remove containers if error
-	_, _, err = h.createInstance(ctx, tx, mod, dID, inclDir, userConfigs, hostResources, secrets, reqModDepMap)
+	defer func() {
+		if err != nil {
+			h.removeVolumes(context.Background(), volumes)
+		}
+	}()
+	dep.Instance, err = h.createInstance(ctx, tx, mod, dep.ID, inclDir, userConfigs, hostResources, secrets, reqModDepMap)
 	if err != nil {
 		return "", err
 	}
+	defer func() {
+		if err != nil {
+			h.removeInstance(context.Background(), dep)
+		}
+	}()
 	err = tx.Commit()
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}
-	return dID, nil
+	return dep.ID, nil
 }
 
-func (h *Handler) createDepBase(ctx context.Context, tx driver.Tx, mod *module.Module, depInput model.DepInput, inclDir string, indirect bool) (string, error) {
+func (h *Handler) createDepBase(ctx context.Context, tx driver.Tx, mod *module.Module, depInput model.DepInput, inclDir string, indirect bool) (model.DepBase, error) {
 	timestamp := time.Now().UTC()
 	depBase := model.DepBase{
 		ModuleID: mod.ID,
@@ -85,7 +103,8 @@ func (h *Handler) createDepBase(ctx context.Context, tx driver.Tx, mod *module.M
 	defer cf()
 	dID, err := h.storageHandler.CreateDep(ctxWt, tx, depBase)
 	if err != nil {
-		return "", err
+		return model.DepBase{}, err
 	}
-	return dID, nil
+	depBase.ID = dID
+	return depBase, nil
 }
