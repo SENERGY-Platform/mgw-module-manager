@@ -374,7 +374,7 @@ func (h *Handler) createVolumes(ctx context.Context, mVolumes []string, dID stri
 		var n string
 		n, err = h.cewClient.CreateVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.Volume{
 			Name:   name,
-			Labels: map[string]string{"d_id": dID},
+			Labels: map[string]string{ManagerIDLabel: h.managerID, DeploymentIDLabel: dID},
 		})
 		if err != nil {
 			return model.NewInternalError(err)
