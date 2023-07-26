@@ -96,8 +96,8 @@ func (a *Api) GetDeployment(ctx context.Context, id string) (model.Deployment, e
 	return a.deploymentHandler.Get(ctx, id, true, true)
 }
 
-func (a *Api) StartDeployment(ctx context.Context, id string) error {
-	err := a.mu.TryLock(fmt.Sprintf("start deployment '%s'", id))
+func (a *Api) EnableDeployment(ctx context.Context, id string) error {
+	err := a.mu.TryLock(fmt.Sprintf("enable deployment '%s'", id))
 	if err != nil {
 		return model.NewResourceBusyError(err)
 	}
@@ -105,12 +105,12 @@ func (a *Api) StartDeployment(ctx context.Context, id string) error {
 	return a.deploymentHandler.Enable(ctx, id)
 }
 
-func (a *Api) StopDeployment(_ context.Context, id string, dependencies bool) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("stop deployment '%s'", id))
+func (a *Api) DisableDeployment(_ context.Context, id string, dependencies bool) (string, error) {
+	err := a.mu.TryLock(fmt.Sprintf("disable deployment '%s'", id))
 	if err != nil {
 		return "", model.NewResourceBusyError(err)
 	}
-	jID, err := a.jobHandler.Create(fmt.Sprintf("stop deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(fmt.Sprintf("disable deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Disable(ctx, id, dependencies)
