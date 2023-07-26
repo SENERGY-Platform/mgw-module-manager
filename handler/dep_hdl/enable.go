@@ -23,14 +23,14 @@ import (
 	"time"
 )
 
-func (h *Handler) Enable(ctx context.Context, id string) error {
+func (h *Handler) Enable(ctx context.Context, id string, dependencies bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	d, err := h.storageHandler.ReadDep(ctxWt, id, true)
 	if err != nil {
 		return err
 	}
-	if len(d.RequiredDep) > 0 {
+	if dependencies && len(d.RequiredDep) > 0 {
 		reqDep := make(map[string]model.Deployment)
 		if err = h.getReqDep(ctx, d, reqDep); err != nil {
 			return err

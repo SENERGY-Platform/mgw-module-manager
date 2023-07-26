@@ -74,7 +74,7 @@ type DeploymentHandler interface {
 	Create(ctx context.Context, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error)
 	Delete(ctx context.Context, dID string, orphans bool) error
 	Update(ctx context.Context, dID string, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS) error
-	Enable(ctx context.Context, dID string) error
+	Enable(ctx context.Context, dID string, dependencies bool) error
 	Disable(ctx context.Context, dID string, dependencies bool) error
 }
 

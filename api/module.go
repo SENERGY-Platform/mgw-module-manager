@@ -401,7 +401,7 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInp
 				return err
 			}
 			if modDep.Enabled {
-				err = a.deploymentHandler.Enable(ctx, dID)
+				err = a.deploymentHandler.Enable(ctx, dID, false)
 				if err != nil {
 					return err
 				}
