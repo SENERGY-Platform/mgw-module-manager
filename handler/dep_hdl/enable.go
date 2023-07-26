@@ -41,8 +41,10 @@ func (h *Handler) Enable(ctx context.Context, id string, dependencies bool) erro
 		}
 		for _, rdID := range order {
 			rd := reqDep[rdID]
-			if err = h.enable(ctx, rd); err != nil {
-				return err
+			if !rd.Enabled {
+				if err = h.enable(ctx, rd); err != nil {
+					return err
+				}
 			}
 		}
 	}
