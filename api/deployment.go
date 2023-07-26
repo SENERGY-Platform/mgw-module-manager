@@ -193,22 +193,6 @@ func (a *Api) GetDeploymentHealth(ctx context.Context, dID string) (model.DepHea
 	return a.depHealthHandler.Get(ctx, dep.Instance)
 }
 
-func (a *Api) startDeployments(ctx context.Context, depMap map[string]model.Deployment, order []string) error {
-	for _, dID := range order {
-		dep, ok := depMap[dID]
-		if !ok {
-			return fmt.Errorf("deployment '%s' does not exist", dID)
-		}
-		if dep.Enabled {
-			err := a.deploymentHandler.Enable(ctx, dID)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.DepInput) (string, error) {
 	err := a.mu.TryLock(fmt.Sprintf("update deployment '%s'", dID))
 	if err != nil {
@@ -294,4 +278,20 @@ func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.
 		return true, dID, nil
 	}
 	return false, "", nil
+}
+
+func (a *Api) startDeployments(ctx context.Context, depMap map[string]model.Deployment, order []string) error {
+	for _, dID := range order {
+		dep, ok := depMap[dID]
+		if !ok {
+			return fmt.Errorf("deployment '%s' does not exist", dID)
+		}
+		if dep.Enabled {
+			err := a.deploymentHandler.Start(ctx, dID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

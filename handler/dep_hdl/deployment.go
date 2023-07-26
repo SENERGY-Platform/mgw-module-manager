@@ -114,6 +114,23 @@ func (h *Handler) Get(ctx context.Context, id string, assets, instance bool) (mo
 	return dep, err
 }
 
+func (h *Handler) Start(ctx context.Context, id string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
+	if err != nil {
+		return err
+	}
+	return h.startDep(ctx, dep)
+}
+
+func (h *Handler) startDep(ctx context.Context, dep model.Deployment) error {
+	if err := h.loadSecrets(ctx, dep); err != nil {
+		return err
+	}
+	return h.startInstance(ctx, dep)
+}
+
 func (h *Handler) getReqDep(ctx context.Context, dep model.Deployment, reqDep map[string]model.Deployment) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
