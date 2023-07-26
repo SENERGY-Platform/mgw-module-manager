@@ -76,6 +76,7 @@ type Config struct {
 	Database           DatabaseConfig           `json:"database" env_var:"DATABASE_CONFIG"`
 	HttpClient         HttpClientConfig         `json:"http_client" env_var:"HTTP_CLIENT_CONFIG"`
 	Jobs               JobsConfig               `json:"jobs" env_var:"JOBS_CONFIG"`
+	ManagerIDPath      string                   `json:"manager_id_path" env_var:"MANAGER_ID_PATH"`
 }
 
 func NewConfig(path string) (*Config, error) {
@@ -120,6 +121,7 @@ func NewConfig(path string) (*Config, error) {
 			JHInterval:  500000,
 			MaxAge:      3600000000,
 		},
+		ManagerIDPath: "/opt/module-manager/mid",
 	}
 	err := srv_base.LoadConfig(path, &cfg, nil, nil, nil)
 	return &cfg, err
