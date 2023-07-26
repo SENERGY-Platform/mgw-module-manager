@@ -127,7 +127,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 func (h *Handler) diffVolumes(ctx context.Context, volumes ml_util.Set[string], dID string) ([]string, []string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
 	defer cf()
-	vols, err := h.cewClient.GetVolumes(ctxWt, cew_model.VolumeFilter{Labels: map[string]string{"d_id": dID}})
+	vols, err := h.cewClient.GetVolumes(ctxWt, cew_model.VolumeFilter{Labels: map[string]string{DeploymentIDLabel: dID}})
 	if err != nil {
 		return nil, nil, err
 	}

@@ -71,7 +71,7 @@ func (h *Handler) delete(ctx context.Context, dep model.Deployment) error {
 	}
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	volumes, err := h.cewClient.GetVolumes(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.VolumeFilter{Labels: map[string]string{"d_id": dep.ID}})
+	volumes, err := h.cewClient.GetVolumes(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.VolumeFilter{Labels: map[string]string{DeploymentIDLabel: dep.ID}})
 	if err != nil {
 		return err
 	}
