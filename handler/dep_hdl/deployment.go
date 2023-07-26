@@ -53,9 +53,10 @@ type Handler struct {
 	wrkSpcPath     string
 	depHostPath    string
 	secHostPath    string
+	managerID      string
 }
 
-func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient cew_client.CewClient, hmClient hm_client.HmClient, smClient sm_client.Client, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath, depHostPath, secHostPath string) *Handler {
+func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient cew_client.CewClient, hmClient hm_client.HmClient, smClient sm_client.Client, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath, depHostPath, secHostPath, managerID string) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cfgVltHandler:  cfgVltHandler,
@@ -67,6 +68,7 @@ func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgVali
 		wrkSpcPath:     workspacePath,
 		depHostPath:    depHostPath,
 		secHostPath:    secHostPath,
+		managerID:      managerID,
 	}
 }
 
