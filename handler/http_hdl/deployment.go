@@ -107,7 +107,7 @@ func patchDeploymentUpdateH(a lib.Api) gin.HandlerFunc {
 
 func patchDeploymentStartH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		err := a.StartDeployment(gc.Request.Context(), gc.Param(depIdParam))
+		err := a.EnableDeployment(gc.Request.Context(), gc.Param(depIdParam))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -123,7 +123,7 @@ func patchDeploymentStopH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		jID, err := a.StopDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Dependencies)
+		jID, err := a.DisableDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Dependencies)
 		if err != nil {
 			_ = gc.Error(err)
 			return
