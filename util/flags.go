@@ -21,13 +21,15 @@ import (
 )
 
 type flags struct {
-	ConfPath string
+	ConfPath  string
+	ManagerID string
 }
 
 var Flags flags
 
 func ParseFlags() {
 	flag.StringVar(&Flags.ConfPath, "config", "", "path to config JSON file")
+	flag.StringVar(&Flags.ManagerID, "manager-id", "", "override manager id")
 	flag.Parse()
 	return
 }
