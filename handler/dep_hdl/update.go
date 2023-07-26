@@ -104,10 +104,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 		}
 	}()
 	if oldDep.Enabled {
-		if err = h.loadSecrets(ctx, newDep); err != nil {
-			return h.restore(err, oldDep)
-		}
-		if err = h.startInstance(ctx, newDep); err != nil {
+		if err = h.startDep(ctx, newDep); err != nil {
 			return h.restore(err, oldDep)
 		}
 	}
@@ -160,10 +157,7 @@ func (h *Handler) restore(err error, dep model.Deployment) error {
 	if e := h.unloadSecrets(context.Background(), dep.ID); e != nil {
 		return e
 	}
-	if e := h.loadSecrets(context.Background(), dep); e != nil {
-		return e
-	}
-	if e := h.startInstance(context.Background(), dep); e != nil {
+	if e := h.startDep(context.Background(), dep); e != nil {
 		return e
 	}
 	return err

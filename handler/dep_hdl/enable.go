@@ -52,10 +52,7 @@ func (h *Handler) Enable(ctx context.Context, id string, dependencies bool) erro
 }
 
 func (h *Handler) enable(ctx context.Context, dep model.Deployment) error {
-	if err := h.loadSecrets(ctx, dep); err != nil {
-		return err
-	}
-	if err := h.startInstance(ctx, dep); err != nil {
+	if err := h.startDep(ctx, dep); err != nil {
 		return err
 	}
 	dep.Enabled = true
