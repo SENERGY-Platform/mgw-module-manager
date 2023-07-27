@@ -162,15 +162,15 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[str
 			}
 			modPth, err := os.MkdirTemp(stgPath, "mod_")
 			if err != nil {
-				return err
+				return model.NewInternalError(err)
 			}
 			err = dir_fs.Copy(dir, modPth)
 			if err != nil {
-				return err
+				return model.NewInternalError(err)
 			}
 			modDir, err := dir_fs.New(modPth)
 			if err != nil {
-				return err
+				return model.NewInternalError(err)
 			}
 			stg.addItem(mod, modFileName, modDir, indirect)
 			for rmID, rmVerRng := range mod.Dependencies {
@@ -190,7 +190,7 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[str
 	if verRng != "" {
 		ok, err := sem_ver.InSemVerRange(verRng, mod.Version)
 		if err != nil {
-			return err
+			return model.NewInternalError(err)
 		}
 		if !ok {
 			return fmt.Errorf("module '%s' at '%s' but '%s' requires '%s'", mID, mod.Version, reqBy, verRng)
