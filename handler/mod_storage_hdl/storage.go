@@ -88,22 +88,18 @@ func (h *Handler) Get(_ context.Context, mID string) (model.Module, error) {
 	return m, nil
 }
 
-func (h *Handler) GetDir(_ context.Context, mID string) (model.Module, dir_fs.DirFS, error) {
+func (h *Handler) GetDir(_ context.Context, mID string) (dir_fs.DirFS, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	m, ok := h.modules[mID]
-	if !ok {
-		return model.Module{}, "", model.NewNotFoundError(fmt.Errorf("module '%s' not found", mID))
-	}
-	i, err := h.indexHandler.Get(m.ID)
+	i, err := h.indexHandler.Get(mID)
 	if err != nil {
-		return model.Module{}, "", err
+		return "", err
 	}
 	dir, err := dir_fs.New(path.Join(h.wrkSpcPath, i.Dir))
 	if err != nil {
-		return model.Module{}, "", model.NewInternalError(err)
+		return "", model.NewInternalError(err)
 	}
-	return m, dir, nil
+	return dir, nil
 }
 
 func (h *Handler) Add(_ context.Context, mod model.Module, modDir dir_fs.DirFS, modFile string) error {
