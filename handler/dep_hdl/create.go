@@ -91,7 +91,10 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 func (h *Handler) createDepBase(ctx context.Context, tx driver.Tx, mod *module.Module, depInput model.DepInput, inclDir string, indirect bool) (model.DepBase, error) {
 	timestamp := time.Now().UTC()
 	depBase := model.DepBase{
-		ModuleID: mod.ID,
+		Module: model.DepModule{
+			ID:      mod.ID,
+			Version: mod.Version,
+		},
 		Name:     getDepName(mod.Name, depInput.Name),
 		Dir:      inclDir,
 		Enabled:  false,

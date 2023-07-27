@@ -203,12 +203,12 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.D
 		a.mu.Unlock()
 		return "", err
 	}
-	mod, err := a.moduleHandler.Get(ctx, depBase.ModuleID)
+	mod, err := a.moduleHandler.Get(ctx, depBase.Module.ID)
 	if err != nil {
 		a.mu.Unlock()
 		return "", err
 	}
-	if mod.ID != depBase.ModuleID {
+	if mod.ID != depBase.Module.ID {
 		a.mu.Unlock()
 		return "", model.NewInvalidInputError(errors.New("module ID mismatch"))
 	}
@@ -247,7 +247,7 @@ func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (model
 	if err != nil {
 		return model.DepUpdateTemplate{}, err
 	}
-	mod, err := a.moduleHandler.Get(ctx, dep.ModuleID)
+	mod, err := a.moduleHandler.Get(ctx, dep.Module.ID)
 	if err != nil {
 		return model.DepUpdateTemplate{}, err
 	}

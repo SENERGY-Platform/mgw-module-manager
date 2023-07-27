@@ -23,13 +23,18 @@ import (
 
 type DepBase struct {
 	ID       string    `json:"id"`
-	ModuleID string    `json:"module_id"`
+	Module   DepModule `json:"module"`
 	Name     string    `json:"name"`
 	Dir      string    `json:"dir"`
 	Enabled  bool      `json:"enabled"`
 	Indirect bool      `json:"indirect"`
 	Created  time.Time `json:"created"`
 	Updated  time.Time `json:"updated"`
+}
+
+type DepModule struct {
+	ID      string `json:"id"`
+	Version string `json:"version"`
 }
 
 type DepAssets struct {

@@ -26,10 +26,11 @@ import (
 )
 
 func selectDeployment(ctx context.Context, qwf func(context.Context, string, ...any) *sql.Row, depID string) (model.DepBase, error) {
-	row := qwf(ctx, "SELECT `id`, `mod_id`, `name`, `dir`, `enabled`, `indirect`, `created`, `updated` FROM `deployments` WHERE `id` = ?", depID)
-	var dm model.DepBase
+	row := qwf(ctx, "SELECT `id`, `mod_id`, `mod_ver`, `name`, `dir`, `enabled`, `indirect`, `created`, `updated` FROM `deployments` WHERE `id` = ?", depID)
+	var depBase model.DepBase
+	var depModule model.DepModule
 	var ct, ut []uint8
-	err := row.Scan(&dm.ID, &dm.ModuleID, &dm.Name, &dm.Dir, &dm.Enabled, &dm.Indirect, &ct, &ut)
+	err := row.Scan(&depBase.ID, &depModule.ID, &depModule.Version, &depBase.Name, &depBase.Dir, &depBase.Enabled, &depBase.Indirect, &ct, &ut)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return model.DepBase{}, model.NewNotFoundError(err)
@@ -44,9 +45,10 @@ func selectDeployment(ctx context.Context, qwf func(context.Context, string, ...
 	if err != nil {
 		return model.DepBase{}, model.NewInternalError(err)
 	}
-	dm.Created = tc
-	dm.Updated = tu
-	return dm, nil
+	depBase.Module = depModule
+	depBase.Created = tc
+	depBase.Updated = tu
+	return depBase, nil
 }
 
 func selectHostResources(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), depID string) (map[string]string, error) {

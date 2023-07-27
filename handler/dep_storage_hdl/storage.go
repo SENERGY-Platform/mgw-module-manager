@@ -82,7 +82,7 @@ func (h *Handler) BeginTransaction(ctx context.Context) (driver.Tx, error) {
 }
 
 func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error) {
-	q := "SELECT `id`, `mod_id`, `name`, `dir`, `enabled`, `indirect`, `created`, `updated` FROM `deployments`"
+	q := "SELECT `id`, `mod_id`, `mod_ver`, `name`, `dir`, `enabled`, `indirect`, `created`, `updated` FROM `deployments`"
 	fc, val := genListDepFilter(filter)
 	if fc != "" {
 		q += fc
@@ -93,11 +93,12 @@ func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.
 		return nil, model.NewInternalError(err)
 	}
 	defer rows.Close()
-	var dms []model.DepBase
+	var deployments []model.DepBase
 	for rows.Next() {
-		var dm model.DepBase
+		var depBase model.DepBase
+		var depModule model.DepModule
 		var ct, ut []uint8
-		if err = rows.Scan(&dm.ID, &dm.ModuleID, &dm.Name, &dm.Dir, &dm.Enabled, &dm.Indirect, &ct, &ut); err != nil {
+		if err = rows.Scan(&depBase.ID, &depModule.ID, &depModule.Version, &depBase.Name, &depBase.Dir, &depBase.Enabled, &depBase.Indirect, &ct, &ut); err != nil {
 			return nil, model.NewInternalError(err)
 		}
 		tc, err := time.Parse(tLayout, string(ct))
@@ -108,19 +109,20 @@ func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.
 		if err != nil {
 			return nil, model.NewInternalError(err)
 		}
-		dm.Created = tc
-		dm.Updated = tu
-		dms = append(dms, dm)
+		depBase.Module = depModule
+		depBase.Created = tc
+		depBase.Updated = tu
+		deployments = append(deployments, depBase)
 	}
 	if err = rows.Err(); err != nil {
 		return nil, model.NewInternalError(err)
 	}
-	return dms, nil
+	return deployments, nil
 }
 
-func (h *Handler) CreateDep(ctx context.Context, itf driver.Tx, depMeta model.DepBase) (string, error) {
+func (h *Handler) CreateDep(ctx context.Context, itf driver.Tx, depBase model.DepBase) (string, error) {
 	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "INSERT INTO `deployments` (`id`, `mod_id`, `name`, `dir`, `enabled`, `indirect`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?)", depMeta.ModuleID, depMeta.Name, depMeta.Dir, depMeta.Enabled, depMeta.Indirect, depMeta.Created, depMeta.Updated)
+	res, err := tx.ExecContext(ctx, "INSERT INTO `deployments` (`id`, `mod_id`, `mod_ver`, `name`, `dir`, `enabled`, `indirect`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?)", depBase.Module.ID, depBase.Module.Version, depBase.Name, depBase.Dir, depBase.Enabled, depBase.Indirect, depBase.Created, depBase.Updated)
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}
@@ -230,7 +232,7 @@ func (h *Handler) UpdateDep(ctx context.Context, itf driver.Tx, depBase model.De
 		tx := itf.(*sql.Tx)
 		execContext = tx.ExecContext
 	}
-	res, err := execContext(ctx, "UPDATE `deployments` SET `name` = ?, `dir` = ?, `enabled` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", depBase.Name, depBase.Dir, depBase.Enabled, depBase.Indirect, depBase.Updated, depBase.ID)
+	res, err := execContext(ctx, "UPDATE `deployments` SET `mod_ver` = ?, `name` = ?, `dir` = ?, `enabled` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", depBase.Module.Version, depBase.Name, depBase.Dir, depBase.Enabled, depBase.Indirect, depBase.Updated, depBase.ID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}

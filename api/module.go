@@ -232,7 +232,7 @@ func (a *Api) GetModuleUpdateTemplate(ctx context.Context, id string) (model.Mod
 	}
 	depMap := make(map[string]string)
 	for _, depMeta := range depList {
-		depMap[depMeta.ModuleID] = depMeta.ID
+		depMap[depMeta.Module.ID] = depMeta.ID
 	}
 	updateTemplate := model.ModUpdateTemplate{
 		Dependencies: make(map[string]model.InputTemplate),
@@ -351,8 +351,8 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInp
 	var modDep *model.DepBase
 	depMap := make(map[string]model.DepBase)
 	for _, depBase := range depList {
-		depMap[depBase.ModuleID] = depBase
-		if depBase.ModuleID == id {
+		depMap[depBase.Module.ID] = depBase
+		if depBase.Module.ID == id {
 			modDep = &depBase
 		}
 	}

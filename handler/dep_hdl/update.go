@@ -53,6 +53,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 		return h.restore(err, oldDep)
 	}
 	newDep := oldDep
+	newDep.Module.Version = mod.Version
 	newDep.Name = getDepName(mod.Name, depInput.Name)
 	newDep.Updated = time.Now().UTC()
 	if incl != "" {
