@@ -27,7 +27,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
-	"io/fs"
 	"net/url"
 	"strings"
 	"time"
