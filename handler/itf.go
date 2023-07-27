@@ -30,7 +30,7 @@ type ModuleHandler interface {
 	List(ctx context.Context, filter model.ModFilter) ([]model.Module, error)
 	Get(ctx context.Context, mID string) (model.Module, error)
 	GetReq(ctx context.Context, mID string) (model.Module, map[string]model.Module, error)
-	GetIncl(ctx context.Context, mID string) (dir_fs.DirFS, error)
+	GetDir(ctx context.Context, mID string) (dir_fs.DirFS, error)
 	Add(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string, indirect bool) error
 	Update(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string, indirect bool) error
 	Delete(ctx context.Context, mID string, force bool) error

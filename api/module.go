@@ -392,7 +392,7 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInp
 			return model.NewInternalError(err)
 		}
 		for _, mID := range order {
-			dir, err := a.moduleHandler.GetIncl(ctx, mID)
+			dir, err := a.moduleHandler.GetDir(ctx, mID)
 			if err != nil {
 				return err
 			}
@@ -416,7 +416,7 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInp
 		for _, mID := range order {
 			if mod, ok := uptMods[mID]; ok {
 				if dep, ok := depMap[mID]; ok {
-					dir, err := a.moduleHandler.GetIncl(ctx, mID)
+					dir, err := a.moduleHandler.GetDir(ctx, mID)
 					if err != nil {
 						return err
 					}

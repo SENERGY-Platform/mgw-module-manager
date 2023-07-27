@@ -152,6 +152,14 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[str
 			if indirect && mod.DeploymentType == module.MultipleDeployment {
 				return fmt.Errorf("dependencies with deployment type '%s' not supported", module.MultipleDeployment)
 			}
+			for _, srv := range mod.Services {
+				for _, bindMount := range srv.BindMounts {
+					_, err = fs.Stat(dir, bindMount.Source)
+					if err != nil {
+						return model.NewInternalError(err)
+					}
+				}
+			}
 			modPth, err := os.MkdirTemp(stgPath, "mod_")
 			if err != nil {
 				return err

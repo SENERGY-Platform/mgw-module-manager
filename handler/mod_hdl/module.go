@@ -67,20 +67,8 @@ func (h *Handler) GetReq(ctx context.Context, mID string) (model.Module, map[str
 	return m, dep, nil
 }
 
-func (h *Handler) GetIncl(ctx context.Context, mID string) (dir_fs.DirFS, error) {
-	mod, dir, err := h.storageHandler.GetDir(ctx, mID)
-	if err != nil {
-		return "", err
-	}
-	for _, srv := range mod.Services {
-		for _, bindMount := range srv.BindMounts {
-			_, err = fs.Stat(dir, bindMount.Source)
-			if err != nil {
-				return "", err
-			}
-		}
-	}
-	return dir, nil
+func (h *Handler) GetDir(ctx context.Context, mID string) (dir_fs.DirFS, error) {
+	return h.storageHandler.GetDir(ctx, mID)
 }
 
 func (h *Handler) Add(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string, indirect bool) error {

@@ -77,7 +77,7 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput model.De
 			}
 		}
 	}
-	dir, err := a.moduleHandler.GetIncl(ctx, mod.ID)
+	dir, err := a.moduleHandler.GetDir(ctx, mod.ID)
 	if err != nil {
 		return "", err
 	}
@@ -267,7 +267,7 @@ func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.
 		if err != nil {
 			return false, "", err
 		}
-		dir, err := a.moduleHandler.GetIncl(ctx, mID)
+		dir, err := a.moduleHandler.GetDir(ctx, mID)
 		if err != nil {
 			return false, "", err
 		}
