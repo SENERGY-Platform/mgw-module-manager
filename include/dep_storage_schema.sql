@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS `deployments`
     `index`    BIGINT AUTO_INCREMENT NOT NULL,
     `id`       CHAR(36)              NOT NULL,
     `mod_id`   VARCHAR(256)          NOT NULL,
+    `mod_ver`  VARCHAR(256)          NOT NULL,
     `name`     VARCHAR(256)          NOT NULL,
     `dir`      VARCHAR(256)          NOT NULL,
     `enabled`  BOOLEAN               NOT NULL,
@@ -54,13 +55,13 @@ CREATE TABLE IF NOT EXISTS `host_resources`
 );
 CREATE TABLE IF NOT EXISTS `secrets`
 (
-    `index`  BIGINT AUTO_INCREMENT NOT NULL,
-    `dep_id` CHAR(36)              NOT NULL,
-    `ref`    VARCHAR(128)          NOT NULL,
-    `sec_id` VARCHAR(256)          NOT NULL,
-    `item`   VARCHAR(128)          NULL,
-    `as_mount`  BOOLEAN,
-    `as_env`    BOOLEAN,
+    `index`    BIGINT AUTO_INCREMENT NOT NULL,
+    `dep_id`   CHAR(36)              NOT NULL,
+    `ref`      VARCHAR(128)          NOT NULL,
+    `sec_id`   VARCHAR(256)          NOT NULL,
+    `item`     VARCHAR(128)          NULL,
+    `as_mount` BOOLEAN,
+    `as_env`   BOOLEAN,
     UNIQUE KEY (`dep_id`, `ref`, `item`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
