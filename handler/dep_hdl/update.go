@@ -156,11 +156,13 @@ func (h *Handler) diffVolumes(ctx context.Context, volumes ml_util.Set[string], 
 }
 
 func (h *Handler) restore(err error, dep model.Deployment) error {
-	if e := h.unloadSecrets(context.Background(), dep.ID); e != nil {
-		return e
-	}
-	if e := h.startDep(context.Background(), dep); e != nil {
-		return e
+	if dep.Enabled {
+		if e := h.unloadSecrets(context.Background(), dep.ID); e != nil {
+			return e
+		}
+		if e := h.startDep(context.Background(), dep); e != nil {
+			return e
+		}
 	}
 	return err
 }
