@@ -190,6 +190,9 @@ func (a *Api) GetDeploymentHealth(ctx context.Context, dID string) (model.DepHea
 	if err != nil {
 		return model.DepHealthInfo{}, err
 	}
+	if !dep.Enabled {
+		return model.DepHealthInfo{}, model.NewInvalidInputError(fmt.Errorf("deployment '%s' is disabled", dID))
+	}
 	return a.depHealthHandler.Get(ctx, dep.Instance)
 }
 
