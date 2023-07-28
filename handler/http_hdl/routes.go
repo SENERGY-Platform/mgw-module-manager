@@ -63,3 +63,9 @@ func GetRoutes(e *gin.Engine) [][2]string {
 	}
 	return rInfo
 }
+
+func GetPathFilter() []string {
+	return []string{
+		"/health-check",
+	}
+}

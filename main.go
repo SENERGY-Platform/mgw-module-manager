@@ -198,7 +198,7 @@ func main() {
 		model.HeaderApiVer:  version,
 		model.HeaderSrvName: model.ServiceName,
 	}
-	httpHandler.Use(gin_mw.StaticHeaderHandler(staticHeader), requestid.New(requestid.WithCustomHeaderStrKey(model.HeaderRequestID)), gin_mw.LoggerHandler(util.Logger, func(gc *gin.Context) string {
+	httpHandler.Use(gin_mw.StaticHeaderHandler(staticHeader), requestid.New(requestid.WithCustomHeaderStrKey(model.HeaderRequestID)), gin_mw.LoggerHandler(util.Logger, http_hdl.GetPathFilter(), func(gc *gin.Context) string {
 		return requestid.Get(gc)
 	}), gin_mw.ErrorHandler(http_hdl.GetStatusCode, ", "), gin.Recovery())
 	httpHandler.UseRawPath = true
