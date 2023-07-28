@@ -200,10 +200,14 @@ func (a *Api) UpdateModule(ctx context.Context, id string, depInput model.DepInp
 		a.mu.Unlock()
 		return "", err
 	}
+	depMap := make(map[string]model.DepBase)
+	for _, depBase := range depList {
+		depMap[depBase.Module.ID] = depBase
+	}
 	jID, err := a.jobHandler.Create(fmt.Sprintf("update module '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.updateModule(ctx, id, depInput, dependencies, orphans, stg, newIDs, uptIDs, ophIDs, depList)
+		err := a.updateModule(ctx, id, depInput, dependencies, orphans, stg, newIDs, uptIDs, ophIDs, depMap)
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -346,96 +350,74 @@ func (a *Api) prepareModuleUpdate(ctx context.Context, modules map[string]*modul
 	return nil
 }
 
-func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInput, dependencies map[string]model.DepInput, orphans bool, stg handler.Stage, newIDs, uptIDs, ophIDs map[string]struct{}, depList []model.DepBase) error {
+func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInput, dependencies map[string]model.DepInput, orphans bool, stg handler.Stage, newIDs, uptIDs, ophIDs map[string]struct{}, depMap map[string]model.DepBase) error {
 	defer stg.Remove()
-	var modDep *model.DepBase
-	depMap := make(map[string]model.DepBase)
-	for _, depBase := range depList {
-		depMap[depBase.Module.ID] = depBase
-		if depBase.Module.ID == id {
-			modDep = &depBase
-		}
+	oldRootDep, rootDeployed := depMap[id]
+	stgMods := make(map[string]*module.Module)
+	for mID, stgItem := range stg.Items() {
+		stgMods[mID] = stgItem.Module()
 	}
-	newMods := make(map[string]*module.Module)
-	uptMods := make(map[string]*module.Module)
-	for mID := range newIDs {
-		stgItem, ok := stg.Get(mID)
-		if !ok {
-			return model.NewInternalError(fmt.Errorf("module '%s' not staged", mID))
-		}
-		mod := stgItem.Module()
-		err := a.moduleHandler.Add(ctx, mod, stgItem.Dir(), stgItem.ModFile(), stgItem.Indirect())
-		if err != nil {
-			return err
-		}
-		newMods[mID] = mod
+	order, err := sorting.GetModOrder(stgMods)
+	if err != nil {
+		return model.NewInternalError(err)
 	}
-	for mID := range uptIDs {
-		stgItem, ok := stg.Get(mID)
-		if !ok {
-			return model.NewInternalError(fmt.Errorf("module '%s' not staged", mID))
-		}
-		modOld, err := a.moduleHandler.Get(ctx, mID)
-		if err != nil {
-			return err
-		}
-		mod := stgItem.Module()
-		err = a.moduleHandler.Update(ctx, mod, stgItem.Dir(), stgItem.ModFile(), modOld.Indirect)
-		if err != nil {
-			return err
-		}
-		uptMods[mID] = mod
-	}
-	if modDep != nil && len(newMods) > 0 {
-		order, err := sorting.GetModOrder(newMods)
-		if err != nil {
-			return model.NewInternalError(err)
-		}
-		for _, mID := range order {
-			dir, err := a.moduleHandler.GetDir(ctx, mID)
-			if err != nil {
-				return err
-			}
-			dID, err := a.deploymentHandler.Create(ctx, newMods[mID], dependencies[mID], dir, true)
-			if err != nil {
-				return err
-			}
-			if modDep.Enabled {
-				err = a.deploymentHandler.Enable(ctx, dID, false)
+	for _, mID := range order {
+		stgItem, _ := stg.Get(mID)
+		if _, ok := newIDs[mID]; ok {
+			if rootDeployed {
+				dID, err := a.deploymentHandler.Create(ctx, stgItem.Module(), dependencies[mID], stgItem.Dir(), true)
 				if err != nil {
 					return err
 				}
-			}
-		}
-	}
-	if len(uptMods) > 0 {
-		order, err := sorting.GetModOrder(uptMods)
-		if err != nil {
-			return model.NewInternalError(err)
-		}
-		for _, mID := range order {
-			if mod, ok := uptMods[mID]; ok {
-				if dep, ok := depMap[mID]; ok {
-					dir, err := a.moduleHandler.GetDir(ctx, mID)
-					if err != nil {
+				if oldRootDep.Enabled {
+					if err = a.deploymentHandler.Enable(ctx, dID, false); err != nil {
 						return err
-					}
-					var dInput model.DepInput
-					if mID == id {
-						dInput = depInput
-					} else {
-						dInput = dependencies[mID]
-					}
-					dInput.Name = &dep.Name
-					err = a.deploymentHandler.Update(ctx, dep.ID, mod, dInput, dir)
-					if err != nil {
-						return err
-					}
-				} else {
-					if modDep != nil {
-						return model.NewInternalError(fmt.Errorf("missing deployment for module '%s'", mID))
 					}
 				}
+			}
+			if err = a.moduleHandler.Add(ctx, stgItem.Module(), stgItem.Dir(), stgItem.ModFile(), stgItem.Indirect()); err != nil {
+				return err
+			}
+		}
+		if _, ok := uptIDs[mID]; ok {
+			var dInput model.DepInput
+			if mID == id {
+				dInput = depInput
+			} else {
+				dInput = dependencies[mID]
+			}
+			oldDep, deployed := depMap[mID]
+			if deployed {
+				dInput.Name = &oldDep.Name
+				err = a.deploymentHandler.Update(ctx, oldDep.ID, stgItem.Module(), dInput, stgItem.Dir())
+				if err != nil {
+					return err
+				}
+				if oldRootDep.Enabled && !oldDep.Enabled {
+					if err = a.deploymentHandler.Enable(ctx, oldDep.ID, false); err != nil {
+						return err
+					}
+				}
+			} else {
+				if rootDeployed {
+					dID, err := a.deploymentHandler.Create(ctx, stgItem.Module(), dependencies[mID], stgItem.Dir(), true)
+					if err != nil {
+						return err
+					}
+					if oldRootDep.Enabled {
+						if err = a.deploymentHandler.Enable(ctx, dID, false); err != nil {
+							return err
+						}
+					}
+				}
+			}
+			oldMod, err := a.moduleHandler.Get(ctx, mID)
+			if err != nil {
+				return err
+			}
+			err = a.moduleHandler.Update(ctx, stgItem.Module(), stgItem.Dir(), stgItem.ModFile(), oldMod.Indirect)
+			if err != nil {
+				return err
 			}
 		}
 	}
