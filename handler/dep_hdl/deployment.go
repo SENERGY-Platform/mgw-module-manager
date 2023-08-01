@@ -440,7 +440,7 @@ func (h *Handler) unloadSecrets(ctx context.Context, dID string) error {
 	return nil
 }
 
-func genSecretMapKey(id string, item *string) string {
+func genSecretVariantID(id string, item *string) string {
 	if item != nil {
 		return id + *item
 	}
