@@ -277,54 +277,61 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	secrets := make(map[string]secret)
+	variants := make(map[string]secretVariant)
 	for ref, sID := range usrSecrets {
 		sec, ok := secrets[ref]
 		if !ok {
 			sec.ID = sID
 			sec.Variants = make(map[string]secretVariant)
-			secrets[ref] = sec
 		}
 		for _, service := range mod.Services {
 			for _, target := range service.SecretMounts {
-				sKey := genSecretMapKey(sID, target.Item)
-				variant, ok := sec.Variants[sKey]
-				if variant.Path == "" {
-					v, err, _ := h.smClient.InitPathVariant(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretVariantRequest{
-						ID:        sID,
-						Item:      target.Item,
-						Reference: dID,
-					})
-					if err != nil {
-						return nil, model.NewInternalError(fmt.Errorf("initializing path variant for secret '%s' failed: %s", sID, err))
+				if target.Ref == ref {
+					vID := genSecretVariantID(sID, target.Item)
+					variant, ok := variants[vID]
+					if variant.Path == "" {
+						v, err, _ := h.smClient.InitPathVariant(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretVariantRequest{
+							ID:        sID,
+							Item:      target.Item,
+							Reference: dID,
+						})
+						if err != nil {
+							return nil, model.NewInternalError(fmt.Errorf("initializing path variant for secret '%s' failed: %s", sID, err))
+						}
+						if !ok {
+							variant.Item = target.Item
+						}
+						variant.Path = v.Path
+						variants[vID] = variant
 					}
-					if !ok {
-						variant.Item = target.Item
-					}
-					variant.Path = v.Path
-					sec.Variants[sKey] = variant
+					sec.Variants[vID] = variant
 				}
 			}
 			for _, target := range service.SecretVars {
-				sKey := genSecretMapKey(sID, target.Item)
-				variant, ok := sec.Variants[sKey]
-				if !variant.AsEnv {
-					v, err, _ := h.smClient.GetValueVariant(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretVariantRequest{
-						ID:        sID,
-						Item:      target.Item,
-						Reference: dID,
-					})
-					if err != nil {
-						return nil, model.NewInternalError(fmt.Errorf("retreiving value variant for secret '%s' failed: %s", sID, err))
+				if target.Ref == ref {
+					vID := genSecretVariantID(sID, target.Item)
+					variant, ok := variants[vID]
+					if !variant.AsEnv {
+						v, err, _ := h.smClient.GetValueVariant(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretVariantRequest{
+							ID:        sID,
+							Item:      target.Item,
+							Reference: dID,
+						})
+						if err != nil {
+							return nil, model.NewInternalError(fmt.Errorf("retreiving value variant for secret '%s' failed: %s", sID, err))
+						}
+						if !ok {
+							variant.Item = target.Item
+						}
+						variant.AsEnv = true
+						variant.Value = v.Value
+						variants[vID] = variant
 					}
-					if !ok {
-						variant.Item = target.Item
-					}
-					variant.AsEnv = true
-					variant.Value = v.Value
-					sec.Variants[sKey] = variant
+					sec.Variants[vID] = variant
 				}
 			}
 		}
+		secrets[ref] = sec
 	}
 	return secrets, nil
 }
