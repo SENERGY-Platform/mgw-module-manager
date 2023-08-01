@@ -32,6 +32,10 @@ func (a *Api) AddModule(ctx context.Context, id, version string) (string, error)
 	if err != nil {
 		return "", model.NewResourceBusyError(err)
 	}
+	if mID, ok := a.pendingModUpdate(ctx); ok {
+		a.mu.Unlock()
+		return "", model.NewResourceBusyError(fmt.Errorf("update pending for '%s'", mID))
+	}
 	modules, err := a.moduleHandler.List(ctx, model.ModFilter{})
 	if err != nil {
 		a.mu.Unlock()
@@ -79,6 +83,9 @@ func (a *Api) DeleteModule(ctx context.Context, id string, orphans, force bool) 
 		return model.NewResourceBusyError(err)
 	}
 	defer a.mu.Unlock()
+	if mID, ok := a.pendingModUpdate(ctx); ok {
+		return model.NewResourceBusyError(fmt.Errorf("update pending for '%s'", mID))
+	}
 	ok, err := a.modDeployed(ctx, id)
 	if err != nil {
 		return err
@@ -429,6 +436,16 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInp
 		}
 	}
 	return nil
+}
+
+func (a *Api) pendingModUpdate(ctx context.Context) (string, bool) {
+	updates := a.modUpdateHandler.List(ctx)
+	for mID, update := range updates {
+		if update.Pending {
+			return mID, true
+		}
+	}
+	return "", false
 }
 
 func getModMeta(m model.Module) model.ModuleMeta {
