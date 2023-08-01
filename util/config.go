@@ -81,6 +81,7 @@ type Config struct {
 
 func NewConfig(path string) (*Config, error) {
 	cfg := Config{
+		ServerPort: 80,
 		ModStorageHandler: ModStorageHandlerConfig{
 			WorkdirPath: "/opt/module-manager/modules",
 		},
