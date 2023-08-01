@@ -242,7 +242,7 @@ func (h *Handler) getMounts(srv *module.Service, hostRes map[string]hm_model.Hos
 	}
 	for mntPoint, target := range srv.SecretMounts {
 		if sec, ok := secrets[target.Ref]; ok {
-			if variant, ok := sec.Variants[genSecretMapKey(sec.ID, target.Item)]; ok {
+			if variant, ok := sec.Variants[genSecretVariantID(sec.ID, target.Item)]; ok {
 				mounts = append(mounts, cew_model.Mount{
 					Type:     cew_model.BindMount,
 					Source:   path.Join(h.secHostPath, variant.Path),
@@ -274,7 +274,7 @@ func getEnvVars(srv *module.Service, configs, depMap map[string]string, secrets 
 	}
 	for eVar, target := range srv.SecretVars {
 		if sec, ok := secrets[target.Ref]; ok {
-			if variant, ok := sec.Variants[genSecretMapKey(sec.ID, target.Item)]; ok {
+			if variant, ok := sec.Variants[genSecretVariantID(sec.ID, target.Item)]; ok {
 				envVars[eVar] = variant.Value
 			}
 		}
