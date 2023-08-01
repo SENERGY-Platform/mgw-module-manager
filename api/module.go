@@ -127,11 +127,6 @@ func (a *Api) CheckModuleUpdates(ctx context.Context) (string, error) {
 }
 
 func (a *Api) GetModuleUpdates(ctx context.Context) (map[string]model.ModUpdate, error) {
-	err := a.mu.TryRLock()
-	if err != nil {
-		return nil, model.NewResourceBusyError(err)
-	}
-	defer a.mu.RUnlock()
 	return a.modUpdateHandler.List(ctx), nil
 }
 
