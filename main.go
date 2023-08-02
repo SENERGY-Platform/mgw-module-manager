@@ -89,8 +89,7 @@ func main() {
 
 	managerID, err := util.GetManagerID(config.ManagerIDPath, util.Flags.ManagerID)
 	if err != nil {
-		util.Logger.Error(err)
-		return
+		util.Logger.Fatal(err)
 	}
 
 	util.Logger.Debugf("manager ID: %s", managerID)
@@ -105,25 +104,21 @@ func main() {
 
 	modStorageHandler := mod_storage_hdl.New(config.ModStorageHandler.WorkdirPath, modFileHandler)
 	if err = modStorageHandler.Init(0770); err != nil {
-		util.Logger.Error(err)
-		return
+		util.Logger.Fatal(err)
 	}
 
 	cfgDefs, err := cfg_valid_hdl.LoadDefs(config.ConfigDefsPath)
 	if err != nil {
-		util.Logger.Error(err)
-		return
+		util.Logger.Fatal(err)
 	}
 	cfgValidHandler, err := cfg_valid_hdl.New(cfgDefs, inputValidators)
 	if err != nil {
-		util.Logger.Error(err)
-		return
+		util.Logger.Fatal(err)
 	}
 
 	modTransferHandler := mod_transfer_hdl.New(config.ModTransferHandler.WorkdirPath, time.Duration(config.ModTransferHandler.Timeout))
 	if err = modTransferHandler.InitWorkspace(0770); err != nil {
-		util.Logger.Error(err)
-		return
+		util.Logger.Fatal(err)
 	}
 
 	cewClient := cew_client.New(http.DefaultClient, config.HttpClient.CewBaseUrl)
@@ -134,15 +129,13 @@ func main() {
 	defer dbCtxCf()
 	db, err := util.InitDB(dbCtx, config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd, config.Database.Name, 10, 10, time.Duration(config.Database.Timeout))
 	if err != nil {
-		util.Logger.Error(err)
-		return
+		util.Logger.Fatal(err)
 	}
 	defer db.Close()
 
 	depStorageHandler := dep_storage_hdl.New(db)
 	if err = depStorageHandler.Init(dbCtx, config.Database.SchemaPath); err != nil {
-		util.Logger.Error(err)
-		return
+		util.Logger.Fatal(err)
 	}
 
 	hmClient := hm_client.New(http.DefaultClient, config.HttpClient.HmBaseUrl)
@@ -151,8 +144,7 @@ func main() {
 
 	depHandler := dep_hdl.New(depStorageHandler, cfgValidHandler, cewClient, hmClient, smClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, config.DepHandler.HostDepPath, config.DepHandler.HostSecPath, managerID)
 	if err = depHandler.InitWorkspace(0770); err != nil {
-		util.Logger.Error(err)
-		return
+		util.Logger.Fatal(err)
 	}
 
 	depHealthHandler := dep_health_hdl.New(cewClient, time.Duration(config.HttpClient.Timeout))
@@ -184,8 +176,7 @@ func main() {
 
 	modStagingHandler := mod_staging_hdl.New(config.ModStagingHandler.WorkdirPath, modTransferHandler, modFileHandler, cfgValidHandler, cewClient, time.Duration(config.HttpClient.Timeout))
 	if err := modStagingHandler.InitWorkspace(0770); err != nil {
-		util.Logger.Error(err)
-		return
+		util.Logger.Fatal(err)
 	}
 
 	modUpdateHandler := mod_update_hdl.New(modTransferHandler, modFileHandler)
@@ -208,19 +199,16 @@ func main() {
 
 	listener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
-		util.Logger.Error(err)
-		return
+		util.Logger.Fatal(err)
 	}
 
 	err = ccHandler.RunAsync(config.Jobs.MaxNumber, time.Duration(config.Jobs.JHInterval*1000))
 	if err != nil {
-		util.Logger.Error(err)
-		return
+		util.Logger.Fatal(err)
 	}
 
 	if err = mApi.StartDeployments(); err != nil {
-		util.Logger.Error(err)
-		return
+		util.Logger.Fatal(err)
 	}
 
 	srv_base.StartServer(&http.Server{Handler: httpHandler}, listener, srv_base_types.DefaultShutdownSignals, util.Logger)
