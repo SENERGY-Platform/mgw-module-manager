@@ -172,6 +172,9 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 			newIDs[id] = struct{}{}
 		} else {
 			modNew := item.Module()
+			if id == mID {
+				upt.PendingVersion = modNew.Version
+			}
 			if modOld.Version == modNew.Version {
 				continue
 			}
