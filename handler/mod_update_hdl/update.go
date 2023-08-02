@@ -145,6 +145,7 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	if !ok {
 		return model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
 	}
+	upt.PendingVersions = make(map[string]string)
 	stgItems := stage.Items()
 	mod, ok := modules[mID]
 	if !ok {
@@ -167,14 +168,11 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 		if ctx.Err() != nil {
 			return model.NewInternalError(ctx.Err())
 		}
+		modNew := item.Module()
 		modOld, ok := modules[id]
 		if !ok {
 			newIDs[id] = struct{}{}
 		} else {
-			modNew := item.Module()
-			if id == mID {
-				upt.PendingVersion = modNew.Version
-			}
 			if modOld.Version == modNew.Version {
 				continue
 			}
@@ -197,6 +195,7 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 			}
 			uptIDs[id] = struct{}{}
 		}
+		upt.PendingVersions[mID] = modNew.Version
 	}
 	upt.stage = stage
 	upt.newIDs = newIDs
@@ -237,7 +236,7 @@ func (h *Handler) CancelPending(_ context.Context, mID string) error {
 	upt.newIDs = nil
 	upt.uptIDs = nil
 	upt.Pending = false
-	upt.PendingVersion = ""
+	upt.PendingVersions = nil
 	h.updates[mID] = upt
 	return nil
 }
