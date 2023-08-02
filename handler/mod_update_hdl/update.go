@@ -237,6 +237,7 @@ func (h *Handler) CancelPending(_ context.Context, mID string) error {
 	upt.newIDs = nil
 	upt.uptIDs = nil
 	upt.Pending = false
+	upt.PendingVersion = ""
 	h.updates[mID] = upt
 	return nil
 }
