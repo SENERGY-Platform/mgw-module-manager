@@ -522,12 +522,18 @@ func (h *Handler) deleteDepSecrets(ctx context.Context, tx *sql.Tx, dID string) 
 }
 
 func (h *Handler) waitForDB(ctx context.Context, delay time.Duration) error {
+	err := h.db.PingContext(ctx)
+	if err == nil {
+		return nil
+	} else {
+		util.Logger.Error(err)
+	}
 	ticker := time.NewTicker(delay)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:
-			err := h.db.PingContext(ctx)
+			err = h.db.PingContext(ctx)
 			if err == nil {
 				return nil
 			} else {
