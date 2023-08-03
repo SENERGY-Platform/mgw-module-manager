@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"io"
 	"os"
 	"strconv"
@@ -42,7 +43,11 @@ func New(db *sql.DB) *Handler {
 	return &Handler{db: db}
 }
 
-func (h *Handler) Init(ctx context.Context, schemaPath string) error {
+func (h *Handler) Init(ctx context.Context, schemaPath string, delay time.Duration) error {
+	err := h.waitForDB(ctx, delay)
+	if err != nil {
+		return err
+	}
 	file, err := os.Open(schemaPath)
 	if err != nil {
 		return err
@@ -514,6 +519,24 @@ func (h *Handler) deleteDepSecrets(ctx context.Context, tx *sql.Tx, dID string) 
 		return model.NewInternalError(err)
 	}
 	return nil
+}
+
+func (h *Handler) waitForDB(ctx context.Context, delay time.Duration) error {
+	ticker := time.NewTicker(delay)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			err := h.db.PingContext(ctx)
+			if err == nil {
+				return nil
+			} else {
+				util.Logger.Error(err)
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
 }
 
 func genListDepFilter(filter model.DepFilter) (string, []any) {
