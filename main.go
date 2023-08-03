@@ -228,19 +228,21 @@ func main() {
 		dbCF()
 		return nil
 	})
-	if err = depStorageHandler.Init(dbCtx, config.Database.SchemaPath, time.Second*5); err != nil {
-		util.Logger.Fatal(err)
-	}
-	dbCF()
 
 	err = ccHandler.RunAsync(config.Jobs.MaxNumber, time.Duration(config.Jobs.JHInterval*1000))
 	if err != nil {
 		util.Logger.Fatal(err)
 	}
 
-	if err = mApi.StartDeployments(); err != nil {
-		util.Logger.Fatal(err)
-	}
+	go func() {
+		if err = depStorageHandler.Init(dbCtx, config.Database.SchemaPath, time.Second*5); err != nil {
+			util.Logger.Fatal(err)
+		}
+		dbCF()
+		if err = mApi.StartDeployments(); err != nil {
+			util.Logger.Fatal(err)
+		}
+	}()
 
 	go func() {
 		defer srvCF()
