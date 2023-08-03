@@ -23,7 +23,6 @@ import (
 	"github.com/SENERGY-Platform/gin-middleware"
 	"github.com/SENERGY-Platform/go-cc-job-handler/ccjh"
 	"github.com/SENERGY-Platform/go-service-base/srv-base"
-	"github.com/SENERGY-Platform/go-service-base/srv-base/types"
 	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	hm_client "github.com/SENERGY-Platform/mgw-host-manager/client"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
@@ -53,6 +52,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"syscall"
 	"time"
 )
 
@@ -125,18 +125,17 @@ func main() {
 
 	modHandler := mod_hdl.New(modStorageHandler, cewClient, time.Duration(config.HttpClient.Timeout))
 
-	dbCtx, dbCtxCf := context.WithCancel(context.Background())
-	defer dbCtxCf()
-	db, err := util.InitDB(dbCtx, config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd, config.Database.Name, 10, 10, time.Duration(config.Database.Timeout))
+	watchdog := srv_base.NewWatchdog(util.Logger, syscall.SIGINT, syscall.SIGTERM)
+
+	db, err := util.NewDB(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd, config.Database.Name)
 	if err != nil {
 		util.Logger.Fatal(err)
 	}
-	defer db.Close()
+	watchdog.RegisterStopFunc(func() error {
+		return db.Close()
+	})
 
 	depStorageHandler := dep_storage_hdl.New(db)
-	if err = depStorageHandler.Init(dbCtx, config.Database.SchemaPath); err != nil {
-		util.Logger.Fatal(err)
-	}
 
 	hmClient := hm_client.New(http.DefaultClient, config.HttpClient.HmBaseUrl)
 
@@ -154,7 +153,7 @@ func main() {
 	jobCtx, cFunc := context.WithCancel(context.Background())
 	jobHandler := job_hdl.New(jobCtx, ccHandler)
 
-	defer func() {
+	watchdog.RegisterStopFunc(func() error {
 		ccHandler.Stop()
 		cFunc()
 		if ccHandler.Active() > 0 {
@@ -164,15 +163,15 @@ func main() {
 			for ccHandler.Active() != 0 {
 				select {
 				case <-ctx.Done():
-					util.Logger.Error("canceling jobs took too long")
-					return
+					return fmt.Errorf("canceling jobs took too long")
 				default:
 					time.Sleep(50 * time.Millisecond)
 				}
 			}
 			util.Logger.Info("jobs canceled")
 		}
-	}()
+		return nil
+	})
 
 	modStagingHandler := mod_staging_hdl.New(config.ModStagingHandler.WorkdirPath, modTransferHandler, modFileHandler, cfgValidHandler, cewClient, time.Duration(config.HttpClient.Timeout))
 	if err := modStagingHandler.InitWorkspace(0770); err != nil {
@@ -201,6 +200,38 @@ func main() {
 	if err != nil {
 		util.Logger.Fatal(err)
 	}
+	server := &http.Server{}
+	srvCtx, srvCF := context.WithCancel(context.Background())
+	watchdog.RegisterStopFunc(func() error {
+		if srvCtx.Err() == nil {
+			ctxWt, cf := context.WithTimeout(context.Background(), time.Second*5)
+			defer cf()
+			if err := server.Shutdown(ctxWt); err != nil {
+				return err
+			}
+			util.Logger.Info("http server shutdown complete")
+		}
+		return nil
+	})
+	watchdog.RegisterHealthFunc(func() bool {
+		if srvCtx.Err() == nil {
+			return true
+		}
+		util.Logger.Error("http server closed unexpectedly")
+		return false
+	})
+
+	watchdog.Start()
+
+	dbCtx, dbCF := context.WithCancel(context.Background())
+	watchdog.RegisterStopFunc(func() error {
+		dbCF()
+		return nil
+	})
+	if err = depStorageHandler.Init(dbCtx, config.Database.SchemaPath, time.Second*5); err != nil {
+		util.Logger.Fatal(err)
+	}
+	dbCF()
 
 	err = ccHandler.RunAsync(config.Jobs.MaxNumber, time.Duration(config.Jobs.JHInterval*1000))
 	if err != nil {
@@ -211,5 +242,13 @@ func main() {
 		util.Logger.Fatal(err)
 	}
 
-	srv_base.StartServer(&http.Server{Handler: httpHandler}, listener, srv_base_types.DefaultShutdownSignals, util.Logger)
+	go func() {
+		defer srvCF()
+		util.Logger.Info("starting http server ...")
+		if err = server.Serve(listener); !errors.Is(err, http.ErrServerClosed) {
+			util.Logger.Fatal(err)
+		}
+	}()
+
+	watchdog.Join()
 }
