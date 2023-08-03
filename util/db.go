@@ -17,61 +17,25 @@
 package util
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"time"
 )
 
-func InitDB(ctx context.Context, addr string, port uint, user string, pw string, name string, moc int, mic int, timeout time.Duration) (*sql.DB, error) {
-	tmpDB, err := newDB(addr, port, user, pw, "", 3*time.Minute, 1, 1)
-	if err != nil {
-		return nil, err
-	}
-	defer tmpDB.Close()
-	ctxWT, cf := context.WithTimeout(ctx, timeout)
-	defer cf()
-	if err = createDB(tmpDB, ctxWT, name); err != nil {
-		return nil, err
-	}
-	db, err := newDB(addr, port, user, pw, name, 3*time.Minute, moc, mic)
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
-}
-
-func createDB(db *sql.DB, ctx context.Context, name string) error {
-	result, err := db.ExecContext(ctx, "CREATE DATABASE IF NOT EXISTS "+name)
-	if err != nil {
-		return err
-	}
-	n, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if n > 0 {
-		Logger.Infof("created database '%s'", name)
-	}
-	return nil
-}
-
-func newDB(addr string, port uint, user string, pw string, name string, cml time.Duration, moc int, mic int) (*sql.DB, error) {
+func NewDB(addr string, port uint, user string, pw string, name string) (*sql.DB, error) {
 	cfg := mysql.NewConfig()
 	cfg.Addr = fmt.Sprintf("%s:%d", addr, port)
 	cfg.User = user
 	cfg.Passwd = pw
-	if name != "" {
-		cfg.DBName = name
-	}
+	cfg.DBName = name
 	dc, err := mysql.NewConnector(cfg)
 	if err != nil {
 		return nil, err
 	}
 	db := sql.OpenDB(dc)
-	db.SetConnMaxLifetime(cml)
-	db.SetMaxOpenConns(moc)
-	db.SetMaxIdleConns(mic)
+	db.SetConnMaxLifetime(3 * time.Minute)
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
 	return db, nil
 }
