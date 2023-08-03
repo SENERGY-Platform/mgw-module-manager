@@ -200,7 +200,7 @@ func main() {
 	if err != nil {
 		util.Logger.Fatal(err)
 	}
-	server := &http.Server{}
+	server := &http.Server{Handler: httpHandler}
 	srvCtx, srvCF := context.WithCancel(context.Background())
 	watchdog.RegisterStopFunc(func() error {
 		if srvCtx.Err() == nil {
