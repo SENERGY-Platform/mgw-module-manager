@@ -34,8 +34,8 @@ func NewDB(addr string, port uint, user string, pw string, name string) (*sql.DB
 		return nil, err
 	}
 	db := sql.OpenDB(dc)
-	db.SetConnMaxLifetime(3 * time.Minute)
-	db.SetMaxOpenConns(1)
-	db.SetMaxIdleConns(1)
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(25)
+	db.SetConnMaxLifetime(5 * time.Minute)
 	return db, nil
 }
