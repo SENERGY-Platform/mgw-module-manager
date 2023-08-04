@@ -270,8 +270,6 @@ func main() {
 		}
 		if err = mApi.StartDeployments(); err != nil {
 			util.Logger.Error(err)
-			ec = 1
-			return
 		}
 	}()
 
