@@ -261,12 +261,12 @@ func main() {
 	}
 
 	go func() {
+		defer dbCF()
 		if err = depStorageHandler.Init(dbCtx, config.Database.SchemaPath, time.Second*5); err != nil {
 			util.Logger.Error(err)
 			ec = 1
 			return
 		}
-		dbCF()
 		if err = mApi.StartDeployments(); err != nil {
 			util.Logger.Error(err)
 			ec = 1
