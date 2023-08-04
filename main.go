@@ -94,6 +94,8 @@ func main() {
 		defer logFile.Close()
 	}
 
+	util.Logger.Debugf("config: %s", srv_base.ToJsonStr(config))
+
 	managerID, err := util.GetManagerID(config.ManagerIDPath, util.Flags.ManagerID)
 	if err != nil {
 		util.Logger.Error(err)
@@ -102,7 +104,6 @@ func main() {
 	}
 
 	util.Logger.Debugf("manager ID: %s", managerID)
-	util.Logger.Debugf("config: %s", srv_base.ToJsonStr(config))
 
 	mfDecoders := make(modfile.Decoders)
 	mfDecoders.Add(v1dec.GetDecoder)
