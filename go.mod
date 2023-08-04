@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/SENERGY-Platform/gin-middleware v0.4.0
 	github.com/SENERGY-Platform/go-cc-job-handler v0.1.0
-	github.com/SENERGY-Platform/go-service-base v0.10.0
+	github.com/SENERGY-Platform/go-service-base v0.11.1
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.6.0
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.9.0
 	github.com/SENERGY-Platform/mgw-host-manager/client v0.1.0
