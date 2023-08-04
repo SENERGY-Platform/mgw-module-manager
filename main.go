@@ -171,12 +171,12 @@ func main() {
 
 	ccHandler := ccjh.New(config.Jobs.BufferSize)
 
-	jobCtx, cFunc := context.WithCancel(context.Background())
+	jobCtx, jobCF := context.WithCancel(context.Background())
 	jobHandler := job_hdl.New(jobCtx, ccHandler)
 
 	watchdog.RegisterStopFunc(func() error {
 		ccHandler.Stop()
-		cFunc()
+		jobCF()
 		if ccHandler.Active() > 0 {
 			util.Logger.Info("waiting for active jobs to cancel ...")
 			ctx, cf := context.WithTimeout(context.Background(), 5*time.Second)
