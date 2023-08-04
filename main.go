@@ -150,9 +150,7 @@ func main() {
 		ec = 1
 		return
 	}
-	watchdog.RegisterStopFunc(func() error {
-		return db.Close()
-	})
+	defer db.Close()
 
 	depStorageHandler := dep_storage_hdl.New(db)
 
