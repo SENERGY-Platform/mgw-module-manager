@@ -265,6 +265,7 @@ func main() {
 		if err = depStorageHandler.Init(dbCtx, config.Database.SchemaPath, time.Second*5); err != nil {
 			util.Logger.Error(err)
 			ec = 1
+			watchdog.Trigger()
 			return
 		}
 		if err = mApi.StartDeployments(); err != nil {
