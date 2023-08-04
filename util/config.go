@@ -55,6 +55,7 @@ type DepHandlerConfig struct {
 	WorkdirPath string `json:"workdir_path" env_var:"DH_WORKDIR_PATH"`
 	HostDepPath string `json:"host_dep_path" env_var:"DH_HOST_DEP_PATH"`
 	HostSecPath string `json:"host_sec_path" env_var:"DH_HOST_SEC_PATH"`
+	ModuleNet   string `json:"module_net" env_var:"DH_MODULE_NET"`
 }
 
 type JobsConfig struct {
@@ -94,6 +95,7 @@ func NewConfig(path string) (*Config, error) {
 		},
 		DepHandler: DepHandlerConfig{
 			WorkdirPath: "/opt/module-manager/deployments",
+			ModuleNet:   "module-net",
 		},
 		Logger: srv_base.LoggerConfig{
 			Level:        level.Warning,
