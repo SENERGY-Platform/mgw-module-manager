@@ -119,19 +119,6 @@ func main() {
 		return
 	}
 
-	cfgDefs, err := cfg_valid_hdl.LoadDefs(config.ConfigDefsPath)
-	if err != nil {
-		util.Logger.Error(err)
-		ec = 1
-		return
-	}
-	cfgValidHandler, err := cfg_valid_hdl.New(cfgDefs, inputValidators)
-	if err != nil {
-		util.Logger.Error(err)
-		ec = 1
-		return
-	}
-
 	modTransferHandler := mod_transfer_hdl.New(config.ModTransferHandler.WorkdirPath, time.Duration(config.ModTransferHandler.Timeout))
 	if err = modTransferHandler.InitWorkspace(0770); err != nil {
 		util.Logger.Error(err)
@@ -154,6 +141,19 @@ func main() {
 	defer db.Close()
 
 	depStorageHandler := dep_storage_hdl.New(db)
+
+	cfgDefs, err := cfg_valid_hdl.LoadDefs(config.ConfigDefsPath)
+	if err != nil {
+		util.Logger.Error(err)
+		ec = 1
+		return
+	}
+	cfgValidHandler, err := cfg_valid_hdl.New(cfgDefs, inputValidators)
+	if err != nil {
+		util.Logger.Error(err)
+		ec = 1
+		return
+	}
 
 	hmClient := hm_client.New(http.DefaultClient, config.HttpClient.HmBaseUrl)
 
