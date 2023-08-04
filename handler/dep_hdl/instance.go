@@ -330,7 +330,7 @@ func getContainer(srv *module.Service, ref, name, dID, iID, mID, moduleNet strin
 }
 
 func getSrvName(s, r string) string {
-	return "mgw_" + genHash(s, r)
+	return "mgw-inst-" + genHash(s, r)
 }
 
 func userConfigsToStringValues(modConfigs module.Configs, userConfigs map[string]model.DepConfig) (map[string]string, error) {
