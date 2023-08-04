@@ -65,6 +65,11 @@ var inputValidators = map[string]handler.Validator{
 }
 
 func main() {
+	ec := 0
+	defer func() {
+		os.Exit(ec)
+	}()
+
 	srv_base.PrintInfo(model.ServiceName, version)
 
 	util.ParseFlags()
@@ -72,7 +77,8 @@ func main() {
 	config, err := util.NewConfig(util.Flags.ConfPath)
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		ec = 1
+		return
 	}
 
 	logFile, err := util.InitLogger(config.Logger)
@@ -80,7 +86,8 @@ func main() {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		var logFileError *srv_base.LogFileError
 		if errors.As(err, &logFileError) {
-			os.Exit(1)
+			ec = 1
+			return
 		}
 	}
 	if logFile != nil {
@@ -89,7 +96,9 @@ func main() {
 
 	managerID, err := util.GetManagerID(config.ManagerIDPath, util.Flags.ManagerID)
 	if err != nil {
-		util.Logger.Fatal(err)
+		util.Logger.Error(err)
+		ec = 1
+		return
 	}
 
 	util.Logger.Debugf("manager ID: %s", managerID)
@@ -104,21 +113,29 @@ func main() {
 
 	modStorageHandler := mod_storage_hdl.New(config.ModStorageHandler.WorkdirPath, modFileHandler)
 	if err = modStorageHandler.Init(0770); err != nil {
-		util.Logger.Fatal(err)
+		util.Logger.Error(err)
+		ec = 1
+		return
 	}
 
 	cfgDefs, err := cfg_valid_hdl.LoadDefs(config.ConfigDefsPath)
 	if err != nil {
-		util.Logger.Fatal(err)
+		util.Logger.Error(err)
+		ec = 1
+		return
 	}
 	cfgValidHandler, err := cfg_valid_hdl.New(cfgDefs, inputValidators)
 	if err != nil {
-		util.Logger.Fatal(err)
+		util.Logger.Error(err)
+		ec = 1
+		return
 	}
 
 	modTransferHandler := mod_transfer_hdl.New(config.ModTransferHandler.WorkdirPath, time.Duration(config.ModTransferHandler.Timeout))
 	if err = modTransferHandler.InitWorkspace(0770); err != nil {
-		util.Logger.Fatal(err)
+		util.Logger.Error(err)
+		ec = 1
+		return
 	}
 
 	cewClient := cew_client.New(http.DefaultClient, config.HttpClient.CewBaseUrl)
@@ -129,7 +146,9 @@ func main() {
 
 	db, err := util.NewDB(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd, config.Database.Name)
 	if err != nil {
-		util.Logger.Fatal(err)
+		util.Logger.Error(err)
+		ec = 1
+		return
 	}
 	watchdog.RegisterStopFunc(func() error {
 		return db.Close()
@@ -143,7 +162,9 @@ func main() {
 
 	depHandler := dep_hdl.New(depStorageHandler, cfgValidHandler, cewClient, hmClient, smClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, config.DepHandler.HostDepPath, config.DepHandler.HostSecPath, managerID, config.DepHandler.ModuleNet)
 	if err = depHandler.InitWorkspace(0770); err != nil {
-		util.Logger.Fatal(err)
+		util.Logger.Error(err)
+		ec = 1
+		return
 	}
 
 	depHealthHandler := dep_health_hdl.New(cewClient, time.Duration(config.HttpClient.Timeout))
@@ -175,7 +196,9 @@ func main() {
 
 	modStagingHandler := mod_staging_hdl.New(config.ModStagingHandler.WorkdirPath, modTransferHandler, modFileHandler, cfgValidHandler, cewClient, time.Duration(config.HttpClient.Timeout))
 	if err := modStagingHandler.InitWorkspace(0770); err != nil {
-		util.Logger.Fatal(err)
+		util.Logger.Error(err)
+		ec = 1
+		return
 	}
 
 	modUpdateHandler := mod_update_hdl.New(modTransferHandler, modFileHandler)
@@ -198,7 +221,9 @@ func main() {
 
 	listener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
-		util.Logger.Fatal(err)
+		util.Logger.Error(err)
+		ec = 1
+		return
 	}
 	server := &http.Server{Handler: httpHandler}
 	srvCtx, srvCF := context.WithCancel(context.Background())
@@ -231,26 +256,34 @@ func main() {
 
 	err = ccHandler.RunAsync(config.Jobs.MaxNumber, time.Duration(config.Jobs.JHInterval*1000))
 	if err != nil {
-		util.Logger.Fatal(err)
+		util.Logger.Error(err)
+		ec = 1
+		return
 	}
 
 	go func() {
 		if err = depStorageHandler.Init(dbCtx, config.Database.SchemaPath, time.Second*5); err != nil {
-			util.Logger.Fatal(err)
+			util.Logger.Error(err)
+			ec = 1
+			return
 		}
 		dbCF()
 		if err = mApi.StartDeployments(); err != nil {
-			util.Logger.Fatal(err)
+			util.Logger.Error(err)
+			ec = 1
+			return
 		}
 	}()
 
 	go func() {
 		defer srvCF()
 		util.Logger.Info("starting http server ...")
-		if err = server.Serve(listener); !errors.Is(err, http.ErrServerClosed) {
-			util.Logger.Fatal(err)
+		if err := server.Serve(listener); !errors.Is(err, http.ErrServerClosed) {
+			util.Logger.Error(err)
+			ec = 1
+			return
 		}
 	}()
 
-	watchdog.Join()
+	ec = watchdog.Join()
 }
