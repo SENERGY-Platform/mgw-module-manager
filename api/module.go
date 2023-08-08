@@ -188,7 +188,7 @@ func (a *Api) CancelPendingModuleUpdate(ctx context.Context, id string) error {
 }
 
 func (a *Api) UpdateModule(ctx context.Context, id string, depInput model.DepInput, dependencies map[string]model.DepInput, orphans bool) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("delete module '%s'", id))
+	err := a.mu.TryLock(fmt.Sprintf("update module '%s'", id))
 	if err != nil {
 		return "", model.NewResourceBusyError(err)
 	}
