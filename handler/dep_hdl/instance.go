@@ -262,15 +262,15 @@ func getEnvVars(srv *module.Service, configs, depMap map[string]string, secrets 
 			envVars[eVar] = val
 		}
 	}
-	for eVar, sRef := range srv.SrvReferences {
-		envVars[eVar] = getSrvName(dID, sRef)
+	for eVar, target := range srv.SrvReferences {
+		envVars[eVar] = target.FillTemplate(getSrvName(dID, target.Ref))
 	}
 	for eVar, target := range srv.ExtDependencies {
 		val, ok := depMap[target.ID]
 		if !ok {
 			return nil, fmt.Errorf("service '%s' of '%s' not deployed but required", target.Service, target.ID)
 		}
-		envVars[eVar] = getSrvName(val, target.Service)
+		envVars[eVar] = target.FillTemplate(getSrvName(val, target.Service))
 	}
 	for eVar, target := range srv.SecretVars {
 		if sec, ok := secrets[target.Ref]; ok {
