@@ -317,6 +317,8 @@ func (a *Api) startDeployment(ctx context.Context, dID string, delay time.Durati
 						return fmt.Errorf("starting deployment '%s' failed: %s", dID, err)
 					}
 					util.Logger.Warningf("starting deployment '%s' failed (%d/%d): %s", dID, count, retries, err)
+				} else {
+					break
 				}
 			case <-ctx.Done():
 				return ctx.Err()
