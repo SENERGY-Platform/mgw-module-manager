@@ -25,6 +25,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/input_tmplt"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
+	"time"
 )
 
 func (a *Api) CreateDeployment(ctx context.Context, id string, depInput model.DepInput, dependencies map[string]model.DepInput) (string, error) {
@@ -126,7 +127,7 @@ func (a *Api) DisableDeployment(_ context.Context, id string, dependencies bool)
 	return jID, nil
 }
 
-func (a *Api) StartDeployments() error {
+func (a *Api) StartDeployments(delay time.Duration, retries int) error {
 	depList, err := a.deploymentHandler.List(context.Background(), model.DepFilter{})
 	if err != nil {
 		return err
@@ -153,7 +154,7 @@ func (a *Api) StartDeployments() error {
 		_, err = a.jobHandler.Create("start deployments", func(ctx context.Context, cf context.CancelFunc) error {
 			defer a.mu.Unlock()
 			defer cf()
-			err := a.startDeployments(ctx, depMap, order)
+			err := a.startDeployments(ctx, depMap, order, delay, retries)
 			if err == nil {
 				err = ctx.Err()
 			}
@@ -283,7 +284,9 @@ func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.
 	return false, "", nil
 }
 
-func (a *Api) startDeployments(ctx context.Context, depMap map[string]model.Deployment, order []string) error {
+func (a *Api) startDeployments(ctx context.Context, depMap map[string]model.Deployment, order []string, delay time.Duration, retries int) error {
+	ticker := time.NewTicker(delay)
+	defer ticker.Stop()
 	for _, dID := range order {
 		dep, ok := depMap[dID]
 		if !ok {
@@ -292,7 +295,22 @@ func (a *Api) startDeployments(ctx context.Context, depMap map[string]model.Depl
 		if dep.Enabled {
 			err := a.deploymentHandler.Start(ctx, dID)
 			if err != nil {
-				return err
+				count := 0
+				ticker.Reset(delay)
+				for {
+					select {
+					case <-ticker.C:
+						err = a.deploymentHandler.Start(ctx, dID)
+						if err != nil {
+							count += 1
+							if count >= retries {
+								return err
+							}
+						}
+					case <-ctx.Done():
+						return ctx.Err()
+					}
+				}
 			}
 		}
 	}

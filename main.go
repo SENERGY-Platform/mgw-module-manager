@@ -268,7 +268,7 @@ func main() {
 			watchdog.Trigger()
 			return
 		}
-		if err = mApi.StartDeployments(); err != nil {
+		if err = mApi.StartDeployments(time.Second*5, 2); err != nil {
 			util.Logger.Error(err)
 		}
 	}()
