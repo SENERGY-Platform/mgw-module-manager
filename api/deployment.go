@@ -285,32 +285,41 @@ func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.
 }
 
 func (a *Api) startDeployments(ctx context.Context, depMap map[string]model.Deployment, order []string, delay time.Duration, retries int) error {
-	ticker := time.NewTicker(delay)
-	defer ticker.Stop()
 	for _, dID := range order {
 		dep, ok := depMap[dID]
 		if !ok {
 			return fmt.Errorf("deployment '%s' does not exist", dID)
 		}
 		if dep.Enabled {
-			err := a.deploymentHandler.Start(ctx, dID)
-			if err != nil {
-				count := 0
-				ticker.Reset(delay)
-				for {
-					select {
-					case <-ticker.C:
-						err = a.deploymentHandler.Start(ctx, dID)
-						if err != nil {
-							count += 1
-							if count >= retries {
-								return err
-							}
-						}
-					case <-ctx.Done():
-						return ctx.Err()
+			if err := a.startDeployment(ctx, dID, delay, retries); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (a *Api) startDeployment(ctx context.Context, dID string, delay time.Duration, retries int) error {
+	ticker := time.NewTicker(delay)
+	defer ticker.Stop()
+	util.Logger.Infof("starting deployment '%s'", dID)
+	err := a.deploymentHandler.Start(ctx, dID)
+	if err != nil {
+		count := 0
+		util.Logger.Warningf("starting deployment '%s' failed (%d/%d): %s", dID, count, retries, err)
+		for {
+			select {
+			case <-ticker.C:
+				err = a.deploymentHandler.Start(ctx, dID)
+				if err != nil {
+					count += 1
+					if count >= retries {
+						return fmt.Errorf("starting deployment '%s' failed: %s", dID, err)
 					}
+					util.Logger.Warningf("starting deployment '%s' failed (%d/%d): %s", dID, count, retries, err)
 				}
+			case <-ctx.Done():
+				return ctx.Err()
 			}
 		}
 	}
