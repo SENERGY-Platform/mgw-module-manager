@@ -310,9 +310,10 @@ func (a *Api) startDeployment(ctx context.Context, dID string, delay time.Durati
 		for {
 			select {
 			case <-ticker.C:
+				count += 1
+				util.Logger.Warningf("starting deployment '%s' (%d/%d): %s", dID, count, retries, err)
 				err = a.deploymentHandler.Start(ctx, dID)
 				if err != nil {
-					count += 1
 					if count >= retries {
 						return fmt.Errorf("starting deployment '%s' failed: %s", dID, err)
 					}
