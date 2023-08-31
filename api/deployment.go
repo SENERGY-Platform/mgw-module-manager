@@ -300,7 +300,6 @@ func (a *Api) startDeployments(ctx context.Context, depMap map[string]model.Depl
 }
 
 func (a *Api) startDeployment(ctx context.Context, dID string, delay time.Duration, retries int) error {
-	util.Logger.Infof("starting deployment '%s'", dID)
 	err := a.deploymentHandler.Start(ctx, dID)
 	if err != nil {
 		ticker := time.NewTicker(delay)
