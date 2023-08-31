@@ -319,7 +319,7 @@ func (a *Api) startDeployment(ctx context.Context, dID string, delay time.Durati
 					}
 					util.Logger.Warningf("starting deployment '%s' failed (%d/%d): %s", dID, count, retries, err)
 				} else {
-					break
+					return nil
 				}
 			case <-ctx.Done():
 				return ctx.Err()
