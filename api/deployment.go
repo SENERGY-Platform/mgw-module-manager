@@ -312,12 +312,12 @@ func (a *Api) startDeployment(ctx context.Context, dID string, delay time.Durati
 				count += 1
 				err = a.deploymentHandler.Start(ctx, dID)
 				if err != nil {
-					if count >= retries {
-						return fmt.Errorf("starting deployment '%s' failed: %s", dID, err)
-					}
 					util.Logger.Warningf("starting deployment '%s' failed (%d/%d): %s", dID, count, retries, err)
 				} else {
 					return nil
+				}
+				if count >= retries {
+					return fmt.Errorf("starting deployment '%s' failed: %s", dID, err)
 				}
 			case <-ctx.Done():
 				return ctx.Err()
