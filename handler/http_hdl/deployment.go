@@ -132,6 +132,17 @@ func patchDeploymentDisableH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
+func patchDeploymentRestartH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		jID, err := a.RestartDeployment(gc.Request.Context(), gc.Param(depIdParam))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.String(http.StatusOK, jID)
+	}
+}
+
 func deleteDeploymentH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := deleteDeploymentQuery{}
