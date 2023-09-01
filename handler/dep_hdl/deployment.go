@@ -131,6 +131,19 @@ func (h *Handler) Start(ctx context.Context, id string) error {
 	return h.startDep(ctx, dep)
 }
 
+func (h *Handler) Stop(ctx context.Context, id string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
+	if err != nil {
+		return err
+	}
+	if !dep.Enabled {
+		return errors.New("deployment must be enabled")
+	}
+	return h.stopDep(ctx, dep)
+}
+
 func (h *Handler) startDep(ctx context.Context, dep model.Deployment) error {
 	if err := h.loadSecrets(ctx, dep); err != nil {
 		return err
