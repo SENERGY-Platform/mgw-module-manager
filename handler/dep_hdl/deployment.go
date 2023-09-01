@@ -125,6 +125,9 @@ func (h *Handler) Start(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
+	if !dep.Enabled {
+		return errors.New("deployment must be enabled")
+	}
 	return h.startDep(ctx, dep)
 }
 
