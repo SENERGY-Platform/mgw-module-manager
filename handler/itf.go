@@ -77,6 +77,7 @@ type DeploymentHandler interface {
 	Enable(ctx context.Context, dID string, dependencies bool) error
 	Disable(ctx context.Context, dID string, dependencies bool) error
 	Start(ctx context.Context, dID string) error
+	Stop(ctx context.Context, dID string) error
 }
 
 type DepStorageHandler interface {
