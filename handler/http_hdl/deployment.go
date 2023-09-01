@@ -35,7 +35,7 @@ type deleteDeploymentQuery struct {
 	Orphans bool `form:"orphans"`
 }
 
-type stopDeploymentQuery struct {
+type disableDeploymentQuery struct {
 	Dependencies bool `form:"dependencies"`
 }
 
@@ -118,7 +118,7 @@ func patchDeploymentStartH(a lib.Api) gin.HandlerFunc {
 
 func patchDeploymentStopH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		query := stopDeploymentQuery{}
+		query := disableDeploymentQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
