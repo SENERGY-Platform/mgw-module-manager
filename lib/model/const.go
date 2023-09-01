@@ -34,7 +34,7 @@ const (
 	DepUpdateTemplatePath = "upt-template"
 	DepEnablePath         = "enable"
 	DepDisablePath        = "disable"
-	DepInstPath           = "instances"
+	DepRestartPath        = "restart"
 	DepHealthPath         = "health"
 	JobsPath              = "jobs"
 	JobsCancelPath        = "cancel"
