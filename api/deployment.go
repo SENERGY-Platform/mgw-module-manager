@@ -261,6 +261,34 @@ func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (model
 	}, nil
 }
 
+func (a *Api) RestartDeployment(_ context.Context, id string) (string, error) {
+	err := a.mu.TryLock(fmt.Sprintf("restart deployment '%s'", id))
+	if err != nil {
+		return "", model.NewResourceBusyError(err)
+	}
+	jID, err := a.jobHandler.Create(fmt.Sprintf("restart deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
+		defer a.mu.Unlock()
+		defer cf()
+		err := a.restartDep(ctx, id)
+		if err == nil {
+			err = ctx.Err()
+		}
+		return err
+	})
+	if err != nil {
+		a.mu.Unlock()
+		return "", err
+	}
+	return jID, nil
+}
+
+func (a *Api) restartDep(ctx context.Context, id string) error {
+	if err := a.deploymentHandler.Stop(ctx, id); err != nil {
+		return err
+	}
+	return a.deploymentHandler.Start(ctx, id)
+}
+
 func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.DepInput) (bool, string, error) {
 	depList, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: mID})
 	if err != nil {
