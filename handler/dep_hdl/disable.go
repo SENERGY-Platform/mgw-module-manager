@@ -76,10 +76,7 @@ func (h *Handler) Disable(ctx context.Context, id string, dependencies bool) err
 }
 
 func (h *Handler) disable(ctx context.Context, dep model.Deployment) error {
-	if err := h.stopInstance(ctx, dep); err != nil {
-		return err
-	}
-	if err := h.unloadSecrets(ctx, dep.ID); err != nil {
+	if err := h.stopDep(ctx, dep); err != nil {
 		return err
 	}
 	dep.Enabled = false

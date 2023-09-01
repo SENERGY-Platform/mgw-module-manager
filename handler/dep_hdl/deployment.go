@@ -135,6 +135,13 @@ func (h *Handler) startDep(ctx context.Context, dep model.Deployment) error {
 	return h.startInstance(ctx, dep)
 }
 
+func (h *Handler) stopDep(ctx context.Context, dep model.Deployment) error {
+	if err := h.stopInstance(ctx, dep); err != nil {
+		return err
+	}
+	return h.unloadSecrets(ctx, dep.ID)
+}
+
 func (h *Handler) getReqDep(ctx context.Context, dep model.Deployment, reqDep map[string]model.Deployment) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
