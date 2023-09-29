@@ -6,9 +6,9 @@ require (
 	github.com/SENERGY-Platform/gin-middleware v0.4.2
 	github.com/SENERGY-Platform/go-cc-job-handler v0.1.1
 	github.com/SENERGY-Platform/go-service-base v0.11.2
-	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.6.1
+	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.7.0
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.9.1
-	github.com/SENERGY-Platform/mgw-host-manager/client v0.1.1
+	github.com/SENERGY-Platform/mgw-host-manager/client v0.2.1
 	github.com/SENERGY-Platform/mgw-host-manager/lib v0.1.4
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.12.5
 	github.com/SENERGY-Platform/mgw-module-lib v0.14.1
@@ -28,6 +28,7 @@ require (
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 // indirect
+	github.com/SENERGY-Platform/go-base-http-client v0.0.1 // indirect
 	github.com/acomagu/bufpipe v1.0.4 // indirect
 	github.com/bytedance/sonic v1.10.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
