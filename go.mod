@@ -6,9 +6,9 @@ require (
 	github.com/SENERGY-Platform/gin-middleware v0.4.2
 	github.com/SENERGY-Platform/go-cc-job-handler v0.1.1
 	github.com/SENERGY-Platform/go-service-base v0.11.2
-	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.7.0
+	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.8.0
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.9.1
-	github.com/SENERGY-Platform/mgw-host-manager/client v0.2.1
+	github.com/SENERGY-Platform/mgw-host-manager/client v0.3.0
 	github.com/SENERGY-Platform/mgw-host-manager/lib v0.1.4
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.12.5
 	github.com/SENERGY-Platform/mgw-module-lib v0.14.1
