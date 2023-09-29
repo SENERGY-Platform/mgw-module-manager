@@ -17,7 +17,7 @@
 package mod_staging_hdl
 
 import (
-	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
@@ -29,7 +29,7 @@ type stage struct {
 	modules     map[string]*module.Module
 	items       map[string]modExtra
 	path        string
-	cewClient   client.CewClient
+	cewClient   cew_lib.Api
 	httpTimeout time.Duration
 }
 

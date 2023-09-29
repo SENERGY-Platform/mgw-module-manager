@@ -18,7 +18,7 @@ package dep_health_hdl
 
 import (
 	"context"
-	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
@@ -26,11 +26,11 @@ import (
 )
 
 type Handler struct {
-	cewClient   cew_client.CewClient
+	cewClient   cew_lib.Api
 	httpTimeout time.Duration
 }
 
-func New(cewClient cew_client.CewClient, httpTimeout time.Duration) *Handler {
+func New(cewClient cew_lib.Api, httpTimeout time.Duration) *Handler {
 	return &Handler{
 		cewClient:   cewClient,
 		httpTimeout: httpTimeout,

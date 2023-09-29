@@ -18,7 +18,7 @@ package cew_job
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
@@ -26,7 +26,7 @@ import (
 	"time"
 )
 
-func Await(ctx context.Context, cewClient client.CewClient, jID string, httpTimeout time.Duration) (cew_model.Job, error) {
+func Await(ctx context.Context, cewClient cew_lib.Api, jID string, httpTimeout time.Duration) (cew_model.Job, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	ticker := time.NewTicker(time.Second)

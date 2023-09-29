@@ -20,7 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
@@ -34,11 +34,11 @@ import (
 
 type Handler struct {
 	storageHandler handler.ModStorageHandler
-	cewClient      client.CewClient
+	cewClient      cew_lib.Api
 	httpTimeout    time.Duration
 }
 
-func New(storageHandler handler.ModStorageHandler, cewClient client.CewClient, httpTimeout time.Duration) *Handler {
+func New(storageHandler handler.ModStorageHandler, cewClient cew_lib.Api, httpTimeout time.Duration) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cewClient:      cewClient,

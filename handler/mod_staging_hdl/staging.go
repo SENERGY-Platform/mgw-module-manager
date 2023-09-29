@@ -20,7 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
@@ -42,11 +42,11 @@ type Handler struct {
 	transferHandler         handler.ModTransferHandler
 	modFileHandler          handler.ModFileHandler
 	configValidationHandler handler.CfgValidationHandler
-	cewClient               client.CewClient
+	cewClient               cew_lib.Api
 	httpTimeout             time.Duration
 }
 
-func New(workspacePath string, transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler, configValidationHandler handler.CfgValidationHandler, cewClient client.CewClient, httpTimeout time.Duration) *Handler {
+func New(workspacePath string, transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler, configValidationHandler handler.CfgValidationHandler, cewClient cew_lib.Api, httpTimeout time.Duration) *Handler {
 	return &Handler{
 		wrkSpcPath:              workspacePath,
 		transferHandler:         transferHandler,
