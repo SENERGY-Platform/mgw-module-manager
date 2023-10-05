@@ -124,7 +124,7 @@ func NewConfig(path string) (*Config, error) {
 			JHInterval:  500000,
 			MaxAge:      3600000000,
 		},
-		ManagerIDPath: "/opt/module-manager/mid",
+		ManagerIDPath: "/opt/module-manager/data/mid",
 	}
 	err := srv_base.LoadConfig(path, &cfg, nil, nil, nil)
 	return &cfg, err
