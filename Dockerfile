@@ -12,6 +12,7 @@ FROM alpine:3.18
 RUN mkdir -p /opt/module-manager
 WORKDIR /opt/module-manager
 RUN mkdir include
+RUN mkdir data
 COPY --from=builder /go/src/app/manager manager
 COPY --from=builder /go/src/app/include include
 
