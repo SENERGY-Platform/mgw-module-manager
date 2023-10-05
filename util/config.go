@@ -22,13 +22,13 @@ import (
 )
 
 type DatabaseConfig struct {
-	Host       string `json:"host" env_var:"DB_HOST"`
-	Port       uint   `json:"port" env_var:"DB_PORT"`
-	User       string `json:"user" env_var:"DB_USER"`
-	Passwd     string `json:"passwd" env_var:"DB_PASSWD"`
-	Name       string `json:"name" env_var:"DB_NAME"`
-	Timeout    int64  `json:"timeout" env_var:"DB_TIMEOUT"`
-	SchemaPath string `json:"schema_path" env_var:"DB_SCHEMA_PATH"`
+	Host       string                `json:"host" env_var:"DB_HOST"`
+	Port       uint                  `json:"port" env_var:"DB_PORT"`
+	User       string                `json:"user" env_var:"DB_USER"`
+	Passwd     srv_base.SecretString `json:"passwd" env_var:"DB_PASSWD"`
+	Name       string                `json:"name" env_var:"DB_NAME"`
+	Timeout    int64                 `json:"timeout" env_var:"DB_TIMEOUT"`
+	SchemaPath string                `json:"schema_path" env_var:"DB_SCHEMA_PATH"`
 }
 
 type HttpClientConfig struct {

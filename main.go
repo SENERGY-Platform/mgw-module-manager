@@ -132,7 +132,7 @@ func main() {
 
 	watchdog := srv_base.NewWatchdog(util.Logger, syscall.SIGINT, syscall.SIGTERM)
 
-	db, err := util.NewDB(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd, config.Database.Name)
+	db, err := util.NewDB(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd.String(), config.Database.Name)
 	if err != nil {
 		util.Logger.Error(err)
 		ec = 1
