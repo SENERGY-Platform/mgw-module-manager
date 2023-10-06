@@ -78,6 +78,7 @@ type Config struct {
 	HttpClient         HttpClientConfig         `json:"http_client" env_var:"HTTP_CLIENT_CONFIG"`
 	Jobs               JobsConfig               `json:"jobs" env_var:"JOBS_CONFIG"`
 	ManagerIDPath      string                   `json:"manager_id_path" env_var:"MANAGER_ID_PATH"`
+	CoreID             string                   `json:"core_id" env_var:"CORE_ID"`
 }
 
 func NewConfig(path string) (*Config, error) {

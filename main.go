@@ -159,7 +159,7 @@ func main() {
 
 	smClient := sm_client.NewClient(config.HttpClient.SmBaseUrl, http.DefaultClient)
 
-	depHandler := dep_hdl.New(depStorageHandler, cfgValidHandler, cewClient, hmClient, smClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, config.DepHandler.HostDepPath, config.DepHandler.HostSecPath, managerID, config.DepHandler.ModuleNet)
+	depHandler := dep_hdl.New(depStorageHandler, cfgValidHandler, cewClient, hmClient, smClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, config.DepHandler.HostDepPath, config.DepHandler.HostSecPath, managerID, config.DepHandler.ModuleNet, config.CoreID)
 	if err = depHandler.InitWorkspace(0770); err != nil {
 		util.Logger.Error(err)
 		ec = 1

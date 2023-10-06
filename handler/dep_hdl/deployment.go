@@ -54,10 +54,11 @@ type Handler struct {
 	depHostPath    string
 	secHostPath    string
 	managerID      string
+	coreID         string
 	moduleNet      string
 }
 
-func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient cew_lib.Api, hmClient hm_lib.Api, smClient sm_client.Client, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath, depHostPath, secHostPath, managerID, moduleNet string) *Handler {
+func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient cew_lib.Api, hmClient hm_lib.Api, smClient sm_client.Client, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath, depHostPath, secHostPath, managerID, moduleNet, coreID string) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cfgVltHandler:  cfgVltHandler,
@@ -70,6 +71,7 @@ func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgVali
 		depHostPath:    depHostPath,
 		secHostPath:    secHostPath,
 		managerID:      managerID,
+		coreID:         coreID,
 		moduleNet:      moduleNet,
 	}
 }
@@ -406,7 +408,7 @@ func (h *Handler) createVolumes(ctx context.Context, mVolumes []string, dID stri
 		var n string
 		n, err = h.cewClient.CreateVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.Volume{
 			Name:   name,
-			Labels: map[string]string{ManagerIDLabel: h.managerID, DeploymentIDLabel: dID},
+			Labels: map[string]string{CoreIDLabel: h.coreID, ManagerIDLabel: h.managerID, DeploymentIDLabel: dID},
 		})
 		if err != nil {
 			return model.NewInternalError(err)
