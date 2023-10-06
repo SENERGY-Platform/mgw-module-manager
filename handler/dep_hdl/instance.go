@@ -90,7 +90,7 @@ func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.
 			return model.DepInstance{}, model.NewInternalError(err)
 		}
 		mounts, devices := h.getMounts(srv, hostRes, secrets, dID, inclDir)
-		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, h.managerID, h.moduleNet, envVars, mounts, devices, getPorts(srv.Ports))
+		container := getContainer(srv, ref, getSrvName(iID, ref), dID, iID, h.managerID, h.moduleNet, h.coreID, envVars, mounts, devices, getPorts(srv.Ports))
 		var cID string
 		cID, err = h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container)
 		if err != nil {
@@ -302,14 +302,14 @@ func getPorts(sPorts []module.Port) (ports []cew_model.Port) {
 	return ports
 }
 
-func getContainer(srv *module.Service, ref, name, dID, iID, mID, moduleNet string, envVars map[string]string, mounts []cew_model.Mount, devices []cew_model.Device, ports []cew_model.Port) cew_model.Container {
+func getContainer(srv *module.Service, ref, name, dID, iID, mID, moduleNet, cID string, envVars map[string]string, mounts []cew_model.Mount, devices []cew_model.Device, ports []cew_model.Port) cew_model.Container {
 	retries := int(srv.RunConfig.MaxRetries)
 	stopTimeout := srv.RunConfig.StopTimeout
 	return cew_model.Container{
 		Name:    name,
 		Image:   srv.Image,
 		EnvVars: envVars,
-		Labels:  map[string]string{ManagerIDLabel: mID, DeploymentIDLabel: dID, InstanceIDLabel: iID, ServiceRefLabel: ref},
+		Labels:  map[string]string{CoreIDLabel: cID, ManagerIDLabel: mID, DeploymentIDLabel: dID, InstanceIDLabel: iID, ServiceRefLabel: ref},
 		Mounts:  mounts,
 		Devices: devices,
 		Ports:   ports,

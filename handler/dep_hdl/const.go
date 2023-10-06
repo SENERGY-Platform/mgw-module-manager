@@ -17,6 +17,7 @@
 package dep_hdl
 
 const (
+	CoreIDLabel       = "mgw_cid"
 	ManagerIDLabel    = "mgw_mid"
 	DeploymentIDLabel = "mgw_did"
 	InstanceIDLabel   = "mgw_iid"
