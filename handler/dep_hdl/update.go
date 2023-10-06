@@ -64,6 +64,8 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 		defer func() {
 			if err != nil {
 				os.RemoveAll(path.Join(h.wrkSpcPath, newDep.Dir))
+			} else {
+				os.RemoveAll(path.Join(h.wrkSpcPath, oldDep.Dir))
 			}
 		}()
 	}
@@ -114,9 +116,6 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	err = tx.Commit()
 	if err != nil {
 		return h.restore(model.NewInternalError(err), oldDep)
-	}
-	if err := os.RemoveAll(path.Join(h.wrkSpcPath, oldDep.Dir)); err != nil {
-		return err
 	}
 	if err := h.removeInstance(ctx, oldDep); err != nil {
 		return err
