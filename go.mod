@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/SENERGY-Platform/gin-middleware v0.4.2
 	github.com/SENERGY-Platform/go-cc-job-handler v0.1.1
-	github.com/SENERGY-Platform/go-service-base v0.12.0
+	github.com/SENERGY-Platform/go-service-base v0.13.0
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.8.0
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.9.1
 	github.com/SENERGY-Platform/mgw-host-manager/client v0.3.0
