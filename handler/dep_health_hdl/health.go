@@ -28,9 +28,10 @@ import (
 type Handler struct {
 	cewClient   cew_lib.Api
 	httpTimeout time.Duration
+	managerID   string
 }
 
-func New(cewClient cew_lib.Api, httpTimeout time.Duration) *Handler {
+func New(cewClient cew_lib.Api, httpTimeout time.Duration, managerID string) *Handler {
 	return &Handler{
 		cewClient:   cewClient,
 		httpTimeout: httpTimeout,

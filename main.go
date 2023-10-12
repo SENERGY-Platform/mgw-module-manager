@@ -166,7 +166,7 @@ func main() {
 		return
 	}
 
-	depHealthHandler := dep_health_hdl.New(cewClient, time.Duration(config.HttpClient.Timeout))
+	depHealthHandler := dep_health_hdl.New(cewClient, time.Duration(config.HttpClient.Timeout), managerID)
 
 	ccHandler := ccjh.New(config.Jobs.BufferSize)
 
