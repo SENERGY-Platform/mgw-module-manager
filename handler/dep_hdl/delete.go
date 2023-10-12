@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
@@ -71,7 +72,7 @@ func (h *Handler) delete(ctx context.Context, dep model.Deployment) error {
 	}
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	volumes, err := h.cewClient.GetVolumes(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.VolumeFilter{Labels: map[string]string{DeploymentIDLabel: dep.ID}})
+	volumes, err := h.cewClient.GetVolumes(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.VolumeFilter{Labels: map[string]string{handler.DeploymentIDLabel: dep.ID}})
 	if err != nil {
 		return err
 	}

@@ -21,6 +21,7 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
@@ -129,7 +130,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 func (h *Handler) diffVolumes(ctx context.Context, volumes ml_util.Set[string], dID string) ([]string, []string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
 	defer cf()
-	vols, err := h.cewClient.GetVolumes(ctxWt, cew_model.VolumeFilter{Labels: map[string]string{DeploymentIDLabel: dID}})
+	vols, err := h.cewClient.GetVolumes(ctxWt, cew_model.VolumeFilter{Labels: map[string]string{handler.DeploymentIDLabel: dID}})
 	if err != nil {
 		return nil, nil, err
 	}

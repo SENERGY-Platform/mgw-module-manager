@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dep_hdl
+package handler
 
 const (
 	CoreIDLabel       = "mgw_cid"

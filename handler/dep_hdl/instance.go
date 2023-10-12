@@ -24,6 +24,7 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/cew_job"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
@@ -309,7 +310,7 @@ func getContainer(srv *module.Service, ref, name, dID, iID, mID, moduleNet, cID 
 		Name:    name,
 		Image:   srv.Image,
 		EnvVars: envVars,
-		Labels:  map[string]string{CoreIDLabel: cID, ManagerIDLabel: mID, DeploymentIDLabel: dID, InstanceIDLabel: iID, ServiceRefLabel: ref},
+		Labels:  map[string]string{handler.CoreIDLabel: cID, handler.ManagerIDLabel: mID, handler.DeploymentIDLabel: dID, handler.InstanceIDLabel: iID, handler.ServiceRefLabel: ref},
 		Mounts:  mounts,
 		Devices: devices,
 		Ports:   ports,
