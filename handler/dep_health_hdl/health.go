@@ -18,10 +18,11 @@ package dep_health_hdl
 
 import (
 	"context"
+	"fmt"
 	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"time"
 )
 
@@ -35,18 +36,65 @@ func New(cewClient cew_lib.Api, httpTimeout time.Duration, managerID string) *Ha
 	return &Handler{
 		cewClient:   cewClient,
 		httpTimeout: httpTimeout,
+		managerID:   managerID,
 	}
 }
 
-func (h *Handler) checkContainers(ctx context.Context, containers []model.Container) (model.HealthStatus, []model.CtrHealthInfo, error) {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
+func (h *Handler) List(ctx context.Context, instances map[string]model.DepInstance) (map[string]model.DepHealthInfo, error) {
+	ctrMap, err := h.getContainersMap(ctx)
+	if err != nil {
+		return nil, err
+	}
+	healthInfo := make(map[string]model.DepHealthInfo)
+	for dID, instance := range instances {
+		status, ctrHealthInfo, err := checkContainers(instance.Containers, ctrMap)
+		if err != nil {
+			return nil, err
+		}
+		healthInfo[dID] = model.DepHealthInfo{
+			Status:     status,
+			Containers: ctrHealthInfo,
+		}
+	}
+	return healthInfo, nil
+}
+
+func (h *Handler) Get(ctx context.Context, instance model.DepInstance) (model.DepHealthInfo, error) {
+	ctrMap, err := h.getContainersMap(ctx)
+	if err != nil {
+		return model.DepHealthInfo{}, err
+	}
+	status, ctrHealthInfo, err := checkContainers(instance.Containers, ctrMap)
+	if err != nil {
+		return model.DepHealthInfo{}, err
+	}
+	return model.DepHealthInfo{
+		Status:     status,
+		Containers: ctrHealthInfo,
+	}, nil
+}
+
+func (h *Handler) getContainersMap(ctx context.Context) (map[string]cew_model.Container, error) {
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	containers, err := h.cewClient.GetContainers(ctxWt, cew_model.ContainerFilter{Labels: map[string]string{handler.ManagerIDLabel: h.managerID}})
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	ctrMap := make(map[string]cew_model.Container)
+	for _, container := range containers {
+		ctrMap[container.ID] = container
+	}
+	return ctrMap, nil
+}
+
+func checkContainers(containers []model.Container, containersMap map[string]cew_model.Container) (model.HealthStatus, []model.CtrHealthInfo, error) {
 	var status model.HealthStatus
 	var ctrHealthInfo []model.CtrHealthInfo
 	for _, container := range containers {
-		ctr, err := h.cewClient.GetContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container.ID)
-		if err != nil {
-			return "", nil, model.NewInternalError(err)
+		ctr, ok := containersMap[container.ID]
+		if !ok {
+			return "", nil, model.NewInternalError(fmt.Errorf("container '%s' not in map", container.ID))
 		}
 		if status == "" {
 			if ctr.Health != nil {
@@ -75,30 +123,4 @@ func (h *Handler) checkContainers(ctx context.Context, containers []model.Contai
 		status = model.DepHealthy
 	}
 	return status, ctrHealthInfo, nil
-}
-
-func (h *Handler) List(ctx context.Context, instances map[string]model.DepInstance) (map[string]model.DepHealthInfo, error) {
-	healthInfo := make(map[string]model.DepHealthInfo)
-	for dID, instance := range instances {
-		status, ctrHealthInfo, err := h.checkContainers(ctx, instance.Containers)
-		if err != nil {
-			return nil, err
-		}
-		healthInfo[dID] = model.DepHealthInfo{
-			Status:     status,
-			Containers: ctrHealthInfo,
-		}
-	}
-	return healthInfo, nil
-}
-
-func (h *Handler) Get(ctx context.Context, instance model.DepInstance) (model.DepHealthInfo, error) {
-	status, ctrHealthInfo, err := h.checkContainers(ctx, instance.Containers)
-	if err != nil {
-		return model.DepHealthInfo{}, err
-	}
-	return model.DepHealthInfo{
-		Status:     status,
-		Containers: ctrHealthInfo,
-	}, nil
 }
