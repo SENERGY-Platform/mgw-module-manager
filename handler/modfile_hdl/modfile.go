@@ -24,10 +24,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"gopkg.in/yaml.v3"
 	"io/fs"
-	"strings"
+	"regexp"
 )
-
-const fileName = "Modfile"
 
 type Handler struct {
 	mfDecoders   modfile.Decoders
@@ -61,11 +59,11 @@ func (h *Handler) GetModFile(dir dir_fs.DirFS) (fs.File, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
+	re := regexp.MustCompile(`^Modfile\.(?:yml|yaml)$`)
 	for _, entry := range dirEntries {
 		if !entry.IsDir() {
 			eName := entry.Name()
-			// [REMINDER] this will yield false positives, should use regex instead
-			if strings.Contains(eName, fileName) {
+			if re.MatchString(eName) {
 				f, err := dir.Open(eName)
 				if err != nil {
 					return nil, "", err
