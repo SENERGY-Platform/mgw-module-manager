@@ -17,9 +17,14 @@
 package util
 
 import (
+	"bufio"
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
+	"io"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -38,4 +43,63 @@ func NewDB(addr string, port uint, user string, pw string, name string) (*sql.DB
 	db.SetMaxIdleConns(25)
 	db.SetConnMaxLifetime(5 * time.Minute)
 	return db, nil
+}
+
+func InitDB(ctx context.Context, db *sql.DB, schemaPath string, delay time.Duration) error {
+	err := waitForDB(ctx, db, delay)
+	if err != nil {
+		return err
+	}
+	file, err := os.Open(schemaPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	reader := bufio.NewReader(file)
+	var stmts []string
+	for {
+		stmt, err := reader.ReadString(';')
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		stmts = append(stmts, strings.TrimSuffix(stmt, ";"))
+	}
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for _, stmt := range stmts {
+		_, err = tx.ExecContext(ctx, stmt)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+func waitForDB(ctx context.Context, db *sql.DB, delay time.Duration) error {
+	err := db.PingContext(ctx)
+	if err == nil {
+		return nil
+	} else {
+		Logger.Error(err)
+	}
+	ticker := time.NewTicker(delay)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			err = db.PingContext(ctx)
+			if err == nil {
+				return nil
+			} else {
+				Logger.Error(err)
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
 }

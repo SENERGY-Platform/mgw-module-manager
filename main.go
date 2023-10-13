@@ -262,7 +262,7 @@ func main() {
 
 	go func() {
 		defer dbCF()
-		if err = depStorageHandler.Init(dbCtx, config.Database.SchemaPath, time.Second*5); err != nil {
+		if err = util.InitDB(dbCtx, db, config.Database.SchemaPath, time.Second*5); err != nil {
 			util.Logger.Error(err)
 			ec = 1
 			watchdog.Trigger()
