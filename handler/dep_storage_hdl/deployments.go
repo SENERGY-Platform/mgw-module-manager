@@ -29,24 +29,6 @@ import (
 	"time"
 )
 
-const tLayout = "2006-01-02 15:04:05.000000"
-
-type Handler struct {
-	db *sql.DB
-}
-
-func New(db *sql.DB) *Handler {
-	return &Handler{db: db}
-}
-
-func (h *Handler) BeginTransaction(ctx context.Context) (driver.Tx, error) {
-	tx, e := h.db.BeginTx(ctx, nil)
-	if e != nil {
-		return nil, model.NewInternalError(e)
-	}
-	return tx, nil
-}
-
 func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error) {
 	q := "SELECT `id`, `mod_id`, `mod_ver`, `name`, `dir`, `enabled`, `indirect`, `created`, `updated` FROM `deployments`"
 	fc, val := genListDepFilter(filter)
@@ -227,137 +209,6 @@ func (h *Handler) DeleteDep(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *Handler) ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.Instance, error) {
-	q := "SELECT `id`, `dep_id`, `created` FROM `instances`"
-	fc, val := genListInstFilter(filter)
-	if fc != "" {
-		q += fc
-	}
-	rows, err := h.db.QueryContext(ctx, q+" ORDER BY `created`", val...)
-	if err != nil {
-		return nil, model.NewInternalError(err)
-	}
-	defer rows.Close()
-	var dims []model.Instance
-	for rows.Next() {
-		var dim model.Instance
-		var ct []uint8
-		if err = rows.Scan(&dim.ID, &dim.DepID, &ct); err != nil {
-			return nil, model.NewInternalError(err)
-		}
-		tc, err := time.Parse(tLayout, string(ct))
-		if err != nil {
-			return nil, model.NewInternalError(err)
-		}
-		dim.Created = tc
-		dims = append(dims, dim)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, model.NewInternalError(err)
-	}
-	return dims, nil
-}
-
-func (h *Handler) ListInstCtr(ctx context.Context, iID string, filter model.CtrFilter) ([]model.Container, error) {
-	q := "SELECT `srv_ref`, `order`, `ctr_id` FROM `inst_containers` WHERE `inst_id` = ? ORDER BY `order` "
-	switch filter.SortOrder {
-	case model.Ascending:
-		q += "ASC"
-	case model.Descending:
-		q += "DESC"
-	default:
-		return nil, model.NewInvalidInputError(errors.New("invalid sort direction"))
-	}
-	rows, err := h.db.QueryContext(ctx, q, iID)
-	if err != nil {
-		return nil, model.NewInternalError(err)
-	}
-	defer rows.Close()
-	var containers []model.Container
-	for rows.Next() {
-		var ctr model.Container
-		if err = rows.Scan(&ctr.Ref, &ctr.Order, &ctr.ID); err != nil {
-			return nil, model.NewInternalError(err)
-		}
-		containers = append(containers, ctr)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, model.NewInternalError(err)
-	}
-	return containers, nil
-}
-
-func (h *Handler) CreateInst(ctx context.Context, itf driver.Tx, dID string, timestamp time.Time) (string, error) {
-	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "INSERT INTO `instances` (`id`, `dep_id`, `created`) VALUES (UUID(), ?, ?)", dID, timestamp)
-	if err != nil {
-		return "", model.NewInternalError(err)
-	}
-	i, err := res.LastInsertId()
-	if err != nil {
-		return "", model.NewInternalError(err)
-	}
-	row := tx.QueryRowContext(ctx, "SELECT `id` FROM `instances` WHERE `index` = ?", i)
-	var id string
-	if err = row.Scan(&id); err != nil {
-		return "", model.NewInternalError(err)
-	}
-	if id == "" {
-		return "", model.NewInternalError(errors.New("generating id failed"))
-	}
-	return id, nil
-}
-
-func (h *Handler) ReadInst(ctx context.Context, id string) (model.Instance, error) {
-	row := h.db.QueryRowContext(ctx, "SELECT `id`, `dep_id`, `created` FROM `instances` WHERE `id` = ?", id)
-	var dim model.Instance
-	var ct []uint8
-	err := row.Scan(&dim.ID, &dim.DepID, &ct)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return model.Instance{}, model.NewNotFoundError(err)
-		}
-		return model.Instance{}, model.NewInternalError(err)
-	}
-	tc, err := time.Parse(tLayout, string(ct))
-	if err != nil {
-		return model.Instance{}, model.NewInternalError(err)
-	}
-	dim.Created = tc
-	return dim, nil
-}
-
-func (h *Handler) DeleteInst(ctx context.Context, id string) error {
-	res, err := h.db.ExecContext(ctx, "DELETE FROM `instances` WHERE `id` = ?", id)
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	n, err := res.RowsAffected()
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	if n < 1 {
-		return model.NewNotFoundError(errors.New("no rows affected"))
-	}
-	return nil
-}
-
-func (h *Handler) CreateInstCtr(ctx context.Context, itf driver.Tx, iID string, ctr model.Container) error {
-	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "INSERT INTO `inst_containers` (`inst_id`, `srv_ref`, `order`, `ctr_id`) VALUES (?, ?, ?, ?)", iID, ctr.Ref, ctr.Order, ctr.ID)
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	n, err := res.RowsAffected()
-	if err != nil {
-		return model.NewInternalError(err)
-	}
-	if n < 1 {
-		return model.NewNotFoundError(errors.New("no rows affected"))
-	}
-	return nil
-}
-
 func (h *Handler) createDepConfigs(ctx context.Context, tx *sql.Tx, dID string, depConfigs map[string]model.DepConfig) error {
 	stmtMap := make(map[string]*sql.Stmt)
 	defer func() {
@@ -482,6 +333,199 @@ func (h *Handler) deleteDepSecrets(ctx context.Context, tx *sql.Tx, dID string) 
 	return nil
 }
 
+func selectDeployment(ctx context.Context, qwf func(context.Context, string, ...any) *sql.Row, depID string) (model.DepBase, error) {
+	row := qwf(ctx, "SELECT `id`, `mod_id`, `mod_ver`, `name`, `dir`, `enabled`, `indirect`, `created`, `updated` FROM `deployments` WHERE `id` = ?", depID)
+	var depBase model.DepBase
+	var depModule model.DepModule
+	var ct, ut []uint8
+	err := row.Scan(&depBase.ID, &depModule.ID, &depModule.Version, &depBase.Name, &depBase.Dir, &depBase.Enabled, &depBase.Indirect, &ct, &ut)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return model.DepBase{}, model.NewNotFoundError(err)
+		}
+		return model.DepBase{}, model.NewInternalError(err)
+	}
+	tc, err := time.Parse(tLayout, string(ct))
+	if err != nil {
+		return model.DepBase{}, model.NewInternalError(err)
+	}
+	tu, err := time.Parse(tLayout, string(ut))
+	if err != nil {
+		return model.DepBase{}, model.NewInternalError(err)
+	}
+	depBase.Module = depModule
+	depBase.Created = tc
+	depBase.Updated = tu
+	return depBase, nil
+}
+
+func selectHostResources(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), depID string) (map[string]string, error) {
+	rows, err := qf(ctx, "SELECT `ref`, `res_id` FROM `host_resources` WHERE `dep_id` = ?", depID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	m := make(map[string]string)
+	for rows.Next() {
+		var ref, rID string
+		if err = rows.Scan(&ref, &rID); err != nil {
+			return nil, err
+		}
+		m[ref] = rID
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func selectSecrets(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), depID string) (map[string]model.DepSecret, error) {
+	rows, err := qf(ctx, "SELECT `ref`, `sec_id`, `item`, `as_mount`, `as_env` FROM `secrets` WHERE `dep_id` = ?", depID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	m := make(map[string]model.DepSecret)
+	for rows.Next() {
+		var ref, sID string
+		var item *string
+		var asMount, asEnv bool
+		if err = rows.Scan(&ref, &sID, &item, &asMount, &asEnv); err != nil {
+			return nil, err
+		}
+		ds, ok := m[ref]
+		if !ok {
+			ds.ID = sID
+		}
+		ds.Variants = append(ds.Variants, model.DepSecretVariant{
+			Item:    item,
+			AsMount: asMount,
+			AsEnv:   asEnv,
+		})
+		m[ref] = ds
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func selectConfigs(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), depID string, m map[string]model.DepConfig) error {
+	cfgRows, err := qf(ctx, "SELECT `ref`, `v_string`, `v_int`, `v_float`, `v_bool` FROM `configs` WHERE `dep_id` = ?", depID)
+	if err != nil {
+		return err
+	}
+	defer cfgRows.Close()
+	for cfgRows.Next() {
+		var ref string
+		var vString sql.NullString
+		var vInt sql.NullInt64
+		var vFloat sql.NullFloat64
+		var vBool sql.NullBool
+		if err = cfgRows.Scan(&ref, &vString, &vInt, &vFloat, &vBool); err != nil {
+			return err
+		}
+		dc := model.DepConfig{}
+		if vString.Valid {
+			dc.Value = vString.String
+			dc.DataType = module.StringType
+		} else if vInt.Valid {
+			dc.Value = vInt.Int64
+			dc.DataType = module.Int64Type
+		} else if vFloat.Valid {
+			dc.Value = vFloat.Float64
+			dc.DataType = module.Float64Type
+		} else if vBool.Valid {
+			dc.Value = vBool.Bool
+			dc.DataType = module.BoolType
+		}
+		m[ref] = dc
+	}
+	if err = cfgRows.Err(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func selectListConfigs(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), depID string, m map[string]model.DepConfig) error {
+	lstCfgRows, err := qf(ctx, "SELECT `ref`, `ord`, `v_string`, `v_int`, `v_float`, `v_bool` FROM `list_configs` WHERE `dep_id` = ? ORDER BY `ref`, `ord`", depID)
+	if err != nil {
+		return err
+	}
+	defer lstCfgRows.Close()
+	for lstCfgRows.Next() {
+		var ref string
+		var ord int
+		var vString sql.NullString
+		var vInt sql.NullInt64
+		var vFloat sql.NullFloat64
+		var vBool sql.NullBool
+		if err = lstCfgRows.Scan(&ref, &ord, &vString, &vInt, &vFloat, &vBool); err != nil {
+			return err
+		}
+		dc, ok := m[ref]
+		if !ok {
+			dc = model.DepConfig{IsSlice: true}
+			if vString.Valid {
+				dc.Value = []string{}
+				dc.DataType = module.StringType
+			} else if vInt.Valid {
+				dc.Value = []int64{}
+				dc.DataType = module.Int64Type
+			} else if vFloat.Valid {
+				dc.Value = []float64{}
+				dc.DataType = module.Float64Type
+			} else if vBool.Valid {
+				dc.Value = []bool{}
+				dc.DataType = module.BoolType
+			}
+		}
+		switch dc.DataType {
+		case module.StringType:
+			dc.Value = append(dc.Value.([]string), vString.String)
+		case module.Int64Type:
+			dc.Value = append(dc.Value.([]int64), vInt.Int64)
+		case module.Float64Type:
+			dc.Value = append(dc.Value.([]float64), vFloat.Float64)
+		case module.BoolType:
+			dc.Value = append(dc.Value.([]bool), vBool.Bool)
+		}
+		m[ref] = dc
+	}
+	if err = lstCfgRows.Err(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func selectRequiredDep(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), dID string) ([]string, error) {
+	return selectReq(ctx, qf, "SELECT `req_id` FROM `dependencies` WHERE `dep_id` = ?", dID)
+}
+
+func selectDepRequiring(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), dID string) ([]string, error) {
+	return selectReq(ctx, qf, "SELECT `dep_id` FROM `dependencies` WHERE `req_id` = ?", dID)
+}
+
+func selectReq(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), query, dID string) ([]string, error) {
+	rows, err := qf(ctx, query, dID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var IDs []string
+	for rows.Next() {
+		var id string
+		if err = rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		IDs = append(IDs, id)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return IDs, nil
+}
+
 func genListDepFilter(filter model.DepFilter) (string, []any) {
 	var fc []string
 	var val []any
@@ -496,19 +540,6 @@ func genListDepFilter(filter model.DepFilter) (string, []any) {
 	if filter.Indirect {
 		fc = append(fc, "`indirect` = ?")
 		val = append(val, filter.Indirect)
-	}
-	if len(fc) > 0 {
-		return " WHERE " + strings.Join(fc, " AND "), val
-	}
-	return "", nil
-}
-
-func genListInstFilter(filter model.DepInstFilter) (string, []any) {
-	var fc []string
-	var val []any
-	if filter.DepID != "" {
-		fc = append(fc, "`dep_id` = ?")
-		val = append(val, filter.DepID)
 	}
 	if len(fc) > 0 {
 		return " WHERE " + strings.Join(fc, " AND "), val
