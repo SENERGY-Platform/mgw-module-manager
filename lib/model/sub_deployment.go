@@ -28,14 +28,14 @@ type SubDepBase struct {
 type SubDeployment struct {
 	ID string `json:"id"` // uuid
 	SubDepBase
-	Ref     string    `json:"ref"`    // container name: mgw-sd- + SubDeployment:ID
-	CtrID   string    `json:"ctr_id"` // docker container id
-	Created time.Time `json:"created"`
-	Updated time.Time `json:"updated"`
+	Ref     string           `json:"ref"`    // container name: mgw-sd- + SubDeployment:ID
+	CtrID   string           `json:"ctr_id"` // docker container id
+	CtrInfo *SubDepContainer `json:"ctr_info"`
+	Created time.Time        `json:"created"`
+	Updated time.Time        `json:"updated"`
 }
 
 type SubDepContainer struct {
-	ID      string `json:"id"`       // docker container id
 	ImageID string `json:"image_id"` // docker image id
 	State   string `json:"state"`    // docker container state
 }
