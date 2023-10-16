@@ -102,6 +102,16 @@ type DepHealthHandler interface {
 	Get(ctx context.Context, instance model.DepInstance) (model.DepHealthInfo, error)
 }
 
+type SubDeploymentHandler interface {
+	List(ctx context.Context, filter model.SubDepFilter) ([]model.SubDeployment, error)
+	Get(ctx context.Context, id string) (model.SubDeployment, error)
+	Create(ctx context.Context, sdReq model.SubDepRequest) (string, error)
+	Update(ctx context.Context, id string, sdReq model.SubDepRequest) error
+	Delete(ctx context.Context, id string) error
+	Start(ctx context.Context, id string) error
+	Stop(ctx context.Context, id string) error
+}
+
 type CfgValidationHandler interface {
 	ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error
 	ValidateTypeOptions(cType string, cTypeOpt module.ConfigTypeOptions) error
