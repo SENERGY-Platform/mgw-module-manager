@@ -19,10 +19,11 @@ package model
 import "time"
 
 type SubDepBase struct {
-	DepID  string            `json:"dep_id"`
-	Image  string            `json:"image"`
-	Labels map[string]string `json:"labels"`
-	Name   *string           `json:"name"`
+	DepID   string            `json:"dep_id"`
+	Image   string            `json:"image"`
+	Labels  map[string]string `json:"labels"`
+	Configs map[string]string `json:"configs"`
+	Name    *string           `json:"name"`
 }
 
 type SubDeployment struct {
@@ -38,11 +39,6 @@ type SubDeployment struct {
 type SubDepContainer struct {
 	ImageID string `json:"image_id"` // docker image id
 	State   string `json:"state"`    // docker container state
-}
-
-type SubDepRequest struct {
-	SubDepBase
-	EnvVars map[string]string `json:"env_vars"`
 }
 
 type SubDepFilter struct {

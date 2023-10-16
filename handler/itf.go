@@ -105,8 +105,8 @@ type DepHealthHandler interface {
 type SubDeploymentHandler interface {
 	List(ctx context.Context, filter model.SubDepFilter, ctrInfo bool) ([]model.SubDeployment, error)
 	Get(ctx context.Context, id string, ctrInfo bool) (model.SubDeployment, error)
-	Create(ctx context.Context, sdReq model.SubDepRequest) (string, error)
-	Update(ctx context.Context, id string, sdReq model.SubDepRequest) error
+	Create(ctx context.Context, sdReq model.SubDepBase) (string, error)
+	Update(ctx context.Context, id string, sdReq model.SubDepBase) error
 	Delete(ctx context.Context, id string) error
 	Start(ctx context.Context, id string) error
 	Stop(ctx context.Context, id string) error

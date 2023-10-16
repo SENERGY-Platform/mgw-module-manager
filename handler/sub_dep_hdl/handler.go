@@ -54,11 +54,11 @@ func (h *Handler) Get(ctx context.Context, id string, ctrInfo bool) (model.SubDe
 	panic("not implemented")
 }
 
-func (h *Handler) Create(ctx context.Context, sdReq model.SubDepRequest) (string, error) {
+func (h *Handler) Create(ctx context.Context, sdReq model.SubDepBase) (string, error) {
 	panic("not implemented")
 }
 
-func (h *Handler) Update(ctx context.Context, id string, sdReq model.SubDepRequest) error {
+func (h *Handler) Update(ctx context.Context, id string, sdReq model.SubDepBase) error {
 	panic("not implemented")
 }
 
