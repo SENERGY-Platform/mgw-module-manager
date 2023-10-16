@@ -26,7 +26,7 @@ type SubDepBase struct {
 }
 
 type SubDeployment struct {
-	ID string `json:"id"` // uuid
+	ID string `json:"id"`
 	SubDepBase
 	Ref     string           `json:"ref"`    // container name: mgw-sd- + SubDeployment:ID
 	CtrID   string           `json:"ctr_id"` // docker container id
