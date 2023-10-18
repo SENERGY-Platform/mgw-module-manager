@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS `aux_deployments`
     `ctr_id`  VARCHAR(256)          NOT NULL,
     `created` TIMESTAMP(6)          NOT NULL,
     `updated` TIMESTAMP(6)          NOT NULL,
+    `type`    VARCHAR(256)          NULL,
     `name`    VARCHAR(256)          NULL,
     UNIQUE KEY (`id`),
     PRIMARY KEY (`index`),
