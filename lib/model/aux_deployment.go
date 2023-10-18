@@ -18,7 +18,7 @@ package model
 
 import "time"
 
-type SubDepBase struct {
+type AuxDepBase struct {
 	DepID   string            `json:"dep_id"`
 	Image   string            `json:"image"`
 	Labels  map[string]string `json:"labels"`
@@ -26,22 +26,22 @@ type SubDepBase struct {
 	Name    *string           `json:"name"`
 }
 
-type SubDeployment struct {
+type AuxDeployment struct {
 	ID string `json:"id"`
-	SubDepBase
-	Ref     string           `json:"ref"`    // container name: mgw-sd- + SubDeployment:ID
+	AuxDepBase
+	Ref     string           `json:"ref"`    // container alias: mgw-sd- + SubDeployment:ID
 	CtrID   string           `json:"ctr_id"` // docker container id
-	CtrInfo *SubDepContainer `json:"ctr_info"`
+	CtrInfo *AuxDepContainer `json:"ctr_info"`
 	Created time.Time        `json:"created"`
 	Updated time.Time        `json:"updated"`
 }
 
-type SubDepContainer struct {
+type AuxDepContainer struct {
 	ImageID string `json:"image_id"` // docker image id
 	State   string `json:"state"`    // docker container state
 }
 
-type SubDepFilter struct {
+type AuxDepFilter struct {
 	Labels map[string]string `json:"labels"`
 	Image  string            `json:"image"`
 	State  string            `json:"state"`

@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS `list_configs`
     PRIMARY KEY (`index`),
     FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 );
-CREATE TABLE IF NOT EXISTS `sub_deployments`
+CREATE TABLE IF NOT EXISTS `aux_deployments`
 (
     `index`   BIGINT AUTO_INCREMENT NOT NULL,
     `id`      CHAR(36)              NOT NULL,
@@ -107,23 +107,23 @@ CREATE TABLE IF NOT EXISTS `sub_deployments`
     PRIMARY KEY (`index`),
     FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 );
-CREATE TABLE IF NOT EXISTS `sd_labels`
+CREATE TABLE IF NOT EXISTS `aux_labels`
 (
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `sd_id` CHAR(36)              NOT NULL,
-    `key`   VARCHAR(256)          NOT NULL,
-    `value` VARCHAR(512),
-    UNIQUE KEY (`sd_id`, `key`),
+    `index`  BIGINT AUTO_INCREMENT NOT NULL,
+    `aux_id` CHAR(36)              NOT NULL,
+    `key`    VARCHAR(256)          NOT NULL,
+    `value`  VARCHAR(512),
+    UNIQUE KEY (aux_id, `key`),
     PRIMARY KEY (`index`),
-    FOREIGN KEY (`sd_id`) REFERENCES `sub_deployments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+    FOREIGN KEY (aux_id) REFERENCES `aux_deployments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 );
-CREATE TABLE IF NOT EXISTS `sd_configs`
+CREATE TABLE IF NOT EXISTS `aux_configs`
 (
-    `index` BIGINT AUTO_INCREMENT NOT NULL,
-    `sd_id` CHAR(36)              NOT NULL,
-    `ref`   VARCHAR(256)          NOT NULL,
-    `value` VARCHAR(512),
-    UNIQUE KEY (`sd_id`, `ref`),
+    `index`  BIGINT AUTO_INCREMENT NOT NULL,
+    `aux_id` CHAR(36)              NOT NULL,
+    `ref`    VARCHAR(256)          NOT NULL,
+    `value`  VARCHAR(512),
+    UNIQUE KEY (`aux_id`, `ref`),
     PRIMARY KEY (`index`),
-    FOREIGN KEY (`sd_id`) REFERENCES `sub_deployments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+    FOREIGN KEY (`aux_id`) REFERENCES `aux_deployments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 );

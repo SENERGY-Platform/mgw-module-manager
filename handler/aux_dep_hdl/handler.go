@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package sub_dep_hdl
+package aux_dep_hdl
 
 import (
 	"context"
@@ -46,19 +46,19 @@ func New(storageHandler handler.DepStorageHandler, cewClient cew_lib.Api, dbTime
 	}
 }
 
-func (h *Handler) List(ctx context.Context, filter model.SubDepFilter, ctrInfo bool) ([]model.SubDeployment, error) {
+func (h *Handler) List(ctx context.Context, filter model.AuxDepFilter, ctrInfo bool) ([]model.AuxDeployment, error) {
 	panic("not implemented")
 }
 
-func (h *Handler) Get(ctx context.Context, id string, ctrInfo bool) (model.SubDeployment, error) {
+func (h *Handler) Get(ctx context.Context, id string, ctrInfo bool) (model.AuxDeployment, error) {
 	panic("not implemented")
 }
 
-func (h *Handler) Create(ctx context.Context, sdReq model.SubDepBase) (string, error) {
+func (h *Handler) Create(ctx context.Context, sdReq model.AuxDepBase) (string, error) {
 	panic("not implemented")
 }
 
-func (h *Handler) Update(ctx context.Context, id string, sdReq model.SubDepBase) error {
+func (h *Handler) Update(ctx context.Context, id string, sdReq model.AuxDepBase) error {
 	panic("not implemented")
 }
 
