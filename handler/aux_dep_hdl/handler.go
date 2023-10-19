@@ -46,30 +46,42 @@ func New(storageHandler handler.AuxDepStorageHandler, cewClient cew_lib.Api, dbT
 	}
 }
 
-func (h *Handler) List(ctx context.Context, filter model.AuxDepFilter, ctrInfo bool) ([]model.AuxDeployment, error) {
+func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilter, ctrInfo bool) ([]model.AuxDeployment, error) {
 	panic("not implemented")
 }
 
-func (h *Handler) Get(ctx context.Context, id string, ctrInfo bool) (model.AuxDeployment, error) {
+func (h *Handler) Get(ctx context.Context, dID, aID string, ctrInfo bool) (model.AuxDeployment, error) {
 	panic("not implemented")
 }
 
-func (h *Handler) Create(ctx context.Context, sdReq model.AuxDepBase) (string, error) {
+func (h *Handler) Create(ctx context.Context, auxReq model.AuxDepBase) (string, error) {
 	panic("not implemented")
 }
 
-func (h *Handler) Update(ctx context.Context, id string, sdReq model.AuxDepBase) error {
+func (h *Handler) Update(ctx context.Context, aID string, sdReq model.AuxDepBase) error {
 	panic("not implemented")
 }
 
-func (h *Handler) Delete(ctx context.Context, id string) error {
+func (h *Handler) Delete(ctx context.Context, dID, aID string) error {
 	panic("not implemented")
 }
 
-func (h *Handler) Start(ctx context.Context, id string) error {
+func (h *Handler) DeleteAll(ctx context.Context, dID string, filter model.AuxDepFilter) error {
 	panic("not implemented")
 }
 
-func (h *Handler) Stop(ctx context.Context, id string) error {
+func (h *Handler) Start(ctx context.Context, dID, aID string) error {
+	panic("not implemented")
+}
+
+func (h *Handler) StartAll(ctx context.Context, dID string, filter model.AuxDepFilter) error {
+	panic("not implemented")
+}
+
+func (h *Handler) Stop(ctx context.Context, dID, aID string) error {
+	panic("not implemented")
+}
+
+func (h *Handler) StopAll(ctx context.Context, dID string, filter model.AuxDepFilter) error {
 	panic("not implemented")
 }
