@@ -112,9 +112,9 @@ CREATE TABLE IF NOT EXISTS `aux_labels`
 (
     `index`  BIGINT AUTO_INCREMENT NOT NULL,
     `aux_id` CHAR(36)              NOT NULL,
-    `key`    VARCHAR(256)          NOT NULL,
+    `name`   VARCHAR(256)          NOT NULL,
     `value`  VARCHAR(512),
-    UNIQUE KEY (aux_id, `key`),
+    UNIQUE KEY (aux_id, `name`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (aux_id) REFERENCES `aux_deployments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 );
