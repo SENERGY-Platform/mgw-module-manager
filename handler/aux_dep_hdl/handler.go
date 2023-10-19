@@ -19,6 +19,7 @@ package aux_dep_hdl
 import (
 	"context"
 	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
+	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"time"
@@ -84,4 +85,18 @@ func (h *Handler) Stop(ctx context.Context, dID, aID string) error {
 
 func (h *Handler) StopAll(ctx context.Context, dID string, filter model.AuxDepFilter) error {
 	panic("not implemented")
+}
+
+func (h *Handler) getContainersMap(ctx context.Context, dID string) (map[string]cew_model.Container, error) {
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	containers, err := h.cewClient.GetContainers(ctxWt, cew_model.ContainerFilter{Labels: map[string]string{handler.ManagerIDLabel: h.managerID, handler.DeploymentIDLabel: dID}})
+	if err != nil {
+		return nil, model.NewInternalError(err)
+	}
+	ctrMap := make(map[string]cew_model.Container)
+	for _, container := range containers {
+		ctrMap[container.ID] = container
+	}
+	return ctrMap, nil
 }
