@@ -22,4 +22,5 @@ const (
 	DeploymentIDLabel = "mgw_did"
 	InstanceIDLabel   = "mgw_iid"
 	ServiceRefLabel   = "mgw_sref"
+	AuxDeploymentID   = "mgw_aid"
 )
