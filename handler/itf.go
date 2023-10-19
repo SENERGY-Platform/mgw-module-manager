@@ -103,13 +103,16 @@ type DepHealthHandler interface {
 }
 
 type AuxDeploymentHandler interface {
-	List(ctx context.Context, filter model.AuxDepFilter, ctrInfo bool) ([]model.AuxDeployment, error)
-	Get(ctx context.Context, id string, ctrInfo bool) (model.AuxDeployment, error)
-	Create(ctx context.Context, sdReq model.AuxDepBase) (string, error)
-	Update(ctx context.Context, id string, sdReq model.AuxDepBase) error
-	Delete(ctx context.Context, id string) error
-	Start(ctx context.Context, id string) error
-	Stop(ctx context.Context, id string) error
+	List(ctx context.Context, dID string, filter model.AuxDepFilter, ctrInfo bool) ([]model.AuxDeployment, error)
+	Get(ctx context.Context, dID, aID string, ctrInfo bool) (model.AuxDeployment, error)
+	Create(ctx context.Context, auxReq model.AuxDepBase) (string, error)
+	Update(ctx context.Context, aID string, sdReq model.AuxDepBase) error
+	Delete(ctx context.Context, dID, aID string) error
+	DeleteAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
+	Start(ctx context.Context, dID, aID string) error
+	StartAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
+	Stop(ctx context.Context, dID, aID string) error
+	StopAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
 }
 
 type AuxDepStorageHandler interface {
