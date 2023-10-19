@@ -25,7 +25,7 @@ import (
 )
 
 type Handler struct {
-	storageHandler handler.DepStorageHandler
+	storageHandler handler.AuxDepStorageHandler
 	cewClient      cew_lib.Api
 	dbTimeout      time.Duration
 	httpTimeout    time.Duration
@@ -34,7 +34,7 @@ type Handler struct {
 	moduleNet      string
 }
 
-func New(storageHandler handler.DepStorageHandler, cewClient cew_lib.Api, dbTimeout, httpTimeout time.Duration, managerID, moduleNet, coreID string) *Handler {
+func New(storageHandler handler.AuxDepStorageHandler, cewClient cew_lib.Api, dbTimeout, httpTimeout time.Duration, managerID, moduleNet, coreID string) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cewClient:      cewClient,
