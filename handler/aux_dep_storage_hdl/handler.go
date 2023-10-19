@@ -84,6 +84,7 @@ func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilte
 		auxDep.Updated = tu
 		auxDep.Labels = labels
 		auxDep.Configs = configs
+		auxDeployments = append(auxDeployments, auxDep)
 	}
 	if err = rows.Err(); err != nil {
 		return nil, model.NewInternalError(err)
