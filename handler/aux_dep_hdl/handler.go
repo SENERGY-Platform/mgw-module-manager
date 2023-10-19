@@ -18,10 +18,12 @@ package aux_dep_hdl
 
 import (
 	"context"
+	"fmt"
 	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"time"
 )
 
@@ -48,7 +50,33 @@ func New(storageHandler handler.AuxDepStorageHandler, cewClient cew_lib.Api, dbT
 }
 
 func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilter, ctrInfo bool) ([]model.AuxDeployment, error) {
-	panic("not implemented")
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	auxDeployments, err := h.storageHandler.List(ctxWt, dID, filter)
+	if err != nil {
+		return nil, err
+	}
+	if ctrInfo && len(auxDeployments) > 0 {
+		ctrMap, err := h.getContainersMap(ctx, dID)
+		if err != nil {
+			util.Logger.Error(err)
+		} else {
+			var auxDeps []model.AuxDeployment
+			for _, auxDep := range auxDeployments {
+				ctr, ok := ctrMap[auxDep.CtrID]
+				if !ok {
+					return nil, model.NewInternalError(fmt.Errorf("container '%s' not in map", auxDep.CtrID))
+				}
+				auxDep.CtrInfo = &model.AuxDepContainer{
+					ImageID: ctr.ImageID,
+					State:   ctr.State,
+				}
+				auxDeps = append(auxDeps, auxDep)
+			}
+			return auxDeps, nil
+		}
+	}
+	return auxDeployments, nil
 }
 
 func (h *Handler) Get(ctx context.Context, dID, aID string, ctrInfo bool) (model.AuxDeployment, error) {
