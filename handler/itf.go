@@ -112,6 +112,14 @@ type AuxDeploymentHandler interface {
 	Stop(ctx context.Context, id string) error
 }
 
+type AuxDepStorageHandler interface {
+	List(ctx context.Context, filter model.AuxDepFilter) ([]model.AuxDeployment, error)
+	Create(ctx context.Context, itf driver.Tx, auxDep model.AuxDeployment) (string, error)
+	Read(ctx context.Context, id string) (model.AuxDeployment, error)
+	Update(ctx context.Context, itf driver.Tx, auxDep model.AuxDeployment) error
+	Delete(ctx context.Context, id string) error
+}
+
 type CfgValidationHandler interface {
 	ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error
 	ValidateTypeOptions(cType string, cTypeOpt module.ConfigTypeOptions) error
