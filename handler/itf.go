@@ -113,11 +113,11 @@ type AuxDeploymentHandler interface {
 }
 
 type AuxDepStorageHandler interface {
-	List(ctx context.Context, filter model.AuxDepFilter) ([]model.AuxDeployment, error)
+	List(ctx context.Context, dID string, filter model.AuxDepFilter) ([]model.AuxDeployment, error)
 	Create(ctx context.Context, itf driver.Tx, auxDep model.AuxDeployment) (string, error)
-	Read(ctx context.Context, id string) (model.AuxDeployment, error)
+	Read(ctx context.Context, dID, aID string) (model.AuxDeployment, error)
 	Update(ctx context.Context, itf driver.Tx, auxDep model.AuxDeployment) error
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, dID, aID string) error
 }
 
 type CfgValidationHandler interface {

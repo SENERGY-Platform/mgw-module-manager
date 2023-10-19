@@ -45,9 +45,9 @@ func (h *Handler) BeginTransaction(ctx context.Context) (driver.Tx, error) {
 	return tx, nil
 }
 
-func (h *Handler) List(ctx context.Context, filter model.AuxDepFilter) ([]model.AuxDeployment, error) {
+func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilter) ([]model.AuxDeployment, error) {
 	q := "SELECT `id`, `dep_id`, `image`, `ctr_id`, `created`, `updated`, `type`, `name` FROM `aux_deployments`"
-	fc, val := genListFilter(filter)
+	fc, val := genListFilter(dID, filter)
 	if fc != "" {
 		q += fc
 	}
@@ -122,8 +122,8 @@ func (h *Handler) Create(ctx context.Context, itf driver.Tx, auxDep model.AuxDep
 	return id, nil
 }
 
-func (h *Handler) Read(ctx context.Context, id string) (model.AuxDeployment, error) {
-	row := h.db.QueryRowContext(ctx, "SELECT `id`, `dep_id`, `image`, `ctr_id`, `created`, `updated`, `type`, `name` FROM `aux_deployments` WHERE `id` = ?", id)
+func (h *Handler) Read(ctx context.Context, dID, aID string) (model.AuxDeployment, error) {
+	row := h.db.QueryRowContext(ctx, "SELECT `id`, `dep_id`, `image`, `ctr_id`, `created`, `updated`, `type`, `name` FROM `aux_deployments` WHERE `dep_id` = ? AND `id` = ?", dID, aID)
 	var auxDep model.AuxDeployment
 	var ct, ut []uint8
 	err := row.Scan(&auxDep.ID, &auxDep.DepID, &auxDep.Image, &auxDep.CtrID, &ct, &ut, &auxDep.Type, &auxDep.Name)
@@ -158,7 +158,7 @@ func (h *Handler) Read(ctx context.Context, id string) (model.AuxDeployment, err
 
 func (h *Handler) Update(ctx context.Context, itf driver.Tx, auxDep model.AuxDeployment) error {
 	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "UPDATE `aux_deployments` SET `image` = ?, `ctr_id` = ?, `updated` = ?, `name` = ? WHERE `id` = ?", auxDep.Image, auxDep.CtrID, auxDep.Updated, auxDep.Name, auxDep.ID)
+	res, err := tx.ExecContext(ctx, "UPDATE `aux_deployments` SET `image` = ?, `ctr_id` = ?, `updated` = ?, `name` = ? WHERE `dep_id` = ? AND `id` = ?", auxDep.Image, auxDep.CtrID, auxDep.Updated, auxDep.Name, auxDep.DepID, auxDep.ID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
@@ -190,8 +190,8 @@ func (h *Handler) Update(ctx context.Context, itf driver.Tx, auxDep model.AuxDep
 	return nil
 }
 
-func (h *Handler) Delete(ctx context.Context, id string) error {
-	res, err := h.db.ExecContext(ctx, "DELETE FROM `aux_deployments` WHERE `id` = ?", id)
+func (h *Handler) Delete(ctx context.Context, dID, aID string) error {
+	res, err := h.db.ExecContext(ctx, "DELETE FROM `aux_deployments` WHERE `dep_id` = ? AND `id` = ?", dID, aID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
@@ -221,7 +221,7 @@ func (h *Handler) insertConfigs(ctx context.Context, tx *sql.Tx, id string, m ma
 	return insertStrMap(ctx, tx, "INSERT INTO `aux_configs` (`aux_id`, `ref`, `value`) VALUES (?, ?, ?)", id, m)
 }
 
-func genListFilter(filter model.AuxDepFilter) (string, []any) {
+func genListFilter(dID string, filter model.AuxDepFilter) (string, []any) {
 	var str string
 	var val []any
 	tc := 0
@@ -241,11 +241,13 @@ func genListFilter(filter model.AuxDepFilter) (string, []any) {
 		}
 		str = " `id` IN (" + str + ")"
 	}
+	if str != "" {
+		str += " AND"
+	}
+	str += " `dep_id` = ?"
+	val = append(val, dID)
 	if filter.Image != "" {
-		if str != "" {
-			str += " AND"
-		}
-		str += " `image` = ?"
+		str += " AND `image` = ?"
 		val = append(val, filter.Image)
 	}
 	if len(val) > 0 {
