@@ -80,7 +80,26 @@ func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilte
 }
 
 func (h *Handler) Get(ctx context.Context, dID, aID string, ctrInfo bool) (model.AuxDeployment, error) {
-	panic("not implemented")
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	auxDep, err := h.storageHandler.Read(ctxWt, dID, aID)
+	if err != nil {
+		return model.AuxDeployment{}, err
+	}
+	if ctrInfo {
+		ctxWt2, cf2 := context.WithTimeout(ctx, h.httpTimeout)
+		defer cf2()
+		ctr, err := h.cewClient.GetContainer(ctxWt2, auxDep.CtrID)
+		if err != nil {
+			util.Logger.Error(err)
+		} else {
+			auxDep.CtrInfo = &model.AuxDepContainer{
+				ImageID: ctr.ImageID,
+				State:   ctr.State,
+			}
+		}
+	}
+	return auxDep, nil
 }
 
 func (h *Handler) Create(ctx context.Context, auxReq model.AuxDepBase) (string, error) {
