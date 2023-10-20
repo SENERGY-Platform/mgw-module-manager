@@ -19,7 +19,6 @@ package aux_dep_storage_hdl
 import (
 	"context"
 	"database/sql"
-	"database/sql/driver"
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
@@ -35,14 +34,6 @@ type Handler struct {
 
 func New(db *sql.DB) *Handler {
 	return &Handler{db: db}
-}
-
-func (h *Handler) BeginTransaction(ctx context.Context) (driver.Tx, error) {
-	tx, e := h.db.BeginTx(ctx, nil)
-	if e != nil {
-		return nil, model.NewInternalError(e)
-	}
-	return tx, nil
 }
 
 func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilter) ([]model.AuxDeployment, error) {

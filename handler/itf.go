@@ -117,9 +117,9 @@ type AuxDeploymentHandler interface {
 
 type AuxDepStorageHandler interface {
 	List(ctx context.Context, dID string, filter model.AuxDepFilter) ([]model.AuxDeployment, error)
-	Create(ctx context.Context, itf driver.Tx, auxDep model.AuxDeployment) (string, error)
+	Create(ctx context.Context, auxDep model.AuxDeployment) (string, error)
 	Read(ctx context.Context, dID, aID string) (model.AuxDeployment, error)
-	Update(ctx context.Context, itf driver.Tx, auxDep model.AuxDeployment) error
+	Update(ctx context.Context, auxDep model.AuxDeployment) error
 	Delete(ctx context.Context, dID, aID string) error
 }
 
