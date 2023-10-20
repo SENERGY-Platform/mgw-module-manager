@@ -83,8 +83,12 @@ func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilte
 	return auxDeployments, nil
 }
 
-func (h *Handler) Create(ctx context.Context, itf driver.Tx, auxDep model.AuxDeployment) (string, error) {
-	tx := itf.(*sql.Tx)
+func (h *Handler) Create(ctx context.Context, auxDep model.AuxDeployment) (string, error) {
+	tx, e := h.db.BeginTx(ctx, nil)
+	if e != nil {
+		return "", model.NewInternalError(e)
+	}
+	defer tx.Rollback()
 	res, err := tx.ExecContext(ctx, "INSERT INTO `aux_deployments` (`id`, `dep_id`, `image`, `ctr_id`, `created`, `updated`, `type`, `name`) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, )", auxDep.DepID, auxDep.Image, auxDep.CtrID, auxDep.Created, auxDep.Updated, auxDep.Type, auxDep.Name)
 	if err != nil {
 		return "", model.NewInternalError(err)
@@ -110,6 +114,9 @@ func (h *Handler) Create(ctx context.Context, itf driver.Tx, auxDep model.AuxDep
 		if err = h.insertConfigs(ctx, tx, id, auxDep.Configs); err != nil {
 			return "", model.NewInternalError(err)
 		}
+	}
+	if err = tx.Commit(); err != nil {
+		return "", model.NewInternalError(err)
 	}
 	return id, nil
 }
@@ -148,8 +155,12 @@ func (h *Handler) Read(ctx context.Context, dID, aID string) (model.AuxDeploymen
 	return auxDep, nil
 }
 
-func (h *Handler) Update(ctx context.Context, itf driver.Tx, auxDep model.AuxDeployment) error {
-	tx := itf.(*sql.Tx)
+func (h *Handler) Update(ctx context.Context, auxDep model.AuxDeployment) error {
+	tx, e := h.db.BeginTx(ctx, nil)
+	if e != nil {
+		return model.NewInternalError(e)
+	}
+	defer tx.Rollback()
 	res, err := tx.ExecContext(ctx, "UPDATE `aux_deployments` SET `image` = ?, `ctr_id` = ?, `updated` = ?, `name` = ? WHERE `dep_id` = ? AND `id` = ?", auxDep.Image, auxDep.CtrID, auxDep.Updated, auxDep.Name, auxDep.DepID, auxDep.ID)
 	if err != nil {
 		return model.NewInternalError(err)
@@ -178,6 +189,9 @@ func (h *Handler) Update(ctx context.Context, itf driver.Tx, auxDep model.AuxDep
 		if err = h.insertConfigs(ctx, tx, auxDep.ID, auxDep.Configs); err != nil {
 			return model.NewInternalError(err)
 		}
+	}
+	if err = tx.Commit(); err != nil {
+		return model.NewInternalError(err)
 	}
 	return nil
 }
