@@ -23,8 +23,8 @@ type AuxDepBase struct {
 	Image   string            `json:"image"`
 	Labels  map[string]string `json:"labels"`
 	Configs map[string]string `json:"configs"`
-	Type    *string           `json:"type"`
-	Name    *string           `json:"name"`
+	Ref     string            `json:"ref"` // defined in modfile
+	Name    string            `json:"name"`
 }
 
 type AuxDeployment struct {
