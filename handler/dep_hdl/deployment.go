@@ -18,9 +18,7 @@ package dep_hdl
 
 import (
 	"context"
-	"crypto/sha1"
 	"database/sql/driver"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
@@ -30,6 +28,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
@@ -482,15 +481,7 @@ func getDepName(mName string, userInput *string) string {
 }
 
 func getVolumeName(dID, name string) string {
-	return "mgw_" + genHash(dID, name)
-}
-
-func genHash(str ...string) string {
-	hash := sha1.New()
-	for _, s := range str {
-		hash.Write([]byte(s))
-	}
-	return hex.EncodeToString(hash.Sum(nil))
+	return "mgw_" + util.GenHash(dID, name)
 }
 
 func getUserHostRes(userInput map[string]string, mHostRes map[string]module.HostResource) (map[string]string, []string, error) {

@@ -26,6 +26,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/cew_job"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
@@ -331,7 +332,7 @@ func getContainer(srv *module.Service, ref, name, dID, iID, mID, moduleNet, cID 
 }
 
 func getSrvName(s, r string) string {
-	return "mgw-inst-" + genHash(s, r)
+	return "mgw-inst-" + util.GenHash(s, r)
 }
 
 func userConfigsToStringValues(modConfigs module.Configs, userConfigs map[string]model.DepConfig) (map[string]string, error) {
