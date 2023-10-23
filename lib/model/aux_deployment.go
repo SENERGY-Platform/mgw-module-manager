@@ -25,14 +25,14 @@ type AuxDepBase struct {
 	Configs map[string]string `json:"configs"`
 	Ref     string            `json:"ref"` // defined in modfile
 	Name    string            `json:"name"`
+	Created time.Time         `json:"created"`
+	Updated time.Time         `json:"updated"`
 }
 
 type AuxDeployment struct {
 	ID string `json:"id"` // uuid
 	AuxDepBase
 	Container AuxDepContainer `json:"container"`
-	Created   time.Time       `json:"created"`
-	Updated   time.Time       `json:"updated"`
 }
 
 type AuxDepContainer struct {
