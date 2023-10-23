@@ -28,16 +28,20 @@ type AuxDepBase struct {
 }
 
 type AuxDeployment struct {
-	ID string `json:"id"`
+	ID string `json:"id"` // uuid
 	AuxDepBase
-	Ref     string           `json:"ref"`    // container alias: mgw-sd- + SubDeployment:ID
-	CtrID   string           `json:"ctr_id"` // docker container id
-	CtrInfo *AuxDepContainer `json:"ctr_info"`
-	Created time.Time        `json:"created"`
-	Updated time.Time        `json:"updated"`
+	Container AuxDepContainer `json:"container"`
+	Created   time.Time       `json:"created"`
+	Updated   time.Time       `json:"updated"`
 }
 
 type AuxDepContainer struct {
+	ID    string         `json:"id"`    // docker container id
+	Alias string         `json:"alias"` // container alias: mgw-aux- + SubDeployment:ID
+	Info  *AuxDepCtrInfo `json:"info"`
+}
+
+type AuxDepCtrInfo struct {
 	ImageID string `json:"image_id"` // docker image id
 	State   string `json:"state"`    // docker container state
 }
