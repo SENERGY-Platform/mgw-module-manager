@@ -19,6 +19,7 @@ package aux_dep_storage_hdl
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
@@ -36,8 +37,16 @@ func New(db *sql.DB) *Handler {
 	return &Handler{db: db}
 }
 
+func (h *Handler) BeginTransaction(ctx context.Context) (driver.Tx, error) {
+	tx, e := h.db.BeginTx(ctx, nil)
+	if e != nil {
+		return nil, model.NewInternalError(e)
+	}
+	return tx, nil
+}
+
 func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilter) ([]model.AuxDeployment, error) {
-	q := "SELECT `id`, `dep_id`, `image`, `ctr_id`, `created`, `updated`, `type`, `name` FROM `aux_deployments`"
+	q := "SELECT `id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name` FROM `aux_deployments`"
 	fc, val := genListFilter(dID, filter)
 	if fc != "" {
 		q += fc
@@ -51,30 +60,32 @@ func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilte
 	var auxDeployments []model.AuxDeployment
 	for rows.Next() {
 		var auxDep model.AuxDeployment
+		var auxDepBase model.AuxDepBase
 		var ct, ut []uint8
-		if err = rows.Scan(&auxDep.ID, &auxDep.DepID, &auxDep.Image, &auxDep.CtrID, &ct, &ut, &auxDep.Type, &auxDep.Name); err != nil {
+		if err = rows.Scan(&auxDep.ID, &auxDepBase.DepID, &auxDepBase.Image, &ct, &ut, &auxDepBase.Ref, &auxDepBase.Name); err != nil {
 			return nil, model.NewInternalError(err)
 		}
-		tc, err := time.Parse(tLayout, string(ct))
+		auxDepBase.Created, err = time.Parse(tLayout, string(ct))
 		if err != nil {
 			return nil, model.NewInternalError(err)
 		}
-		tu, err := time.Parse(tLayout, string(ut))
+		auxDepBase.Updated, err = time.Parse(tLayout, string(ut))
 		if err != nil {
 			return nil, model.NewInternalError(err)
 		}
-		labels, err := h.selectLabels(ctx, auxDep.ID)
+		auxDepBase.Labels, err = h.selectLabels(ctx, auxDep.ID)
 		if err != nil {
-			return nil, model.NewInternalError(err)
+			return nil, err
 		}
-		configs, err := h.selectConfigs(ctx, auxDep.ID)
+		auxDepBase.Configs, err = h.selectConfigs(ctx, auxDep.ID)
 		if err != nil {
-			return nil, model.NewInternalError(err)
+			return nil, err
 		}
-		auxDep.Created = tc
-		auxDep.Updated = tu
-		auxDep.Labels = labels
-		auxDep.Configs = configs
+		auxDep.Container, err = h.selectContainer(ctx, auxDep.ID)
+		if err != nil {
+			return nil, err
+		}
+		auxDep.AuxDepBase = auxDepBase
 		auxDeployments = append(auxDeployments, auxDep)
 	}
 	if err = rows.Err(); err != nil {
@@ -83,13 +94,9 @@ func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilte
 	return auxDeployments, nil
 }
 
-func (h *Handler) Create(ctx context.Context, auxDep model.AuxDeployment) (string, error) {
-	tx, e := h.db.BeginTx(ctx, nil)
-	if e != nil {
-		return "", model.NewInternalError(e)
-	}
-	defer tx.Rollback()
-	res, err := tx.ExecContext(ctx, "INSERT INTO `aux_deployments` (`id`, `dep_id`, `image`, `ctr_id`, `created`, `updated`, `type`, `name`) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, )", auxDep.DepID, auxDep.Image, auxDep.CtrID, auxDep.Created, auxDep.Updated, auxDep.Type, auxDep.Name)
+func (h *Handler) Create(ctx context.Context, itf driver.Tx, auxDep model.AuxDepBase) (string, error) {
+	tx := itf.(*sql.Tx)
+	res, err := tx.ExecContext(ctx, "INSERT INTO `aux_deployments` (`id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name`) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, )", auxDep.DepID, auxDep.Image, auxDep.Created, auxDep.Updated, auxDep.Ref, auxDep.Name)
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}
@@ -115,53 +122,57 @@ func (h *Handler) Create(ctx context.Context, auxDep model.AuxDeployment) (strin
 			return "", model.NewInternalError(err)
 		}
 	}
-	if err = tx.Commit(); err != nil {
-		return "", model.NewInternalError(err)
-	}
 	return id, nil
 }
 
-func (h *Handler) Read(ctx context.Context, dID, aID string) (model.AuxDeployment, error) {
-	row := h.db.QueryRowContext(ctx, "SELECT `id`, `dep_id`, `image`, `ctr_id`, `created`, `updated`, `type`, `name` FROM `aux_deployments` WHERE `dep_id` = ? AND `id` = ?", dID, aID)
+func (h *Handler) CreateCtr(ctx context.Context, itf driver.Tx, aID string, ctr model.AuxDepContainer) error {
+	tx := itf.(*sql.Tx)
+	_, err := tx.ExecContext(ctx, "INSERT INTO `aux_containers` (`aux_id`, `ctr_id`, `alias`) VALUES (?, ?, ?)", aID, ctr.ID, ctr.Alias)
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	return nil
+}
+
+func (h *Handler) Read(ctx context.Context, aID string) (model.AuxDeployment, error) {
+	row := h.db.QueryRowContext(ctx, "SELECT `id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name` FROM `aux_deployments` WHERE `id` = ?", aID)
 	var auxDep model.AuxDeployment
+	var auxDepBase model.AuxDepBase
 	var ct, ut []uint8
-	err := row.Scan(&auxDep.ID, &auxDep.DepID, &auxDep.Image, &auxDep.CtrID, &ct, &ut, &auxDep.Type, &auxDep.Name)
+	err := row.Scan(&auxDep.ID, &auxDepBase.DepID, &auxDepBase.Image, &ct, &ut, &auxDepBase.Ref, &auxDepBase.Name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return model.AuxDeployment{}, model.NewNotFoundError(err)
 		}
 		return model.AuxDeployment{}, model.NewInternalError(err)
 	}
-	tc, err := time.Parse(tLayout, string(ct))
+	auxDepBase.Created, err = time.Parse(tLayout, string(ct))
 	if err != nil {
 		return model.AuxDeployment{}, model.NewInternalError(err)
 	}
-	tu, err := time.Parse(tLayout, string(ut))
+	auxDepBase.Updated, err = time.Parse(tLayout, string(ut))
 	if err != nil {
 		return model.AuxDeployment{}, model.NewInternalError(err)
 	}
-	labels, err := h.selectLabels(ctx, auxDep.ID)
+	auxDepBase.Labels, err = h.selectLabels(ctx, auxDep.ID)
 	if err != nil {
-		return model.AuxDeployment{}, model.NewInternalError(err)
+		return model.AuxDeployment{}, err
 	}
-	configs, err := h.selectConfigs(ctx, auxDep.ID)
+	auxDepBase.Configs, err = h.selectConfigs(ctx, auxDep.ID)
 	if err != nil {
-		return model.AuxDeployment{}, model.NewInternalError(err)
+		return model.AuxDeployment{}, err
 	}
-	auxDep.Created = tc
-	auxDep.Updated = tu
-	auxDep.Labels = labels
-	auxDep.Configs = configs
+	auxDep.Container, err = h.selectContainer(ctx, auxDep.ID)
+	if err != nil {
+		return model.AuxDeployment{}, err
+	}
+	auxDep.AuxDepBase = auxDepBase
 	return auxDep, nil
 }
 
-func (h *Handler) Update(ctx context.Context, auxDep model.AuxDeployment) error {
-	tx, e := h.db.BeginTx(ctx, nil)
-	if e != nil {
-		return model.NewInternalError(e)
-	}
-	defer tx.Rollback()
-	res, err := tx.ExecContext(ctx, "UPDATE `aux_deployments` SET `image` = ?, `ctr_id` = ?, `updated` = ?, `name` = ? WHERE `dep_id` = ? AND `id` = ?", auxDep.Image, auxDep.CtrID, auxDep.Updated, auxDep.Name, auxDep.DepID, auxDep.ID)
+func (h *Handler) Update(ctx context.Context, itf driver.Tx, aID string, auxDep model.AuxDepBase) error {
+	tx := itf.(*sql.Tx)
+	res, err := tx.ExecContext(ctx, "UPDATE `aux_deployments` SET `image` = ?, `updated` = ?, `name` = ? WHERE `id` = ?", auxDep.Image, auxDep.Updated, auxDep.Name, auxDep.DepID, aID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
@@ -172,32 +183,29 @@ func (h *Handler) Update(ctx context.Context, auxDep model.AuxDeployment) error 
 	if n < 1 {
 		return model.NewNotFoundError(errors.New("no rows affected"))
 	}
-	_, err = tx.ExecContext(ctx, "DELETE FROM `aux_labels` WHERE `id` = ?", auxDep.ID)
+	_, err = tx.ExecContext(ctx, "DELETE FROM `aux_labels` WHERE `id` = ?", aID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
-	_, err = tx.ExecContext(ctx, "DELETE FROM `aux_configs` WHERE `id` = ?", auxDep.ID)
+	_, err = tx.ExecContext(ctx, "DELETE FROM `aux_configs` WHERE `id` = ?", aID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
 	if len(auxDep.Labels) > 0 {
-		if err = h.insertLabels(ctx, tx, auxDep.ID, auxDep.Labels); err != nil {
+		if err = h.insertLabels(ctx, tx, aID, auxDep.Labels); err != nil {
 			return model.NewInternalError(err)
 		}
 	}
 	if len(auxDep.Configs) > 0 {
-		if err = h.insertConfigs(ctx, tx, auxDep.ID, auxDep.Configs); err != nil {
+		if err = h.insertConfigs(ctx, tx, aID, auxDep.Configs); err != nil {
 			return model.NewInternalError(err)
 		}
-	}
-	if err = tx.Commit(); err != nil {
-		return model.NewInternalError(err)
 	}
 	return nil
 }
 
-func (h *Handler) Delete(ctx context.Context, dID, aID string) error {
-	res, err := h.db.ExecContext(ctx, "DELETE FROM `aux_deployments` WHERE `dep_id` = ? AND `id` = ?", dID, aID)
+func (h *Handler) Delete(ctx context.Context, aID string) error {
+	res, err := h.db.ExecContext(ctx, "DELETE FROM `aux_deployments` WHERE `id` = ?", aID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
@@ -207,6 +215,15 @@ func (h *Handler) Delete(ctx context.Context, dID, aID string) error {
 	}
 	if n < 1 {
 		return model.NewNotFoundError(errors.New("no rows affected"))
+	}
+	return nil
+}
+
+func (h *Handler) DeleteCtr(ctx context.Context, itf driver.Tx, aID string) error {
+	tx := itf.(*sql.Tx)
+	_, err := tx.ExecContext(ctx, "DELETE FROM `aux_containers` WHERE `id` = ?", aID)
+	if err != nil {
+		return model.NewInternalError(err)
 	}
 	return nil
 }
@@ -217,6 +234,19 @@ func (h *Handler) selectLabels(ctx context.Context, id string) (map[string]strin
 
 func (h *Handler) selectConfigs(ctx context.Context, id string) (map[string]string, error) {
 	return selectStrMap(ctx, h.db.QueryContext, "SELECT `ref`, `value` FROM `aux_configs` WHERE `aux_id` = ?", id)
+}
+
+func (h *Handler) selectContainer(ctx context.Context, id string) (model.AuxDepContainer, error) {
+	row := h.db.QueryRowContext(ctx, "SELECT `ctr_id`, `alias` FROM `aux_containers` WHERE `aux_id` = ?", id)
+	var auxDepCtr model.AuxDepContainer
+	err := row.Scan(&auxDepCtr.ID, &auxDepCtr.Alias)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return model.AuxDepContainer{}, model.NewNotFoundError(err)
+		}
+		return model.AuxDepContainer{}, model.NewInternalError(err)
+	}
+	return auxDepCtr, nil
 }
 
 func (h *Handler) insertLabels(ctx context.Context, tx *sql.Tx, id string, m map[string]string) error {
