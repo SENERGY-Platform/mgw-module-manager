@@ -99,7 +99,6 @@ CREATE TABLE IF NOT EXISTS `aux_deployments`
     `id`      CHAR(36)              NOT NULL,
     `dep_id`  CHAR(36)              NOT NULL,
     `image`   VARCHAR(256)          NOT NULL,
-    `ctr_id`  VARCHAR(256)          NOT NULL,
     `created` TIMESTAMP(6)          NOT NULL,
     `updated` TIMESTAMP(6)          NOT NULL,
     `type`    VARCHAR(256)          NULL,
