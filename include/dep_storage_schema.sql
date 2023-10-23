@@ -101,8 +101,8 @@ CREATE TABLE IF NOT EXISTS `aux_deployments`
     `image`   VARCHAR(256)          NOT NULL,
     `created` TIMESTAMP(6)          NOT NULL,
     `updated` TIMESTAMP(6)          NOT NULL,
-    `type`    VARCHAR(256)          NULL,
-    `name`    VARCHAR(256)          NULL,
+    `ref`     VARCHAR(256)          NOT NULL,
+    `name`    VARCHAR(256)          NOT NULL,
     UNIQUE KEY (`id`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
