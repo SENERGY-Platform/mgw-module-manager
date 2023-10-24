@@ -21,9 +21,14 @@ import (
 	"fmt"
 	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
+	"github.com/google/uuid"
+	"path"
 	"time"
 )
 
@@ -104,8 +109,57 @@ func (h *Handler) Get(ctx context.Context, aID string, ctrInfo bool) (model.AuxD
 	return auxDep, nil
 }
 
-	panic("not implemented")
 func (h *Handler) Create(ctx context.Context, mod *module.Module, inclPath string, auxReq model.AuxDepReq) (string, error) {
+	auxSrv, ok := mod.AuxServices[auxReq.Ref]
+	if !ok {
+		return "", model.NewInvalidInputError(fmt.Errorf("aux service ref '%s' no defined", auxReq.Ref))
+	}
+	if err := setModConfigs(mod.Configs, auxSrv.Configs, auxReq.Configs); err != nil {
+		return "", err
+	}
+	name := auxSrv.Name
+	if auxReq.Name != nil && *auxReq.Name != "" {
+		name = *auxReq.Name
+	}
+	timestamp := time.Now().UTC()
+	tx, err := h.storageHandler.BeginTransaction(ctx)
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	aID, err := h.storageHandler.Create(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, model.AuxDepBase{
+		DepID:   auxReq.DepID,
+		Image:   auxReq.Image,
+		Labels:  auxReq.Labels,
+		Configs: auxReq.Configs,
+		Ref:     auxReq.Ref,
+		Name:    name,
+		Created: timestamp,
+		Updated: timestamp,
+	})
+	if err != nil {
+		return "", err
+	}
+	ctrName, err := getCtrName(aID)
+	if err != nil {
+		return "", err
+	}
+	alias := getName(auxReq.DepID, aID)
+	mounts := getMounts(auxSrv, auxReq.DepID, inclPath, h.depHostPath)
+	ctr := getContainer(auxSrv, ctrName, alias, auxReq.Image, h.coreID, h.managerID, auxReq.DepID, aID, h.moduleNet, auxReq.Configs, mounts)
+	cID, err := h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr)
+	if err != nil {
+		return "", err
+	}
+	if err = h.storageHandler.CreateCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, aID, model.AuxDepContainer{ID: cID, Alias: alias}); err != nil {
+		return "", err
+	}
+	if err = tx.Commit(); err != nil {
+		return "", err
+	}
+	return aID, nil
 }
 
 func (h *Handler) Update(ctx context.Context, aID string, mod *module.Module, auxReq model.AuxDepReq) error {
@@ -148,4 +202,101 @@ func (h *Handler) getContainersMap(ctx context.Context, dID string) (map[string]
 		ctrMap[container.ID] = container
 	}
 	return ctrMap, nil
+}
+
+func getCtrName(s string) (string, error) {
+	uuid, err := uuid.NewRandom()
+	if err != nil {
+		return "", err
+	}
+	return getName(s, uuid.String()), nil
+}
+
+func getContainer(srv *module.AuxService, name, alias, image, cID, mID, dID, aID, moduleNet string, envVars map[string]string, mounts []cew_model.Mount) cew_model.Container {
+	retries := int(srv.RunConfig.MaxRetries)
+	stopTimeout := srv.RunConfig.StopTimeout
+	return cew_model.Container{
+		Name:    name,
+		Image:   image,
+		EnvVars: envVars,
+		Labels:  map[string]string{handler.CoreIDLabel: cID, handler.ManagerIDLabel: mID, handler.DeploymentIDLabel: dID, handler.AuxDeploymentID: aID},
+		Mounts:  mounts,
+		Networks: []cew_model.ContainerNet{
+			{
+				Name:        moduleNet,
+				DomainNames: []string{alias, name},
+			},
+		},
+		RunConfig: cew_model.RunConfig{
+			RestartStrategy: cew_model.RestartOnFail,
+			Retries:         &retries,
+			StopTimeout:     &stopTimeout,
+			StopSignal:      srv.RunConfig.StopSignal,
+			PseudoTTY:       srv.RunConfig.PseudoTTY,
+		},
+	}
+}
+
+func setModConfigs(modConfigs module.Configs, configMap, configs map[string]string) error {
+	for refVar, ref := range configMap {
+		if _, ok := configs[refVar]; !ok {
+			mConfig, ok := modConfigs[ref]
+			if !ok {
+				return fmt.Errorf("config '%s' not defined", ref)
+			}
+			if mConfig.Required && mConfig.Default == nil {
+				return fmt.Errorf("config '%s' required", ref)
+			}
+			if mConfig.Default != nil {
+				var val string
+				var err error
+				if mConfig.IsSlice {
+					val, err = parser.DataTypeToStringList(mConfig.Default, mConfig.Delimiter, mConfig.DataType)
+				} else {
+					val, err = parser.DataTypeToString(mConfig.Default, mConfig.DataType)
+				}
+				if err != nil {
+					return err
+				}
+				configs[refVar] = val
+			}
+		}
+	}
+	return nil
+}
+
+func getName(s, r string) string {
+	return "mgw-aux-" + util.GenHash(s, r)
+}
+
+func getVolumeName(dID, name string) string {
+	return "mgw_" + util.GenHash(dID, name)
+}
+
+func getMounts(srv *module.AuxService, dID, inclDir, depHostPath string) []cew_model.Mount {
+	var mounts []cew_model.Mount
+	for mntPoint, name := range srv.Volumes {
+		mounts = append(mounts, cew_model.Mount{
+			Type:   cew_model.VolumeMount,
+			Source: getVolumeName(dID, name),
+			Target: mntPoint,
+		})
+	}
+	for mntPoint, mount := range srv.BindMounts {
+		mounts = append(mounts, cew_model.Mount{
+			Type:     cew_model.BindMount,
+			Source:   path.Join(depHostPath, inclDir, mount.Source),
+			Target:   mntPoint,
+			ReadOnly: mount.ReadOnly,
+		})
+	}
+	for mntPoint, mount := range srv.Tmpfs {
+		mounts = append(mounts, cew_model.Mount{
+			Type:   cew_model.TmpfsMount,
+			Target: mntPoint,
+			Size:   int64(mount.Size),
+			Mode:   mount.Mode,
+		})
+	}
+	return mounts
 }
