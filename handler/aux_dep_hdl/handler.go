@@ -146,7 +146,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, inclPath strin
 	if err != nil {
 		return "", err
 	}
-	alias := getName(auxReq.DepID, aID)
+	alias := getAuxSrvName(auxReq.DepID, aID)
 	mounts := getMounts(auxSrv, auxReq.DepID, inclPath, h.depHostPath)
 	ctr := getContainer(auxSrv, ctrName, alias, auxReq.Image, h.coreID, h.managerID, auxReq.DepID, aID, h.moduleNet, auxReq.Configs, mounts)
 	cID, err := h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr)
@@ -205,11 +205,11 @@ func (h *Handler) getContainersMap(ctx context.Context, dID string) (map[string]
 }
 
 func getCtrName(s string) (string, error) {
-	uuid, err := uuid.NewRandom()
+	id, err := uuid.NewRandom()
 	if err != nil {
 		return "", err
 	}
-	return getName(s, uuid.String()), nil
+	return getAuxSrvName(s, id.String()), nil
 }
 
 func getContainer(srv *module.AuxService, name, alias, image, cID, mID, dID, aID, moduleNet string, envVars map[string]string, mounts []cew_model.Mount) cew_model.Container {
@@ -265,7 +265,7 @@ func setModConfigs(modConfigs module.Configs, configMap, configs map[string]stri
 	return nil
 }
 
-func getName(s, r string) string {
+func getAuxSrvName(s, r string) string {
 	return "mgw-aux-" + util.GenHash(s, r)
 }
 
