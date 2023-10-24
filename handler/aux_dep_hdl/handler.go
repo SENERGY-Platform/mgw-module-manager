@@ -81,7 +81,7 @@ func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilte
 	return auxDeployments, nil
 }
 
-func (h *Handler) Get(ctx context.Context, dID, aID string, ctrInfo bool) (model.AuxDeployment, error) {
+func (h *Handler) Get(ctx context.Context, aID string, ctrInfo bool) (model.AuxDeployment, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	auxDep, err := h.storageHandler.Read(ctxWt, aID)
@@ -104,15 +104,15 @@ func (h *Handler) Get(ctx context.Context, dID, aID string, ctrInfo bool) (model
 	return auxDep, nil
 }
 
-func (h *Handler) Create(ctx context.Context, auxReq model.AuxDepBase) (string, error) {
+	panic("not implemented")
+func (h *Handler) Create(ctx context.Context, mod *module.Module, inclPath string, auxReq model.AuxDepReq) (string, error) {
+}
+
+func (h *Handler) Update(ctx context.Context, aID string, mod *module.Module, auxReq model.AuxDepReq) error {
 	panic("not implemented")
 }
 
-func (h *Handler) Update(ctx context.Context, aID string, sdReq model.AuxDepBase) error {
-	panic("not implemented")
-}
-
-func (h *Handler) Delete(ctx context.Context, dID, aID string) error {
+func (h *Handler) Delete(ctx context.Context, aID string) error {
 	panic("not implemented")
 }
 
@@ -120,7 +120,7 @@ func (h *Handler) DeleteAll(ctx context.Context, dID string, filter model.AuxDep
 	panic("not implemented")
 }
 
-func (h *Handler) Start(ctx context.Context, dID, aID string) error {
+func (h *Handler) Start(ctx context.Context, aID string) error {
 	panic("not implemented")
 }
 
@@ -128,7 +128,7 @@ func (h *Handler) StartAll(ctx context.Context, dID string, filter model.AuxDepF
 	panic("not implemented")
 }
 
-func (h *Handler) Stop(ctx context.Context, dID, aID string) error {
+func (h *Handler) Stop(ctx context.Context, aID string) error {
 	panic("not implemented")
 }
 
