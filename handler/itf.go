@@ -104,14 +104,14 @@ type DepHealthHandler interface {
 
 type AuxDeploymentHandler interface {
 	List(ctx context.Context, dID string, filter model.AuxDepFilter, ctrInfo bool) ([]model.AuxDeployment, error)
-	Get(ctx context.Context, dID, aID string, ctrInfo bool) (model.AuxDeployment, error)
-	Create(ctx context.Context, auxReq model.AuxDepBase) (string, error)
-	Update(ctx context.Context, aID string, sdReq model.AuxDepBase) error
-	Delete(ctx context.Context, dID, aID string) error
+	Get(ctx context.Context, aID string, ctrInfo bool) (model.AuxDeployment, error)
+	Create(ctx context.Context, mod *module.Module, inclPath string, auxReq model.AuxDepReq) (string, error)
+	Update(ctx context.Context, aID string, mod *module.Module, auxReq model.AuxDepReq) error
+	Delete(ctx context.Context, aID string) error
 	DeleteAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
-	Start(ctx context.Context, dID, aID string) error
+	Start(ctx context.Context, aID string) error
 	StartAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
-	Stop(ctx context.Context, dID, aID string) error
+	Stop(ctx context.Context, aID string) error
 	StopAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
 }
 
