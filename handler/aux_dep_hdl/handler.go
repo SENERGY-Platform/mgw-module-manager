@@ -65,11 +65,11 @@ func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilte
 		} else {
 			var auxDeps []model.AuxDeployment
 			for _, auxDep := range auxDeployments {
-				ctr, ok := ctrMap[auxDep.CtrID]
+				ctr, ok := ctrMap[auxDep.Container.ID]
 				if !ok {
-					return nil, model.NewInternalError(fmt.Errorf("container '%s' not in map", auxDep.CtrID))
+					return nil, model.NewInternalError(fmt.Errorf("container '%s' not in map", auxDep.Container.ID))
 				}
-				auxDep.CtrInfo = &model.AuxDepContainer{
+				auxDep.Container.Info = &model.AuxDepCtrInfo{
 					ImageID: ctr.ImageID,
 					State:   ctr.State,
 				}
@@ -84,18 +84,18 @@ func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilte
 func (h *Handler) Get(ctx context.Context, dID, aID string, ctrInfo bool) (model.AuxDeployment, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	auxDep, err := h.storageHandler.Read(ctxWt, dID, aID)
+	auxDep, err := h.storageHandler.Read(ctxWt, aID)
 	if err != nil {
 		return model.AuxDeployment{}, err
 	}
 	if ctrInfo {
 		ctxWt2, cf2 := context.WithTimeout(ctx, h.httpTimeout)
 		defer cf2()
-		ctr, err := h.cewClient.GetContainer(ctxWt2, auxDep.CtrID)
+		ctr, err := h.cewClient.GetContainer(ctxWt2, auxDep.Container.ID)
 		if err != nil {
 			util.Logger.Error(err)
 		} else {
-			auxDep.CtrInfo = &model.AuxDepContainer{
+			auxDep.Container.Info = &model.AuxDepCtrInfo{
 				ImageID: ctr.ImageID,
 				State:   ctr.State,
 			}
