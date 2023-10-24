@@ -23,7 +23,7 @@ type AuxDepBase struct {
 	Image   string            `json:"image"`
 	Labels  map[string]string `json:"labels"`
 	Configs map[string]string `json:"configs"`
-	Ref     string            `json:"ref"` // defined in modfile
+	Ref     string            `json:"ref"`
 	Name    string            `json:"name"`
 	Created time.Time         `json:"created"`
 	Updated time.Time         `json:"updated"`
@@ -50,4 +50,13 @@ type AuxDepFilter struct {
 	Labels map[string]string `json:"labels"`
 	Image  string            `json:"image"`
 	State  string            `json:"state"`
+}
+
+type AuxDepReq struct {
+	DepID   string            `json:"dep_id"`
+	Image   string            `json:"image"`
+	Labels  map[string]string `json:"labels"`
+	Configs map[string]string `json:"configs"`
+	Ref     string            `json:"ref"`
+	Name    *string           `json:"name"`
 }
