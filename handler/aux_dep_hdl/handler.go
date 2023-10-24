@@ -35,9 +35,10 @@ type Handler struct {
 	managerID      string
 	coreID         string
 	moduleNet      string
+	depHostPath    string
 }
 
-func New(storageHandler handler.AuxDepStorageHandler, cewClient cew_lib.Api, dbTimeout, httpTimeout time.Duration, managerID, moduleNet, coreID string) *Handler {
+func New(storageHandler handler.AuxDepStorageHandler, cewClient cew_lib.Api, dbTimeout, httpTimeout time.Duration, managerID, moduleNet, coreID, depHostPath string) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cewClient:      cewClient,
@@ -46,6 +47,7 @@ func New(storageHandler handler.AuxDepStorageHandler, cewClient cew_lib.Api, dbT
 		managerID:      managerID,
 		coreID:         coreID,
 		moduleNet:      moduleNet,
+		depHostPath:    depHostPath,
 	}
 }
 
