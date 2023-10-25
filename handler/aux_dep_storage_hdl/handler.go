@@ -45,7 +45,7 @@ func (h *Handler) BeginTransaction(ctx context.Context) (driver.Tx, error) {
 	return tx, nil
 }
 
-func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilter) ([]model.AuxDeployment, error) {
+func (h *Handler) ListAuxDep(ctx context.Context, dID string, filter model.AuxDepFilter) ([]model.AuxDeployment, error) {
 	q := "SELECT `id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name` FROM `aux_deployments`"
 	fc, val := genListFilter(dID, filter)
 	if fc != "" {
@@ -94,7 +94,7 @@ func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilte
 	return auxDeployments, nil
 }
 
-func (h *Handler) Create(ctx context.Context, itf driver.Tx, auxDep model.AuxDepBase) (string, error) {
+func (h *Handler) CreateAuxDep(ctx context.Context, itf driver.Tx, auxDep model.AuxDepBase) (string, error) {
 	tx := itf.(*sql.Tx)
 	res, err := tx.ExecContext(ctx, "INSERT INTO `aux_deployments` (`id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name`) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, )", auxDep.DepID, auxDep.Image, auxDep.Created, auxDep.Updated, auxDep.Ref, auxDep.Name)
 	if err != nil {
@@ -125,7 +125,7 @@ func (h *Handler) Create(ctx context.Context, itf driver.Tx, auxDep model.AuxDep
 	return id, nil
 }
 
-func (h *Handler) CreateCtr(ctx context.Context, itf driver.Tx, aID string, ctr model.AuxDepContainer) error {
+func (h *Handler) CreateAuxDepCtr(ctx context.Context, itf driver.Tx, aID string, ctr model.AuxDepContainer) error {
 	tx := itf.(*sql.Tx)
 	_, err := tx.ExecContext(ctx, "INSERT INTO `aux_containers` (`aux_id`, `ctr_id`, `alias`) VALUES (?, ?, ?)", aID, ctr.ID, ctr.Alias)
 	if err != nil {
@@ -134,7 +134,7 @@ func (h *Handler) CreateCtr(ctx context.Context, itf driver.Tx, aID string, ctr 
 	return nil
 }
 
-func (h *Handler) Read(ctx context.Context, aID string) (model.AuxDeployment, error) {
+func (h *Handler) ReadAuxDep(ctx context.Context, aID string) (model.AuxDeployment, error) {
 	row := h.db.QueryRowContext(ctx, "SELECT `id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name` FROM `aux_deployments` WHERE `id` = ?", aID)
 	var auxDep model.AuxDeployment
 	var auxDepBase model.AuxDepBase
@@ -170,7 +170,7 @@ func (h *Handler) Read(ctx context.Context, aID string) (model.AuxDeployment, er
 	return auxDep, nil
 }
 
-func (h *Handler) Update(ctx context.Context, itf driver.Tx, aID string, auxDep model.AuxDepBase) error {
+func (h *Handler) UpdateAuxDep(ctx context.Context, itf driver.Tx, aID string, auxDep model.AuxDepBase) error {
 	tx := itf.(*sql.Tx)
 	res, err := tx.ExecContext(ctx, "UPDATE `aux_deployments` SET `image` = ?, `updated` = ?, `name` = ? WHERE `id` = ?", auxDep.Image, auxDep.Updated, auxDep.Name, auxDep.DepID, aID)
 	if err != nil {
@@ -204,7 +204,7 @@ func (h *Handler) Update(ctx context.Context, itf driver.Tx, aID string, auxDep 
 	return nil
 }
 
-func (h *Handler) Delete(ctx context.Context, aID string) error {
+func (h *Handler) DeleteAuxDep(ctx context.Context, aID string) error {
 	res, err := h.db.ExecContext(ctx, "DELETE FROM `aux_deployments` WHERE `id` = ?", aID)
 	if err != nil {
 		return model.NewInternalError(err)
@@ -219,7 +219,7 @@ func (h *Handler) Delete(ctx context.Context, aID string) error {
 	return nil
 }
 
-func (h *Handler) DeleteCtr(ctx context.Context, itf driver.Tx, aID string) error {
+func (h *Handler) DeleteAuxDepCtr(ctx context.Context, itf driver.Tx, aID string) error {
 	tx := itf.(*sql.Tx)
 	_, err := tx.ExecContext(ctx, "DELETE FROM `aux_containers` WHERE `id` = ?", aID)
 	if err != nil {

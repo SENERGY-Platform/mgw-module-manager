@@ -117,13 +117,13 @@ type AuxDeploymentHandler interface {
 
 type AuxDepStorageHandler interface {
 	BeginTransaction(ctx context.Context) (driver.Tx, error)
-	List(ctx context.Context, dID string, filter model.AuxDepFilter) ([]model.AuxDeployment, error)
-	Create(ctx context.Context, tx driver.Tx, auxDep model.AuxDepBase) (string, error)
-	CreateCtr(ctx context.Context, tx driver.Tx, aID string, ctr model.AuxDepContainer) error
-	Read(ctx context.Context, aID string) (model.AuxDeployment, error)
-	Update(ctx context.Context, tx driver.Tx, aID string, auxDep model.AuxDepBase) error
-	Delete(ctx context.Context, aID string) error
-	DeleteCtr(ctx context.Context, tx driver.Tx, aID string) error
+	ListAuxDep(ctx context.Context, dID string, filter model.AuxDepFilter) ([]model.AuxDeployment, error)
+	CreateAuxDep(ctx context.Context, tx driver.Tx, auxDep model.AuxDepBase) (string, error)
+	CreateAuxDepCtr(ctx context.Context, tx driver.Tx, aID string, ctr model.AuxDepContainer) error
+	ReadAuxDep(ctx context.Context, aID string) (model.AuxDeployment, error)
+	UpdateAuxDep(ctx context.Context, tx driver.Tx, aID string, auxDep model.AuxDepBase) error
+	DeleteAuxDep(ctx context.Context, aID string) error
+	DeleteAuxDepCtr(ctx context.Context, tx driver.Tx, aID string) error
 }
 
 type CfgValidationHandler interface {
