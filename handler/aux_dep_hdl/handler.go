@@ -59,7 +59,7 @@ func New(storageHandler handler.AuxDepStorageHandler, cewClient cew_lib.Api, dbT
 func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilter, ctrInfo bool) ([]model.AuxDeployment, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	auxDeployments, err := h.storageHandler.List(ctxWt, dID, filter)
+	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilte
 func (h *Handler) Get(ctx context.Context, aID string, ctrInfo bool) (model.AuxDeployment, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	auxDep, err := h.storageHandler.Read(ctxWt, aID)
+	auxDep, err := h.storageHandler.ReadAuxDep(ctxWt, aID)
 	if err != nil {
 		return model.AuxDeployment{}, err
 	}
@@ -129,7 +129,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, inclPath strin
 	defer tx.Rollback()
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	aID, err := h.storageHandler.Create(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, model.AuxDepBase{
+	aID, err := h.storageHandler.CreateAuxDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, model.AuxDepBase{
 		DepID:   auxReq.DepID,
 		Image:   auxReq.Image,
 		Labels:  auxReq.Labels,
@@ -153,7 +153,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, inclPath strin
 	if err != nil {
 		return "", err
 	}
-	if err = h.storageHandler.CreateCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, aID, model.AuxDepContainer{ID: cID, Alias: alias}); err != nil {
+	if err = h.storageHandler.CreateAuxDepCtr(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, aID, model.AuxDepContainer{ID: cID, Alias: alias}); err != nil {
 		return "", err
 	}
 	if err = tx.Commit(); err != nil {
