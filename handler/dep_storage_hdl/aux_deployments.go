@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package aux_dep_storage_hdl
+package dep_storage_hdl
 
 import (
 	"context"
@@ -26,24 +26,6 @@ import (
 	"strings"
 	"time"
 )
-
-const tLayout = "2006-01-02 15:04:05.000000"
-
-type Handler struct {
-	db *sql.DB
-}
-
-func New(db *sql.DB) *Handler {
-	return &Handler{db: db}
-}
-
-func (h *Handler) BeginTransaction(ctx context.Context) (driver.Tx, error) {
-	tx, e := h.db.BeginTx(ctx, nil)
-	if e != nil {
-		return nil, model.NewInternalError(e)
-	}
-	return tx, nil
-}
 
 func (h *Handler) ListAuxDep(ctx context.Context, dID string, filter model.AuxDepFilter) ([]model.AuxDeployment, error) {
 	q := "SELECT `id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name` FROM `aux_deployments`"
