@@ -29,7 +29,7 @@ import (
 
 func (h *Handler) ListAuxDep(ctx context.Context, dID string, filter model.AuxDepFilter) ([]model.AuxDeployment, error) {
 	q := "SELECT `id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name` FROM `aux_deployments`"
-	fc, val := genListFilter(dID, filter)
+	fc, val := genAuxDepFilter(dID, filter)
 	if fc != "" {
 		q += fc
 	}
@@ -55,15 +55,15 @@ func (h *Handler) ListAuxDep(ctx context.Context, dID string, filter model.AuxDe
 		if err != nil {
 			return nil, model.NewInternalError(err)
 		}
-		auxDepBase.Labels, err = h.selectLabels(ctx, auxDep.ID)
+		auxDepBase.Labels, err = h.selectAuxDepLabels(ctx, auxDep.ID)
 		if err != nil {
 			return nil, err
 		}
-		auxDepBase.Configs, err = h.selectConfigs(ctx, auxDep.ID)
+		auxDepBase.Configs, err = h.selectAuxDepConfigs(ctx, auxDep.ID)
 		if err != nil {
 			return nil, err
 		}
-		auxDep.Container, err = h.selectContainer(ctx, auxDep.ID)
+		auxDep.Container, err = h.selectAuxDepContainer(ctx, auxDep.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -95,12 +95,12 @@ func (h *Handler) CreateAuxDep(ctx context.Context, itf driver.Tx, auxDep model.
 		return "", model.NewInternalError(errors.New("generating id failed"))
 	}
 	if len(auxDep.Labels) > 0 {
-		if err = h.insertLabels(ctx, tx, id, auxDep.Labels); err != nil {
+		if err = h.insertAuxDepLabels(ctx, tx, id, auxDep.Labels); err != nil {
 			return "", model.NewInternalError(err)
 		}
 	}
 	if len(auxDep.Configs) > 0 {
-		if err = h.insertConfigs(ctx, tx, id, auxDep.Configs); err != nil {
+		if err = h.insertAuxDepConfigs(ctx, tx, id, auxDep.Configs); err != nil {
 			return "", model.NewInternalError(err)
 		}
 	}
@@ -136,15 +136,15 @@ func (h *Handler) ReadAuxDep(ctx context.Context, aID string) (model.AuxDeployme
 	if err != nil {
 		return model.AuxDeployment{}, model.NewInternalError(err)
 	}
-	auxDepBase.Labels, err = h.selectLabels(ctx, auxDep.ID)
+	auxDepBase.Labels, err = h.selectAuxDepLabels(ctx, auxDep.ID)
 	if err != nil {
 		return model.AuxDeployment{}, err
 	}
-	auxDepBase.Configs, err = h.selectConfigs(ctx, auxDep.ID)
+	auxDepBase.Configs, err = h.selectAuxDepConfigs(ctx, auxDep.ID)
 	if err != nil {
 		return model.AuxDeployment{}, err
 	}
-	auxDep.Container, err = h.selectContainer(ctx, auxDep.ID)
+	auxDep.Container, err = h.selectAuxDepContainer(ctx, auxDep.ID)
 	if err != nil {
 		return model.AuxDeployment{}, err
 	}
@@ -174,12 +174,12 @@ func (h *Handler) UpdateAuxDep(ctx context.Context, itf driver.Tx, aID string, a
 		return model.NewInternalError(err)
 	}
 	if len(auxDep.Labels) > 0 {
-		if err = h.insertLabels(ctx, tx, aID, auxDep.Labels); err != nil {
+		if err = h.insertAuxDepLabels(ctx, tx, aID, auxDep.Labels); err != nil {
 			return model.NewInternalError(err)
 		}
 	}
 	if len(auxDep.Configs) > 0 {
-		if err = h.insertConfigs(ctx, tx, aID, auxDep.Configs); err != nil {
+		if err = h.insertAuxDepConfigs(ctx, tx, aID, auxDep.Configs); err != nil {
 			return model.NewInternalError(err)
 		}
 	}
@@ -210,15 +210,15 @@ func (h *Handler) DeleteAuxDepCtr(ctx context.Context, itf driver.Tx, aID string
 	return nil
 }
 
-func (h *Handler) selectLabels(ctx context.Context, id string) (map[string]string, error) {
+func (h *Handler) selectAuxDepLabels(ctx context.Context, id string) (map[string]string, error) {
 	return selectStrMap(ctx, h.db.QueryContext, "SELECT `name`, `value` FROM `aux_labels` WHERE `aux_id` = ?", id)
 }
 
-func (h *Handler) selectConfigs(ctx context.Context, id string) (map[string]string, error) {
+func (h *Handler) selectAuxDepConfigs(ctx context.Context, id string) (map[string]string, error) {
 	return selectStrMap(ctx, h.db.QueryContext, "SELECT `ref`, `value` FROM `aux_configs` WHERE `aux_id` = ?", id)
 }
 
-func (h *Handler) selectContainer(ctx context.Context, id string) (model.AuxDepContainer, error) {
+func (h *Handler) selectAuxDepContainer(ctx context.Context, id string) (model.AuxDepContainer, error) {
 	row := h.db.QueryRowContext(ctx, "SELECT `ctr_id`, `alias` FROM `aux_containers` WHERE `aux_id` = ?", id)
 	var auxDepCtr model.AuxDepContainer
 	err := row.Scan(&auxDepCtr.ID, &auxDepCtr.Alias)
@@ -231,15 +231,15 @@ func (h *Handler) selectContainer(ctx context.Context, id string) (model.AuxDepC
 	return auxDepCtr, nil
 }
 
-func (h *Handler) insertLabels(ctx context.Context, tx *sql.Tx, id string, m map[string]string) error {
+func (h *Handler) insertAuxDepLabels(ctx context.Context, tx *sql.Tx, id string, m map[string]string) error {
 	return insertStrMap(ctx, tx, "INSERT INTO `aux_labels` (`aux_id`, `name`, `value`) VALUES (?, ?, ?)", id, m)
 }
 
-func (h *Handler) insertConfigs(ctx context.Context, tx *sql.Tx, id string, m map[string]string) error {
+func (h *Handler) insertAuxDepConfigs(ctx context.Context, tx *sql.Tx, id string, m map[string]string) error {
 	return insertStrMap(ctx, tx, "INSERT INTO `aux_configs` (`aux_id`, `ref`, `value`) VALUES (?, ?, ?)", id, m)
 }
 
-func genListFilter(dID string, filter model.AuxDepFilter) (string, []any) {
+func genAuxDepFilter(dID string, filter model.AuxDepFilter) (string, []any) {
 	var str string
 	var val []any
 	tc := 0
