@@ -17,18 +17,18 @@
 package util
 
 import (
-	"github.com/SENERGY-Platform/go-service-base/srv-base"
+	sb_util "github.com/SENERGY-Platform/go-service-base/util"
 	"github.com/y-du/go-log-level/level"
 )
 
 type DatabaseConfig struct {
-	Host       string                `json:"host" env_var:"DB_HOST"`
-	Port       uint                  `json:"port" env_var:"DB_PORT"`
-	User       string                `json:"user" env_var:"DB_USER"`
-	Passwd     srv_base.SecretString `json:"passwd" env_var:"DB_PASSWD"`
-	Name       string                `json:"name" env_var:"DB_NAME"`
-	Timeout    int64                 `json:"timeout" env_var:"DB_TIMEOUT"`
-	SchemaPath string                `json:"schema_path" env_var:"DB_SCHEMA_PATH"`
+	Host       string               `json:"host" env_var:"DB_HOST"`
+	Port       uint                 `json:"port" env_var:"DB_PORT"`
+	User       string               `json:"user" env_var:"DB_USER"`
+	Passwd     sb_util.SecretString `json:"passwd" env_var:"DB_PASSWD"`
+	Name       string               `json:"name" env_var:"DB_NAME"`
+	Timeout    int64                `json:"timeout" env_var:"DB_TIMEOUT"`
+	SchemaPath string               `json:"schema_path" env_var:"DB_SCHEMA_PATH"`
 }
 
 type HttpClientConfig struct {
@@ -72,7 +72,7 @@ type Config struct {
 	ModTransferHandler ModTransferHandlerConfig `json:"module_transfer_handler" env_var:"MTH_CONFIG"`
 	ModStagingHandler  ModStagingHandlerConfig  `json:"module_staging_handler" env_var:"MSH_CONFIG"`
 	DepHandler         DepHandlerConfig         `json:"deployment_handler" env_var:"DH_CONFIG"`
-	Logger             srv_base.LoggerConfig    `json:"logger" env_var:"LOGGER_CONFIG"`
+	Logger             sb_util.LoggerConfig     `json:"logger" env_var:"LOGGER_CONFIG"`
 	ConfigDefsPath     string                   `json:"config_defs_path" env_var:"CONFIG_DEFS_PATH"`
 	Database           DatabaseConfig           `json:"database" env_var:"DATABASE_CONFIG"`
 	HttpClient         HttpClientConfig         `json:"http_client" env_var:"HTTP_CLIENT_CONFIG"`
@@ -98,7 +98,7 @@ func NewConfig(path string) (*Config, error) {
 			WorkdirPath: "/opt/module-manager/deployments",
 			ModuleNet:   "module-net",
 		},
-		Logger: srv_base.LoggerConfig{
+		Logger: sb_util.LoggerConfig{
 			Level:        level.Warning,
 			Utc:          true,
 			Microseconds: true,
@@ -127,6 +127,6 @@ func NewConfig(path string) (*Config, error) {
 		},
 		ManagerIDPath: "/opt/module-manager/data/mid",
 	}
-	err := srv_base.LoadConfig(path, &cfg, nil, nil, nil)
+	err := sb_util.LoadConfig(path, &cfg, nil, nil, nil)
 	return &cfg, err
 }

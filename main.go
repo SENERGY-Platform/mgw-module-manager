@@ -22,7 +22,8 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/gin-middleware"
 	"github.com/SENERGY-Platform/go-cc-job-handler/ccjh"
-	"github.com/SENERGY-Platform/go-service-base/srv-base"
+	sb_util "github.com/SENERGY-Platform/go-service-base/util"
+	"github.com/SENERGY-Platform/go-service-base/watchdog"
 	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	hm_client "github.com/SENERGY-Platform/mgw-host-manager/client"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
@@ -70,7 +71,7 @@ func main() {
 		os.Exit(ec)
 	}()
 
-	srv_base.PrintInfo(model.ServiceName, version)
+	sb_util.PrintInfo(model.ServiceName, version)
 
 	util.ParseFlags()
 
@@ -84,7 +85,7 @@ func main() {
 	logFile, err := util.InitLogger(config.Logger)
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
-		var logFileError *srv_base.LogFileError
+		var logFileError *sb_util.LogFileError
 		if errors.As(err, &logFileError) {
 			ec = 1
 			return
@@ -94,7 +95,7 @@ func main() {
 		defer logFile.Close()
 	}
 
-	util.Logger.Debugf("config: %s", srv_base.ToJsonStr(config))
+	util.Logger.Debugf("config: %s", sb_util.ToJsonStr(config))
 
 	managerID, err := util.GetManagerID(config.ManagerIDPath, util.Flags.ManagerID)
 	if err != nil {
@@ -130,7 +131,8 @@ func main() {
 
 	modHandler := mod_hdl.New(modStorageHandler, cewClient, time.Duration(config.HttpClient.Timeout))
 
-	watchdog := srv_base.NewWatchdog(util.Logger, syscall.SIGINT, syscall.SIGTERM)
+	watchdog.Logger = util.Logger
+	wtchdg := watchdog.New(syscall.SIGINT, syscall.SIGTERM)
 
 	db, err := util.NewDB(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd.String(), config.Database.Name)
 	if err != nil {
@@ -173,7 +175,7 @@ func main() {
 	jobCtx, jobCF := context.WithCancel(context.Background())
 	jobHandler := job_hdl.New(jobCtx, ccHandler)
 
-	watchdog.RegisterStopFunc(func() error {
+	wtchdg.RegisterStopFunc(func() error {
 		ccHandler.Stop()
 		jobCF()
 		if ccHandler.Active() > 0 {
@@ -216,7 +218,7 @@ func main() {
 	httpHandler.UseRawPath = true
 
 	http_hdl.SetRoutes(httpHandler, mApi)
-	util.Logger.Debugf("routes: %s", srv_base.ToJsonStr(http_hdl.GetRoutes(httpHandler)))
+	util.Logger.Debugf("routes: %s", sb_util.ToJsonStr(http_hdl.GetRoutes(httpHandler)))
 
 	listener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
@@ -226,7 +228,7 @@ func main() {
 	}
 	server := &http.Server{Handler: httpHandler}
 	srvCtx, srvCF := context.WithCancel(context.Background())
-	watchdog.RegisterStopFunc(func() error {
+	wtchdg.RegisterStopFunc(func() error {
 		if srvCtx.Err() == nil {
 			ctxWt, cf := context.WithTimeout(context.Background(), time.Second*5)
 			defer cf()
@@ -237,7 +239,7 @@ func main() {
 		}
 		return nil
 	})
-	watchdog.RegisterHealthFunc(func() bool {
+	wtchdg.RegisterHealthFunc(func() bool {
 		if srvCtx.Err() == nil {
 			return true
 		}
@@ -245,10 +247,10 @@ func main() {
 		return false
 	})
 
-	watchdog.Start()
+	wtchdg.Start()
 
 	dbCtx, dbCF := context.WithCancel(context.Background())
-	watchdog.RegisterStopFunc(func() error {
+	wtchdg.RegisterStopFunc(func() error {
 		dbCF()
 		return nil
 	})
@@ -265,7 +267,7 @@ func main() {
 		if err = util.InitDB(dbCtx, db, config.Database.SchemaPath, time.Second*5); err != nil {
 			util.Logger.Error(err)
 			ec = 1
-			watchdog.Trigger()
+			wtchdg.Trigger()
 			return
 		}
 		if err = mApi.StartDeployments(time.Second*5, 3); err != nil {
@@ -283,5 +285,5 @@ func main() {
 		}
 	}()
 
-	ec = watchdog.Join()
+	ec = wtchdg.Join()
 }

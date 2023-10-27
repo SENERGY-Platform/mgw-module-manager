@@ -17,14 +17,14 @@
 package util
 
 import (
-	"github.com/SENERGY-Platform/go-service-base/srv-base"
+	sb_util "github.com/SENERGY-Platform/go-service-base/util"
 	"github.com/y-du/go-log-level"
 	"os"
 )
 
 var Logger *log_level.Logger
 
-func InitLogger(config srv_base.LoggerConfig) (out *os.File, err error) {
-	Logger, out, err = srv_base.NewLogger(config)
+func InitLogger(config sb_util.LoggerConfig) (out *os.File, err error) {
+	Logger, out, err = sb_util.NewLogger(config)
 	return
 }

@@ -13,8 +13,10 @@ github.com/SENERGY-Platform/go-base-http-client v0.0.1 h1:ofyTL9spbA4+hp8Mm+j2uN
 github.com/SENERGY-Platform/go-base-http-client v0.0.1/go.mod h1:zkUjrJTz4btwM0CMfgEmPfR0knxPIZgd1hvG8pu4fBE=
 github.com/SENERGY-Platform/go-cc-job-handler v0.1.1 h1:GPCu5g1BJrsG43GCnSBqZn8sv5h1Do5m/aGd0tH+JRk=
 github.com/SENERGY-Platform/go-cc-job-handler v0.1.1/go.mod h1:d6rFDQujHvp+tsUrlBOH0pavyicI079l6sUAFEOZRoE=
-github.com/SENERGY-Platform/go-service-base v0.13.0 h1:1ytMAd84TO6+gvffjITShTOPStJiP7rSly9lG09fzxU=
-github.com/SENERGY-Platform/go-service-base v0.13.0/go.mod h1:NyMDXzkC/5oRzaMZ1wbFlXTnLoyo3CXM8q1eSloMuBo=
+github.com/SENERGY-Platform/go-service-base/util v0.14.0 h1:oMzPR6zrbHPPgcMi39rDnM3qXh4shP03JRfSyDnnMlw=
+github.com/SENERGY-Platform/go-service-base/util v0.14.0/go.mod h1:uYeWyyknGyxfAx4zvnhppDVjeTfVWOAIMps5mJeaDwU=
+github.com/SENERGY-Platform/go-service-base/watchdog v0.4.0 h1:y1jBiKxaD95pcGnurhf9RfPH0ejH8+zMZNvMG2N+7M0=
+github.com/SENERGY-Platform/go-service-base/watchdog v0.4.0/go.mod h1:B28QtfgfMvOGIcQRklRQkPmXArdHyocy8soE7UoSIKU=
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.8.0 h1:SiDhoq0UEizrLR6x3j36ffc1DR+23Y+JxTzXH7WGRic=
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.8.0/go.mod h1:F8S+aWmhtI1bafHAySr8kRaaXCgJbNax49JB4eP3AhM=
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.9.1 h1:o/eSYCJwEHWta0ymMvl//BZBkOcYmc3ECLoq2K6hp80=
