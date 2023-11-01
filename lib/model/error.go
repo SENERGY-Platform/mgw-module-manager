@@ -44,18 +44,18 @@ func (e *cError) Unwrap() error {
 	return e.err
 }
 
-func NewInternalError(err error) *InternalError {
+func NewInternalError(err error) error {
 	return &InternalError{cError{err: err}}
 }
 
-func NewNotFoundError(err error) *NotFoundError {
+func NewNotFoundError(err error) error {
 	return &NotFoundError{cError{err: err}}
 }
 
-func NewInvalidInputError(err error) *InvalidInputError {
+func NewInvalidInputError(err error) error {
 	return &InvalidInputError{cError{err: err}}
 }
 
-func NewResourceBusyError(err error) *ResourceBusyError {
+func NewResourceBusyError(err error) error {
 	return &ResourceBusyError{cError{err: err}}
 }
