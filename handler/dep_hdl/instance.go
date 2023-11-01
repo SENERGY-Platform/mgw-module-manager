@@ -31,6 +31,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
+	"net/http"
 	"path"
 	"time"
 )
@@ -191,7 +192,10 @@ func (h *Handler) stopContainer(ctx context.Context, cID string) error {
 		return err
 	}
 	if job.Error != nil {
-		return model.NewInternalError(fmt.Errorf("%v", job.Error))
+		if job.Error.Code != nil && *job.Error.Code == http.StatusNotFound {
+			return model.NewNotFoundError(errors.New(job.Error.Message))
+		}
+		return model.NewInternalError(errors.New(job.Error.Message))
 	}
 	return nil
 }
