@@ -21,13 +21,13 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/cew_job"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
@@ -186,7 +186,7 @@ func (h *Handler) stopContainer(ctx context.Context, cID string) error {
 	if err != nil {
 		return model.NewInternalError(err)
 	}
-	job, err := cew_job.Await(ctx, h.cewClient, jID, h.httpTimeout)
+	job, err := job_hdl_lib.Await(ctx, h.cewClient, jID, time.Second, h.httpTimeout, util.Logger)
 	if err != nil {
 		return err
 	}

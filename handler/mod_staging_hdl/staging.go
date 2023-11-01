@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
@@ -28,7 +29,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/cew_job"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
@@ -215,7 +216,7 @@ func (h *Handler) addImage(ctx context.Context, img string) error {
 	if err != nil {
 		return model.NewInternalError(err)
 	}
-	job, err := cew_job.Await(ctx, h.cewClient, jID, h.httpTimeout)
+	job, err := job_hdl_lib.Await(ctx, h.cewClient, jID, time.Second, h.httpTimeout, util.Logger)
 	if err != nil {
 		return err
 	}
