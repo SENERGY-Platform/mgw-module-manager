@@ -174,7 +174,10 @@ func (h *Handler) stopInstance(ctx context.Context, dep model.Deployment) error 
 	}
 	for i := len(dep.Instance.Containers) - 1; i >= 0; i-- {
 		if err := h.stopContainer(ctx, dep.Instance.Containers[i].ID); err != nil {
-			return err
+			var nfe *model.NotFoundError
+			if !errors.As(err, &nfe) {
+				return err
+			}
 		}
 	}
 	return nil
