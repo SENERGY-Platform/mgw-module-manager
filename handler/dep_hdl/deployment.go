@@ -421,11 +421,11 @@ func (h *Handler) createVolumes(ctx context.Context, mVolumes []string, dID stri
 	return nil
 }
 
-func (h *Handler) removeVolumes(ctx context.Context, volumes []string) error {
+func (h *Handler) removeVolumes(ctx context.Context, volumes []string, force bool) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	for _, name := range volumes {
-		err := h.cewClient.RemoveVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), name)
+		err := h.cewClient.RemoveVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), name, force)
 		if err != nil {
 			var nfe *cew_model.NotFoundError
 			if !errors.As(err, &nfe) {
