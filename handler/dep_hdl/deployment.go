@@ -397,7 +397,7 @@ func (h *Handler) createVolumes(ctx context.Context, mVolumes []string, dID stri
 	var createdVols []string
 	defer func() {
 		if err != nil {
-			h.removeVolumes(context.Background(), createdVols)
+			h.removeVolumes(context.Background(), createdVols, true)
 		}
 	}()
 	ch := context_hdl.New()
