@@ -40,7 +40,7 @@ type Api interface {
 	EnableDeployment(ctx context.Context, dID string) error
 	DisableDeployment(ctx context.Context, dID string, dependencies bool) (string, error)
 	UpdateDeployment(ctx context.Context, dID string, depInput model.DepInput) (string, error)
-	DeleteDeployment(ctx context.Context, dID string, orphans bool) error
+	DeleteDeployment(ctx context.Context, dID string, orphans, force bool) error
 	RestartDeployment(ctx context.Context, dID string) (string, error)
 	GetDeploymentUpdateTemplate(ctx context.Context, dID string) (model.DepUpdateTemplate, error)
 	GetDeploymentsHealth(ctx context.Context) (map[string]model.DepHealthInfo, error)
