@@ -192,7 +192,7 @@ func (h *Handler) stopContainer(ctx context.Context, cID string) error {
 	}
 	job, err := job_hdl_lib.Await(ctx, h.cewClient, jID, time.Second, h.httpTimeout, util.Logger)
 	if err != nil {
-		return err
+		return model.NewInternalError(err)
 	}
 	if job.Error != nil {
 		if job.Error.Code != nil && *job.Error.Code == http.StatusNotFound {
