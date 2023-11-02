@@ -59,7 +59,7 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput model.De
 		defer func() {
 			if er != nil {
 				for _, id := range dIDs {
-					e := a.DeleteDeployment(context.Background(), id, true)
+					e := a.DeleteDeployment(context.Background(), id, true, true)
 					if e != nil {
 						util.Logger.Error(e)
 					}
@@ -232,13 +232,13 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.D
 	return jID, nil
 }
 
-func (a *Api) DeleteDeployment(ctx context.Context, id string, orphans bool) error {
+func (a *Api) DeleteDeployment(ctx context.Context, id string, orphans, force bool) error {
 	err := a.mu.TryLock(fmt.Sprintf("delete deployment '%s'", id))
 	if err != nil {
 		return model.NewResourceBusyError(err)
 	}
 	defer a.mu.Unlock()
-	return a.deploymentHandler.Delete(ctx, id, orphans)
+	return a.deploymentHandler.Delete(ctx, id, orphans, force)
 }
 
 func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (model.DepUpdateTemplate, error) {
