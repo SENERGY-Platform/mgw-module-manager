@@ -90,7 +90,9 @@ func (h *Handler) delete(ctx context.Context, dep model.Deployment, force bool) 
 		return model.NewInternalError(err)
 	}
 	if err = os.RemoveAll(path.Join(h.wrkSpcPath, dep.Dir)); err != nil {
-		return model.NewInternalError(err)
+		if !os.IsNotExist(err) {
+			return model.NewInternalError(err)
+		}
 	}
 	if err = h.storageHandler.DeleteDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID); err != nil {
 		return err
