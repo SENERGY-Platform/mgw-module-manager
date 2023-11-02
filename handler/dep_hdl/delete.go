@@ -84,7 +84,7 @@ func (h *Handler) delete(ctx context.Context, dep model.Deployment) error {
 	for _, v := range volumes {
 		vols = append(vols, v.Name)
 	}
-	if err = h.removeVolumes(ctx, vols); err != nil {
+	if err = h.removeVolumes(ctx, vols, force); err != nil {
 		return model.NewInternalError(err)
 	}
 	if err = os.RemoveAll(path.Join(h.wrkSpcPath, dep.Dir)); err != nil {
