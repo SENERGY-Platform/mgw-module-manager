@@ -71,7 +71,7 @@ func (h *Handler) delete(ctx context.Context, dep model.Deployment) error {
 	if err := h.unloadSecrets(ctx, dep.ID); err != nil {
 		return err
 	}
-	if err := h.removeInstance(ctx, dep); err != nil {
+	if err := h.removeInstance(ctx, dep, force); err != nil {
 		return err
 	}
 	ch := context_hdl.New()
