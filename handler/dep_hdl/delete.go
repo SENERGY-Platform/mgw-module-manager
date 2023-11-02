@@ -30,20 +30,22 @@ import (
 	"strings"
 )
 
-func (h *Handler) Delete(ctx context.Context, id string, orphans bool) error {
+func (h *Handler) Delete(ctx context.Context, id string, orphans, force bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
 	if err != nil {
 		return err
 	}
-	if dep.Enabled {
-		return model.NewInvalidInputError(errors.New("deployment is enabled"))
+	if !force {
+		if dep.Enabled {
+			return model.NewInvalidInputError(errors.New("deployment is enabled"))
+		}
+		if len(dep.DepRequiring) > 0 {
+			return model.NewInternalError(fmt.Errorf("deplyoment is required by: %s", strings.Join(dep.DepRequiring, ", ")))
+		}
 	}
-	if len(dep.DepRequiring) > 0 {
-		return model.NewInternalError(fmt.Errorf("deplyoment is required by: %s", strings.Join(dep.DepRequiring, ", ")))
-	}
-	if err = h.delete(ctx, dep); err != nil {
+	if err = h.delete(ctx, dep, force); err != nil {
 		return err
 	}
 	if orphans && len(dep.RequiredDep) > 0 {
@@ -58,7 +60,7 @@ func (h *Handler) Delete(ctx context.Context, id string, orphans bool) error {
 		for i := len(order) - 1; i >= 0; i-- {
 			rd := reqDep[order[i]]
 			if rd.Indirect && !isRequired(reqDep, rd.DepRequiring) {
-				if err = h.delete(ctx, rd); err != nil {
+				if err = h.delete(ctx, rd, force); err != nil {
 					return err
 				}
 			}
@@ -67,7 +69,7 @@ func (h *Handler) Delete(ctx context.Context, id string, orphans bool) error {
 	return nil
 }
 
-func (h *Handler) delete(ctx context.Context, dep model.Deployment) error {
+func (h *Handler) delete(ctx context.Context, dep model.Deployment, force bool) error {
 	if err := h.unloadSecrets(ctx, dep.ID); err != nil {
 		return err
 	}

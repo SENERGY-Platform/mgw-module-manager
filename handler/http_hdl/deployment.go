@@ -33,6 +33,7 @@ type getDeploymentsQuery struct {
 
 type deleteDeploymentQuery struct {
 	Orphans bool `form:"orphans"`
+	Force   bool `form:"force"`
 }
 
 type disableDeploymentQuery struct {
@@ -150,7 +151,7 @@ func deleteDeploymentH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		err := a.DeleteDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Orphans)
+		err := a.DeleteDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Orphans, query.Force)
 		if err != nil {
 			_ = gc.Error(err)
 			return
