@@ -18,6 +18,7 @@ package dep_hdl
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
@@ -35,6 +36,9 @@ func (h *Handler) Delete(ctx context.Context, id string, orphans bool) error {
 	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
 	if err != nil {
 		return err
+	}
+	if dep.Enabled {
+		return model.NewInvalidInputError(errors.New("deployment is enabled"))
 	}
 	if len(dep.DepRequiring) > 0 {
 		return model.NewInternalError(fmt.Errorf("deplyoment is required by: %s", strings.Join(dep.DepRequiring, ", ")))
