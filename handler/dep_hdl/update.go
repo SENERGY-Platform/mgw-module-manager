@@ -80,7 +80,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	}
 	defer func() {
 		if err != nil {
-			h.removeVolumes(context.Background(), newVol)
+			h.removeVolumes(context.Background(), newVol, true)
 		}
 	}()
 	tx, err := h.storageHandler.BeginTransaction(ctx)
