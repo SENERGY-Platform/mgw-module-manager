@@ -102,29 +102,29 @@ type DepHealthHandler interface {
 	Get(ctx context.Context, instance model.DepInstance) (model.DepHealthInfo, error)
 }
 
-type AuxDeploymentHandler interface {
-	List(ctx context.Context, dID string, filter model.AuxDepFilter, ctrInfo bool) ([]model.AuxDeployment, error)
-	Get(ctx context.Context, aID string, ctrInfo bool) (model.AuxDeployment, error)
-	Create(ctx context.Context, mod *module.Module, inclPath string, auxReq model.AuxDepReq) (string, error)
-	Update(ctx context.Context, aID string, mod *module.Module, auxReq model.AuxDepReq) error
-	Delete(ctx context.Context, aID string) error
-	DeleteAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
-	Start(ctx context.Context, aID string) error
-	StartAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
-	Stop(ctx context.Context, aID string) error
-	StopAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
-}
-
-type AuxDepStorageHandler interface {
-	BeginTransaction(ctx context.Context) (driver.Tx, error)
-	ListAuxDep(ctx context.Context, dID string, filter model.AuxDepFilter) ([]model.AuxDeployment, error)
-	CreateAuxDep(ctx context.Context, tx driver.Tx, auxDep model.AuxDepBase) (string, error)
-	CreateAuxDepCtr(ctx context.Context, tx driver.Tx, aID string, ctr model.AuxDepContainer) error
-	ReadAuxDep(ctx context.Context, aID string) (model.AuxDeployment, error)
-	UpdateAuxDep(ctx context.Context, tx driver.Tx, aID string, auxDep model.AuxDepBase) error
-	DeleteAuxDep(ctx context.Context, aID string) error
-	DeleteAuxDepCtr(ctx context.Context, tx driver.Tx, aID string) error
-}
+//type AuxDeploymentHandler interface {
+//	List(ctx context.Context, dID string, filter model.AuxDepFilter, ctrInfo bool) ([]model.AuxDeployment, error)
+//	Get(ctx context.Context, aID string, ctrInfo bool) (model.AuxDeployment, error)
+//	Create(ctx context.Context, mod *module.Module, dep model.Deployment, auxReq model.AuxDepReq) (string, error)
+//	Update(ctx context.Context, aID string, mod *module.Module, auxReq model.AuxDepReq) error
+//	Delete(ctx context.Context, aID string) error
+//	DeleteAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
+//	Start(ctx context.Context, aID string) error
+//	StartAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
+//	Stop(ctx context.Context, aID string) error
+//	StopAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
+//}
+//
+//type AuxDepStorageHandler interface {
+//	BeginTransaction(ctx context.Context) (driver.Tx, error)
+//	ListAuxDep(ctx context.Context, dID string, filter model.AuxDepFilter) ([]model.AuxDeployment, error)
+//	CreateAuxDep(ctx context.Context, tx driver.Tx, auxDep model.AuxDepBase) (string, error)
+//	CreateAuxDepCtr(ctx context.Context, tx driver.Tx, aID string, ctr model.AuxDepContainer) error
+//	ReadAuxDep(ctx context.Context, aID string) (model.AuxDeployment, error)
+//	UpdateAuxDep(ctx context.Context, tx driver.Tx, aID string, auxDep model.AuxDepBase) error
+//	DeleteAuxDep(ctx context.Context, aID string) error
+//	DeleteAuxDepCtr(ctx context.Context, tx driver.Tx, aID string) error
+//}
 
 type CfgValidationHandler interface {
 	ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error

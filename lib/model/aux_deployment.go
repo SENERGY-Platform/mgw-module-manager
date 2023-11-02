@@ -16,47 +16,47 @@
 
 package model
 
-import "time"
-
-type AuxDepBase struct {
-	DepID   string            `json:"dep_id"`
-	Image   string            `json:"image"`
-	Labels  map[string]string `json:"labels"`
-	Configs map[string]string `json:"configs"`
-	Ref     string            `json:"ref"`
-	Name    string            `json:"name"`
-	Created time.Time         `json:"created"`
-	Updated time.Time         `json:"updated"`
-}
-
-type AuxDeployment struct {
-	ID string `json:"id"` // uuid
-	AuxDepBase
-	Container AuxDepContainer `json:"container"`
-}
-
-type AuxDepContainer struct {
-	ID    string         `json:"id"`    // docker container id
-	Alias string         `json:"alias"` // container alias: mgw-aux- + SubDeployment:ID
-	Info  *AuxDepCtrInfo `json:"info"`
-}
-
-type AuxDepCtrInfo struct {
-	ImageID string `json:"image_id"` // docker image id
-	State   string `json:"state"`    // docker container state
-}
-
-type AuxDepFilter struct {
-	Labels map[string]string `json:"labels"`
-	Image  string            `json:"image"`
-	State  string            `json:"state"`
-}
-
-type AuxDepReq struct {
-	DepID   string            `json:"dep_id"`
-	Image   string            `json:"image"`
-	Labels  map[string]string `json:"labels"`
-	Configs map[string]string `json:"configs"`
-	Ref     string            `json:"ref"`
-	Name    *string           `json:"name"`
-}
+//import "time"
+//
+//type AuxDepBase struct {
+//	DepID   string            `json:"dep_id"`
+//	Image   string            `json:"image"`
+//	Labels  map[string]string `json:"labels"`
+//	Configs map[string]string `json:"configs"`
+//	Ref     string            `json:"ref"`
+//	Name    string            `json:"name"`
+//	Created time.Time         `json:"created"`
+//	Updated time.Time         `json:"updated"`
+//}
+//
+//type AuxDeployment struct {
+//	ID string `json:"id"` // uuid
+//	AuxDepBase
+//	Container AuxDepContainer `json:"container"`
+//}
+//
+//type AuxDepContainer struct {
+//	ID    string         `json:"id"`    // docker container id
+//	Alias string         `json:"alias"` // container alias: mgw-aux- + SubDeployment:ID
+//	Info  *AuxDepCtrInfo `json:"info"`
+//}
+//
+//type AuxDepCtrInfo struct {
+//	ImageID string `json:"image_id"` // docker image id
+//	State   string `json:"state"`    // docker container state
+//}
+//
+//type AuxDepFilter struct {
+//	Labels map[string]string `json:"labels"`
+//	Image  string            `json:"image"`
+//	State  string            `json:"state"`
+//}
+//
+//type AuxDepReq struct {
+//	DepID   string            `json:"dep_id"`
+//	Image   string            `json:"image"`
+//	Labels  map[string]string `json:"labels"`
+//	Configs map[string]string `json:"configs"`
+//	Ref     string            `json:"ref"`
+//	Name    *string           `json:"name"`
+//}
