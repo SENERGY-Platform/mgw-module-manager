@@ -69,7 +69,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 	}
 	defer func() {
 		if err != nil {
-			h.removeVolumes(context.Background(), volumes)
+			h.removeVolumes(context.Background(), volumes, true)
 		}
 	}()
 	dep.Instance, err = h.createInstance(ctx, tx, mod, dep.ID, inclDir, userConfigs, hostResources, secrets, reqModDepMap)
