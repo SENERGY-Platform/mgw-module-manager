@@ -82,7 +82,7 @@ func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.
 	}
 	defer func() {
 		if err != nil {
-			h.removeContainers(context.Background(), depInstance.Containers)
+			h.removeContainers(context.Background(), depInstance.Containers, true)
 		}
 	}()
 	for i, ref := range order {
@@ -114,7 +114,7 @@ func (h *Handler) createInstance(ctx context.Context, tx driver.Tx, mod *module.
 	return depInstance, nil
 }
 
-func (h *Handler) removeInstance(ctx context.Context, dep model.Deployment) error {
+func (h *Handler) removeInstance(ctx context.Context, dep model.Deployment, force bool) error {
 	if dep.Instance.ID == "" {
 		instance, err := h.getDepInstance(ctx, dep.ID)
 		if err != nil {
@@ -122,7 +122,7 @@ func (h *Handler) removeInstance(ctx context.Context, dep model.Deployment) erro
 		}
 		dep.Instance = instance
 	}
-	if err := h.removeContainers(ctx, dep.Instance.Containers); err != nil {
+	if err := h.removeContainers(ctx, dep.Instance.Containers, force); err != nil {
 		return err
 	}
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
@@ -130,11 +130,11 @@ func (h *Handler) removeInstance(ctx context.Context, dep model.Deployment) erro
 	return h.storageHandler.DeleteInst(ctxWt, dep.Instance.ID)
 }
 
-func (h *Handler) removeContainers(ctx context.Context, containers []model.Container) error {
+func (h *Handler) removeContainers(ctx context.Context, containers []model.Container, force bool) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	for _, ctr := range containers {
-		err := h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID)
+		err := h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID, force)
 		if err != nil {
 			var nfe *cew_model.NotFoundError
 			if !errors.As(err, &nfe) {

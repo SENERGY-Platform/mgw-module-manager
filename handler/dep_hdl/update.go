@@ -106,7 +106,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	}
 	defer func() {
 		if err != nil {
-			h.removeInstance(context.Background(), newDep)
+			h.removeInstance(context.Background(), newDep, true)
 		}
 	}()
 	if oldDep.Enabled {
@@ -118,7 +118,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	if err != nil {
 		return h.restore(model.NewInternalError(err), oldDep)
 	}
-	if err := h.removeInstance(ctx, oldDep); err != nil {
+	if err := h.removeInstance(ctx, oldDep, true); err != nil {
 		return err
 	}
 	if err := h.removeVolumes(ctx, orphanVol); err != nil {

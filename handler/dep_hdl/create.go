@@ -78,7 +78,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 	}
 	defer func() {
 		if err != nil {
-			h.removeInstance(context.Background(), dep)
+			h.removeInstance(context.Background(), dep, true)
 		}
 	}()
 	err = tx.Commit()
