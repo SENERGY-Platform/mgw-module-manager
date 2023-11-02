@@ -121,7 +121,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	if err := h.removeInstance(ctx, oldDep, true); err != nil {
 		return err
 	}
-	if err := h.removeVolumes(ctx, orphanVol); err != nil {
+	if err := h.removeVolumes(ctx, orphanVol, true); err != nil {
 		return err
 	}
 	return nil
