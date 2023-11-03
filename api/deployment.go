@@ -249,6 +249,36 @@ func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (model
 	}, nil
 }
 
+func (a *Api) StartDeployment(ctx context.Context, dID string, dependencies bool) error {
+	err := a.mu.TryLock(fmt.Sprintf("start deployment '%s'", dID))
+	if err != nil {
+		return model.NewResourceBusyError(err)
+	}
+	defer a.mu.Unlock()
+	return a.deploymentHandler.Start(ctx, dID, dependencies)
+}
+
+func (a *Api) StopDeployment(_ context.Context, dID string, dependencies bool) (string, error) {
+	err := a.mu.TryLock(fmt.Sprintf("stop deployment '%s'", dID))
+	if err != nil {
+		return "", model.NewResourceBusyError(err)
+	}
+	jID, err := a.jobHandler.Create(fmt.Sprintf("stop deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
+		defer a.mu.Unlock()
+		defer cf()
+		err := a.deploymentHandler.Stop(ctx, dID, dependencies)
+		if err == nil {
+			err = ctx.Err()
+		}
+		return err
+	})
+	if err != nil {
+		a.mu.Unlock()
+		return "", err
+	}
+	return jID, nil
+}
+
 func (a *Api) RestartDeployment(_ context.Context, id string) (string, error) {
 	err := a.mu.TryLock(fmt.Sprintf("restart deployment '%s'", id))
 	if err != nil {
