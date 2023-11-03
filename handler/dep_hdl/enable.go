@@ -18,6 +18,7 @@ package dep_hdl
 
 import (
 	"context"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 )
 
@@ -28,6 +29,32 @@ func (h *Handler) Enable(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
+	tx, err := h.storageHandler.BeginTransaction(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
 	d.Enabled = true
-	return h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), nil, d.DepBase)
+	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, d.DepBase); err != nil {
+		return err
+	}
+	if len(d.RequiredDep) > 0 {
+		reqDep := make(map[string]model.Deployment)
+		if err = h.getReqDep(ctx, d, reqDep); err != nil {
+			return err
+		}
+		for _, rd := range reqDep {
+			if !rd.Enabled {
+				rd.Enabled = true
+				if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, rd.DepBase); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	return nil
 }
