@@ -555,3 +555,13 @@ func getUserSecrets(userInput map[string]string, mSecrets map[string]module.Secr
 	}
 	return usrSecrets, missing, nil
 }
+
+func difference(depReq []string, reqDep map[string]model.Deployment) []string {
+	var res []string
+	for _, id := range depReq {
+		if _, ok := reqDep[id]; !ok {
+			res = append(res, id)
+		}
+	}
+	return res
+}
