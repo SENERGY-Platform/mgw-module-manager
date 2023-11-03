@@ -18,46 +18,16 @@ package dep_hdl
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
-	"time"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 )
 
-func (h *Handler) Enable(ctx context.Context, id string, dependencies bool) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	d, err := h.storageHandler.ReadDep(ctxWt, id, true)
+func (h *Handler) Enable(ctx context.Context, id string) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	d, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), id, true)
 	if err != nil {
 		return err
 	}
-	if dependencies && len(d.RequiredDep) > 0 {
-		reqDep := make(map[string]model.Deployment)
-		if err = h.getReqDep(ctx, d, reqDep); err != nil {
-			return err
-		}
-		order, err := sorting.GetDepOrder(reqDep)
-		if err != nil {
-			return model.NewInternalError(err)
-		}
-		for _, rdID := range order {
-			rd := reqDep[rdID]
-			if !rd.Enabled {
-				if err = h.enable(ctx, rd); err != nil {
-					return err
-				}
-			}
-		}
-	}
-	return h.enable(ctx, d)
-}
-
-func (h *Handler) enable(ctx context.Context, dep model.Deployment) error {
-	if err := h.startDep(ctx, dep); err != nil {
-		return err
-	}
-	dep.Enabled = true
-	dep.Updated = time.Now().UTC()
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	return h.storageHandler.UpdateDep(ctxWt, nil, dep.DepBase)
+	d.Enabled = true
+	return h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), nil, d.DepBase)
 }
