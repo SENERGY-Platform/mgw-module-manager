@@ -18,7 +18,6 @@ package dep_hdl
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
