@@ -37,13 +37,8 @@ func (h *Handler) Delete(ctx context.Context, id string, orphans, force bool) er
 	if err != nil {
 		return err
 	}
-	if !force {
-		if dep.Enabled {
-			return model.NewInvalidInputError(errors.New("deployment is enabled"))
-		}
-		if len(dep.DepRequiring) > 0 {
-			return model.NewInternalError(fmt.Errorf("deplyoment is required by: %s", strings.Join(dep.DepRequiring, ", ")))
-		}
+	if !force && len(dep.DepRequiring) > 0 {
+		return model.NewInternalError(fmt.Errorf("deplyoment is required by: %s", strings.Join(dep.DepRequiring, ", ")))
 	}
 	if err = h.delete(ctx, dep, force); err != nil {
 		return err
