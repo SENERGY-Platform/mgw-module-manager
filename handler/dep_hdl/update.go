@@ -41,13 +41,8 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	if err != nil {
 		return err
 	}
-	if oldDep.Enabled {
-		if err = h.stopInstance(ctx, oldDep); err != nil {
-			return err
-		}
-		if err = h.unloadSecrets(ctx, id); err != nil {
-			return err
-		}
+	if err = h.stopDep(ctx, oldDep); err != nil {
+		return err
 	}
 	hostResources, secrets, userConfigs, reqModDepMap, err := h.getDepAssets(ctx, mod, id, depInput)
 	if err != nil {
