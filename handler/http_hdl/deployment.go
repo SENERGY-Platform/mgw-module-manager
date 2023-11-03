@@ -36,7 +36,7 @@ type deleteDeploymentQuery struct {
 	Force   bool `form:"force"`
 }
 
-type disableDeploymentQuery struct {
+type startStopDeploymentQuery struct {
 	Dependencies bool `form:"dependencies"`
 }
 
@@ -119,12 +119,39 @@ func patchDeploymentEnableH(a lib.Api) gin.HandlerFunc {
 
 func patchDeploymentDisableH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		query := disableDeploymentQuery{}
+		err := a.DisableDeployment(gc.Request.Context(), gc.Param(depIdParam))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
+func patchDeploymentStartH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		query := startStopDeploymentQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		jID, err := a.DisableDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Dependencies)
+		err := a.StartDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Dependencies)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
+func patchDeploymentStopH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		query := startStopDeploymentQuery{}
+		if err := gc.ShouldBindQuery(&query); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		jID, err := a.StopDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Dependencies)
 		if err != nil {
 			_ = gc.Error(err)
 			return
