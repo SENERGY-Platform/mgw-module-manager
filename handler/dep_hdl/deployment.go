@@ -32,6 +32,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 	sm_model "github.com/SENERGY-Platform/mgw-secret-manager/pkg/api_model"
 	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
 	"github.com/google/uuid"
@@ -145,15 +146,33 @@ func (h *Handler) Start(ctx context.Context, id string, dependencies bool) error
 	return h.startDep(ctx, dep)
 }
 
-func (h *Handler) Stop(ctx context.Context, id string) error {
+func (h *Handler) Stop(ctx context.Context, id string, dependencies bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
 	if err != nil {
 		return err
 	}
-	if !dep.Enabled {
-		return errors.New("deployment must be enabled")
+	if err = h.stopDep(ctx, dep); err != nil {
+		return err
+	}
+	if dependencies && len(dep.RequiredDep) > 0 {
+		reqDep := make(map[string]model.Deployment)
+		if err = h.getReqDep(ctx, dep, reqDep); err != nil {
+			return err
+		}
+		order, err := sorting.GetDepOrder(reqDep)
+		if err != nil {
+			return model.NewInternalError(err)
+		}
+		for i := len(order) - 1; i >= 0; i-- {
+			rd := reqDep[order[i]]
+			if len(difference(rd.DepRequiring, reqDep)) < 2 {
+				if err = h.stopDep(ctx, rd); err != nil {
+					return err
+				}
+			}
+		}
 	}
 	return h.stopDep(ctx, dep)
 }
