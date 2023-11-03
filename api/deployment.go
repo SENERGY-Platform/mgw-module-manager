@@ -103,7 +103,7 @@ func (a *Api) EnableDeployment(ctx context.Context, id string) error {
 		return model.NewResourceBusyError(err)
 	}
 	defer a.mu.Unlock()
-	return a.deploymentHandler.Enable(ctx, id, true)
+	return a.deploymentHandler.Enable(ctx, id)
 }
 
 func (a *Api) DisableDeployment(ctx context.Context, id string) error {
