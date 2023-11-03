@@ -119,15 +119,28 @@ func (h *Handler) Get(ctx context.Context, id string, assets, instance bool) (mo
 	return dep, err
 }
 
-func (h *Handler) Start(ctx context.Context, id string) error {
+func (h *Handler) Start(ctx context.Context, id string, dependencies bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
 	if err != nil {
 		return err
 	}
-	if !dep.Enabled {
-		return errors.New("deployment must be enabled")
+	if dependencies && len(dep.RequiredDep) > 0 {
+		reqDep := make(map[string]model.Deployment)
+		if err = h.getReqDep(ctx, dep, reqDep); err != nil {
+			return err
+		}
+		order, err := sorting.GetDepOrder(reqDep)
+		if err != nil {
+			return model.NewInternalError(err)
+		}
+		for _, rdID := range order {
+			rd := reqDep[rdID]
+			if err = h.startDep(ctx, rd); err != nil {
+				return err
+			}
+		}
 	}
 	return h.startDep(ctx, dep)
 }
