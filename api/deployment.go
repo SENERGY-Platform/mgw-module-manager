@@ -271,10 +271,10 @@ func (a *Api) RestartDeployment(_ context.Context, id string) (string, error) {
 }
 
 func (a *Api) restartDep(ctx context.Context, id string) error {
-	if err := a.deploymentHandler.Stop(ctx, id); err != nil {
+	if err := a.deploymentHandler.Stop(ctx, id, false); err != nil {
 		return err
 	}
-	return a.deploymentHandler.Start(ctx, id)
+	return a.deploymentHandler.Start(ctx, id, false)
 }
 
 func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.DepInput) (bool, string, error) {
@@ -316,7 +316,7 @@ func (a *Api) startDeployments(ctx context.Context, depMap map[string]model.Depl
 }
 
 func (a *Api) startDeployment(ctx context.Context, dID string, delay time.Duration, retries int) error {
-	err := a.deploymentHandler.Start(ctx, dID)
+	err := a.deploymentHandler.Start(ctx, dID, false)
 	if err != nil {
 		ticker := time.NewTicker(delay)
 		defer ticker.Stop()
@@ -326,7 +326,7 @@ func (a *Api) startDeployment(ctx context.Context, dID string, delay time.Durati
 			select {
 			case <-ticker.C:
 				count += 1
-				err = a.deploymentHandler.Start(ctx, dID)
+				err = a.deploymentHandler.Start(ctx, dID, false)
 				if err != nil {
 					util.Logger.Warningf("starting deployment '%s' failed (%d/%d): %s", dID, count, retries, err)
 				} else {
