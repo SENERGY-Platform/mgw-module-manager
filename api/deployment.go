@@ -106,25 +106,13 @@ func (a *Api) EnableDeployment(ctx context.Context, id string) error {
 	return a.deploymentHandler.Enable(ctx, id, true)
 }
 
-func (a *Api) DisableDeployment(_ context.Context, id string, dependencies bool) (string, error) {
+func (a *Api) DisableDeployment(ctx context.Context, id string) error {
 	err := a.mu.TryLock(fmt.Sprintf("disable deployment '%s'", id))
 	if err != nil {
-		return "", model.NewResourceBusyError(err)
+		return model.NewResourceBusyError(err)
 	}
-	jID, err := a.jobHandler.Create(fmt.Sprintf("disable deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
-		defer a.mu.Unlock()
-		defer cf()
-		err := a.deploymentHandler.Disable(ctx, id, dependencies)
-		if err == nil {
-			err = ctx.Err()
-		}
-		return err
-	})
-	if err != nil {
-		a.mu.Unlock()
-		return "", err
-	}
-	return jID, nil
+	defer a.mu.Unlock()
+	return a.deploymentHandler.Disable(ctx, id)
 }
 
 func (a *Api) StartDeployments(delay time.Duration, retries int) error {
