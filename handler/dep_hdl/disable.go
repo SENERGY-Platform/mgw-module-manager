@@ -18,72 +18,19 @@ package dep_hdl
 
 import (
 	"context"
-	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
-	"time"
 )
 
-func (h *Handler) Disable(ctx context.Context, id string, dependencies bool) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	d, err := h.storageHandler.ReadDep(ctxWt, id, true)
+func (h *Handler) Disable(ctx context.Context, id string) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	d, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), id, true)
 	if err != nil {
 		return err
 	}
-	if len(d.DepRequiring) > 0 {
-		depReq, err := h.getDepFromIDs(ctx, d.DepRequiring)
-		if err != nil {
-			return err
-		}
-		ok, rdID := allDepStopped(depReq)
-		if !ok {
-			return model.NewInternalError(fmt.Errorf("required by '%s'", rdID))
-		}
-	}
-	if err = h.disable(ctx, d); err != nil {
-		return err
-	}
-	if dependencies && len(d.RequiredDep) > 0 {
-		reqDep := make(map[string]model.Deployment)
-		if err = h.getReqDep(ctx, d, reqDep); err != nil {
-			return err
-		}
-		order, err := sorting.GetDepOrder(reqDep)
-		if err != nil {
-			return model.NewInternalError(err)
-		}
-		for i := len(order) - 1; i >= 0; i-- {
-			rd := reqDep[order[i]]
-			if rd.Indirect {
-				if len(rd.DepRequiring) > 0 {
-					depReq, err := h.getDepFromIDs(ctx, rd.DepRequiring)
-					if err != nil {
-						return err
-					}
-					ok, _ := allDepStopped(depReq)
-					if ok {
-						if err = h.disable(ctx, rd); err != nil {
-							return err
-						}
-					}
-				}
-			}
-		}
-	}
-	return nil
-}
-
-func (h *Handler) disable(ctx context.Context, dep model.Deployment) error {
-	if err := h.stopDep(ctx, dep); err != nil {
-		return err
-	}
-	dep.Enabled = false
-	dep.Updated = time.Now().UTC()
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	return h.storageHandler.UpdateDep(ctxWt, nil, dep.DepBase)
+	d.Enabled = false
+	return h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), nil, d.DepBase)
 }
 
 func (h *Handler) getDepFromIDs(ctx context.Context, dIDs []string) ([]model.Deployment, error) {
@@ -98,13 +45,4 @@ func (h *Handler) getDepFromIDs(ctx context.Context, dIDs []string) ([]model.Dep
 		dep = append(dep, d)
 	}
 	return dep, nil
-}
-
-func allDepStopped(dep []model.Deployment) (bool, string) {
-	for _, d := range dep {
-		if d.Enabled {
-			return false, d.ID
-		}
-	}
-	return true, ""
 }
