@@ -42,12 +42,12 @@ func (h *Handler) Start(ctx context.Context, id string, dependencies bool) error
 		}
 		for _, rdID := range order {
 			rd := reqDep[rdID]
-			if err = h.startDep(ctx, rd); err != nil {
+			if err = h.start(ctx, rd); err != nil {
 				return err
 			}
 		}
 	}
-	return h.startDep(ctx, dep)
+	return h.start(ctx, dep)
 }
 
 func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
@@ -72,10 +72,24 @@ func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
 			return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
 		}
 	}
-	return h.stopDep(ctx, dep)
+	if err = h.stopInstance(ctx, dep); err != nil {
+		return err
+	}
+	if err = h.unloadSecrets(ctx, dep.ID); err != nil {
+		return err
+	}
+	if dep.Enabled {
+		dep.Enabled = false
+		ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
+		defer cf2()
+		if err := h.storageHandler.UpdateDep(ctxWt2, nil, dep.DepBase); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func (h *Handler) startDep(ctx context.Context, dep model.Deployment) error {
+func (h *Handler) start(ctx context.Context, dep model.Deployment) error {
 	if err := h.loadSecrets(ctx, dep); err != nil {
 		return err
 	}
@@ -89,19 +103,4 @@ func (h *Handler) startDep(ctx context.Context, dep model.Deployment) error {
 		return h.storageHandler.UpdateDep(ctxWt, nil, dep.DepBase)
 	}
 	return nil
-}
-
-func (h *Handler) stopDep(ctx context.Context, dep model.Deployment) error {
-	if err := h.stopInstance(ctx, dep); err != nil {
-		return err
-	}
-	if dep.Enabled {
-		dep.Enabled = false
-		ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-		defer cf()
-		if err := h.storageHandler.UpdateDep(ctxWt, nil, dep.DepBase); err != nil {
-			return err
-		}
-	}
-	return h.unloadSecrets(ctx, dep.ID)
 }

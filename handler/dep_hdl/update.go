@@ -41,8 +41,13 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	if err != nil {
 		return err
 	}
-	if err = h.stopDep(ctx, oldDep); err != nil {
-		return err
+	if oldDep.Enabled {
+		if err = h.stopInstance(ctx, oldDep); err != nil {
+			return err
+		}
+		if err = h.unloadSecrets(ctx, oldDep.ID); err != nil {
+			return err
+		}
 	}
 	hostResources, secrets, userConfigs, reqModDepMap, err := h.getDepAssets(ctx, mod, id, depInput)
 	if err != nil {
@@ -105,7 +110,10 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 		}
 	}()
 	if oldDep.Enabled {
-		if err = h.startDep(ctx, newDep); err != nil {
+		if err = h.loadSecrets(ctx, newDep); err != nil {
+			return h.restore(err, oldDep)
+		}
+		if err = h.startInstance(ctx, newDep); err != nil {
 			return h.restore(err, oldDep)
 		}
 	}
@@ -156,7 +164,10 @@ func (h *Handler) restore(err error, dep model.Deployment) error {
 		if e := h.unloadSecrets(context.Background(), dep.ID); e != nil {
 			return e
 		}
-		if e := h.startDep(context.Background(), dep); e != nil {
+		if e := h.loadSecrets(context.Background(), dep); err != nil {
+			return e
+		}
+		if e := h.startInstance(context.Background(), dep); err != nil {
 			return e
 		}
 	}
