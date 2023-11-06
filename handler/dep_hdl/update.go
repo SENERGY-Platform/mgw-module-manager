@@ -104,7 +104,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 			h.removeInstance(context.Background(), newDep, true)
 		}
 	}()
-	if oldDep.Enabled {
+	if oldDep.Autostart || oldDep.Started {
 		if err = h.startDep(ctx, newDep); err != nil {
 			return h.restore(err, oldDep)
 		}
@@ -152,7 +152,7 @@ func (h *Handler) diffVolumes(ctx context.Context, volumes ml_util.Set[string], 
 }
 
 func (h *Handler) restore(err error, dep model.Deployment) error {
-	if dep.Enabled {
+	if dep.Autostart || dep.Started {
 		if e := h.unloadSecrets(context.Background(), dep.ID); e != nil {
 			return e
 		}
