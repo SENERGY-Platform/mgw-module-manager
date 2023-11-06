@@ -39,6 +39,7 @@ import (
 	"io/fs"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -146,32 +147,26 @@ func (h *Handler) Start(ctx context.Context, id string, dependencies bool) error
 	return h.startDep(ctx, dep)
 }
 
-func (h *Handler) Stop(ctx context.Context, id string, dependencies bool) error {
+func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
 	if err != nil {
 		return err
 	}
-	if err = h.stopDep(ctx, dep); err != nil {
-		return err
-	}
-	if dependencies && len(dep.RequiredDep) > 0 {
-		reqDep := make(map[string]model.Deployment)
-		if err = h.getReqDep(ctx, dep, reqDep); err != nil {
+	if !force && len(dep.DepRequiring) > 0 {
+		depReq, err := h.getDepFromIDs(ctx, dep.DepRequiring)
+		if err != nil {
 			return err
 		}
-		order, err := sorting.GetDepOrder(reqDep)
-		if err != nil {
-			return model.NewInternalError(err)
-		}
-		for i := len(order) - 1; i >= 0; i-- {
-			rd := reqDep[order[i]]
-			if len(difference(rd.DepRequiring, reqDep)) < 2 {
-				if err = h.stopDep(ctx, rd); err != nil {
-					return err
-				}
+		var reqBy []string
+		for _, dr := range depReq {
+			if dr.Started {
+				reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dr.Name, dr.ID))
 			}
+		}
+		if len(reqBy) > 0 {
+			return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
 		}
 	}
 	return h.stopDep(ctx, dep)
