@@ -32,14 +32,12 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 	sm_model "github.com/SENERGY-Platform/mgw-secret-manager/pkg/api_model"
 	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
 	"github.com/google/uuid"
 	"io/fs"
 	"os"
 	"path"
-	"strings"
 	"time"
 )
 
@@ -121,86 +119,18 @@ func (h *Handler) Get(ctx context.Context, id string, assets, instance bool) (mo
 	return dep, err
 }
 
-func (h *Handler) Start(ctx context.Context, id string, dependencies bool) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
-	if err != nil {
-		return err
-	}
-	if dependencies && len(dep.RequiredDep) > 0 {
-		reqDep := make(map[string]model.Deployment)
-		if err = h.getReqDep(ctx, dep, reqDep); err != nil {
-			return err
-		}
-		order, err := sorting.GetDepOrder(reqDep)
+func (h *Handler) getDepFromIDs(ctx context.Context, dIDs []string) ([]model.Deployment, error) {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	var dep []model.Deployment
+	for _, dID := range dIDs {
+		d, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, false)
 		if err != nil {
-			return model.NewInternalError(err)
+			return nil, err
 		}
-		for _, rdID := range order {
-			rd := reqDep[rdID]
-			if err = h.startDep(ctx, rd); err != nil {
-				return err
-			}
-		}
+		dep = append(dep, d)
 	}
-	return h.startDep(ctx, dep)
-}
-
-func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
-	if err != nil {
-		return err
-	}
-	if !force && len(dep.DepRequiring) > 0 {
-		depReq, err := h.getDepFromIDs(ctx, dep.DepRequiring)
-		if err != nil {
-			return err
-		}
-		var reqBy []string
-		for _, dr := range depReq {
-			if dr.Enabled {
-				reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dr.Name, dr.ID))
-			}
-		}
-		if len(reqBy) > 0 {
-			return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
-		}
-	}
-	return h.stopDep(ctx, dep)
-}
-
-func (h *Handler) startDep(ctx context.Context, dep model.Deployment) error {
-	if err := h.loadSecrets(ctx, dep); err != nil {
-		return err
-	}
-	if err := h.startInstance(ctx, dep); err != nil {
-		return err
-	}
-	if !dep.Enabled {
-		dep.Enabled = true
-		ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-		defer cf()
-		return h.storageHandler.UpdateDep(ctxWt, nil, dep.DepBase)
-	}
-	return nil
-}
-
-func (h *Handler) stopDep(ctx context.Context, dep model.Deployment) error {
-	if err := h.stopInstance(ctx, dep); err != nil {
-		return err
-	}
-	if dep.Enabled {
-		dep.Enabled = false
-		ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-		defer cf()
-		if err := h.storageHandler.UpdateDep(ctxWt, nil, dep.DepBase); err != nil {
-			return err
-		}
-	}
-	return h.unloadSecrets(ctx, dep.ID)
+	return dep, nil
 }
 
 func (h *Handler) getReqDep(ctx context.Context, dep model.Deployment, reqDep map[string]model.Deployment) error {
