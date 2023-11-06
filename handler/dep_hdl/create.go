@@ -97,7 +97,6 @@ func (h *Handler) createDepBase(ctx context.Context, tx driver.Tx, mod *module.M
 		},
 		Name:     getDepName(mod.Name, depInput.Name),
 		Dir:      inclDir,
-		Enabled:  false,
 		Indirect: indirect,
 		Created:  timestamp,
 		Updated:  timestamp,
