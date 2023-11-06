@@ -72,12 +72,12 @@ type DeploymentHandler interface {
 	List(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error)
 	Get(ctx context.Context, dID string, assets, instance bool) (model.Deployment, error)
 	Create(ctx context.Context, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error)
-	Delete(ctx context.Context, dID string, orphans, force bool) error
+	Delete(ctx context.Context, dID string, force bool) error
 	Update(ctx context.Context, dID string, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS) error
-	Enable(ctx context.Context, dID string) error
-	Disable(ctx context.Context, dID string) error
+	Enable(ctx context.Context, dID string, dependencies bool) error
+	Disable(ctx context.Context, dID string, force bool) error
 	Start(ctx context.Context, dID string, dependencies bool) error
-	Stop(ctx context.Context, dID string, dependencies bool) error
+	Stop(ctx context.Context, dID string, force bool) error
 }
 
 type DepStorageHandler interface {
