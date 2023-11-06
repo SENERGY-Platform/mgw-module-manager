@@ -176,11 +176,23 @@ func (h *Handler) startDep(ctx context.Context, dep model.Deployment) error {
 	if err := h.loadSecrets(ctx, dep); err != nil {
 		return err
 	}
-	return h.startInstance(ctx, dep)
+	if err := h.startInstance(ctx, dep); err != nil {
+		return err
+	}
+	dep.Started = true
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	return h.storageHandler.UpdateDep(ctxWt, nil, dep.DepBase)
 }
 
 func (h *Handler) stopDep(ctx context.Context, dep model.Deployment) error {
 	if err := h.stopInstance(ctx, dep); err != nil {
+		return err
+	}
+	dep.Started = false
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	if err := h.storageHandler.UpdateDep(ctxWt, nil, dep.DepBase); err != nil {
 		return err
 	}
 	return h.unloadSecrets(ctx, dep.ID)
