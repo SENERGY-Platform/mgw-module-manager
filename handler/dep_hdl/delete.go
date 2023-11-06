@@ -38,7 +38,7 @@ func (h *Handler) Delete(ctx context.Context, id string, force bool) error {
 	}
 	if !force {
 		if dep.Enabled {
-			return model.NewInvalidInputError(errors.New("deployment is started"))
+			return model.NewInvalidInputError(errors.New("deployment is enabled"))
 		}
 		if len(dep.DepRequiring) > 0 {
 			depReq, err := h.getDepFromIDs(ctx, dep.DepRequiring)
