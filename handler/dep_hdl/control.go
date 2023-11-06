@@ -57,7 +57,7 @@ func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
 	if err != nil {
 		return err
 	}
-	if !force && len(dep.DepRequiring) > 0 {
+	if dep.Enabled && !force && len(dep.DepRequiring) > 0 {
 		depReq, err := h.getDepFromIDs(ctx, dep.DepRequiring)
 		if err != nil {
 			return err
