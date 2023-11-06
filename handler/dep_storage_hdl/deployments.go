@@ -30,7 +30,7 @@ import (
 )
 
 func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error) {
-	q := "SELECT `id`, `mod_id`, `mod_ver`, `name`, `dir`, `autostart`, `started`, `indirect`, `created`, `updated` FROM `deployments`"
+	q := "SELECT `id`, `mod_id`, `mod_ver`, `name`, `dir`, `enabled`, `indirect`, `created`, `updated` FROM `deployments`"
 	fc, val := genListDepFilter(filter)
 	if fc != "" {
 		q += fc
@@ -70,7 +70,7 @@ func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.
 
 func (h *Handler) CreateDep(ctx context.Context, itf driver.Tx, depBase model.DepBase) (string, error) {
 	tx := itf.(*sql.Tx)
-	res, err := tx.ExecContext(ctx, "INSERT INTO `deployments` (`id`, `mod_id`, `mod_ver`, `name`, `dir`, `autostart`, `started`, `indirect`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?)", depBase.Module.ID, depBase.Module.Version, depBase.Name, depBase.Dir, depBase.Autostart, depBase.Started, depBase.Indirect, depBase.Created, depBase.Updated)
+	res, err := tx.ExecContext(ctx, "INSERT INTO `deployments` (`id`, `mod_id`, `mod_ver`, `name`, `dir`, `enabled`, `indirect`, `created`, `updated`) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?)", depBase.Module.ID, depBase.Module.Version, depBase.Name, depBase.Dir, depBase.Enabled, depBase.Indirect, depBase.Created, depBase.Updated)
 	if err != nil {
 		return "", model.NewInternalError(err)
 	}
@@ -180,7 +180,7 @@ func (h *Handler) UpdateDep(ctx context.Context, itf driver.Tx, depBase model.De
 		tx := itf.(*sql.Tx)
 		execContext = tx.ExecContext
 	}
-	res, err := execContext(ctx, "UPDATE `deployments` SET `mod_ver` = ?, `name` = ?, `dir` = ?, `autostart` = ?, `started` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", depBase.Module.Version, depBase.Name, depBase.Dir, depBase.Autostart, depBase.Started, depBase.Indirect, depBase.Updated, depBase.ID)
+	res, err := execContext(ctx, "UPDATE `deployments` SET `mod_ver` = ?, `name` = ?, `dir` = ?, `enabled` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", depBase.Module.Version, depBase.Name, depBase.Dir, depBase.Enabled, depBase.Indirect, depBase.Updated, depBase.ID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}
@@ -334,7 +334,7 @@ func (h *Handler) deleteDepSecrets(ctx context.Context, tx *sql.Tx, dID string) 
 }
 
 func selectDeployment(ctx context.Context, qwf func(context.Context, string, ...any) *sql.Row, depID string) (model.DepBase, error) {
-	row := qwf(ctx, "SELECT `id`, `mod_id`, `mod_ver`, `name`, `dir`, `autostart`, `started`, `indirect`, `created`, `updated` FROM `deployments` WHERE `id` = ?", depID)
+	row := qwf(ctx, "SELECT `id`, `mod_id`, `mod_ver`, `name`, `dir`, `enabled`, `indirect`, `created`, `updated` FROM `deployments` WHERE `id` = ?", depID)
 	var depBase model.DepBase
 	var depModule model.DepModule
 	var ct, ut []uint8
