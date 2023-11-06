@@ -283,7 +283,7 @@ func (a *Api) RestartDeployment(_ context.Context, id string) (string, error) {
 }
 
 func (a *Api) restartDep(ctx context.Context, id string) error {
-	if err := a.deploymentHandler.Stop(ctx, id, false); err != nil {
+	if err := a.deploymentHandler.Stop(ctx, id, true); err != nil {
 		return err
 	}
 	return a.deploymentHandler.Start(ctx, id, false)
