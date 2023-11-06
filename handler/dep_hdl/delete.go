@@ -85,16 +85,3 @@ func (h *Handler) delete(ctx context.Context, dep model.Deployment, force bool) 
 	}
 	return nil
 }
-
-func isRequired(reqDep map[string]model.Deployment, depRequiring []string) bool {
-	for _, dID := range depRequiring {
-		if dep, ok := reqDep[dID]; !ok {
-			return true
-		} else {
-			if !dep.Indirect {
-				return true
-			}
-		}
-	}
-	return false
-}
