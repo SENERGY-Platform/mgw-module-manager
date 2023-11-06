@@ -37,7 +37,7 @@ func (h *Handler) Delete(ctx context.Context, id string, force bool) error {
 		return err
 	}
 	if !force {
-		if dep.Started {
+		if dep.Enabled {
 			return model.NewInvalidInputError(errors.New("deployment is started"))
 		}
 		if len(dep.DepRequiring) > 0 {

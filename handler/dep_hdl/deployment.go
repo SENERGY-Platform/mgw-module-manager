@@ -161,7 +161,7 @@ func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
 		}
 		var reqBy []string
 		for _, dr := range depReq {
-			if dr.Started {
+			if dr.Enabled {
 				reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dr.Name, dr.ID))
 			}
 		}
@@ -179,7 +179,7 @@ func (h *Handler) startDep(ctx context.Context, dep model.Deployment) error {
 	if err := h.startInstance(ctx, dep); err != nil {
 		return err
 	}
-	dep.Started = true
+	dep.Enabled = true
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	return h.storageHandler.UpdateDep(ctxWt, nil, dep.DepBase)
@@ -189,7 +189,7 @@ func (h *Handler) stopDep(ctx context.Context, dep model.Deployment) error {
 	if err := h.stopInstance(ctx, dep); err != nil {
 		return err
 	}
-	dep.Started = false
+	dep.Enabled = false
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	if err := h.storageHandler.UpdateDep(ctxWt, nil, dep.DepBase); err != nil {

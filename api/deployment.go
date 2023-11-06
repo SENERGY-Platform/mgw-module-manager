@@ -145,7 +145,7 @@ func (a *Api) GetDeploymentsHealth(ctx context.Context) (map[string]model.DepHea
 	}
 	instances := make(map[string]model.DepInstance)
 	for _, dep := range deployments {
-		if dep.Autostart {
+		if dep.Enabled {
 			d, err := a.deploymentHandler.Get(ctx, dep.ID, false, true)
 			if err != nil {
 				return nil, err
@@ -161,8 +161,8 @@ func (a *Api) GetDeploymentHealth(ctx context.Context, dID string) (model.DepHea
 	if err != nil {
 		return model.DepHealthInfo{}, err
 	}
-	if !dep.Autostart {
-		return model.DepHealthInfo{}, model.NewInvalidInputError(fmt.Errorf("deployment '%s' is disabled", dID))
+	if !dep.Enabled {
+		return model.DepHealthInfo{}, model.NewInvalidInputError(fmt.Errorf("deployment '%s' not started", dID))
 	}
 	return a.depHealthHandler.Get(ctx, dep.Instance)
 }
@@ -318,7 +318,7 @@ func (a *Api) startDeployments(ctx context.Context, depMap map[string]model.Depl
 		if !ok {
 			return fmt.Errorf("deployment '%s' does not exist", dID)
 		}
-		if dep.Autostart {
+		if dep.Enabled {
 			if err := a.startDeployment(ctx, dID, delay, retries); err != nil {
 				return err
 			}

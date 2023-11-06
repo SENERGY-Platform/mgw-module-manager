@@ -371,12 +371,7 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInp
 				if err != nil {
 					return err
 				}
-				if oldRootDep.Autostart {
-					if err = a.deploymentHandler.Enable(ctx, dID, false); err != nil {
-						return err
-					}
-				}
-				if oldRootDep.Autostart || oldRootDep.Started {
+				if oldRootDep.Enabled {
 					if err = a.deploymentHandler.Start(ctx, dID, false); err != nil {
 						return err
 					}
@@ -400,12 +395,7 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInp
 				if err != nil {
 					return err
 				}
-				if oldDep.Autostart {
-					if err = a.deploymentHandler.Enable(ctx, oldDep.ID, false); err != nil {
-						return err
-					}
-				}
-				if oldDep.Autostart || oldDep.Started {
+				if oldDep.Enabled {
 					if err = a.deploymentHandler.Start(ctx, oldDep.ID, false); err != nil {
 						return err
 					}
@@ -416,12 +406,7 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInp
 					if err != nil {
 						return err
 					}
-					if oldRootDep.Autostart {
-						if err = a.deploymentHandler.Enable(ctx, dID, false); err != nil {
-							return err
-						}
-					}
-					if oldRootDep.Autostart || oldRootDep.Started {
+					if oldRootDep.Enabled {
 						if err = a.deploymentHandler.Start(ctx, dID, false); err != nil {
 							return err
 						}

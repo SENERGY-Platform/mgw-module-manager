@@ -46,7 +46,7 @@ func (h *Handler) ListDep(ctx context.Context, filter model.DepFilter) ([]model.
 		var depBase model.DepBase
 		var depModule model.DepModule
 		var ct, ut []uint8
-		if err = rows.Scan(&depBase.ID, &depModule.ID, &depModule.Version, &depBase.Name, &depBase.Dir, &depBase.Autostart, &depBase.Started, &depBase.Indirect, &ct, &ut); err != nil {
+		if err = rows.Scan(&depBase.ID, &depModule.ID, &depModule.Version, &depBase.Name, &depBase.Dir, &depBase.Enabled, &depBase.Indirect, &ct, &ut); err != nil {
 			return nil, model.NewInternalError(err)
 		}
 		tc, err := time.Parse(tLayout, string(ct))
@@ -338,7 +338,7 @@ func selectDeployment(ctx context.Context, qwf func(context.Context, string, ...
 	var depBase model.DepBase
 	var depModule model.DepModule
 	var ct, ut []uint8
-	err := row.Scan(&depBase.ID, &depModule.ID, &depModule.Version, &depBase.Name, &depBase.Dir, &depBase.Autostart, &depBase.Started, &depBase.Indirect, &ct, &ut)
+	err := row.Scan(&depBase.ID, &depModule.ID, &depModule.Version, &depBase.Name, &depBase.Dir, &depBase.Enabled, &depBase.Indirect, &ct, &ut)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return model.DepBase{}, model.NewNotFoundError(err)
