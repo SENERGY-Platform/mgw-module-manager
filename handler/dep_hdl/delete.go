@@ -29,38 +29,30 @@ import (
 	"strings"
 )
 
-func (h *Handler) Delete(ctx context.Context, id string, orphans, force bool) error {
+func (h *Handler) Delete(ctx context.Context, id string, force bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
 	if err != nil {
 		return err
 	}
-	if !force && len(dep.DepRequiring) > 0 {
-		return model.NewInternalError(fmt.Errorf("deplyoment is required by: %s", strings.Join(dep.DepRequiring, ", ")))
-	}
-	if err = h.delete(ctx, dep, force); err != nil {
-		return err
-	}
-	if orphans && len(dep.RequiredDep) > 0 {
-		reqDep := make(map[string]model.Deployment)
-		if err = h.getReqDep(ctx, dep, reqDep); err != nil {
-			return err
+	if !force {
+		if dep.Started {
+			return model.NewInvalidInputError(errors.New("deployment is started"))
 		}
-		order, err := sorting.GetDepOrder(reqDep)
-		if err != nil {
-			return model.NewInternalError(err)
-		}
-		for i := len(order) - 1; i >= 0; i-- {
-			rd := reqDep[order[i]]
-			if rd.Indirect && !isRequired(reqDep, rd.DepRequiring) {
-				if err = h.delete(ctx, rd, force); err != nil {
-					return err
-				}
+		if len(dep.DepRequiring) > 0 {
+			depReq, err := h.getDepFromIDs(ctx, dep.DepRequiring)
+			if err != nil {
+				return err
 			}
+			var reqBy []string
+			for _, dr := range depReq {
+				reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dr.Name, dr.ID))
+			}
+			return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
 		}
 	}
-	return nil
+	return h.delete(ctx, dep, force)
 }
 
 func (h *Handler) delete(ctx context.Context, dep model.Deployment, force bool) error {
