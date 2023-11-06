@@ -18,37 +18,35 @@ package dep_hdl
 
 import (
 	"context"
-	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
-	"strings"
 )
 
-func (h *Handler) Disable(ctx context.Context, id string, force bool) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	d, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), id, true)
-	if err != nil {
-		return err
-	}
-	if !force && len(d.DepRequiring) > 0 {
-		depReq, err := h.getDepFromIDs(ctx, d.DepRequiring)
-		if err != nil {
-			return err
-		}
-		var reqBy []string
-		for _, dr := range depReq {
-			if dr.Autostart {
-				reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dr.Name, dr.ID))
-			}
-		}
-		if len(reqBy) > 0 {
-			return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
-		}
-	}
-	d.Autostart = false
-	return h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), nil, d.DepBase)
-}
+//func (h *Handler) Disable(ctx context.Context, id string, force bool) error {
+//	ch := context_hdl.New()
+//	defer ch.CancelAll()
+//	d, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), id, true)
+//	if err != nil {
+//		return err
+//	}
+//	if !force && len(d.DepRequiring) > 0 {
+//		depReq, err := h.getDepFromIDs(ctx, d.DepRequiring)
+//		if err != nil {
+//			return err
+//		}
+//		var reqBy []string
+//		for _, dr := range depReq {
+//			if dr.Autostart {
+//				reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dr.Name, dr.ID))
+//			}
+//		}
+//		if len(reqBy) > 0 {
+//			return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
+//		}
+//	}
+//	d.Autostart = false
+//	return h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), nil, d.DepBase)
+//}
 
 func (h *Handler) getDepFromIDs(ctx context.Context, dIDs []string) ([]model.Deployment, error) {
 	ch := context_hdl.New()
