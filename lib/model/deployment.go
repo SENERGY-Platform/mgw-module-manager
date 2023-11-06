@@ -22,14 +22,15 @@ import (
 )
 
 type DepBase struct {
-	ID       string    `json:"id"`
-	Module   DepModule `json:"module"`
-	Name     string    `json:"name"`
-	Dir      string    `json:"dir"`
-	Enabled  bool      `json:"enabled"`
-	Indirect bool      `json:"indirect"`
-	Created  time.Time `json:"created"`
-	Updated  time.Time `json:"updated"`
+	ID        string    `json:"id"`
+	Module    DepModule `json:"module"`
+	Name      string    `json:"name"`
+	Dir       string    `json:"dir"`
+	Autostart bool      `json:"autostart"`
+	Started   bool      `json:"started"`
+	Indirect  bool      `json:"indirect"`
+	Created   time.Time `json:"created"`
+	Updated   time.Time `json:"updated"`
 }
 
 type DepModule struct {
