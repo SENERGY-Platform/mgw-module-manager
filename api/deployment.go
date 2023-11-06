@@ -269,7 +269,7 @@ func (a *Api) RestartDeployment(_ context.Context, id string) (string, error) {
 	jID, err := a.jobHandler.Create(fmt.Sprintf("restart deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.restartDep(ctx, id)
+		err := a.deploymentHandler.Restart(ctx, id)
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -280,13 +280,6 @@ func (a *Api) RestartDeployment(_ context.Context, id string) (string, error) {
 		return "", err
 	}
 	return jID, nil
-}
-
-func (a *Api) restartDep(ctx context.Context, id string) error {
-	if err := a.deploymentHandler.Stop(ctx, id, true); err != nil {
-		return err
-	}
-	return a.deploymentHandler.Start(ctx, id, false)
 }
 
 func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.DepInput) (bool, string, error) {
