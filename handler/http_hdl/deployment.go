@@ -32,12 +32,15 @@ type getDeploymentsQuery struct {
 }
 
 type deleteDeploymentQuery struct {
-	Orphans bool `form:"orphans"`
-	Force   bool `form:"force"`
+	Force bool `form:"force"`
 }
 
-type startStopDeploymentQuery struct {
+type startDeploymentQuery struct {
 	Dependencies bool `form:"dependencies"`
+}
+
+type stopDeploymentQuery struct {
+	Force bool `form:"force"`
 }
 
 func getDeploymentsH(a lib.Api) gin.HandlerFunc {
@@ -106,31 +109,9 @@ func patchDeploymentUpdateH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchDeploymentEnableH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		err := a.EnableDeployment(gc.Request.Context(), gc.Param(depIdParam))
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		gc.Status(http.StatusOK)
-	}
-}
-
-func patchDeploymentDisableH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		err := a.DisableDeployment(gc.Request.Context(), gc.Param(depIdParam))
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		gc.Status(http.StatusOK)
-	}
-}
-
 func patchDeploymentStartH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		query := startStopDeploymentQuery{}
+		query := startDeploymentQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
@@ -146,12 +127,12 @@ func patchDeploymentStartH(a lib.Api) gin.HandlerFunc {
 
 func patchDeploymentStopH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		query := startStopDeploymentQuery{}
+		query := stopDeploymentQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		jID, err := a.StopDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Dependencies)
+		jID, err := a.StopDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Force)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -178,7 +159,7 @@ func deleteDeploymentH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		err := a.DeleteDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Orphans, query.Force)
+		err := a.DeleteDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Force)
 		if err != nil {
 			_ = gc.Error(err)
 			return
