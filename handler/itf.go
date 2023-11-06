@@ -76,6 +76,7 @@ type DeploymentHandler interface {
 	Update(ctx context.Context, dID string, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS) error
 	Start(ctx context.Context, dID string, dependencies bool) error
 	Stop(ctx context.Context, dID string, force bool) error
+	Restart(ctx context.Context, id string) error
 }
 
 type DepStorageHandler interface {
