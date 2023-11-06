@@ -37,12 +37,12 @@ type Api interface {
 	CreateDeployment(ctx context.Context, mID string, depInput model.DepInput, dependencies map[string]model.DepInput) (string, error)
 	GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error)
 	GetDeployment(ctx context.Context, dID string) (model.Deployment, error)
-	EnableDeployment(ctx context.Context, dID string) error
-	DisableDeployment(ctx context.Context, dID string) error
+	EnableDeployment(ctx context.Context, dID string, dependencies bool) error
+	DisableDeployment(ctx context.Context, dID string, force bool) error
 	UpdateDeployment(ctx context.Context, dID string, depInput model.DepInput) (string, error)
-	DeleteDeployment(ctx context.Context, dID string, orphans, force bool) error
+	DeleteDeployment(ctx context.Context, dID string, force bool) error
 	StartDeployment(ctx context.Context, dID string, dependencies bool) error
-	StopDeployment(ctx context.Context, dID string, dependencies bool) (string, error)
+	StopDeployment(ctx context.Context, dID string, force bool) (string, error)
 	RestartDeployment(ctx context.Context, dID string) (string, error)
 	GetDeploymentUpdateTemplate(ctx context.Context, dID string) (model.DepUpdateTemplate, error)
 	GetDeploymentsHealth(ctx context.Context) (map[string]model.DepHealthInfo, error)
