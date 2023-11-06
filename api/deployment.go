@@ -97,22 +97,22 @@ func (a *Api) GetDeployment(ctx context.Context, id string) (model.Deployment, e
 	return a.deploymentHandler.Get(ctx, id, true, true)
 }
 
-func (a *Api) EnableDeployment(ctx context.Context, id string) error {
+func (a *Api) EnableDeployment(ctx context.Context, id string, dependencies bool) error {
 	err := a.mu.TryLock(fmt.Sprintf("enable deployment '%s'", id))
 	if err != nil {
 		return model.NewResourceBusyError(err)
 	}
 	defer a.mu.Unlock()
-	return a.deploymentHandler.Enable(ctx, id)
+	return a.deploymentHandler.Enable(ctx, id, dependencies)
 }
 
-func (a *Api) DisableDeployment(ctx context.Context, id string) error {
+func (a *Api) DisableDeployment(ctx context.Context, id string, force bool) error {
 	err := a.mu.TryLock(fmt.Sprintf("disable deployment '%s'", id))
 	if err != nil {
 		return model.NewResourceBusyError(err)
 	}
 	defer a.mu.Unlock()
-	return a.deploymentHandler.Disable(ctx, id)
+	return a.deploymentHandler.Disable(ctx, id, force)
 }
 
 func (a *Api) StartDeployments(delay time.Duration, retries int) error {
@@ -220,13 +220,13 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.D
 	return jID, nil
 }
 
-func (a *Api) DeleteDeployment(ctx context.Context, id string, orphans, force bool) error {
+func (a *Api) DeleteDeployment(ctx context.Context, id string, force bool) error {
 	err := a.mu.TryLock(fmt.Sprintf("delete deployment '%s'", id))
 	if err != nil {
 		return model.NewResourceBusyError(err)
 	}
 	defer a.mu.Unlock()
-	return a.deploymentHandler.Delete(ctx, id, orphans, force)
+	return a.deploymentHandler.Delete(ctx, id, force)
 }
 
 func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (model.DepUpdateTemplate, error) {
