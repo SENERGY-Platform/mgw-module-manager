@@ -89,6 +89,19 @@ func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
 	return nil
 }
 
+func (h *Handler) Restart(ctx context.Context, id string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
+	if err != nil {
+		return err
+	}
+	if err = h.stopInstance(ctx, dep); err != nil {
+		return err
+	}
+	return h.startInstance(ctx, dep)
+}
+
 func (h *Handler) start(ctx context.Context, dep model.Deployment) error {
 	if err := h.loadSecrets(ctx, dep); err != nil {
 		return err
