@@ -25,6 +25,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/input_tmplt"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
+	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
 	"strings"
 	"time"
 )
@@ -98,34 +99,20 @@ func (a *Api) GetDeployment(ctx context.Context, id string) (model.Deployment, e
 	return a.deploymentHandler.Get(ctx, id, true, true)
 }
 
-func (a *Api) StartDeployments(delay time.Duration, retries int) error {
+func (a *Api) StartupDeployments(smClient sm_client.Client, delay time.Duration, retries int) error {
 	depList, err := a.deploymentHandler.List(context.Background(), model.DepFilter{})
 	if err != nil {
 		return err
 	}
 	if len(depList) > 0 {
-		err = a.mu.TryLock("start deployments")
+		err = a.mu.TryLock("deployments startup")
 		if err != nil {
 			return model.NewResourceBusyError(err)
 		}
-		depMap := make(map[string]model.Deployment)
-		for _, depBase := range depList {
-			dep, err := a.deploymentHandler.Get(context.Background(), depBase.ID, true, false)
-			if err != nil {
-				a.mu.Unlock()
-				return err
-			}
-			depMap[depBase.ID] = dep
-		}
-		order, err := sorting.GetDepOrder(depMap)
-		if err != nil {
-			a.mu.Unlock()
-			return err
-		}
-		_, err = a.jobHandler.Create("start deployments", func(ctx context.Context, cf context.CancelFunc) error {
+		_, err = a.jobHandler.Create("deployments startup", func(ctx context.Context, cf context.CancelFunc) error {
 			defer a.mu.Unlock()
 			defer cf()
-			err := a.startDeployments(ctx, depMap, order, delay, retries)
+			err := a.startupDeployments(ctx, smClient, delay, retries)
 			if err == nil {
 				err = ctx.Err()
 			}
@@ -357,40 +344,32 @@ func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.
 	return false, "", nil
 }
 
-func (a *Api) startDeployments(ctx context.Context, depMap map[string]model.Deployment, order []string, delay time.Duration, retries int) error {
-	for _, dID := range order {
-		dep, ok := depMap[dID]
-		if !ok {
-			return fmt.Errorf("deployment '%s' does not exist", dID)
-		}
-		if dep.Enabled {
-			if err := a.startDeployment(ctx, dID, delay, retries); err != nil {
-				return err
-			}
-		}
+func (a *Api) startupDeployments(ctx context.Context, smClient sm_client.Client, delay time.Duration, retries int) error {
+	if err := waitForSM(ctx, smClient, delay, retries); err != nil {
+		return err
 	}
-	return nil
+	return a.deploymentHandler.StartFilter(ctx, model.DepFilter{Enabled: true}, false)
 }
 
-func (a *Api) startDeployment(ctx context.Context, dID string, delay time.Duration, retries int) error {
-	err := a.deploymentHandler.Start(ctx, dID, false)
+func waitForSM(ctx context.Context, smClient sm_client.Client, delay time.Duration, retries int) error {
+	_, err, _ := smClient.GetSecrets(ctx)
 	if err != nil {
 		ticker := time.NewTicker(delay)
 		defer ticker.Stop()
 		count := 0
-		util.Logger.Warningf("starting deployment '%s' failed (%d/%d): %s", dID, count, retries, err)
+		util.Logger.Warningf("connecting to secret-manager failed (%d/%d): %s", count, retries, err)
 		for {
 			select {
 			case <-ticker.C:
 				count += 1
-				err = a.deploymentHandler.Start(ctx, dID, false)
+				_, err, _ = smClient.GetSecrets(ctx)
 				if err != nil {
-					util.Logger.Warningf("starting deployment '%s' failed (%d/%d): %s", dID, count, retries, err)
+					util.Logger.Warningf("connecting to secret-manager failed (%d/%d): %s", count, retries, err)
 				} else {
 					return nil
 				}
 				if count >= retries {
-					return fmt.Errorf("starting deployment '%s' failed: %s", dID, err)
+					return fmt.Errorf("connecting to secret-manager failed: %s", err)
 				}
 			case <-ctx.Done():
 				return ctx.Err()

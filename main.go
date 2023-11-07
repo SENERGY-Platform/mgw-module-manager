@@ -270,7 +270,7 @@ func main() {
 			wtchdg.Trigger()
 			return
 		}
-		if err = mApi.StartDeployments(time.Second*5, 3); err != nil {
+		if err = mApi.StartupDeployments(smClient, time.Second*5, 3); err != nil {
 			util.Logger.Error(err)
 		}
 	}()
