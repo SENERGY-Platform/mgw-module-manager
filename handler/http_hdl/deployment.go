@@ -228,7 +228,7 @@ func deleteDeploymentH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func postDeleteDeploymentsH(a lib.Api) gin.HandlerFunc {
+func deleteDeploymentsH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := deleteDeploymentQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
