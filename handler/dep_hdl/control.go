@@ -200,6 +200,38 @@ func (h *Handler) Restart(ctx context.Context, id string) error {
 	return h.startInstance(ctx, dep)
 }
 
+func (h *Handler) RestartList(ctx context.Context, dIDs []string) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	for _, dID := range dIDs {
+		dep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, true)
+		if err != nil {
+			return err
+		}
+		if err = h.stopInstance(ctx, dep); err != nil {
+			return err
+		}
+		if err = h.startInstance(ctx, dep); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (h *Handler) RestartFilter(ctx context.Context, filter model.DepFilter) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	depList, err := h.storageHandler.ListDep(ctxWt, filter)
+	if err != nil {
+		return err
+	}
+	var dIDs []string
+	for _, depBase := range depList {
+		dIDs = append(dIDs, depBase.ID)
+	}
+	return h.RestartList(ctx, dIDs)
+}
+
 func (h *Handler) start(ctx context.Context, dep model.Deployment) error {
 	if err := h.loadSecrets(ctx, dep); err != nil {
 		return err
