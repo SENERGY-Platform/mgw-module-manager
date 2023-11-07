@@ -50,6 +50,55 @@ func (h *Handler) Start(ctx context.Context, id string, dependencies bool) error
 	return h.start(ctx, dep)
 }
 
+func (h *Handler) StartList(ctx context.Context, dIDs []string, dependencies bool) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	depMap := make(map[string]model.Deployment)
+	for _, dID := range dIDs {
+		if _, ok := depMap[dID]; !ok {
+			dep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, true)
+			if err != nil {
+				return err
+			}
+			depMap[dep.ID] = dep
+			if dependencies {
+				if err = h.getReqDep(ctx, dep, depMap); err != nil {
+					return model.NewInternalError(err)
+				}
+			}
+
+		}
+	}
+	order, err := sorting.GetDepOrder(depMap)
+	if err != nil {
+		return err
+	}
+	for _, dID := range order {
+		dep, ok := depMap[dID]
+		if !ok {
+			return model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", dID))
+		}
+		if err = h.start(ctx, dep); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (h *Handler) StartFilter(ctx context.Context, filter model.DepFilter, dependencies bool) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	depList, err := h.storageHandler.ListDep(ctxWt, filter)
+	if err != nil {
+		return err
+	}
+	var dIDs []string
+	for _, depBase := range depList {
+		dIDs = append(dIDs, depBase.ID)
+	}
+	return h.StartList(ctx, dIDs, dependencies)
+}
+
 func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
