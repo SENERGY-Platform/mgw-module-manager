@@ -247,3 +247,21 @@ func (h *Handler) start(ctx context.Context, dep model.Deployment) error {
 	}
 	return nil
 }
+
+func (h *Handler) stop(ctx context.Context, dep model.Deployment) error {
+	if err := h.stopInstance(ctx, dep); err != nil {
+		return err
+	}
+	if err := h.unloadSecrets(ctx, dep.ID); err != nil {
+		return err
+	}
+	if dep.Enabled {
+		dep.Enabled = false
+		ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+		defer cf()
+		if err := h.storageHandler.UpdateDep(ctxWt, nil, dep.DepBase); err != nil {
+			return err
+		}
+	}
+	return nil
+}
