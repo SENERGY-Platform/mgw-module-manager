@@ -32,7 +32,7 @@ const (
 	DeploymentsPath       = "deployments"
 	DepTemplatePath       = "dep-template"
 	DepUpdateTemplatePath = "upt-template"
-	DepCtrlPath           = "dep-ctrl"
+	DepBatchPath          = "deployments-batch"
 	DepStartPath          = "start"
 	DepStopPath           = "stop"
 	DepRestartPath        = "restart"
