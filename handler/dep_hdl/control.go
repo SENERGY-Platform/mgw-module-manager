@@ -194,10 +194,7 @@ func (h *Handler) Restart(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	if err = h.stopInstance(ctx, dep); err != nil {
-		return err
-	}
-	return h.startInstance(ctx, dep)
+	return h.restart(ctx, dep)
 }
 
 func (h *Handler) RestartList(ctx context.Context, dIDs []string) error {
@@ -208,10 +205,7 @@ func (h *Handler) RestartList(ctx context.Context, dIDs []string) error {
 		if err != nil {
 			return err
 		}
-		if err = h.stopInstance(ctx, dep); err != nil {
-			return err
-		}
-		if err = h.startInstance(ctx, dep); err != nil {
+		if err = h.restart(ctx, dep); err != nil {
 			return err
 		}
 	}
@@ -262,6 +256,22 @@ func (h *Handler) stop(ctx context.Context, dep model.Deployment) error {
 		if err := h.storageHandler.UpdateDep(ctxWt, nil, dep.DepBase); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (h *Handler) restart(ctx context.Context, dep model.Deployment) error {
+	if err := h.stopInstance(ctx, dep); err != nil {
+		return err
+	}
+	if err := h.startInstance(ctx, dep); err != nil {
+		return err
+	}
+	if !dep.Enabled {
+		dep.Enabled = true
+		ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
+		defer cf2()
+		return h.storageHandler.UpdateDep(ctxWt2, nil, dep.DepBase)
 	}
 	return nil
 }
