@@ -199,6 +199,15 @@ func (a *Api) DeleteDeployment(ctx context.Context, id string, force bool) error
 	return a.deploymentHandler.Delete(ctx, id, force)
 }
 
+func (a *Api) DeleteDeployments(ctx context.Context, ids []string, force bool) error {
+	err := a.mu.TryLock(fmt.Sprintf("delete deployments '%s'", strings.Join(ids, ", ")))
+	if err != nil {
+		return model.NewResourceBusyError(err)
+	}
+	defer a.mu.Unlock()
+	return a.deploymentHandler.DeleteList(ctx, ids, force)
+}
+
 func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (model.DepUpdateTemplate, error) {
 	err := a.mu.TryRLock()
 	if err != nil {
