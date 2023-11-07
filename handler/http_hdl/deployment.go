@@ -228,6 +228,27 @@ func deleteDeploymentH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
+func postDeleteDeploymentsH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		query := deleteDeploymentQuery{}
+		if err := gc.ShouldBindQuery(&query); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		var dIDs []string
+		if err := gc.ShouldBindJSON(&dIDs); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		err := a.DeleteDeployments(gc.Request.Context(), dIDs, query.Force)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
 func getDeploymentUpdateTemplateH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		inputTemplate, err := a.GetDeploymentUpdateTemplate(gc.Request.Context(), gc.Param(depIdParam))
