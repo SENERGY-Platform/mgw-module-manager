@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 	"strings"
 )
@@ -121,21 +122,69 @@ func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
 			return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
 		}
 	}
-	if err = h.stopInstance(ctx, dep); err != nil {
+	return h.stop(ctx, dep)
+}
+
+func (h *Handler) StopList(ctx context.Context, dIDs []string, force bool) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	depMap := make(map[string]model.Deployment)
+	for _, dID := range dIDs {
+		if _, ok := depMap[dID]; !ok {
+			dep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, true)
+			if err != nil {
+				return err
+			}
+			depMap[dep.ID] = dep
+		}
+	}
+	for _, dep := range depMap {
+		if dep.Enabled && !force && len(dep.DepRequiring) > 0 {
+			var reqBy []string
+			for _, drID := range dep.DepRequiring {
+				if _, ok := depMap[drID]; !ok {
+					dr, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), drID, false)
+					if err != nil {
+						return err
+					}
+					if dr.Enabled {
+						reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dr.Name, dr.ID))
+					}
+				}
+			}
+			if len(reqBy) > 0 {
+				return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
+			}
+		}
+	}
+	order, err := sorting.GetDepOrder(depMap)
+	if err != nil {
 		return err
 	}
-	if err = h.unloadSecrets(ctx, dep.ID); err != nil {
-		return err
-	}
-	if dep.Enabled {
-		dep.Enabled = false
-		ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
-		defer cf2()
-		if err := h.storageHandler.UpdateDep(ctxWt2, nil, dep.DepBase); err != nil {
+	for i := len(order) - 1; i >= 0; i-- {
+		dep, ok := depMap[order[i]]
+		if !ok {
+			return model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", order[i]))
+		}
+		if err = h.stop(ctx, dep); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (h *Handler) StopFilter(ctx context.Context, filter model.DepFilter, force bool) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	depList, err := h.storageHandler.ListDep(ctxWt, filter)
+	if err != nil {
+		return err
+	}
+	var dIDs []string
+	for _, depBase := range depList {
+		dIDs = append(dIDs, depBase.ID)
+	}
+	return h.StopList(ctx, dIDs, force)
 }
 
 func (h *Handler) Restart(ctx context.Context, id string) error {
