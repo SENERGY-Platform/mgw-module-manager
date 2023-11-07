@@ -99,33 +99,6 @@ func (a *Api) GetDeployment(ctx context.Context, id string) (model.Deployment, e
 	return a.deploymentHandler.Get(ctx, id, true, true)
 }
 
-func (a *Api) StartupDeployments(smClient sm_client.Client, delay time.Duration, retries int) error {
-	depList, err := a.deploymentHandler.List(context.Background(), model.DepFilter{})
-	if err != nil {
-		return err
-	}
-	if len(depList) > 0 {
-		err = a.mu.TryLock("deployments startup")
-		if err != nil {
-			return model.NewResourceBusyError(err)
-		}
-		_, err = a.jobHandler.Create("deployments startup", func(ctx context.Context, cf context.CancelFunc) error {
-			defer a.mu.Unlock()
-			defer cf()
-			err := a.startupDeployments(ctx, smClient, delay, retries)
-			if err == nil {
-				err = ctx.Err()
-			}
-			return err
-		})
-		if err != nil {
-			a.mu.Unlock()
-			return err
-		}
-	}
-	return nil
-}
-
 func (a *Api) GetDeploymentsHealth(ctx context.Context) (map[string]model.DepHealthInfo, error) {
 	deployments, err := a.deploymentHandler.List(ctx, model.DepFilter{})
 	if err != nil {
@@ -379,6 +352,33 @@ func (a *Api) RestartAllDeployments(_ context.Context, filter model.DepFilter) (
 		return "", err
 	}
 	return jID, nil
+}
+
+func (a *Api) StartupDeployments(smClient sm_client.Client, delay time.Duration, retries int) error {
+	depList, err := a.deploymentHandler.List(context.Background(), model.DepFilter{})
+	if err != nil {
+		return err
+	}
+	if len(depList) > 0 {
+		err = a.mu.TryLock("deployments startup")
+		if err != nil {
+			return model.NewResourceBusyError(err)
+		}
+		_, err = a.jobHandler.Create("deployments startup", func(ctx context.Context, cf context.CancelFunc) error {
+			defer a.mu.Unlock()
+			defer cf()
+			err := a.startupDeployments(ctx, smClient, delay, retries)
+			if err == nil {
+				err = ctx.Err()
+			}
+			return err
+		})
+		if err != nil {
+			a.mu.Unlock()
+			return err
+		}
+	}
+	return nil
 }
 
 func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.DepInput) (bool, string, error) {
