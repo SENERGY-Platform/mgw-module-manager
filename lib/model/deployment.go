@@ -109,6 +109,7 @@ type DepCreateRequest struct {
 type DepFilter struct {
 	ModuleID string
 	Name     string
+	Enabled  bool
 	Indirect bool
 }
 

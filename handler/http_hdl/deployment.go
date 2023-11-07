@@ -28,6 +28,7 @@ const depIdParam = "d"
 type getDeploymentsQuery struct {
 	Name     string `form:"name"`
 	ModuleID string `form:"module_id"`
+	Enabled  bool   `form:"enabled"`
 	Indirect bool   `form:"indirect"`
 }
 
@@ -53,6 +54,7 @@ func getDeploymentsH(a lib.Api) gin.HandlerFunc {
 		filter := model.DepFilter{
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
+			Enabled:  query.Enabled,
 			Indirect: query.Indirect,
 		}
 		deployments, err := a.GetDeployments(gc.Request.Context(), filter)

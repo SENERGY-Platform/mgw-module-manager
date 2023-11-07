@@ -537,6 +537,10 @@ func genListDepFilter(filter model.DepFilter) (string, []any) {
 		fc = append(fc, "`mod_id` = ?")
 		val = append(val, filter.ModuleID)
 	}
+	if filter.Enabled {
+		fc = append(fc, "`enabled` = ?")
+		val = append(val, filter.Enabled)
+	}
 	if filter.Indirect {
 		fc = append(fc, "`indirect` = ?")
 		val = append(val, filter.Indirect)
