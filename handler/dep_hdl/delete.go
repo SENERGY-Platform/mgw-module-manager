@@ -24,6 +24,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 	"os"
 	"path"
 	"strings"
@@ -53,6 +54,73 @@ func (h *Handler) Delete(ctx context.Context, id string, force bool) error {
 		}
 	}
 	return h.delete(ctx, dep, force)
+}
+
+func (h *Handler) DeleteList(ctx context.Context, dIDs []string, force bool) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	depMap := make(map[string]model.Deployment)
+	for _, dID := range dIDs {
+		if _, ok := depMap[dID]; !ok {
+			dep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, true)
+			if err != nil {
+				return err
+			}
+			depMap[dep.ID] = dep
+		}
+	}
+	for _, dep := range depMap {
+		if !force {
+			if dep.Enabled {
+				return model.NewInvalidInputError(errors.New("deployment is enabled"))
+			}
+			if len(dep.DepRequiring) > 0 {
+				var reqBy []string
+				for _, drID := range dep.DepRequiring {
+					if _, ok := depMap[drID]; !ok {
+						dr, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), drID, false)
+						if err != nil {
+							return err
+						}
+						if dr.Enabled {
+							reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dr.Name, dr.ID))
+						}
+					}
+				}
+				if len(reqBy) > 0 {
+					return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
+				}
+			}
+		}
+	}
+	order, err := sorting.GetDepOrder(depMap)
+	if err != nil {
+		return err
+	}
+	for i := len(order) - 1; i >= 0; i-- {
+		dep, ok := depMap[order[i]]
+		if !ok {
+			return model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", order[i]))
+		}
+		if err = h.delete(ctx, dep, force); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (h *Handler) DeleteFilter(ctx context.Context, filter model.DepFilter, force bool) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	depList, err := h.storageHandler.ListDep(ctxWt, filter)
+	if err != nil {
+		return err
+	}
+	var dIDs []string
+	for _, depBase := range depList {
+		dIDs = append(dIDs, depBase.ID)
+	}
+	return h.DeleteList(ctx, dIDs, force)
 }
 
 func (h *Handler) delete(ctx context.Context, dep model.Deployment, force bool) error {
