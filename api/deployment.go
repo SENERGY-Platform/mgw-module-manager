@@ -25,6 +25,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/input_tmplt"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
+	"strings"
 	"time"
 )
 
@@ -238,6 +239,15 @@ func (a *Api) StartDeployment(ctx context.Context, dID string, dependencies bool
 	}
 	defer a.mu.Unlock()
 	return a.deploymentHandler.Start(ctx, dID, dependencies)
+}
+
+func (a *Api) StartDeployments(ctx context.Context, dIDs []string, dependencies bool) error {
+	err := a.mu.TryLock(fmt.Sprintf("start deployments '%s'", strings.Join(dIDs, ", ")))
+	if err != nil {
+		return model.NewResourceBusyError(err)
+	}
+	defer a.mu.Unlock()
+	return a.deploymentHandler.StartList(ctx, dIDs, dependencies)
 }
 
 func (a *Api) StopDeployment(_ context.Context, dID string, dependencies bool) (string, error) {
