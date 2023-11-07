@@ -267,7 +267,7 @@ func (a *Api) StopDeployment(_ context.Context, dID string, dependencies bool) (
 	return jID, nil
 }
 
-func (a *Api) StopDeployments(_ context.Context, dIDs []string, dependencies bool) (string, error) {
+func (a *Api) StopDeployments(_ context.Context, dIDs []string, force bool) (string, error) {
 	err := a.mu.TryLock(fmt.Sprintf("stop deployment '%s'", strings.Join(dIDs, ",")))
 	if err != nil {
 		return "", model.NewResourceBusyError(err)
@@ -275,7 +275,7 @@ func (a *Api) StopDeployments(_ context.Context, dIDs []string, dependencies boo
 	jID, err := a.jobHandler.Create(fmt.Sprintf("stop deployment '%s'", strings.Join(dIDs, ",")), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.StopList(ctx, dIDs, dependencies)
+		err := a.deploymentHandler.StopList(ctx, dIDs, force)
 		if err == nil {
 			err = ctx.Err()
 		}
