@@ -264,6 +264,11 @@ func (h *Handler) restart(ctx context.Context, dep model.Deployment) error {
 	if err := h.stopInstance(ctx, dep); err != nil {
 		return err
 	}
+	if !dep.Enabled {
+		if err := h.loadSecrets(ctx, dep); err != nil {
+			return err
+		}
+	}
 	if err := h.startInstance(ctx, dep); err != nil {
 		return err
 	}
