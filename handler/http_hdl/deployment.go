@@ -40,8 +40,18 @@ type startDeploymentQuery struct {
 	Dependencies bool `form:"dependencies"`
 }
 
+type startAllDeploymentsQuery struct {
+	getDeploymentsQuery
+	startDeploymentQuery
+}
+
 type stopDeploymentQuery struct {
 	Force bool `form:"force"`
+}
+
+type stopAllDeploymentsQuery struct {
+	getDeploymentsQuery
+	stopDeploymentQuery
 }
 
 func getDeploymentsH(a lib.Api) gin.HandlerFunc {
@@ -148,6 +158,27 @@ func postDeploymentsStartH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
+func postDeploymentsStartAllH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		query := startAllDeploymentsQuery{}
+		if err := gc.ShouldBindQuery(&query); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		err := a.StartAllDeployments(gc.Request.Context(), model.DepFilter{
+			ModuleID: query.ModuleID,
+			Name:     query.Name,
+			Enabled:  query.Enabled,
+			Indirect: query.Indirect,
+		}, query.Dependencies)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
 func patchDeploymentStopH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := stopDeploymentQuery{}
@@ -185,6 +216,27 @@ func postDeploymentsStopH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
+func postDeploymentsStopAllH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		query := stopAllDeploymentsQuery{}
+		if err := gc.ShouldBindQuery(&query); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		jID, err := a.StopAllDeployments(gc.Request.Context(), model.DepFilter{
+			ModuleID: query.ModuleID,
+			Name:     query.Name,
+			Enabled:  query.Enabled,
+			Indirect: query.Indirect,
+		}, query.Force)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.String(http.StatusOK, jID)
+	}
+}
+
 func patchDeploymentRestartH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		jID, err := a.RestartDeployment(gc.Request.Context(), gc.Param(depIdParam))
@@ -204,6 +256,27 @@ func postDeploymentsRestartH(a lib.Api) gin.HandlerFunc {
 			return
 		}
 		jID, err := a.RestartDeployments(gc.Request.Context(), dIDs)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.String(http.StatusOK, jID)
+	}
+}
+
+func postDeploymentsRestartAllH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		query := getDeploymentsQuery{}
+		if err := gc.ShouldBindQuery(&query); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		jID, err := a.RestartAllDeployments(gc.Request.Context(), model.DepFilter{
+			ModuleID: query.ModuleID,
+			Name:     query.Name,
+			Enabled:  query.Enabled,
+			Indirect: query.Indirect,
+		})
 		if err != nil {
 			_ = gc.Error(err)
 			return
