@@ -41,10 +41,13 @@ type Api interface {
 	DeleteDeployment(ctx context.Context, dID string, force bool) error
 	StartDeployment(ctx context.Context, dID string, dependencies bool) error
 	StartDeployments(ctx context.Context, dIDs []string, dependencies bool) error
+	StartAllDeployments(ctx context.Context, filter model.DepFilter, dependencies bool) error
 	StopDeployment(ctx context.Context, dID string, force bool) (string, error)
-	StopDeployments(ctx context.Context, dIDs []string, dependencies bool) (string, error)
+	StopDeployments(ctx context.Context, dIDs []string, force bool) (string, error)
+	StopAllDeployments(ctx context.Context, filter model.DepFilter, force bool) (string, error)
 	RestartDeployment(ctx context.Context, dID string) (string, error)
 	RestartDeployments(ctx context.Context, dIDs []string) (string, error)
+	RestartAllDeployments(ctx context.Context, filter model.DepFilter) (string, error)
 	GetDeploymentUpdateTemplate(ctx context.Context, dID string) (model.DepUpdateTemplate, error)
 	GetDeploymentsHealth(ctx context.Context) (map[string]model.DepHealthInfo, error)
 	GetDeploymentHealth(ctx context.Context, dID string) (model.DepHealthInfo, error)
