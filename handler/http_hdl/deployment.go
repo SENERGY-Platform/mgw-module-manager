@@ -127,6 +127,27 @@ func patchDeploymentStartH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
+func postDeploymentsStartH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		query := startDeploymentQuery{}
+		if err := gc.ShouldBindQuery(&query); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		var dIDs []string
+		if err := gc.ShouldBindJSON(&dIDs); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		err := a.StartDeployments(gc.Request.Context(), dIDs, query.Dependencies)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
 func patchDeploymentStopH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := stopDeploymentQuery{}
@@ -143,9 +164,46 @@ func patchDeploymentStopH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
+func postDeploymentsStopH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		query := stopDeploymentQuery{}
+		if err := gc.ShouldBindQuery(&query); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		var dIDs []string
+		if err := gc.ShouldBindJSON(&dIDs); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		jID, err := a.StopDeployments(gc.Request.Context(), dIDs, query.Force)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.String(http.StatusOK, jID)
+	}
+}
+
 func patchDeploymentRestartH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		jID, err := a.RestartDeployment(gc.Request.Context(), gc.Param(depIdParam))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.String(http.StatusOK, jID)
+	}
+}
+
+func postDeploymentsRestartH(a lib.Api) gin.HandlerFunc {
+	return func(gc *gin.Context) {
+		var dIDs []string
+		if err := gc.ShouldBindJSON(&dIDs); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		jID, err := a.RestartDeployments(gc.Request.Context(), dIDs)
 		if err != nil {
 			_ = gc.Error(err)
 			return
