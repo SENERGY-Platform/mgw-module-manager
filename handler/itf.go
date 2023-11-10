@@ -68,22 +68,18 @@ type ModUpdateHandler interface {
 }
 
 type DeploymentHandler interface {
-	List(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error)
-	Get(ctx context.Context, dID string, assets, instance bool) (model.Deployment, error)
+	List(ctx context.Context, filter model.DepFilter, dependencyInfo, assets, containers, containerInfo bool) (map[string]model.Deployment, error)
+	Get(ctx context.Context, dID string, dependencyInfo, assets, containers, containerInfo bool) (model.Deployment, error)
 	Create(ctx context.Context, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error)
 	Delete(ctx context.Context, dID string, force bool) error
-	DeleteList(ctx context.Context, dIDs []string, force bool) error
-	DeleteFilter(ctx context.Context, filter model.DepFilter, force bool) error
+	DeleteAll(ctx context.Context, filter model.DepFilter, force bool) error
 	Update(ctx context.Context, dID string, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS) error
 	Start(ctx context.Context, dID string, dependencies bool) error
-	StartList(ctx context.Context, dIDs []string, dependencies bool) error
-	StartFilter(ctx context.Context, filter model.DepFilter, dependencies bool) error
+	StartAll(ctx context.Context, filter model.DepFilter, dependencies bool) error
 	Stop(ctx context.Context, dID string, force bool) error
-	StopList(ctx context.Context, dIDs []string, force bool) error
-	StopFilter(ctx context.Context, filter model.DepFilter, force bool) error
+	StopAll(ctx context.Context, filter model.DepFilter, force bool) error
 	Restart(ctx context.Context, id string) error
-	RestartList(ctx context.Context, dIDs []string) error
-	RestartFilter(ctx context.Context, filter model.DepFilter) error
+	RestartAll(ctx context.Context, filter model.DepFilter) error
 }
 
 type DepStorageHandler interface {
