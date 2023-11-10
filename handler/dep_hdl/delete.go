@@ -33,7 +33,7 @@ import (
 func (h *Handler) Delete(ctx context.Context, id string, force bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
+	dep, err := h.storageHandler.ReadDep(ctxWt, id, !force, true, true)
 	if err != nil {
 		return err
 	}
@@ -42,13 +42,15 @@ func (h *Handler) Delete(ctx context.Context, id string, force bool) error {
 			return model.NewInvalidInputError(errors.New("deployment is enabled"))
 		}
 		if len(dep.DepRequiring) > 0 {
-			depReq, err := h.getDepFromIDs(ctx, dep.DepRequiring)
+			ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
+			defer cf2()
+			deps, err := h.storageHandler.ListDep(ctxWt2, model.DepFilter{IDs: dep.DepRequiring}, false, false, false)
 			if err != nil {
 				return err
 			}
 			var reqBy []string
-			for _, dr := range depReq {
-				reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dr.Name, dr.ID))
+			for dID, d := range deps {
+				reqBy = append(reqBy, fmt.Sprintf("%s (%s)", d.Name, dID))
 			}
 			return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
 		}
@@ -56,49 +58,57 @@ func (h *Handler) Delete(ctx context.Context, id string, force bool) error {
 	return h.delete(ctx, dep, force)
 }
 
-func (h *Handler) DeleteList(ctx context.Context, dIDs []string, force bool) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	depMap := make(map[string]model.Deployment)
-	for _, dID := range dIDs {
-		if _, ok := depMap[dID]; !ok {
-			dep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, true)
+func (h *Handler) DeleteAll(ctx context.Context, filter model.DepFilter, force bool) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	deployments, err := h.storageHandler.ListDep(ctxWt, filter, !force, true, true)
+	if err != nil {
+		return err
+	}
+	if !force {
+		var enabled []string
+		var reqByDepIDs []string
+		for dID, dep := range deployments {
+			if dep.Enabled {
+				enabled = append(enabled, fmt.Sprintf("%s (%s)", dep.Name, dID))
+			}
+			if len(dep.DepRequiring) > 0 {
+				for _, id := range dep.DepRequiring {
+					if _, ok := deployments[id]; !ok {
+						reqByDepIDs = append(reqByDepIDs, id)
+					}
+				}
+			}
+		}
+		var errMsg string
+		if len(enabled) > 0 {
+			errMsg = "enabled deployments: " + strings.Join(enabled, ", ") + " "
+		}
+		if len(reqByDepIDs) > 0 {
+			ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
+			defer cf2()
+			deployments, err = h.storageHandler.ListDep(ctxWt2, model.DepFilter{IDs: reqByDepIDs}, false, false, false)
 			if err != nil {
 				return err
 			}
-			depMap[dep.ID] = dep
-		}
-	}
-	for _, dep := range depMap {
-		if !force {
-			if dep.Enabled {
-				return model.NewInvalidInputError(errors.New("deployment is enabled"))
-			}
-			if len(dep.DepRequiring) > 0 {
-				var reqBy []string
-				for _, drID := range dep.DepRequiring {
-					if _, ok := depMap[drID]; !ok {
-						dr, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), drID, false)
-						if err != nil {
-							return err
-						}
-						if dr.Enabled {
-							reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dr.Name, dr.ID))
-						}
-					}
-				}
-				if len(reqBy) > 0 {
-					return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
+			var reqBy []string
+			for dID, dep := range deployments {
+				if dep.Enabled {
+					reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dep.Name, dID))
 				}
 			}
+			errMsg += "required by: " + strings.Join(reqBy, ", ")
+		}
+		if len(enabled) > 0 || len(reqByDepIDs) > 0 {
+			return model.NewInternalError(errors.New(errMsg))
 		}
 	}
-	order, err := sorting.GetDepOrder(depMap)
+	order, err := sorting.GetDepOrder(deployments)
 	if err != nil {
 		return err
 	}
 	for i := len(order) - 1; i >= 0; i-- {
-		dep, ok := depMap[order[i]]
+		dep, ok := deployments[order[i]]
 		if !ok {
 			return model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", order[i]))
 		}
@@ -109,26 +119,14 @@ func (h *Handler) DeleteList(ctx context.Context, dIDs []string, force bool) err
 	return nil
 }
 
-func (h *Handler) DeleteFilter(ctx context.Context, filter model.DepFilter, force bool) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	depList, err := h.storageHandler.ListDep(ctxWt, filter)
-	if err != nil {
-		return err
-	}
-	var dIDs []string
-	for _, depBase := range depList {
-		dIDs = append(dIDs, depBase.ID)
-	}
-	return h.DeleteList(ctx, dIDs, force)
-}
-
 func (h *Handler) delete(ctx context.Context, dep model.Deployment, force bool) error {
-	if err := h.removeInstance(ctx, dep, force); err != nil {
+	if err := h.removeContainers(ctx, dep.Containers, force); err != nil {
 		return err
 	}
-	if err := h.unloadSecrets(ctx, dep.ID); err != nil {
-		return err
+	if dep.Enabled {
+		if err := h.unloadSecrets(ctx, dep.ID); err != nil {
+			return err
+		}
 	}
 	ch := context_hdl.New()
 	defer ch.CancelAll()
@@ -148,8 +146,20 @@ func (h *Handler) delete(ctx context.Context, dep model.Deployment, force bool) 
 			return model.NewInternalError(err)
 		}
 	}
-	if err = h.storageHandler.DeleteDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dep.ID); err != nil {
-		return err
+	return h.storageHandler.DeleteDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), nil, dep.ID)
+}
+
+func (h *Handler) removeContainers(ctx context.Context, depContainers map[string]model.DepContainer, force bool) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	for _, ctr := range depContainers {
+		err := h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID, force)
+		if err != nil {
+			var nfe *cew_model.NotFoundError
+			if !errors.As(err, &nfe) {
+				return model.NewInternalError(err)
+			}
+		}
 	}
 	return nil
 }
