@@ -17,9 +17,10 @@
 package naming_hdl
 
 const (
-	CoreIDLabel       = "mgw_cid"
-	ManagerIDLabel    = "mgw_mid"
-	DeploymentIDLabel = "mgw_did"
-	ServiceRefLabel   = "mgw_sref"
-	AuxDeploymentID   = "mgw_aid"
+	CoreIDLabel        = "mgw_cid"
+	ManagerIDLabel     = "mgw_mid"
+	DeploymentIDLabel  = "mgw_did"
+	ServiceRefLabel    = "mgw_sref"
+	AuxDeploymentID    = "mgw_aid"
+	DeploymentIDEnvVar = "MGW_DID"
 )
