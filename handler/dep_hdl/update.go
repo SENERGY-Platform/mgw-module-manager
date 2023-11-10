@@ -21,10 +21,11 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
 	"os"
 	"path"
 	"time"
@@ -33,99 +34,129 @@ import (
 func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, depInput model.DepInput, incl dir_fs.DirFS) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	oldDep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), id, true)
+	oldDep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), id, true, true, true)
 	if err != nil {
 		return err
 	}
-	oldDep.Instance, err = h.getDepInstance(ctx, id)
+	modDependencyDeps, err := h.getModDependencyDeployments(ctx, mod.Dependencies)
 	if err != nil {
+		return err
+	}
+	if err = h.stopContainers(ctx, oldDep.Containers); err != nil {
 		return err
 	}
 	if oldDep.Enabled {
-		if err = h.stopInstance(ctx, oldDep); err != nil {
-			return err
-		}
 		if err = h.unloadSecrets(ctx, oldDep.ID); err != nil {
 			return err
 		}
 	}
-	hostResources, secrets, userConfigs, reqModDepMap, err := h.getDepAssets(ctx, mod, id, depInput)
+	hostResources, secrets, userConfigs, err := h.getDepAssets(ctx, mod, id, depInput)
 	if err != nil {
-		return h.restore(err, oldDep)
+		return err
 	}
+	defer func() {
+		if err != nil {
+			if e := h.restore(oldDep); e != nil {
+				util.Logger.Error(e)
+			}
+		}
+	}()
 	newDep := oldDep
 	newDep.Module.Version = mod.Version
-	newDep.Name = getDepName(mod.Name, depInput.Name)
+	newDep.Name = newDepName(mod.Name, depInput.Name)
 	newDep.Updated = time.Now().UTC()
 	if incl != "" {
 		newDep.Dir, err = h.mkInclDir(incl)
 		if err != nil {
-			return h.restore(err, oldDep)
+			return err
 		}
 		defer func() {
+			var e error
 			if err != nil {
-				os.RemoveAll(path.Join(h.wrkSpcPath, newDep.Dir))
+				e = os.RemoveAll(path.Join(h.wrkSpcPath, newDep.Dir))
 			} else {
-				os.RemoveAll(path.Join(h.wrkSpcPath, oldDep.Dir))
+				e = os.RemoveAll(path.Join(h.wrkSpcPath, oldDep.Dir))
+			}
+			if e != nil {
+				util.Logger.Error(e)
 			}
 		}()
 	}
+	tx, err := h.storageHandler.BeginTransaction(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if e := tx.Rollback(); e != nil {
+			util.Logger.Error(e)
+		}
+	}()
+	if err = h.storageHandler.DeleteDepDependencies(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, id); err != nil {
+		return err
+	}
+	if err = h.storageHandler.DeleteDepAssets(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, id); err != nil {
+		return err
+	}
+	if err = h.storageHandler.DeleteDepContainers(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, id); err != nil {
+		return err
+	}
+	if err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, newDep.DepBase); err != nil {
+		return err
+	}
+	newDep.RequiredDep = newDepDependencies(modDependencyDeps)
+	if err = h.storageHandler.CreateDepDependencies(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, id, newDep.RequiredDep); err != nil {
+		return err
+	}
+	newDep.DepAssets = h.newDepAssets(hostResources, secrets, userConfigs)
+	if err = h.storageHandler.CreateDepAssets(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, id, newDep.DepAssets); err != nil {
+		return err
+	}
 	newVol, orphanVol, err := h.diffVolumes(ctx, mod.Volumes, id)
 	if err != nil {
-		return h.restore(err, oldDep)
+		return err
 	}
 	err = h.createVolumes(ctx, newVol, id)
 	if err != nil {
-		return h.restore(err, oldDep)
+		return err
 	}
 	defer func() {
 		if err != nil {
-			h.removeVolumes(context.Background(), newVol, true)
+			if e := h.removeVolumes(context.Background(), newVol, true); e != nil {
+				util.Logger.Error(e)
+			}
 		}
 	}()
-	tx, err := h.storageHandler.BeginTransaction(ctx)
+	newDep.Containers, err = h.createContainers(ctx, mod, newDep.DepBase, userConfigs, hostResources, secrets, modDependencyDeps)
 	if err != nil {
-		return h.restore(err, oldDep)
-	}
-	defer tx.Rollback()
-	err = h.storageHandler.DeleteDepAssets(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, id)
-	if err != nil {
-		return h.restore(err, oldDep)
-	}
-	err = h.storageHandler.UpdateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, newDep.DepBase)
-	if err != nil {
-		return h.restore(err, oldDep)
-	}
-	newDep.DepAssets, err = h.createDepAssets(ctx, tx, mod, id, hostResources, secrets, userConfigs, reqModDepMap)
-	if err != nil {
-		return h.restore(err, oldDep)
-	}
-	newDep.Instance, err = h.createInstance(ctx, tx, mod, id, newDep.Dir, userConfigs, hostResources, secrets, reqModDepMap)
-	if err != nil {
-		return h.restore(err, oldDep)
+		return err
 	}
 	defer func() {
 		if err != nil {
-			h.removeInstance(context.Background(), newDep, true)
+			if e := h.removeContainers(context.Background(), newDep.Containers, true); e != nil {
+				util.Logger.Error(e)
+			}
 		}
 	}()
+	if err = h.storageHandler.CreateDepContainers(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, id, newDep.Containers); err != nil {
+		return err
+	}
 	if oldDep.Enabled {
 		if err = h.loadSecrets(ctx, newDep); err != nil {
-			return h.restore(err, oldDep)
+			return err
 		}
-		if err = h.startInstance(ctx, newDep); err != nil {
-			return h.restore(err, oldDep)
+		if err = h.startContainers(ctx, newDep.Containers); err != nil {
+			return err
 		}
 	}
 	err = tx.Commit()
 	if err != nil {
-		return h.restore(model.NewInternalError(err), oldDep)
-	}
-	if err := h.removeInstance(ctx, oldDep, true); err != nil {
 		return err
 	}
-	if err := h.removeVolumes(ctx, orphanVol, true); err != nil {
-		return err
+	if e := h.removeContainers(ctx, oldDep.Containers, true); e != nil {
+		util.Logger.Error(e)
+	}
+	if e := h.removeVolumes(ctx, orphanVol, true); e != nil {
+		util.Logger.Error(e)
 	}
 	return nil
 }
@@ -133,13 +164,13 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 func (h *Handler) diffVolumes(ctx context.Context, volumes ml_util.Set[string], dID string) ([]string, []string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
 	defer cf()
-	vols, err := h.cewClient.GetVolumes(ctxWt, cew_model.VolumeFilter{Labels: map[string]string{handler.DeploymentIDLabel: dID}})
+	vols, err := h.cewClient.GetVolumes(ctxWt, cew_model.VolumeFilter{Labels: map[string]string{naming_hdl.DeploymentIDLabel: dID}})
 	if err != nil {
 		return nil, nil, err
 	}
 	hashedVols := make(map[string]string)
 	for name := range volumes {
-		hashedVols[getVolumeName(dID, name)] = name
+		hashedVols[naming_hdl.Global.NewVolumeName(dID, name)] = name
 	}
 	var orphans []string
 	existing := make(ml_util.Set[string])
@@ -159,17 +190,17 @@ func (h *Handler) diffVolumes(ctx context.Context, volumes ml_util.Set[string], 
 	return missing, orphans, nil
 }
 
-func (h *Handler) restore(err error, dep model.Deployment) error {
+func (h *Handler) restore(dep model.Deployment) error {
 	if dep.Enabled {
-		if e := h.unloadSecrets(context.Background(), dep.ID); e != nil {
-			return e
+		if err := h.unloadSecrets(context.Background(), dep.ID); err != nil {
+			return err
 		}
-		if e := h.loadSecrets(context.Background(), dep); err != nil {
-			return e
+		if err := h.loadSecrets(context.Background(), dep); err != nil {
+			return err
 		}
-		if e := h.startInstance(context.Background(), dep); err != nil {
-			return e
+		if err := h.startContainers(context.Background(), dep.Containers); err != nil {
+			return err
 		}
 	}
-	return err
+	return nil
 }
