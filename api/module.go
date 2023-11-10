@@ -192,7 +192,7 @@ func (a *Api) UpdateModule(ctx context.Context, id string, depInput model.DepInp
 	if err != nil {
 		return "", model.NewResourceBusyError(err)
 	}
-	depList, err := a.deploymentHandler.List(ctx, model.DepFilter{})
+	deployments, err := a.deploymentHandler.List(ctx, model.DepFilter{}, false, false, false, false)
 	if err != nil {
 		a.mu.Unlock()
 		return "", err
@@ -202,14 +202,10 @@ func (a *Api) UpdateModule(ctx context.Context, id string, depInput model.DepInp
 		a.mu.Unlock()
 		return "", err
 	}
-	depMap := make(map[string]model.DepBase)
-	for _, depBase := range depList {
-		depMap[depBase.Module.ID] = depBase
-	}
 	jID, err := a.jobHandler.Create(fmt.Sprintf("update module '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.updateModule(ctx, id, depInput, dependencies, orphans, stg, newIDs, uptIDs, ophIDs, depMap)
+		err := a.updateModule(ctx, id, depInput, dependencies, orphans, stg, newIDs, uptIDs, ophIDs, deployments)
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -232,20 +228,20 @@ func (a *Api) GetModuleUpdateTemplate(ctx context.Context, id string) (model.Mod
 	if err != nil {
 		return model.ModUpdateTemplate{}, err
 	}
-	depList, err := a.deploymentHandler.List(ctx, model.DepFilter{})
+	deployments, err := a.deploymentHandler.List(ctx, model.DepFilter{}, false, false, false, false)
 	if err != nil {
 		return model.ModUpdateTemplate{}, err
 	}
-	depMap := make(map[string]string)
-	for _, depMeta := range depList {
-		depMap[depMeta.Module.ID] = depMeta.ID
+	moduleDepMap := make(map[string]string)
+	for _, dep := range deployments {
+		moduleDepMap[dep.Module.ID] = dep.ID
 	}
 	updateTemplate := model.ModUpdateTemplate{
 		Dependencies: make(map[string]model.InputTemplate),
 	}
-	depID, ok := depMap[id]
+	depID, ok := moduleDepMap[id]
 	if ok {
-		dep, err := a.deploymentHandler.Get(ctx, depID, true, false)
+		dep, err := a.deploymentHandler.Get(ctx, depID, true, true, false, false)
 		if err != nil {
 			return model.ModUpdateTemplate{}, err
 		}
@@ -266,9 +262,9 @@ func (a *Api) GetModuleUpdateTemplate(ctx context.Context, id string) (model.Mod
 		if uptID == id {
 			continue
 		}
-		depID, ok := depMap[id]
+		depID, ok := moduleDepMap[id]
 		if ok {
-			dep, err := a.deploymentHandler.Get(ctx, depID, true, false)
+			dep, err := a.deploymentHandler.Get(ctx, depID, true, true, false, false)
 			if err != nil {
 				var nfe *model.NotFoundError
 				if !errors.As(err, &nfe) {
@@ -314,7 +310,7 @@ func (a *Api) GetModuleDeployTemplate(ctx context.Context, id string) (model.Mod
 }
 
 func (a *Api) modDeployed(ctx context.Context, id string) (bool, error) {
-	l, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: id})
+	l, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: id}, false, false, false, false)
 	if err != nil {
 		return false, err
 	}
@@ -352,7 +348,7 @@ func (a *Api) prepareModuleUpdate(ctx context.Context, modules map[string]*modul
 	return nil
 }
 
-func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInput, dependencies map[string]model.DepInput, orphans bool, stg handler.Stage, newIDs, uptIDs, ophIDs map[string]struct{}, depMap map[string]model.DepBase) error {
+func (a *Api) updateModule(ctx context.Context, id string, depInput model.DepInput, dependencies map[string]model.DepInput, orphans bool, stg handler.Stage, newIDs, uptIDs, ophIDs map[string]struct{}, depMap map[string]model.Deployment) error {
 	defer stg.Remove()
 	oldRootDep, rootDeployed := depMap[id]
 	stgMods := make(map[string]*module.Module)
