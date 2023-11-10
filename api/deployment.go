@@ -40,7 +40,7 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput model.De
 		return "", err
 	}
 	if mod.DeploymentType == module.SingleDeployment {
-		if l, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: mod.ID}); err != nil {
+		if l, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: mod.ID}, false, false, false, false); err != nil {
 			return "", err
 		} else if len(l) > 0 {
 			return "", model.NewInvalidInputError(errors.New("already deployed"))
