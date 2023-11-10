@@ -50,8 +50,6 @@ type Api interface {
 	RestartDeployments(ctx context.Context, dIDs []string) (string, error)
 	RestartAllDeployments(ctx context.Context, filter model.DepFilter) (string, error)
 	GetDeploymentUpdateTemplate(ctx context.Context, dID string) (model.DepUpdateTemplate, error)
-	GetDeploymentsHealth(ctx context.Context) (map[string]model.DepHealthInfo, error)
-	GetDeploymentHealth(ctx context.Context, dID string) (model.DepHealthInfo, error)
 	GetJobs(ctx context.Context, filter model.JobFilter) ([]model.Job, error)
 	GetJob(ctx context.Context, jID string) (model.Job, error)
 	CancelJob(ctx context.Context, jID string) error

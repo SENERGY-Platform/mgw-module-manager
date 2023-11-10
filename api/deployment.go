@@ -99,35 +99,6 @@ func (a *Api) GetDeployment(ctx context.Context, id string) (model.Deployment, e
 	return a.deploymentHandler.Get(ctx, id, true, true)
 }
 
-func (a *Api) GetDeploymentsHealth(ctx context.Context) (map[string]model.DepHealthInfo, error) {
-	deployments, err := a.deploymentHandler.List(ctx, model.DepFilter{})
-	if err != nil {
-		return nil, err
-	}
-	instances := make(map[string]model.DepInstance)
-	for _, dep := range deployments {
-		if dep.Enabled {
-			d, err := a.deploymentHandler.Get(ctx, dep.ID, false, true)
-			if err != nil {
-				return nil, err
-			}
-			instances[dep.ID] = d.Instance
-		}
-	}
-	return a.depHealthHandler.List(ctx, instances)
-}
-
-func (a *Api) GetDeploymentHealth(ctx context.Context, dID string) (model.DepHealthInfo, error) {
-	dep, err := a.deploymentHandler.Get(ctx, dID, false, true)
-	if err != nil {
-		return model.DepHealthInfo{}, err
-	}
-	if !dep.Enabled {
-		return model.DepHealthInfo{}, model.NewInvalidInputError(fmt.Errorf("deployment '%s' not started", dID))
-	}
-	return a.depHealthHandler.Get(ctx, dep.Instance)
-}
-
 func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.DepInput) (string, error) {
 	err := a.mu.TryLock(fmt.Sprintf("update deployment '%s'", dID))
 	if err != nil {
