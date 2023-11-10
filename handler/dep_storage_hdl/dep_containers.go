@@ -23,7 +23,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func (h *Handler) CreateDepContainers(ctx context.Context, txItf driver.Tx, dID string, depContainers []model.DepContainer) error {
+func (h *Handler) CreateDepContainers(ctx context.Context, txItf driver.Tx, dID string, depContainers map[string]model.DepContainer) error {
 	prepareContext := h.db.PrepareContext
 	if txItf != nil {
 		tx := txItf.(*sql.Tx)
@@ -34,8 +34,8 @@ func (h *Handler) CreateDepContainers(ctx context.Context, txItf driver.Tx, dID 
 		return model.NewInternalError(err)
 	}
 	defer stmt.Close()
-	for _, depContainer := range depContainers {
-		if _, err = stmt.ExecContext(ctx, dID, depContainer.ID, depContainer.Ref, depContainer.Alias, depContainer.Order); err != nil {
+	for ref, depContainer := range depContainers {
+		if _, err = stmt.ExecContext(ctx, dID, depContainer.ID, ref, depContainer.Alias, depContainer.Order); err != nil {
 			return model.NewInternalError(err)
 		}
 	}

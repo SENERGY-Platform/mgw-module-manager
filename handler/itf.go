@@ -95,7 +95,7 @@ type DepStorageHandler interface {
 	DeleteDepAssets(ctx context.Context, tx driver.Tx, dID string) error
 	CreateDepDependencies(ctx context.Context, tx driver.Tx, dID string, dIDs []string) error
 	DeleteDepDependencies(ctx context.Context, tx driver.Tx, dID string) error
-	CreateDepContainers(ctx context.Context, tx driver.Tx, dID string, depContainers []model.DepContainer) error
+	CreateDepContainers(ctx context.Context, tx driver.Tx, dID string, depContainers map[string]model.DepContainer) error
 	DeleteDepContainers(ctx context.Context, tx driver.Tx, dID string) error
 }
 
