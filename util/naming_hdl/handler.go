@@ -42,7 +42,7 @@ func (h *handler) NewContainerName(subPrefix string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s-%s-%s-%s", h.prefix, h.coreID, subPrefix, hex.EncodeToString([]byte(newUUID.String()))), nil
+	return fmt.Sprintf("%s_%s-%s-%s", h.prefix, h.coreID, subPrefix, genHash(newUUID.String())), nil
 }
 
 func (h *handler) NewContainerAlias(arg ...string) string {
