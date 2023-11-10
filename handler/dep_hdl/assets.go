@@ -23,6 +23,7 @@ import (
 	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
 	sm_model "github.com/SENERGY-Platform/mgw-secret-manager/pkg/api_model"
@@ -138,6 +139,13 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 	}
 	ch := context_hdl.New()
 	defer ch.CancelAll()
+	defer func() {
+		if err != nil {
+			if e := h.unloadSecrets(context.Background(), dID); e != nil {
+				util.Logger.Error(e)
+			}
+		}
+	}()
 	secrets := make(map[string]secret)
 	variants := make(map[string]secretVariant)
 	for ref, sID := range usrSecrets {
@@ -152,7 +160,8 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 					vID := newSecretVariantID(sID, target.Item)
 					variant, ok := variants[vID]
 					if variant.Path == "" {
-						v, err, _ := h.smClient.InitPathVariant(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretVariantRequest{
+						var v sm_model.SecretPathVariant
+						v, err, _ = h.smClient.InitPathVariant(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretVariantRequest{
 							ID:        sID,
 							Item:      target.Item,
 							Reference: dID,
@@ -174,7 +183,8 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 					vID := newSecretVariantID(sID, target.Item)
 					variant, ok := variants[vID]
 					if !variant.AsEnv {
-						v, err, _ := h.smClient.GetValueVariant(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretVariantRequest{
+						var v sm_model.SecretValueVariant
+						v, err, _ = h.smClient.GetValueVariant(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), sm_model.SecretVariantRequest{
 							ID:        sID,
 							Item:      target.Item,
 							Reference: dID,
