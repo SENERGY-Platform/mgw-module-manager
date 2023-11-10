@@ -52,7 +52,7 @@ func (h *Handler) Start(ctx context.Context, id string, dependencies bool) error
 func (h *Handler) StartAll(ctx context.Context, filter model.DepFilter, dependencies bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	deployments, err := h.storageHandler.ListDep(ctxWt, filter, dependencies, true, true)
+	deployments, err := h.storageHandler.ListDep(ctxWt, filter, true, true, true)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
 func (h *Handler) StopAll(ctx context.Context, filter model.DepFilter, force bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	deployments, err := h.storageHandler.ListDep(ctxWt, filter, !force, true, true)
+	deployments, err := h.storageHandler.ListDep(ctxWt, filter, true, true, true)
 	if err != nil {
 		return err
 	}
