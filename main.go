@@ -45,6 +45,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/modfile_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
 	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
@@ -104,6 +105,8 @@ func main() {
 	}
 
 	util.Logger.Debugf("manager ID: %s", managerID)
+
+	naming_hdl.Init(config.CoreID, "mgw")
 
 	mfDecoders := make(modfile.Decoders)
 	mfDecoders.Add(v1dec.GetDecoder)
