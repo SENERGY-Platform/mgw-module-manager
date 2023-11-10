@@ -25,7 +25,7 @@ import (
 
 func getServiceHealthH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		_, err := a.GetDeployments(gc.Request.Context(), model.DepFilter{})
+		_, err := a.GetDeployments(gc.Request.Context(), model.DepFilter{}, false, false)
 		if err != nil {
 			_ = gc.Error(err)
 			return
