@@ -33,11 +33,11 @@ func (h *Handler) getDepAssets(ctx context.Context, mod *module.Module, dID stri
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	secrets, err := h.getSecrets(ctx, mod, dID, depInput.Secrets)
+	userConfigs, err := h.getUserConfigs(mod.Configs, depInput.Configs)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	userConfigs, err := h.getUserConfigs(mod.Configs, depInput.Configs)
+	secrets, err := h.getSecrets(ctx, mod, dID, depInput.Secrets)
 	if err != nil {
 		return nil, nil, nil, err
 	}
