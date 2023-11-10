@@ -26,11 +26,11 @@ import (
 const depIdParam = "d"
 
 type getDeploymentsFilterQuery struct {
-	IDs      []string `form:"ids"`
-	Name     string   `form:"name"`
-	ModuleID string   `form:"module_id"`
-	Enabled  bool     `form:"enabled"`
-	Indirect bool     `form:"indirect"`
+	IDs      string `form:"ids"`
+	Name     string `form:"name"`
+	ModuleID string `form:"module_id"`
+	Enabled  bool   `form:"enabled"`
+	Indirect bool   `form:"indirect"`
 }
 
 type getDeploymentQuery struct {
@@ -78,7 +78,7 @@ func getDeploymentsH(a lib.Api) gin.HandlerFunc {
 			return
 		}
 		filter := model.DepFilter{
-			IDs:      query.IDs,
+			IDs:      parseStringSlice(query.IDs, ","),
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
 			Enabled:  query.Enabled,
@@ -167,7 +167,7 @@ func patchDeploymentsStartH(a lib.Api) gin.HandlerFunc {
 			return
 		}
 		err := a.StartDeployments(gc.Request.Context(), model.DepFilter{
-			IDs:      query.IDs,
+			IDs:      parseStringSlice(query.IDs, ","),
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
 			Enabled:  query.Enabled,
@@ -205,7 +205,7 @@ func patchDeploymentsStopH(a lib.Api) gin.HandlerFunc {
 			return
 		}
 		jID, err := a.StopDeployments(gc.Request.Context(), model.DepFilter{
-			IDs:      query.IDs,
+			IDs:      parseStringSlice(query.IDs, ","),
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
 			Enabled:  query.Enabled,
@@ -238,7 +238,7 @@ func patchDeploymentsRestartH(a lib.Api) gin.HandlerFunc {
 			return
 		}
 		jID, err := a.RestartDeployments(gc.Request.Context(), model.DepFilter{
-			IDs:      query.IDs,
+			IDs:      parseStringSlice(query.IDs, ","),
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
 			Enabled:  query.Enabled,
@@ -276,7 +276,7 @@ func deleteDeploymentsH(a lib.Api) gin.HandlerFunc {
 			return
 		}
 		err := a.DeleteDeployments(gc.Request.Context(), model.DepFilter{
-			IDs:      query.IDs,
+			IDs:      parseStringSlice(query.IDs, ","),
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
 			Enabled:  query.Enabled,
