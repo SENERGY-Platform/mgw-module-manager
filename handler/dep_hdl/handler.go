@@ -110,7 +110,9 @@ func (h *Handler) List(ctx context.Context, filter model.DepFilter, dependencyIn
 		}
 		withCtrInfo := make(map[string]model.Deployment)
 		for dID, deployment := range deployments {
-			deployment.State, deployment.Containers = getDepHealthAndCtrInfo(dID, deployment.Containers, ctrList)
+			if deployment.Enabled {
+				deployment.State, deployment.Containers = getDepHealthAndCtrInfo(dID, deployment.Containers, ctrList)
+			}
 			withCtrInfo[dID] = deployment
 		}
 		return withCtrInfo, nil
@@ -128,7 +130,7 @@ func (h *Handler) Get(ctx context.Context, id string, dependencyInfo, assets, co
 	if err != nil {
 		return model.Deployment{}, err
 	}
-	if containerInfo {
+	if containerInfo && deployment.Enabled {
 		ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
 		defer cf2()
 		ctrList, err := h.cewClient.GetContainers(ctxWt2, cew_model.ContainerFilter{Labels: map[string]string{naming_hdl.ManagerIDLabel: h.managerID, naming_hdl.DeploymentIDLabel: id}})
