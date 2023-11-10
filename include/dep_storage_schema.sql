@@ -22,26 +22,17 @@ CREATE TABLE IF NOT EXISTS `dependencies`
     PRIMARY KEY (`index`),
     FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 );
-CREATE TABLE IF NOT EXISTS `instances`
+CREATE TABLE IF NOT EXISTS `containers`
 (
     `index`   BIGINT AUTO_INCREMENT NOT NULL,
-    `id`      CHAR(36)              NOT NULL,
     `dep_id`  CHAR(36)              NOT NULL,
-    `created` TIMESTAMP(6)          NOT NULL,
-    UNIQUE KEY (`id`),
+    `ctr_id`  VARCHAR(256)          NOT NULL,
+    `srv_ref` VARCHAR(256)          NOT NULL,
+    `alias`   VARCHAR(256)          NOT NULL,
+    `order`   BIGINT                NOT NULL,
+    UNIQUE KEY (`dep_id`, `ctr_id`, `srv_ref`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-);
-CREATE TABLE IF NOT EXISTS `inst_containers`
-(
-    `index`   BIGINT AUTO_INCREMENT NOT NULL,
-    `inst_id` CHAR(36)              NOT NULL,
-    `srv_ref` VARCHAR(256)          NOT NULL,
-    `order`   BIGINT                NOT NULL,
-    `ctr_id`  VARCHAR(256)          NOT NULL,
-    UNIQUE KEY (`ctr_id`),
-    PRIMARY KEY (`index`),
-    FOREIGN KEY (`inst_id`) REFERENCES `instances` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS `host_resources`
 (
