@@ -91,12 +91,12 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput model.De
 	return dID, nil
 }
 
-func (a *Api) GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error) {
-	return a.deploymentHandler.List(ctx, filter)
+func (a *Api) GetDeployments(ctx context.Context, filter model.DepFilter, assets, containerInfo bool) (map[string]model.Deployment, error) {
+	return a.deploymentHandler.List(ctx, filter, true, assets, containerInfo, containerInfo)
 }
 
-func (a *Api) GetDeployment(ctx context.Context, id string) (model.Deployment, error) {
-	return a.deploymentHandler.Get(ctx, id, true, true)
+func (a *Api) GetDeployment(ctx context.Context, id string, assets, containerInfo bool) (model.Deployment, error) {
+	return a.deploymentHandler.Get(ctx, id, true, assets, containerInfo, containerInfo)
 }
 
 func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.DepInput) (string, error) {
@@ -143,8 +143,8 @@ func (a *Api) DeleteDeployment(ctx context.Context, id string, force bool) error
 	return a.deploymentHandler.Delete(ctx, id, force)
 }
 
-func (a *Api) DeleteDeployments(ctx context.Context, ids []string, force bool) error {
-	err := a.mu.TryLock(fmt.Sprintf("delete deployments '%s'", strings.Join(ids, ", ")))
+func (a *Api) DeleteDeployments(ctx context.Context, filter model.DepFilter, force bool) error {
+	err := a.mu.TryLock(fmt.Sprintf("delete deployments '%v'", filter))
 	if err != nil {
 		return model.NewResourceBusyError(err)
 	}
@@ -181,17 +181,8 @@ func (a *Api) StartDeployment(ctx context.Context, dID string, dependencies bool
 	return a.deploymentHandler.Start(ctx, dID, dependencies)
 }
 
-func (a *Api) StartDeployments(ctx context.Context, dIDs []string, dependencies bool) error {
-	err := a.mu.TryLock(fmt.Sprintf("start deployments '%s'", strings.Join(dIDs, ", ")))
-	if err != nil {
-		return model.NewResourceBusyError(err)
-	}
-	defer a.mu.Unlock()
-	return a.deploymentHandler.StartList(ctx, dIDs, dependencies)
-}
-
-func (a *Api) StartAllDeployments(ctx context.Context, filter model.DepFilter, dependencies bool) error {
-	err := a.mu.TryLock(fmt.Sprintf("start all deployments '%v'", filter))
+func (a *Api) StartDeployments(ctx context.Context, filter model.DepFilter, dependencies bool) error {
+	err := a.mu.TryLock(fmt.Sprintf("start deployments '%v'", filter))
 	if err != nil {
 		return model.NewResourceBusyError(err)
 	}
@@ -220,28 +211,7 @@ func (a *Api) StopDeployment(_ context.Context, dID string, dependencies bool) (
 	return jID, nil
 }
 
-func (a *Api) StopDeployments(_ context.Context, dIDs []string, force bool) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("stop deployment '%s'", strings.Join(dIDs, ",")))
-	if err != nil {
-		return "", model.NewResourceBusyError(err)
-	}
-	jID, err := a.jobHandler.Create(fmt.Sprintf("stop deployment '%s'", strings.Join(dIDs, ",")), func(ctx context.Context, cf context.CancelFunc) error {
-		defer a.mu.Unlock()
-		defer cf()
-		err := a.deploymentHandler.StopList(ctx, dIDs, force)
-		if err == nil {
-			err = ctx.Err()
-		}
-		return err
-	})
-	if err != nil {
-		a.mu.Unlock()
-		return "", err
-	}
-	return jID, nil
-}
-
-func (a *Api) StopAllDeployments(_ context.Context, filter model.DepFilter, force bool) (string, error) {
+func (a *Api) StopDeployments(_ context.Context, filter model.DepFilter, force bool) (string, error) {
 	err := a.mu.TryLock(fmt.Sprintf("stop all deployment '%v'", filter))
 	if err != nil {
 		return "", model.NewResourceBusyError(err)
@@ -283,28 +253,7 @@ func (a *Api) RestartDeployment(_ context.Context, id string) (string, error) {
 	return jID, nil
 }
 
-func (a *Api) RestartDeployments(_ context.Context, ids []string) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("restart deployment '%s'", strings.Join(ids, ", ")))
-	if err != nil {
-		return "", model.NewResourceBusyError(err)
-	}
-	jID, err := a.jobHandler.Create(fmt.Sprintf("restart deployment '%s'", strings.Join(ids, ", ")), func(ctx context.Context, cf context.CancelFunc) error {
-		defer a.mu.Unlock()
-		defer cf()
-		err := a.deploymentHandler.RestartList(ctx, ids)
-		if err == nil {
-			err = ctx.Err()
-		}
-		return err
-	})
-	if err != nil {
-		a.mu.Unlock()
-		return "", err
-	}
-	return jID, nil
-}
-
-func (a *Api) RestartAllDeployments(_ context.Context, filter model.DepFilter) (string, error) {
+func (a *Api) RestartDeployments(_ context.Context, filter model.DepFilter) (string, error) {
 	err := a.mu.TryLock(fmt.Sprintf("restart all deployment '%v'", filter))
 	if err != nil {
 		return "", model.NewResourceBusyError(err)

@@ -35,20 +35,17 @@ type Api interface {
 	UpdateModule(ctx context.Context, mID string, depInput model.DepInput, dependencies map[string]model.DepInput, orphans bool) (string, error)
 	GetModuleUpdateTemplate(ctx context.Context, id string) (model.ModUpdateTemplate, error)
 	CreateDeployment(ctx context.Context, mID string, depInput model.DepInput, dependencies map[string]model.DepInput) (string, error)
-	GetDeployments(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error)
-	GetDeployment(ctx context.Context, dID string) (model.Deployment, error)
+	GetDeployments(ctx context.Context, filter model.DepFilter, assets, containerInfo bool) (map[string]model.Deployment, error)
+	GetDeployment(ctx context.Context, dID string, assets, containerInfo bool) (model.Deployment, error)
 	UpdateDeployment(ctx context.Context, dID string, depInput model.DepInput) (string, error)
 	DeleteDeployment(ctx context.Context, dID string, force bool) error
-	DeleteDeployments(ctx context.Context, dIDs []string, force bool) error
+	DeleteDeployments(ctx context.Context, filter model.DepFilter, force bool) error
 	StartDeployment(ctx context.Context, dID string, dependencies bool) error
-	StartDeployments(ctx context.Context, dIDs []string, dependencies bool) error
-	StartAllDeployments(ctx context.Context, filter model.DepFilter, dependencies bool) error
+	StartDeployments(ctx context.Context, filter model.DepFilter, dependencies bool) error
 	StopDeployment(ctx context.Context, dID string, force bool) (string, error)
-	StopDeployments(ctx context.Context, dIDs []string, force bool) (string, error)
-	StopAllDeployments(ctx context.Context, filter model.DepFilter, force bool) (string, error)
+	StopDeployments(ctx context.Context, filter model.DepFilter, force bool) (string, error)
 	RestartDeployment(ctx context.Context, dID string) (string, error)
-	RestartDeployments(ctx context.Context, dIDs []string) (string, error)
-	RestartAllDeployments(ctx context.Context, filter model.DepFilter) (string, error)
+	RestartDeployments(ctx context.Context, filter model.DepFilter) (string, error)
 	GetDeploymentUpdateTemplate(ctx context.Context, dID string) (model.DepUpdateTemplate, error)
 	GetJobs(ctx context.Context, filter model.JobFilter) ([]model.Job, error)
 	GetJob(ctx context.Context, jID string) (model.Job, error)
