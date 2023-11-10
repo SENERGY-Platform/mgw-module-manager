@@ -50,7 +50,7 @@ func (h *handler) NewContainerAlias(arg ...string) string {
 	for _, s := range arg {
 		hash.Write([]byte(s))
 	}
-	return fmt.Sprintf("%s-%s-%s", h.prefix, h.coreID, hex.EncodeToString(hash.Sum(nil)))
+	return fmt.Sprintf("%s-%s-%s", h.prefix, h.coreID, genHash(arg...))
 }
 
 func (h *handler) NewVolumeName(arg ...string) string {
@@ -58,5 +58,13 @@ func (h *handler) NewVolumeName(arg ...string) string {
 	for _, s := range arg {
 		hash.Write([]byte(s))
 	}
-	return fmt.Sprintf("%s_%s_%s", h.prefix, h.coreID, hex.EncodeToString(hash.Sum(nil)))
+	return fmt.Sprintf("%s_%s_%s", h.prefix, h.coreID, genHash(arg...))
+}
+
+func genHash(str ...string) string {
+	hash := sha1.New()
+	for _, s := range str {
+		hash.Write([]byte(s))
+	}
+	return hex.EncodeToString(hash.Sum(nil))
 }
