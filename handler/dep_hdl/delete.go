@@ -61,7 +61,7 @@ func (h *Handler) Delete(ctx context.Context, id string, force bool) error {
 func (h *Handler) DeleteAll(ctx context.Context, filter model.DepFilter, force bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	deployments, err := h.storageHandler.ListDep(ctxWt, filter, !force, true, true)
+	deployments, err := h.storageHandler.ListDep(ctxWt, filter, true, true, true)
 	if err != nil {
 		return err
 	}
