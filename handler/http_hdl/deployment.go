@@ -25,23 +25,39 @@ import (
 
 const depIdParam = "d"
 
+type getDeploymentsFilterQuery struct {
+	IDs      []string `form:"ids"`
+	Name     string   `form:"name"`
+	ModuleID string   `form:"module_id"`
+	Enabled  bool     `form:"enabled"`
+	Indirect bool     `form:"indirect"`
+}
+
+type getDeploymentQuery struct {
+	Assets        bool `form:"assets"`
+	ContainerInfo bool `form:"container_info"`
+}
+
 type getDeploymentsQuery struct {
-	Name     string `form:"name"`
-	ModuleID string `form:"module_id"`
-	Enabled  bool   `form:"enabled"`
-	Indirect bool   `form:"indirect"`
+	getDeploymentsFilterQuery
+	getDeploymentQuery
 }
 
 type deleteDeploymentQuery struct {
 	Force bool `form:"force"`
 }
 
+type deleteDeploymentsQuery struct {
+	getDeploymentsFilterQuery
+	deleteDeploymentQuery
+}
+
 type startDeploymentQuery struct {
 	Dependencies bool `form:"dependencies"`
 }
 
-type startAllDeploymentsQuery struct {
-	getDeploymentsQuery
+type startDeploymentsQuery struct {
+	getDeploymentsFilterQuery
 	startDeploymentQuery
 }
 
@@ -49,8 +65,8 @@ type stopDeploymentQuery struct {
 	Force bool `form:"force"`
 }
 
-type stopAllDeploymentsQuery struct {
-	getDeploymentsQuery
+type stopDeploymentsQuery struct {
+	getDeploymentsFilterQuery
 	stopDeploymentQuery
 }
 
@@ -62,12 +78,13 @@ func getDeploymentsH(a lib.Api) gin.HandlerFunc {
 			return
 		}
 		filter := model.DepFilter{
+			IDs:      query.IDs,
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
 			Enabled:  query.Enabled,
 			Indirect: query.Indirect,
 		}
-		deployments, err := a.GetDeployments(gc.Request.Context(), filter)
+		deployments, err := a.GetDeployments(gc.Request.Context(), filter, query.Assets, query.ContainerInfo)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -78,7 +95,12 @@ func getDeploymentsH(a lib.Api) gin.HandlerFunc {
 
 func getDeploymentH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		deployment, err := a.GetDeployment(gc.Request.Context(), gc.Param(depIdParam))
+		query := getDeploymentQuery{}
+		if err := gc.ShouldBindQuery(&query); err != nil {
+			_ = gc.Error(model.NewInvalidInputError(err))
+			return
+		}
+		deployment, err := a.GetDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Assets, query.ContainerInfo)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -137,35 +159,15 @@ func patchDeploymentStartH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func postDeploymentsStartH(a lib.Api) gin.HandlerFunc {
+func patchDeploymentsStartH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		query := startDeploymentQuery{}
+		query := startDeploymentsQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		var dIDs []string
-		if err := gc.ShouldBindJSON(&dIDs); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
-			return
-		}
-		err := a.StartDeployments(gc.Request.Context(), dIDs, query.Dependencies)
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		gc.Status(http.StatusOK)
-	}
-}
-
-func postDeploymentsStartAllH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		query := startAllDeploymentsQuery{}
-		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
-			return
-		}
-		err := a.StartAllDeployments(gc.Request.Context(), model.DepFilter{
+		err := a.StartDeployments(gc.Request.Context(), model.DepFilter{
+			IDs:      query.IDs,
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
 			Enabled:  query.Enabled,
@@ -195,35 +197,15 @@ func patchDeploymentStopH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func postDeploymentsStopH(a lib.Api) gin.HandlerFunc {
+func patchDeploymentsStopH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		query := stopDeploymentQuery{}
+		query := stopDeploymentsQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		var dIDs []string
-		if err := gc.ShouldBindJSON(&dIDs); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
-			return
-		}
-		jID, err := a.StopDeployments(gc.Request.Context(), dIDs, query.Force)
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		gc.String(http.StatusOK, jID)
-	}
-}
-
-func postDeploymentsStopAllH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		query := stopAllDeploymentsQuery{}
-		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
-			return
-		}
-		jID, err := a.StopAllDeployments(gc.Request.Context(), model.DepFilter{
+		jID, err := a.StopDeployments(gc.Request.Context(), model.DepFilter{
+			IDs:      query.IDs,
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
 			Enabled:  query.Enabled,
@@ -248,30 +230,15 @@ func patchDeploymentRestartH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func postDeploymentsRestartH(a lib.Api) gin.HandlerFunc {
+func patchDeploymentsRestartH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		var dIDs []string
-		if err := gc.ShouldBindJSON(&dIDs); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
-			return
-		}
-		jID, err := a.RestartDeployments(gc.Request.Context(), dIDs)
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		gc.String(http.StatusOK, jID)
-	}
-}
-
-func postDeploymentsRestartAllH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		query := getDeploymentsQuery{}
+		query := getDeploymentsFilterQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		jID, err := a.RestartAllDeployments(gc.Request.Context(), model.DepFilter{
+		jID, err := a.RestartDeployments(gc.Request.Context(), model.DepFilter{
+			IDs:      query.IDs,
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
 			Enabled:  query.Enabled,
@@ -303,17 +270,18 @@ func deleteDeploymentH(a lib.Api) gin.HandlerFunc {
 
 func deleteDeploymentsH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		query := deleteDeploymentQuery{}
+		query := deleteDeploymentsQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		var dIDs []string
-		if err := gc.ShouldBindJSON(&dIDs); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
-			return
-		}
-		err := a.DeleteDeployments(gc.Request.Context(), dIDs, query.Force)
+		err := a.DeleteDeployments(gc.Request.Context(), model.DepFilter{
+			IDs:      query.IDs,
+			ModuleID: query.ModuleID,
+			Name:     query.Name,
+			Enabled:  query.Enabled,
+			Indirect: query.Indirect,
+		}, query.Force)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -330,27 +298,5 @@ func getDeploymentUpdateTemplateH(a lib.Api) gin.HandlerFunc {
 			return
 		}
 		gc.JSON(http.StatusOK, inputTemplate)
-	}
-}
-
-func getDeploymentsHealthH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		healthInfo, err := a.GetDeploymentsHealth(gc.Request.Context())
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		gc.JSON(http.StatusOK, healthInfo)
-	}
-}
-
-func getDeploymentHealthH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		healthInfo, err := a.GetDeploymentHealth(gc.Request.Context(), gc.Param(depIdParam))
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		gc.JSON(http.StatusOK, healthInfo)
 	}
 }
