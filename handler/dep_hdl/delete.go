@@ -153,11 +153,28 @@ func (h *Handler) removeContainers(ctx context.Context, depContainers map[string
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	for _, ctr := range depContainers {
-		err := h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID, force)
+		if ctr.ID != "" {
+			err := h.cewClient.RemoveContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), ctr.ID, force)
+			if err != nil {
+				var nfe *cew_model.NotFoundError
+				if !errors.As(err, &nfe) {
+					return model.NewInternalError(err)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func (h *Handler) removeVolumes(ctx context.Context, volumes []string, force bool) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	for _, name := range volumes {
+		err := h.cewClient.RemoveVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), name, force)
 		if err != nil {
 			var nfe *cew_model.NotFoundError
 			if !errors.As(err, &nfe) {
-				return model.NewInternalError(err)
+				return err
 			}
 		}
 	}
