@@ -26,7 +26,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/input_tmplt"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
-	"strings"
 	"time"
 )
 
@@ -104,24 +103,24 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.D
 	if err != nil {
 		return "", model.NewResourceBusyError(err)
 	}
-	depBase, err := a.deploymentHandler.Get(ctx, dID, false, false)
+	dep, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {
 		a.mu.Unlock()
 		return "", err
 	}
-	mod, err := a.moduleHandler.Get(ctx, depBase.Module.ID)
+	mod, err := a.moduleHandler.Get(ctx, dep.Module.ID)
 	if err != nil {
 		a.mu.Unlock()
 		return "", err
 	}
-	if mod.ID != depBase.Module.ID {
+	if mod.ID != dep.Module.ID {
 		a.mu.Unlock()
 		return "", model.NewInvalidInputError(errors.New("module ID mismatch"))
 	}
 	jID, err := a.jobHandler.Create(fmt.Sprintf("update deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.Update(ctx, depBase.ID, mod.Module, depInput, "")
+		err := a.deploymentHandler.Update(ctx, dep.ID, mod.Module, depInput, "")
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -149,7 +148,7 @@ func (a *Api) DeleteDeployments(ctx context.Context, filter model.DepFilter, for
 		return model.NewResourceBusyError(err)
 	}
 	defer a.mu.Unlock()
-	return a.deploymentHandler.DeleteList(ctx, ids, force)
+	return a.deploymentHandler.DeleteAll(ctx, filter, force)
 }
 
 func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (model.DepUpdateTemplate, error) {
@@ -158,7 +157,7 @@ func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (model
 		return model.DepUpdateTemplate{}, model.NewResourceBusyError(err)
 	}
 	defer a.mu.RUnlock()
-	dep, err := a.deploymentHandler.Get(ctx, id, true, false)
+	dep, err := a.deploymentHandler.Get(ctx, id, false, true, false, false)
 	if err != nil {
 		return model.DepUpdateTemplate{}, err
 	}
@@ -187,7 +186,7 @@ func (a *Api) StartDeployments(ctx context.Context, filter model.DepFilter, depe
 		return model.NewResourceBusyError(err)
 	}
 	defer a.mu.Unlock()
-	return a.deploymentHandler.StartFilter(ctx, filter, dependencies)
+	return a.deploymentHandler.StartAll(ctx, filter, dependencies)
 }
 
 func (a *Api) StopDeployment(_ context.Context, dID string, dependencies bool) (string, error) {
@@ -219,7 +218,7 @@ func (a *Api) StopDeployments(_ context.Context, filter model.DepFilter, force b
 	jID, err := a.jobHandler.Create(fmt.Sprintf("stop all deployment '%v'", filter), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.StopFilter(ctx, filter, force)
+		err := a.deploymentHandler.StopAll(ctx, filter, force)
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -261,7 +260,7 @@ func (a *Api) RestartDeployments(_ context.Context, filter model.DepFilter) (str
 	jID, err := a.jobHandler.Create(fmt.Sprintf("restart all deployment '%v'", filter), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.RestartFilter(ctx, filter)
+		err := a.deploymentHandler.RestartAll(ctx, filter)
 		if err == nil {
 			err = ctx.Err()
 		}
