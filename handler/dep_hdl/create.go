@@ -23,6 +23,7 @@ import (
 	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
@@ -45,7 +46,9 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 	}
 	defer func() {
 		if err != nil {
-			os.RemoveAll(path.Join(h.wrkSpcPath, inclDir))
+			if e := os.RemoveAll(path.Join(h.wrkSpcPath, inclDir)); e != nil {
+				util.Logger.Error(e)
+			}
 		}
 	}()
 	dep := model.Deployment{DepBase: newDepBase(mod, depInput, inclDir, indirect)}
@@ -53,7 +56,11 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 	if err != nil {
 		return "", err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if e := tx.Rollback(); e != nil {
+			util.Logger.Error(e)
+		}
+	}()
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	if dep.ID, err = h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dep.DepBase); err != nil {
@@ -68,7 +75,9 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 	}
 	defer func() {
 		if err != nil {
-			h.unloadSecrets(context.Background(), dep.ID)
+			if e := h.unloadSecrets(context.Background(), dep.ID); e != nil {
+				util.Logger.Error(e)
+			}
 		}
 	}()
 	dep.DepAssets = h.newDepAssets(hostResources, secrets, userConfigs)
@@ -84,7 +93,9 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 	}
 	defer func() {
 		if err != nil {
-			h.removeVolumes(context.Background(), volumes, true)
+			if e := h.removeVolumes(context.Background(), volumes, true); e != nil {
+				util.Logger.Error(e)
+			}
 		}
 	}()
 	dep.Containers, err = h.createContainers(ctx, mod, dep.DepBase, userConfigs, hostResources, secrets, modDependencyDeps)
@@ -93,7 +104,9 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 	}
 	defer func() {
 		if err != nil {
-			h.removeContainers(context.Background(), dep.Containers, true)
+			if e := h.removeContainers(context.Background(), dep.Containers, true); e != nil {
+				util.Logger.Error(e)
+			}
 		}
 	}()
 	if err = h.storageHandler.CreateDepContainers(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dep.ID, dep.Containers); err != nil {
@@ -145,7 +158,9 @@ func (h *Handler) createContainers(ctx context.Context, mod *module.Module, depB
 	defer ch.CancelAll()
 	defer func() {
 		if err != nil {
-			h.removeContainers(ctx, depContainers, true)
+			if e := h.removeContainers(ctx, depContainers, true); e != nil {
+				util.Logger.Error(e)
+			}
 		}
 	}()
 	for i, ref := range order {
@@ -178,7 +193,9 @@ func (h *Handler) createVolumes(ctx context.Context, mVolumes []string, dID stri
 	var createdVols []string
 	defer func() {
 		if err != nil {
-			h.removeVolumes(context.Background(), createdVols, true)
+			if e := h.removeVolumes(context.Background(), createdVols, true); e != nil {
+				util.Logger.Error(e)
+			}
 		}
 	}()
 	ch := context_hdl.New()
