@@ -34,7 +34,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl/validators"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_hdl"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_health_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_storage_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/http_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/job_hdl"
@@ -168,8 +167,6 @@ func main() {
 		return
 	}
 
-	depHealthHandler := dep_health_hdl.New(cewClient, time.Duration(config.HttpClient.Timeout), managerID)
-
 	ccHandler := ccjh.New(config.Jobs.BufferSize)
 
 	jobCtx, jobCF := context.WithCancel(context.Background())
@@ -204,7 +201,7 @@ func main() {
 
 	modUpdateHandler := mod_update_hdl.New(modTransferHandler, modFileHandler)
 
-	mApi := api.New(modHandler, modStagingHandler, modUpdateHandler, depHandler, depHealthHandler, jobHandler)
+	mApi := api.New(modHandler, modStagingHandler, modUpdateHandler, depHandler, jobHandler)
 
 	gin.SetMode(gin.ReleaseMode)
 	httpHandler := gin.New()

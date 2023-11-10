@@ -26,18 +26,16 @@ type Api struct {
 	modStagingHandler handler.ModStagingHandler
 	modUpdateHandler  handler.ModUpdateHandler
 	deploymentHandler handler.DeploymentHandler
-	depHealthHandler  handler.DepHealthHandler
 	jobHandler        handler.JobHandler
 	mu                *util.RWMutex
 }
 
-func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModStagingHandler, moduleUpdateHandler handler.ModUpdateHandler, deploymentHandler handler.DeploymentHandler, depHealthHandler handler.DepHealthHandler, jobHandler handler.JobHandler) *Api {
+func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModStagingHandler, moduleUpdateHandler handler.ModUpdateHandler, deploymentHandler handler.DeploymentHandler, jobHandler handler.JobHandler) *Api {
 	return &Api{
 		moduleHandler:     moduleHandler,
 		modStagingHandler: moduleStagingHandler,
 		modUpdateHandler:  moduleUpdateHandler,
 		deploymentHandler: deploymentHandler,
-		depHealthHandler:  depHealthHandler,
 		jobHandler:        jobHandler,
 		mu:                &util.RWMutex{},
 	}
