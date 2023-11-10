@@ -23,7 +23,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
-	"time"
 )
 
 type ModuleHandler interface {
@@ -89,24 +88,19 @@ type DeploymentHandler interface {
 
 type DepStorageHandler interface {
 	BeginTransaction(ctx context.Context) (driver.Tx, error)
-	ListDep(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error)
+	ListDep(ctx context.Context, filter model.DepFilter, dependencyInfo, assets, containers bool) (map[string]model.Deployment, error)
+	ReadDep(ctx context.Context, dID string, dependencyInfo, assets, containers bool) (model.Deployment, error)
 	CreateDep(ctx context.Context, tx driver.Tx, depBase model.DepBase) (string, error)
-	CreateDepAssets(ctx context.Context, tx driver.Tx, dID string, depAssets model.DepAssets) error
-	ReadDep(ctx context.Context, dID string, assets bool) (model.Deployment, error)
 	UpdateDep(ctx context.Context, tx driver.Tx, depBase model.DepBase) error
-	DeleteDep(ctx context.Context, dID string) error
-	DeleteDepAssets(ctx context.Context, itf driver.Tx, dID string) error
-	ListInst(ctx context.Context, filter model.DepInstFilter) ([]model.Instance, error)
-	CreateInst(ctx context.Context, tx driver.Tx, dID string, timestamp time.Time) (string, error)
-	ReadInst(ctx context.Context, iID string) (model.Instance, error)
-	DeleteInst(ctx context.Context, iID string) error
-	ListInstCtr(ctx context.Context, iID string, filter model.CtrFilter) ([]model.Container, error)
-	CreateInstCtr(ctx context.Context, tx driver.Tx, iID string, ctr model.Container) error
-}
-
-type DepHealthHandler interface {
-	List(ctx context.Context, instances map[string]model.DepInstance) (map[string]model.DepHealthInfo, error)
-	Get(ctx context.Context, instance model.DepInstance) (model.DepHealthInfo, error)
+	DeleteDep(ctx context.Context, tx driver.Tx, dID string) error
+	ReadDepTree(ctx context.Context, dID string, assets, containers bool) (map[string]model.Deployment, error)
+	AppendDepTree(ctx context.Context, tree map[string]model.Deployment, assets, containers bool) error
+	CreateDepAssets(ctx context.Context, tx driver.Tx, dID string, depAssets model.DepAssets) error
+	DeleteDepAssets(ctx context.Context, tx driver.Tx, dID string) error
+	CreateDepDependencies(ctx context.Context, tx driver.Tx, dID string, dIDs []string) error
+	DeleteDepDependencies(ctx context.Context, tx driver.Tx, dID string) error
+	CreateDepContainers(ctx context.Context, tx driver.Tx, dID string, depContainers []model.DepContainer) error
+	DeleteDepContainers(ctx context.Context, tx driver.Tx, dID string) error
 }
 
 //type AuxDeploymentHandler interface {
