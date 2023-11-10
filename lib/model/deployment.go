@@ -71,7 +71,6 @@ type DepConfig struct {
 
 type DepContainer struct {
 	ID    string         `json:"id"`
-	Ref   string         `json:"ref"`
 	Alias string         `json:"alias"`
 	Order uint           `json:"order"`
 	Info  *ContainerInfo `json:"info"`

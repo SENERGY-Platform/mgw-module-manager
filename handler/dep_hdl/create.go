@@ -146,10 +146,7 @@ func (h *Handler) createContainers(ctx context.Context, mod *module.Module, depB
 			naming_hdl.ServiceRefLabel:   ref,
 		}
 		cewContainers[ref] = newCewContainer(srv, name, alias, h.moduleNet, labels, envVars, mounts, devices, newPorts(srv.Ports))
-		depContainers[ref] = model.DepContainer{
-			Ref:   ref,
-			Alias: alias,
-		}
+		depContainers[ref] = model.DepContainer{Alias: alias}
 	}
 	order, err := sorting.GetSrvOrder(mod.Services)
 	if err != nil {
