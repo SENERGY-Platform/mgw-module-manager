@@ -45,14 +45,9 @@ const (
 )
 
 const (
-	Ascending  SortDirection = 0
-	Descending SortDirection = 1
-)
-
-const (
-	DepHealthy   HealthStatus = "healthy"
-	DepUnhealthy HealthStatus = "unhealthy"
-	DepTrans     HealthStatus = "transitioning"
+	DepHealthy   HealthState = "healthy"
+	DepUnhealthy HealthState = "unhealthy"
+	DepTrans     HealthState = "transitioning"
 )
 
 const (

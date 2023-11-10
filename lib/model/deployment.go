@@ -49,7 +49,7 @@ type Deployment struct {
 	DepRequiring []string `json:"dep_requiring"` // deployments requiring this deployment
 	DepAssets
 	Containers map[string]DepContainer `json:"containers"` // {ref:DepContainer}
-	State      *HealthStatus           `json:"state"`
+	State      *HealthState            `json:"state"`
 }
 
 type DepSecret struct {
@@ -69,29 +69,20 @@ type DepConfig struct {
 	IsSlice  bool            `json:"is_slice"`
 }
 
-type DepInstance struct {
-	ID         string      `json:"id"`
-	Created    time.Time   `json:"created"`
-	Containers []Container `json:"containers"`
+type DepContainer struct {
+	ID    string         `json:"id"`
+	Ref   string         `json:"ref"`
+	Alias string         `json:"alias"`
+	Order uint           `json:"order"`
+	Info  *ContainerInfo `json:"info"`
 }
 
-type Instance struct {
-	ID      string    `json:"id"`
-	DepID   string    `json:"dep_id"`
-	Created time.Time `json:"created"`
+type ContainerInfo struct {
+	ImageID string `json:"image_id"` // docker image id
+	State   string `json:"state"`    // docker container state
 }
 
-type Container struct {
-	ID    string `json:"id"`
-	Ref   string `json:"ref"`
-	Order uint   `json:"order"`
-}
-
-type SortDirection = int
-
-type CtrFilter struct {
-	SortOrder SortDirection
-}
+type HealthState = string
 
 type DepInput struct {
 	Name           *string           `json:"name"`           // defaults to module name if nil
@@ -108,30 +99,14 @@ type DepCreateRequest struct {
 }
 
 type DepFilter struct {
+	IDs      []string
 	ModuleID string
 	Name     string
 	Enabled  bool
 	Indirect bool
 }
 
-type DepInstFilter struct {
-	DepID string
-}
-
 type DepUpdateTemplate struct {
 	Name string `json:"name"`
 	InputTemplate
-}
-
-type HealthStatus = string
-
-type DepHealthInfo struct {
-	Status     HealthStatus    `json:"status"`
-	Containers []CtrHealthInfo `json:"containers"`
-}
-
-type CtrHealthInfo struct {
-	ID    string `json:"id"`
-	Ref   string `json:"ref"`
-	State string `json:"state"`
 }
