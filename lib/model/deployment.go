@@ -41,14 +41,15 @@ type DepAssets struct {
 	HostResources map[string]string    `json:"host_resources"` // {ref:resourceID}
 	Secrets       map[string]DepSecret `json:"secrets"`        // {ref:DepSecret}
 	Configs       map[string]DepConfig `json:"configs"`        // {ref:DepConfig}
-	RequiredDep   []string             `json:"required_dep"`   // deployments required by this deployment
-	DepRequiring  []string             `json:"dep_requiring"`  // deployments requiring this deployment
 }
 
 type Deployment struct {
 	DepBase
+	RequiredDep  []string `json:"required_dep"`  // deployments required by this deployment
+	DepRequiring []string `json:"dep_requiring"` // deployments requiring this deployment
 	DepAssets
-	Instance DepInstance `json:"instance"`
+	Containers map[string]DepContainer `json:"containers"` // {ref:DepContainer}
+	State      *HealthStatus           `json:"state"`
 }
 
 type DepSecret struct {
