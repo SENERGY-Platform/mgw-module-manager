@@ -321,7 +321,7 @@ func (a *Api) startupDeployments(ctx context.Context, smClient sm_client.Client,
 	if err := waitForSM(ctx, smClient, delay, retries); err != nil {
 		return err
 	}
-	return a.deploymentHandler.StartFilter(ctx, model.DepFilter{Enabled: true}, false)
+	return a.deploymentHandler.StartAll(ctx, model.DepFilter{Enabled: true}, false)
 }
 
 func waitForSM(ctx context.Context, smClient sm_client.Client, delay time.Duration, retries int) error {
