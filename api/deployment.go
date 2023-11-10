@@ -274,28 +274,22 @@ func (a *Api) RestartDeployments(_ context.Context, filter model.DepFilter) (str
 }
 
 func (a *Api) StartupDeployments(smClient sm_client.Client, delay time.Duration, retries int) error {
-	depList, err := a.deploymentHandler.List(context.Background(), model.DepFilter{})
+	err := a.mu.TryLock("deployments startup")
 	if err != nil {
-		return err
+		return model.NewResourceBusyError(err)
 	}
-	if len(depList) > 0 {
-		err = a.mu.TryLock("deployments startup")
-		if err != nil {
-			return model.NewResourceBusyError(err)
+	_, err = a.jobHandler.Create("deployments startup", func(ctx context.Context, cf context.CancelFunc) error {
+		defer a.mu.Unlock()
+		defer cf()
+		err := a.startupDeployments(ctx, smClient, delay, retries)
+		if err == nil {
+			err = ctx.Err()
 		}
-		_, err = a.jobHandler.Create("deployments startup", func(ctx context.Context, cf context.CancelFunc) error {
-			defer a.mu.Unlock()
-			defer cf()
-			err := a.startupDeployments(ctx, smClient, delay, retries)
-			if err == nil {
-				err = ctx.Err()
-			}
-			return err
-		})
-		if err != nil {
-			a.mu.Unlock()
-			return err
-		}
+		return err
+	})
+	if err != nil {
+		a.mu.Unlock()
+		return err
 	}
 	return nil
 }
