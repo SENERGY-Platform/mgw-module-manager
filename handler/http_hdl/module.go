@@ -26,12 +26,12 @@ import (
 const modIdParam = "m"
 
 type modulesQuery struct {
-	Name           string   `form:"name"`
-	Author         string   `form:"author"`
-	Type           string   `form:"type"`
-	DeploymentType string   `form:"deployment_type"`
-	InDependencies []string `form:"in_dependency"`
-	Tags           []string `form:"tag"`
+	Name           string `form:"name"`
+	Author         string `form:"author"`
+	Type           string `form:"type"`
+	DeploymentType string `form:"deployment_type"`
+	InDependencies string `form:"in_dependency"`
+	Tags           string `form:"tag"`
 }
 
 type deleteModuleQuery struct {
@@ -56,16 +56,18 @@ func getModulesH(a lib.Api) gin.HandlerFunc {
 			Type:           query.Type,
 			DeploymentType: query.DeploymentType,
 		}
-		if len(query.InDependencies) > 0 {
+		inDependencies := parseStringSlice(query.InDependencies, ",")
+		if len(inDependencies) > 0 {
 			s := make(map[string]struct{})
-			for _, i := range query.InDependencies {
+			for _, i := range inDependencies {
 				s[i] = struct{}{}
 			}
 			filter.InDependencies = s
 		}
-		if len(query.Tags) > 0 {
+		tags := parseStringSlice(query.Tags, ",")
+		if len(tags) > 0 {
 			s := make(map[string]struct{})
-			for _, i := range query.Tags {
+			for _, i := range tags {
 				s[i] = struct{}{}
 			}
 			filter.Tags = s
