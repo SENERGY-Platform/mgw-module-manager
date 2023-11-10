@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package handler
+package naming_hdl
 
 const (
 	CoreIDLabel       = "mgw_cid"
 	ManagerIDLabel    = "mgw_mid"
 	DeploymentIDLabel = "mgw_did"
-	InstanceIDLabel   = "mgw_iid"
 	ServiceRefLabel   = "mgw_sref"
 	AuxDeploymentID   = "mgw_aid"
 )
