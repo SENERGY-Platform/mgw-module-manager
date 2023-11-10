@@ -295,7 +295,7 @@ func (a *Api) StartupDeployments(smClient sm_client.Client, delay time.Duration,
 }
 
 func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq model.DepInput) (bool, string, error) {
-	depList, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: mID})
+	depList, err := a.deploymentHandler.List(ctx, model.DepFilter{ModuleID: mID}, false, false, false, false)
 	if err != nil {
 		return false, "", err
 	}
