@@ -97,26 +97,55 @@ func (h *Handler) InitWorkspace(perm fs.FileMode) error {
 	return nil
 }
 
-func (h *Handler) List(ctx context.Context, filter model.DepFilter) ([]model.DepBase, error) {
+func (h *Handler) List(ctx context.Context, filter model.DepFilter, dependencyInfo, assets, containers, containerInfo bool) (map[string]model.Deployment, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	return h.storageHandler.ListDep(ctxWt, filter)
+	if containerInfo {
+		containers = true
+	}
+	deployments, err := h.storageHandler.ListDep(ctxWt, filter, dependencyInfo, assets, containers)
+	if err != nil {
+		return nil, err
+	}
+	if containerInfo {
+		ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
+		defer cf2()
+		ctrList, err := h.cewClient.GetContainers(ctxWt2, cew_model.ContainerFilter{Labels: map[string]string{handler.ManagerIDLabel: h.managerID}})
+		if err != nil {
+			util.Logger.Errorf("could not retrieve containers: %s", err.Error())
+			return deployments, nil
+		}
+		withCtrInfo := make(map[string]model.Deployment)
+		for dID, deployment := range deployments {
+			deployment.State, deployment.Containers = getDepHealthAndCtrInfo(dID, deployment.Containers, ctrList)
+			withCtrInfo[dID] = deployment
+		}
+		return withCtrInfo, nil
+	}
+	return deployments, nil
 }
 
-func (h *Handler) Get(ctx context.Context, id string, assets, instance bool) (model.Deployment, error) {
+func (h *Handler) Get(ctx context.Context, id string, dependencyInfo, assets, containers, containerInfo bool) (model.Deployment, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	dep, err := h.storageHandler.ReadDep(ctxWt, id, assets)
+	if containerInfo {
+		containers = true
+	}
+	deployment, err := h.storageHandler.ReadDep(ctxWt, id, dependencyInfo, assets, containers)
 	if err != nil {
 		return model.Deployment{}, err
 	}
-	if instance {
-		dep.Instance, err = h.getDepInstance(ctx, id)
+	if containerInfo {
+		ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
+		defer cf2()
+		ctrList, err := h.cewClient.GetContainers(ctxWt2, cew_model.ContainerFilter{Labels: map[string]string{handler.ManagerIDLabel: h.managerID, handler.DeploymentIDLabel: id}})
 		if err != nil {
-			return model.Deployment{}, err
+			util.Logger.Errorf("could not retrieve containers: %s", err.Error())
+			return deployment, nil
 		}
+		deployment.State, deployment.Containers = getDepHealthAndCtrInfo(deployment.ID, deployment.Containers, ctrList)
 	}
-	return dep, err
+	return deployment, nil
 }
 
 func (h *Handler) getDepFromIDs(ctx context.Context, dIDs []string) ([]model.Deployment, error) {
@@ -496,4 +525,46 @@ func getUserSecrets(userInput map[string]string, mSecrets map[string]module.Secr
 		}
 	}
 	return usrSecrets, missing, nil
+}
+
+func getDepHealthAndCtrInfo(dID string, depContainers map[string]model.DepContainer, ctrList []cew_model.Container) (*model.HealthState, map[string]model.DepContainer) {
+	ctrMap := make(map[string]cew_model.Container)
+	for _, ctr := range ctrList {
+		ctrMap[ctr.ID] = ctr
+	}
+	var state model.HealthState
+	withCtrInfo := make(map[string]model.DepContainer)
+	for ref, depCtr := range depContainers {
+		ctr, ok := ctrMap[depCtr.ID]
+		if !ok {
+			state = model.DepUnhealthy
+			util.Logger.Warningf("deployment '%s' missing container '%s'", dID, depCtr.ID)
+		}
+		if state == "" {
+			if ctr.Health != nil {
+				switch *ctr.Health {
+				case cew_model.TransitionState:
+					state = model.DepTrans
+				case cew_model.UnhealthyState:
+					state = model.DepUnhealthy
+				}
+			} else {
+				switch ctr.State {
+				case cew_model.InitState, cew_model.RestartingState, cew_model.RemovingState:
+					state = model.DepTrans
+				case cew_model.StoppedState, cew_model.DeadState, cew_model.PausedState:
+					state = model.DepUnhealthy
+				}
+			}
+		}
+		depCtr.Info = &model.ContainerInfo{
+			ImageID: ctr.ImageID,
+			State:   ctr.State,
+		}
+		withCtrInfo[ref] = depCtr
+	}
+	if state == "" {
+		state = model.DepHealthy
+	}
+	return &state, withCtrInfo
 }
