@@ -1,15 +1,15 @@
 CREATE TABLE IF NOT EXISTS `deployments`
 (
-    `index`     BIGINT AUTO_INCREMENT NOT NULL,
-    `id`        CHAR(36)              NOT NULL,
-    `mod_id`    VARCHAR(256)          NOT NULL,
-    `mod_ver`   VARCHAR(256)          NOT NULL,
-    `name`      VARCHAR(256)          NOT NULL,
-    `dir`       VARCHAR(256)          NOT NULL,
-    `enabled`   BOOLEAN               NOT NULL,
-    `indirect`  BOOLEAN               NOT NULL,
-    `created`   TIMESTAMP(6)          NOT NULL,
-    `updated`   TIMESTAMP(6)          NOT NULL,
+    `index`    BIGINT AUTO_INCREMENT NOT NULL,
+    `id`       CHAR(36)              NOT NULL,
+    `mod_id`   VARCHAR(256)          NOT NULL,
+    `mod_ver`  VARCHAR(256)          NOT NULL,
+    `name`     VARCHAR(256)          NOT NULL,
+    `dir`      VARCHAR(256)          NOT NULL,
+    `enabled`  BOOLEAN               NOT NULL,
+    `indirect` BOOLEAN               NOT NULL,
+    `created`  TIMESTAMP(6)          NOT NULL,
+    `updated`  TIMESTAMP(6)          NOT NULL,
     UNIQUE KEY (`id`),
     PRIMARY KEY (`index`)
 );
