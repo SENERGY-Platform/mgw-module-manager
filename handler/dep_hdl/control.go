@@ -18,104 +18,70 @@ package dep_hdl
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
+	"net/http"
+	"sort"
 	"strings"
+	"time"
 )
 
 func (h *Handler) Start(ctx context.Context, id string, dependencies bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
-	if err != nil {
-		return err
-	}
-	if dependencies && len(dep.RequiredDep) > 0 {
-		reqDep := make(map[string]model.Deployment)
-		if err = h.getReqDep(ctx, dep, reqDep); err != nil {
-			return err
-		}
-		order, err := sorting.GetDepOrder(reqDep)
+	if dependencies {
+		depTree, err := h.storageHandler.ReadDepTree(ctxWt, id, true, true)
 		if err != nil {
-			return model.NewInternalError(err)
-		}
-		for _, rdID := range order {
-			rd := reqDep[rdID]
-			if err = h.start(ctx, rd); err != nil {
-				return err
-			}
-		}
-	}
-	return h.start(ctx, dep)
-}
-
-func (h *Handler) StartList(ctx context.Context, dIDs []string, dependencies bool) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	depMap := make(map[string]model.Deployment)
-	for _, dID := range dIDs {
-		if _, ok := depMap[dID]; !ok {
-			dep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, true)
-			if err != nil {
-				return err
-			}
-			depMap[dep.ID] = dep
-			if dependencies {
-				if err = h.getReqDep(ctx, dep, depMap); err != nil {
-					return model.NewInternalError(err)
-				}
-			}
-
-		}
-	}
-	order, err := sorting.GetDepOrder(depMap)
-	if err != nil {
-		return err
-	}
-	for _, dID := range order {
-		dep, ok := depMap[dID]
-		if !ok {
-			return model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", dID))
-		}
-		if err = h.start(ctx, dep); err != nil {
 			return err
 		}
+		return h.startTree(ctx, depTree)
+	} else {
+		dep, err := h.storageHandler.ReadDep(ctxWt, id, false, true, true)
+		if err != nil {
+			return err
+		}
+		return h.start(ctx, dep)
 	}
-	return nil
 }
 
-func (h *Handler) StartFilter(ctx context.Context, filter model.DepFilter, dependencies bool) error {
+func (h *Handler) StartAll(ctx context.Context, filter model.DepFilter, dependencies bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	depList, err := h.storageHandler.ListDep(ctxWt, filter)
+	deployments, err := h.storageHandler.ListDep(ctxWt, filter, dependencies, true, true)
 	if err != nil {
 		return err
 	}
-	var dIDs []string
-	for _, depBase := range depList {
-		dIDs = append(dIDs, depBase.ID)
+	if dependencies {
+		if err = h.storageHandler.AppendDepTree(ctxWt, deployments, true, true); err != nil {
+			return err
+		}
 	}
-	return h.StartList(ctx, dIDs, dependencies)
+	return h.startTree(ctx, deployments)
 }
 
 func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
+	dep, err := h.storageHandler.ReadDep(ctxWt, id, !force, true, true)
 	if err != nil {
 		return err
 	}
 	if dep.Enabled && !force && len(dep.DepRequiring) > 0 {
-		depReq, err := h.getDepFromIDs(ctx, dep.DepRequiring)
+		ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
+		defer cf2()
+		deployments, err := h.storageHandler.ListDep(ctxWt2, model.DepFilter{IDs: dep.DepRequiring}, false, false, false)
 		if err != nil {
 			return err
 		}
 		var reqBy []string
-		for _, dr := range depReq {
-			if dr.Enabled {
-				reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dr.Name, dr.ID))
+		for dID, d := range deployments {
+			if d.Enabled {
+				reqBy = append(reqBy, fmt.Sprintf("%s (%s)", d.Name, dID))
 			}
 		}
 		if len(reqBy) > 0 {
@@ -125,112 +91,75 @@ func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
 	return h.stop(ctx, dep)
 }
 
-func (h *Handler) StopList(ctx context.Context, dIDs []string, force bool) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	depMap := make(map[string]model.Deployment)
-	for _, dID := range dIDs {
-		if _, ok := depMap[dID]; !ok {
-			dep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, true)
-			if err != nil {
-				return err
-			}
-			depMap[dep.ID] = dep
-		}
+func (h *Handler) StopAll(ctx context.Context, filter model.DepFilter, force bool) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	deployments, err := h.storageHandler.ListDep(ctxWt, filter, !force, true, true)
+	if err != nil {
+		return err
 	}
-	for _, dep := range depMap {
-		if dep.Enabled && !force && len(dep.DepRequiring) > 0 {
-			var reqBy []string
-			for _, drID := range dep.DepRequiring {
-				if _, ok := depMap[drID]; !ok {
-					dr, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), drID, false)
-					if err != nil {
-						return err
-					}
-					if dr.Enabled {
-						reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dr.Name, dr.ID))
+	if !force {
+		var reqByDepIDs []string
+		for _, dep := range deployments {
+			if dep.Enabled && len(dep.DepRequiring) > 0 {
+				for _, dID := range dep.DepRequiring {
+					if _, ok := deployments[dID]; !ok {
+						reqByDepIDs = append(reqByDepIDs, dID)
 					}
 				}
 			}
-			if len(reqBy) > 0 {
-				return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
+		}
+		if len(reqByDepIDs) > 0 {
+			ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
+			defer cf2()
+			deployments, err = h.storageHandler.ListDep(ctxWt2, model.DepFilter{IDs: reqByDepIDs}, false, false, false)
+			if err != nil {
+				return err
 			}
+			var reqBy []string
+			for dID, dep := range deployments {
+				if dep.Enabled {
+					reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dep.Name, dID))
+				}
+			}
+			return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
 		}
 	}
-	order, err := sorting.GetDepOrder(depMap)
-	if err != nil {
-		return err
-	}
-	for i := len(order) - 1; i >= 0; i-- {
-		dep, ok := depMap[order[i]]
-		if !ok {
-			return model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", order[i]))
-		}
-		if err = h.stop(ctx, dep); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (h *Handler) StopFilter(ctx context.Context, filter model.DepFilter, force bool) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	depList, err := h.storageHandler.ListDep(ctxWt, filter)
-	if err != nil {
-		return err
-	}
-	var dIDs []string
-	for _, depBase := range depList {
-		dIDs = append(dIDs, depBase.ID)
-	}
-	return h.StopList(ctx, dIDs, force)
+	return h.stopTree(ctx, deployments)
 }
 
 func (h *Handler) Restart(ctx context.Context, id string) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	dep, err := h.storageHandler.ReadDep(ctxWt, id, true)
+	dep, err := h.storageHandler.ReadDep(ctxWt, id, false, true, true)
 	if err != nil {
 		return err
 	}
 	return h.restart(ctx, dep)
 }
 
-func (h *Handler) RestartList(ctx context.Context, dIDs []string) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	for _, dID := range dIDs {
-		dep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, true)
-		if err != nil {
-			return err
-		}
+func (h *Handler) RestartAll(ctx context.Context, filter model.DepFilter) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	deployments, err := h.storageHandler.ListDep(ctxWt, filter, false, true, true)
+	if err != nil {
+		return err
+	}
+	for _, dep := range deployments {
 		if err = h.restart(ctx, dep); err != nil {
 			return err
 		}
 	}
-	return nil
-}
-
-func (h *Handler) RestartFilter(ctx context.Context, filter model.DepFilter) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	depList, err := h.storageHandler.ListDep(ctxWt, filter)
-	if err != nil {
-		return err
-	}
-	var dIDs []string
-	for _, depBase := range depList {
-		dIDs = append(dIDs, depBase.ID)
-	}
-	return h.RestartList(ctx, dIDs)
+	return err
 }
 
 func (h *Handler) start(ctx context.Context, dep model.Deployment) error {
-	if err := h.loadSecrets(ctx, dep); err != nil {
-		return err
+	if !dep.Enabled {
+		if err := h.loadSecrets(ctx, dep); err != nil {
+			return err
+		}
 	}
-	if err := h.startInstance(ctx, dep); err != nil {
+	if err := h.startContainers(ctx, dep.Containers); err != nil {
 		return err
 	}
 	if !dep.Enabled {
@@ -242,14 +171,31 @@ func (h *Handler) start(ctx context.Context, dep model.Deployment) error {
 	return nil
 }
 
-func (h *Handler) stop(ctx context.Context, dep model.Deployment) error {
-	if err := h.stopInstance(ctx, dep); err != nil {
-		return err
+func (h *Handler) startTree(ctx context.Context, depTree map[string]model.Deployment) error {
+	order, err := sorting.GetDepOrder(depTree)
+	if err != nil {
+		return model.NewInternalError(err)
 	}
-	if err := h.unloadSecrets(ctx, dep.ID); err != nil {
+	for _, dID := range order {
+		dep, ok := depTree[dID]
+		if !ok {
+			return model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", dID))
+		}
+		if err = h.start(ctx, dep); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (h *Handler) stop(ctx context.Context, dep model.Deployment) error {
+	if err := h.stopContainers(ctx, dep.Containers); err != nil {
 		return err
 	}
 	if dep.Enabled {
+		if err := h.unloadSecrets(ctx, dep.ID); err != nil {
+			return err
+		}
 		dep.Enabled = false
 		ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 		defer cf()
@@ -260,23 +206,89 @@ func (h *Handler) stop(ctx context.Context, dep model.Deployment) error {
 	return nil
 }
 
-func (h *Handler) restart(ctx context.Context, dep model.Deployment) error {
-	if err := h.stopInstance(ctx, dep); err != nil {
+func (h *Handler) stopTree(ctx context.Context, depTree map[string]model.Deployment) error {
+	order, err := sorting.GetDepOrder(depTree)
+	if err != nil {
 		return err
 	}
-	if !dep.Enabled {
-		if err := h.loadSecrets(ctx, dep); err != nil {
+	for i := len(order) - 1; i >= 0; i-- {
+		dep, ok := depTree[order[i]]
+		if !ok {
+			return model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", order[i]))
+		}
+		if err = h.stop(ctx, dep); err != nil {
 			return err
 		}
 	}
-	if err := h.startInstance(ctx, dep); err != nil {
+	return nil
+}
+
+func (h *Handler) restart(ctx context.Context, dep model.Deployment) error {
+	if err := h.stopContainers(ctx, dep.Containers); err != nil {
 		return err
 	}
-	if !dep.Enabled {
-		dep.Enabled = true
-		ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
-		defer cf2()
-		return h.storageHandler.UpdateDep(ctxWt2, nil, dep.DepBase)
+	return h.start(ctx, dep)
+}
+
+func (h *Handler) startContainers(ctx context.Context, depContainers map[string]model.DepContainer) error {
+	order := getDepContainerOrder(depContainers, 1)
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	for _, ref := range order {
+		if err := h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), depContainers[ref].ID); err != nil {
+			return model.NewInternalError(err)
+		}
 	}
 	return nil
+}
+
+func (h *Handler) stopContainers(ctx context.Context, depContainers map[string]model.DepContainer) error {
+	order := getDepContainerOrder(depContainers, -1)
+	for _, ref := range order {
+		if err := h.stopContainer(ctx, depContainers[ref].ID); err != nil {
+			var nfe *model.NotFoundError
+			if !errors.As(err, &nfe) {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (h *Handler) stopContainer(ctx context.Context, cID string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	jID, err := h.cewClient.StopContainer(ctxWt, cID)
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	job, err := job_hdl_lib.Await(ctx, h.cewClient, jID, time.Second, h.httpTimeout, util.Logger)
+	if err != nil {
+		return model.NewInternalError(err)
+	}
+	if job.Error != nil {
+		if job.Error.Code != nil && *job.Error.Code == http.StatusNotFound {
+			return model.NewNotFoundError(errors.New(job.Error.Message))
+		}
+		return model.NewInternalError(errors.New(job.Error.Message))
+	}
+	return nil
+}
+
+func getDepContainerOrder(depContainers map[string]model.DepContainer, order int8) []string {
+	keys := make([]string, 0, len(depContainers))
+	for key := range depContainers {
+		keys = append(keys, key)
+	}
+	if order > 0 {
+		sort.SliceStable(keys, func(i, j int) bool {
+			return depContainers[keys[i]].Order < depContainers[keys[j]].Order
+		})
+	}
+	if order < 0 {
+		sort.SliceStable(keys, func(i, j int) bool {
+			return depContainers[keys[i]].Order > depContainers[keys[j]].Order
+		})
+	}
+	return keys
 }
