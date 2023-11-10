@@ -66,7 +66,8 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 	if dep.ID, err = h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dep.DepBase); err != nil {
 		return "", err
 	}
-	if err = h.storageHandler.CreateDepDependencies(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dep.ID, newDepDependencies(modDependencyDeps)); err != nil {
+	dep.RequiredDep = newDepDependencies(modDependencyDeps)
+	if err = h.storageHandler.CreateDepDependencies(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dep.ID, dep.RequiredDep); err != nil {
 		return "", err
 	}
 	hostResources, secrets, userConfigs, err := h.getDepAssets(ctx, mod, dep.ID, depInput)
