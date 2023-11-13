@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-package http_hdl
+package util
 
 import (
 	"errors"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"net/http"
 )
+
+func GetErrCode(err error) *int {
+	c := GetStatusCode(err)
+	if c > 0 {
+		return &c
+	}
+	return nil
+}
 
 func GetStatusCode(err error) int {
 	var nfe *model.NotFoundError
