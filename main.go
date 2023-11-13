@@ -45,6 +45,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/modfile_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/db_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/db_hdl/instances_migr"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
 	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
 	"github.com/gin-contrib/requestid"
@@ -136,7 +138,7 @@ func main() {
 	watchdog.Logger = util.Logger
 	wtchdg := watchdog.New(syscall.SIGINT, syscall.SIGTERM)
 
-	db, err := util.NewDB(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd.String(), config.Database.Name)
+	db, err := db_hdl.NewDB(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd.String(), config.Database.Name)
 	if err != nil {
 		util.Logger.Error(err)
 		ec = 1
@@ -269,7 +271,12 @@ func main() {
 
 	go func() {
 		defer dbCF()
-		if err = util.InitDB(dbCtx, db, config.Database.SchemaPath, time.Second*5); err != nil {
+		if err = db_hdl.InitDB(dbCtx, db, config.Database.SchemaPath, time.Second*5, &instances_migr.Migration{
+			Addr: config.Database.Host,
+			Port: config.Database.Port,
+			User: config.Database.User,
+			PW:   config.Database.Passwd.String(),
+		}); err != nil {
 			util.Logger.Error(err)
 			ec = 1
 			wtchdg.Trigger()
