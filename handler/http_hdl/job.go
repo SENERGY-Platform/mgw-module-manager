@@ -17,7 +17,7 @@
 package http_hdl
 
 import (
-	"fmt"
+	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
@@ -41,14 +41,9 @@ func getJobsH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(model.NewInvalidInputError(err))
 			return
 		}
-		jobOptions := model.JobFilter{SortDesc: query.SortDesc}
-		if query.Status != "" {
-			_, ok := model.JobStateMap[query.Status]
-			if !ok {
-				_ = gc.Error(model.NewInvalidInputError(fmt.Errorf("unknown job state '%s'", query.Status)))
-				return
-			}
-			jobOptions.Status = query.Status
+		jobOptions := job_hdl_lib.JobFilter{
+			Status:   query.Status,
+			SortDesc: query.SortDesc,
 		}
 		if query.Since != "" {
 			t, err := time.Parse(time.RFC3339Nano, query.Since)
