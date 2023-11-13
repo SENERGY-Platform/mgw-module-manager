@@ -34,12 +34,9 @@ const (
 	DepUpdateTemplatePath = "upt-template"
 	DepBatchPath          = "deployments-batch"
 	DepStartPath          = "start"
-	DepStartAllPath       = "start-all"
 	DepStopPath           = "stop"
-	DepStopAllPath        = "stop-all"
 	DepRestartPath        = "restart"
-	DepRestartAllPath     = "restart-all"
-	DepHealthPath         = "health"
+	DepDeletePath         = "delete"
 	JobsPath              = "jobs"
 	JobsCancelPath        = "cancel"
 )
