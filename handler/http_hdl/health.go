@@ -17,6 +17,7 @@
 package http_hdl
 
 import (
+	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
@@ -35,7 +36,7 @@ func getServiceHealthH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(err)
 			return
 		}
-		_, err = a.GetJobs(gc.Request.Context(), model.JobFilter{})
+		_, err = a.GetJobs(gc.Request.Context(), job_hdl_lib.JobFilter{})
 		if err != nil {
 			_ = gc.Error(err)
 			return
