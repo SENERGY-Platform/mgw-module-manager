@@ -21,12 +21,18 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/go-sql-driver/mysql"
 	"io"
 	"os"
 	"strings"
 	"time"
 )
+
+type Migration interface {
+	Required(ctx context.Context, tx *sql.Tx) (bool, error)
+	Run(ctx context.Context, tx *sql.Tx) error
+}
 
 func NewDB(addr string, port uint, user string, pw string, name string) (*sql.DB, error) {
 	cfg := mysql.NewConfig()
@@ -45,7 +51,7 @@ func NewDB(addr string, port uint, user string, pw string, name string) (*sql.DB
 	return db, nil
 }
 
-func InitDB(ctx context.Context, db *sql.DB, schemaPath string, delay time.Duration) error {
+func InitDB(ctx context.Context, db *sql.DB, schemaPath string, delay time.Duration, migrations ...Migration) error {
 	err := waitForDB(ctx, db, delay)
 	if err != nil {
 		return err
@@ -75,6 +81,17 @@ func InitDB(ctx context.Context, db *sql.DB, schemaPath string, delay time.Durat
 		_, err = tx.ExecContext(ctx, stmt)
 		if err != nil {
 			return err
+		}
+	}
+	for _, migration := range migrations {
+		ok, err := migration.Required(ctx, tx)
+		if err != nil {
+			return err
+		}
+		if ok {
+			if err = migration.Run(ctx, tx); err != nil {
+				return err
+			}
 		}
 	}
 	return tx.Commit()
