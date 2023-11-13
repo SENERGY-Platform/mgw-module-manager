@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package util
+package db_hdl
 
 import (
 	"bufio"
@@ -85,7 +85,7 @@ func waitForDB(ctx context.Context, db *sql.DB, delay time.Duration) error {
 	if err == nil {
 		return nil
 	} else {
-		Logger.Error(err)
+		util.Logger.Error(err)
 	}
 	ticker := time.NewTicker(delay)
 	defer ticker.Stop()
@@ -96,7 +96,7 @@ func waitForDB(ctx context.Context, db *sql.DB, delay time.Duration) error {
 			if err == nil {
 				return nil
 			} else {
-				Logger.Error(err)
+				util.Logger.Error(err)
 			}
 		case <-ctx.Done():
 			return ctx.Err()
