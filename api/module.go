@@ -45,7 +45,7 @@ func (a *Api) AddModule(ctx context.Context, id, version string) (string, error)
 	for _, m := range modules {
 		modMap[m.ID] = m.Module
 	}
-	jID, err := a.jobHandler.Create(fmt.Sprintf("add module '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("add module '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.addModule(ctx, id, version, modMap)
@@ -110,7 +110,7 @@ func (a *Api) CheckModuleUpdates(ctx context.Context) (string, error) {
 	for _, mod := range modules {
 		modMap[mod.ID] = mod.Module
 	}
-	jID, err := a.jobHandler.Create("check for module updates", func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, "check for module updates", func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.modUpdateHandler.Check(ctx, modMap)
@@ -162,7 +162,7 @@ func (a *Api) PrepareModuleUpdate(ctx context.Context, id, version string) (stri
 	for _, mod := range modules {
 		modMap[mod.ID] = mod.Module
 	}
-	jID, err := a.jobHandler.Create(fmt.Sprintf("prepare update for module '%s' to '%s'", id, version), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("prepare update for module '%s' to '%s'", id, version), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.prepareModuleUpdate(ctx, modMap, id, version)
@@ -202,7 +202,7 @@ func (a *Api) UpdateModule(ctx context.Context, id string, depInput model.DepInp
 		a.mu.Unlock()
 		return "", err
 	}
-	jID, err := a.jobHandler.Create(fmt.Sprintf("update module '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("update module '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.updateModule(ctx, id, depInput, dependencies, orphans, stg, newIDs, uptIDs, ophIDs, deployments)

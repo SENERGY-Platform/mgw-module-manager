@@ -117,7 +117,7 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput model.D
 		a.mu.Unlock()
 		return "", model.NewInvalidInputError(errors.New("module ID mismatch"))
 	}
-	jID, err := a.jobHandler.Create(fmt.Sprintf("update deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("update deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Update(ctx, dep.ID, mod.Module, depInput, "")
@@ -189,12 +189,12 @@ func (a *Api) StartDeployments(ctx context.Context, filter model.DepFilter, depe
 	return a.deploymentHandler.StartAll(ctx, filter, dependencies)
 }
 
-func (a *Api) StopDeployment(_ context.Context, dID string, dependencies bool) (string, error) {
+func (a *Api) StopDeployment(ctx context.Context, dID string, dependencies bool) (string, error) {
 	err := a.mu.TryLock(fmt.Sprintf("stop deployment '%s'", dID))
 	if err != nil {
 		return "", model.NewResourceBusyError(err)
 	}
-	jID, err := a.jobHandler.Create(fmt.Sprintf("stop deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("stop deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Stop(ctx, dID, dependencies)
@@ -210,12 +210,12 @@ func (a *Api) StopDeployment(_ context.Context, dID string, dependencies bool) (
 	return jID, nil
 }
 
-func (a *Api) StopDeployments(_ context.Context, filter model.DepFilter, force bool) (string, error) {
+func (a *Api) StopDeployments(ctx context.Context, filter model.DepFilter, force bool) (string, error) {
 	err := a.mu.TryLock(fmt.Sprintf("stop all deployment '%v'", filter))
 	if err != nil {
 		return "", model.NewResourceBusyError(err)
 	}
-	jID, err := a.jobHandler.Create(fmt.Sprintf("stop all deployment '%v'", filter), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("stop all deployment '%v'", filter), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.StopAll(ctx, filter, force)
@@ -231,12 +231,12 @@ func (a *Api) StopDeployments(_ context.Context, filter model.DepFilter, force b
 	return jID, nil
 }
 
-func (a *Api) RestartDeployment(_ context.Context, id string) (string, error) {
+func (a *Api) RestartDeployment(ctx context.Context, id string) (string, error) {
 	err := a.mu.TryLock(fmt.Sprintf("restart deployment '%s'", id))
 	if err != nil {
 		return "", model.NewResourceBusyError(err)
 	}
-	jID, err := a.jobHandler.Create(fmt.Sprintf("restart deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("restart deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Restart(ctx, id)
@@ -252,12 +252,12 @@ func (a *Api) RestartDeployment(_ context.Context, id string) (string, error) {
 	return jID, nil
 }
 
-func (a *Api) RestartDeployments(_ context.Context, filter model.DepFilter) (string, error) {
+func (a *Api) RestartDeployments(ctx context.Context, filter model.DepFilter) (string, error) {
 	err := a.mu.TryLock(fmt.Sprintf("restart all deployment '%v'", filter))
 	if err != nil {
 		return "", model.NewResourceBusyError(err)
 	}
-	jID, err := a.jobHandler.Create(fmt.Sprintf("restart all deployment '%v'", filter), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("restart all deployment '%v'", filter), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.RestartAll(ctx, filter)
@@ -278,7 +278,7 @@ func (a *Api) StartupDeployments(smClient sm_client.Client, delay time.Duration,
 	if err != nil {
 		return model.NewResourceBusyError(err)
 	}
-	_, err = a.jobHandler.Create("deployments startup", func(ctx context.Context, cf context.CancelFunc) error {
+	_, err = a.jobHandler.Create(context.Background(), "deployments startup", func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.startupDeployments(ctx, smClient, delay, retries)

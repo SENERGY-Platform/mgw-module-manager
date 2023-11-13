@@ -17,6 +17,7 @@
 package api
 
 import (
+	"github.com/SENERGY-Platform/go-service-base/job-hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 )
@@ -26,11 +27,11 @@ type Api struct {
 	modStagingHandler handler.ModStagingHandler
 	modUpdateHandler  handler.ModUpdateHandler
 	deploymentHandler handler.DeploymentHandler
-	jobHandler        handler.JobHandler
+	jobHandler        job_hdl.JobHandler
 	mu                *util.RWMutex
 }
 
-func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModStagingHandler, moduleUpdateHandler handler.ModUpdateHandler, deploymentHandler handler.DeploymentHandler, jobHandler handler.JobHandler) *Api {
+func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModStagingHandler, moduleUpdateHandler handler.ModUpdateHandler, deploymentHandler handler.DeploymentHandler, jobHandler job_hdl.JobHandler) *Api {
 	return &Api{
 		moduleHandler:     moduleHandler,
 		modStagingHandler: moduleStagingHandler,
