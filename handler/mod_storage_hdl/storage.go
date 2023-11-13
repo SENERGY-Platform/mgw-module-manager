@@ -63,13 +63,13 @@ func (h *Handler) Init(perm fs.FileMode) error {
 	return nil
 }
 
-func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Module, error) {
+func (h *Handler) List(ctx context.Context, filter model.ModFilter) (map[string]model.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	var mm []model.Module
-	for _, m := range h.modules {
+	mm := make(map[string]model.Module)
+	for id, m := range h.modules {
 		if filterMod(filter, m.Module) {
-			mm = append(mm, m)
+			mm[id] = m
 		}
 		if ctx.Err() != nil {
 			return nil, model.NewInternalError(ctx.Err())

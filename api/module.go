@@ -61,14 +61,14 @@ func (a *Api) AddModule(ctx context.Context, id, version string) (string, error)
 	return jID, nil
 }
 
-func (a *Api) GetModules(ctx context.Context, filter model.ModFilter) ([]model.ModuleMeta, error) {
+func (a *Api) GetModules(ctx context.Context, filter model.ModFilter) (map[string]model.ModuleMeta, error) {
 	modules, err := a.moduleHandler.List(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
-	var metaList []model.ModuleMeta
-	for _, m := range modules {
-		metaList = append(metaList, getModMeta(m))
+	metaList := make(map[string]model.ModuleMeta)
+	for id, m := range modules {
+		metaList[id] = getModMeta(m)
 	}
 	return metaList, nil
 }

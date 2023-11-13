@@ -46,7 +46,7 @@ func New(storageHandler handler.ModStorageHandler, cewClient cew_lib.Api, httpTi
 	}
 }
 
-func (h *Handler) List(ctx context.Context, filter model.ModFilter) ([]model.Module, error) {
+func (h *Handler) List(ctx context.Context, filter model.ModFilter) (map[string]model.Module, error) {
 	return h.storageHandler.List(ctx, filter)
 }
 
@@ -88,20 +88,20 @@ func (h *Handler) Add(ctx context.Context, mod *module.Module, modDir dir_fs.Dir
 }
 
 func (h *Handler) Delete(ctx context.Context, mID string, force bool) error {
-	l, err := h.storageHandler.List(ctx, model.ModFilter{InDependencies: map[string]struct{}{mID: {}}})
-	if err != nil {
-		return err
-	}
-	if len(l) > 0 && !force {
-		var ids []string
-		for _, meta := range l {
-			ids = append(ids, meta.ID)
-		}
-		return model.NewInternalError(fmt.Errorf("module is required by: %s", strings.Join(ids, ", ")))
-	}
 	mod, err := h.storageHandler.Get(ctx, mID)
 	if err != nil {
 		return err
+	}
+	if !force {
+		l, err := h.storageHandler.List(ctx, model.ModFilter{InDependencies: map[string]struct{}{mID: {}}})
+		if err != nil {
+			return err
+		}
+		var ids []string
+		for id := range l {
+			ids = append(ids, id)
+		}
+		return model.NewInternalError(fmt.Errorf("module is required by: %s", strings.Join(ids, ", ")))
 	}
 	ch := context_hdl.New()
 	defer ch.CancelAll()
