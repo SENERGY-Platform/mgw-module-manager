@@ -29,7 +29,7 @@ import (
 )
 
 func (h *Handler) ListMod(ctx context.Context, filter model.ModFilter, dependencyInfo bool) (map[string]model.Module, error) {
-	q := "SELECT `id`, `dir`, `modfile`, `indirect`, `added`, `updated` FROM `modules`"
+	q := "SELECT `id`, `dir`, `modfile`, `added`, `updated` FROM `modules`"
 	fc, val := genModFilter(filter)
 	if fc != "" {
 		q += fc
@@ -44,7 +44,7 @@ func (h *Handler) ListMod(ctx context.Context, filter model.ModFilter, dependenc
 		var id string
 		var mod model.Module
 		var at, ut []uint8
-		if err = rows.Scan(&id, &mod.Dir, &mod.ModFile, &mod.Indirect, &at, &ut); err != nil {
+		if err = rows.Scan(&id, &mod.Dir, &mod.ModFile, &at, &ut); err != nil {
 			return nil, lib_model.NewInternalError(err)
 		}
 		if dependencyInfo {
@@ -67,10 +67,10 @@ func (h *Handler) ListMod(ctx context.Context, filter model.ModFilter, dependenc
 }
 
 func (h *Handler) ReadMod(ctx context.Context, mID string, dependencyInfo bool) (model.Module, error) {
-	row := h.db.QueryRowContext(ctx, "SELECT `dir`, `modfile`, `indirect`, `added`, `updated` FROM `modules` WHERE `id` = ?", mID)
+	row := h.db.QueryRowContext(ctx, "SELECT `dir`, `modfile`, `added`, `updated` FROM `modules` WHERE `id` = ?", mID)
 	var mod model.Module
 	var at, ut []uint8
-	err := row.Scan(&mod.Dir, &mod.ModFile, &mod.Indirect, &at, &ut)
+	err := row.Scan(&mod.Dir, &mod.ModFile, &at, &ut)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return model.Module{}, lib_model.NewNotFoundError(err)
@@ -94,7 +94,7 @@ func (h *Handler) CreateMod(ctx context.Context, txItf driver.Tx, mod model.Modu
 		tx := txItf.(*sql.Tx)
 		execContext = tx.ExecContext
 	}
-	res, err := execContext(ctx, "INSERT INTO `modules` (`id`, `dir`, `modfile`, `indirect`, `added`, `updated`) VALUES (?, ?, ?, ?, ?, ?)", mod.ID, mod.Dir, mod.ModFile, mod.Indirect, mod.Added, mod.Updated)
+	res, err := execContext(ctx, "INSERT INTO `modules` (`id`, `dir`, `modfile`, `added`, `updated`) VALUES (?, ?, ?, ?, ?, ?)", mod.ID, mod.Dir, mod.ModFile, mod.Added, mod.Updated)
 	if err != nil {
 		return lib_model.NewInternalError(err)
 	}
@@ -114,7 +114,7 @@ func (h *Handler) UpdateMod(ctx context.Context, txItf driver.Tx, mod model.Modu
 		tx := txItf.(*sql.Tx)
 		execContext = tx.ExecContext
 	}
-	res, err := execContext(ctx, "UPDATE `modules` SET `dir` = ?, `modfile` = ?, `indirect` = ?, `updated` = ? WHERE `id` = ?", mod.Dir, mod.ModFile, mod.Indirect, mod.Updated, mod.ID)
+	res, err := execContext(ctx, "UPDATE `modules` SET `dir` = ?, `modfile` = ?, `updated` = ? WHERE `id` = ?", mod.Dir, mod.ModFile, mod.Updated, mod.ID)
 	if err != nil {
 		return lib_model.NewInternalError(err)
 	}
@@ -151,9 +151,12 @@ func (h *Handler) DeleteMod(ctx context.Context, txItf driver.Tx, mID string) er
 func genModFilter(filter model.ModFilter) (string, []any) {
 	var fc []string
 	var val []any
-	if filter.Indirect {
-		fc = append(fc, "`indirect` = ?")
-		val = append(val, filter.Indirect)
+	if len(filter.IDs) > 0 {
+		ids := removeDuplicates(filter.IDs)
+		fc = append(fc, "`id` IN ("+strings.Repeat("?, ", len(ids)-1)+"?)")
+		for _, id := range ids {
+			val = append(val, id)
+		}
 	}
 	if len(fc) > 0 {
 		return " WHERE " + strings.Join(fc, " AND "), val
