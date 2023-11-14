@@ -41,12 +41,14 @@ type ModFileHandler interface {
 }
 
 type ModStorageHandler interface {
-	List(ctx context.Context, filter lib_model.ModFilter) (map[string]lib_model.Module, error)
-	Get(ctx context.Context, mID string) (lib_model.Module, error)
-	GetDir(ctx context.Context, mID string) (dir_fs.DirFS, error)
-	Add(ctx context.Context, mod lib_model.Module, modDir dir_fs.DirFS, modFile string) error
-	Update(ctx context.Context, mod lib_model.Module, modDir dir_fs.DirFS, modFile string) error
-	Delete(ctx context.Context, mID string) error
+	BeginTransaction(ctx context.Context) (driver.Tx, error)
+	ListMod(ctx context.Context, filter model.ModFilter, dependencyInfo bool) (map[string]model.Module, error)
+	ReadMod(ctx context.Context, mID string, dependencyInfo bool) (model.Module, error)
+	CreateMod(ctx context.Context, tx driver.Tx, mod model.Module) error
+	UpdateMod(ctx context.Context, tx driver.Tx, mod model.Module) error
+	DeleteMod(ctx context.Context, tx driver.Tx, mID string) error
+	CreateModDependencies(ctx context.Context, tx driver.Tx, mID string, mIDs []string) error
+	DeleteModDependencies(ctx context.Context, tx driver.Tx, mID string) error
 }
 
 type ModTransferHandler interface {
