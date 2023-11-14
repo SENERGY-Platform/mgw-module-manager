@@ -272,10 +272,11 @@ func main() {
 	go func() {
 		defer dbCF()
 		if err = db_hdl.InitDB(dbCtx, db, config.Database.SchemaPath, time.Second*5, &instances_migr.Migration{
-			Addr: config.Database.Host,
-			Port: config.Database.Port,
-			User: config.Database.User,
-			PW:   config.Database.Passwd.String(),
+			Addr:    config.Database.Host,
+			Port:    config.Database.Port,
+			User:    config.Database.User,
+			PW:      config.Database.Passwd.String(),
+			Timeout: time.Duration(config.Database.Timeout),
 		}); err != nil {
 			util.Logger.Error(err)
 			ec = 1
