@@ -19,7 +19,7 @@ package sorting
 import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
 func GetModOrder(modules map[string]*module.Module) (order []string, err error) {
@@ -46,7 +46,7 @@ func GetModOrder(modules map[string]*module.Module) (order []string, err error) 
 	return
 }
 
-func GetDepOrder(dep map[string]model.Deployment) (order []string, err error) {
+func GetDepOrder(dep map[string]lib_model.Deployment) (order []string, err error) {
 	if len(dep) > 1 {
 		nodes := make(tsort.Nodes)
 		for _, d := range dep {

@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
@@ -49,7 +49,7 @@ func (h *Handler) Start(ctx context.Context, id string, dependencies bool) error
 	}
 }
 
-func (h *Handler) StartAll(ctx context.Context, filter model.DepFilter, dependencies bool) error {
+func (h *Handler) StartAll(ctx context.Context, filter lib_model.DepFilter, dependencies bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	deployments, err := h.storageHandler.ListDep(ctxWt, filter, true, true, true)
@@ -74,7 +74,7 @@ func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
 	if dep.Enabled && !force && len(dep.DepRequiring) > 0 {
 		ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
 		defer cf2()
-		deployments, err := h.storageHandler.ListDep(ctxWt2, model.DepFilter{IDs: dep.DepRequiring}, false, false, false)
+		deployments, err := h.storageHandler.ListDep(ctxWt2, lib_model.DepFilter{IDs: dep.DepRequiring}, false, false, false)
 		if err != nil {
 			return err
 		}
@@ -85,13 +85,13 @@ func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
 			}
 		}
 		if len(reqBy) > 0 {
-			return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
+			return lib_model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
 		}
 	}
 	return h.stop(ctx, dep)
 }
 
-func (h *Handler) StopAll(ctx context.Context, filter model.DepFilter, force bool) error {
+func (h *Handler) StopAll(ctx context.Context, filter lib_model.DepFilter, force bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	deployments, err := h.storageHandler.ListDep(ctxWt, filter, true, true, true)
@@ -112,7 +112,7 @@ func (h *Handler) StopAll(ctx context.Context, filter model.DepFilter, force boo
 		if len(reqByDepIDs) > 0 {
 			ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
 			defer cf2()
-			deployments, err = h.storageHandler.ListDep(ctxWt2, model.DepFilter{IDs: reqByDepIDs}, false, false, false)
+			deployments, err = h.storageHandler.ListDep(ctxWt2, lib_model.DepFilter{IDs: reqByDepIDs}, false, false, false)
 			if err != nil {
 				return err
 			}
@@ -122,7 +122,7 @@ func (h *Handler) StopAll(ctx context.Context, filter model.DepFilter, force boo
 					reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dep.Name, dID))
 				}
 			}
-			return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
+			return lib_model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
 		}
 	}
 	return h.stopTree(ctx, deployments)
@@ -138,7 +138,7 @@ func (h *Handler) Restart(ctx context.Context, id string) error {
 	return h.restart(ctx, dep)
 }
 
-func (h *Handler) RestartAll(ctx context.Context, filter model.DepFilter) error {
+func (h *Handler) RestartAll(ctx context.Context, filter lib_model.DepFilter) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	deployments, err := h.storageHandler.ListDep(ctxWt, filter, false, true, true)
@@ -153,7 +153,7 @@ func (h *Handler) RestartAll(ctx context.Context, filter model.DepFilter) error 
 	return err
 }
 
-func (h *Handler) start(ctx context.Context, dep model.Deployment) error {
+func (h *Handler) start(ctx context.Context, dep lib_model.Deployment) error {
 	if !dep.Enabled {
 		if err := h.loadSecrets(ctx, dep); err != nil {
 			return err
@@ -171,15 +171,15 @@ func (h *Handler) start(ctx context.Context, dep model.Deployment) error {
 	return nil
 }
 
-func (h *Handler) startTree(ctx context.Context, depTree map[string]model.Deployment) error {
+func (h *Handler) startTree(ctx context.Context, depTree map[string]lib_model.Deployment) error {
 	order, err := sorting.GetDepOrder(depTree)
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	for _, dID := range order {
 		dep, ok := depTree[dID]
 		if !ok {
-			return model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", dID))
+			return lib_model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", dID))
 		}
 		if err = h.start(ctx, dep); err != nil {
 			return err
@@ -188,7 +188,7 @@ func (h *Handler) startTree(ctx context.Context, depTree map[string]model.Deploy
 	return nil
 }
 
-func (h *Handler) stop(ctx context.Context, dep model.Deployment) error {
+func (h *Handler) stop(ctx context.Context, dep lib_model.Deployment) error {
 	if err := h.stopContainers(ctx, dep.Containers); err != nil {
 		return err
 	}
@@ -206,7 +206,7 @@ func (h *Handler) stop(ctx context.Context, dep model.Deployment) error {
 	return nil
 }
 
-func (h *Handler) stopTree(ctx context.Context, depTree map[string]model.Deployment) error {
+func (h *Handler) stopTree(ctx context.Context, depTree map[string]lib_model.Deployment) error {
 	order, err := sorting.GetDepOrder(depTree)
 	if err != nil {
 		return err
@@ -214,7 +214,7 @@ func (h *Handler) stopTree(ctx context.Context, depTree map[string]model.Deploym
 	for i := len(order) - 1; i >= 0; i-- {
 		dep, ok := depTree[order[i]]
 		if !ok {
-			return model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", order[i]))
+			return lib_model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", order[i]))
 		}
 		if err = h.stop(ctx, dep); err != nil {
 			return err
@@ -223,30 +223,30 @@ func (h *Handler) stopTree(ctx context.Context, depTree map[string]model.Deploym
 	return nil
 }
 
-func (h *Handler) restart(ctx context.Context, dep model.Deployment) error {
+func (h *Handler) restart(ctx context.Context, dep lib_model.Deployment) error {
 	if err := h.stopContainers(ctx, dep.Containers); err != nil {
 		return err
 	}
 	return h.start(ctx, dep)
 }
 
-func (h *Handler) startContainers(ctx context.Context, depContainers map[string]model.DepContainer) error {
+func (h *Handler) startContainers(ctx context.Context, depContainers map[string]lib_model.DepContainer) error {
 	order := getDepContainerOrder(depContainers, 1)
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	for _, ref := range order {
 		if err := h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), depContainers[ref].ID); err != nil {
-			return model.NewInternalError(err)
+			return lib_model.NewInternalError(err)
 		}
 	}
 	return nil
 }
 
-func (h *Handler) stopContainers(ctx context.Context, depContainers map[string]model.DepContainer) error {
+func (h *Handler) stopContainers(ctx context.Context, depContainers map[string]lib_model.DepContainer) error {
 	order := getDepContainerOrder(depContainers, -1)
 	for _, ref := range order {
 		if err := h.stopContainer(ctx, depContainers[ref].ID); err != nil {
-			var nfe *model.NotFoundError
+			var nfe *lib_model.NotFoundError
 			if !errors.As(err, &nfe) {
 				return err
 			}
@@ -260,22 +260,22 @@ func (h *Handler) stopContainer(ctx context.Context, cID string) error {
 	defer cf()
 	jID, err := h.cewClient.StopContainer(ctxWt, cID)
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	job, err := job_hdl_lib.Await(ctx, h.cewClient, jID, time.Second, h.httpTimeout, util.Logger)
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	if job.Error != nil {
 		if job.Error.Code != nil && *job.Error.Code == http.StatusNotFound {
-			return model.NewNotFoundError(errors.New(job.Error.Message))
+			return lib_model.NewNotFoundError(errors.New(job.Error.Message))
 		}
-		return model.NewInternalError(errors.New(job.Error.Message))
+		return lib_model.NewInternalError(errors.New(job.Error.Message))
 	}
 	return nil
 }
 
-func getDepContainerOrder(depContainers map[string]model.DepContainer, order int8) []string {
+func getDepContainerOrder(depContainers map[string]lib_model.DepContainer, order int8) []string {
 	keys := make([]string, 0, len(depContainers))
 	for key := range depContainers {
 		keys = append(keys, key)

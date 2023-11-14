@@ -20,7 +20,7 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
 func (h *Handler) CreateDepDependencies(ctx context.Context, txItf driver.Tx, dID string, dIDs []string) error {
@@ -31,12 +31,12 @@ func (h *Handler) CreateDepDependencies(ctx context.Context, txItf driver.Tx, dI
 	}
 	stmt, err := prepareContext(ctx, "INSERT INTO `dependencies` (`dep_id`, `req_id`) VALUES (?, ?)")
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	defer stmt.Close()
 	for _, id := range dIDs {
 		if _, err = stmt.ExecContext(ctx, dID, id); err != nil {
-			return model.NewInternalError(err)
+			return lib_model.NewInternalError(err)
 		}
 	}
 	return nil
@@ -50,7 +50,7 @@ func (h *Handler) DeleteDepDependencies(ctx context.Context, txItf driver.Tx, dI
 	}
 	_, err := execContext(ctx, "DELETE FROM `dependencies` WHERE `dep_id` = ?", dID)
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	return nil
 }

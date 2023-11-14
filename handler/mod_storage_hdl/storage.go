@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/google/uuid"
@@ -35,7 +35,7 @@ type Handler struct {
 	wrkSpcPath     string
 	modFileHandler handler.ModFileHandler
 	indexHandler   *indexHandler
-	modules        map[string]model.Module
+	modules        map[string]lib_model.Module
 	mu             sync.RWMutex
 }
 
@@ -63,27 +63,27 @@ func (h *Handler) Init(perm fs.FileMode) error {
 	return nil
 }
 
-func (h *Handler) List(ctx context.Context, filter model.ModFilter) (map[string]model.Module, error) {
+func (h *Handler) List(ctx context.Context, filter lib_model.ModFilter) (map[string]lib_model.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	mm := make(map[string]model.Module)
+	mm := make(map[string]lib_model.Module)
 	for id, m := range h.modules {
 		if filterMod(filter, m.Module) {
 			mm[id] = m
 		}
 		if ctx.Err() != nil {
-			return nil, model.NewInternalError(ctx.Err())
+			return nil, lib_model.NewInternalError(ctx.Err())
 		}
 	}
 	return mm, nil
 }
 
-func (h *Handler) Get(_ context.Context, mID string) (model.Module, error) {
+func (h *Handler) Get(_ context.Context, mID string) (lib_model.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	m, ok := h.modules[mID]
 	if !ok {
-		return model.Module{}, model.NewNotFoundError(fmt.Errorf("module '%s' not found", mID))
+		return lib_model.Module{}, lib_model.NewNotFoundError(fmt.Errorf("module '%s' not found", mID))
 	}
 	return m, nil
 }
@@ -97,12 +97,12 @@ func (h *Handler) GetDir(_ context.Context, mID string) (dir_fs.DirFS, error) {
 	}
 	dir, err := dir_fs.New(path.Join(h.wrkSpcPath, i.Dir))
 	if err != nil {
-		return "", model.NewInternalError(err)
+		return "", lib_model.NewInternalError(err)
 	}
 	return dir, nil
 }
 
-func (h *Handler) Add(_ context.Context, mod model.Module, modDir dir_fs.DirFS, modFile string) error {
+func (h *Handler) Add(_ context.Context, mod lib_model.Module, modDir dir_fs.DirFS, modFile string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	dirName := uuid.NewString()
@@ -112,13 +112,13 @@ func (h *Handler) Add(_ context.Context, mod model.Module, modDir dir_fs.DirFS, 
 	}
 	err = dir_fs.Copy(modDir, path.Join(h.wrkSpcPath, dirName))
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	h.modules[mod.ID] = mod
 	return nil
 }
 
-func (h *Handler) Update(_ context.Context, mod model.Module, modDir dir_fs.DirFS, modFile string) error {
+func (h *Handler) Update(_ context.Context, mod lib_model.Module, modDir dir_fs.DirFS, modFile string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	i, err := h.indexHandler.Get(mod.ID)
@@ -131,7 +131,7 @@ func (h *Handler) Update(_ context.Context, mod model.Module, modDir dir_fs.DirF
 	dirName := uuid.NewString()
 	err = dir_fs.Copy(modDir, path.Join(h.wrkSpcPath, dirName))
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	err = h.indexHandler.Update(i.ID, dirName, modFile, mod.Indirect, mod.Updated)
 	if err != nil {
@@ -139,7 +139,7 @@ func (h *Handler) Update(_ context.Context, mod model.Module, modDir dir_fs.DirF
 	}
 	h.modules[mod.ID] = mod
 	if err = os.RemoveAll(path.Join(h.wrkSpcPath, i.Dir)); err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	return nil
 }
@@ -152,10 +152,10 @@ func (h *Handler) Delete(_ context.Context, mID string) error {
 		return err
 	}
 	if err = os.RemoveAll(path.Join(h.wrkSpcPath, i.Dir)); err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	if err = h.indexHandler.Delete(mID); err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	delete(h.modules, mID)
 	return nil
@@ -163,7 +163,7 @@ func (h *Handler) Delete(_ context.Context, mID string) error {
 
 func (h *Handler) loadModules() {
 	items := h.indexHandler.List()
-	h.modules = make(map[string]model.Module)
+	h.modules = make(map[string]lib_model.Module)
 	for _, i := range items {
 		f, err := os.Open(path.Join(h.wrkSpcPath, i.Dir, i.ModFile))
 		if err != nil {
@@ -175,7 +175,7 @@ func (h *Handler) loadModules() {
 			util.Logger.Error(err)
 			continue
 		}
-		h.modules[m.ID] = model.Module{
+		h.modules[m.ID] = lib_model.Module{
 			Module:      m,
 			ModuleExtra: getModExtra(i),
 		}
@@ -183,7 +183,7 @@ func (h *Handler) loadModules() {
 	return
 }
 
-func filterMod(filter model.ModFilter, m *module.Module) bool {
+func filterMod(filter lib_model.ModFilter, m *module.Module) bool {
 	if filter.Name != "" {
 		if m.Name != filter.Name {
 			return false
@@ -229,8 +229,8 @@ func filterMod(filter model.ModFilter, m *module.Module) bool {
 	return true
 }
 
-func getModExtra(i item) model.ModuleExtra {
-	return model.ModuleExtra{
+func getModExtra(i item) lib_model.ModuleExtra {
+	return lib_model.ModuleExtra{
 		Indirect: i.Indirect,
 		Added:    i.Added,
 		Updated:  i.Updated,

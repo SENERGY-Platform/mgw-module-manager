@@ -20,7 +20,7 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
 const tLayout = "2006-01-02 15:04:05.000000"
@@ -36,7 +36,7 @@ func New(db *sql.DB) *Handler {
 func (h *Handler) BeginTransaction(ctx context.Context) (driver.Tx, error) {
 	tx, e := h.db.BeginTx(ctx, nil)
 	if e != nil {
-		return nil, model.NewInternalError(e)
+		return nil, lib_model.NewInternalError(e)
 	}
 	return tx, nil
 }

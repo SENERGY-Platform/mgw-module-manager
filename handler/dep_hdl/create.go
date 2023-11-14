@@ -22,7 +22,7 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
@@ -35,7 +35,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error) {
+func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput lib_model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error) {
 	modDependencyDeps, err := h.getModDependencyDeployments(ctx, mod.Dependencies)
 	if err != nil {
 		return "", err
@@ -51,7 +51,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 			}
 		}
 	}()
-	dep := model.Deployment{DepBase: newDepBase(mod, depInput, inclDir, indirect)}
+	dep := lib_model.Deployment{DepBase: newDepBase(mod, depInput, inclDir, indirect)}
 	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {
 		return "", err
@@ -115,23 +115,23 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput model
 	}
 	err = tx.Commit()
 	if err != nil {
-		return "", model.NewInternalError(err)
+		return "", lib_model.NewInternalError(err)
 	}
 	return dep.ID, nil
 }
 
-func (h *Handler) createContainers(ctx context.Context, mod *module.Module, depBase model.DepBase, userConfigs map[string]model.DepConfig, hostRes map[string]hm_model.HostResource, secrets map[string]secret, modDependencyDeps map[string]model.Deployment) (map[string]model.DepContainer, error) {
+func (h *Handler) createContainers(ctx context.Context, mod *module.Module, depBase lib_model.DepBase, userConfigs map[string]lib_model.DepConfig, hostRes map[string]hm_model.HostResource, secrets map[string]secret, modDependencyDeps map[string]lib_model.Deployment) (map[string]lib_model.DepContainer, error) {
 	stringValues, err := userConfigsToStringValues(mod.Configs, userConfigs)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return nil, lib_model.NewInternalError(err)
 	}
 	cewContainers := make(map[string]cew_model.Container)
-	depContainers := make(map[string]model.DepContainer)
+	depContainers := make(map[string]lib_model.DepContainer)
 	for ref, srv := range mod.Services {
 		var envVars map[string]string
 		envVars, err = getEnvVars(srv, stringValues, modDependencyDeps, secrets, depBase.ID)
 		if err != nil {
-			return nil, model.NewInternalError(err)
+			return nil, lib_model.NewInternalError(err)
 		}
 		mounts, devices := newMounts(srv, depBase, hostRes, secrets, h.depHostPath, h.secHostPath)
 		name, err := naming_hdl.Global.NewContainerName("dep")
@@ -146,11 +146,11 @@ func (h *Handler) createContainers(ctx context.Context, mod *module.Module, depB
 			naming_hdl.ServiceRefLabel:   ref,
 		}
 		cewContainers[ref] = newCewContainer(srv, name, alias, h.moduleNet, labels, envVars, mounts, devices, newPorts(srv.Ports))
-		depContainers[ref] = model.DepContainer{Alias: alias}
+		depContainers[ref] = lib_model.DepContainer{Alias: alias}
 	}
 	order, err := sorting.GetSrvOrder(mod.Services)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return nil, lib_model.NewInternalError(err)
 	}
 	ch := context_hdl.New()
 	defer ch.CancelAll()
@@ -165,7 +165,7 @@ func (h *Handler) createContainers(ctx context.Context, mod *module.Module, depB
 		cewContainer := cewContainers[ref]
 		depContainer := depContainers[ref]
 		if depContainer.ID, err = h.cewClient.CreateContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cewContainer); err != nil {
-			return nil, model.NewInternalError(err)
+			return nil, lib_model.NewInternalError(err)
 		}
 		depContainer.Order = uint(i)
 		depContainers[ref] = depContainer
@@ -181,7 +181,7 @@ func (h *Handler) mkInclDir(inclDir dir_fs.DirFS) (string, error) {
 	strID := id.String()
 	p := path.Join(h.wrkSpcPath, strID)
 	if err = dir_fs.Copy(inclDir, p); err != nil {
-		return "", model.NewInternalError(err)
+		return "", lib_model.NewInternalError(err)
 	}
 	return strID, nil
 }
@@ -206,21 +206,21 @@ func (h *Handler) createVolumes(ctx context.Context, mVolumes []string, dID stri
 			Labels: map[string]string{naming_hdl.CoreIDLabel: h.coreID, naming_hdl.ManagerIDLabel: h.managerID, naming_hdl.DeploymentIDLabel: dID},
 		})
 		if err != nil {
-			return model.NewInternalError(err)
+			return lib_model.NewInternalError(err)
 		}
 		if n != name {
 			err = fmt.Errorf("volume name missmatch: %s != %s", n, name)
-			return model.NewInternalError(err)
+			return lib_model.NewInternalError(err)
 		}
 		createdVols = append(createdVols, n)
 	}
 	return nil
 }
 
-func newDepBase(mod *module.Module, depInput model.DepInput, inclDir string, indirect bool) model.DepBase {
+func newDepBase(mod *module.Module, depInput lib_model.DepInput, inclDir string, indirect bool) lib_model.DepBase {
 	timestamp := time.Now().UTC()
-	return model.DepBase{
-		Module: model.DepModule{
+	return lib_model.DepBase{
+		Module: lib_model.DepModule{
 			ID:      mod.ID,
 			Version: mod.Version,
 		},
@@ -232,14 +232,14 @@ func newDepBase(mod *module.Module, depInput model.DepInput, inclDir string, ind
 	}
 }
 
-func newDepDependencies(modDependencyDeps map[string]model.Deployment) (dependencies []string) {
+func newDepDependencies(modDependencyDeps map[string]lib_model.Deployment) (dependencies []string) {
 	for _, dep := range modDependencyDeps {
 		dependencies = append(dependencies, dep.ID)
 	}
 	return
 }
 
-func newMounts(srv *module.Service, depBase model.DepBase, hostRes map[string]hm_model.HostResource, secrets map[string]secret, depHostPath, secHostPath string) ([]cew_model.Mount, []cew_model.Device) {
+func newMounts(srv *module.Service, depBase lib_model.DepBase, hostRes map[string]hm_model.HostResource, secrets map[string]secret, depHostPath, secHostPath string) ([]cew_model.Mount, []cew_model.Device) {
 	var mounts []cew_model.Mount
 	var devices []cew_model.Device
 	for mntPoint, name := range srv.Volumes {
@@ -300,7 +300,7 @@ func newMounts(srv *module.Service, depBase model.DepBase, hostRes map[string]hm
 	return mounts, devices
 }
 
-func getEnvVars(srv *module.Service, configs map[string]string, modDependencyDeps map[string]model.Deployment, secrets map[string]secret, dID string) (map[string]string, error) {
+func getEnvVars(srv *module.Service, configs map[string]string, modDependencyDeps map[string]lib_model.Deployment, secrets map[string]secret, dID string) (map[string]string, error) {
 	envVars := make(map[string]string)
 	for eVar, cRef := range srv.Configs {
 		if val, ok := configs[cRef]; ok {
@@ -377,7 +377,7 @@ func newCewContainer(srv *module.Service, name, alias, moduleNet string, labels,
 	}
 }
 
-func userConfigsToStringValues(modConfigs module.Configs, userConfigs map[string]model.DepConfig) (map[string]string, error) {
+func userConfigsToStringValues(modConfigs module.Configs, userConfigs map[string]lib_model.DepConfig) (map[string]string, error) {
 	values := make(map[string]string)
 	for ref, mConfig := range modConfigs {
 		depConfig, ok := userConfigs[ref]

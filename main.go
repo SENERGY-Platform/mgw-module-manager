@@ -43,7 +43,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_update_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/modfile_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/storage_hdl"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/db_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/db_hdl/instances_migr"
@@ -73,7 +73,7 @@ func main() {
 		os.Exit(ec)
 	}()
 
-	sb_util.PrintInfo(model.ServiceName, version)
+	sb_util.PrintInfo(lib_model.ServiceName, version)
 
 	util.ParseFlags()
 
@@ -176,9 +176,9 @@ func main() {
 
 	job_hdl.Logger = util.Logger
 	job_hdl.ErrCodeMapper = util.GetErrCode
-	job_hdl.NewNotFoundErr = model.NewNotFoundError
-	job_hdl.NewInvalidInputError = model.NewInvalidInputError
-	job_hdl.NewInternalErr = model.NewInternalError
+	job_hdl.NewNotFoundErr = lib_model.NewNotFoundError
+	job_hdl.NewInvalidInputError = lib_model.NewInvalidInputError
+	job_hdl.NewInternalErr = lib_model.NewInternalError
 	jobCtx, jobCF := context.WithCancel(context.Background())
 	jobHandler := job_hdl.New(jobCtx, ccHandler)
 
@@ -216,10 +216,10 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	httpHandler := gin.New()
 	staticHeader := map[string]string{
-		model.HeaderApiVer:  version,
-		model.HeaderSrvName: model.ServiceName,
+		lib_model.HeaderApiVer:  version,
+		lib_model.HeaderSrvName: lib_model.ServiceName,
 	}
-	httpHandler.Use(gin_mw.StaticHeaderHandler(staticHeader), requestid.New(requestid.WithCustomHeaderStrKey(model.HeaderRequestID)), gin_mw.LoggerHandler(util.Logger, http_hdl.GetPathFilter(), func(gc *gin.Context) string {
+	httpHandler.Use(gin_mw.StaticHeaderHandler(staticHeader), requestid.New(requestid.WithCustomHeaderStrKey(lib_model.HeaderRequestID)), gin_mw.LoggerHandler(util.Logger, http_hdl.GetPathFilter(), func(gc *gin.Context) string {
 		return requestid.Get(gc)
 	}), gin_mw.ErrorHandler(util.GetStatusCode, ", "), gin.Recovery())
 	httpHandler.UseRawPath = true

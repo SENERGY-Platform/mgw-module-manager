@@ -21,7 +21,7 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
@@ -31,7 +31,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, depInput model.DepInput, incl dir_fs.DirFS) error {
+func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, depInput lib_model.DepInput, incl dir_fs.DirFS) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	oldDep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), id, true, true, true)
@@ -190,7 +190,7 @@ func (h *Handler) diffVolumes(ctx context.Context, volumes ml_util.Set[string], 
 	return missing, orphans, nil
 }
 
-func (h *Handler) restore(dep model.Deployment) error {
+func (h *Handler) restore(dep lib_model.Deployment) error {
 	if dep.Enabled {
 		if err := h.unloadSecrets(context.Background(), dep.ID); err != nil {
 			return err

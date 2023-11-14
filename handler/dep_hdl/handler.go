@@ -23,7 +23,7 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	hm_lib "github.com/SENERGY-Platform/mgw-host-manager/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
@@ -90,7 +90,7 @@ func (h *Handler) InitWorkspace(perm fs.FileMode) error {
 	return nil
 }
 
-func (h *Handler) List(ctx context.Context, filter model.DepFilter, dependencyInfo, assets, containers, containerInfo bool) (map[string]model.Deployment, error) {
+func (h *Handler) List(ctx context.Context, filter lib_model.DepFilter, dependencyInfo, assets, containers, containerInfo bool) (map[string]lib_model.Deployment, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	if containerInfo {
@@ -108,7 +108,7 @@ func (h *Handler) List(ctx context.Context, filter model.DepFilter, dependencyIn
 			util.Logger.Errorf("could not retrieve containers: %s", err.Error())
 			return deployments, nil
 		}
-		withCtrInfo := make(map[string]model.Deployment)
+		withCtrInfo := make(map[string]lib_model.Deployment)
 		for dID, deployment := range deployments {
 			if deployment.Enabled {
 				deployment.State, deployment.Containers = getDepHealthAndCtrInfo(dID, deployment.Containers, ctrList)
@@ -120,7 +120,7 @@ func (h *Handler) List(ctx context.Context, filter model.DepFilter, dependencyIn
 	return deployments, nil
 }
 
-func (h *Handler) Get(ctx context.Context, id string, dependencyInfo, assets, containers, containerInfo bool) (model.Deployment, error) {
+func (h *Handler) Get(ctx context.Context, id string, dependencyInfo, assets, containers, containerInfo bool) (lib_model.Deployment, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	if containerInfo {
@@ -128,7 +128,7 @@ func (h *Handler) Get(ctx context.Context, id string, dependencyInfo, assets, co
 	}
 	deployment, err := h.storageHandler.ReadDep(ctxWt, id, dependencyInfo, assets, containers)
 	if err != nil {
-		return model.Deployment{}, err
+		return lib_model.Deployment{}, err
 	}
 	if containerInfo && deployment.Enabled {
 		ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
@@ -143,20 +143,20 @@ func (h *Handler) Get(ctx context.Context, id string, dependencyInfo, assets, co
 	return deployment, nil
 }
 
-func (h *Handler) getModDependencyDeployments(ctx context.Context, modDependencies map[string]string) (map[string]model.Deployment, error) {
+func (h *Handler) getModDependencyDeployments(ctx context.Context, modDependencies map[string]string) (map[string]lib_model.Deployment, error) {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	m := make(map[string]model.Deployment)
+	m := make(map[string]lib_model.Deployment)
 	for mID := range modDependencies {
-		deployments, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), model.DepFilter{ModuleID: mID}, false, false, true)
+		deployments, err := h.storageHandler.ListDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), lib_model.DepFilter{ModuleID: mID}, false, false, true)
 		if err != nil {
 			return nil, err
 		}
 		if len(deployments) == 0 {
-			return nil, model.NewInternalError(fmt.Errorf("dependency '%s' not deployed", mID))
+			return nil, lib_model.NewInternalError(fmt.Errorf("dependency '%s' not deployed", mID))
 		}
 		if len(deployments) > 1 {
-			return nil, model.NewInternalError(fmt.Errorf("dependency '%s' has multiple deployments", mID))
+			return nil, lib_model.NewInternalError(fmt.Errorf("dependency '%s' has multiple deployments", mID))
 		}
 		for _, dep := range deployments {
 			m[mID] = dep
@@ -166,44 +166,44 @@ func (h *Handler) getModDependencyDeployments(ctx context.Context, modDependenci
 	return m, nil
 }
 
-func getDepHealthAndCtrInfo(dID string, depContainers map[string]model.DepContainer, ctrList []cew_model.Container) (*model.HealthState, map[string]model.DepContainer) {
+func getDepHealthAndCtrInfo(dID string, depContainers map[string]lib_model.DepContainer, ctrList []cew_model.Container) (*lib_model.HealthState, map[string]lib_model.DepContainer) {
 	ctrMap := make(map[string]cew_model.Container)
 	for _, ctr := range ctrList {
 		ctrMap[ctr.ID] = ctr
 	}
-	var state model.HealthState
-	withCtrInfo := make(map[string]model.DepContainer)
+	var state lib_model.HealthState
+	withCtrInfo := make(map[string]lib_model.DepContainer)
 	for ref, depCtr := range depContainers {
 		ctr, ok := ctrMap[depCtr.ID]
 		if !ok {
-			state = model.DepUnhealthy
+			state = lib_model.DepUnhealthy
 			util.Logger.Warningf("deployment '%s' missing container '%s'", dID, depCtr.ID)
 		}
 		if state == "" {
 			if ctr.Health != nil {
 				switch *ctr.Health {
 				case cew_model.TransitionState:
-					state = model.DepTrans
+					state = lib_model.DepTrans
 				case cew_model.UnhealthyState:
-					state = model.DepUnhealthy
+					state = lib_model.DepUnhealthy
 				}
 			} else {
 				switch ctr.State {
 				case cew_model.InitState, cew_model.RestartingState, cew_model.RemovingState:
-					state = model.DepTrans
+					state = lib_model.DepTrans
 				case cew_model.StoppedState, cew_model.DeadState, cew_model.PausedState:
-					state = model.DepUnhealthy
+					state = lib_model.DepUnhealthy
 				}
 			}
 		}
-		depCtr.Info = &model.ContainerInfo{
+		depCtr.Info = &lib_model.ContainerInfo{
 			ImageID: ctr.ImageID,
 			State:   ctr.State,
 		}
 		withCtrInfo[ref] = depCtr
 	}
 	if state == "" {
-		state = model.DepHealthy
+		state = lib_model.DepHealthy
 	}
 	return &state, withCtrInfo
 }

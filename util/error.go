@@ -18,7 +18,7 @@ package util
 
 import (
 	"errors"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"net/http"
 )
 
@@ -31,19 +31,19 @@ func GetErrCode(err error) *int {
 }
 
 func GetStatusCode(err error) int {
-	var nfe *model.NotFoundError
+	var nfe *lib_model.NotFoundError
 	if errors.As(err, &nfe) {
 		return http.StatusNotFound
 	}
-	var iie *model.InvalidInputError
+	var iie *lib_model.InvalidInputError
 	if errors.As(err, &iie) {
 		return http.StatusBadRequest
 	}
-	var rbe *model.ResourceBusyError
+	var rbe *lib_model.ResourceBusyError
 	if errors.As(err, &rbe) {
 		return http.StatusConflict
 	}
-	var ie *model.InternalError
+	var ie *lib_model.InternalError
 	if errors.As(err, &ie) {
 		return http.StatusInternalServerError
 	}

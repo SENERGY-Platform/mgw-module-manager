@@ -19,7 +19,7 @@ package http_hdl
 import (
 	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
@@ -38,7 +38,7 @@ func getJobsH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := jobsQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		jobOptions := job_hdl_lib.JobFilter{
@@ -48,7 +48,7 @@ func getJobsH(a lib.Api) gin.HandlerFunc {
 		if query.Since != "" {
 			t, err := time.Parse(time.RFC3339Nano, query.Since)
 			if err != nil {
-				_ = gc.Error(model.NewInvalidInputError(err))
+				_ = gc.Error(lib_model.NewInvalidInputError(err))
 				return
 			}
 			jobOptions.Since = t
@@ -56,7 +56,7 @@ func getJobsH(a lib.Api) gin.HandlerFunc {
 		if query.Until != "" {
 			t, err := time.Parse(time.RFC3339Nano, query.Until)
 			if err != nil {
-				_ = gc.Error(model.NewInvalidInputError(err))
+				_ = gc.Error(lib_model.NewInvalidInputError(err))
 				return
 			}
 			jobOptions.Until = t

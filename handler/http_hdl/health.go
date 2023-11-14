@@ -19,19 +19,19 @@ package http_hdl
 import (
 	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 func getServiceHealthH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		_, err := a.GetDeployments(gc.Request.Context(), model.DepFilter{}, false, false)
+		_, err := a.GetDeployments(gc.Request.Context(), lib_model.DepFilter{}, false, false)
 		if err != nil {
 			_ = gc.Error(err)
 			return
 		}
-		_, err = a.GetModules(gc.Request.Context(), model.ModFilter{})
+		_, err = a.GetModules(gc.Request.Context(), lib_model.ModFilter{})
 		if err != nil {
 			_ = gc.Error(err)
 			return

@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"io"
@@ -58,7 +58,7 @@ func (h *Handler) InitWorkspace(perm fs.FileMode) error {
 func (h *Handler) Get(ctx context.Context, mID string) (handler.ModRepo, error) {
 	rPth, err := os.MkdirTemp(h.wrkSpcPath, "repo_")
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return nil, lib_model.NewInternalError(err)
 	}
 	defer func() {
 		if err != nil {
@@ -68,7 +68,7 @@ func (h *Handler) Get(ctx context.Context, mID string) (handler.ModRepo, error) 
 	var cPth string
 	cPth, err = os.MkdirTemp(rPth, "clone_")
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return nil, lib_model.NewInternalError(err)
 	}
 	rPath, mPath := parseModID(mID)
 	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
@@ -81,17 +81,17 @@ func (h *Handler) Get(ctx context.Context, mID string) (handler.ModRepo, error) 
 		Tags:              git.AllTags,
 	})
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return nil, lib_model.NewInternalError(err)
 	}
 	var versions map[string]plumbing.Hash
 	versions, err = getVersions(repo, mPath)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return nil, lib_model.NewInternalError(err)
 	}
 	var wt *git.Worktree
 	wt, err = repo.Worktree()
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return nil, lib_model.NewInternalError(err)
 	}
 	return &modRepo{
 		versions: versions,

@@ -18,31 +18,31 @@ package input_tmplt
 
 import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func GetModDepTemplate(mod *module.Module) model.InputTemplate {
-	it := model.InputTemplate{
-		HostResources: make(map[string]model.InputTemplateHostRes),
-		Secrets:       make(map[string]model.InputTemplateSecret),
-		Configs:       make(map[string]model.InputTemplateConfig),
+func GetModDepTemplate(mod *module.Module) lib_model.InputTemplate {
+	it := lib_model.InputTemplate{
+		HostResources: make(map[string]lib_model.InputTemplateHostRes),
+		Secrets:       make(map[string]lib_model.InputTemplateSecret),
+		Configs:       make(map[string]lib_model.InputTemplateConfig),
 		InputGroups:   mod.Inputs.Groups,
 	}
 	for ref, input := range mod.Inputs.Resources {
-		it.HostResources[ref] = model.InputTemplateHostRes{
+		it.HostResources[ref] = lib_model.InputTemplateHostRes{
 			Input:        input,
 			HostResource: mod.HostResources[ref],
 		}
 	}
 	for ref, input := range mod.Inputs.Secrets {
-		it.Secrets[ref] = model.InputTemplateSecret{
+		it.Secrets[ref] = lib_model.InputTemplateSecret{
 			Input:  input,
 			Secret: mod.Secrets[ref],
 		}
 	}
 	for ref, input := range mod.Inputs.Configs {
 		cv := mod.Configs[ref]
-		itc := model.InputTemplateConfig{
+		itc := lib_model.InputTemplateConfig{
 			Input:    input,
 			Default:  cv.Default,
 			Options:  cv.Options,
@@ -61,15 +61,15 @@ func GetModDepTemplate(mod *module.Module) model.InputTemplate {
 	return it
 }
 
-func GetDepUpTemplate(mod *module.Module, dep model.Deployment) model.InputTemplate {
-	it := model.InputTemplate{
-		HostResources: make(map[string]model.InputTemplateHostRes),
-		Secrets:       make(map[string]model.InputTemplateSecret),
-		Configs:       make(map[string]model.InputTemplateConfig),
+func GetDepUpTemplate(mod *module.Module, dep lib_model.Deployment) lib_model.InputTemplate {
+	it := lib_model.InputTemplate{
+		HostResources: make(map[string]lib_model.InputTemplateHostRes),
+		Secrets:       make(map[string]lib_model.InputTemplateSecret),
+		Configs:       make(map[string]lib_model.InputTemplateConfig),
 		InputGroups:   mod.Inputs.Groups,
 	}
 	for ref, input := range mod.Inputs.Resources {
-		hr := model.InputTemplateHostRes{
+		hr := lib_model.InputTemplateHostRes{
 			Input:        input,
 			HostResource: mod.HostResources[ref],
 		}
@@ -79,7 +79,7 @@ func GetDepUpTemplate(mod *module.Module, dep model.Deployment) model.InputTempl
 		it.HostResources[ref] = hr
 	}
 	for ref, input := range mod.Inputs.Secrets {
-		s := model.InputTemplateSecret{
+		s := lib_model.InputTemplateSecret{
 			Input:  input,
 			Secret: mod.Secrets[ref],
 		}
@@ -90,7 +90,7 @@ func GetDepUpTemplate(mod *module.Module, dep model.Deployment) model.InputTempl
 	}
 	for ref, input := range mod.Inputs.Configs {
 		cv := mod.Configs[ref]
-		itc := model.InputTemplateConfig{
+		itc := lib_model.InputTemplateConfig{
 			Input:    input,
 			Default:  cv.Default,
 			Options:  cv.Options,

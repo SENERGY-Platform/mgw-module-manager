@@ -22,14 +22,14 @@ import (
 	"fmt"
 	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
 	sm_model "github.com/SENERGY-Platform/mgw-secret-manager/pkg/api_model"
 )
 
-func (h *Handler) getDepAssets(ctx context.Context, mod *module.Module, dID string, depInput model.DepInput) (map[string]hm_model.HostResource, map[string]secret, map[string]model.DepConfig, error) {
+func (h *Handler) getDepAssets(ctx context.Context, mod *module.Module, dID string, depInput lib_model.DepInput) (map[string]hm_model.HostResource, map[string]secret, map[string]lib_model.DepConfig, error) {
 	hostResources, err := h.getHostResources(ctx, mod.HostResources, depInput.HostResources)
 	if err != nil {
 		return nil, nil, nil, err
@@ -45,25 +45,25 @@ func (h *Handler) getDepAssets(ctx context.Context, mod *module.Module, dID stri
 	return hostResources, secrets, userConfigs, nil
 }
 
-func (h *Handler) newDepAssets(hostResources map[string]hm_model.HostResource, secrets map[string]secret, userConfigs map[string]model.DepConfig) model.DepAssets {
-	depAssets := model.DepAssets{
+func (h *Handler) newDepAssets(hostResources map[string]hm_model.HostResource, secrets map[string]secret, userConfigs map[string]lib_model.DepConfig) lib_model.DepAssets {
+	depAssets := lib_model.DepAssets{
 		HostResources: make(map[string]string),
-		Secrets:       make(map[string]model.DepSecret),
+		Secrets:       make(map[string]lib_model.DepSecret),
 		Configs:       userConfigs,
 	}
 	for ref, hostResource := range hostResources {
 		depAssets.HostResources[ref] = hostResource.ID
 	}
 	for ref, sec := range secrets {
-		var variants []model.DepSecretVariant
+		var variants []lib_model.DepSecretVariant
 		for _, variant := range sec.Variants {
-			variants = append(variants, model.DepSecretVariant{
+			variants = append(variants, lib_model.DepSecretVariant{
 				Item:    variant.Item,
 				AsMount: variant.Path != "",
 				AsEnv:   variant.AsEnv,
 			})
 		}
-		depAssets.Secrets[ref] = model.DepSecret{
+		depAssets.Secrets[ref] = lib_model.DepSecret{
 			ID:       sec.ID,
 			Variants: variants,
 		}
@@ -71,13 +71,13 @@ func (h *Handler) newDepAssets(hostResources map[string]hm_model.HostResource, s
 	return depAssets
 }
 
-func (h *Handler) getUserConfigs(mConfigs module.Configs, userInput map[string]any) (map[string]model.DepConfig, error) {
-	userConfigs := make(map[string]model.DepConfig)
+func (h *Handler) getUserConfigs(mConfigs module.Configs, userInput map[string]any) (map[string]lib_model.DepConfig, error) {
+	userConfigs := make(map[string]lib_model.DepConfig)
 	for ref, mConfig := range mConfigs {
 		val, ok := userInput[ref]
 		if !ok || val == nil {
 			if mConfig.Default == nil && mConfig.Required {
-				return nil, model.NewInvalidInputError(fmt.Errorf("config '%s' requried", ref))
+				return nil, lib_model.NewInvalidInputError(fmt.Errorf("config '%s' requried", ref))
 			}
 		} else {
 			var v any
@@ -88,17 +88,17 @@ func (h *Handler) getUserConfigs(mConfigs module.Configs, userInput map[string]a
 				v, err = parser.AnyToDataType(val, mConfig.DataType)
 			}
 			if err != nil {
-				return nil, model.NewInvalidInputError(fmt.Errorf("parsing user input '%s' failed: %s", ref, err))
+				return nil, lib_model.NewInvalidInputError(fmt.Errorf("parsing user input '%s' failed: %s", ref, err))
 			}
 			if err = h.cfgVltHandler.ValidateValue(mConfig.Type, mConfig.TypeOpt, v, mConfig.IsSlice, mConfig.DataType); err != nil {
-				return nil, model.NewInvalidInputError(err)
+				return nil, lib_model.NewInvalidInputError(err)
 			}
 			if mConfig.Options != nil && !mConfig.OptExt {
 				if err = h.cfgVltHandler.ValidateValInOpt(mConfig.Options, v, mConfig.IsSlice, mConfig.DataType); err != nil {
-					return nil, model.NewInvalidInputError(err)
+					return nil, lib_model.NewInvalidInputError(err)
 				}
 			}
-			userConfigs[ref] = model.DepConfig{
+			userConfigs[ref] = lib_model.DepConfig{
 				Value:    v,
 				DataType: mConfig.DataType,
 				IsSlice:  mConfig.IsSlice,
@@ -111,10 +111,10 @@ func (h *Handler) getUserConfigs(mConfigs module.Configs, userInput map[string]a
 func (h *Handler) getHostResources(ctx context.Context, mHostRes map[string]module.HostResource, userInput map[string]string) (map[string]hm_model.HostResource, error) {
 	usrHostRes, missing, err := getUserHostRes(userInput, mHostRes)
 	if err != nil {
-		return nil, model.NewInvalidInputError(err)
+		return nil, lib_model.NewInvalidInputError(err)
 	}
 	if len(missing) > 0 {
-		return nil, model.NewInternalError(errors.New("host resource discovery not implemented"))
+		return nil, lib_model.NewInternalError(errors.New("host resource discovery not implemented"))
 	}
 	ch := context_hdl.New()
 	defer ch.CancelAll()
@@ -122,7 +122,7 @@ func (h *Handler) getHostResources(ctx context.Context, mHostRes map[string]modu
 	for ref, id := range usrHostRes {
 		res, err := h.hmClient.GetHostResource(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), id)
 		if err != nil {
-			return nil, model.NewInternalError(err)
+			return nil, lib_model.NewInternalError(err)
 		}
 		hostRes[ref] = res
 	}
@@ -132,10 +132,10 @@ func (h *Handler) getHostResources(ctx context.Context, mHostRes map[string]modu
 func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string, userInput map[string]string) (map[string]secret, error) {
 	usrSecrets, missing, err := getUserSecrets(userInput, mod.Secrets)
 	if err != nil {
-		return nil, model.NewInvalidInputError(err)
+		return nil, lib_model.NewInvalidInputError(err)
 	}
 	if len(missing) > 0 {
-		return nil, model.NewInternalError(errors.New("secret discovery not implemented"))
+		return nil, lib_model.NewInternalError(errors.New("secret discovery not implemented"))
 	}
 	ch := context_hdl.New()
 	defer ch.CancelAll()
@@ -167,7 +167,7 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 							Reference: dID,
 						})
 						if err != nil {
-							return nil, model.NewInternalError(fmt.Errorf("initializing path variant for secret '%s' failed: %s", sID, err))
+							return nil, lib_model.NewInternalError(fmt.Errorf("initializing path variant for secret '%s' failed: %s", sID, err))
 						}
 						if !ok {
 							variant.Item = target.Item
@@ -190,7 +190,7 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 							Reference: dID,
 						})
 						if err != nil {
-							return nil, model.NewInternalError(fmt.Errorf("retreiving value variant for secret '%s' failed: %s", sID, err))
+							return nil, lib_model.NewInternalError(fmt.Errorf("retreiving value variant for secret '%s' failed: %s", sID, err))
 						}
 						if !ok {
 							variant.Item = target.Item
@@ -208,7 +208,7 @@ func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string
 	return secrets, nil
 }
 
-func (h *Handler) loadSecrets(ctx context.Context, dep model.Deployment) error {
+func (h *Handler) loadSecrets(ctx context.Context, dep lib_model.Deployment) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	for _, depSecret := range dep.Secrets {
@@ -220,7 +220,7 @@ func (h *Handler) loadSecrets(ctx context.Context, dep model.Deployment) error {
 					Reference: dep.ID,
 				})
 				if err != nil {
-					return model.NewInternalError(fmt.Errorf("loading path variant for secret '%s' failed: %s", depSecret.ID, err))
+					return lib_model.NewInternalError(fmt.Errorf("loading path variant for secret '%s' failed: %s", depSecret.ID, err))
 				}
 			}
 		}
@@ -233,7 +233,7 @@ func (h *Handler) unloadSecrets(ctx context.Context, dID string) error {
 	defer cf()
 	err, _ := h.smClient.CleanPathVariants(ctxWt, dID)
 	if err != nil {
-		return model.NewInternalError(fmt.Errorf("unloading path variants for secret '%s' failed: %s", dID, err))
+		return lib_model.NewInternalError(fmt.Errorf("unloading path variants for secret '%s' failed: %s", dID, err))
 	}
 	return nil
 }

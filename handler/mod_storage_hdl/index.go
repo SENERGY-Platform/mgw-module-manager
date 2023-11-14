@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"io"
 	"io/fs"
 	"os"
@@ -83,7 +83,7 @@ func (h *indexHandler) Get(id string) (item, error) {
 	defer h.mu.RUnlock()
 	i, ok := h.index[id]
 	if !ok {
-		return item{}, model.NewNotFoundError(fmt.Errorf("module '%s' not found", id))
+		return item{}, lib_model.NewNotFoundError(fmt.Errorf("module '%s' not found", id))
 	}
 	return i, nil
 }
@@ -93,7 +93,7 @@ func (h *indexHandler) Add(id, dir, modFile string, indirect bool, timestamp tim
 	defer h.mu.Unlock()
 	_, ok := h.index[id]
 	if ok {
-		return model.NewInvalidInputError(fmt.Errorf("module '%s' already installed", id))
+		return lib_model.NewInvalidInputError(fmt.Errorf("module '%s' already installed", id))
 	}
 	h.index[id] = item{
 		ID:       id,
@@ -111,7 +111,7 @@ func (h *indexHandler) Update(id, dir, modFile string, indirect bool, timestamp 
 	defer h.mu.Unlock()
 	i, ok := h.index[id]
 	if !ok {
-		return model.NewNotFoundError(fmt.Errorf("module '%s' not found", id))
+		return lib_model.NewNotFoundError(fmt.Errorf("module '%s' not found", id))
 	}
 	i.Dir = dir
 	i.ModFile = modFile

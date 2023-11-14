@@ -21,7 +21,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"strconv"
 	"strings"
 )
@@ -29,34 +29,34 @@ import (
 func InsertDepHostRes(ctx context.Context, tx *sql.Tx, dID string, hostResources map[string]string) error {
 	stmt, err := tx.PrepareContext(ctx, "INSERT INTO `host_resources` (`dep_id`, `ref`, `res_id`) VALUES (?, ?, ?)")
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	defer stmt.Close()
 	for ref, id := range hostResources {
 		if _, err = stmt.ExecContext(ctx, dID, ref, id); err != nil {
-			return model.NewInternalError(err)
+			return lib_model.NewInternalError(err)
 		}
 	}
 	return nil
 }
 
-func InsertDepSecrets(ctx context.Context, tx *sql.Tx, dID string, secrets map[string]model.DepSecret) error {
+func InsertDepSecrets(ctx context.Context, tx *sql.Tx, dID string, secrets map[string]lib_model.DepSecret) error {
 	stmt, err := tx.PrepareContext(ctx, "INSERT INTO `secrets` (`dep_id`, `ref`, `sec_id`, `item`, `as_mount`, `as_env`) VALUES (?, ?, ?, ?, ?, ?)")
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	defer stmt.Close()
 	for ref, secret := range secrets {
 		for _, variant := range secret.Variants {
 			if _, err = stmt.ExecContext(ctx, dID, ref, secret.ID, variant.Item, variant.AsMount, variant.AsEnv); err != nil {
-				return model.NewInternalError(err)
+				return lib_model.NewInternalError(err)
 			}
 		}
 	}
 	return nil
 }
 
-func InsertDepConfigs(ctx context.Context, tx *sql.Tx, dID string, depConfigs map[string]model.DepConfig) error {
+func InsertDepConfigs(ctx context.Context, tx *sql.Tx, dID string, depConfigs map[string]lib_model.DepConfig) error {
 	stmtMap := make(map[string]*sql.Stmt)
 	defer func() {
 		for _, stmt := range stmtMap {
@@ -70,7 +70,7 @@ func InsertDepConfigs(ctx context.Context, tx *sql.Tx, dID string, depConfigs ma
 			var err error
 			stmt, err = tx.PrepareContext(ctx, genCfgInsertQuery(depConfig.DataType, depConfig.IsSlice))
 			if err != nil {
-				return model.NewInternalError(err)
+				return lib_model.NewInternalError(err)
 			}
 			stmtMap[key] = stmt
 		}
@@ -89,11 +89,11 @@ func InsertDepConfigs(ctx context.Context, tx *sql.Tx, dID string, depConfigs ma
 				err = fmt.Errorf("unknown data type '%s'", depConfig.Value)
 			}
 			if err != nil {
-				return model.NewInternalError(err)
+				return lib_model.NewInternalError(err)
 			}
 		} else {
 			if _, err := stmt.ExecContext(ctx, dID, ref, depConfig.Value); err != nil {
-				return model.NewInternalError(err)
+				return lib_model.NewInternalError(err)
 			}
 		}
 	}

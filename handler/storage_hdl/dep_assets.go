@@ -21,17 +21,17 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/storage_hdl/dep_util"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func (h *Handler) CreateDepAssets(ctx context.Context, txItf driver.Tx, dID string, depAssets model.DepAssets) error {
+func (h *Handler) CreateDepAssets(ctx context.Context, txItf driver.Tx, dID string, depAssets lib_model.DepAssets) error {
 	var tx *sql.Tx
 	if txItf != nil {
 		tx = txItf.(*sql.Tx)
 	} else {
 		var e error
 		if tx, e = h.db.BeginTx(ctx, nil); e != nil {
-			return model.NewInternalError(e)
+			return lib_model.NewInternalError(e)
 		}
 		defer tx.Rollback()
 	}
@@ -57,7 +57,7 @@ func (h *Handler) DeleteDepAssets(ctx context.Context, txItf driver.Tx, dID stri
 	} else {
 		var e error
 		if tx, e = h.db.BeginTx(ctx, nil); e != nil {
-			return model.NewInternalError(e)
+			return lib_model.NewInternalError(e)
 		}
 		defer tx.Rollback()
 	}

@@ -20,7 +20,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
 func SelectHostResources(ctx context.Context, db *sql.DB, dID string) (map[string]string, error) {
@@ -43,13 +43,13 @@ func SelectHostResources(ctx context.Context, db *sql.DB, dID string) (map[strin
 	return m, nil
 }
 
-func SelectSecrets(ctx context.Context, db *sql.DB, dID string) (map[string]model.DepSecret, error) {
+func SelectSecrets(ctx context.Context, db *sql.DB, dID string) (map[string]lib_model.DepSecret, error) {
 	rows, err := db.QueryContext(ctx, "SELECT `ref`, `sec_id`, `item`, `as_mount`, `as_env` FROM `secrets` WHERE `dep_id` = ?", dID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	m := make(map[string]model.DepSecret)
+	m := make(map[string]lib_model.DepSecret)
 	for rows.Next() {
 		var ref, sID string
 		var item *string
@@ -61,7 +61,7 @@ func SelectSecrets(ctx context.Context, db *sql.DB, dID string) (map[string]mode
 		if !ok {
 			ds.ID = sID
 		}
-		ds.Variants = append(ds.Variants, model.DepSecretVariant{
+		ds.Variants = append(ds.Variants, lib_model.DepSecretVariant{
 			Item:    item,
 			AsMount: asMount,
 			AsEnv:   asEnv,
@@ -74,7 +74,7 @@ func SelectSecrets(ctx context.Context, db *sql.DB, dID string) (map[string]mode
 	return m, nil
 }
 
-func SelectConfigs(ctx context.Context, db *sql.DB, dID string, configs map[string]model.DepConfig) error {
+func SelectConfigs(ctx context.Context, db *sql.DB, dID string, configs map[string]lib_model.DepConfig) error {
 	cfgRows, err := db.QueryContext(ctx, "SELECT `ref`, `v_string`, `v_int`, `v_float`, `v_bool` FROM `configs` WHERE `dep_id` = ?", dID)
 	if err != nil {
 		return err
@@ -89,7 +89,7 @@ func SelectConfigs(ctx context.Context, db *sql.DB, dID string, configs map[stri
 		if err = cfgRows.Scan(&ref, &vString, &vInt, &vFloat, &vBool); err != nil {
 			return err
 		}
-		dc := model.DepConfig{}
+		dc := lib_model.DepConfig{}
 		if vString.Valid {
 			dc.Value = vString.String
 			dc.DataType = module.StringType
@@ -111,7 +111,7 @@ func SelectConfigs(ctx context.Context, db *sql.DB, dID string, configs map[stri
 	return nil
 }
 
-func SelectListConfigs(ctx context.Context, db *sql.DB, dID string, configs map[string]model.DepConfig) error {
+func SelectListConfigs(ctx context.Context, db *sql.DB, dID string, configs map[string]lib_model.DepConfig) error {
 	lstCfgRows, err := db.QueryContext(ctx, "SELECT `ref`, `ord`, `v_string`, `v_int`, `v_float`, `v_bool` FROM `list_configs` WHERE `dep_id` = ? ORDER BY `ref`, `ord`", dID)
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func SelectListConfigs(ctx context.Context, db *sql.DB, dID string, configs map[
 		}
 		dc, ok := configs[ref]
 		if !ok {
-			dc = model.DepConfig{IsSlice: true}
+			dc = lib_model.DepConfig{IsSlice: true}
 			if vString.Valid {
 				dc.Value = []string{}
 				dc.DataType = module.StringType
@@ -190,16 +190,16 @@ func selectReq(ctx context.Context, db *sql.DB, query, dID string) ([]string, er
 	return IDs, nil
 }
 
-func SelectDepContainers(ctx context.Context, db *sql.DB, dID string) (map[string]model.DepContainer, error) {
+func SelectDepContainers(ctx context.Context, db *sql.DB, dID string) (map[string]lib_model.DepContainer, error) {
 	rows, err := db.QueryContext(ctx, "SELECT `ctr_id`, `srv_ref`, `alias`, `order` FROM `containers` WHERE `dep_id` = ?", dID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	depContainers := make(map[string]model.DepContainer)
+	depContainers := make(map[string]lib_model.DepContainer)
 	for rows.Next() {
 		var ref string
-		var depContainer model.DepContainer
+		var depContainer lib_model.DepContainer
 		if err = rows.Scan(&depContainer.ID, &ref, &depContainer.Alias, &depContainer.Order); err != nil {
 			return nil, err
 		}

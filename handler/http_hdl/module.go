@@ -18,7 +18,7 @@ package http_hdl
 
 import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -47,10 +47,10 @@ func getModulesH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := modulesQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		filter := model.ModFilter{
+		filter := lib_model.ModFilter{
 			Name:           query.Name,
 			Author:         query.Author,
 			Type:           query.Type,
@@ -94,10 +94,10 @@ func getModuleH(a lib.Api) gin.HandlerFunc {
 
 func postModuleH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		var modReq model.ModAddRequest
+		var modReq lib_model.ModAddRequest
 		err := gc.ShouldBindJSON(&modReq)
 		if err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		jID, err := a.AddModule(gc.Request.Context(), modReq.ID, modReq.Version)
@@ -113,7 +113,7 @@ func deleteModuleH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := deleteModuleQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		err := a.DeleteModule(gc.Request.Context(), gc.Param(modIdParam), query.Orphans, query.Force)
@@ -171,10 +171,10 @@ func postCheckModuleUpdatesH(a lib.Api) gin.HandlerFunc {
 
 func patchPrepareModuleUpdateH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		var modUptReq model.ModUpdatePrepareRequest
+		var modUptReq lib_model.ModUpdatePrepareRequest
 		err := gc.ShouldBindJSON(&modUptReq)
 		if err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		jID, err := a.PrepareModuleUpdate(gc.Request.Context(), gc.Param(modIdParam), modUptReq.Version)
@@ -199,15 +199,15 @@ func patchCancelPendingModuleUpdateH(a lib.Api) gin.HandlerFunc {
 
 func patchModuleUpdateH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		var uptReq model.ModUpdateRequest
+		var uptReq lib_model.ModUpdateRequest
 		err := gc.ShouldBindJSON(&uptReq)
 		if err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		query := updateModuleQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		id, err := a.UpdateModule(gc.Request.Context(), gc.Param(modIdParam), uptReq.DepInput, uptReq.Dependencies, query.Orphans)

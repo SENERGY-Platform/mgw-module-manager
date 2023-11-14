@@ -19,17 +19,17 @@ package dep_util
 import (
 	"context"
 	"database/sql"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
 func DeleteDepConfigs(ctx context.Context, tx *sql.Tx, dID string) error {
 	_, err := tx.ExecContext(ctx, "DELETE FROM `configs` WHERE `dep_id` = ?", dID)
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	_, err = tx.ExecContext(ctx, "DELETE FROM `list_configs` WHERE `dep_id` = ?", dID)
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	return nil
 }
@@ -37,7 +37,7 @@ func DeleteDepConfigs(ctx context.Context, tx *sql.Tx, dID string) error {
 func DeleteDepHostRes(ctx context.Context, tx *sql.Tx, dID string) error {
 	_, err := tx.ExecContext(ctx, "DELETE FROM `host_resources` WHERE `dep_id` = ?", dID)
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	return nil
 }
@@ -45,7 +45,7 @@ func DeleteDepHostRes(ctx context.Context, tx *sql.Tx, dID string) error {
 func DeleteDepSecrets(ctx context.Context, tx *sql.Tx, dID string) error {
 	_, err := tx.ExecContext(ctx, "DELETE FROM `secrets` WHERE `dep_id` = ?", dID)
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	return nil
 }

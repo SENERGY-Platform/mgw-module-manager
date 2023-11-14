@@ -20,10 +20,10 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func (h *Handler) CreateDepContainers(ctx context.Context, txItf driver.Tx, dID string, depContainers map[string]model.DepContainer) error {
+func (h *Handler) CreateDepContainers(ctx context.Context, txItf driver.Tx, dID string, depContainers map[string]lib_model.DepContainer) error {
 	prepareContext := h.db.PrepareContext
 	if txItf != nil {
 		tx := txItf.(*sql.Tx)
@@ -31,12 +31,12 @@ func (h *Handler) CreateDepContainers(ctx context.Context, txItf driver.Tx, dID 
 	}
 	stmt, err := prepareContext(ctx, "INSERT INTO `containers` (`dep_id`, `ctr_id`, `srv_ref`, `alias`, `order`) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	defer stmt.Close()
 	for ref, depContainer := range depContainers {
 		if _, err = stmt.ExecContext(ctx, dID, depContainer.ID, ref, depContainer.Alias, depContainer.Order); err != nil {
-			return model.NewInternalError(err)
+			return lib_model.NewInternalError(err)
 		}
 	}
 	return nil
@@ -50,7 +50,7 @@ func (h *Handler) DeleteDepContainers(ctx context.Context, txItf driver.Tx, dID 
 	}
 	_, err := execContext(ctx, "DELETE FROM `containers` WHERE `dep_id` = ?", dID)
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	return nil
 }

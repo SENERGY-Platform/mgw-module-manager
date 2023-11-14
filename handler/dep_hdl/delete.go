@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
@@ -39,12 +39,12 @@ func (h *Handler) Delete(ctx context.Context, id string, force bool) error {
 	}
 	if !force {
 		if dep.Enabled {
-			return model.NewInvalidInputError(errors.New("deployment is enabled"))
+			return lib_model.NewInvalidInputError(errors.New("deployment is enabled"))
 		}
 		if len(dep.DepRequiring) > 0 {
 			ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
 			defer cf2()
-			deps, err := h.storageHandler.ListDep(ctxWt2, model.DepFilter{IDs: dep.DepRequiring}, false, false, false)
+			deps, err := h.storageHandler.ListDep(ctxWt2, lib_model.DepFilter{IDs: dep.DepRequiring}, false, false, false)
 			if err != nil {
 				return err
 			}
@@ -52,13 +52,13 @@ func (h *Handler) Delete(ctx context.Context, id string, force bool) error {
 			for dID, d := range deps {
 				reqBy = append(reqBy, fmt.Sprintf("%s (%s)", d.Name, dID))
 			}
-			return model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
+			return lib_model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
 		}
 	}
 	return h.delete(ctx, dep, force)
 }
 
-func (h *Handler) DeleteAll(ctx context.Context, filter model.DepFilter, force bool) error {
+func (h *Handler) DeleteAll(ctx context.Context, filter lib_model.DepFilter, force bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	deployments, err := h.storageHandler.ListDep(ctxWt, filter, true, true, true)
@@ -87,7 +87,7 @@ func (h *Handler) DeleteAll(ctx context.Context, filter model.DepFilter, force b
 		if len(reqByDepIDs) > 0 {
 			ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
 			defer cf2()
-			deployments, err = h.storageHandler.ListDep(ctxWt2, model.DepFilter{IDs: reqByDepIDs}, false, false, false)
+			deployments, err = h.storageHandler.ListDep(ctxWt2, lib_model.DepFilter{IDs: reqByDepIDs}, false, false, false)
 			if err != nil {
 				return err
 			}
@@ -100,7 +100,7 @@ func (h *Handler) DeleteAll(ctx context.Context, filter model.DepFilter, force b
 			errMsg += "required by: " + strings.Join(reqBy, ", ")
 		}
 		if len(enabled) > 0 || len(reqByDepIDs) > 0 {
-			return model.NewInternalError(errors.New(errMsg))
+			return lib_model.NewInternalError(errors.New(errMsg))
 		}
 	}
 	order, err := sorting.GetDepOrder(deployments)
@@ -110,7 +110,7 @@ func (h *Handler) DeleteAll(ctx context.Context, filter model.DepFilter, force b
 	for i := len(order) - 1; i >= 0; i-- {
 		dep, ok := deployments[order[i]]
 		if !ok {
-			return model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", order[i]))
+			return lib_model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", order[i]))
 		}
 		if err = h.delete(ctx, dep, force); err != nil {
 			return err
@@ -119,7 +119,7 @@ func (h *Handler) DeleteAll(ctx context.Context, filter model.DepFilter, force b
 	return nil
 }
 
-func (h *Handler) delete(ctx context.Context, dep model.Deployment, force bool) error {
+func (h *Handler) delete(ctx context.Context, dep lib_model.Deployment, force bool) error {
 	if err := h.removeContainers(ctx, dep.Containers, force); err != nil {
 		return err
 	}
@@ -139,17 +139,17 @@ func (h *Handler) delete(ctx context.Context, dep model.Deployment, force bool) 
 		vols = append(vols, v.Name)
 	}
 	if err = h.removeVolumes(ctx, vols, force); err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	if err = os.RemoveAll(path.Join(h.wrkSpcPath, dep.Dir)); err != nil {
 		if !os.IsNotExist(err) {
-			return model.NewInternalError(err)
+			return lib_model.NewInternalError(err)
 		}
 	}
 	return h.storageHandler.DeleteDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), nil, dep.ID)
 }
 
-func (h *Handler) removeContainers(ctx context.Context, depContainers map[string]model.DepContainer, force bool) error {
+func (h *Handler) removeContainers(ctx context.Context, depContainers map[string]lib_model.DepContainer, force bool) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	for _, ctr := range depContainers {
@@ -158,7 +158,7 @@ func (h *Handler) removeContainers(ctx context.Context, depContainers map[string
 			if err != nil {
 				var nfe *cew_model.NotFoundError
 				if !errors.As(err, &nfe) {
-					return model.NewInternalError(err)
+					return lib_model.NewInternalError(err)
 				}
 			}
 		}

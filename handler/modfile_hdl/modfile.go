@@ -20,7 +20,7 @@ import (
 	"errors"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"gopkg.in/yaml.v3"
 	"io/fs"
@@ -45,11 +45,11 @@ func (h *Handler) GetModule(file fs.File) (*module.Module, error) {
 	mf := modfile.New(h.mfDecoders, h.mfGenerators)
 	err := yd.Decode(&mf)
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return nil, lib_model.NewInternalError(err)
 	}
 	m, err := mf.GetModule()
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return nil, lib_model.NewInternalError(err)
 	}
 	return m, nil
 }

@@ -22,7 +22,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"sync"
 	"time"
 )
@@ -35,7 +35,7 @@ type Handler struct {
 }
 
 type update struct {
-	model.ModUpdate
+	lib_model.ModUpdate
 	stage  handler.Stage
 	newIDs map[string]struct{}
 	uptIDs map[string]struct{}
@@ -64,7 +64,7 @@ func (h *Handler) Check(ctx context.Context, modules map[string]*module.Module) 
 	updates := make(map[string]update)
 	for _, mod := range modules {
 		if ctx.Err() != nil {
-			return model.NewInternalError(ctx.Err())
+			return lib_model.NewInternalError(ctx.Err())
 		}
 		modRepo, err := h.transferHandler.Get(ctx, mod.ID)
 		if err != nil {
@@ -74,7 +74,7 @@ func (h *Handler) Check(ctx context.Context, modules map[string]*module.Module) 
 		var versions []string
 		for _, ver := range modRepo.Versions() {
 			if ctx.Err() != nil {
-				return model.NewInternalError(ctx.Err())
+				return lib_model.NewInternalError(ctx.Err())
 			}
 			res, err := sem_ver.CompareSemVer(mod.Version, ver)
 			if err != nil {
@@ -86,7 +86,7 @@ func (h *Handler) Check(ctx context.Context, modules map[string]*module.Module) 
 		}
 		if len(versions) > 0 {
 			updates[mod.ID] = update{
-				ModUpdate: model.ModUpdate{
+				ModUpdate: lib_model.ModUpdate{
 					Versions: versions,
 					Checked:  time.Now().UTC(),
 				},
@@ -97,11 +97,11 @@ func (h *Handler) Check(ctx context.Context, modules map[string]*module.Module) 
 	return nil
 }
 
-func (h *Handler) List(_ context.Context) (updates map[string]model.ModUpdate) {
+func (h *Handler) List(_ context.Context) (updates map[string]lib_model.ModUpdate) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	if len(h.updates) > 0 {
-		updates = make(map[string]model.ModUpdate)
+		updates = make(map[string]lib_model.ModUpdate)
 		for mID, upt := range h.updates {
 			updates[mID] = upt.ModUpdate
 		}
@@ -109,12 +109,12 @@ func (h *Handler) List(_ context.Context) (updates map[string]model.ModUpdate) {
 	return updates
 }
 
-func (h *Handler) Get(_ context.Context, mID string) (model.ModUpdate, error) {
+func (h *Handler) Get(_ context.Context, mID string) (lib_model.ModUpdate, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	upt, ok := h.updates[mID]
 	if !ok {
-		return model.ModUpdate{}, model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
+		return lib_model.ModUpdate{}, lib_model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
 	}
 	return upt.ModUpdate, nil
 }
@@ -124,11 +124,11 @@ func (h *Handler) Remove(_ context.Context, mID string) error {
 	defer h.mu.Unlock()
 	upt, ok := h.updates[mID]
 	if !ok {
-		return model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
+		return lib_model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
 	}
 	if upt.stage != nil {
 		if err := upt.stage.Remove(); err != nil {
-			return model.NewInternalError(err)
+			return lib_model.NewInternalError(err)
 		}
 	}
 	delete(h.updates, mID)
@@ -143,18 +143,18 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	}
 	upt, ok := h.updates[mID]
 	if !ok {
-		return model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
+		return lib_model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
 	}
 	upt.PendingVersions = make(map[string]string)
 	stgItems := stage.Items()
 	mod, ok := modules[mID]
 	if !ok {
-		return model.NewInternalError(fmt.Errorf("module '%s' not found", mID))
+		return lib_model.NewInternalError(fmt.Errorf("module '%s' not found", mID))
 	}
 	reqMod := make(map[string]*module.Module)
 	err := getRequiredMod(mod, modules, reqMod)
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	ophIDs := make(map[string]struct{})
 	for id := range reqMod {
@@ -166,7 +166,7 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	uptIDs := make(map[string]struct{})
 	for id, item := range stgItems {
 		if ctx.Err() != nil {
-			return model.NewInternalError(ctx.Err())
+			return lib_model.NewInternalError(ctx.Err())
 		}
 		modNew := item.Module()
 		modOld, ok := modules[id]
@@ -180,7 +180,7 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 			if len(modReq) > 0 {
 				for mrID, verRng := range modReq {
 					if ctx.Err() != nil {
-						return model.NewInternalError(ctx.Err())
+						return lib_model.NewInternalError(ctx.Err())
 					}
 					if _, ok := stgItems[mrID]; !ok {
 						k, err := sem_ver.InSemVerRange(verRng, modNew.Version)
@@ -211,10 +211,10 @@ func (h *Handler) GetPending(_ context.Context, mID string) (handler.Stage, map[
 	defer h.mu.RUnlock()
 	upt, ok := h.updates[mID]
 	if !ok {
-		return nil, nil, nil, nil, model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
+		return nil, nil, nil, nil, lib_model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
 	}
 	if !upt.Pending {
-		return nil, nil, nil, nil, model.NewInternalError(fmt.Errorf("no update pending for '%s'", mID))
+		return nil, nil, nil, nil, lib_model.NewInternalError(fmt.Errorf("no update pending for '%s'", mID))
 	}
 	return upt.stage, upt.newIDs, upt.uptIDs, upt.ophIDs, nil
 }
@@ -224,13 +224,13 @@ func (h *Handler) CancelPending(_ context.Context, mID string) error {
 	defer h.mu.Unlock()
 	upt, ok := h.updates[mID]
 	if !ok {
-		return model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
+		return lib_model.NewNotFoundError(fmt.Errorf("no update available for '%s'", mID))
 	}
 	if !upt.Pending {
-		return model.NewInternalError(fmt.Errorf("no update pending for '%s'", mID))
+		return lib_model.NewInternalError(fmt.Errorf("no update pending for '%s'", mID))
 	}
 	if err := upt.stage.Remove(); err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	upt.stage = nil
 	upt.newIDs = nil
@@ -244,7 +244,7 @@ func (h *Handler) CancelPending(_ context.Context, mID string) error {
 func (h *Handler) checkForPending() error {
 	for id, u := range h.updates {
 		if u.Pending {
-			return model.NewInternalError(fmt.Errorf("update pending for '%s'", id))
+			return lib_model.NewInternalError(fmt.Errorf("update pending for '%s'", id))
 		}
 	}
 	return nil

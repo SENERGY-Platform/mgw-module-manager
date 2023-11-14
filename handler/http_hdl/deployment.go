@@ -18,7 +18,7 @@ package http_hdl
 
 import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -74,10 +74,10 @@ func getDeploymentsH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := getDeploymentsQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		filter := model.DepFilter{
+		filter := lib_model.DepFilter{
 			IDs:      parseStringSlice(query.IDs, ","),
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
@@ -97,7 +97,7 @@ func getDeploymentH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := getDeploymentQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		deployment, err := a.GetDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Assets, query.ContainerInfo)
@@ -111,10 +111,10 @@ func getDeploymentH(a lib.Api) gin.HandlerFunc {
 
 func postDeploymentH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		var depReq model.DepCreateRequest
+		var depReq lib_model.DepCreateRequest
 		err := gc.ShouldBindJSON(&depReq)
 		if err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		id, err := a.CreateDeployment(gc.Request.Context(), depReq.ModuleID, depReq.DepInput, depReq.Dependencies)
@@ -128,10 +128,10 @@ func postDeploymentH(a lib.Api) gin.HandlerFunc {
 
 func patchDeploymentUpdateH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		var depReq model.DepInput
+		var depReq lib_model.DepInput
 		err := gc.ShouldBindJSON(&depReq)
 		if err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		jID, err := a.UpdateDeployment(gc.Request.Context(), gc.Param(depIdParam), depReq)
@@ -147,7 +147,7 @@ func patchDeploymentStartH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := startDeploymentQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		err := a.StartDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Dependencies)
@@ -163,10 +163,10 @@ func patchDeploymentsStartH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := startDeploymentsQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		err := a.StartDeployments(gc.Request.Context(), model.DepFilter{
+		err := a.StartDeployments(gc.Request.Context(), lib_model.DepFilter{
 			IDs:      parseStringSlice(query.IDs, ","),
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
@@ -185,7 +185,7 @@ func patchDeploymentStopH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := stopDeploymentQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		jID, err := a.StopDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Force)
@@ -201,10 +201,10 @@ func patchDeploymentsStopH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := stopDeploymentsQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		jID, err := a.StopDeployments(gc.Request.Context(), model.DepFilter{
+		jID, err := a.StopDeployments(gc.Request.Context(), lib_model.DepFilter{
 			IDs:      parseStringSlice(query.IDs, ","),
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
@@ -234,10 +234,10 @@ func patchDeploymentsRestartH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := getDeploymentsFilterQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		jID, err := a.RestartDeployments(gc.Request.Context(), model.DepFilter{
+		jID, err := a.RestartDeployments(gc.Request.Context(), lib_model.DepFilter{
 			IDs:      parseStringSlice(query.IDs, ","),
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
@@ -256,7 +256,7 @@ func deleteDeploymentH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := deleteDeploymentQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		err := a.DeleteDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Force)
@@ -272,10 +272,10 @@ func patchDeploymentsDeleteH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		query := deleteDeploymentsQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(model.NewInvalidInputError(err))
+			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		err := a.DeleteDeployments(gc.Request.Context(), model.DepFilter{
+		err := a.DeleteDeployments(gc.Request.Context(), lib_model.DepFilter{
 			IDs:      parseStringSlice(query.IDs, ","),
 			ModuleID: query.ModuleID,
 			Name:     query.Name,

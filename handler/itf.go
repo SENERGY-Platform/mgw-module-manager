@@ -20,15 +20,15 @@ import (
 	"context"
 	"database/sql/driver"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
 )
 
 type ModuleHandler interface {
-	List(ctx context.Context, filter model.ModFilter) (map[string]model.Module, error)
-	Get(ctx context.Context, mID string) (model.Module, error)
-	GetReq(ctx context.Context, mID string) (model.Module, map[string]model.Module, error)
+	List(ctx context.Context, filter lib_model.ModFilter) (map[string]lib_model.Module, error)
+	Get(ctx context.Context, mID string) (lib_model.Module, error)
+	GetReq(ctx context.Context, mID string) (lib_model.Module, map[string]lib_model.Module, error)
 	GetDir(ctx context.Context, mID string) (dir_fs.DirFS, error)
 	Add(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string, indirect bool) error
 	Update(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string, indirect bool) error
@@ -41,11 +41,11 @@ type ModFileHandler interface {
 }
 
 type ModStorageHandler interface {
-	List(ctx context.Context, filter model.ModFilter) (map[string]model.Module, error)
-	Get(ctx context.Context, mID string) (model.Module, error)
+	List(ctx context.Context, filter lib_model.ModFilter) (map[string]lib_model.Module, error)
+	Get(ctx context.Context, mID string) (lib_model.Module, error)
 	GetDir(ctx context.Context, mID string) (dir_fs.DirFS, error)
-	Add(ctx context.Context, mod model.Module, modDir dir_fs.DirFS, modFile string) error
-	Update(ctx context.Context, mod model.Module, modDir dir_fs.DirFS, modFile string) error
+	Add(ctx context.Context, mod lib_model.Module, modDir dir_fs.DirFS, modFile string) error
+	Update(ctx context.Context, mod lib_model.Module, modDir dir_fs.DirFS, modFile string) error
 	Delete(ctx context.Context, mID string) error
 }
 
@@ -59,8 +59,8 @@ type ModStagingHandler interface {
 
 type ModUpdateHandler interface {
 	Check(ctx context.Context, modules map[string]*module.Module) error
-	List(ctx context.Context) map[string]model.ModUpdate
-	Get(ctx context.Context, mID string) (model.ModUpdate, error)
+	List(ctx context.Context) map[string]lib_model.ModUpdate
+	Get(ctx context.Context, mID string) (lib_model.ModUpdate, error)
 	Remove(ctx context.Context, mID string) error
 	Prepare(ctx context.Context, modules map[string]*module.Module, stage Stage, mID string) error
 	GetPending(ctx context.Context, mID string) (Stage, map[string]struct{}, map[string]struct{}, map[string]struct{}, error)
@@ -68,57 +68,57 @@ type ModUpdateHandler interface {
 }
 
 type DeploymentHandler interface {
-	List(ctx context.Context, filter model.DepFilter, dependencyInfo, assets, containers, containerInfo bool) (map[string]model.Deployment, error)
-	Get(ctx context.Context, dID string, dependencyInfo, assets, containers, containerInfo bool) (model.Deployment, error)
-	Create(ctx context.Context, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error)
+	List(ctx context.Context, filter lib_model.DepFilter, dependencyInfo, assets, containers, containerInfo bool) (map[string]lib_model.Deployment, error)
+	Get(ctx context.Context, dID string, dependencyInfo, assets, containers, containerInfo bool) (lib_model.Deployment, error)
+	Create(ctx context.Context, mod *module.Module, depReq lib_model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error)
 	Delete(ctx context.Context, dID string, force bool) error
-	DeleteAll(ctx context.Context, filter model.DepFilter, force bool) error
-	Update(ctx context.Context, dID string, mod *module.Module, depReq model.DepInput, incl dir_fs.DirFS) error
+	DeleteAll(ctx context.Context, filter lib_model.DepFilter, force bool) error
+	Update(ctx context.Context, dID string, mod *module.Module, depReq lib_model.DepInput, incl dir_fs.DirFS) error
 	Start(ctx context.Context, dID string, dependencies bool) error
-	StartAll(ctx context.Context, filter model.DepFilter, dependencies bool) error
+	StartAll(ctx context.Context, filter lib_model.DepFilter, dependencies bool) error
 	Stop(ctx context.Context, dID string, force bool) error
-	StopAll(ctx context.Context, filter model.DepFilter, force bool) error
+	StopAll(ctx context.Context, filter lib_model.DepFilter, force bool) error
 	Restart(ctx context.Context, id string) error
-	RestartAll(ctx context.Context, filter model.DepFilter) error
+	RestartAll(ctx context.Context, filter lib_model.DepFilter) error
 }
 
 type DepStorageHandler interface {
 	BeginTransaction(ctx context.Context) (driver.Tx, error)
-	ListDep(ctx context.Context, filter model.DepFilter, dependencyInfo, assets, containers bool) (map[string]model.Deployment, error)
-	ReadDep(ctx context.Context, dID string, dependencyInfo, assets, containers bool) (model.Deployment, error)
-	CreateDep(ctx context.Context, tx driver.Tx, depBase model.DepBase) (string, error)
-	UpdateDep(ctx context.Context, tx driver.Tx, depBase model.DepBase) error
+	ListDep(ctx context.Context, filter lib_model.DepFilter, dependencyInfo, assets, containers bool) (map[string]lib_model.Deployment, error)
+	ReadDep(ctx context.Context, dID string, dependencyInfo, assets, containers bool) (lib_model.Deployment, error)
+	CreateDep(ctx context.Context, tx driver.Tx, depBase lib_model.DepBase) (string, error)
+	UpdateDep(ctx context.Context, tx driver.Tx, depBase lib_model.DepBase) error
 	DeleteDep(ctx context.Context, tx driver.Tx, dID string) error
-	ReadDepTree(ctx context.Context, dID string, assets, containers bool) (map[string]model.Deployment, error)
-	AppendDepTree(ctx context.Context, tree map[string]model.Deployment, assets, containers bool) error
-	CreateDepAssets(ctx context.Context, tx driver.Tx, dID string, depAssets model.DepAssets) error
+	ReadDepTree(ctx context.Context, dID string, assets, containers bool) (map[string]lib_model.Deployment, error)
+	AppendDepTree(ctx context.Context, tree map[string]lib_model.Deployment, assets, containers bool) error
+	CreateDepAssets(ctx context.Context, tx driver.Tx, dID string, depAssets lib_model.DepAssets) error
 	DeleteDepAssets(ctx context.Context, tx driver.Tx, dID string) error
 	CreateDepDependencies(ctx context.Context, tx driver.Tx, dID string, dIDs []string) error
 	DeleteDepDependencies(ctx context.Context, tx driver.Tx, dID string) error
-	CreateDepContainers(ctx context.Context, tx driver.Tx, dID string, depContainers map[string]model.DepContainer) error
+	CreateDepContainers(ctx context.Context, tx driver.Tx, dID string, depContainers map[string]lib_model.DepContainer) error
 	DeleteDepContainers(ctx context.Context, tx driver.Tx, dID string) error
 }
 
 //type AuxDeploymentHandler interface {
-//	List(ctx context.Context, dID string, filter model.AuxDepFilter, ctrInfo bool) ([]model.AuxDeployment, error)
-//	Get(ctx context.Context, aID string, ctrInfo bool) (model.AuxDeployment, error)
-//	Create(ctx context.Context, mod *module.Module, dep model.Deployment, auxReq model.AuxDepReq) (string, error)
-//	Update(ctx context.Context, aID string, mod *module.Module, auxReq model.AuxDepReq) error
+//	List(ctx context.Context, dID string, filter lib_model.AuxDepFilter, ctrInfo bool) ([]lib_model.AuxDeployment, error)
+//	Get(ctx context.Context, aID string, ctrInfo bool) (lib_model.AuxDeployment, error)
+//	Create(ctx context.Context, mod *module.Module, dep lib_model.Deployment, auxReq lib_model.AuxDepReq) (string, error)
+//	Update(ctx context.Context, aID string, mod *module.Module, auxReq lib_model.AuxDepReq) error
 //	Delete(ctx context.Context, aID string) error
-//	DeleteAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
+//	DeleteAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
 //	Start(ctx context.Context, aID string) error
-//	StartAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
+//	StartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
 //	Stop(ctx context.Context, aID string) error
-//	StopAll(ctx context.Context, dID string, filter model.AuxDepFilter) error
+//	StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
 //}
 //
 //type AuxDepStorageHandler interface {
 //	BeginTransaction(ctx context.Context) (driver.Tx, error)
-//	ListAuxDep(ctx context.Context, dID string, filter model.AuxDepFilter) ([]model.AuxDeployment, error)
-//	CreateAuxDep(ctx context.Context, tx driver.Tx, auxDep model.AuxDepBase) (string, error)
-//	CreateAuxDepCtr(ctx context.Context, tx driver.Tx, aID string, ctr model.AuxDepContainer) error
-//	ReadAuxDep(ctx context.Context, aID string) (model.AuxDeployment, error)
-//	UpdateAuxDep(ctx context.Context, tx driver.Tx, aID string, auxDep model.AuxDepBase) error
+//	ListAuxDep(ctx context.Context, dID string, filter lib_model.AuxDepFilter) ([]lib_model.AuxDeployment, error)
+//	CreateAuxDep(ctx context.Context, tx driver.Tx, auxDep lib_model.AuxDepBase) (string, error)
+//	CreateAuxDepCtr(ctx context.Context, tx driver.Tx, aID string, ctr lib_model.AuxDepContainer) error
+//	ReadAuxDep(ctx context.Context, aID string) (lib_model.AuxDeployment, error)
+//	UpdateAuxDep(ctx context.Context, tx driver.Tx, aID string, auxDep lib_model.AuxDepBase) error
 //	DeleteAuxDep(ctx context.Context, aID string) error
 //	DeleteAuxDepCtr(ctx context.Context, tx driver.Tx, aID string) error
 //}

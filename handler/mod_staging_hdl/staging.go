@@ -28,7 +28,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/validation"
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
@@ -72,7 +72,7 @@ func (h *Handler) InitWorkspace(perm fs.FileMode) error {
 func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string) (handler.Stage, error) {
 	stgPth, err := os.MkdirTemp(h.wrkSpcPath, "stg_")
 	if err != nil {
-		return nil, model.NewInternalError(err)
+		return nil, lib_model.NewInternalError(err)
 	}
 	stg := &stage{
 		modules:     make(map[string]*module.Module),
@@ -157,21 +157,21 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[str
 				for _, bindMount := range srv.BindMounts {
 					_, err = fs.Stat(dir, bindMount.Source)
 					if err != nil {
-						return model.NewInternalError(err)
+						return lib_model.NewInternalError(err)
 					}
 				}
 			}
 			modPth, err := os.MkdirTemp(stgPath, "mod_")
 			if err != nil {
-				return model.NewInternalError(err)
+				return lib_model.NewInternalError(err)
 			}
 			err = dir_fs.Copy(dir, modPth)
 			if err != nil {
-				return model.NewInternalError(err)
+				return lib_model.NewInternalError(err)
 			}
 			modDir, err := dir_fs.New(modPth)
 			if err != nil {
-				return model.NewInternalError(err)
+				return lib_model.NewInternalError(err)
 			}
 			stg.addItem(mod, modFileName, modDir, indirect)
 			for rmID, rmVerRng := range mod.Dependencies {
@@ -191,7 +191,7 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[str
 	if verRng != "" {
 		ok, err := sem_ver.InSemVerRange(verRng, mod.Version)
 		if err != nil {
-			return model.NewInternalError(err)
+			return lib_model.NewInternalError(err)
 		}
 		if !ok {
 			return fmt.Errorf("module '%s' at '%s' but '%s' requires '%s'", mID, mod.Version, reqBy, verRng)
@@ -207,21 +207,21 @@ func (h *Handler) addImage(ctx context.Context, img string) error {
 	if err != nil {
 		var nfe *cew_model.NotFoundError
 		if !errors.As(err, &nfe) {
-			return model.NewInternalError(err)
+			return lib_model.NewInternalError(err)
 		}
 	} else {
 		return nil
 	}
 	jID, err := h.cewClient.AddImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), img)
 	if err != nil {
-		return model.NewInternalError(err)
+		return lib_model.NewInternalError(err)
 	}
 	job, err := job_hdl_lib.Await(ctx, h.cewClient, jID, time.Second, h.httpTimeout, util.Logger)
 	if err != nil {
 		return err
 	}
 	if job.Error != nil {
-		return model.NewInternalError(fmt.Errorf("%v", job.Error))
+		return lib_model.NewInternalError(fmt.Errorf("%v", job.Error))
 	}
 	return nil
 }
@@ -249,7 +249,7 @@ func getVersion(versions []string, verRanges []string) (string, error) {
 		}
 	}
 	if ver == "" {
-		return "", model.NewInternalError(errors.New("no versions available"))
+		return "", lib_model.NewInternalError(errors.New("no versions available"))
 	}
 	return ver, nil
 }
