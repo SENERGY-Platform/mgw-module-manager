@@ -27,13 +27,14 @@ import (
 )
 
 type ModuleHandler interface {
-	List(ctx context.Context, filter lib_model.ModFilter) (map[string]lib_model.Module, error)
-	Get(ctx context.Context, mID string) (lib_model.Module, error)
-	GetReq(ctx context.Context, mID string) (lib_model.Module, map[string]lib_model.Module, error)
-	GetDir(ctx context.Context, mID string) (dir_fs.DirFS, error)
-	Add(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string, indirect bool) error
-	Update(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string, indirect bool) error
+	List(ctx context.Context, filter lib_model.ModFilter, dependencyInfo bool) (map[string]model.Module, error)
+	Get(ctx context.Context, mID string, dependencyInfo bool) (model.Module, error)
+	Add(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string) error
+	Update(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string) error
 	Delete(ctx context.Context, mID string, force bool) error
+	GetTree(ctx context.Context, mID string) (map[string]model.Module, error)
+	AppendModTree(ctx context.Context, tree map[string]model.Module) error
+	GetDirFS(ctx context.Context, mID string) (dir_fs.DirFS, error)
 }
 
 type ModFileHandler interface {
