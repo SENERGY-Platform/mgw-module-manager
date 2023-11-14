@@ -33,11 +33,12 @@ type ModuleExtra struct {
 }
 
 type ModFilter struct {
+	IDs            []string
 	Name           string
 	Author         string
 	Type           string
 	DeploymentType string
-	InDependencies map[string]struct{}
+	Indirect       bool
 	Tags           map[string]struct{}
 }
 
