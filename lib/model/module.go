@@ -23,13 +23,8 @@ import (
 
 type Module struct {
 	*module.Module
-	ModuleExtra
-}
-
-type ModuleExtra struct {
-	Indirect bool      `json:"indirect"`
-	Added    time.Time `json:"added"`
-	Updated  time.Time `json:"updated"`
+	Added   time.Time `json:"added"`
+	Updated time.Time `json:"updated"`
 }
 
 type ModFilter struct {
