@@ -27,5 +27,5 @@ type Module struct {
 }
 
 type ModFilter struct {
-	Indirect bool
+	IDs []string
 }
