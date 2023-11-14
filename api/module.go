@@ -61,16 +61,8 @@ func (a *Api) AddModule(ctx context.Context, id, version string) (string, error)
 	return jID, nil
 }
 
-func (a *Api) GetModules(ctx context.Context, filter model.ModFilter) (map[string]model.ModuleMeta, error) {
-	modules, err := a.moduleHandler.List(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-	metaList := make(map[string]model.ModuleMeta)
-	for id, m := range modules {
-		metaList[id] = getModMeta(m)
-	}
-	return metaList, nil
+func (a *Api) GetModules(ctx context.Context, filter model.ModFilter) (map[string]model.Module, error) {
+	return a.moduleHandler.List(ctx, filter)
 }
 
 func (a *Api) GetModule(ctx context.Context, id string) (model.Module, error) {
@@ -437,21 +429,6 @@ func (a *Api) pendingModUpdate(ctx context.Context) (string, bool) {
 		}
 	}
 	return "", false
-}
-
-func getModMeta(m model.Module) model.ModuleMeta {
-	return model.ModuleMeta{
-		ID:             m.ID,
-		Name:           m.Name,
-		Description:    m.Description,
-		Tags:           m.Tags,
-		License:        m.License,
-		Author:         m.Author,
-		Version:        m.Version,
-		Type:           m.Type,
-		DeploymentType: m.DeploymentType,
-		ModuleExtra:    m.ModuleExtra,
-	}
 }
 
 func inSlice(s string, sl []string) bool {
