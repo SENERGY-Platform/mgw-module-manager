@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS `modules`
     `id`       VARCHAR(256)          NOT NULL,
     `dir`      VARCHAR(256)          NOT NULL,
     `modfile`  VARCHAR(16)           NOT NULL,
-    `indirect` BOOLEAN               NOT NULL,
     `added`    TIMESTAMP(6)          NOT NULL,
     `updated`  TIMESTAMP(6)          NOT NULL,
     UNIQUE KEY (`id`),
