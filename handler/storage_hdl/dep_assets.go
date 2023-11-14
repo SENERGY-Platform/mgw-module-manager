@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package dep_storage_hdl
+package storage_hdl
 
 import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_storage_hdl/dep_util"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/storage_hdl/dep_util"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 

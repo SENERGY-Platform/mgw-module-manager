@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dep_storage_hdl
+package storage_hdl
 
 import (
 	"context"
@@ -23,32 +23,32 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func (h *Handler) CreateDepDependencies(ctx context.Context, txItf driver.Tx, dID string, dIDs []string) error {
+func (h *Handler) CreateDepContainers(ctx context.Context, txItf driver.Tx, dID string, depContainers map[string]model.DepContainer) error {
 	prepareContext := h.db.PrepareContext
 	if txItf != nil {
 		tx := txItf.(*sql.Tx)
 		prepareContext = tx.PrepareContext
 	}
-	stmt, err := prepareContext(ctx, "INSERT INTO `dependencies` (`dep_id`, `req_id`) VALUES (?, ?)")
+	stmt, err := prepareContext(ctx, "INSERT INTO `containers` (`dep_id`, `ctr_id`, `srv_ref`, `alias`, `order`) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
 		return model.NewInternalError(err)
 	}
 	defer stmt.Close()
-	for _, id := range dIDs {
-		if _, err = stmt.ExecContext(ctx, dID, id); err != nil {
+	for ref, depContainer := range depContainers {
+		if _, err = stmt.ExecContext(ctx, dID, depContainer.ID, ref, depContainer.Alias, depContainer.Order); err != nil {
 			return model.NewInternalError(err)
 		}
 	}
 	return nil
 }
 
-func (h *Handler) DeleteDepDependencies(ctx context.Context, txItf driver.Tx, dID string) error {
+func (h *Handler) DeleteDepContainers(ctx context.Context, txItf driver.Tx, dID string) error {
 	execContext := h.db.ExecContext
 	if txItf != nil {
 		tx := txItf.(*sql.Tx)
 		execContext = tx.ExecContext
 	}
-	_, err := execContext(ctx, "DELETE FROM `dependencies` WHERE `dep_id` = ?", dID)
+	_, err := execContext(ctx, "DELETE FROM `containers` WHERE `dep_id` = ?", dID)
 	if err != nil {
 		return model.NewInternalError(err)
 	}

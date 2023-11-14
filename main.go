@@ -35,7 +35,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl/validators"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_hdl"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_storage_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/http_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_staging_hdl"
@@ -43,6 +42,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_transfer_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_update_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/modfile_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/storage_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/db_hdl"
@@ -146,7 +146,7 @@ func main() {
 	}
 	defer db.Close()
 
-	depStorageHandler := dep_storage_hdl.New(db)
+	storageHandler := storage_hdl.New(db)
 
 	cfgDefs, err := cfg_valid_hdl.LoadDefs(config.ConfigDefsPath)
 	if err != nil {
@@ -165,7 +165,7 @@ func main() {
 
 	smClient := sm_client.NewClient(config.HttpClient.SmBaseUrl, http.DefaultClient)
 
-	depHandler := dep_hdl.New(depStorageHandler, cfgValidHandler, cewClient, hmClient, smClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, config.DepHandler.HostDepPath, config.DepHandler.HostSecPath, managerID, config.DepHandler.ModuleNet, config.CoreID)
+	depHandler := dep_hdl.New(storageHandler, cfgValidHandler, cewClient, hmClient, smClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, config.DepHandler.HostDepPath, config.DepHandler.HostSecPath, managerID, config.DepHandler.ModuleNet, config.CoreID)
 	if err = depHandler.InitWorkspace(0770); err != nil {
 		util.Logger.Error(err)
 		ec = 1
