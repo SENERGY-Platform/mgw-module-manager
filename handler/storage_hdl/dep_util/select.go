@@ -170,8 +170,16 @@ func SelectDepRequiring(ctx context.Context, db *sql.DB, dID string) ([]string, 
 	return selectReq(ctx, db, "SELECT `dep_id` FROM `dependencies` WHERE `req_id` = ?", dID)
 }
 
-func selectReq(ctx context.Context, db *sql.DB, query, dID string) ([]string, error) {
-	rows, err := db.QueryContext(ctx, query, dID)
+func SelectRequiredMod(ctx context.Context, db *sql.DB, mID string) ([]string, error) {
+	return selectReq(ctx, db, "SELECT `req_id` FROM `mod_dependencies` WHERE `mod_id` = ?", mID)
+}
+
+func SelectModRequiring(ctx context.Context, db *sql.DB, mID string) ([]string, error) {
+	return selectReq(ctx, db, "SELECT `mod_id` FROM `mod_dependencies` WHERE `req_id` = ?", mID)
+}
+
+func selectReq(ctx context.Context, db *sql.DB, query, ID string) ([]string, error) {
+	rows, err := db.QueryContext(ctx, query, ID)
 	if err != nil {
 		return nil, err
 	}
