@@ -29,11 +29,10 @@ import (
 )
 
 type Migration struct {
-	Addr    string
-	Port    uint
-	User    string
-	PW      string
-	Timeout time.Duration
+	Addr string
+	Port uint
+	User string
+	PW   string
 }
 
 type instContainer struct {
@@ -47,7 +46,7 @@ type depContainer struct {
 	Alias string
 }
 
-func (m *Migration) Required(ctx context.Context, db *sql.DB) (bool, error) {
+func (m *Migration) Required(ctx context.Context, db *sql.DB, timeout time.Duration) (bool, error) {
 	cfg := mysql.NewConfig()
 	cfg.Addr = fmt.Sprintf("%s:%d", m.Addr, m.Port)
 	cfg.User = m.User
@@ -61,19 +60,19 @@ func (m *Migration) Required(ctx context.Context, db *sql.DB) (bool, error) {
 	defer tmpDB.Close()
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	row := tmpDB.QueryRowContext(ch.Add(context.WithTimeout(ctx, m.Timeout)), "SELECT COUNT(*) FROM `tables` WHERE `table_name` = ?", "instances")
+	row := tmpDB.QueryRowContext(ch.Add(context.WithTimeout(ctx, timeout)), "SELECT COUNT(*) FROM `tables` WHERE `table_name` = ?", "instances")
 	var c int
 	if err = row.Scan(&c); err != nil {
 		return false, err
 	}
 	if c > 0 {
-		row2 := db.QueryRowContext(ch.Add(context.WithTimeout(ctx, m.Timeout)), "SELECT COUNT(*) FROM `instances`")
+		row2 := db.QueryRowContext(ch.Add(context.WithTimeout(ctx, timeout)), "SELECT COUNT(*) FROM `instances`")
 		var c2 int
 		if err = row2.Scan(&c2); err != nil {
 			return false, err
 		}
 		if c2 > 0 {
-			row3 := db.QueryRowContext(ch.Add(context.WithTimeout(ctx, m.Timeout)), "SELECT COUNT(*) FROM `containers`")
+			row3 := db.QueryRowContext(ch.Add(context.WithTimeout(ctx, timeout)), "SELECT COUNT(*) FROM `containers`")
 			var c3 int
 			if err = row3.Scan(&c3); err != nil {
 				return false, err
@@ -86,18 +85,18 @@ func (m *Migration) Required(ctx context.Context, db *sql.DB) (bool, error) {
 	return false, nil
 }
 
-func (m *Migration) Run(ctx context.Context, db *sql.DB) error {
+func (m *Migration) Run(ctx context.Context, db *sql.DB, timeout time.Duration) error {
 	util.Logger.Warning("Migrating Instances ...")
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
-	instContainers, err := m.getInstContainers(ctx, tx)
+	instContainers, err := m.getInstContainers(ctx, tx, timeout)
 	if err != nil {
 		return err
 	}
-	depContainers, err := m.getDepContainers(ctx, tx, instContainers)
+	depContainers, err := m.getDepContainers(ctx, tx, instContainers, timeout)
 	if err != nil {
 		return err
 	}
@@ -106,7 +105,7 @@ func (m *Migration) Run(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	defer stmt.Close()
-	ctxWt, cf := context.WithTimeout(ctx, m.Timeout)
+	ctxWt, cf := context.WithTimeout(ctx, timeout)
 	defer cf()
 	for dID, containers := range depContainers {
 		for _, ctr := range containers {
@@ -118,15 +117,15 @@ func (m *Migration) Run(ctx context.Context, db *sql.DB) error {
 	if err = tx.Commit(); err != nil {
 		return err
 	}
-	if err = m.cleanup(ctx, db); err != nil {
+	if err = m.cleanup(ctx, db, timeout); err != nil {
 		return err
 	}
 	util.Logger.Warning("Instance migration successful")
 	return nil
 }
 
-func (m *Migration) getInstContainers(ctx context.Context, tx *sql.Tx) (map[string][]instContainer, error) {
-	ctxWt, cf := context.WithTimeout(ctx, m.Timeout)
+func (m *Migration) getInstContainers(ctx context.Context, tx *sql.Tx, timeout time.Duration) (map[string][]instContainer, error) {
+	ctxWt, cf := context.WithTimeout(ctx, timeout)
 	defer cf()
 	rows, err := tx.QueryContext(ctxWt, "SELECT `inst_id`, `srv_ref`, `order`, `ctr_id` FROM `inst_containers` ORDER BY `inst_id`, `order` ASC")
 	if err != nil {
@@ -145,8 +144,8 @@ func (m *Migration) getInstContainers(ctx context.Context, tx *sql.Tx) (map[stri
 	return containers, nil
 }
 
-func (m *Migration) getDepContainers(ctx context.Context, tx *sql.Tx, instContainers map[string][]instContainer) (map[string][]depContainer, error) {
-	ctxWt, cf := context.WithTimeout(ctx, m.Timeout)
+func (m *Migration) getDepContainers(ctx context.Context, tx *sql.Tx, instContainers map[string][]instContainer, timeout time.Duration) (map[string][]depContainer, error) {
+	ctxWt, cf := context.WithTimeout(ctx, timeout)
 	defer cf()
 	rows, err := tx.QueryContext(ctxWt, "SELECT `id`, `dep_id` FROM `instances`")
 	if err != nil {
@@ -170,8 +169,8 @@ func (m *Migration) getDepContainers(ctx context.Context, tx *sql.Tx, instContai
 	return depContainers, nil
 }
 
-func (m *Migration) cleanup(ctx context.Context, db *sql.DB) error {
-	ctxWt, cf := context.WithTimeout(ctx, m.Timeout)
+func (m *Migration) cleanup(ctx context.Context, db *sql.DB, timeout time.Duration) error {
+	ctxWt, cf := context.WithTimeout(ctx, timeout)
 	defer cf()
 	if _, err := db.ExecContext(ctxWt, "DROP TABLE `inst_containers`"); err != nil {
 		return err
