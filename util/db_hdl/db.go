@@ -30,8 +30,8 @@ import (
 )
 
 type Migration interface {
-	Required(ctx context.Context, db *sql.DB) (bool, error)
-	Run(ctx context.Context, db *sql.DB) error
+	Required(ctx context.Context, db *sql.DB, timeout time.Duration) (bool, error)
+	Run(ctx context.Context, db *sql.DB, timeout time.Duration) error
 }
 
 func NewDB(addr string, port uint, user string, pw string, name string) (*sql.DB, error) {
@@ -81,12 +81,12 @@ func InitDB(ctx context.Context, db *sql.DB, schemaPath string, delay, timeout t
 		}
 	}
 	for _, migration := range migrations {
-		ok, err := migration.Required(ctx, db)
+		ok, err := migration.Required(ctx, db, timeout)
 		if err != nil {
 			return err
 		}
 		if ok {
-			if err = migration.Run(ctx, db); err != nil {
+			if err = migration.Run(ctx, db, timeout); err != nil {
 				return err
 			}
 		}
