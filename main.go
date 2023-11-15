@@ -46,6 +46,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/db_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/db_hdl/instances_migr"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/db_hdl/modules_migr"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
 	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
 	"github.com/gin-contrib/requestid"
@@ -268,12 +269,14 @@ func main() {
 
 	go func() {
 		defer dbCF()
-		if err = db_hdl.InitDB(dbCtx, db, config.Database.SchemaPath, time.Second*5, &instances_migr.Migration{
-			Addr:    config.Database.Host,
-			Port:    config.Database.Port,
-			User:    config.Database.User,
-			PW:      config.Database.Passwd.String(),
-			Timeout: time.Duration(config.Database.Timeout),
+		if err = db_hdl.InitDB(dbCtx, db, config.Database.SchemaPath, time.Second*5, time.Duration(config.Database.Timeout), &instances_migr.Migration{
+			Addr: config.Database.Host,
+			Port: config.Database.Port,
+			User: config.Database.User,
+			PW:   config.Database.Passwd.String(),
+		}, &modules_migr.Migration{
+			ModFileHandler: modFileHandler,
+			WrkSpcPath:     config.ModHandler.WorkdirPath,
 		}); err != nil {
 			util.Logger.Error(err)
 			ec = 1
