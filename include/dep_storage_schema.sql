@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS `modules`
 CREATE TABLE IF NOT EXISTS `mod_dependencies`
 (
     `index`  BIGINT AUTO_INCREMENT NOT NULL,
-    `mod_id` CHAR(36)              NOT NULL,
-    `req_id` CHAR(36)              NOT NULL,
+    `mod_id` VARCHAR(256)              NOT NULL,
+    `req_id` VARCHAR(256)              NOT NULL,
     UNIQUE KEY (`mod_id`, `req_id`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (`mod_id`) REFERENCES `modules` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
