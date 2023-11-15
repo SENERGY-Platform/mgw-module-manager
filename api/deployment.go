@@ -35,10 +35,11 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_mode
 		return "", lib_model.NewResourceBusyError(err)
 	}
 	defer a.mu.Unlock()
-	mod, reqMod, err := a.moduleHandler.GetReq(ctx, id)
+	modTree, err := a.moduleHandler.GetTree(ctx, id)
 	if err != nil {
 		return "", err
 	}
+	mod := modTree[id]
 	if mod.DeploymentType == module.SingleDeployment {
 		if l, err := a.deploymentHandler.List(ctx, lib_model.DepFilter{ModuleID: mod.ID}, false, false, false, false); err != nil {
 			return "", err
@@ -46,10 +47,10 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_mode
 			return "", lib_model.NewInvalidInputError(errors.New("already deployed"))
 		}
 	}
-	if len(reqMod) > 0 {
+	if len(modTree) > 0 {
 		modMap := make(map[string]*module.Module)
-		for _, m := range reqMod {
-			modMap[m.ID] = m.Module
+		for _, m := range modTree {
+			modMap[m.ID] = m.Module.Module
 		}
 		order, err := sorting.GetModOrder(modMap)
 		if err != nil {
@@ -79,11 +80,11 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_mode
 			}
 		}
 	}
-	dir, err := a.moduleHandler.GetDir(ctx, mod.ID)
+	dir, err := a.moduleHandler.GetDirFS(ctx, mod.ID)
 	if err != nil {
 		return "", err
 	}
-	dID, err := a.deploymentHandler.Create(ctx, mod.Module, depInput, dir, false)
+	dID, err := a.deploymentHandler.Create(ctx, mod.Module.Module, depInput, dir, false)
 	if err != nil {
 		return "", err
 	}
@@ -108,7 +109,7 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput lib_mod
 		a.mu.Unlock()
 		return "", err
 	}
-	mod, err := a.moduleHandler.Get(ctx, dep.Module.ID)
+	mod, err := a.moduleHandler.Get(ctx, dep.Module.ID, false)
 	if err != nil {
 		a.mu.Unlock()
 		return "", err
@@ -120,7 +121,7 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput lib_mod
 	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("update deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.Update(ctx, dep.ID, mod.Module, depInput, "")
+		err := a.deploymentHandler.Update(ctx, dep.ID, mod.Module.Module, depInput, "")
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -161,13 +162,13 @@ func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (lib_m
 	if err != nil {
 		return lib_model.DepUpdateTemplate{}, err
 	}
-	mod, err := a.moduleHandler.Get(ctx, dep.Module.ID)
+	mod, err := a.moduleHandler.Get(ctx, dep.Module.ID, false)
 	if err != nil {
 		return lib_model.DepUpdateTemplate{}, err
 	}
 	return lib_model.DepUpdateTemplate{
 		Name:          dep.Name,
-		InputTemplate: input_tmplt.GetDepUpTemplate(mod.Module, dep),
+		InputTemplate: input_tmplt.GetDepUpTemplate(mod.Module.Module, dep),
 	}, nil
 }
 
@@ -300,15 +301,15 @@ func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq lib_mo
 		return false, "", err
 	}
 	if len(depList) == 0 {
-		rMod, err := a.moduleHandler.Get(ctx, mID)
+		rMod, err := a.moduleHandler.Get(ctx, mID, false)
 		if err != nil {
 			return false, "", err
 		}
-		dir, err := a.moduleHandler.GetDir(ctx, mID)
+		dir, err := a.moduleHandler.GetDirFS(ctx, mID)
 		if err != nil {
 			return false, "", err
 		}
-		dID, err := a.deploymentHandler.Create(ctx, rMod.Module, depReq, dir, true)
+		dID, err := a.deploymentHandler.Create(ctx, rMod.Module.Module, depReq, dir, true)
 		if err != nil {
 			return false, "", err
 		}

@@ -38,7 +38,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/http_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_staging_hdl"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_storage_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_transfer_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_update_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/modfile_hdl"
@@ -99,6 +98,9 @@ func main() {
 
 	util.Logger.Debugf("config: %s", sb_util.ToJsonStr(config))
 
+	watchdog.Logger = util.Logger
+	wtchdg := watchdog.New(syscall.SIGINT, syscall.SIGTERM)
+
 	managerID, err := util.GetManagerID(config.ManagerIDPath, util.Flags.ManagerID)
 	if err != nil {
 		util.Logger.Error(err)
@@ -110,19 +112,22 @@ func main() {
 
 	naming_hdl.Init(config.CoreID, "mgw")
 
+	db, err := db_hdl.NewDB(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd.String(), config.Database.Name)
+	if err != nil {
+		util.Logger.Error(err)
+		ec = 1
+		return
+	}
+	defer db.Close()
+
+	storageHandler := storage_hdl.New(db)
+
 	mfDecoders := make(modfile.Decoders)
 	mfDecoders.Add(v1dec.GetDecoder)
 	mfGenerators := make(modfile.Generators)
 	mfGenerators.Add(v1gen.GetGenerator)
 
 	modFileHandler := modfile_hdl.New(mfDecoders, mfGenerators)
-
-	modStorageHandler := mod_storage_hdl.New(config.ModStorageHandler.WorkdirPath, modFileHandler)
-	if err = modStorageHandler.Init(0770); err != nil {
-		util.Logger.Error(err)
-		ec = 1
-		return
-	}
 
 	modTransferHandler := mod_transfer_hdl.New(config.ModTransferHandler.WorkdirPath, time.Duration(config.ModTransferHandler.Timeout))
 	if err = modTransferHandler.InitWorkspace(0770); err != nil {
@@ -133,20 +138,12 @@ func main() {
 
 	cewClient := cew_client.New(http.DefaultClient, config.HttpClient.CewBaseUrl)
 
-	modHandler := mod_hdl.New(modStorageHandler, cewClient, time.Duration(config.HttpClient.Timeout))
-
-	watchdog.Logger = util.Logger
-	wtchdg := watchdog.New(syscall.SIGINT, syscall.SIGTERM)
-
-	db, err := db_hdl.NewDB(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd.String(), config.Database.Name)
-	if err != nil {
+	modHandler := mod_hdl.New(storageHandler, modFileHandler, cewClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.ModHandler.WorkdirPath)
+	if err = modHandler.Init(0770); err != nil {
 		util.Logger.Error(err)
 		ec = 1
 		return
 	}
-	defer db.Close()
-
-	storageHandler := storage_hdl.New(db)
 
 	cfgDefs, err := cfg_valid_hdl.LoadDefs(config.ConfigDefsPath)
 	if err != nil {
