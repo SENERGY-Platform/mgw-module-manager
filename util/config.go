@@ -38,8 +38,8 @@ type HttpClientConfig struct {
 	Timeout    int64  `json:"timeout" env_var:"HTTP_TIMEOUT"`
 }
 
-type ModStorageHandlerConfig struct {
-	WorkdirPath string `json:"workdir_path" env_var:"MSH_WORKDIR_PATH"`
+type ModHandlerConfig struct {
+	WorkdirPath string `json:"workdir_path" env_var:"MH_WORKDIR_PATH"`
 }
 
 type ModTransferHandlerConfig struct {
@@ -68,7 +68,7 @@ type JobsConfig struct {
 
 type Config struct {
 	ServerPort         uint                     `json:"server_port" env_var:"SERVER_PORT"`
-	ModStorageHandler  ModStorageHandlerConfig  `json:"module_storage_handler" env_var:"MSH_CONFIG"`
+	ModHandler         ModHandlerConfig         `json:"module_handler" env_var:"MH_CONFIG"`
 	ModTransferHandler ModTransferHandlerConfig `json:"module_transfer_handler" env_var:"MTH_CONFIG"`
 	ModStagingHandler  ModStagingHandlerConfig  `json:"module_staging_handler" env_var:"MSH_CONFIG"`
 	DepHandler         DepHandlerConfig         `json:"deployment_handler" env_var:"DH_CONFIG"`
@@ -84,7 +84,7 @@ type Config struct {
 func NewConfig(path string) (*Config, error) {
 	cfg := Config{
 		ServerPort: 80,
-		ModStorageHandler: ModStorageHandlerConfig{
+		ModHandler: ModHandlerConfig{
 			WorkdirPath: "/opt/module-manager/modules",
 		},
 		ModTransferHandler: ModTransferHandlerConfig{
