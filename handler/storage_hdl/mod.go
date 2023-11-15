@@ -85,6 +85,12 @@ func (h *Handler) ReadMod(ctx context.Context, mID string, dependencyInfo bool) 
 			return model.Module{}, lib_model.NewInternalError(err)
 		}
 	}
+	if mod.Added, err = time.Parse(tLayout, string(at)); err != nil {
+		return model.Module{}, lib_model.NewInternalError(err)
+	}
+	if mod.Updated, err = time.Parse(tLayout, string(ut)); err != nil {
+		return model.Module{}, lib_model.NewInternalError(err)
+	}
 	return mod, nil
 }
 
