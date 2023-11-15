@@ -30,7 +30,6 @@ type modulesQuery struct {
 	Author         string `form:"author"`
 	Type           string `form:"type"`
 	DeploymentType string `form:"deployment_type"`
-	InDependencies string `form:"in_dependency"`
 	Tags           string `form:"tag"`
 }
 
@@ -55,14 +54,6 @@ func getModulesH(a lib.Api) gin.HandlerFunc {
 			Author:         query.Author,
 			Type:           query.Type,
 			DeploymentType: query.DeploymentType,
-		}
-		inDependencies := parseStringSlice(query.InDependencies, ",")
-		if len(inDependencies) > 0 {
-			s := make(map[string]struct{})
-			for _, i := range inDependencies {
-				s[i] = struct{}{}
-			}
-			filter.InDependencies = s
 		}
 		tags := parseStringSlice(query.Tags, ",")
 		if len(tags) > 0 {
