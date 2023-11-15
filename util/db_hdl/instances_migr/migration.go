@@ -47,7 +47,7 @@ type depContainer struct {
 	Alias string
 }
 
-func (m *Migration) Required(ctx context.Context, tx *sql.Tx) (bool, error) {
+func (m *Migration) Required(ctx context.Context, db *sql.DB) (bool, error) {
 	cfg := mysql.NewConfig()
 	cfg.Addr = fmt.Sprintf("%s:%d", m.Addr, m.Port)
 	cfg.User = m.User
@@ -67,13 +67,13 @@ func (m *Migration) Required(ctx context.Context, tx *sql.Tx) (bool, error) {
 		return false, err
 	}
 	if c > 0 {
-		row2 := tx.QueryRowContext(ch.Add(context.WithTimeout(ctx, m.Timeout)), "SELECT COUNT(*) FROM `instances`")
+		row2 := db.QueryRowContext(ch.Add(context.WithTimeout(ctx, m.Timeout)), "SELECT COUNT(*) FROM `instances`")
 		var c2 int
 		if err = row2.Scan(&c2); err != nil {
 			return false, err
 		}
 		if c2 > 0 {
-			row3 := tx.QueryRowContext(ch.Add(context.WithTimeout(ctx, m.Timeout)), "SELECT COUNT(*) FROM `containers`")
+			row3 := db.QueryRowContext(ch.Add(context.WithTimeout(ctx, m.Timeout)), "SELECT COUNT(*) FROM `containers`")
 			var c3 int
 			if err = row3.Scan(&c3); err != nil {
 				return false, err
@@ -86,8 +86,13 @@ func (m *Migration) Required(ctx context.Context, tx *sql.Tx) (bool, error) {
 	return false, nil
 }
 
-func (m *Migration) Run(ctx context.Context, tx *sql.Tx) error {
+func (m *Migration) Run(ctx context.Context, db *sql.DB) error {
 	util.Logger.Warning("Migrating Instances ...")
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
 	instContainers, err := m.getInstContainers(ctx, tx)
 	if err != nil {
 		return err
@@ -96,24 +101,27 @@ func (m *Migration) Run(ctx context.Context, tx *sql.Tx) error {
 	if err != nil {
 		return err
 	}
-	ctxWt, cf := context.WithTimeout(ctx, m.Timeout)
-	defer cf()
-	stmt, err := tx.PrepareContext(ctxWt, "INSERT INTO `containers` (`dep_id`, `ctr_id`, `srv_ref`, `alias`, `order`) VALUES (?, ?, ?, ?, ?)")
+	stmt, err := tx.PrepareContext(ctx, "INSERT INTO `containers` (`dep_id`, `ctr_id`, `srv_ref`, `alias`, `order`) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
+	ctxWt, cf := context.WithTimeout(ctx, m.Timeout)
+	defer cf()
 	for dID, containers := range depContainers {
 		for _, ctr := range containers {
-			if _, err = stmt.ExecContext(ctx, dID, ctr.CtrID, ctr.SrvRef, ctr.Alias, ctr.Order); err != nil {
+			if _, err = stmt.ExecContext(ctxWt, dID, ctr.CtrID, ctr.SrvRef, ctr.Alias, ctr.Order); err != nil {
 				return err
 			}
 		}
 	}
-	if err = m.cleanup(ctx, tx); err != nil {
+	if err = tx.Commit(); err != nil {
 		return err
 	}
-	util.Logger.Warning("Instance migration finished")
+	if err = m.cleanup(ctx, db); err != nil {
+		return err
+	}
+	util.Logger.Warning("Instance migration successful")
 	return nil
 }
 
@@ -162,15 +170,13 @@ func (m *Migration) getDepContainers(ctx context.Context, tx *sql.Tx, instContai
 	return depContainers, nil
 }
 
-func (m *Migration) cleanup(ctx context.Context, tx *sql.Tx) error {
+func (m *Migration) cleanup(ctx context.Context, db *sql.DB) error {
 	ctxWt, cf := context.WithTimeout(ctx, m.Timeout)
 	defer cf()
-	if _, err := tx.ExecContext(ctxWt, "DROP TABLE `inst_containers`"); err != nil {
+	if _, err := db.ExecContext(ctxWt, "DROP TABLE `inst_containers`"); err != nil {
 		return err
 	}
-	ctxWt2, cf2 := context.WithTimeout(ctx, m.Timeout)
-	defer cf2()
-	if _, err := tx.ExecContext(ctxWt2, "DROP TABLE `instances`"); err != nil {
+	if _, err := db.ExecContext(ctxWt, "DROP TABLE `instances`"); err != nil {
 		return err
 	}
 	return nil
