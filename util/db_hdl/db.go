@@ -30,8 +30,8 @@ import (
 )
 
 type Migration interface {
-	Required(ctx context.Context, tx *sql.Tx) (bool, error)
-	Run(ctx context.Context, tx *sql.Tx) error
+	Required(ctx context.Context, db *sql.DB) (bool, error)
+	Run(ctx context.Context, db *sql.DB) error
 }
 
 func NewDB(addr string, port uint, user string, pw string, name string) (*sql.DB, error) {
@@ -51,7 +51,7 @@ func NewDB(addr string, port uint, user string, pw string, name string) (*sql.DB
 	return db, nil
 }
 
-func InitDB(ctx context.Context, db *sql.DB, schemaPath string, delay time.Duration, migrations ...Migration) error {
+func InitDB(ctx context.Context, db *sql.DB, schemaPath string, delay, timeout time.Duration, migrations ...Migration) error {
 	err := waitForDB(ctx, db, delay)
 	if err != nil {
 		return err
@@ -72,29 +72,26 @@ func InitDB(ctx context.Context, db *sql.DB, schemaPath string, delay time.Durat
 		}
 		stmts = append(stmts, strings.TrimSuffix(stmt, ";"))
 	}
-	tx, err := db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
+	ctxWt, cf := context.WithTimeout(ctx, timeout)
+	defer cf()
 	for _, stmt := range stmts {
-		_, err = tx.ExecContext(ctx, stmt)
+		_, err = db.ExecContext(ctxWt, stmt)
 		if err != nil {
 			return err
 		}
 	}
 	for _, migration := range migrations {
-		ok, err := migration.Required(ctx, tx)
+		ok, err := migration.Required(ctx, db)
 		if err != nil {
 			return err
 		}
 		if ok {
-			if err = migration.Run(ctx, tx); err != nil {
+			if err = migration.Run(ctx, db); err != nil {
 				return err
 			}
 		}
 	}
-	return tx.Commit()
+	return nil
 }
 
 func waitForDB(ctx context.Context, db *sql.DB, delay time.Duration) error {
