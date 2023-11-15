@@ -94,7 +94,7 @@ func (h *Handler) CreateMod(ctx context.Context, txItf driver.Tx, mod model.Modu
 		tx := txItf.(*sql.Tx)
 		execContext = tx.ExecContext
 	}
-	res, err := execContext(ctx, "INSERT INTO `modules` (`id`, `dir`, `modfile`, `added`, `updated`) VALUES (?, ?, ?, ?, ?, ?)", mod.ID, mod.Dir, mod.ModFile, mod.Added, mod.Updated)
+	res, err := execContext(ctx, "INSERT INTO `modules` (`id`, `dir`, `modfile`, `added`, `updated`) VALUES (?, ?, ?, ?, ?)", mod.ID, mod.Dir, mod.ModFile, mod.Added, mod.Updated)
 	if err != nil {
 		return lib_model.NewInternalError(err)
 	}
