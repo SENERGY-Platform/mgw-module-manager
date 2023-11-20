@@ -206,12 +206,11 @@ func SelectDepContainers(ctx context.Context, db *sql.DB, dID string) (map[strin
 	defer rows.Close()
 	depContainers := make(map[string]lib_model.DepContainer)
 	for rows.Next() {
-		var ref string
 		var depContainer lib_model.DepContainer
-		if err = rows.Scan(&depContainer.ID, &ref, &depContainer.Alias, &depContainer.Order); err != nil {
+		if err = rows.Scan(&depContainer.ID, &depContainer.SrvRef, &depContainer.Alias, &depContainer.Order); err != nil {
 			return nil, err
 		}
-		depContainers[ref] = depContainer
+		depContainers[depContainer.SrvRef] = depContainer
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err

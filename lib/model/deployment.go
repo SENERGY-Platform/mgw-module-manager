@@ -70,10 +70,11 @@ type DepConfig struct {
 }
 
 type DepContainer struct {
-	ID    string         `json:"id"`
-	Alias string         `json:"alias"`
-	Order uint           `json:"order"`
-	Info  *ContainerInfo `json:"info"`
+	ID     string         `json:"id"`
+	SrvRef string         `json:"srv_ref"`
+	Alias  string         `json:"alias"`
+	Order  uint           `json:"order"`
+	Info   *ContainerInfo `json:"info"`
 }
 
 type ContainerInfo struct {

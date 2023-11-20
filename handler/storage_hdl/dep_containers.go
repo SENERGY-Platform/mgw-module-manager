@@ -34,8 +34,8 @@ func (h *Handler) CreateDepContainers(ctx context.Context, txItf driver.Tx, dID 
 		return lib_model.NewInternalError(err)
 	}
 	defer stmt.Close()
-	for ref, depContainer := range depContainers {
-		if _, err = stmt.ExecContext(ctx, dID, depContainer.ID, ref, depContainer.Alias, depContainer.Order); err != nil {
+	for _, depContainer := range depContainers {
+		if _, err = stmt.ExecContext(ctx, dID, depContainer.ID, depContainer.SrvRef, depContainer.Alias, depContainer.Order); err != nil {
 			return lib_model.NewInternalError(err)
 		}
 	}
