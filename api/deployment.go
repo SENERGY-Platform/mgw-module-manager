@@ -80,7 +80,7 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_mode
 			}
 		}
 	}
-	dir, err := a.moduleHandler.GetDirFS(ctx, mod.ID)
+	dir, err := mod.GetDirFS()
 	if err != nil {
 		return "", err
 	}
@@ -305,7 +305,7 @@ func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq lib_mo
 		if err != nil {
 			return false, "", err
 		}
-		dir, err := a.moduleHandler.GetDirFS(ctx, mID)
+		dir, err := rMod.GetDirFS()
 		if err != nil {
 			return false, "", err
 		}

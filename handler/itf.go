@@ -34,7 +34,6 @@ type ModuleHandler interface {
 	Delete(ctx context.Context, mID string, force bool) error
 	GetTree(ctx context.Context, mID string) (map[string]model.Module, error)
 	AppendModTree(ctx context.Context, tree map[string]model.Module) error
-	GetDirFS(ctx context.Context, mID string) (dir_fs.DirFS, error)
 }
 
 type ModFileHandler interface {
