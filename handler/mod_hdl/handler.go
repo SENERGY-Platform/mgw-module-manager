@@ -83,18 +83,14 @@ func (h *Handler) List(ctx context.Context, filter lib_model.ModFilter, dependen
 	}
 	modules := make(map[string]model.Module)
 	for _, mod := range modMap {
-		m, err := h.readModule(mod.Dir, mod.ModFile)
+		mod.Module.Module, err = h.readModule(mod.Dir, mod.ModFile)
 		if err != nil {
 			util.Logger.Error(err)
 			continue
 		}
-		if filterMod(filter, m) {
-			mod.Module = lib_model.Module{
-				Module:  m,
-				Added:   mod.Added,
-				Updated: mod.Updated,
-			}
-			modules[m.ID] = mod
+		mod.Path = h.wrkSpcPath
+		if filterMod(filter, mod.Module.Module) {
+			modules[mod.ID] = mod
 		}
 	}
 	return modules, nil
@@ -109,15 +105,11 @@ func (h *Handler) Get(ctx context.Context, mID string, dependencyInfo bool) (mod
 	if err != nil {
 		return model.Module{}, err
 	}
-	m, err := h.readModule(mod.Dir, mod.ModFile)
+	mod.Module.Module, err = h.readModule(mod.Dir, mod.ModFile)
 	if err != nil {
 		return model.Module{}, lib_model.NewInternalError(err)
 	}
-	mod.Module = lib_model.Module{
-		Module:  m,
-		Added:   mod.Added,
-		Updated: mod.Updated,
-	}
+	mod.Path = h.wrkSpcPath
 	return mod, nil
 }
 
