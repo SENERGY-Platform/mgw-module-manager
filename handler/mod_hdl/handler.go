@@ -211,8 +211,8 @@ func (h *Handler) Delete(ctx context.Context, mID string, force bool) error {
 			return err
 		}
 		var reqBy []string
-		for id, m := range modules {
-			reqBy = append(reqBy, fmt.Sprintf("%s (%s)", m.Name, id))
+		for id := range modules {
+			reqBy = append(reqBy, id)
 		}
 		return lib_model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
 	}
