@@ -16,16 +16,29 @@
 
 package model
 
-import lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+import (
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
+	"path"
+)
 
 type Module struct {
 	lib_model.Module
 	RequiredMod  []string // modules required by this module
 	ModRequiring []string // modules requiring this module
+	Path         string
 	Dir          string
 	ModFile      string
 }
 
 type ModFilter struct {
 	IDs []string
+}
+
+func (m Module) GetDirFS() (dir_fs.DirFS, error) {
+	dirFS, err := dir_fs.New(path.Join(m.Path, m.Dir))
+	if err != nil {
+		return "", lib_model.NewInternalError(err)
+	}
+	return dirFS, nil
 }
