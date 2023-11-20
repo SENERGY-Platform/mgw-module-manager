@@ -87,12 +87,12 @@ func (h *Handler) DeleteAll(ctx context.Context, filter lib_model.DepFilter, for
 		if len(reqByDepIDs) > 0 {
 			ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
 			defer cf2()
-			deployments, err = h.storageHandler.ListDep(ctxWt2, lib_model.DepFilter{IDs: reqByDepIDs}, false, false, false)
+			deps, err := h.storageHandler.ListDep(ctxWt2, lib_model.DepFilter{IDs: reqByDepIDs}, false, false, false)
 			if err != nil {
 				return err
 			}
 			var reqBy []string
-			for dID, dep := range deployments {
+			for dID, dep := range deps {
 				if dep.Enabled {
 					reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dep.Name, dID))
 				}
