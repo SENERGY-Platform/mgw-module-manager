@@ -122,7 +122,9 @@ func (h *Handler) StopAll(ctx context.Context, filter lib_model.DepFilter, force
 					reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dep.Name, dID))
 				}
 			}
-			return lib_model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
+			if len(reqBy) > 0 {
+				return lib_model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
+			}
 		}
 	}
 	return h.stopTree(ctx, deployments)
