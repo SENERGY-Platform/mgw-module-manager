@@ -114,12 +114,17 @@ func (h *Handler) Get(ctx context.Context, mID string, dependencyInfo bool) (mod
 }
 
 func (h *Handler) GetTree(ctx context.Context, mID string) (map[string]model.Module, error) {
-	rootMod, err := h.storageHandler.ReadMod(ctx, mID, true)
+	mod, err := h.storageHandler.ReadMod(ctx, mID, true)
 	if err != nil {
 		return nil, err
 	}
-	tree := map[string]model.Module{rootMod.ID: rootMod}
-	if err = h.appendModTree(ctx, rootMod, tree); err != nil {
+	mod.Module.Module, err = h.readModule(mod.Dir, mod.ModFile)
+	if err != nil {
+		return nil, lib_model.NewInternalError(err)
+	}
+	mod.Path = h.wrkSpcPath
+	tree := map[string]model.Module{mod.ID: mod}
+	if err = h.appendModTree(ctx, mod, tree); err != nil {
 		return nil, err
 	}
 	return tree, nil
@@ -298,6 +303,11 @@ func (h *Handler) appendModTree(ctx context.Context, mod model.Module, tree map[
 			if err != nil {
 				return err
 			}
+			m.Module.Module, err = h.readModule(mod.Dir, mod.ModFile)
+			if err != nil {
+				return err
+			}
+			m.Path = h.wrkSpcPath
 			tree[mID] = m
 			if err = h.appendModTree(ctx, m, tree); err != nil {
 				return err
