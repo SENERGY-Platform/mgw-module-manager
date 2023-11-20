@@ -134,22 +134,6 @@ func (h *Handler) AppendModTree(ctx context.Context, tree map[string]model.Modul
 	return nil
 }
 
-func (h *Handler) GetDirFS(ctx context.Context, mID string) (dir_fs.DirFS, error) {
-	h.mu.RLock()
-	defer h.mu.RUnlock()
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	mod, err := h.storageHandler.ReadMod(ctxWt, mID, false)
-	if err != nil {
-		return "", err
-	}
-	dir, err := dir_fs.New(path.Join(h.wrkSpcPath, mod.Dir))
-	if err != nil {
-		return "", lib_model.NewInternalError(err)
-	}
-	return dir, nil
-}
-
 func (h *Handler) Add(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
