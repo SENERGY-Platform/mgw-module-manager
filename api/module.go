@@ -297,6 +297,7 @@ func (a *Api) GetModuleDeployTemplate(ctx context.Context, id string) (lib_model
 		return lib_model.ModDeployTemplate{}, err
 	}
 	mod := modTree[id]
+	delete(modTree, id)
 	dt := lib_model.ModDeployTemplate{InputTemplate: input_tmplt.GetModDepTemplate(mod.Module.Module)}
 	if len(modTree) > 0 {
 		rdt := make(map[string]lib_model.InputTemplate)
