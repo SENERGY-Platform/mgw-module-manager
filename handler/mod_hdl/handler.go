@@ -303,7 +303,7 @@ func (h *Handler) appendModTree(ctx context.Context, mod model.Module, tree map[
 			if err != nil {
 				return err
 			}
-			m.Module.Module, err = h.readModule(mod.Dir, mod.ModFile)
+			m.Module.Module, err = h.readModule(m.Dir, m.ModFile)
 			if err != nil {
 				return err
 			}
