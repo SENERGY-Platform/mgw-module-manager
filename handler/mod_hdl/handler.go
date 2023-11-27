@@ -203,6 +203,10 @@ func (h *Handler) Delete(ctx context.Context, mID string, force bool) error {
 	if err != nil {
 		return err
 	}
+	mod.Module.Module, err = h.readModule(mod.Dir, mod.ModFile)
+	if err != nil {
+		return lib_model.NewInternalError(err)
+	}
 	if !force && len(mod.ModRequiring) > 0 {
 		ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
 		defer cf2()
