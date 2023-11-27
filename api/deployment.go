@@ -161,7 +161,6 @@ func (a *Api) DeleteDeployments(ctx context.Context, filter lib_model.DepFilter,
 	if err != nil {
 		return "", lib_model.NewResourceBusyError(err)
 	}
-	defer a.mu.Unlock()
 	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("delete deployments '%v'", filter), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
