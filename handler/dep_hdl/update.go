@@ -144,8 +144,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 			return err
 		}
 	}
-	err = tx.Commit()
-	if err != nil {
+	if err = tx.Commit(); err != nil {
 		return err
 	}
 	if e := h.removeContainers(ctx, oldDep.Containers, true); e != nil {
