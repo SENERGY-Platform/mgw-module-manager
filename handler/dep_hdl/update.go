@@ -86,11 +86,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if e := tx.Rollback(); e != nil {
-			util.Logger.Error(e)
-		}
-	}()
+	defer tx.Rollback()
 	if err = h.storageHandler.DeleteDepDependencies(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, id); err != nil {
 		return err
 	}

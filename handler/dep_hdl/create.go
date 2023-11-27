@@ -56,11 +56,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput lib_m
 	if err != nil {
 		return "", err
 	}
-	defer func() {
-		if e := tx.Rollback(); e != nil {
-			util.Logger.Error(e)
-		}
-	}()
+	defer tx.Rollback()
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	if dep.ID, err = h.storageHandler.CreateDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dep.DepBase); err != nil {

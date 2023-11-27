@@ -152,11 +152,7 @@ func (h *Handler) Add(ctx context.Context, mod *module.Module, modDir dir_fs.Dir
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if e := tx.Rollback(); e != nil {
-			util.Logger.Error(e)
-		}
-	}()
+	defer tx.Rollback()
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	if err = h.storageHandler.CreateMod(ctxWt, tx, model.Module{
@@ -256,11 +252,7 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, modDir dir_fs.
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if e := tx.Rollback(); e != nil {
-			util.Logger.Error(e)
-		}
-	}()
+	defer tx.Rollback()
 	if err = h.storageHandler.DeleteModDependencies(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, mod.ID); err != nil {
 		return err
 	}
