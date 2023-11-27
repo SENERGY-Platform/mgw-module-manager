@@ -354,9 +354,13 @@ func (a *Api) prepareModuleUpdate(ctx context.Context, modules map[string]*modul
 	return nil
 }
 
-func (a *Api) updateModule(ctx context.Context, id string, depInput lib_model.DepInput, dependencies map[string]lib_model.DepInput, orphans bool, stg handler.Stage, newIDs, uptIDs, ophIDs map[string]struct{}, depMap map[string]lib_model.Deployment) error {
+func (a *Api) updateModule(ctx context.Context, id string, depInput lib_model.DepInput, dependencies map[string]lib_model.DepInput, orphans bool, stg handler.Stage, newIDs, uptIDs, ophIDs map[string]struct{}, deployments map[string]lib_model.Deployment) error {
 	defer stg.Remove()
-	oldRootDep, rootDeployed := depMap[id]
+	modDepMap := make(map[string]lib_model.Deployment)
+	for _, dep := range deployments {
+		modDepMap[dep.Module.ID] = dep
+	}
+	oldRootDep, rootDeployed := modDepMap[id]
 	stgMods := make(map[string]*module.Module)
 	for mID, stgItem := range stg.Items() {
 		stgMods[mID] = stgItem.Module()
@@ -390,7 +394,7 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput lib_model.De
 			} else {
 				dInput = dependencies[mID]
 			}
-			oldDep, deployed := depMap[mID]
+			oldDep, deployed := modDepMap[mID]
 			if deployed {
 				dInput.Name = &oldDep.Name
 				err = a.deploymentHandler.Update(ctx, oldDep.ID, stgItem.Module(), dInput, stgItem.Dir())
