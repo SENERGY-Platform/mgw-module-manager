@@ -62,7 +62,7 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_mode
 		defer func() {
 			if er != nil {
 				for _, id := range dIDs {
-					e := a.DeleteDeployment(context.Background(), id, true)
+					e := a.deploymentHandler.Delete(ctx, id, true)
 					if e != nil {
 						util.Logger.Error(e)
 					}
