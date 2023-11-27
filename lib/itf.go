@@ -39,10 +39,10 @@ type Api interface {
 	GetDeployments(ctx context.Context, filter model.DepFilter, assets, containerInfo bool) (map[string]model.Deployment, error)
 	GetDeployment(ctx context.Context, dID string, assets, containerInfo bool) (model.Deployment, error)
 	UpdateDeployment(ctx context.Context, dID string, depInput model.DepInput) (string, error)
-	DeleteDeployment(ctx context.Context, dID string, force bool) error
-	DeleteDeployments(ctx context.Context, filter model.DepFilter, force bool) error
-	StartDeployment(ctx context.Context, dID string, dependencies bool) error
-	StartDeployments(ctx context.Context, filter model.DepFilter, dependencies bool) error
+	DeleteDeployment(ctx context.Context, dID string, force bool) (string, error)
+	DeleteDeployments(ctx context.Context, filter model.DepFilter, force bool) (string, error)
+	StartDeployment(ctx context.Context, dID string, dependencies bool) (string, error)
+	StartDeployments(ctx context.Context, filter model.DepFilter, dependencies bool) (string, error)
 	StopDeployment(ctx context.Context, dID string, force bool) (string, error)
 	StopDeployments(ctx context.Context, filter model.DepFilter, force bool) (string, error)
 	RestartDeployment(ctx context.Context, dID string) (string, error)

@@ -150,12 +150,12 @@ func patchDeploymentStartH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		err := a.StartDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Dependencies)
+		jID, err := a.StartDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Dependencies)
 		if err != nil {
 			_ = gc.Error(err)
 			return
 		}
-		gc.Status(http.StatusOK)
+		gc.String(http.StatusOK, jID)
 	}
 }
 
@@ -166,7 +166,7 @@ func patchDeploymentsStartH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		err := a.StartDeployments(gc.Request.Context(), lib_model.DepFilter{
+		jID, err := a.StartDeployments(gc.Request.Context(), lib_model.DepFilter{
 			IDs:      parseStringSlice(query.IDs, ","),
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
@@ -177,7 +177,7 @@ func patchDeploymentsStartH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(err)
 			return
 		}
-		gc.Status(http.StatusOK)
+		gc.String(http.StatusOK, jID)
 	}
 }
 
@@ -259,12 +259,12 @@ func deleteDeploymentH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		err := a.DeleteDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Force)
+		jID, err := a.DeleteDeployment(gc.Request.Context(), gc.Param(depIdParam), query.Force)
 		if err != nil {
 			_ = gc.Error(err)
 			return
 		}
-		gc.Status(http.StatusOK)
+		gc.String(http.StatusOK, jID)
 	}
 }
 
@@ -275,7 +275,7 @@ func patchDeploymentsDeleteH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		err := a.DeleteDeployments(gc.Request.Context(), lib_model.DepFilter{
+		jID, err := a.DeleteDeployments(gc.Request.Context(), lib_model.DepFilter{
 			IDs:      parseStringSlice(query.IDs, ","),
 			ModuleID: query.ModuleID,
 			Name:     query.Name,
@@ -286,7 +286,7 @@ func patchDeploymentsDeleteH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(err)
 			return
 		}
-		gc.Status(http.StatusOK)
+		gc.String(http.StatusOK, jID)
 	}
 }
 
