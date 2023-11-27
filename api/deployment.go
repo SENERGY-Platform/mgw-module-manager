@@ -40,6 +40,7 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_mode
 		return "", err
 	}
 	mod := modTree[id]
+	delete(modTree, id)
 	if mod.DeploymentType == module.SingleDeployment {
 		if l, err := a.deploymentHandler.List(ctx, lib_model.DepFilter{ModuleID: mod.ID}, false, false, false, false); err != nil {
 			return "", err
