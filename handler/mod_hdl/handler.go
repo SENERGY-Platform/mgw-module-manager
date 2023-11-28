@@ -223,7 +223,7 @@ func (h *Handler) Delete(ctx context.Context, mID string, force bool) error {
 		if err != nil {
 			var nfe *cew_model.NotFoundError
 			if !errors.As(err, &nfe) {
-				return lib_model.NewInternalError(err)
+				util.Logger.Error(err)
 			}
 		}
 	}
