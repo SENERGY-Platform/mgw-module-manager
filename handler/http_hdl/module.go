@@ -107,12 +107,12 @@ func deleteModuleH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		err := a.DeleteModule(gc.Request.Context(), gc.Param(modIdParam), query.Orphans, query.Force)
+		jID, err := a.DeleteModule(gc.Request.Context(), gc.Param(modIdParam), query.Orphans, query.Force)
 		if err != nil {
 			_ = gc.Error(err)
 			return
 		}
-		gc.Status(http.StatusOK)
+		gc.String(http.StatusOK, jID)
 	}
 }
 

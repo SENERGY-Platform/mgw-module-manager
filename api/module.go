@@ -81,23 +81,38 @@ func (a *Api) GetModule(ctx context.Context, id string) (lib_model.Module, error
 	return mod.Module, err
 }
 
-func (a *Api) DeleteModule(ctx context.Context, id string, orphans, force bool) error {
+func (a *Api) DeleteModule(ctx context.Context, id string, orphans, force bool) (string, error) {
 	err := a.mu.TryLock(fmt.Sprintf("delete module '%s'", id))
 	if err != nil {
-		return lib_model.NewResourceBusyError(err)
+		return "", lib_model.NewResourceBusyError(err)
 	}
-	defer a.mu.Unlock()
 	if mID, ok := a.pendingModUpdate(ctx); ok {
-		return lib_model.NewResourceBusyError(fmt.Errorf("update pending for '%s'", mID))
+		a.mu.Unlock()
+		return "", lib_model.NewResourceBusyError(fmt.Errorf("update pending for '%s'", mID))
 	}
 	ok, err := a.modDeployed(ctx, id)
 	if err != nil {
-		return err
+		a.mu.Unlock()
+		return "", err
 	}
 	if ok {
-		return lib_model.NewInvalidInputError(errors.New("deployment exists"))
+		a.mu.Unlock()
+		return "", lib_model.NewInvalidInputError(errors.New("deployment exists"))
 	}
-	return a.moduleHandler.Delete(ctx, id, force)
+	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("delete module '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
+		defer a.mu.Unlock()
+		defer cf()
+		err := a.moduleHandler.Delete(ctx, id, force)
+		if err == nil {
+			err = ctx.Err()
+		}
+		return err
+	})
+	if err != nil {
+		a.mu.Unlock()
+		return "", err
+	}
+	return jID, nil
 }
 
 func (a *Api) CheckModuleUpdates(ctx context.Context) (string, error) {
