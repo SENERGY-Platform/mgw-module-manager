@@ -28,24 +28,25 @@ import (
 )
 
 func (a *Api) AddModule(ctx context.Context, id, version string) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("add module '%s'", id))
+	metaStr := fmt.Sprintf("add module (id=%s version=%s)", id, version)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	if mID, ok := a.pendingModUpdate(ctx); ok {
 		a.mu.Unlock()
-		return "", lib_model.NewResourceBusyError(fmt.Errorf("update pending for '%s'", mID))
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(fmt.Errorf("update pending for '%s'", mID)))
 	}
 	modules, err := a.moduleHandler.List(ctx, lib_model.ModFilter{}, false)
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	modMap := make(map[string]*module.Module)
 	for _, m := range modules {
 		modMap[m.ID] = m.Module.Module
 	}
-	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("add module '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.addModule(ctx, id, version, modMap)
@@ -56,7 +57,7 @@ func (a *Api) AddModule(ctx context.Context, id, version string) (string, error)
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	return jID, nil
 }
@@ -64,7 +65,7 @@ func (a *Api) AddModule(ctx context.Context, id, version string) (string, error)
 func (a *Api) GetModules(ctx context.Context, filter lib_model.ModFilter) (map[string]lib_model.Module, error) {
 	modList, err := a.moduleHandler.List(ctx, filter, false)
 	if err != nil {
-		return nil, err
+		return nil, newApiErr(fmt.Sprintf("get modules (%s)", getModFilterValues(filter)), err)
 	}
 	modules := make(map[string]lib_model.Module)
 	for mID, m := range modList {
@@ -76,30 +77,31 @@ func (a *Api) GetModules(ctx context.Context, filter lib_model.ModFilter) (map[s
 func (a *Api) GetModule(ctx context.Context, id string) (lib_model.Module, error) {
 	mod, err := a.moduleHandler.Get(ctx, id, false)
 	if err != nil {
-		return lib_model.Module{}, err
+		return lib_model.Module{}, newApiErr(fmt.Sprintf("get module (id=%s)", id), err)
 	}
 	return mod.Module, err
 }
 
-func (a *Api) DeleteModule(ctx context.Context, id string, orphans, force bool) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("delete module '%s'", id))
+func (a *Api) DeleteModule(ctx context.Context, id string, force bool) (string, error) {
+	metaStr := fmt.Sprintf("delete module (id=%s force=%v)", id, force)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	if mID, ok := a.pendingModUpdate(ctx); ok {
 		a.mu.Unlock()
-		return "", lib_model.NewResourceBusyError(fmt.Errorf("update pending for '%s'", mID))
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(fmt.Errorf("update pending for '%s'", mID)))
 	}
 	ok, err := a.modDeployed(ctx, id)
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	if ok {
 		a.mu.Unlock()
-		return "", lib_model.NewInvalidInputError(errors.New("deployment exists"))
+		return "", newApiErr(metaStr, lib_model.NewInvalidInputError(errors.New("deployment exists")))
 	}
-	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("delete module '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.moduleHandler.Delete(ctx, id, force)
@@ -110,26 +112,27 @@ func (a *Api) DeleteModule(ctx context.Context, id string, orphans, force bool) 
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	return jID, nil
 }
 
 func (a *Api) CheckModuleUpdates(ctx context.Context) (string, error) {
-	err := a.mu.TryLock("check for module updates")
+	metaStr := fmt.Sprintf("check module updates")
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	modules, err := a.moduleHandler.List(ctx, lib_model.ModFilter{}, false)
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	modMap := make(map[string]*module.Module)
 	for _, mod := range modules {
 		modMap[mod.ID] = mod.Module.Module
 	}
-	jID, err := a.jobHandler.Create(ctx, "check for module updates", func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.modUpdateHandler.Check(ctx, modMap)
@@ -140,7 +143,7 @@ func (a *Api) CheckModuleUpdates(ctx context.Context) (string, error) {
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	return jID, nil
 }
@@ -150,38 +153,44 @@ func (a *Api) GetModuleUpdates(ctx context.Context) (map[string]lib_model.ModUpd
 }
 
 func (a *Api) GetModuleUpdate(ctx context.Context, id string) (lib_model.ModUpdate, error) {
+	metaStr := fmt.Sprintf("get module update (id=%s)", id)
 	err := a.mu.TryRLock()
 	if err != nil {
-		return lib_model.ModUpdate{}, lib_model.NewResourceBusyError(err)
+		return lib_model.ModUpdate{}, newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	defer a.mu.RUnlock()
-	return a.modUpdateHandler.Get(ctx, id)
+	update, err := a.modUpdateHandler.Get(ctx, id)
+	if err != nil {
+		return lib_model.ModUpdate{}, newApiErr(metaStr, err)
+	}
+	return update, nil
 }
 
 func (a *Api) PrepareModuleUpdate(ctx context.Context, id, version string) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("prepare update for module '%s'", id))
+	metaStr := fmt.Sprintf("prepare module update (id=%s version=%s)", id, version)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	mui, err := a.modUpdateHandler.Get(ctx, id)
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	if !inSlice(version, mui.Versions) {
 		a.mu.Unlock()
-		return "", lib_model.NewInvalidInputError(fmt.Errorf("unknown version '%s'", version))
+		return "", newApiErr(metaStr, lib_model.NewInvalidInputError(errors.New("unknown version")))
 	}
 	modules, err := a.moduleHandler.List(ctx, lib_model.ModFilter{}, false)
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	modMap := make(map[string]*module.Module)
 	for _, mod := range modules {
 		modMap[mod.ID] = mod.Module.Module
 	}
-	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("prepare update for module '%s' to '%s'", id, version), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.prepareModuleUpdate(ctx, modMap, id, version)
@@ -192,39 +201,45 @@ func (a *Api) PrepareModuleUpdate(ctx context.Context, id, version string) (stri
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	return jID, nil
 }
 
 func (a *Api) CancelPendingModuleUpdate(ctx context.Context, id string) error {
-	err := a.mu.TryLock(fmt.Sprintf("cancel pending update for module '%s'", id))
+	metaStr := fmt.Sprintf("cancel pending module update (id=%s)", id)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return lib_model.NewResourceBusyError(err)
+		return newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	defer a.mu.Unlock()
-	return a.modUpdateHandler.CancelPending(ctx, id)
+	err = a.modUpdateHandler.CancelPending(ctx, id)
+	if err != nil {
+		return newApiErr(metaStr, err)
+	}
+	return nil
 }
 
-func (a *Api) UpdateModule(ctx context.Context, id string, depInput lib_model.DepInput, dependencies map[string]lib_model.DepInput, orphans bool) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("update module '%s'", id))
+func (a *Api) UpdateModule(ctx context.Context, id string, depInput lib_model.DepInput, dependencies map[string]lib_model.DepInput) (string, error) {
+	metaStr := fmt.Sprintf("update module (id=%s)", id)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	deployments, err := a.deploymentHandler.List(ctx, lib_model.DepFilter{}, false, false, false, false)
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	stg, newIDs, uptIDs, ophIDs, err := a.modUpdateHandler.GetPending(ctx, id)
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("update module '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.updateModule(ctx, id, depInput, dependencies, orphans, stg, newIDs, uptIDs, ophIDs, deployments)
+		err := a.updateModule(ctx, id, depInput, dependencies, stg, newIDs, uptIDs, ophIDs, deployments)
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -232,24 +247,25 @@ func (a *Api) UpdateModule(ctx context.Context, id string, depInput lib_model.De
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	return jID, nil
 }
 
 func (a *Api) GetModuleUpdateTemplate(ctx context.Context, id string) (lib_model.ModUpdateTemplate, error) {
+	metaStr := fmt.Sprintf("get module update template (id=%s)", id)
 	err := a.mu.TryRLock()
 	if err != nil {
-		return lib_model.ModUpdateTemplate{}, lib_model.NewResourceBusyError(err)
+		return lib_model.ModUpdateTemplate{}, newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	defer a.mu.RUnlock()
 	stg, newIDs, uptIDs, _, err := a.modUpdateHandler.GetPending(ctx, id)
 	if err != nil {
-		return lib_model.ModUpdateTemplate{}, err
+		return lib_model.ModUpdateTemplate{}, newApiErr(metaStr, err)
 	}
 	deployments, err := a.deploymentHandler.List(ctx, lib_model.DepFilter{}, false, false, false, false)
 	if err != nil {
-		return lib_model.ModUpdateTemplate{}, err
+		return lib_model.ModUpdateTemplate{}, newApiErr(metaStr, err)
 	}
 	moduleDepMap := make(map[string]string)
 	for _, dep := range deployments {
@@ -262,17 +278,17 @@ func (a *Api) GetModuleUpdateTemplate(ctx context.Context, id string) (lib_model
 	if ok {
 		dep, err := a.deploymentHandler.Get(ctx, depID, true, true, false, false)
 		if err != nil {
-			return lib_model.ModUpdateTemplate{}, err
+			return lib_model.ModUpdateTemplate{}, newApiErr(metaStr, err)
 		}
 		stgItem, ok := stg.Get(id)
 		if !ok {
-			return lib_model.ModUpdateTemplate{}, lib_model.NewInternalError(fmt.Errorf("module '%s' not staged", id))
+			return lib_model.ModUpdateTemplate{}, newApiErr(metaStr, lib_model.NewInternalError(fmt.Errorf("module '%s' not staged", id)))
 		}
 		updateTemplate.InputTemplate = input_tmplt.GetDepUpTemplate(stgItem.Module(), dep)
 		for newID := range newIDs {
 			stgItem, ok := stg.Get(newID)
 			if !ok {
-				return lib_model.ModUpdateTemplate{}, lib_model.NewInternalError(fmt.Errorf("module '%s' not staged", newID))
+				return lib_model.ModUpdateTemplate{}, newApiErr(metaStr, lib_model.NewInternalError(fmt.Errorf("module '%s' not staged", newID)))
 			}
 			updateTemplate.Dependencies[newID] = input_tmplt.GetModDepTemplate(stgItem.Module())
 		}
@@ -287,13 +303,13 @@ func (a *Api) GetModuleUpdateTemplate(ctx context.Context, id string) (lib_model
 			if err != nil {
 				var nfe *lib_model.NotFoundError
 				if !errors.As(err, &nfe) {
-					return lib_model.ModUpdateTemplate{}, err
+					return lib_model.ModUpdateTemplate{}, newApiErr(metaStr, err)
 				}
 				continue
 			}
 			stgItem, ok := stg.Get(uptID)
 			if !ok {
-				return lib_model.ModUpdateTemplate{}, lib_model.NewInternalError(fmt.Errorf("module '%s' not staged", uptID))
+				return lib_model.ModUpdateTemplate{}, newApiErr(metaStr, lib_model.NewInternalError(fmt.Errorf("module '%s' not staged", uptID)))
 			}
 			updateTemplate.Dependencies[uptID] = input_tmplt.GetDepUpTemplate(stgItem.Module(), dep)
 		}
@@ -302,14 +318,15 @@ func (a *Api) GetModuleUpdateTemplate(ctx context.Context, id string) (lib_model
 }
 
 func (a *Api) GetModuleDeployTemplate(ctx context.Context, id string) (lib_model.ModDeployTemplate, error) {
+	metaStr := fmt.Sprintf("get module deploy template (id=%s)", id)
 	err := a.mu.TryRLock()
 	if err != nil {
-		return lib_model.ModDeployTemplate{}, lib_model.NewResourceBusyError(err)
+		return lib_model.ModDeployTemplate{}, newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	defer a.mu.RUnlock()
 	modTree, err := a.moduleHandler.GetTree(ctx, id)
 	if err != nil {
-		return lib_model.ModDeployTemplate{}, err
+		return lib_model.ModDeployTemplate{}, newApiErr(metaStr, err)
 	}
 	mod := modTree[id]
 	delete(modTree, id)
@@ -319,7 +336,7 @@ func (a *Api) GetModuleDeployTemplate(ctx context.Context, id string) (lib_model
 		for _, rm := range modTree {
 			ok, err := a.modDeployed(ctx, rm.ID)
 			if err != nil {
-				return lib_model.ModDeployTemplate{}, err
+				return lib_model.ModDeployTemplate{}, newApiErr(metaStr, err)
 			}
 			if !ok {
 				rdt[rm.ID] = input_tmplt.GetModDepTemplate(rm.Module.Module)
@@ -369,7 +386,7 @@ func (a *Api) prepareModuleUpdate(ctx context.Context, modules map[string]*modul
 	return nil
 }
 
-func (a *Api) updateModule(ctx context.Context, id string, depInput lib_model.DepInput, dependencies map[string]lib_model.DepInput, orphans bool, stg handler.Stage, newIDs, uptIDs, ophIDs map[string]struct{}, deployments map[string]lib_model.Deployment) error {
+func (a *Api) updateModule(ctx context.Context, id string, depInput lib_model.DepInput, dependencies map[string]lib_model.DepInput, stg handler.Stage, newIDs, uptIDs, ophIDs map[string]struct{}, deployments map[string]lib_model.Deployment) error {
 	defer stg.Remove()
 	modDepMap := make(map[string]lib_model.Deployment)
 	for _, dep := range deployments {
@@ -467,4 +484,8 @@ func inSlice(s string, sl []string) bool {
 		}
 	}
 	return false
+}
+
+func getModFilterValues(filter lib_model.ModFilter) string {
+	return fmt.Sprintf("ids=%v type=%s deployment_type=%v name=%s author=%s indirect=%v tags=%v", filter.IDs, filter.Type, filter.DeploymentType, filter.Name, filter.Author, filter.Indirect, filter.Tags)
 }

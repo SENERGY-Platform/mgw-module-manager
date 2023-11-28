@@ -18,17 +18,34 @@ package api
 
 import (
 	"context"
+	"fmt"
 	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 )
 
 func (a *Api) GetJobs(ctx context.Context, filter job_hdl_lib.JobFilter) ([]job_hdl_lib.Job, error) {
-	return a.jobHandler.List(ctx, filter)
+	jobs, err := a.jobHandler.List(ctx, filter)
+	if err != nil {
+		return nil, newApiErr(fmt.Sprintf("get jobs (%s)", getJobFilterValues(filter)), err)
+	}
+	return jobs, nil
 }
 
 func (a *Api) GetJob(ctx context.Context, id string) (job_hdl_lib.Job, error) {
-	return a.jobHandler.Get(ctx, id)
+	job, err := a.jobHandler.Get(ctx, id)
+	if err != nil {
+		return job_hdl_lib.Job{}, newApiErr(fmt.Sprintf("get job (id=%s)", id), err)
+	}
+	return job, nil
 }
 
 func (a *Api) CancelJob(ctx context.Context, id string) error {
-	return a.jobHandler.Cancel(ctx, id)
+	err := a.jobHandler.Cancel(ctx, id)
+	if err != nil {
+		return newApiErr(fmt.Sprintf("cancel job (id=%s)", id), err)
+	}
+	return nil
+}
+
+func getJobFilterValues(filter job_hdl_lib.JobFilter) string {
+	return fmt.Sprintf("status=%s sort_desc=%v, since=%v until=%v", filter.Status, filter.SortDesc, filter.Since, filter.Until)
 }

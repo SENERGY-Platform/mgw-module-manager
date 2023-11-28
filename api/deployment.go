@@ -30,22 +30,23 @@ import (
 )
 
 func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_model.DepInput, dependencies map[string]lib_model.DepInput) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("create deployment for '%s'", id))
+	metaStr := fmt.Sprintf("create deployment (module_id=%s)", id)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	defer a.mu.Unlock()
 	modTree, err := a.moduleHandler.GetTree(ctx, id)
 	if err != nil {
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	mod := modTree[id]
 	delete(modTree, id)
 	if mod.DeploymentType == module.SingleDeployment {
 		if l, err := a.deploymentHandler.List(ctx, lib_model.DepFilter{ModuleID: mod.ID}, false, false, false, false); err != nil {
-			return "", err
+			return "", newApiErr(metaStr, err)
 		} else if len(l) > 0 {
-			return "", lib_model.NewInvalidInputError(errors.New("already deployed"))
+			return "", newApiErr(metaStr, lib_model.NewInvalidInputError(errors.New("already deployed")))
 		}
 	}
 	if len(modTree) > 0 {
@@ -55,15 +56,14 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_mode
 		}
 		order, err := sorting.GetModOrder(modMap)
 		if err != nil {
-			return "", lib_model.NewInternalError(err)
+			return "", newApiErr(metaStr, lib_model.NewInternalError(err))
 		}
 		var er error
 		var dIDs []string
 		defer func() {
 			if er != nil {
 				for _, id := range dIDs {
-					e := a.deploymentHandler.Delete(ctx, id, true)
-					if e != nil {
+					if e := a.deploymentHandler.Delete(ctx, id, true); e != nil {
 						util.Logger.Error(e)
 					}
 				}
@@ -74,7 +74,7 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_mode
 		for _, rmID := range order {
 			ok, dID, er = a.createDepIfNotExist(ctx, rmID, dependencies[rmID])
 			if er != nil {
-				return "", er
+				return "", newApiErr(metaStr, er)
 			}
 			if ok {
 				dIDs = append(dIDs, dID)
@@ -83,43 +83,52 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_mode
 	}
 	dir, err := mod.GetDirFS()
 	if err != nil {
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	dID, err := a.deploymentHandler.Create(ctx, mod.Module.Module, depInput, dir, false)
 	if err != nil {
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	return dID, nil
 }
 
 func (a *Api) GetDeployments(ctx context.Context, filter lib_model.DepFilter, assets, containerInfo bool) (map[string]lib_model.Deployment, error) {
-	return a.deploymentHandler.List(ctx, filter, true, assets, containerInfo, containerInfo)
+	deployments, err := a.deploymentHandler.List(ctx, filter, true, assets, containerInfo, containerInfo)
+	if err != nil {
+		return nil, newApiErr(fmt.Sprintf("get deployments (%s assets=%v container_info=%v)", getDepFilterValues(filter), assets, containerInfo), err)
+	}
+	return deployments, nil
 }
 
 func (a *Api) GetDeployment(ctx context.Context, id string, assets, containerInfo bool) (lib_model.Deployment, error) {
-	return a.deploymentHandler.Get(ctx, id, true, assets, containerInfo, containerInfo)
+	deployment, err := a.deploymentHandler.Get(ctx, id, true, assets, containerInfo, containerInfo)
+	if err != nil {
+		return lib_model.Deployment{}, newApiErr(fmt.Sprintf("get deployment (id=%s assets=%v container_info=%v)", id, assets, containerInfo), err)
+	}
+	return deployment, nil
 }
 
 func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput lib_model.DepInput) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("update deployment '%s'", dID))
+	metaStr := fmt.Sprintf("update deployment (id=%s)", dID)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	dep, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	mod, err := a.moduleHandler.Get(ctx, dep.Module.ID, false)
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	if mod.ID != dep.Module.ID {
 		a.mu.Unlock()
-		return "", lib_model.NewInvalidInputError(errors.New("module ID mismatch"))
+		return "", newApiErr(metaStr, errors.New("module ID mismatch"))
 	}
-	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("update deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Update(ctx, dep.ID, mod.Module.Module, depInput, "")
@@ -130,17 +139,18 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput lib_mod
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	return jID, nil
 }
 
 func (a *Api) DeleteDeployment(ctx context.Context, id string, force bool) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("delete deployment '%s'", id))
+	metaStr := fmt.Sprintf("delete deployment (id=%s force=%v)", id, force)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("delete deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Delete(ctx, id, force)
@@ -151,17 +161,18 @@ func (a *Api) DeleteDeployment(ctx context.Context, id string, force bool) (stri
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	return jID, nil
 }
 
 func (a *Api) DeleteDeployments(ctx context.Context, filter lib_model.DepFilter, force bool) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("delete deployments '%v'", filter))
+	metaStr := fmt.Sprintf("delete deployments (%s force=%v)", getDepFilterValues(filter), force)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("delete deployments '%v'", filter), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.DeleteAll(ctx, filter, force)
@@ -172,24 +183,25 @@ func (a *Api) DeleteDeployments(ctx context.Context, filter lib_model.DepFilter,
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	return jID, nil
 }
 
 func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (lib_model.DepUpdateTemplate, error) {
+	metaStr := fmt.Sprintf("get deployment update template (id=%s)", id)
 	err := a.mu.TryRLock()
 	if err != nil {
-		return lib_model.DepUpdateTemplate{}, lib_model.NewResourceBusyError(err)
+		return lib_model.DepUpdateTemplate{}, newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
 	defer a.mu.RUnlock()
 	dep, err := a.deploymentHandler.Get(ctx, id, false, true, false, false)
 	if err != nil {
-		return lib_model.DepUpdateTemplate{}, err
+		return lib_model.DepUpdateTemplate{}, newApiErr(metaStr, err)
 	}
 	mod, err := a.moduleHandler.Get(ctx, dep.Module.ID, false)
 	if err != nil {
-		return lib_model.DepUpdateTemplate{}, err
+		return lib_model.DepUpdateTemplate{}, newApiErr(metaStr, err)
 	}
 	return lib_model.DepUpdateTemplate{
 		Name:          dep.Name,
@@ -198,11 +210,12 @@ func (a *Api) GetDeploymentUpdateTemplate(ctx context.Context, id string) (lib_m
 }
 
 func (a *Api) StartDeployment(ctx context.Context, dID string, dependencies bool) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("start deployment '%s'", dID))
+	metaStr := fmt.Sprintf("start deployment (id=%s dependencies=%v)", dID, dependencies)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("start deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Start(ctx, dID, dependencies)
@@ -213,17 +226,18 @@ func (a *Api) StartDeployment(ctx context.Context, dID string, dependencies bool
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	return jID, nil
 }
 
 func (a *Api) StartDeployments(ctx context.Context, filter lib_model.DepFilter, dependencies bool) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("start deployments '%v'", filter))
+	metaStr := fmt.Sprintf("start deployments (%s dependencies=%v)", getDepFilterValues(filter), dependencies)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("start deployments '%v'", filter), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.StartAll(ctx, filter, dependencies)
@@ -234,17 +248,18 @@ func (a *Api) StartDeployments(ctx context.Context, filter lib_model.DepFilter, 
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	return jID, nil
 }
 
 func (a *Api) StopDeployment(ctx context.Context, dID string, dependencies bool) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("stop deployment '%s'", dID))
+	metaStr := fmt.Sprintf("stop deployment (id=%s dependencies=%v)", dID, dependencies)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("stop deployment '%s'", dID), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Stop(ctx, dID, dependencies)
@@ -255,17 +270,18 @@ func (a *Api) StopDeployment(ctx context.Context, dID string, dependencies bool)
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	return jID, nil
 }
 
 func (a *Api) StopDeployments(ctx context.Context, filter lib_model.DepFilter, force bool) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("stop all deployment '%v'", filter))
+	metaStr := fmt.Sprintf("stop deployments (%s force=%v)", getDepFilterValues(filter), force)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("stop all deployment '%v'", filter), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.StopAll(ctx, filter, force)
@@ -276,17 +292,18 @@ func (a *Api) StopDeployments(ctx context.Context, filter lib_model.DepFilter, f
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	return jID, nil
 }
 
 func (a *Api) RestartDeployment(ctx context.Context, id string) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("restart deployment '%s'", id))
+	metaStr := fmt.Sprintf("restart deployment (id=%s)", id)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("restart deployment '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Restart(ctx, id)
@@ -297,17 +314,18 @@ func (a *Api) RestartDeployment(ctx context.Context, id string) (string, error) 
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	return jID, nil
 }
 
 func (a *Api) RestartDeployments(ctx context.Context, filter lib_model.DepFilter) (string, error) {
-	err := a.mu.TryLock(fmt.Sprintf("restart all deployment '%v'", filter))
+	metaStr := fmt.Sprintf("restart deployment (%s)", getDepFilterValues(filter))
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return "", lib_model.NewResourceBusyError(err)
+		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("restart all deployment '%v'", filter), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.RestartAll(ctx, filter)
@@ -318,20 +336,21 @@ func (a *Api) RestartDeployments(ctx context.Context, filter lib_model.DepFilter
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", err
+		return "", newApiErr(metaStr, err)
 	}
 	return jID, nil
 }
 
-func (a *Api) StartupDeployments(smClient sm_client.Client, delay time.Duration, retries int) error {
-	err := a.mu.TryLock("deployments startup")
+func (a *Api) StartEnabledDeployments(smClient sm_client.Client, delay time.Duration, retries int) error {
+	metaStr := fmt.Sprintf("start enabled deployments (delay=%d retries=%d)", delay, retries)
+	err := a.mu.TryLock(metaStr)
 	if err != nil {
-		return lib_model.NewResourceBusyError(err)
+		return newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	_, err = a.jobHandler.Create(context.Background(), "deployments startup", func(ctx context.Context, cf context.CancelFunc) error {
+	_, err = a.jobHandler.Create(context.Background(), metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.startupDeployments(ctx, smClient, delay, retries)
+		err := a.startEnabledDeployments(ctx, smClient, delay, retries)
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -339,7 +358,7 @@ func (a *Api) StartupDeployments(smClient sm_client.Client, delay time.Duration,
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return err
+		return newApiErr(metaStr, err)
 	}
 	return nil
 }
@@ -367,7 +386,7 @@ func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq lib_mo
 	return false, "", nil
 }
 
-func (a *Api) startupDeployments(ctx context.Context, smClient sm_client.Client, delay time.Duration, retries int) error {
+func (a *Api) startEnabledDeployments(ctx context.Context, smClient sm_client.Client, delay time.Duration, retries int) error {
 	if err := waitForSM(ctx, smClient, delay, retries); err != nil {
 		return err
 	}
@@ -400,4 +419,8 @@ func waitForSM(ctx context.Context, smClient sm_client.Client, delay time.Durati
 		}
 	}
 	return nil
+}
+
+func getDepFilterValues(filter lib_model.DepFilter) string {
+	return fmt.Sprintf("ids=%v enabled=%v name=%s indirect=%v module_id=%s", filter.IDs, filter.Enabled, filter.Name, filter.Indirect, filter.ModuleID)
 }
