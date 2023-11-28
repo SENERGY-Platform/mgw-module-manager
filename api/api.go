@@ -41,3 +41,26 @@ func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModSt
 		mu:                &util.RWMutex{},
 	}
 }
+
+type apiErr struct {
+	msg string
+	err error
+}
+
+func newApiErr(msg string, err error) error {
+	return &apiErr{
+		msg: msg,
+		err: err,
+	}
+}
+
+func (e *apiErr) Error() string {
+	if e.msg == "" {
+		return e.err.Error()
+	}
+	return e.msg + ": " + e.err.Error()
+}
+
+func (e *apiErr) Unwrap() error {
+	return e.err
+}
