@@ -85,7 +85,7 @@ func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
 			}
 		}
 		if len(reqBy) > 0 {
-			return lib_model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
+			return lib_model.NewInternalError(fmt.Errorf("required by %s", strings.Join(reqBy, ", ")))
 		}
 	}
 	return h.stop(ctx, dep)
@@ -123,7 +123,7 @@ func (h *Handler) StopAll(ctx context.Context, filter lib_model.DepFilter, force
 				}
 			}
 			if len(reqBy) > 0 {
-				return lib_model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
+				return lib_model.NewInternalError(fmt.Errorf("required by %s", strings.Join(reqBy, ", ")))
 			}
 		}
 	}

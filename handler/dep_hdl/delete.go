@@ -52,7 +52,7 @@ func (h *Handler) Delete(ctx context.Context, id string, force bool) error {
 			for dID, d := range deps {
 				reqBy = append(reqBy, fmt.Sprintf("%s (%s)", d.Name, dID))
 			}
-			return lib_model.NewInternalError(fmt.Errorf("required by: %s", strings.Join(reqBy, ", ")))
+			return lib_model.NewInternalError(fmt.Errorf("required by %s", strings.Join(reqBy, ", ")))
 		}
 	}
 	return h.delete(ctx, dep, force)
@@ -97,7 +97,7 @@ func (h *Handler) DeleteAll(ctx context.Context, filter lib_model.DepFilter, for
 					reqBy = append(reqBy, fmt.Sprintf("%s (%s)", dep.Name, dID))
 				}
 			}
-			errMsg += "required by: " + strings.Join(reqBy, ", ")
+			errMsg += "required by " + strings.Join(reqBy, ", ")
 		}
 		if len(enabled) > 0 || len(reqByDepIDs) > 0 {
 			return lib_model.NewInternalError(errors.New(errMsg))
