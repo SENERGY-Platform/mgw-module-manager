@@ -34,12 +34,7 @@ type modulesQuery struct {
 }
 
 type deleteModuleQuery struct {
-	Orphans bool `form:"orphans"`
-	Force   bool `form:"force"`
-}
-
-type updateModuleQuery struct {
-	Orphans bool `form:"orphans"`
+	Force bool `form:"force"`
 }
 
 func getModulesH(a lib.Api) gin.HandlerFunc {
@@ -107,7 +102,7 @@ func deleteModuleH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		jID, err := a.DeleteModule(gc.Request.Context(), gc.Param(modIdParam), query.Orphans, query.Force)
+		jID, err := a.DeleteModule(gc.Request.Context(), gc.Param(modIdParam), query.Force)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -196,12 +191,7 @@ func patchModuleUpdateH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		query := updateModuleQuery{}
-		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(lib_model.NewInvalidInputError(err))
-			return
-		}
-		id, err := a.UpdateModule(gc.Request.Context(), gc.Param(modIdParam), uptReq.DepInput, uptReq.Dependencies, query.Orphans)
+		id, err := a.UpdateModule(gc.Request.Context(), gc.Param(modIdParam), uptReq.DepInput, uptReq.Dependencies)
 		if err != nil {
 			_ = gc.Error(err)
 			return
