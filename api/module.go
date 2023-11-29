@@ -236,7 +236,7 @@ func (a *Api) UpdateModule(ctx context.Context, id string, depInput lib_model.De
 		a.mu.Unlock()
 		return "", newApiErr(metaStr, err)
 	}
-	jID, err := a.jobHandler.Create(ctx, fmt.Sprintf("update module '%s'", id), func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.updateModule(ctx, id, depInput, dependencies, stg, newIDs, uptIDs, ophIDs, deployments)
