@@ -253,8 +253,8 @@ func (a *Api) StartDeployments(ctx context.Context, filter lib_model.DepFilter, 
 	return jID, nil
 }
 
-func (a *Api) StopDeployment(ctx context.Context, dID string, dependencies bool) (string, error) {
-	metaStr := fmt.Sprintf("stop deployment (id=%s dependencies=%v)", dID, dependencies)
+func (a *Api) StopDeployment(ctx context.Context, dID string, force bool) (string, error) {
+	metaStr := fmt.Sprintf("stop deployment (id=%s force=%v)", dID, force)
 	err := a.mu.TryLock(metaStr)
 	if err != nil {
 		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
@@ -262,7 +262,7 @@ func (a *Api) StopDeployment(ctx context.Context, dID string, dependencies bool)
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.Stop(ctx, dID, dependencies)
+		err := a.deploymentHandler.Stop(ctx, dID, force)
 		if err == nil {
 			err = ctx.Err()
 		}
