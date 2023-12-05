@@ -53,6 +53,10 @@ func (h *handler) NewVolumeName(arg ...string) string {
 	return fmt.Sprintf("%s_%s_%s", h.prefix, h.coreID, genHash(arg...))
 }
 
+func NewDeprecatedVolumeName(arg ...string) string {
+	return "mgw_" + genHash(arg...)
+}
+
 func genHash(str ...string) string {
 	hash := sha1.New()
 	for _, s := range str {
