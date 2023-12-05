@@ -156,10 +156,8 @@ func (h *Handler) RestartAll(ctx context.Context, filter lib_model.DepFilter) er
 }
 
 func (h *Handler) start(ctx context.Context, dep lib_model.Deployment) error {
-	if !dep.Enabled {
-		if err := h.loadSecrets(ctx, dep); err != nil {
-			return err
-		}
+	if err := h.loadSecrets(ctx, dep); err != nil {
+		return err
 	}
 	if err := h.startContainers(ctx, dep.Containers); err != nil {
 		return err
