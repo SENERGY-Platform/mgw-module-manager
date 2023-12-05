@@ -24,4 +24,5 @@ const (
 	VolumeRefLabel     = "mgw_vref"
 	AuxDeploymentID    = "mgw_aid"
 	DeploymentIDEnvVar = "MGW_DID"
+	CoreIDEnvVar       = "MGW_CID"
 )
