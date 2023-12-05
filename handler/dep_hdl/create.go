@@ -81,21 +81,25 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput lib_m
 	if err = h.storageHandler.CreateDepAssets(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dep.ID, dep.DepAssets); err != nil {
 		return "", err
 	}
-	var volumes []string
+	volumes := make(map[string]string)
 	for ref := range mod.Volumes {
-		volumes = append(volumes, ref)
+		volumes[ref] = naming_hdl.Global.NewVolumeName(dep.ID, ref)
 	}
 	if err = h.createVolumes(ctx, volumes, dep.ID); err != nil {
 		return "", err
 	}
 	defer func() {
 		if err != nil {
-			if e := h.removeVolumes(context.Background(), volumes, true); e != nil {
+			var nv []string
+			for _, v := range volumes {
+				nv = append(nv, v)
+			}
+			if e := h.removeVolumes(context.Background(), nv, true); e != nil {
 				util.Logger.Error(e)
 			}
 		}
 	}()
-	dep.Containers, err = h.createContainers(ctx, mod, dep.DepBase, userConfigs, hostResources, secrets, modDependencyDeps)
+	dep.Containers, err = h.createContainers(ctx, mod, dep.DepBase, userConfigs, hostResources, secrets, modDependencyDeps, nil, volumes)
 	if err != nil {
 		return "", err
 	}
@@ -116,7 +120,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput lib_m
 	return dep.ID, nil
 }
 
-func (h *Handler) createContainers(ctx context.Context, mod *module.Module, depBase lib_model.DepBase, userConfigs map[string]lib_model.DepConfig, hostRes map[string]hm_model.HostResource, secrets map[string]secret, modDependencyDeps map[string]lib_model.Deployment) (map[string]lib_model.DepContainer, error) {
+func (h *Handler) createContainers(ctx context.Context, mod *module.Module, depBase lib_model.DepBase, userConfigs map[string]lib_model.DepConfig, hostRes map[string]hm_model.HostResource, secrets map[string]secret, modDependencyDeps map[string]lib_model.Deployment, existingContainers map[string]lib_model.DepContainer, volumes map[string]string) (map[string]lib_model.DepContainer, error) {
 	stringValues, err := userConfigsToStringValues(mod.Configs, userConfigs)
 	if err != nil {
 		return nil, lib_model.NewInternalError(err)
@@ -129,12 +133,16 @@ func (h *Handler) createContainers(ctx context.Context, mod *module.Module, depB
 		if err != nil {
 			return nil, lib_model.NewInternalError(err)
 		}
-		mounts, devices := newMounts(srv, depBase, hostRes, secrets, h.depHostPath, h.secHostPath)
+		mounts, devices := newMounts(srv, depBase, hostRes, secrets, h.depHostPath, h.secHostPath, volumes)
 		name, err := naming_hdl.Global.NewContainerName("dep")
 		if err != nil {
 			return nil, err
 		}
 		alias := naming_hdl.Global.NewContainerAlias(depBase.ID, ref)
+		ctr, ok := existingContainers[ref]
+		if ok {
+			alias = ctr.Alias
+		}
 		labels := map[string]string{
 			naming_hdl.CoreIDLabel:       h.coreID,
 			naming_hdl.ManagerIDLabel:    h.managerID,
@@ -185,7 +193,7 @@ func (h *Handler) mkInclDir(inclDir dir_fs.DirFS) (string, error) {
 	return strID, nil
 }
 
-func (h *Handler) createVolumes(ctx context.Context, mVolumes []string, dID string) error {
+func (h *Handler) createVolumes(ctx context.Context, volumes map[string]string, dID string) error {
 	var err error
 	var createdVols []string
 	defer func() {
@@ -197,12 +205,11 @@ func (h *Handler) createVolumes(ctx context.Context, mVolumes []string, dID stri
 	}()
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	for _, ref := range mVolumes {
-		name := naming_hdl.Global.NewVolumeName(dID, ref)
+	for ref, name := range volumes {
 		var n string
 		n, err = h.cewClient.CreateVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.Volume{
 			Name:   name,
-			Labels: map[string]string{naming_hdl.CoreIDLabel: h.coreID, naming_hdl.ManagerIDLabel: h.managerID, naming_hdl.DeploymentIDLabel: dID},
+			Labels: map[string]string{naming_hdl.CoreIDLabel: h.coreID, naming_hdl.ManagerIDLabel: h.managerID, naming_hdl.DeploymentIDLabel: dID, naming_hdl.VolumeRefLabel: ref},
 		})
 		if err != nil {
 			return lib_model.NewInternalError(err)
@@ -238,15 +245,17 @@ func newDepDependencies(modDependencyDeps map[string]lib_model.Deployment) (depe
 	return
 }
 
-func newMounts(srv *module.Service, depBase lib_model.DepBase, hostRes map[string]hm_model.HostResource, secrets map[string]secret, depHostPath, secHostPath string) ([]cew_model.Mount, []cew_model.Device) {
+func newMounts(srv *module.Service, depBase lib_model.DepBase, hostRes map[string]hm_model.HostResource, secrets map[string]secret, depHostPath, secHostPath string, volumes map[string]string) ([]cew_model.Mount, []cew_model.Device) {
 	var mounts []cew_model.Mount
 	var devices []cew_model.Device
 	for mntPoint, name := range srv.Volumes {
-		mounts = append(mounts, cew_model.Mount{
-			Type:   cew_model.VolumeMount,
-			Source: naming_hdl.Global.NewVolumeName(depBase.ID, name),
-			Target: mntPoint,
-		})
+		if vol, ok := volumes[name]; ok {
+			mounts = append(mounts, cew_model.Mount{
+				Type:   cew_model.VolumeMount,
+				Source: vol,
+				Target: mntPoint,
+			})
+		}
 	}
 	for mntPoint, mount := range srv.BindMounts {
 		mounts = append(mounts, cew_model.Mount{

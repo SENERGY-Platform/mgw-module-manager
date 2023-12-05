@@ -20,7 +20,6 @@ import (
 	"context"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	ml_util "github.com/SENERGY-Platform/mgw-module-lib/util"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
@@ -107,22 +106,26 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	if err = h.storageHandler.CreateDepAssets(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, id, newDep.DepAssets); err != nil {
 		return err
 	}
-	newVol, orphanVol, err := h.diffVolumes(ctx, mod.Volumes, id)
+	volumes, newVolumes, orphanVolumes, err := h.diffVolumes(ctx, id, mod.Volumes)
 	if err != nil {
 		return err
 	}
-	err = h.createVolumes(ctx, newVol, id)
+	err = h.createVolumes(ctx, newVolumes, id)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
-			if e := h.removeVolumes(context.Background(), newVol, true); e != nil {
+			var nv []string
+			for _, v := range newVolumes {
+				nv = append(nv, v)
+			}
+			if e := h.removeVolumes(context.Background(), nv, true); e != nil {
 				util.Logger.Error(e)
 			}
 		}
 	}()
-	newDep.Containers, err = h.createContainers(ctx, mod, newDep.DepBase, userConfigs, hostResources, secrets, modDependencyDeps)
+	newDep.Containers, err = h.createContainers(ctx, mod, newDep.DepBase, userConfigs, hostResources, secrets, modDependencyDeps, oldDep.Containers, volumes)
 	if err != nil {
 		return err
 	}
@@ -150,39 +153,45 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	if e := h.removeContainers(ctx, oldDep.Containers, true); e != nil {
 		util.Logger.Error(e)
 	}
-	if e := h.removeVolumes(ctx, orphanVol, true); e != nil {
+	if e := h.removeVolumes(ctx, orphanVolumes, true); e != nil {
 		util.Logger.Error(e)
 	}
 	return nil
 }
 
-func (h *Handler) diffVolumes(ctx context.Context, volumes ml_util.Set[string], dID string) ([]string, []string, error) {
+func (h *Handler) diffVolumes(ctx context.Context, dID string, mVolumes map[string]struct{}) (map[string]string, map[string]string, []string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
 	defer cf()
-	vols, err := h.cewClient.GetVolumes(ctxWt, cew_model.VolumeFilter{Labels: map[string]string{naming_hdl.DeploymentIDLabel: dID}})
+	cewVolumes, err := h.cewClient.GetVolumes(ctxWt, cew_model.VolumeFilter{Labels: map[string]string{naming_hdl.DeploymentIDLabel: dID}})
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	hashedVols := make(map[string]string)
-	for name := range volumes {
-		hashedVols[naming_hdl.Global.NewVolumeName(dID, name)] = name
+	hashVolMap := make(map[string]string)
+	hashVolDeprecatedMap := make(map[string]string)
+	for mName := range mVolumes {
+		hashVolMap[naming_hdl.Global.NewVolumeName(dID, mName)] = mName
+		hashVolDeprecatedMap[naming_hdl.NewDeprecatedVolumeName(dID, mName)] = mName
 	}
-	var orphans []string
-	existing := make(ml_util.Set[string])
-	for _, v := range vols {
-		if _, ok := hashedVols[v.Name]; !ok {
-			orphans = append(orphans, v.Name)
-		} else {
-			existing[v.Name] = struct{}{}
+	volumes := make(map[string]string)
+	var orphanVolumes []string
+	for _, v := range cewVolumes {
+		mName, ok := hashVolMap[v.Name]
+		if !ok {
+			if mName, ok = hashVolDeprecatedMap[v.Name]; !ok {
+				orphanVolumes = append(orphanVolumes, v.Name)
+				continue
+			}
+		}
+		volumes[mName] = v.Name
+	}
+	newVolumes := make(map[string]string)
+	for hsh, mName := range hashVolMap {
+		if _, ok := volumes[mName]; !ok {
+			volumes[mName] = hsh
+			newVolumes[mName] = hsh
 		}
 	}
-	var missing []string
-	for hsh, name := range hashedVols {
-		if _, ok := existing[hsh]; !ok {
-			missing = append(missing, name)
-		}
-	}
-	return missing, orphans, nil
+	return volumes, newVolumes, orphanVolumes, nil
 }
 
 func (h *Handler) restore(dep lib_model.Deployment) error {
