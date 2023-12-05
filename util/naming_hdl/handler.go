@@ -46,18 +46,10 @@ func (h *handler) NewContainerName(subPrefix string) (string, error) {
 }
 
 func (h *handler) NewContainerAlias(arg ...string) string {
-	hash := sha1.New()
-	for _, s := range arg {
-		hash.Write([]byte(s))
-	}
 	return fmt.Sprintf("%s-%s-%s", h.prefix, h.coreID, genHash(arg...))
 }
 
 func (h *handler) NewVolumeName(arg ...string) string {
-	hash := sha1.New()
-	for _, s := range arg {
-		hash.Write([]byte(s))
-	}
 	return fmt.Sprintf("%s_%s_%s", h.prefix, h.coreID, genHash(arg...))
 }
 
