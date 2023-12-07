@@ -129,7 +129,7 @@ func (h *Handler) createContainers(ctx context.Context, mod *module.Module, depB
 	depContainers := make(map[string]lib_model.DepContainer)
 	for ref, srv := range mod.Services {
 		var envVars map[string]string
-		envVars, err = getEnvVars(srv, stringValues, modDependencyDeps, secrets, depBase.ID)
+		envVars, err = getEnvVars(srv, stringValues, modDependencyDeps, secrets, depBase.ID, existingContainers)
 		if err != nil {
 			return nil, lib_model.NewInternalError(err)
 		}
@@ -308,7 +308,7 @@ func newMounts(srv *module.Service, depBase lib_model.DepBase, hostRes map[strin
 	return mounts, devices
 }
 
-func getEnvVars(srv *module.Service, configs map[string]string, modDependencyDeps map[string]lib_model.Deployment, secrets map[string]secret, dID string) (map[string]string, error) {
+func getEnvVars(srv *module.Service, configs map[string]string, modDependencyDeps map[string]lib_model.Deployment, secrets map[string]secret, dID string, existingContainers map[string]lib_model.DepContainer) (map[string]string, error) {
 	envVars := make(map[string]string)
 	for eVar, cRef := range srv.Configs {
 		if val, ok := configs[cRef]; ok {
@@ -316,7 +316,12 @@ func getEnvVars(srv *module.Service, configs map[string]string, modDependencyDep
 		}
 	}
 	for eVar, target := range srv.SrvReferences {
-		envVars[eVar] = target.FillTemplate(naming_hdl.Global.NewContainerAlias(dID, target.Ref))
+		alias := naming_hdl.Global.NewContainerAlias(dID, target.Ref)
+		ctr, ok := existingContainers[target.Ref]
+		if ok {
+			alias = ctr.Alias
+		}
+		envVars[eVar] = target.FillTemplate(alias)
 	}
 	for eVar, target := range srv.ExtDependencies {
 		dep, ok := modDependencyDeps[target.ID]
