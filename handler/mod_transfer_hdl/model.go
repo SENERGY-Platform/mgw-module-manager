@@ -18,12 +18,13 @@ package mod_transfer_hdl
 
 import (
 	"errors"
+	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"os"
 	"path"
-	"sort"
+	"slices"
 )
 
 type modRepo struct {
@@ -39,7 +40,10 @@ func (r *modRepo) Versions() []string {
 	for ver := range r.versions {
 		versions = append(versions, ver)
 	}
-	sort.Strings(versions)
+	slices.SortStableFunc(versions, func(a, b string) int {
+		res, _ := sem_ver.CompareSemVer(a, b)
+		return res
+	})
 	return versions
 }
 
