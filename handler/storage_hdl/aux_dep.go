@@ -158,7 +158,7 @@ func (h *Handler) UpdateAuxDep(ctx context.Context, txItf driver.Tx, auxDep lib_
 		}
 		defer tx.Rollback()
 	}
-	res, err := tx.ExecContext(ctx, "UPDATE `aux_deployments` SET `image` = ?, `updated` = ?, `name` = ? WHERE `id` = ?", auxDep.Image, auxDep.Updated, auxDep.Name, auxDep.DepID, aID)
+	res, err := tx.ExecContext(ctx, "UPDATE `aux_deployments` SET `image` = ?, `updated` = ?, `name` = ? WHERE `id` = ?", auxDep.Image, auxDep.Updated, auxDep.Name, auxDep.ID)
 	if err != nil {
 		return lib_model.NewInternalError(err)
 	}
