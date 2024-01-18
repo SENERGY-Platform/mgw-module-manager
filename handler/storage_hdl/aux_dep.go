@@ -123,7 +123,7 @@ func (h *Handler) CreateAuxDep(ctx context.Context, txItf driver.Tx, auxDep lib_
 		}
 		defer tx.Rollback()
 	}
-	res, err := tx.ExecContext(ctx, "INSERT INTO `aux_deployments` (`id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name`) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, )", auxDep.DepID, auxDep.Image, auxDep.Created, auxDep.Updated, auxDep.Ref, auxDep.Name)
+	res, err := tx.ExecContext(ctx, "INSERT INTO `aux_deployments` (`id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name`) VALUES (UUID(), ?, ?, ?, ?, ?, ?)", auxDep.DepID, auxDep.Image, auxDep.Created, auxDep.Updated, auxDep.Ref, auxDep.Name)
 	if err != nil {
 		return "", lib_model.NewInternalError(err)
 	}
