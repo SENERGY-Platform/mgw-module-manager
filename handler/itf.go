@@ -121,7 +121,7 @@ type AuxDepStorageHandler interface {
 	ListAuxDep(ctx context.Context, dID string, filter lib_model.AuxDepFilter, assets bool) (map[string]lib_model.AuxDeployment, error)
 	ReadAuxDep(ctx context.Context, aID string, assets bool) (lib_model.AuxDeployment, error)
 	CreateAuxDep(ctx context.Context, tx driver.Tx, auxDep lib_model.AuxDepBase) (string, error)
-	UpdateAuxDep(ctx context.Context, tx driver.Tx, aID string, auxDep lib_model.AuxDepBase) error
+	UpdateAuxDep(ctx context.Context, tx driver.Tx, auxDep lib_model.AuxDepBase) error
 	DeleteAuxDep(ctx context.Context, tx driver.Tx, aID string) error
 	CreateAuxDepAssets(ctx context.Context, tx driver.Tx, aID string, depAssets lib_model.AuxDepAssets) error
 	DeleteAuxDepAssets(ctx context.Context, tx driver.Tx, aID string) error

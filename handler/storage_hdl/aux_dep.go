@@ -147,7 +147,7 @@ func (h *Handler) CreateAuxDep(ctx context.Context, txItf driver.Tx, auxDep lib_
 	return id, nil
 }
 
-func (h *Handler) UpdateAuxDep(ctx context.Context, txItf driver.Tx, aID string, auxDep lib_model.AuxDepBase) error {
+func (h *Handler) UpdateAuxDep(ctx context.Context, txItf driver.Tx, auxDep lib_model.AuxDepBase) error {
 	var tx *sql.Tx
 	if txItf != nil {
 		tx = txItf.(*sql.Tx)
@@ -169,12 +169,12 @@ func (h *Handler) UpdateAuxDep(ctx context.Context, txItf driver.Tx, aID string,
 	if n < 1 {
 		return lib_model.NewNotFoundError(errors.New("no rows affected"))
 	}
-	_, err = tx.ExecContext(ctx, "DELETE FROM `aux_labels` WHERE `id` = ?", aID)
+	_, err = tx.ExecContext(ctx, "DELETE FROM `aux_labels` WHERE `aux_id` = ?", auxDep.ID)
 	if err != nil {
 		return lib_model.NewInternalError(err)
 	}
 	if len(auxDep.Labels) > 0 {
-		if err = insertAuxDepLabels(ctx, tx.PrepareContext, aID, auxDep.Labels); err != nil {
+		if err = insertAuxDepLabels(ctx, tx.PrepareContext, auxDep.ID, auxDep.Labels); err != nil {
 			return err
 		}
 	}
