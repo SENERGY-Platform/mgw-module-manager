@@ -216,7 +216,7 @@ func (h *Handler) DeleteAuxDepAssets(ctx context.Context, txItf driver.Tx, aID s
 		tx := txItf.(*sql.Tx)
 		execContext = tx.ExecContext
 	}
-	_, err := execContext(ctx, "DELETE FROM `aux_configs` WHERE `id` = ?", aID)
+	_, err := execContext(ctx, "DELETE FROM `aux_configs` WHERE `aux_id` = ?", aID)
 	if err != nil {
 		return lib_model.NewInternalError(err)
 	}
@@ -242,7 +242,7 @@ func (h *Handler) DeleteAuxDepContainer(ctx context.Context, txItf driver.Tx, aI
 		tx := txItf.(*sql.Tx)
 		execContext = tx.ExecContext
 	}
-	_, err := execContext(ctx, "DELETE FROM `aux_containers` WHERE `id` = ?", aID)
+	_, err := execContext(ctx, "DELETE FROM `aux_containers` WHERE `aux_id` = ?", aID)
 	if err != nil {
 		return lib_model.NewInternalError(err)
 	}
