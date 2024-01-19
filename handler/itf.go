@@ -102,20 +102,21 @@ type DepStorageHandler interface {
 	DeleteDepContainers(ctx context.Context, tx driver.Tx, dID string) error
 }
 
-//	type AuxDeploymentHandler interface {
-//		List(ctx context.Context, dID string, filter lib_model.AuxDepFilter, containerInfo bool) (map[string]lib_model.AuxDeployment, error)
-//		Get(ctx context.Context, aID string, containerInfo bool) (lib_model.AuxDeployment, error)
-//		Create(ctx context.Context, mod model.Module, dep lib_model.Deployment, auxReq lib_model.AuxDepReq) (string, error)
-//		Update(ctx context.Context, aID string, mod model.Module, auxReq lib_model.AuxDepReq) error
-//		Delete(ctx context.Context, aID string) error
-//		DeleteAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
-//		Start(ctx context.Context, aID string) error
-//		StartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
-//		Stop(ctx context.Context, aID string, force bool) error
-//		StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) error
-//		Restart(ctx context.Context, id string) error
-//		RestartAll(ctx context.Context, dID string, filter lib_model.DepFilter) error
-//	}
+type AuxDeploymentHandler interface {
+	List(ctx context.Context, dID string, filter lib_model.AuxDepFilter, assets, containerInfo bool) (map[string]lib_model.AuxDeployment, error)
+	Get(ctx context.Context, aID string, assets, containerInfo bool) (lib_model.AuxDeployment, error)
+	Create(ctx context.Context, mod model.Module, dep lib_model.Deployment, auxReq lib_model.AuxDepReq) (string, error)
+	Update(ctx context.Context, aID string, mod model.Module, dep lib_model.Deployment, auxReq lib_model.AuxDepReq) error
+	Delete(ctx context.Context, aID string, force bool) error
+	DeleteAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) error
+	Start(ctx context.Context, aID string) error
+	StartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
+	Stop(ctx context.Context, aID string, force bool) error
+	StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) error
+	Restart(ctx context.Context, id string) error
+	RestartAll(ctx context.Context, dID string, filter lib_model.DepFilter) error
+}
+
 type AuxDepStorageHandler interface {
 	BeginTransaction(ctx context.Context) (driver.Tx, error)
 	ListAuxDep(ctx context.Context, dID string, filter lib_model.AuxDepFilter, assets bool) (map[string]lib_model.AuxDeployment, error)
