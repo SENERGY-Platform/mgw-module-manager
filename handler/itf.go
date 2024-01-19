@@ -111,10 +111,10 @@ type AuxDeploymentHandler interface {
 	DeleteAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) error
 	Start(ctx context.Context, aID string) error
 	StartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
-	Stop(ctx context.Context, aID string, force bool) error
-	StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) error
-	Restart(ctx context.Context, id string) error
-	RestartAll(ctx context.Context, dID string, filter lib_model.DepFilter) error
+	Stop(ctx context.Context, aID string) error
+	StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
+	Restart(ctx context.Context, aID string) error
+	RestartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
 }
 
 type AuxDepStorageHandler interface {
