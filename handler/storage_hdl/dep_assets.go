@@ -45,7 +45,9 @@ func (h *Handler) CreateDepAssets(ctx context.Context, txItf driver.Tx, dID stri
 		return err
 	}
 	if txItf == nil {
-		return tx.Commit()
+		if err := tx.Commit(); err != nil {
+			return lib_model.NewInternalError(err)
+		}
 	}
 	return nil
 }
@@ -71,7 +73,9 @@ func (h *Handler) DeleteDepAssets(ctx context.Context, txItf driver.Tx, dID stri
 		return err
 	}
 	if txItf == nil {
-		return tx.Commit()
+		if err := tx.Commit(); err != nil {
+			return lib_model.NewInternalError(err)
+		}
 	}
 	return nil
 }
