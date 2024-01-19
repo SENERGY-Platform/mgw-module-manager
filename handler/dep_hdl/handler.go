@@ -108,10 +108,14 @@ func (h *Handler) List(ctx context.Context, filter lib_model.DepFilter, dependen
 			util.Logger.Errorf("could not retrieve containers: %s", err.Error())
 			return deployments, nil
 		}
+		ctrMap := make(map[string]cew_model.Container)
+		for _, ctr := range ctrList {
+			ctrMap[ctr.ID] = ctr
+		}
 		withCtrInfo := make(map[string]lib_model.Deployment)
 		for dID, deployment := range deployments {
 			if deployment.Enabled {
-				deployment.State, deployment.Containers = getDepHealthAndCtrInfo(dID, deployment.Containers, ctrList)
+				deployment.State, deployment.Containers = getDepHealthAndCtrInfo(dID, deployment.Containers, ctrMap)
 			}
 			withCtrInfo[dID] = deployment
 		}
@@ -138,7 +142,11 @@ func (h *Handler) Get(ctx context.Context, id string, dependencyInfo, assets, co
 			util.Logger.Errorf("could not retrieve containers: %s", err.Error())
 			return deployment, nil
 		}
-		deployment.State, deployment.Containers = getDepHealthAndCtrInfo(deployment.ID, deployment.Containers, ctrList)
+		ctrMap := make(map[string]cew_model.Container)
+		for _, ctr := range ctrList {
+			ctrMap[ctr.ID] = ctr
+		}
+		deployment.State, deployment.Containers = getDepHealthAndCtrInfo(deployment.ID, deployment.Containers, ctrMap)
 	}
 	return deployment, nil
 }
@@ -166,11 +174,7 @@ func (h *Handler) getModDependencyDeployments(ctx context.Context, modDependenci
 	return m, nil
 }
 
-func getDepHealthAndCtrInfo(dID string, depContainers map[string]lib_model.DepContainer, ctrList []cew_model.Container) (*lib_model.HealthState, map[string]lib_model.DepContainer) {
-	ctrMap := make(map[string]cew_model.Container)
-	for _, ctr := range ctrList {
-		ctrMap[ctr.ID] = ctr
-	}
+func getDepHealthAndCtrInfo(dID string, depContainers map[string]lib_model.DepContainer, ctrMap map[string]cew_model.Container) (*lib_model.HealthState, map[string]lib_model.DepContainer) {
 	var state lib_model.HealthState
 	withCtrInfo := make(map[string]lib_model.DepContainer)
 	for ref, depCtr := range depContainers {
