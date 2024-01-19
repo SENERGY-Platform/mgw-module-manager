@@ -16,46 +16,36 @@
 
 package aux_dep_hdl
 
-//import (
-//	"context"
-//	"fmt"
-//	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
-//	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
-//	"github.com/SENERGY-Platform/mgw-module-lib/module"
-//	"github.com/SENERGY-Platform/mgw-module-manager/handler"
-//	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-//	"github.com/SENERGY-Platform/mgw-module-manager/util"
-//	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
-//	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
-//	"github.com/google/uuid"
-//	"path"
-//	"time"
-//)
-//
-//type Handler struct {
-//	storageHandler handler.AuxDepStorageHandler
-//	cewClient      cew_lib.Api
-//	dbTimeout      time.Duration
-//	httpTimeout    time.Duration
-//	managerID      string
-//	coreID         string
-//	moduleNet      string
-//	depHostPath    string
-//}
-//
-//func New(storageHandler handler.AuxDepStorageHandler, cewClient cew_lib.Api, dbTimeout, httpTimeout time.Duration, managerID, moduleNet, coreID, depHostPath string) *Handler {
-//	return &Handler{
-//		storageHandler: storageHandler,
-//		cewClient:      cewClient,
-//		dbTimeout:      dbTimeout,
-//		httpTimeout:    httpTimeout,
-//		managerID:      managerID,
-//		coreID:         coreID,
-//		moduleNet:      moduleNet,
-//		depHostPath:    depHostPath,
-//	}
-//}
-//
+import (
+	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
+	"time"
+)
+
+type Handler struct {
+	storageHandler handler.AuxDepStorageHandler
+	cewClient      cew_lib.Api
+	dbTimeout      time.Duration
+	httpTimeout    time.Duration
+	managerID      string
+	coreID         string
+	moduleNet      string
+	depHostPath    string
+}
+
+func New(storageHandler handler.AuxDepStorageHandler, cewClient cew_lib.Api, dbTimeout, httpTimeout time.Duration, managerID, moduleNet, coreID, depHostPath string) *Handler {
+	return &Handler{
+		storageHandler: storageHandler,
+		cewClient:      cewClient,
+		dbTimeout:      dbTimeout,
+		httpTimeout:    httpTimeout,
+		managerID:      managerID,
+		coreID:         coreID,
+		moduleNet:      moduleNet,
+		depHostPath:    depHostPath,
+	}
+}
+
 //func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilter, ctrInfo bool) ([]model.AuxDeployment, error) {
 //	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 //	defer cf()
