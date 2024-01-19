@@ -100,7 +100,7 @@ func (h *Handler) List(ctx context.Context, filter lib_model.DepFilter, dependen
 	if err != nil {
 		return nil, err
 	}
-	if containerInfo {
+	if containerInfo && len(deployments) > 0 {
 		ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
 		defer cf2()
 		ctrList, err := h.cewClient.GetContainers(ctxWt2, cew_model.ContainerFilter{Labels: map[string]string{naming_hdl.ManagerIDLabel: h.managerID}})
