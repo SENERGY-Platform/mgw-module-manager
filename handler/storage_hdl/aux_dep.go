@@ -144,6 +144,11 @@ func (h *Handler) CreateAuxDep(ctx context.Context, txItf driver.Tx, auxDep lib_
 			return "", err
 		}
 	}
+	if txItf == nil {
+		if err = tx.Commit(); err != nil {
+			return "", lib_model.NewInternalError(err)
+		}
+	}
 	return id, nil
 }
 
@@ -176,6 +181,11 @@ func (h *Handler) UpdateAuxDep(ctx context.Context, txItf driver.Tx, auxDep lib_
 	if len(auxDep.Labels) > 0 {
 		if err = insertAuxDepLabels(ctx, tx.PrepareContext, auxDep.ID, auxDep.Labels); err != nil {
 			return err
+		}
+	}
+	if txItf == nil {
+		if err = tx.Commit(); err != nil {
+			return lib_model.NewInternalError(err)
 		}
 	}
 	return nil
