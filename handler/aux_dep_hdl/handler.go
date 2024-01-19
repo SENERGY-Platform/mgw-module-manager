@@ -336,35 +336,7 @@ func (h *Handler) restart(ctx context.Context, cID string) error {
 //	}
 //	return aID, nil
 //}
-//
-//func (h *Handler) Update(ctx context.Context, aID string, mod *module.Module, auxReq model.AuxDepReq) error {
-//	panic("not implemented")
-//}
-//
-//func (h *Handler) Delete(ctx context.Context, aID string) error {
-//	panic("not implemented")
-//}
-//
-//func (h *Handler) DeleteAll(ctx context.Context, dID string, filter model.AuxDepFilter) error {
-//	panic("not implemented")
-//}
-//
-//func (h *Handler) Start(ctx context.Context, aID string) error {
-//	panic("not implemented")
-//}
-//
-//func (h *Handler) StartAll(ctx context.Context, dID string, filter model.AuxDepFilter) error {
-//	panic("not implemented")
-//}
-//
-//func (h *Handler) Stop(ctx context.Context, aID string) error {
-//	panic("not implemented")
-//}
-//
-//func (h *Handler) StopAll(ctx context.Context, dID string, filter model.AuxDepFilter) error {
-//	panic("not implemented")
-//}
-//
+
 //func (h *Handler) getContainersMap(ctx context.Context, dID string) (map[string]cew_model.Container, error) {
 //	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
 //	defer cf()
