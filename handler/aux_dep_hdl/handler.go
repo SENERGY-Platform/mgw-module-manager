@@ -17,8 +17,18 @@
 package aux_dep_hdl
 
 import (
+	"context"
+	"errors"
+	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
+	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
+	"net/http"
 	"time"
 )
 
@@ -46,59 +56,234 @@ func New(storageHandler handler.AuxDepStorageHandler, cewClient cew_lib.Api, dbT
 	}
 }
 
-//func (h *Handler) List(ctx context.Context, dID string, filter model.AuxDepFilter, ctrInfo bool) ([]model.AuxDeployment, error) {
-//	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-//	defer cf()
-//	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter)
-//	if err != nil {
-//		return nil, err
-//	}
-//	if ctrInfo && len(auxDeployments) > 0 {
-//		ctrMap, err := h.getContainersMap(ctx, dID)
-//		if err != nil {
-//			util.Logger.Error(err)
-//		} else {
-//			var auxDeps []model.AuxDeployment
-//			for _, auxDep := range auxDeployments {
-//				ctr, ok := ctrMap[auxDep.Container.ID]
-//				if !ok {
-//					return nil, model.NewInternalError(fmt.Errorf("container '%s' not in map", auxDep.Container.ID))
-//				}
-//				auxDep.Container.Info = &model.AuxDepCtrInfo{
-//					ImageID: ctr.ImageID,
-//					State:   ctr.State,
-//				}
-//				auxDeps = append(auxDeps, auxDep)
-//			}
-//			return auxDeps, nil
-//		}
-//	}
-//	return auxDeployments, nil
-//}
-//
-//func (h *Handler) Get(ctx context.Context, aID string, ctrInfo bool) (model.AuxDeployment, error) {
-//	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-//	defer cf()
-//	auxDep, err := h.storageHandler.ReadAuxDep(ctxWt, aID)
-//	if err != nil {
-//		return model.AuxDeployment{}, err
-//	}
-//	if ctrInfo {
-//		ctxWt2, cf2 := context.WithTimeout(ctx, h.httpTimeout)
-//		defer cf2()
-//		ctr, err := h.cewClient.GetContainer(ctxWt2, auxDep.Container.ID)
-//		if err != nil {
-//			util.Logger.Error(err)
-//		} else {
-//			auxDep.Container.Info = &model.AuxDepCtrInfo{
-//				ImageID: ctr.ImageID,
-//				State:   ctr.State,
-//			}
-//		}
-//	}
-//	return auxDep, nil
-//}
-//
+func (h *Handler) List(ctx context.Context, dID string, filter lib_model.AuxDepFilter, assets, containerInfo bool) (map[string]lib_model.AuxDeployment, error) {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, assets)
+	if err != nil {
+		return nil, err
+	}
+	if containerInfo && len(auxDeployments) > 0 {
+		ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
+		defer cf2()
+		ctrList, err := h.cewClient.GetContainers(ctxWt2, cew_model.ContainerFilter{Labels: map[string]string{naming_hdl.ManagerIDLabel: h.managerID, naming_hdl.DeploymentIDLabel: dID}})
+		if err != nil {
+			util.Logger.Errorf("could not retrieve containers: %s", err.Error())
+			return auxDeployments, nil
+		}
+		ctrMap := make(map[string]cew_model.Container)
+		for _, ctr := range ctrList {
+			ctrMap[ctr.ID] = ctr
+		}
+		withCtrInfo := make(map[string]lib_model.AuxDeployment)
+		for aID, auxDeployment := range auxDeployments {
+			ctr, ok := ctrMap[auxDeployment.Container.ID]
+			if ok {
+				auxDeployment.Container.Info = &lib_model.ContainerInfo{
+					ImageID: ctr.ImageID,
+					State:   ctr.State,
+				}
+			} else {
+				util.Logger.Warningf("aux deployment '%s' missing container '%s'", aID, auxDeployment.Container.ID)
+			}
+			withCtrInfo[aID] = auxDeployment
+		}
+		return withCtrInfo, nil
+	}
+	return auxDeployments, nil
+}
+
+func (h *Handler) Get(ctx context.Context, aID string, assets, containerInfo bool) (lib_model.AuxDeployment, error) {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, assets)
+	if err != nil {
+		return lib_model.AuxDeployment{}, err
+	}
+	if containerInfo {
+		ctxWt2, cf2 := context.WithTimeout(ctx, h.httpTimeout)
+		defer cf2()
+		ctr, err := h.cewClient.GetContainer(ctxWt2, auxDeployment.Container.ID)
+		if err != nil {
+			util.Logger.Error(err)
+		} else {
+			auxDeployment.Container.Info = &lib_model.ContainerInfo{
+				ImageID: ctr.ImageID,
+				State:   ctr.State,
+			}
+		}
+	}
+	return auxDeployment, nil
+}
+
+func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.Deployment, auxReq lib_model.AuxDepReq) (string, error) {
+	panic("not implemented")
+}
+
+func (h *Handler) Update(ctx context.Context, aID string, mod model.Module, dep lib_model.Deployment, auxReq lib_model.AuxDepReq) error {
+	panic("not implemented")
+}
+
+func (h *Handler) Delete(ctx context.Context, aID string, force bool) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, false)
+	if err != nil {
+		return err
+	}
+	if err = h.removeContainer(ctx, auxDeployment.Container.ID, force); err != nil {
+		return err
+	}
+	ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf2()
+	return h.storageHandler.DeleteAuxDep(ctxWt2, nil, aID)
+}
+
+func (h *Handler) DeleteAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	auxDeployments, err := h.storageHandler.ListAuxDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, filter, false)
+	if err != nil {
+		return err
+	}
+	for aID, auxDeployment := range auxDeployments {
+		if err = h.removeContainer(ctx, auxDeployment.Container.ID, force); err != nil {
+			return err
+		}
+		if err = h.storageHandler.DeleteAuxDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), nil, aID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (h *Handler) Start(ctx context.Context, aID string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, false)
+	if err != nil {
+		return err
+	}
+	ctxWt2, cf2 := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf2()
+	if err = h.cewClient.StartContainer(ctxWt2, auxDeployment.Container.ID); err != nil {
+		return lib_model.NewInternalError(err)
+	}
+	return nil
+}
+
+func (h *Handler) StartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	auxDeployments, err := h.storageHandler.ListAuxDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, filter, false)
+	if err != nil {
+		return err
+	}
+	for _, auxDeployment := range auxDeployments {
+		if err = h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), auxDeployment.Container.ID); err != nil {
+			return lib_model.NewInternalError(err)
+		}
+	}
+	return nil
+}
+
+func (h *Handler) Stop(ctx context.Context, aID string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, false)
+	if err != nil {
+		return err
+	}
+	if err = h.stopContainer(ctx, auxDeployment.Container.ID); err != nil {
+		return lib_model.NewInternalError(err)
+	}
+	return nil
+}
+
+func (h *Handler) StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, false)
+	if err != nil {
+		return err
+	}
+	for _, auxDeployment := range auxDeployments {
+		if err = h.stopContainer(ctx, auxDeployment.Container.ID); err != nil {
+			return lib_model.NewInternalError(err)
+		}
+	}
+	return nil
+}
+
+func (h *Handler) Restart(ctx context.Context, aID string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, false)
+	if err != nil {
+		return err
+	}
+	return h.restart(ctx, auxDeployment.Container.ID)
+}
+
+func (h *Handler) RestartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, false)
+	if err != nil {
+		return err
+	}
+	for _, auxDeployment := range auxDeployments {
+		if err = h.restart(ctx, auxDeployment.Container.ID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (h *Handler) removeContainer(ctx context.Context, id string, force bool) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	if err := h.cewClient.RemoveContainer(ctxWt, id, force); err != nil {
+		var nfe *cew_model.NotFoundError
+		if !errors.As(err, &nfe) {
+			return lib_model.NewInternalError(err)
+		}
+	}
+	return nil
+}
+
+func (h *Handler) stopContainer(ctx context.Context, cID string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	jID, err := h.cewClient.StopContainer(ctxWt, cID)
+	if err != nil {
+		return lib_model.NewInternalError(err)
+	}
+	job, err := job_hdl_lib.Await(ctx, h.cewClient, jID, time.Second, h.httpTimeout, util.Logger)
+	if err != nil {
+		return lib_model.NewInternalError(err)
+	}
+	if job.Error != nil {
+		if job.Error.Code != nil && *job.Error.Code == http.StatusNotFound {
+			return lib_model.NewNotFoundError(errors.New(job.Error.Message))
+		}
+		return lib_model.NewInternalError(errors.New(job.Error.Message))
+	}
+	return nil
+}
+
+func (h *Handler) restart(ctx context.Context, cID string) error {
+	if err := h.stopContainer(ctx, cID); err != nil {
+		return err
+	}
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	if err := h.cewClient.StartContainer(ctxWt, cID); err != nil {
+		return lib_model.NewInternalError(err)
+	}
+	return nil
+}
+
 //func (h *Handler) Create(ctx context.Context, mod *module.Module, dep model.Deployment, auxReq model.AuxDepReq) (string, error) {
 //	auxSrv, ok := mod.AuxServices[auxReq.Ref]
 //	if !ok {
