@@ -144,6 +144,11 @@ func (h *Handler) CreateAuxDep(ctx context.Context, txItf driver.Tx, auxDep lib_
 			return "", err
 		}
 	}
+	if len(auxDep.Configs) > 0 {
+		if err = insertAuxDepConfigs(ctx, tx.PrepareContext, id, auxDep.Configs); err != nil {
+			return "", err
+		}
+	}
 	if txItf == nil {
 		if err = tx.Commit(); err != nil {
 			return "", lib_model.NewInternalError(err)
@@ -178,8 +183,17 @@ func (h *Handler) UpdateAuxDep(ctx context.Context, txItf driver.Tx, auxDep lib_
 	if err != nil {
 		return lib_model.NewInternalError(err)
 	}
+	_, err = tx.ExecContext(ctx, "DELETE FROM `aux_configs` WHERE `aux_id` = ?", auxDep.ID)
+	if err != nil {
+		return lib_model.NewInternalError(err)
+	}
 	if len(auxDep.Labels) > 0 {
 		if err = insertAuxDepLabels(ctx, tx.PrepareContext, auxDep.ID, auxDep.Labels); err != nil {
+			return err
+		}
+	}
+	if len(auxDep.Configs) > 0 {
+		if err = insertAuxDepConfigs(ctx, tx.PrepareContext, auxDep.ID, auxDep.Configs); err != nil {
 			return err
 		}
 	}
@@ -207,28 +221,6 @@ func (h *Handler) DeleteAuxDep(ctx context.Context, txItf driver.Tx, aID string)
 	}
 	if n < 1 {
 		return lib_model.NewNotFoundError(errors.New("no rows affected"))
-	}
-	return nil
-}
-
-func (h *Handler) CreateAuxDepAssets(ctx context.Context, txItf driver.Tx, aID string, depAssets lib_model.AuxDepAssets) error {
-	prepareContext := h.db.PrepareContext
-	if txItf != nil {
-		tx := txItf.(*sql.Tx)
-		prepareContext = tx.PrepareContext
-	}
-	return insertStrMap(ctx, prepareContext, "INSERT INTO `aux_configs` (`aux_id`, `ref`, `value`) VALUES (?, ?, ?)", aID, depAssets.Configs)
-}
-
-func (h *Handler) DeleteAuxDepAssets(ctx context.Context, txItf driver.Tx, aID string) error {
-	execContext := h.db.ExecContext
-	if txItf != nil {
-		tx := txItf.(*sql.Tx)
-		execContext = tx.ExecContext
-	}
-	_, err := execContext(ctx, "DELETE FROM `aux_configs` WHERE `aux_id` = ?", aID)
-	if err != nil {
-		return lib_model.NewInternalError(err)
 	}
 	return nil
 }
@@ -274,6 +266,10 @@ func selectAuxDepContainer(ctx context.Context, db *sql.DB, id string) (lib_mode
 
 func insertAuxDepLabels(ctx context.Context, pf func(ctx context.Context, query string) (*sql.Stmt, error), id string, m map[string]string) error {
 	return insertStrMap(ctx, pf, "INSERT INTO `aux_labels` (`aux_id`, `name`, `value`) VALUES (?, ?, ?)", id, m)
+}
+
+func insertAuxDepConfigs(ctx context.Context, pf func(ctx context.Context, query string) (*sql.Stmt, error), id string, m map[string]string) error {
+	return insertStrMap(ctx, pf, "INSERT INTO `aux_configs` (`aux_id`, `ref`, `value`) VALUES (?, ?, ?)", id, m)
 }
 
 func genAuxDepFilter(dID string, filter lib_model.AuxDepFilter) (string, []any) {
