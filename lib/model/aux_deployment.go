@@ -23,6 +23,7 @@ type AuxDepBase struct {
 	DepID   string            `json:"dep_id"`
 	Image   string            `json:"image"`
 	Labels  map[string]string `json:"labels"`
+	Configs map[string]string `json:"configs"`
 	Ref     string            `json:"ref"`
 	Name    string            `json:"name"`
 	Created time.Time         `json:"created"`
@@ -31,12 +32,7 @@ type AuxDepBase struct {
 
 type AuxDeployment struct {
 	AuxDepBase
-	AuxDepAssets
 	Container AuxDepContainer `json:"container"`
-}
-
-type AuxDepAssets struct {
-	Configs map[string]string `json:"configs"`
 }
 
 type AuxDepContainer struct {
