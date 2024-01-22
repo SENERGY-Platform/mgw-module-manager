@@ -124,8 +124,6 @@ type AuxDepStorageHandler interface {
 	CreateAuxDep(ctx context.Context, tx driver.Tx, auxDep lib_model.AuxDepBase) (string, error)
 	UpdateAuxDep(ctx context.Context, tx driver.Tx, auxDep lib_model.AuxDepBase) error
 	DeleteAuxDep(ctx context.Context, tx driver.Tx, aID string) error
-	CreateAuxDepAssets(ctx context.Context, tx driver.Tx, aID string, depAssets lib_model.AuxDepAssets) error
-	DeleteAuxDepAssets(ctx context.Context, tx driver.Tx, aID string) error
 	CreateAuxDepContainer(ctx context.Context, tx driver.Tx, aID string, auxDepContainer lib_model.AuxDepContainer) error
 	DeleteAuxDepContainer(ctx context.Context, tx driver.Tx, aID string) error
 }
