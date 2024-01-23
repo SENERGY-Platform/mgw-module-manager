@@ -116,14 +116,6 @@ func (h *Handler) Get(ctx context.Context, aID string, assets, containerInfo boo
 	return auxDeployment, nil
 }
 
-func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.Deployment, auxReq lib_model.AuxDepReq) (string, error) {
-	panic("not implemented")
-}
-
-func (h *Handler) Update(ctx context.Context, aID string, mod model.Module, dep lib_model.Deployment, auxReq lib_model.AuxDepReq) error {
-	panic("not implemented")
-}
-
 func (h *Handler) Delete(ctx context.Context, aID string, force bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
