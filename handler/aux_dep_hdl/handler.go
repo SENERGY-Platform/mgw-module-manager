@@ -115,39 +115,6 @@ func (h *Handler) Get(ctx context.Context, aID string, assets, containerInfo boo
 	return auxDeployment, nil
 }
 
-func (h *Handler) Delete(ctx context.Context, aID string, force bool) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, false)
-	if err != nil {
-		return err
-	}
-	if err = h.removeContainer(ctx, auxDeployment.Container.ID, force); err != nil {
-		return err
-	}
-	ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf2()
-	return h.storageHandler.DeleteAuxDep(ctxWt2, nil, aID)
-}
-
-func (h *Handler) DeleteAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	auxDeployments, err := h.storageHandler.ListAuxDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, filter, false)
-	if err != nil {
-		return err
-	}
-	for aID, auxDeployment := range auxDeployments {
-		if err = h.removeContainer(ctx, auxDeployment.Container.ID, force); err != nil {
-			return err
-		}
-		if err = h.storageHandler.DeleteAuxDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), nil, aID); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (h *Handler) Start(ctx context.Context, aID string) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
