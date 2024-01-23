@@ -24,7 +24,6 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
