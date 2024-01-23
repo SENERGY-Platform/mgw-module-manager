@@ -18,6 +18,7 @@ package aux_dep_hdl
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
@@ -28,6 +29,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
 	"path"
+	"regexp"
+	"strings"
 	"time"
 )
 
@@ -35,6 +38,13 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 	auxSrv, ok := mod.AuxServices[auxReq.Ref]
 	if !ok {
 		return "", lib_model.NewInvalidInputError(fmt.Errorf("aux service ref '%s' not defined", auxReq.Ref))
+	}
+	ok, err := validImage(mod.AuxImgSrc, auxReq.Image)
+	if err != nil {
+		return "", lib_model.NewInternalError(err)
+	}
+	if !ok {
+		return "", lib_model.NewInvalidInputError(errors.New("image can't be validated"))
 	}
 	timestamp := time.Now().UTC()
 	auxDep := lib_model.AuxDeployment{
@@ -247,4 +257,24 @@ func newCewContainer(runConfig module.RunConfig, image, name, alias, moduleNet s
 			PseudoTTY:       runConfig.PseudoTTY,
 		},
 	}
+}
+
+func validImage(auxImgSrc map[string]struct{}, image string) (bool, error) {
+	for src := range auxImgSrc {
+		s := strings.ReplaceAll(src, ".", "\\.")
+		if strings.Contains(src, "*") {
+			s = strings.ReplaceAll(s, "*", ".+")
+		} else {
+			s = s + "(?:$|:.+$)"
+		}
+		s = "^" + s
+		re, err := regexp.Compile(s)
+		if err != nil {
+			return false, fmt.Errorf("invalid regex pattern '%s'", s)
+		}
+		if re.MatchString(image) {
+			return true, nil
+		}
+	}
+	return false, nil
 }
