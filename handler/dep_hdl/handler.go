@@ -182,27 +182,28 @@ func getDepHealthAndCtrInfo(dID string, depContainers map[string]lib_model.DepCo
 		if !ok {
 			state = lib_model.DepUnhealthy
 			util.Logger.Warningf("deployment '%s' missing container '%s'", dID, depCtr.ID)
-		}
-		if state == "" {
-			if ctr.Health != nil {
-				switch *ctr.Health {
-				case cew_model.TransitionState:
-					state = lib_model.DepTrans
-				case cew_model.UnhealthyState:
-					state = lib_model.DepUnhealthy
-				}
-			} else {
-				switch ctr.State {
-				case cew_model.InitState, cew_model.RestartingState, cew_model.RemovingState:
-					state = lib_model.DepTrans
-				case cew_model.StoppedState, cew_model.DeadState, cew_model.PausedState:
-					state = lib_model.DepUnhealthy
+		} else {
+			if state == "" {
+				if ctr.Health != nil {
+					switch *ctr.Health {
+					case cew_model.TransitionState:
+						state = lib_model.DepTrans
+					case cew_model.UnhealthyState:
+						state = lib_model.DepUnhealthy
+					}
+				} else {
+					switch ctr.State {
+					case cew_model.InitState, cew_model.RestartingState, cew_model.RemovingState:
+						state = lib_model.DepTrans
+					case cew_model.StoppedState, cew_model.DeadState, cew_model.PausedState:
+						state = lib_model.DepUnhealthy
+					}
 				}
 			}
-		}
-		depCtr.Info = &lib_model.ContainerInfo{
-			ImageID: ctr.ImageID,
-			State:   ctr.State,
+			depCtr.Info = &lib_model.ContainerInfo{
+				ImageID: ctr.ImageID,
+				State:   ctr.State,
+			}
 		}
 		withCtrInfo[ref] = depCtr
 	}
