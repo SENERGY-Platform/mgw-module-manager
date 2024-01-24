@@ -47,7 +47,6 @@ type AuxDepFilter struct {
 }
 
 type AuxDepReq struct {
-	DepID   string            `json:"dep_id"`
 	Image   string            `json:"image"`
 	Labels  map[string]string `json:"labels"`
 	Configs map[string]string `json:"configs"`
