@@ -13,6 +13,8 @@ github.com/SENERGY-Platform/go-base-http-client v0.0.1 h1:ofyTL9spbA4+hp8Mm+j2uN
 github.com/SENERGY-Platform/go-base-http-client v0.0.1/go.mod h1:zkUjrJTz4btwM0CMfgEmPfR0knxPIZgd1hvG8pu4fBE=
 github.com/SENERGY-Platform/go-cc-job-handler v0.1.1 h1:GPCu5g1BJrsG43GCnSBqZn8sv5h1Do5m/aGd0tH+JRk=
 github.com/SENERGY-Platform/go-cc-job-handler v0.1.1/go.mod h1:d6rFDQujHvp+tsUrlBOH0pavyicI079l6sUAFEOZRoE=
+github.com/SENERGY-Platform/go-service-base/context-hdl v0.0.2 h1:dfk/BI8APyuYQQJJkZYhDan+favA9JZOXwh+bq/HMls=
+github.com/SENERGY-Platform/go-service-base/context-hdl v0.0.2/go.mod h1:0EFITL4Vki/iewyW0RauiTZWEs94Y4PLd1VdvXygGX4=
 github.com/SENERGY-Platform/go-service-base/job-hdl v0.0.6 h1:tKPzQgbF4fdn3keGPRHNNkievVjD6efkKR48FOufKqk=
 github.com/SENERGY-Platform/go-service-base/job-hdl v0.0.6/go.mod h1:d5zAZdDIeS4MpYNwTh57v+F5yU20N5gOSQBqfYQwj+U=
 github.com/SENERGY-Platform/go-service-base/job-hdl/lib v0.0.3 h1:7zh7sN0YoQiu1uzniXFoiT04dkmKYf4lus9hZmXm5j4=

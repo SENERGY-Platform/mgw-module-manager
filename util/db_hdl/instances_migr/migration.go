@@ -22,8 +22,8 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"github.com/SENERGY-Platform/go-service-base/context-hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/context_hdl"
 	"github.com/go-sql-driver/mysql"
 	"time"
 )
