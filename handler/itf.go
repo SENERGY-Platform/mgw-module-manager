@@ -102,31 +102,31 @@ type DepStorageHandler interface {
 	DeleteDepContainers(ctx context.Context, tx driver.Tx, dID string) error
 }
 
-type AuxDeploymentHandler interface {
-	List(ctx context.Context, dID string, filter lib_model.AuxDepFilter, assets, containerInfo bool) (map[string]lib_model.AuxDeployment, error)
-	Get(ctx context.Context, aID string, assets, containerInfo bool) (lib_model.AuxDeployment, error)
-	Create(ctx context.Context, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq) (string, error)
-	Update(ctx context.Context, aID string, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq) error
-	Delete(ctx context.Context, aID string, force bool) error
-	DeleteAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) error
-	Start(ctx context.Context, aID string) error
-	StartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
-	Stop(ctx context.Context, aID string) error
-	StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
-	Restart(ctx context.Context, aID string) error
-	RestartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
-}
+//type AuxDeploymentHandler interface {
+//	List(ctx context.Context, dID string, filter lib_model.AuxDepFilter, assets, containerInfo bool) (map[string]lib_model.AuxDeployment, error)
+//	Get(ctx context.Context, aID string, assets, containerInfo bool) (lib_model.AuxDeployment, error)
+//	Create(ctx context.Context, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq) (string, error)
+//	Update(ctx context.Context, aID string, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq) error
+//	Delete(ctx context.Context, aID string, force bool) error
+//	DeleteAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) error
+//	Start(ctx context.Context, aID string) error
+//	StartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
+//	Stop(ctx context.Context, aID string) error
+//	StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
+//	Restart(ctx context.Context, aID string) error
+//	RestartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
+//}
 
-type AuxDepStorageHandler interface {
-	BeginTransaction(ctx context.Context) (driver.Tx, error)
-	ListAuxDep(ctx context.Context, dID string, filter lib_model.AuxDepFilter, assets bool) (map[string]lib_model.AuxDeployment, error)
-	ReadAuxDep(ctx context.Context, aID string, assets bool) (lib_model.AuxDeployment, error)
-	CreateAuxDep(ctx context.Context, tx driver.Tx, auxDep lib_model.AuxDepBase) (string, error)
-	UpdateAuxDep(ctx context.Context, tx driver.Tx, auxDep lib_model.AuxDepBase) error
-	DeleteAuxDep(ctx context.Context, tx driver.Tx, aID string) error
-	CreateAuxDepContainer(ctx context.Context, tx driver.Tx, aID string, auxDepContainer lib_model.AuxDepContainer) error
-	DeleteAuxDepContainer(ctx context.Context, tx driver.Tx, aID string) error
-}
+//type AuxDepStorageHandler interface {
+//	BeginTransaction(ctx context.Context) (driver.Tx, error)
+//	ListAuxDep(ctx context.Context, dID string, filter lib_model.AuxDepFilter, assets bool) (map[string]lib_model.AuxDeployment, error)
+//	ReadAuxDep(ctx context.Context, aID string, assets bool) (lib_model.AuxDeployment, error)
+//	CreateAuxDep(ctx context.Context, tx driver.Tx, auxDep lib_model.AuxDepBase) (string, error)
+//	UpdateAuxDep(ctx context.Context, tx driver.Tx, auxDep lib_model.AuxDepBase) error
+//	DeleteAuxDep(ctx context.Context, tx driver.Tx, aID string) error
+//	CreateAuxDepContainer(ctx context.Context, tx driver.Tx, aID string, auxDepContainer lib_model.AuxDepContainer) error
+//	DeleteAuxDepContainer(ctx context.Context, tx driver.Tx, aID string) error
+//}
 
 type CfgValidationHandler interface {
 	ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error
