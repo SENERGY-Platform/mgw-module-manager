@@ -290,6 +290,7 @@ func removeDuplicates(sl []string) []string {
 		if _, ok := set[s]; !ok {
 			sl2 = append(sl2, s)
 		}
+		set[s] = struct{}{}
 	}
 	return sl2
 }
