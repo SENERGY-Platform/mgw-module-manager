@@ -20,6 +20,7 @@ import (
 	"context"
 	"github.com/SENERGY-Platform/go-service-base/context-hdl"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	cm_model "github.com/SENERGY-Platform/mgw-core-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
@@ -38,6 +39,10 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 		return err
 	}
 	modDependencyDeps, err := h.getModDependencyDeployments(ctx, mod.Dependencies)
+	if err != nil {
+		return err
+	}
+	oldHttpEpt, err := h.cmClient.GetEndpoints(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cm_model.EndpointFilter{Ref: id})
 	if err != nil {
 		return err
 	}
@@ -139,6 +144,12 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	if err = h.storageHandler.CreateDepContainers(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, id, newDep.Containers); err != nil {
 		return err
 	}
+	newHttpEpt, orphanHttpEpt := diffHttpEndpoints(oldHttpEpt, newHttpEndpoints(mod.Services, newDep.Containers, id))
+	if len(newHttpEpt) > 0 {
+		if err = h.addHttpEndpoints(ctx, newHttpEpt); err != nil {
+			return lib_model.NewInternalError(err)
+		}
+	}
 	if oldDep.Enabled {
 		if err = h.loadSecrets(ctx, newDep); err != nil {
 			return err
@@ -155,6 +166,11 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	}
 	if e := h.removeVolumes(ctx, orphanVolumes, true); e != nil {
 		util.Logger.Error(e)
+	}
+	if len(orphanHttpEpt) > 0 {
+		if e := h.removeHttpEndpoints(ctx, cm_model.EndpointFilter{IDs: orphanHttpEpt}); e != nil {
+			util.Logger.Error(e)
+		}
 	}
 	return nil
 }
@@ -207,4 +223,33 @@ func (h *Handler) restore(dep lib_model.Deployment) error {
 		}
 	}
 	return nil
+}
+
+func diffHttpEndpoints(oldEndpoints map[string]cm_model.Endpoint, newEndpoints []cm_model.EndpointBase) ([]cm_model.EndpointBase, []string) {
+	var orphans []string
+	oldHashMap := make(map[string]string)
+	for id, e := range oldEndpoints {
+		hash, ok := e.Labels[naming_hdl.HttpEndpointHashLabel]
+		if !ok {
+			orphans = append(orphans, id)
+		}
+		oldHashMap[hash] = id
+	}
+	newHashMap := make(map[string]cm_model.EndpointBase)
+	for _, e := range newEndpoints {
+		hash := e.Labels[naming_hdl.HttpEndpointHashLabel]
+		newHashMap[hash] = e
+	}
+	for hash, id := range oldHashMap {
+		if _, ok := newHashMap[hash]; !ok {
+			orphans = append(orphans, id)
+		}
+	}
+	var missing []cm_model.EndpointBase
+	for hash, e := range newHashMap {
+		if _, ok := oldHashMap[hash]; !ok {
+			missing = append(missing, e)
+		}
+	}
+	return missing, orphans
 }

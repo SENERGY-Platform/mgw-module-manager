@@ -21,13 +21,18 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/go-service-base/context-hdl"
+	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	cm_model "github.com/SENERGY-Platform/mgw-core-manager/lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
+	"net/http"
 	"os"
 	"path"
 	"strings"
+	"time"
 )
 
 func (h *Handler) Delete(ctx context.Context, id string, force bool) error {
@@ -141,6 +146,9 @@ func (h *Handler) delete(ctx context.Context, dep lib_model.Deployment, force bo
 	if err = h.removeVolumes(ctx, vols, force); err != nil {
 		return lib_model.NewInternalError(err)
 	}
+	if err = h.removeHttpEndpoints(ctx, cm_model.EndpointFilter{Ref: dep.ID}); err != nil {
+		return lib_model.NewInternalError(err)
+	}
 	if err = os.RemoveAll(path.Join(h.wrkSpcPath, dep.Dir)); err != nil {
 		if !os.IsNotExist(err) {
 			return lib_model.NewInternalError(err)
@@ -176,6 +184,25 @@ func (h *Handler) removeVolumes(ctx context.Context, volumes []string, force boo
 			if !errors.As(err, &nfe) {
 				return err
 			}
+		}
+	}
+	return nil
+}
+
+func (h *Handler) removeHttpEndpoints(ctx context.Context, filter cm_model.EndpointFilter) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	jID, err := h.cmClient.RemoveEndpoints(ctxWt, filter, false)
+	if err != nil {
+		return err
+	}
+	job, err := job_hdl_lib.Await(context.Background(), h.cmClient, jID, time.Second, h.httpTimeout, util.Logger)
+	if err != nil {
+		return err
+	}
+	if job.Error != nil {
+		if job.Error.Code != nil && *job.Error.Code != http.StatusNotFound {
+			return errors.New(job.Error.Message)
 		}
 	}
 	return nil

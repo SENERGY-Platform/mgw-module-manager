@@ -18,9 +18,12 @@ package dep_hdl
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/go-service-base/context-hdl"
+	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	cm_model "github.com/SENERGY-Platform/mgw-core-manager/lib/model"
 	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
@@ -32,6 +35,7 @@ import (
 	"github.com/google/uuid"
 	"os"
 	"path"
+	"strconv"
 	"time"
 )
 
@@ -110,6 +114,19 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput lib_m
 			}
 		}
 	}()
+	httpEndpoints := newHttpEndpoints(mod.Services, dep.Containers, dep.ID)
+	if len(httpEndpoints) > 0 {
+		if err = h.addHttpEndpoints(ctx, httpEndpoints); err != nil {
+			return "", lib_model.NewInternalError(err)
+		}
+		defer func() {
+			if err != nil {
+				if e := h.removeHttpEndpoints(context.Background(), cm_model.EndpointFilter{Ref: dep.ID}); e != nil {
+					util.Logger.Error(e)
+				}
+			}
+		}()
+	}
 	if err = h.storageHandler.CreateDepContainers(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dep.ID, dep.Containers); err != nil {
 		return "", nil
 	}
@@ -221,6 +238,55 @@ func (h *Handler) createVolumes(ctx context.Context, volumes map[string]string, 
 		createdVols = append(createdVols, n)
 	}
 	return nil
+}
+
+func (h *Handler) addHttpEndpoints(ctx context.Context, endpoints []cm_model.EndpointBase) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	jID, err := h.cmClient.AddEndpoints(ctxWt, endpoints)
+	if err != nil {
+		return err
+	}
+	job, err := job_hdl_lib.Await(context.Background(), h.cmClient, jID, time.Second, h.httpTimeout, util.Logger)
+	if err != nil {
+		return err
+	}
+	if job.Error != nil {
+		return errors.New(job.Error.Message)
+	}
+	return nil
+}
+
+func newHttpEndpoints(modServices map[string]*module.Service, depContainers map[string]lib_model.DepContainer, dID string) []cm_model.EndpointBase {
+	var endpoints []cm_model.EndpointBase
+	for _, depContainer := range depContainers {
+		modService, ok := modServices[depContainer.SrvRef]
+		if ok {
+			for extPath, modEndpoint := range modService.HttpEndpoints {
+				e := cm_model.EndpointBase{
+					Ref:     dID,
+					Host:    depContainer.Alias,
+					Port:    modEndpoint.Port,
+					IntPath: modEndpoint.Path,
+					ExtPath: extPath,
+					Labels: map[string]string{
+						naming_hdl.HttpEndpointSrvRefLabel: depContainer.SrvRef,
+					},
+				}
+				e.Labels[naming_hdl.HttpEndpointHashLabel] = genHttpEndpointHash(e)
+				endpoints = append(endpoints, e)
+			}
+		}
+	}
+	return endpoints
+}
+
+func genHttpEndpointHash(eBase cm_model.EndpointBase) string {
+	values := []string{eBase.IntPath, eBase.ExtPath, eBase.Host}
+	if eBase.Port != nil && *eBase.Port != 80 {
+		values = append(values, strconv.FormatInt(int64(*eBase.Port), 10))
+	}
+	return naming_hdl.GenHash(values...)
 }
 
 func newDepBase(mod *module.Module, depInput lib_model.DepInput, inclDir string, indirect bool) lib_model.DepBase {
