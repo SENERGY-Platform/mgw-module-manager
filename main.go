@@ -26,6 +26,7 @@ import (
 	sb_util "github.com/SENERGY-Platform/go-service-base/util"
 	"github.com/SENERGY-Platform/go-service-base/watchdog"
 	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	cm_client "github.com/SENERGY-Platform/mgw-core-manager/client"
 	hm_client "github.com/SENERGY-Platform/mgw-host-manager/client"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1dec"
@@ -159,11 +160,13 @@ func main() {
 		return
 	}
 
+	cmClient := cm_client.New(http.DefaultClient, config.HttpClient.CmBaseUrl)
+
 	hmClient := hm_client.New(http.DefaultClient, config.HttpClient.HmBaseUrl)
 
 	smClient := sm_client.NewClient(config.HttpClient.SmBaseUrl, http.DefaultClient)
 
-	depHandler := dep_hdl.New(storageHandler, cfgValidHandler, cewClient, hmClient, smClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, config.DepHandler.HostDepPath, config.DepHandler.HostSecPath, managerID, config.DepHandler.ModuleNet, config.CoreID)
+	depHandler := dep_hdl.New(storageHandler, cfgValidHandler, cewClient, cmClient, hmClient, smClient, time.Duration(config.Database.Timeout), time.Duration(config.HttpClient.Timeout), config.DepHandler.WorkdirPath, config.DepHandler.HostDepPath, config.DepHandler.HostSecPath, managerID, config.DepHandler.ModuleNet, config.CoreID)
 	if err = depHandler.InitWorkspace(0770); err != nil {
 		util.Logger.Error(err)
 		ec = 1
