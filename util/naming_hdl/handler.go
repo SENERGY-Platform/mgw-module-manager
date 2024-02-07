@@ -42,22 +42,22 @@ func (h *handler) NewContainerName(subPrefix string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s_%s-%s-%s", h.prefix, h.coreID, subPrefix, genHash(newUUID.String())), nil
+	return fmt.Sprintf("%s_%s-%s-%s", h.prefix, h.coreID, subPrefix, GenHash(newUUID.String())), nil
 }
 
 func (h *handler) NewContainerAlias(arg ...string) string {
-	return fmt.Sprintf("%s-%s-%s", h.prefix, h.coreID, genHash(arg...))
+	return fmt.Sprintf("%s-%s-%s", h.prefix, h.coreID, GenHash(arg...))
 }
 
 func (h *handler) NewVolumeName(arg ...string) string {
-	return fmt.Sprintf("%s_%s_%s", h.prefix, h.coreID, genHash(arg...))
+	return fmt.Sprintf("%s_%s_%s", h.prefix, h.coreID, GenHash(arg...))
 }
 
 func NewDeprecatedVolumeName(arg ...string) string {
-	return "mgw_" + genHash(arg...)
+	return "mgw_" + GenHash(arg...)
 }
 
-func genHash(str ...string) string {
+func GenHash(str ...string) string {
 	hash := sha1.New()
 	for _, s := range str {
 		hash.Write([]byte(s))
