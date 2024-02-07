@@ -33,6 +33,7 @@ type DatabaseConfig struct {
 
 type HttpClientConfig struct {
 	CewBaseUrl string `json:"cew_base_url" env_var:"CEW_BASE_URL"`
+	CmBaseUrl  string `json:"cm_base_url" env_var:"CM_BASE_URL"`
 	HmBaseUrl  string `json:"hm_base_url" env_var:"HM_BASE_URL"`
 	SmBaseUrl  string `json:"sm_base_url" env_var:"SM_BASE_URL"`
 	Timeout    int64  `json:"timeout" env_var:"HTTP_TIMEOUT"`
@@ -114,6 +115,7 @@ func NewConfig(path string) (*Config, error) {
 		},
 		HttpClient: HttpClientConfig{
 			CewBaseUrl: "http://core-api/ce-wrapper",
+			CmBaseUrl:  "http://core-api/core-manager",
 			HmBaseUrl:  "http://core-api/host-manager",
 			SmBaseUrl:  "http://secret-manager",
 			Timeout:    10000000000,
