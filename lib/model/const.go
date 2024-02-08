@@ -37,6 +37,7 @@ const (
 	DepDeletePath         = "delete"
 	JobsPath              = "jobs"
 	JobsCancelPath        = "cancel"
+	SrvInfoPath           = "info"
 )
 
 const (
