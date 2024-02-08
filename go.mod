@@ -8,6 +8,8 @@ require (
 	github.com/SENERGY-Platform/go-service-base/context-hdl v0.0.2
 	github.com/SENERGY-Platform/go-service-base/job-hdl v0.0.6
 	github.com/SENERGY-Platform/go-service-base/job-hdl/lib v0.0.3
+	github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.0.2
+	github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib v0.0.1
 	github.com/SENERGY-Platform/go-service-base/util v0.14.0
 	github.com/SENERGY-Platform/go-service-base/watchdog v0.4.1
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.12.1

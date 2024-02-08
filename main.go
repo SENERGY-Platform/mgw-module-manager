@@ -23,6 +23,7 @@ import (
 	"github.com/SENERGY-Platform/gin-middleware"
 	"github.com/SENERGY-Platform/go-cc-job-handler/ccjh"
 	"github.com/SENERGY-Platform/go-service-base/job-hdl"
+	srv_info_hdl "github.com/SENERGY-Platform/go-service-base/srv-info-hdl"
 	sb_util "github.com/SENERGY-Platform/go-service-base/util"
 	"github.com/SENERGY-Platform/go-service-base/watchdog"
 	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
@@ -69,12 +70,12 @@ var inputValidators = map[string]handler.Validator{
 }
 
 func main() {
+	srvInfoHdl := srv_info_hdl.New("module-manager", version)
+
 	ec := 0
 	defer func() {
 		os.Exit(ec)
 	}()
-
-	sb_util.PrintInfo(lib_model.ServiceName, version)
 
 	util.ParseFlags()
 
@@ -97,6 +98,8 @@ func main() {
 	if logFile != nil {
 		defer logFile.Close()
 	}
+
+	util.Logger.Printf("%s %s", srvInfoHdl.GetName(), srvInfoHdl.GetVersion())
 
 	util.Logger.Debugf("config: %s", sb_util.ToJsonStr(config))
 
@@ -212,13 +215,13 @@ func main() {
 
 	modUpdateHandler := mod_update_hdl.New(modTransferHandler, modFileHandler)
 
-	mApi := api.New(modHandler, modStagingHandler, modUpdateHandler, depHandler, jobHandler)
+	mApi := api.New(modHandler, modStagingHandler, modUpdateHandler, depHandler, jobHandler, srvInfoHdl)
 
 	gin.SetMode(gin.ReleaseMode)
 	httpHandler := gin.New()
 	staticHeader := map[string]string{
-		lib_model.HeaderApiVer:  version,
-		lib_model.HeaderSrvName: lib_model.ServiceName,
+		lib_model.HeaderApiVer:  srvInfoHdl.GetVersion(),
+		lib_model.HeaderSrvName: srvInfoHdl.GetName(),
 	}
 	httpHandler.Use(gin_mw.StaticHeaderHandler(staticHeader), requestid.New(requestid.WithCustomHeaderStrKey(lib_model.HeaderRequestID)), gin_mw.LoggerHandler(util.Logger, http_hdl.GetPathFilter(), func(gc *gin.Context) string {
 		return requestid.Get(gc)
