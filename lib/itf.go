@@ -19,6 +19,7 @@ package lib
 import (
 	"context"
 	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
+	srv_info_lib "github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
@@ -49,4 +50,5 @@ type Api interface {
 	RestartDeployments(ctx context.Context, filter model.DepFilter) (string, error)
 	GetDeploymentUpdateTemplate(ctx context.Context, dID string) (model.DepUpdateTemplate, error)
 	job_hdl_lib.Api
+	srv_info_lib.Api
 }
