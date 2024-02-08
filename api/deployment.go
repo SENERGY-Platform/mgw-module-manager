@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/input_tmplt"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
@@ -35,20 +36,39 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_mode
 	if err != nil {
 		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	defer a.mu.Unlock()
 	modTree, err := a.moduleHandler.GetTree(ctx, id)
 	if err != nil {
+		a.mu.Unlock()
 		return "", newApiErr(metaStr, err)
 	}
 	mod := modTree[id]
 	delete(modTree, id)
 	if mod.DeploymentType == module.SingleDeployment {
 		if l, err := a.deploymentHandler.List(ctx, lib_model.DepFilter{ModuleID: mod.ID}, false, false, false, false); err != nil {
+			a.mu.Unlock()
 			return "", newApiErr(metaStr, err)
 		} else if len(l) > 0 {
+			a.mu.Unlock()
 			return "", newApiErr(metaStr, lib_model.NewInvalidInputError(errors.New("already deployed")))
 		}
 	}
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+		defer a.mu.Unlock()
+		defer cf()
+		_, err := a.createDeployment(ctx, mod, modTree, depInput, dependencies)
+		if err == nil {
+			err = ctx.Err()
+		}
+		return err
+	})
+	if err != nil {
+		a.mu.Unlock()
+		return "", newApiErr(metaStr, err)
+	}
+	return jID, nil
+}
+
+func (a *Api) createDeployment(ctx context.Context, mod model.Module, modTree map[string]model.Module, depInput lib_model.DepInput, dependencies map[string]lib_model.DepInput) (string, error) {
 	if len(modTree) > 0 {
 		modMap := make(map[string]*module.Module)
 		for _, m := range modTree {
@@ -56,7 +76,7 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_mode
 		}
 		order, err := sorting.GetModOrder(modMap)
 		if err != nil {
-			return "", newApiErr(metaStr, lib_model.NewInternalError(err))
+			return "", lib_model.NewInternalError(err)
 		}
 		var er error
 		var dIDs []string
@@ -74,7 +94,7 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_mode
 		for _, rmID := range order {
 			ok, dID, er = a.createDepIfNotExist(ctx, rmID, dependencies[rmID])
 			if er != nil {
-				return "", newApiErr(metaStr, er)
+				return "", er
 			}
 			if ok {
 				dIDs = append(dIDs, dID)
@@ -83,11 +103,11 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_mode
 	}
 	dir, err := mod.GetDirFS()
 	if err != nil {
-		return "", newApiErr(metaStr, err)
+		return "", err
 	}
 	dID, err := a.deploymentHandler.Create(ctx, mod.Module.Module, depInput, dir, false)
 	if err != nil {
-		return "", newApiErr(metaStr, err)
+		return "", err
 	}
 	return dID, nil
 }
@@ -117,12 +137,12 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput lib_mod
 	dep, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {
 		a.mu.Unlock()
-		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
+		return "", newApiErr(metaStr, err)
 	}
 	mod, err := a.moduleHandler.Get(ctx, dep.Module.ID, false)
 	if err != nil {
 		a.mu.Unlock()
-		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
+		return "", newApiErr(metaStr, err)
 	}
 	if mod.ID != dep.Module.ID {
 		a.mu.Unlock()
@@ -139,7 +159,7 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput lib_mod
 	})
 	if err != nil {
 		a.mu.Unlock()
-		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
+		return "", newApiErr(metaStr, err)
 	}
 	return jID, nil
 }
