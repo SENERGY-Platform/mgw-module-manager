@@ -16,8 +16,8 @@ require (
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.14.2
 	github.com/SENERGY-Platform/mgw-core-manager/client v0.3.3
 	github.com/SENERGY-Platform/mgw-core-manager/lib v0.3.3
-	github.com/SENERGY-Platform/mgw-host-manager/client v0.3.3
-	github.com/SENERGY-Platform/mgw-host-manager/lib v0.1.6
+	github.com/SENERGY-Platform/mgw-host-manager/client v0.3.4
+	github.com/SENERGY-Platform/mgw-host-manager/lib v0.1.7
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.13.2
 	github.com/SENERGY-Platform/mgw-module-lib v0.17.1
 	github.com/SENERGY-Platform/mgw-module-manager/lib v0.0.0-00010101000000-000000000000
