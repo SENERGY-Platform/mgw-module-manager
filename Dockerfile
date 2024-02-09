@@ -1,4 +1,4 @@
-FROM golang:1.21 AS builder
+FROM golang:1.22 AS builder
 
 ARG VERSION=dev
 
@@ -7,7 +7,7 @@ WORKDIR /go/src/app
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o manager -ldflags="-X 'main.version=$VERSION'" main.go
 
-FROM alpine:3.18
+FROM alpine:3.19
 
 RUN mkdir -p /opt/module-manager
 WORKDIR /opt/module-manager
