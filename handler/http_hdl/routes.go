@@ -24,36 +24,15 @@ import (
 )
 
 func SetRoutes(e *gin.Engine, a lib.Api) {
-	e.GET(lib_model.ModulesPath, getModulesH(a))
-	e.POST(lib_model.ModulesPath, postModuleH(a))
-	e.GET(lib_model.ModulesPath+"/:"+modIdParam, getModuleH(a))
-	e.DELETE(lib_model.ModulesPath+"/:"+modIdParam, deleteModuleH(a))
-	e.GET(lib_model.ModulesPath+"/:"+modIdParam+"/"+lib_model.DepTemplatePath, getModuleDeployTemplateH(a))
-	e.GET(lib_model.ModUpdatesPath, getModuleUpdatesH(a))
-	e.GET(lib_model.ModUpdatesPath+"/:"+modIdParam, getModuleUpdateH(a))
-	e.PATCH(lib_model.ModUpdatesPath+"/:"+modIdParam, patchModuleUpdateH(a))
-	e.PATCH(lib_model.ModUpdatesPath+"/:"+modIdParam+"/"+lib_model.ModUptPreparePath, patchPrepareModuleUpdateH(a))
-	e.PATCH(lib_model.ModUpdatesPath+"/:"+modIdParam+"/"+lib_model.ModUptCancelPath, patchCancelPendingModuleUpdateH(a))
-	e.GET(lib_model.ModUpdatesPath+"/:"+modIdParam+"/"+lib_model.DepUpdateTemplatePath, getPendingModuleUpdateTemplateH(a))
-	e.POST(lib_model.ModUpdatesPath, postCheckModuleUpdatesH(a))
-	e.GET(lib_model.DeploymentsPath, getDeploymentsH(a))
-	e.POST(lib_model.DeploymentsPath, postDeploymentH(a))
-	e.GET(lib_model.DeploymentsPath+"/:"+depIdParam, getDeploymentH(a))
-	e.PATCH(lib_model.DeploymentsPath+"/:"+depIdParam, patchDeploymentUpdateH(a))
-	e.PATCH(lib_model.DeploymentsPath+"/:"+depIdParam+"/"+lib_model.DepStartPath, patchDeploymentStartH(a))
-	e.PATCH(lib_model.DeploymentsPath+"/:"+depIdParam+"/"+lib_model.DepStopPath, patchDeploymentStopH(a))
-	e.PATCH(lib_model.DeploymentsPath+"/:"+depIdParam+"/"+lib_model.DepRestartPath, patchDeploymentRestartH(a))
-	e.PATCH(lib_model.DepBatchPath+"/"+lib_model.DepStartPath, patchDeploymentsStartH(a))
-	e.PATCH(lib_model.DepBatchPath+"/"+lib_model.DepStopPath, patchDeploymentsStopH(a))
-	e.PATCH(lib_model.DepBatchPath+"/"+lib_model.DepRestartPath, patchDeploymentsRestartH(a))
-	e.PATCH(lib_model.DepBatchPath+"/"+lib_model.DepDeletePath, patchDeploymentsDeleteH(a))
-	e.DELETE(lib_model.DeploymentsPath+"/:"+depIdParam, deleteDeploymentH(a))
-	e.GET(lib_model.DeploymentsPath+"/:"+depIdParam+"/"+lib_model.DepUpdateTemplatePath, getDeploymentUpdateTemplateH(a))
-	e.GET(lib_model.JobsPath, getJobsH(a))
-	e.GET(lib_model.JobsPath+"/:"+jobIdParam, getJobH(a))
-	e.PATCH(lib_model.JobsPath+"/:"+jobIdParam+"/"+lib_model.JobsCancelPath, patchJobCancelH(a))
-	e.GET(lib_model.SrvInfoPath, getSrvInfoH(a))
-	e.GET("health-check", getServiceHealthH(a))
+	standardGrp := e.Group("")
+	restrictedGrp := e.Group(lib_model.RestrictedPath)
+	setSharedRoutes(a, standardGrp, restrictedGrp)
+	setModulesRoutes(a, standardGrp.Group(lib_model.ModulesPath))
+	setUpdatesRoutes(a, standardGrp.Group(lib_model.ModUpdatesPath))
+	setDeploymentsRoutes(a, standardGrp.Group(lib_model.DeploymentsPath))
+	setDeploymentsBatchRoutes(a, standardGrp.Group(lib_model.DepBatchPath))
+	setJobsRoutes(a, standardGrp.Group(lib_model.JobsPath))
+	standardGrp.GET("health-check", getServiceHealthH(a))
 }
 
 func GetRoutes(e *gin.Engine) [][2]string {
@@ -71,5 +50,54 @@ func GetRoutes(e *gin.Engine) [][2]string {
 func GetPathFilter() []string {
 	return []string{
 		"/health-check",
+	}
+}
+
+func setModulesRoutes(a lib.Api, rg *gin.RouterGroup) {
+	rg.GET("", getModulesH(a))
+	rg.POST("", postModuleH(a))
+	rg.GET(":"+modIdParam, getModuleH(a))
+	rg.DELETE(":"+modIdParam, deleteModuleH(a))
+	rg.GET(":"+modIdParam+"/"+lib_model.DepTemplatePath, getModuleDeployTemplateH(a))
+}
+
+func setUpdatesRoutes(a lib.Api, rg *gin.RouterGroup) {
+	rg.GET("", getModuleUpdatesH(a))
+	rg.POST("", postCheckModuleUpdatesH(a))
+	rg.GET(":"+modIdParam, getModuleUpdateH(a))
+	rg.PATCH(":"+modIdParam, patchModuleUpdateH(a))
+	rg.GET(":"+modIdParam+"/"+lib_model.DepUpdateTemplatePath, getPendingModuleUpdateTemplateH(a))
+	rg.PATCH(":"+modIdParam+"/"+lib_model.ModUptPreparePath, patchPrepareModuleUpdateH(a))
+	rg.PATCH(":"+modIdParam+"/"+lib_model.ModUptCancelPath, patchCancelPendingModuleUpdateH(a))
+}
+
+func setDeploymentsRoutes(a lib.Api, rg *gin.RouterGroup) {
+	rg.GET("", getDeploymentsH(a))
+	rg.POST("", postDeploymentH(a))
+	rg.GET(":"+depIdParam, getDeploymentH(a))
+	rg.PATCH(":"+depIdParam, patchDeploymentUpdateH(a))
+	rg.DELETE(":"+depIdParam, deleteDeploymentH(a))
+	rg.GET(":"+depIdParam+"/"+lib_model.DepUpdateTemplatePath, getDeploymentUpdateTemplateH(a))
+	rg.PATCH(":"+depIdParam+"/"+lib_model.DepStartPath, patchDeploymentStartH(a))
+	rg.PATCH(":"+depIdParam+"/"+lib_model.DepStopPath, patchDeploymentStopH(a))
+	rg.PATCH(":"+depIdParam+"/"+lib_model.DepRestartPath, patchDeploymentRestartH(a))
+}
+
+func setDeploymentsBatchRoutes(a lib.Api, rg *gin.RouterGroup) {
+	rg.PATCH(lib_model.DepStartPath, patchDeploymentsStartH(a))
+	rg.PATCH(lib_model.DepStopPath, patchDeploymentsStopH(a))
+	rg.PATCH(lib_model.DepRestartPath, patchDeploymentsRestartH(a))
+	rg.PATCH(lib_model.DepDeletePath, patchDeploymentsDeleteH(a))
+}
+
+func setJobsRoutes(a lib.Api, rg *gin.RouterGroup) {
+	rg.GET("", getJobsH(a))
+	rg.GET(":"+jobIdParam, getJobH(a))
+	rg.PATCH(":"+jobIdParam+"/"+lib_model.JobsCancelPath, patchJobCancelH(a))
+}
+
+func setSharedRoutes(a lib.Api, rGroups ...*gin.RouterGroup) {
+	for _, rg := range rGroups {
+		rg.GET(lib_model.SrvInfoPath, getSrvInfoH(a))
 	}
 }
