@@ -1,9 +1,6 @@
-github.com/SENERGY-Platform/go-service-base/job-hdl/lib v0.0.3 h1:7zh7sN0YoQiu1uzniXFoiT04dkmKYf4lus9hZmXm5j4=
-github.com/SENERGY-Platform/go-service-base/job-hdl/lib v0.0.3/go.mod h1:jz80K3k0w45V8o2+jE4Flzxg2zydOkD9Dz40A8bgMvI=
+github.com/SENERGY-Platform/go-service-base/job-hdl/lib v0.0.4 h1:H/rwzaD6r+ApWCms2X51pQrFszJI1/Rs5rOyOMcn6DA=
 github.com/SENERGY-Platform/go-service-base/job-hdl/lib v0.0.4/go.mod h1:+j0dc3Ey4IR+DeC26gIA6MoBTjf4TBH1DXQpnJPjx04=
-github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib v0.0.1 h1:8AlutD/LCcqOSDant4q3HP+vCv/CoI61Bg4JrUtOGmY=
-github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib v0.0.1/go.mod h1:7Bz91pdp3VvLNqcQa94V4MleNJSu1h4452i5843gyYM=
+github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib v0.0.2 h1:Bcdxt7i3DGGvlwS6U3NY9eGJjiPuv3ZpbMwebEUV+nE=
 github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib v0.0.2/go.mod h1:vcvyLaSoZsScGQ8K/OuJxlANTs5FPozsLvPzFUZgiVM=
-github.com/SENERGY-Platform/mgw-module-lib v0.17.0 h1:oDPtZ0DvqqJQjFCrcRyg/znOLMMjIw1ANM/5Ve2zN+w=
-github.com/SENERGY-Platform/mgw-module-lib v0.17.0/go.mod h1:BD+wEci1wUuAF+YmRxpVdgSFoYB14/fVxdxyMYl5Yys=
-github.com/SENERGY-Platform/mgw-module-lib v0.17.1/go.mod h1:EIXS9Q/Clr+eBfnr+UgWwZ0vbqpZqDunCKrjpqTyppM=
+github.com/SENERGY-Platform/mgw-module-lib v0.18.0 h1:5K6hY8iDRJKOd6BNvbG+vbqMC1YJcUEIt3iV/TAnR1U=
+github.com/SENERGY-Platform/mgw-module-lib v0.18.0/go.mod h1:EIXS9Q/Clr+eBfnr+UgWwZ0vbqpZqDunCKrjpqTyppM=
