@@ -38,6 +38,7 @@ const (
 	JobsPath              = "jobs"
 	JobsCancelPath        = "cancel"
 	SrvInfoPath           = "info"
+	RestrictedPath        = "restricted"
 )
 
 const (
