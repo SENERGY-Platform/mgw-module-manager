@@ -267,11 +267,13 @@ func newHttpEndpoints(modServices map[string]*module.Service, depContainers map[
 					Ref:     dID,
 					Host:    depContainer.Alias,
 					Port:    modEndpoint.Port,
-					IntPath: modEndpoint.Path,
 					ExtPath: extPath,
 					Labels: map[string]string{
 						naming_hdl.HttpEndpointSrvRefLabel: depContainer.SrvRef,
 					},
+				}
+				if modEndpoint.Path != nil {
+					e.IntPath = *modEndpoint.Path
 				}
 				e.Labels[naming_hdl.HttpEndpointHashLabel] = genHttpEndpointHash(e)
 				endpoints = append(endpoints, e)
