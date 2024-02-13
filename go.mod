@@ -8,6 +8,7 @@ require (
 	github.com/SENERGY-Platform/go-service-base/context-hdl v0.0.3
 	github.com/SENERGY-Platform/go-service-base/job-hdl v0.0.7
 	github.com/SENERGY-Platform/go-service-base/job-hdl/lib v0.0.4
+	github.com/SENERGY-Platform/go-service-base/sql-db-hdl v0.0.1
 	github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.0.3
 	github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib v0.0.2
 	github.com/SENERGY-Platform/go-service-base/util v0.14.1

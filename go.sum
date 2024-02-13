@@ -19,6 +19,8 @@ github.com/SENERGY-Platform/go-service-base/job-hdl v0.0.7 h1:fUhLOa/CoxcFTmEssp
 github.com/SENERGY-Platform/go-service-base/job-hdl v0.0.7/go.mod h1:vogSmUadBAAErV6OgJ80PRVZZ6LB7OG4kw65XET18r4=
 github.com/SENERGY-Platform/go-service-base/job-hdl/lib v0.0.4 h1:H/rwzaD6r+ApWCms2X51pQrFszJI1/Rs5rOyOMcn6DA=
 github.com/SENERGY-Platform/go-service-base/job-hdl/lib v0.0.4/go.mod h1:+j0dc3Ey4IR+DeC26gIA6MoBTjf4TBH1DXQpnJPjx04=
+github.com/SENERGY-Platform/go-service-base/sql-db-hdl v0.0.1 h1:g6YZsPqnp3+cmr4kra1+3WlEg0/OHt0SV/Q+GS4yDN4=
+github.com/SENERGY-Platform/go-service-base/sql-db-hdl v0.0.1/go.mod h1:igE7blXWl+cZIaUGmKlQHgo1FtPNscv5MVqiY1LzpK4=
 github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.0.3 h1:/A2bZFh3Aol1uXuR0YAxVB4POcRSshBIG2qfIEIW+gg=
 github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.0.3/go.mod h1:Go9v41HF8FYnGr40jnzl8pfT7xvls3HXinJOiPj4Yh0=
 github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib v0.0.2 h1:Bcdxt7i3DGGvlwS6U3NY9eGJjiPuv3ZpbMwebEUV+nE=

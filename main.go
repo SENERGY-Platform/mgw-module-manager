@@ -23,6 +23,7 @@ import (
 	"github.com/SENERGY-Platform/gin-middleware"
 	"github.com/SENERGY-Platform/go-cc-job-handler/ccjh"
 	"github.com/SENERGY-Platform/go-service-base/job-hdl"
+	"github.com/SENERGY-Platform/go-service-base/sql-db-hdl"
 	srv_info_hdl "github.com/SENERGY-Platform/go-service-base/srv-info-hdl"
 	sb_util "github.com/SENERGY-Platform/go-service-base/util"
 	"github.com/SENERGY-Platform/go-service-base/watchdog"
@@ -46,9 +47,9 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/storage_hdl"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/db_hdl"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/db_hdl/instances_migr"
-	"github.com/SENERGY-Platform/mgw-module-manager/util/db_hdl/modules_migr"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/db"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/db/instances_migr"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/db/modules_migr"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
 	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
 	"github.com/gin-contrib/requestid"
@@ -117,7 +118,8 @@ func main() {
 
 	naming_hdl.Init(config.CoreID, "mgw")
 
-	db, err := db_hdl.NewDB(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd.String(), config.Database.Name)
+	sql_db_hdl.Logger = util.Logger
+	db, err := db.New(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd.String(), config.Database.Name)
 	if err != nil {
 		util.Logger.Error(err)
 		ec = 1
@@ -275,7 +277,7 @@ func main() {
 
 	go func() {
 		defer dbCF()
-		if err = db_hdl.InitDB(dbCtx, db, config.Database.SchemaPath, time.Second*5, time.Duration(config.Database.Timeout), &instances_migr.Migration{
+		if err = sql_db_hdl.InitDB(dbCtx, db, config.Database.SchemaPath, time.Second*5, time.Duration(config.Database.Timeout), &instances_migr.Migration{
 			Addr: config.Database.Host,
 			Port: config.Database.Port,
 			User: config.Database.User,
