@@ -144,7 +144,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	if err = h.storageHandler.CreateDepContainers(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, id, newDep.Containers); err != nil {
 		return err
 	}
-	newHttpEpt, orphanHttpEpt := diffHttpEndpoints(oldHttpEpt, newHttpEndpoints(mod.Services, newDep.Containers, id))
+	newHttpEpt, orphanHttpEpt := diffHttpEndpoints(oldHttpEpt, newHttpEndpoints(mod.Services, newDep.Containers, mod.ID, id))
 	if len(newHttpEpt) > 0 {
 		if err = h.addHttpEndpoints(ctx, newHttpEpt); err != nil {
 			return lib_model.NewInternalError(err)

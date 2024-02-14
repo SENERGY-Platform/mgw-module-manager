@@ -114,7 +114,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput lib_m
 			}
 		}
 	}()
-	httpEndpoints := newHttpEndpoints(mod.Services, dep.Containers, dep.ID)
+	httpEndpoints := newHttpEndpoints(mod.Services, dep.Containers, mod.ID, dep.ID)
 	if len(httpEndpoints) > 0 {
 		if err = h.addHttpEndpoints(ctx, httpEndpoints); err != nil {
 			return "", lib_model.NewInternalError(err)
@@ -257,7 +257,7 @@ func (h *Handler) addHttpEndpoints(ctx context.Context, endpoints []cm_model.End
 	return nil
 }
 
-func newHttpEndpoints(modServices map[string]*module.Service, depContainers map[string]lib_model.DepContainer, dID string) []cm_model.EndpointBase {
+func newHttpEndpoints(modServices map[string]*module.Service, depContainers map[string]lib_model.DepContainer, mID, dID string) []cm_model.EndpointBase {
 	var endpoints []cm_model.EndpointBase
 	for _, depContainer := range depContainers {
 		modService, ok := modServices[depContainer.SrvRef]
@@ -269,6 +269,7 @@ func newHttpEndpoints(modServices map[string]*module.Service, depContainers map[
 					Port:    modEndpoint.Port,
 					ExtPath: extPath,
 					Labels: map[string]string{
+						naming_hdl.HttpEndpointModIDLabel:  mID,
 						naming_hdl.HttpEndpointSrvRefLabel: depContainer.SrvRef,
 					},
 				}

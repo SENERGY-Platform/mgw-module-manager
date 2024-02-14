@@ -28,5 +28,6 @@ const (
 	AuxDeploymentIDEnvVar   = "MGW_AID"
 	CoreIDEnvVar            = "MGW_CID"
 	HttpEndpointSrvRefLabel = "srv_ref"
+	HttpEndpointModIDLabel  = "m_id"
 	HttpEndpointHashLabel   = "hash"
 )
