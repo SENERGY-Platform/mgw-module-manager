@@ -42,7 +42,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	if err != nil {
 		return err
 	}
-	oldHttpEpt, err := h.cmClient.GetEndpoints(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cm_model.EndpointFilter{Ref: id})
+	oldHttpEpt, err := h.cmClient.GetEndpoints(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cm_model.EndpointFilter{Ref: id, Type: cm_model.StandardEndpoint})
 	if err != nil {
 		return err
 	}
