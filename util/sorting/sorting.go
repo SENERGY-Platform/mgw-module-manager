@@ -51,13 +51,15 @@ func GetDepOrder(dep map[string]lib_model.Deployment) (order []string, err error
 	if len(dep) > 1 {
 		nodes := make(tsort.Nodes)
 		for _, d := range dep {
+			var reqIDs map[string]struct{}
 			if len(d.RequiredDep) > 0 {
-				reqIDs := make(map[string]struct{})
+				reqIDs = make(map[string]struct{})
 				for _, i := range d.RequiredDep {
 					reqIDs[i] = struct{}{}
 				}
-				nodes.Add(d.ID, reqIDs, nil)
+
 			}
+			nodes.Add(d.ID, reqIDs, nil)
 		}
 		order, err = tsort.GetTopOrder(nodes)
 		if err != nil {
