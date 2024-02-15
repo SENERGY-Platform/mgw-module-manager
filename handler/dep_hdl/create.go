@@ -35,7 +35,6 @@ import (
 	"github.com/google/uuid"
 	"os"
 	"path"
-	"strconv"
 	"time"
 )
 
@@ -276,20 +275,11 @@ func newHttpEndpoints(modServices map[string]*module.Service, depContainers map[
 				if modEndpoint.Path != nil {
 					e.IntPath = *modEndpoint.Path
 				}
-				e.Labels[naming_hdl.HttpEndpointHashLabel] = genHttpEndpointHash(e)
 				endpoints = append(endpoints, e)
 			}
 		}
 	}
 	return endpoints
-}
-
-func genHttpEndpointHash(eBase cm_model.EndpointBase) string {
-	values := []string{eBase.IntPath, eBase.ExtPath, eBase.Host}
-	if eBase.Port != nil && *eBase.Port != 80 {
-		values = append(values, strconv.FormatInt(int64(*eBase.Port), 10))
-	}
-	return naming_hdl.GenHash(values...)
 }
 
 func newDepBase(mod *module.Module, depInput lib_model.DepInput, inclDir string, indirect bool) lib_model.DepBase {
