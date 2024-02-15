@@ -242,7 +242,7 @@ func (h *Handler) createVolumes(ctx context.Context, volumes map[string]string, 
 func (h *Handler) addHttpEndpoints(ctx context.Context, endpoints []cm_model.EndpointBase) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
 	defer cf()
-	jID, err := h.cmClient.AddEndpoints(ctxWt, endpoints)
+	jID, err := h.cmClient.SetEndpoints(ctxWt, endpoints)
 	if err != nil {
 		return err
 	}
