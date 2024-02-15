@@ -144,12 +144,13 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	if err = h.storageHandler.CreateDepContainers(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, id, newDep.Containers); err != nil {
 		return err
 	}
-	newHttpEpt, orphanHttpEpt := diffHttpEndpoints(oldHttpEpt, newHttpEndpoints(mod.Services, newDep.Containers, mod.ID, id))
+	newHttpEpt := newHttpEndpoints(mod.Services, newDep.Containers, mod.ID, id)
 	if len(newHttpEpt) > 0 {
 		if err = h.addHttpEndpoints(ctx, newHttpEpt); err != nil {
 			return lib_model.NewInternalError(err)
 		}
 	}
+	orphanHttpEpt := getOrphanHttpEndpoints(oldHttpEpt, newHttpEpt)
 	if oldDep.Enabled {
 		if err = h.loadSecrets(ctx, newDep); err != nil {
 			return err
@@ -225,31 +226,16 @@ func (h *Handler) restore(dep lib_model.Deployment) error {
 	return nil
 }
 
-func diffHttpEndpoints(oldEndpoints map[string]cm_model.Endpoint, newEndpoints []cm_model.EndpointBase) ([]cm_model.EndpointBase, []string) {
+func getOrphanHttpEndpoints(oldEndpoints map[string]cm_model.Endpoint, newEndpoints []cm_model.EndpointBase) []string {
 	var orphans []string
-	oldHashMap := make(map[string]string)
-	for id, e := range oldEndpoints {
-		hash, ok := e.Labels[naming_hdl.HttpEndpointHashLabel]
-		if !ok {
-			orphans = append(orphans, id)
-		}
-		oldHashMap[hash] = id
+	newExtPaths := make(map[string]struct{})
+	for _, endpoint := range newEndpoints {
+		newExtPaths[endpoint.ExtPath] = struct{}{}
 	}
-	newHashMap := make(map[string]cm_model.EndpointBase)
-	for _, e := range newEndpoints {
-		hash := e.Labels[naming_hdl.HttpEndpointHashLabel]
-		newHashMap[hash] = e
-	}
-	for hash, id := range oldHashMap {
-		if _, ok := newHashMap[hash]; !ok {
+	for id, endpoint := range oldEndpoints {
+		if _, ok := newExtPaths[endpoint.ExtPath]; !ok {
 			orphans = append(orphans, id)
 		}
 	}
-	var missing []cm_model.EndpointBase
-	for hash, e := range newHashMap {
-		if _, ok := oldHashMap[hash]; !ok {
-			missing = append(missing, e)
-		}
-	}
-	return missing, orphans
+	return orphans
 }
