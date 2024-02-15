@@ -29,5 +29,4 @@ const (
 	CoreIDEnvVar            = "MGW_CID"
 	HttpEndpointSrvRefLabel = "srv_ref"
 	HttpEndpointModIDLabel  = "mod_id"
-	HttpEndpointHashLabel   = "hash"
 )
