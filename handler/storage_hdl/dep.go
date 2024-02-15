@@ -266,11 +266,11 @@ func genDepFilter(filter lib_model.DepFilter) (string, []any) {
 		fc = append(fc, "`name` = ?")
 		val = append(val, filter.Name)
 	}
-	if filter.Enabled {
+	if filter.Enabled { // TODO: only works if true
 		fc = append(fc, "`enabled` = ?")
 		val = append(val, filter.Enabled)
 	}
-	if filter.Indirect {
+	if filter.Indirect { // TODO: only works if true
 		fc = append(fc, "`indirect` = ?")
 		val = append(val, filter.Indirect)
 	}
