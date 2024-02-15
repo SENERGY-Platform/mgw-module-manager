@@ -15,8 +15,8 @@ require (
 	github.com/SENERGY-Platform/go-service-base/watchdog v0.4.2
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.13.2
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.14.2
-	github.com/SENERGY-Platform/mgw-core-manager/client v0.4.0
-	github.com/SENERGY-Platform/mgw-core-manager/lib v0.4.0
+	github.com/SENERGY-Platform/mgw-core-manager/client v0.5.0
+	github.com/SENERGY-Platform/mgw-core-manager/lib v0.5.0
 	github.com/SENERGY-Platform/mgw-host-manager/client v0.3.4
 	github.com/SENERGY-Platform/mgw-host-manager/lib v0.1.7
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.14.0
