@@ -150,17 +150,16 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 			return lib_model.NewInternalError(err)
 		}
 	}
-	orphanHttpEpt := getOrphanHttpEndpoints(oldHttpEpt, newHttpEpt)
-	if oldDep.Enabled {
-		if err = h.loadSecrets(ctx, newDep); err != nil {
-			return err
-		}
-		if err = h.startContainers(ctx, newDep.Containers); err != nil {
-			return err
-		}
-	}
 	if err = tx.Commit(); err != nil {
 		return err
+	}
+	if oldDep.Enabled {
+		if e := h.loadSecrets(ctx, newDep); e != nil {
+			util.Logger.Error(e)
+		}
+		if e := h.startContainers(ctx, newDep.Containers); e != nil {
+			util.Logger.Error(e)
+		}
 	}
 	if e := h.removeContainers(ctx, oldDep.Containers, true); e != nil {
 		util.Logger.Error(e)
@@ -168,6 +167,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	if e := h.removeVolumes(ctx, orphanVolumes, true); e != nil {
 		util.Logger.Error(e)
 	}
+	orphanHttpEpt := getOrphanHttpEndpoints(oldHttpEpt, newHttpEpt)
 	if len(orphanHttpEpt) > 0 {
 		if e := h.removeHttpEndpoints(ctx, cm_model.EndpointFilter{IDs: orphanHttpEpt}); e != nil {
 			util.Logger.Error(e)
