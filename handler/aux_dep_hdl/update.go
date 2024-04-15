@@ -16,12 +16,12 @@
 
 package aux_dep_hdl
 
-//import (
-//	"context"
-//	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-//	"github.com/SENERGY-Platform/mgw-module-manager/model"
-//)
-//
-//func (h *Handler) Update(ctx context.Context, aID string, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq) error {
-//	panic("not implemented")
-//}
+import (
+	"context"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/model"
+)
+
+func (h *Handler) Update(ctx context.Context, aID string, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq) error {
+	panic("not implemented")
+}
