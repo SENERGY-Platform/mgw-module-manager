@@ -52,14 +52,17 @@ func (a *Api) CreateDeployment(ctx context.Context, id string, depInput lib_mode
 			return "", newApiErr(metaStr, lib_model.NewInvalidInputError(errors.New("already deployed")))
 		}
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
-		_, err := a.createDeployment(ctx, mod, modTree, depInput, dependencies)
+		dID, err := a.createDeployment(ctx, mod, modTree, depInput, dependencies)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		if err != nil {
+			return nil, err
+		}
+		return dID, nil
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -148,14 +151,14 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput lib_mod
 		a.mu.Unlock()
 		return "", newApiErr(metaStr, errors.New("module ID mismatch"))
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Update(ctx, dep.ID, mod.Module.Module, depInput, "")
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -170,14 +173,14 @@ func (a *Api) DeleteDeployment(ctx context.Context, id string, force bool) (stri
 	if err != nil {
 		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Delete(ctx, id, force)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -192,14 +195,14 @@ func (a *Api) DeleteDeployments(ctx context.Context, filter lib_model.DepFilter,
 	if err != nil {
 		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.DeleteAll(ctx, filter, force)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -235,14 +238,14 @@ func (a *Api) StartDeployment(ctx context.Context, dID string, dependencies bool
 	if err != nil {
 		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Start(ctx, dID, dependencies)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -257,14 +260,14 @@ func (a *Api) StartDeployments(ctx context.Context, filter lib_model.DepFilter, 
 	if err != nil {
 		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.StartAll(ctx, filter, dependencies)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -279,14 +282,14 @@ func (a *Api) StopDeployment(ctx context.Context, dID string, force bool) (strin
 	if err != nil {
 		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Stop(ctx, dID, force)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -301,14 +304,14 @@ func (a *Api) StopDeployments(ctx context.Context, filter lib_model.DepFilter, f
 	if err != nil {
 		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.StopAll(ctx, filter, force)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -323,14 +326,14 @@ func (a *Api) RestartDeployment(ctx context.Context, id string) (string, error) 
 	if err != nil {
 		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.Restart(ctx, id)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -345,14 +348,14 @@ func (a *Api) RestartDeployments(ctx context.Context, filter lib_model.DepFilter
 	if err != nil {
 		return "", newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.deploymentHandler.RestartAll(ctx, filter)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -367,14 +370,14 @@ func (a *Api) StartEnabledDeployments(smClient sm_client.Client, delay time.Dura
 	if err != nil {
 		return newApiErr(metaStr, lib_model.NewResourceBusyError(err))
 	}
-	_, err = a.jobHandler.Create(context.Background(), metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	_, err = a.jobHandler.Create(context.Background(), metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.startEnabledDeployments(ctx, smClient, delay, retries)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()

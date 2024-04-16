@@ -46,14 +46,14 @@ func (a *Api) AddModule(ctx context.Context, id, version string) (string, error)
 	for _, m := range modules {
 		modMap[m.ID] = m.Module.Module
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.addModule(ctx, id, version, modMap)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -101,14 +101,14 @@ func (a *Api) DeleteModule(ctx context.Context, id string, force bool) (string, 
 		a.mu.Unlock()
 		return "", newApiErr(metaStr, lib_model.NewInvalidInputError(errors.New("deployment exists")))
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.moduleHandler.Delete(ctx, id, force)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -132,14 +132,14 @@ func (a *Api) CheckModuleUpdates(ctx context.Context) (string, error) {
 	for _, mod := range modules {
 		modMap[mod.ID] = mod.Module.Module
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.modUpdateHandler.Check(ctx, modMap)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -190,14 +190,14 @@ func (a *Api) PrepareModuleUpdate(ctx context.Context, id, version string) (stri
 	for _, mod := range modules {
 		modMap[mod.ID] = mod.Module.Module
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.prepareModuleUpdate(ctx, modMap, id, version)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -236,14 +236,14 @@ func (a *Api) UpdateModule(ctx context.Context, id string, depInput lib_model.De
 		a.mu.Unlock()
 		return "", newApiErr(metaStr, err)
 	}
-	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) error {
+	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
 		err := a.updateModule(ctx, id, depInput, dependencies, stg, newIDs, uptIDs, ophIDs, deployments)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return err
+		return nil, err
 	})
 	if err != nil {
 		a.mu.Unlock()
