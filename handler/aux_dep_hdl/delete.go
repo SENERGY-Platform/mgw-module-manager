@@ -22,6 +22,7 @@ import (
 	"github.com/SENERGY-Platform/go-service-base/context-hdl"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
 )
 
 func (h *Handler) Delete(ctx context.Context, aID string, force bool) error {
@@ -31,30 +32,44 @@ func (h *Handler) Delete(ctx context.Context, aID string, force bool) error {
 	if err != nil {
 		return err
 	}
-	if err = h.removeContainer(ctx, auxDeployment.Container.ID, force); err != nil {
-		return err
-	}
-	ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf2()
-	return h.storageHandler.DeleteAuxDep(ctxWt2, nil, aID)
+	return h.delete(ctx, auxDeployment, force)
 }
 
 func (h *Handler) DeleteAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	auxDeployments, err := h.storageHandler.ListAuxDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, filter, false)
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, false)
 	if err != nil {
 		return err
 	}
-	for aID, auxDeployment := range auxDeployments {
-		if err = h.removeContainer(ctx, auxDeployment.Container.ID, force); err != nil {
-			return err
-		}
-		if err = h.storageHandler.DeleteAuxDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), nil, aID); err != nil {
+	for _, auxDeployment := range auxDeployments {
+		if err = h.delete(ctx, auxDeployment, force); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (h *Handler) delete(ctx context.Context, auxDep lib_model.AuxDeployment, force bool) error {
+	if err := h.removeContainer(ctx, auxDep.Container.ID, force); err != nil {
+		return err
+	}
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	volumes, err := h.cewClient.GetVolumes(ctxWt, cew_model.VolumeFilter{Labels: map[string]string{naming_hdl.DeploymentIDLabel: auxDep.DepID, naming_hdl.AuxDeploymentID: auxDep.ID}})
+	if err != nil {
+		return err
+	}
+	var vols []string
+	for _, v := range volumes {
+		vols = append(vols, v.Name)
+	}
+	if err = h.removeVolumes(ctx, vols, force); err != nil {
+		return lib_model.NewInternalError(err)
+	}
+	ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf2()
+	return h.storageHandler.DeleteAuxDep(ctxWt2, nil, auxDep.ID)
 }
 
 func (h *Handler) removeContainer(ctx context.Context, id string, force bool) error {
@@ -64,6 +79,21 @@ func (h *Handler) removeContainer(ctx context.Context, id string, force bool) er
 		var nfe *cew_model.NotFoundError
 		if !errors.As(err, &nfe) {
 			return lib_model.NewInternalError(err)
+		}
+	}
+	return nil
+}
+
+func (h *Handler) removeVolumes(ctx context.Context, volumes []string, force bool) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	for _, name := range volumes {
+		err := h.cewClient.RemoveVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), name, force)
+		if err != nil {
+			var nfe *cew_model.NotFoundError
+			if !errors.As(err, &nfe) {
+				return err
+			}
 		}
 	}
 	return nil
