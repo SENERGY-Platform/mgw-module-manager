@@ -71,11 +71,29 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 	if err != nil {
 		return "", err
 	}
-	volumes := make(map[string]string)
+	modVolumes := make(map[string]string)
 	for ref := range mod.Volumes {
-		volumes[ref] = naming_hdl.Global.NewVolumeName(dep.ID, ref)
+		modVolumes[ref] = naming_hdl.Global.NewVolumeName(dep.ID, ref)
 	}
-	auxDep.Container, err = h.createContainer(ctx, auxSrv, auxDep, mod.Module.Module, dep, requiredDep, volumes)
+	auxVolumes := make(map[string]string)
+	for ref := range auxReq.Volumes {
+		auxVolumes[ref] = naming_hdl.Global.NewVolumeName(auxDep.ID, ref)
+	}
+	if err = h.createVolumes(ctx, auxVolumes, dep.ID, auxDep.ID); err != nil {
+		return "", err
+	}
+	defer func() {
+		if err != nil {
+			var nv []string
+			for _, v := range auxVolumes {
+				nv = append(nv, v)
+			}
+			if e := h.removeVolumes(context.Background(), nv, true); e != nil {
+				util.Logger.Error(e)
+			}
+		}
+	}()
+	auxDep.Container, err = h.createContainer(ctx, auxSrv, auxDep, mod.Module.Module, dep, requiredDep, auxReq.Volumes, modVolumes, auxVolumes)
 	if err != nil {
 		return "", err
 	}
@@ -89,7 +107,7 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 	return auxDep.ID, nil
 }
 
-func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, volumes map[string]string) (lib_model.AuxDepContainer, error) {
+func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReqVolumes, modVolumes, auxVolumes map[string]string) (lib_model.AuxDepContainer, error) {
 	globalConfigs, err := getGlobalConfigs(mod.Configs, dep.Configs, auxDep.Configs, auxSrv.Configs)
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
@@ -98,7 +116,7 @@ func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
 	}
-	mounts := newMounts(auxSrv, dep.Dir, h.depHostPath, volumes)
+	mounts := newMounts(auxSrv, dep.Dir, h.depHostPath, auxReqVolumes, modVolumes, auxVolumes)
 	ctrName, err := naming_hdl.Global.NewContainerName("aux-dep")
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
@@ -128,6 +146,36 @@ func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
 	}
 	return auxDepContainer, nil
+}
+
+func (h *Handler) createVolumes(ctx context.Context, volumes map[string]string, dID, aID string) error {
+	var err error
+	var createdVols []string
+	defer func() {
+		if err != nil {
+			if e := h.removeVolumes(context.Background(), createdVols, true); e != nil {
+				util.Logger.Error(e)
+			}
+		}
+	}()
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	for ref, name := range volumes {
+		var n string
+		n, err = h.cewClient.CreateVolume(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), cew_model.Volume{
+			Name:   name,
+			Labels: map[string]string{naming_hdl.CoreIDLabel: h.coreID, naming_hdl.ManagerIDLabel: h.managerID, naming_hdl.DeploymentIDLabel: dID, naming_hdl.AuxDeploymentID: aID, naming_hdl.VolumeRefLabel: ref},
+		})
+		if err != nil {
+			return lib_model.NewInternalError(err)
+		}
+		if n != name {
+			err = fmt.Errorf("volume name missmatch: %s != %s", n, name)
+			return lib_model.NewInternalError(err)
+		}
+		createdVols = append(createdVols, n)
+	}
+	return nil
 }
 
 func getGlobalConfigs(modConfigs module.Configs, depConfigs map[string]lib_model.DepConfig, auxReqConfigs, configMap map[string]string) (map[string]string, error) {
@@ -202,10 +250,19 @@ func getEnvVars(auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, globa
 	return envVars, nil
 }
 
-func newMounts(auxSrv *module.AuxService, depDir, depHostPath string, volumes map[string]string) []cew_model.Mount {
+func newMounts(auxSrv *module.AuxService, depDir, depHostPath string, auxReqVolumes, modVolumes, auxVolumes map[string]string) []cew_model.Mount {
 	var mounts []cew_model.Mount
 	for mntPoint, name := range auxSrv.Volumes {
-		if vol, ok := volumes[name]; ok {
+		if vol, ok := modVolumes[name]; ok {
+			mounts = append(mounts, cew_model.Mount{
+				Type:   cew_model.VolumeMount,
+				Source: vol,
+				Target: mntPoint,
+			})
+		}
+	}
+	for name, mntPoint := range auxReqVolumes {
+		if vol, ok := auxVolumes[name]; ok {
 			mounts = append(mounts, cew_model.Mount{
 				Type:   cew_model.VolumeMount,
 				Source: vol,
