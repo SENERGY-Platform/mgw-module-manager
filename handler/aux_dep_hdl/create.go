@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/go-service-base/context-hdl"
+	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
@@ -42,7 +43,10 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 	if ok, err := validImage(mod.AuxImgSrc, auxReq.Image); err != nil {
 		return "", lib_model.NewInternalError(err)
 	} else if !ok {
-		return "", lib_model.NewInvalidInputError(errors.New("image can't be validated"))
+		return "", lib_model.NewInvalidInputError(errors.New("invalid image"))
+	}
+	if err := h.pullImage(ctx, auxReq.Image); err != nil {
+		return "", lib_model.NewInternalError(err)
 	}
 	timestamp := time.Now().UTC()
 	auxDep := lib_model.AuxDeployment{
@@ -146,6 +150,32 @@ func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
 	}
 	return auxDepContainer, nil
+}
+
+func (h *Handler) pullImage(ctx context.Context, img string) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	_, err := h.cewClient.GetImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), img)
+	if err != nil {
+		var nfe *cew_model.NotFoundError
+		if !errors.As(err, &nfe) {
+			return lib_model.NewInternalError(err)
+		}
+	} else {
+		return nil
+	}
+	jID, err := h.cewClient.AddImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), img)
+	if err != nil {
+		return lib_model.NewInternalError(err)
+	}
+	job, err := job_hdl_lib.Await(ctx, h.cewClient, jID, time.Second, h.httpTimeout, util.Logger)
+	if err != nil {
+		return err
+	}
+	if job.Error != nil {
+		return lib_model.NewInternalError(fmt.Errorf("%v", job.Error))
+	}
+	return nil
 }
 
 func (h *Handler) createVolumes(ctx context.Context, volumes map[string]string, dID, aID string) error {
