@@ -50,6 +50,7 @@ type AuxDepReq struct {
 	Image   string            `json:"image"`
 	Labels  map[string]string `json:"labels"`
 	Configs map[string]string `json:"configs"`
+	Volumes map[string]string `json:"volumes"`
 	Ref     string            `json:"ref"`
 	Name    *string           `json:"name"`
 }
