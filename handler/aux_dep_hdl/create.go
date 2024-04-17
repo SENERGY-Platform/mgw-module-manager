@@ -39,11 +39,9 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 	if !ok {
 		return "", lib_model.NewInvalidInputError(fmt.Errorf("aux service ref '%s' not defined", auxReq.Ref))
 	}
-	ok, err := validImage(mod.AuxImgSrc, auxReq.Image)
-	if err != nil {
+	if ok, err := validImage(mod.AuxImgSrc, auxReq.Image); err != nil {
 		return "", lib_model.NewInternalError(err)
-	}
-	if !ok {
+	} else if !ok {
 		return "", lib_model.NewInvalidInputError(errors.New("image can't be validated"))
 	}
 	timestamp := time.Now().UTC()
