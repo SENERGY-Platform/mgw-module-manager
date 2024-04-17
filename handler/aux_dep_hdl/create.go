@@ -35,7 +35,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq) (string, error) {
+func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, updateImg bool) (string, error) {
 	auxSrv, ok := mod.AuxServices[auxReq.Ref]
 	if !ok {
 		return "", lib_model.NewInvalidInputError(fmt.Errorf("aux service ref '%s' not defined", auxReq.Ref))
@@ -45,7 +45,7 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 	} else if !ok {
 		return "", lib_model.NewInvalidInputError(errors.New("invalid image"))
 	}
-	if err := h.pullImage(ctx, auxReq.Image); err != nil {
+	if err := h.pullImage(ctx, auxReq.Image, updateImg); err != nil {
 		return "", lib_model.NewInternalError(err)
 	}
 	timestamp := time.Now().UTC()
@@ -152,19 +152,23 @@ func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService
 	return auxDepContainer, nil
 }
 
-func (h *Handler) pullImage(ctx context.Context, img string) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	_, err := h.cewClient.GetImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), img)
-	if err != nil {
-		var nfe *cew_model.NotFoundError
-		if !errors.As(err, &nfe) {
-			return lib_model.NewInternalError(err)
+func (h *Handler) pullImage(ctx context.Context, img string, alwaysPull bool) error {
+	if !alwaysPull {
+		ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+		defer cf()
+		_, err := h.cewClient.GetImage(ctxWt, img)
+		if err != nil {
+			var nfe *cew_model.NotFoundError
+			if !errors.As(err, &nfe) {
+				return lib_model.NewInternalError(err)
+			}
+		} else {
+			return nil
 		}
-	} else {
-		return nil
 	}
-	jID, err := h.cewClient.AddImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), img)
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	jID, err := h.cewClient.AddImage(ctxWt, img)
 	if err != nil {
 		return lib_model.NewInternalError(err)
 	}
