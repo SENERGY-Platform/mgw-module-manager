@@ -49,6 +49,18 @@ type Api interface {
 	RestartDeployment(ctx context.Context, dID string) (string, error)
 	RestartDeployments(ctx context.Context, filter model.DepFilter) (string, error)
 	GetDeploymentUpdateTemplate(ctx context.Context, dID string) (model.DepUpdateTemplate, error)
+	GetAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter, assets, containerInfo bool) (map[string]model.AuxDeployment, error)
+	GetAuxDeployment(ctx context.Context, dID, aID string, assets, containerInfo bool) (model.AuxDeployment, error)
+	CreateAuxDeployment(ctx context.Context, dID string, auxDepInput model.AuxDepReq) (string, error)
+	UpdateAuxDeployment(ctx context.Context, dID, aID string, auxDepInput model.AuxDepReq) (string, error)
+	DeleteAuxDeployment(ctx context.Context, dID, aID string, force bool) (string, error)
+	DeleteAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter, force bool) (string, error)
+	StartAuxDeployment(ctx context.Context, dID, aID string) (string, error)
+	StartAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter) (string, error)
+	StopAuxDeployment(ctx context.Context, dID, aID string) (string, error)
+	StopAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter) (string, error)
+	RestartAuxDeployment(ctx context.Context, dID, aID string) (string, error)
+	RestartAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter) (string, error)
 	job_hdl_lib.Api
 	srv_info_lib.Api
 }
