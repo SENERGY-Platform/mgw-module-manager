@@ -24,6 +24,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
+	"time"
 )
 
 type ModuleHandler interface {
@@ -126,6 +127,12 @@ type AuxDepStorageHandler interface {
 	DeleteAuxDep(ctx context.Context, tx driver.Tx, aID string) error
 	CreateAuxDepContainer(ctx context.Context, tx driver.Tx, aID string, auxDepContainer lib_model.AuxDepContainer) error
 	DeleteAuxDepContainer(ctx context.Context, tx driver.Tx, aID string) error
+}
+
+type AuxJobHandler interface {
+	Add(dID, jID string)
+	Check(dID, jID string) bool
+	Purge(maxAge time.Duration)
 }
 
 type CfgValidationHandler interface {
