@@ -24,24 +24,28 @@ import (
 )
 
 type Api struct {
-	moduleHandler     handler.ModuleHandler
-	modStagingHandler handler.ModStagingHandler
-	modUpdateHandler  handler.ModUpdateHandler
-	deploymentHandler handler.DeploymentHandler
-	jobHandler        job_hdl.JobHandler
-	srvInfoHdl        srv_info_hdl.SrvInfoHandler
-	mu                *util.RWMutex
+	moduleHandler        handler.ModuleHandler
+	modStagingHandler    handler.ModStagingHandler
+	modUpdateHandler     handler.ModUpdateHandler
+	deploymentHandler    handler.DeploymentHandler
+	auxDeploymentHandler handler.AuxDeploymentHandler
+	auxJobHandler        handler.AuxJobHandler
+	jobHandler           job_hdl.JobHandler
+	srvInfoHdl           srv_info_hdl.SrvInfoHandler
+	mu                   *util.RWMutex
 }
 
-func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModStagingHandler, moduleUpdateHandler handler.ModUpdateHandler, deploymentHandler handler.DeploymentHandler, jobHandler job_hdl.JobHandler, srvInfoHandler srv_info_hdl.SrvInfoHandler) *Api {
+func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModStagingHandler, moduleUpdateHandler handler.ModUpdateHandler, deploymentHandler handler.DeploymentHandler, auxDeploymentHandler handler.AuxDeploymentHandler, auxJobHandler handler.AuxJobHandler, jobHandler job_hdl.JobHandler, srvInfoHandler srv_info_hdl.SrvInfoHandler) *Api {
 	return &Api{
-		moduleHandler:     moduleHandler,
-		modStagingHandler: moduleStagingHandler,
-		modUpdateHandler:  moduleUpdateHandler,
-		deploymentHandler: deploymentHandler,
-		jobHandler:        jobHandler,
-		srvInfoHdl:        srvInfoHandler,
-		mu:                &util.RWMutex{},
+		moduleHandler:        moduleHandler,
+		modStagingHandler:    moduleStagingHandler,
+		modUpdateHandler:     moduleUpdateHandler,
+		deploymentHandler:    deploymentHandler,
+		auxDeploymentHandler: auxDeploymentHandler,
+		auxJobHandler:        auxJobHandler,
+		jobHandler:           jobHandler,
+		srvInfoHdl:           srvInfoHandler,
+		mu:                   &util.RWMutex{},
 	}
 }
 
