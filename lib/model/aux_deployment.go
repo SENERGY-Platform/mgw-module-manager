@@ -16,7 +16,10 @@
 
 package model
 
-import "time"
+import (
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	"time"
+)
 
 type AuxDepBase struct {
 	ID      string            `json:"id"` // uuid
@@ -47,10 +50,11 @@ type AuxDepFilter struct {
 }
 
 type AuxDepReq struct {
-	Image   string            `json:"image"`
-	Labels  map[string]string `json:"labels"`
-	Configs map[string]string `json:"configs"`
-	Volumes map[string]string `json:"volumes"` // {name:mntPoint}
-	Ref     string            `json:"ref"`
-	Name    *string           `json:"name"`
+	Image     string            `json:"image"`
+	Labels    map[string]string `json:"labels"`
+	Configs   map[string]string `json:"configs"`
+	Volumes   map[string]string `json:"volumes"` // {name:mntPoint}
+	Ref       string            `json:"ref"`     // only required by create method
+	Name      *string           `json:"name"`
+	RunConfig *module.RunConfig `json:"run_config"`
 }
