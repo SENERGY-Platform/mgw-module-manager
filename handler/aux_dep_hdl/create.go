@@ -35,7 +35,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, updateImg bool) (string, error) {
+func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg bool) (string, error) {
 	auxSrv, ok := mod.AuxServices[auxReq.Ref]
 	if !ok {
 		return "", lib_model.NewInvalidInputError(fmt.Errorf("aux service ref '%s' not defined", auxReq.Ref))
