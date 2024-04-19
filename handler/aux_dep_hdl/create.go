@@ -51,19 +51,21 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 	timestamp := time.Now().UTC()
 	auxDep := lib_model.AuxDeployment{
 		AuxDepBase: lib_model.AuxDepBase{
-			DepID:     dep.ID,
-			Image:     auxReq.Image,
-			Labels:    auxReq.Labels,
-			Configs:   auxReq.Configs,
-			Ref:       auxReq.Ref,
-			Name:      auxSrv.Name,
-			RunConfig: auxReq.RunConfig,
-			Created:   timestamp,
-			Updated:   timestamp,
+			DepID:   dep.ID,
+			Image:   auxReq.Image,
+			Labels:  auxReq.Labels,
+			Configs: auxReq.Configs,
+			Ref:     auxReq.Ref,
+			Name:    auxSrv.Name,
+			Created: timestamp,
+			Updated: timestamp,
 		},
 	}
 	if auxReq.Name != nil && *auxReq.Name != "" {
 		auxDep.Name = *auxReq.Name
+	}
+	if auxReq.RunConfig != nil {
+		auxDep.RunConfig = *auxReq.RunConfig
 	}
 	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {
