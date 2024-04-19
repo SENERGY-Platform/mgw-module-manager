@@ -348,26 +348,12 @@ func newCewContainer(runConfig module.RunConfig, image, name, alias, moduleNet s
 	}
 }
 
-func handleRunConfig(rc module.RunConfig, reqRC *module.RunConfig) module.RunConfig {
-	if reqRC != nil {
-		if reqRC.MaxRetries > 0 {
-			rc.MaxRetries = reqRC.MaxRetries
-		}
-		if reqRC.RunOnce != rc.RunOnce {
-			rc.RunOnce = reqRC.RunOnce
-		}
-		if reqRC.StopTimeout > 0 {
-			rc.StopTimeout = reqRC.StopTimeout
-		}
-		if reqRC.StopSignal != nil {
-			rc.StopSignal = reqRC.StopSignal
-		}
-		if reqRC.PseudoTTY != rc.PseudoTTY {
-			rc.PseudoTTY = reqRC.PseudoTTY
-		}
-		if len(reqRC.Command) > 0 {
-			rc.Command = reqRC.Command
-		}
+func handleRunConfig(rc module.RunConfig, reqRC lib_model.AuxDepRunConfig) module.RunConfig {
+	if reqRC.PseudoTTY != rc.PseudoTTY {
+		rc.PseudoTTY = reqRC.PseudoTTY
+	}
+	if reqRC.Command != nil {
+		rc.Command = strings.Split(*reqRC.Command, "")
 	}
 	return rc
 }
