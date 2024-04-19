@@ -97,7 +97,7 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 			}
 		}
 	}()
-	auxDep.Container, err = h.createContainer(ctx, auxSrv, auxDep, mod.Module.Module, dep, requiredDep, auxReq.Volumes, modVolumes, auxVolumes)
+	auxDep.Container, err = h.createContainer(ctx, auxSrv, auxDep, auxReq, mod.Module.Module, dep, requiredDep, modVolumes, auxVolumes)
 	if err != nil {
 		return "", err
 	}
@@ -111,7 +111,7 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 	return auxDep.ID, nil
 }
 
-func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReqVolumes, modVolumes, auxVolumes map[string]string) (lib_model.AuxDepContainer, error) {
+func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, auxReq lib_model.AuxDepReq, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, modVolumes, auxVolumes map[string]string) (lib_model.AuxDepContainer, error) {
 	globalConfigs, err := getGlobalConfigs(mod.Configs, dep.Configs, auxDep.Configs, auxSrv.Configs)
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
@@ -120,7 +120,7 @@ func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
 	}
-	mounts := newMounts(auxSrv, dep.Dir, h.depHostPath, auxReqVolumes, modVolumes, auxVolumes)
+	mounts := newMounts(auxSrv, dep.Dir, h.depHostPath, auxReq.Volumes, modVolumes, auxVolumes)
 	ctrName, err := naming_hdl.Global.NewContainerName("aux-dep")
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
@@ -133,7 +133,7 @@ func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService
 		naming_hdl.AuxDeploymentID:       auxDep.ID,
 		naming_hdl.AuxDeploymentRefLabel: auxDep.Ref,
 	}
-	cewContainer := newCewContainer(auxSrv.RunConfig, auxDep.Image, ctrName, ctrAlias, h.moduleNet, labels, envVars, mounts)
+	cewContainer := newCewContainer(handleRunConfig(auxSrv.RunConfig, auxReq.RunConfig), auxDep.Image, ctrName, ctrAlias, h.moduleNet, labels, envVars, mounts)
 	auxDepContainer := lib_model.AuxDepContainer{
 		Alias: ctrAlias,
 	}
@@ -346,6 +346,30 @@ func newCewContainer(runConfig module.RunConfig, image, name, alias, moduleNet s
 			PseudoTTY:       runConfig.PseudoTTY,
 		},
 	}
+}
+
+func handleRunConfig(rc module.RunConfig, reqRC *module.RunConfig) module.RunConfig {
+	if reqRC != nil {
+		if reqRC.MaxRetries > 0 {
+			rc.MaxRetries = reqRC.MaxRetries
+		}
+		if reqRC.RunOnce != rc.RunOnce {
+			rc.RunOnce = reqRC.RunOnce
+		}
+		if reqRC.StopTimeout > 0 {
+			rc.StopTimeout = reqRC.StopTimeout
+		}
+		if reqRC.StopSignal != nil {
+			rc.StopSignal = reqRC.StopSignal
+		}
+		if reqRC.PseudoTTY != rc.PseudoTTY {
+			rc.PseudoTTY = reqRC.PseudoTTY
+		}
+		if len(reqRC.Command) > 0 {
+			rc.Command = reqRC.Command
+		}
+	}
+	return rc
 }
 
 func validImage(auxImgSrc map[string]struct{}, image string) (bool, error) {
