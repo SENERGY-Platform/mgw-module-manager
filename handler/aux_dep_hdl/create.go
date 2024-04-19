@@ -45,7 +45,7 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 	} else if !ok {
 		return "", lib_model.NewInvalidInputError(errors.New("invalid image"))
 	}
-	if err := h.pullImage(ctx, auxReq.Image, updateImg); err != nil {
+	if err := h.pullImage(ctx, auxReq.Image, forcePullImg); err != nil {
 		return "", lib_model.NewInternalError(err)
 	}
 	timestamp := time.Now().UTC()
