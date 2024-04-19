@@ -51,14 +51,15 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 	timestamp := time.Now().UTC()
 	auxDep := lib_model.AuxDeployment{
 		AuxDepBase: lib_model.AuxDepBase{
-			DepID:   dep.ID,
-			Image:   auxReq.Image,
-			Labels:  auxReq.Labels,
-			Configs: auxReq.Configs,
-			Ref:     auxReq.Ref,
-			Name:    auxSrv.Name,
-			Created: timestamp,
-			Updated: timestamp,
+			DepID:     dep.ID,
+			Image:     auxReq.Image,
+			Labels:    auxReq.Labels,
+			Configs:   auxReq.Configs,
+			Ref:       auxReq.Ref,
+			Name:      auxSrv.Name,
+			RunConfig: auxReq.RunConfig,
+			Created:   timestamp,
+			Updated:   timestamp,
 		},
 	}
 	if auxReq.Name != nil && *auxReq.Name != "" {
@@ -97,7 +98,7 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 			}
 		}
 	}()
-	auxDep.Container, err = h.createContainer(ctx, auxSrv, auxDep, auxReq, mod.Module.Module, dep, requiredDep, modVolumes, auxVolumes)
+	auxDep.Container, err = h.createContainer(ctx, auxSrv, auxDep, mod.Module.Module, dep, requiredDep, modVolumes, auxVolumes, auxReq.Volumes)
 	if err != nil {
 		return "", err
 	}
@@ -111,7 +112,7 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 	return auxDep.ID, nil
 }
 
-func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, auxReq lib_model.AuxDepReq, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, modVolumes, auxVolumes map[string]string) (lib_model.AuxDepContainer, error) {
+func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, modVolumes, auxVolumes, auxReqVolumes map[string]string) (lib_model.AuxDepContainer, error) {
 	globalConfigs, err := getGlobalConfigs(mod.Configs, dep.Configs, auxDep.Configs, auxSrv.Configs)
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
@@ -120,7 +121,7 @@ func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
 	}
-	mounts := newMounts(auxSrv, dep.Dir, h.depHostPath, auxReq.Volumes, modVolumes, auxVolumes)
+	mounts := newMounts(auxSrv, dep.Dir, h.depHostPath, auxReqVolumes, modVolumes, auxVolumes)
 	ctrName, err := naming_hdl.Global.NewContainerName("aux-dep")
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
@@ -133,7 +134,7 @@ func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService
 		naming_hdl.AuxDeploymentID:       auxDep.ID,
 		naming_hdl.AuxDeploymentRefLabel: auxDep.Ref,
 	}
-	cewContainer := newCewContainer(handleRunConfig(auxSrv.RunConfig, auxReq.RunConfig), auxDep.Image, ctrName, ctrAlias, h.moduleNet, labels, envVars, mounts)
+	cewContainer := newCewContainer(handleRunConfig(auxSrv.RunConfig, auxDep.RunConfig), auxDep.Image, ctrName, ctrAlias, h.moduleNet, labels, envVars, mounts)
 	auxDepContainer := lib_model.AuxDepContainer{
 		Alias: ctrAlias,
 	}
