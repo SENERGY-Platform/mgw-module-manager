@@ -21,15 +21,17 @@ import (
 )
 
 type AuxDepBase struct {
-	ID      string            `json:"id"` // uuid
-	DepID   string            `json:"dep_id"`
-	Image   string            `json:"image"`
-	Labels  map[string]string `json:"labels"`
-	Configs map[string]string `json:"configs"`
-	Ref     string            `json:"ref"`
-	Name    string            `json:"name"`
-	Created time.Time         `json:"created"`
-	Updated time.Time         `json:"updated"`
+	ID        string            `json:"id"` // uuid
+	DepID     string            `json:"dep_id"`
+	Image     string            `json:"image"`
+	Labels    map[string]string `json:"labels"`
+	Configs   map[string]string `json:"configs"`
+	Volumes   map[string]string `json:"volumes"` // {name:mntPoint}
+	Ref       string            `json:"ref"`
+	Name      string            `json:"name"`
+	RunConfig AuxDepRunConfig   `json:"run_config"`
+	Created   time.Time         `json:"created"`
+	Updated   time.Time         `json:"updated"`
 }
 
 type AuxDeployment struct {

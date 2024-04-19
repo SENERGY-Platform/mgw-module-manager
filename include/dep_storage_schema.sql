@@ -107,14 +107,16 @@ CREATE TABLE IF NOT EXISTS `list_configs`
 );
 CREATE TABLE IF NOT EXISTS `aux_deployments`
 (
-    `index`   BIGINT AUTO_INCREMENT NOT NULL,
-    `id`      CHAR(36)              NOT NULL,
-    `dep_id`  CHAR(36)              NOT NULL,
-    `image`   VARCHAR(256)          NOT NULL,
-    `created` TIMESTAMP(6)          NOT NULL,
-    `updated` TIMESTAMP(6)          NOT NULL,
-    `ref`     VARCHAR(256)          NOT NULL,
-    `name`    VARCHAR(256)          NOT NULL,
+    `index`      BIGINT AUTO_INCREMENT NOT NULL,
+    `id`         CHAR(36)              NOT NULL,
+    `dep_id`     CHAR(36)              NOT NULL,
+    `image`      VARCHAR(256)          NOT NULL,
+    `created`    TIMESTAMP(6)          NOT NULL,
+    `updated`    TIMESTAMP(6)          NOT NULL,
+    `ref`        VARCHAR(256)          NOT NULL,
+    `name`       VARCHAR(256)          NOT NULL,
+    `command`    VARCHAR(512),
+    `pseudo_tty` BOOLEAN,
     UNIQUE KEY (`id`),
     PRIMARY KEY (`index`),
     FOREIGN KEY (`dep_id`) REFERENCES `deployments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
