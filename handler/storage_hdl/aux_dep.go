@@ -63,8 +63,10 @@ func (h *Handler) ListAuxDep(ctx context.Context, dID string, filter lib_model.A
 			return nil, err
 		}
 		if assets {
-			auxDep.Configs, err = selectAuxDepConfigs(ctx, h.db, auxDep.ID)
-			if err != nil {
+			if auxDep.Configs, err = selectAuxDepConfigs(ctx, h.db, auxDep.ID); err != nil {
+				return nil, err
+			}
+			if auxDep.Volumes, err = selectAuxDepVolumes(ctx, h.db, auxDep.ID); err != nil {
 				return nil, err
 			}
 		}
@@ -104,8 +106,10 @@ func (h *Handler) ReadAuxDep(ctx context.Context, aID string, assets bool) (lib_
 		return lib_model.AuxDeployment{}, err
 	}
 	if assets {
-		auxDep.Configs, err = selectAuxDepConfigs(ctx, h.db, auxDep.ID)
-		if err != nil {
+		if auxDep.Configs, err = selectAuxDepConfigs(ctx, h.db, auxDep.ID); err != nil {
+			return lib_model.AuxDeployment{}, err
+		}
+		if auxDep.Volumes, err = selectAuxDepVolumes(ctx, h.db, auxDep.ID); err != nil {
 			return lib_model.AuxDeployment{}, err
 		}
 	}
@@ -149,6 +153,11 @@ func (h *Handler) CreateAuxDep(ctx context.Context, txItf driver.Tx, auxDep lib_
 			return "", err
 		}
 	}
+	if len(auxDep.Volumes) > 0 {
+		if err = insertAuxDepVolumes(ctx, tx.PrepareContext, id, auxDep.Volumes); err != nil {
+			return "", err
+		}
+	}
 	if txItf == nil {
 		if err = tx.Commit(); err != nil {
 			return "", lib_model.NewInternalError(err)
@@ -187,6 +196,10 @@ func (h *Handler) UpdateAuxDep(ctx context.Context, txItf driver.Tx, auxDep lib_
 	if err != nil {
 		return lib_model.NewInternalError(err)
 	}
+	_, err = tx.ExecContext(ctx, "DELETE FROM `aux_volumes` WHERE `aux_id` = ?", auxDep.ID)
+	if err != nil {
+		return lib_model.NewInternalError(err)
+	}
 	if len(auxDep.Labels) > 0 {
 		if err = insertAuxDepLabels(ctx, tx.PrepareContext, auxDep.ID, auxDep.Labels); err != nil {
 			return err
@@ -194,6 +207,11 @@ func (h *Handler) UpdateAuxDep(ctx context.Context, txItf driver.Tx, auxDep lib_
 	}
 	if len(auxDep.Configs) > 0 {
 		if err = insertAuxDepConfigs(ctx, tx.PrepareContext, auxDep.ID, auxDep.Configs); err != nil {
+			return err
+		}
+	}
+	if len(auxDep.Volumes) > 0 {
+		if err = insertAuxDepVolumes(ctx, tx.PrepareContext, auxDep.ID, auxDep.Volumes); err != nil {
 			return err
 		}
 	}
@@ -272,6 +290,10 @@ func insertAuxDepConfigs(ctx context.Context, pf func(ctx context.Context, query
 	return insertStrMap(ctx, pf, "INSERT INTO `aux_configs` (`aux_id`, `ref`, `value`) VALUES (?, ?, ?)", id, m)
 }
 
+func insertAuxDepVolumes(ctx context.Context, pf func(ctx context.Context, query string) (*sql.Stmt, error), id string, m map[string]string) error {
+	return insertStrMap(ctx, pf, "INSERT INTO `aux_configs` (`aux_id`, `name`, `mnt_point`) VALUES (?, ?, ?)", id, m)
+}
+
 func genAuxDepFilter(dID string, filter lib_model.AuxDepFilter) (string, []any) {
 	var str string
 	var val []any
@@ -313,6 +335,10 @@ func selectAuxDepLabels(ctx context.Context, db *sql.DB, id string) (map[string]
 
 func selectAuxDepConfigs(ctx context.Context, db *sql.DB, id string) (map[string]string, error) {
 	return selectStrMap(ctx, db.QueryContext, "SELECT `ref`, `value` FROM `aux_configs` WHERE `aux_id` = ?", id)
+}
+
+func selectAuxDepVolumes(ctx context.Context, db *sql.DB, id string) (map[string]string, error) {
+	return selectStrMap(ctx, db.QueryContext, "SELECT `name`, `mnt_point` FROM `aux_volumes` WHERE `aux_id` = ?", id)
 }
 
 func selectStrMap(ctx context.Context, qf func(ctx context.Context, query string, args ...any) (*sql.Rows, error), query, id string) (map[string]string, error) {
