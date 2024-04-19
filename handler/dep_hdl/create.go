@@ -445,6 +445,7 @@ func newCewContainer(srv *module.Service, name, alias, moduleNet string, labels,
 			StopTimeout:     &stopTimeout,
 			StopSignal:      srv.RunConfig.StopSignal,
 			PseudoTTY:       srv.RunConfig.PseudoTTY,
+			Command:         srv.RunConfig.Command,
 		},
 	}
 }
