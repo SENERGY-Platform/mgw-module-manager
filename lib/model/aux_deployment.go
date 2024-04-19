@@ -34,6 +34,11 @@ type AuxDepBase struct {
 	Updated   time.Time         `json:"updated"`
 }
 
+type AuxDepRunConfig struct {
+	Command   *string `json:"command"`
+	PseudoTTY bool    `json:"pseudo_tty"`
+}
+
 type AuxDeployment struct {
 	AuxDepBase
 	Container AuxDepContainer `json:"container"`
@@ -57,10 +62,5 @@ type AuxDepReq struct {
 	Volumes   map[string]string `json:"volumes"` // {name:mntPoint}
 	Ref       string            `json:"ref"`     // only required by create method
 	Name      *string           `json:"name"`
-	RunConfig AuxDepRunConfig   `json:"run_config"`
-}
-
-type AuxDepRunConfig struct {
-	Command   *string `json:"command"`
-	PseudoTTY bool    `json:"pseudo_tty"`
+	RunConfig *AuxDepRunConfig  `json:"run_config"`
 }
