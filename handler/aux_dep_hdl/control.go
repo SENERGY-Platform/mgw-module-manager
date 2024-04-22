@@ -19,7 +19,6 @@ package aux_dep_hdl
 import (
 	"context"
 	"errors"
-	"github.com/SENERGY-Platform/go-service-base/context-hdl"
 	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
@@ -34,24 +33,19 @@ func (h *Handler) Start(ctx context.Context, aID string) error {
 	if err != nil {
 		return err
 	}
-	ctxWt2, cf2 := context.WithTimeout(ctx, h.httpTimeout)
-	defer cf2()
-	if err = h.cewClient.StartContainer(ctxWt2, auxDeployment.Container.ID); err != nil {
-		return lib_model.NewInternalError(err)
-	}
-	return nil
+	return h.start(ctx, auxDeployment)
 }
 
 func (h *Handler) StartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error {
-	ch := context_hdl.New()
-	defer ch.CancelAll()
-	auxDeployments, err := h.storageHandler.ListAuxDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), dID, filter, false)
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, false)
 	if err != nil {
 		return err
 	}
 	for _, auxDeployment := range auxDeployments {
-		if err = h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), auxDeployment.Container.ID); err != nil {
-			return lib_model.NewInternalError(err)
+		if err = h.start(ctx, auxDeployment); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -64,10 +58,7 @@ func (h *Handler) Stop(ctx context.Context, aID string) error {
 	if err != nil {
 		return err
 	}
-	if err = h.stopContainer(ctx, auxDeployment.Container.ID); err != nil {
-		return lib_model.NewInternalError(err)
-	}
-	return nil
+	return h.stop(ctx, auxDeployment)
 }
 
 func (h *Handler) StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error {
@@ -78,8 +69,8 @@ func (h *Handler) StopAll(ctx context.Context, dID string, filter lib_model.AuxD
 		return err
 	}
 	for _, auxDeployment := range auxDeployments {
-		if err = h.stopContainer(ctx, auxDeployment.Container.ID); err != nil {
-			return lib_model.NewInternalError(err)
+		if err = h.stop(ctx, auxDeployment); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -92,7 +83,7 @@ func (h *Handler) Restart(ctx context.Context, aID string) error {
 	if err != nil {
 		return err
 	}
-	return h.restart(ctx, auxDeployment.Container.ID)
+	return h.restart(ctx, auxDeployment)
 }
 
 func (h *Handler) RestartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error {
@@ -103,7 +94,37 @@ func (h *Handler) RestartAll(ctx context.Context, dID string, filter lib_model.A
 		return err
 	}
 	for _, auxDeployment := range auxDeployments {
-		if err = h.restart(ctx, auxDeployment.Container.ID); err != nil {
+		if err = h.restart(ctx, auxDeployment); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (h *Handler) start(ctx context.Context, auxDep lib_model.AuxDeployment) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	if err := h.cewClient.StartContainer(ctxWt, auxDep.Container.ID); err != nil {
+		return lib_model.NewInternalError(err)
+	}
+	if !auxDep.Enabled {
+		auxDep.Enabled = true
+		ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
+		defer cf2()
+		return h.storageHandler.UpdateAuxDep(ctxWt2, nil, auxDep.AuxDepBase)
+	}
+	return nil
+}
+
+func (h *Handler) stop(ctx context.Context, auxDep lib_model.AuxDeployment) error {
+	if err := h.stopContainer(ctx, auxDep.Container.ID); err != nil {
+		return lib_model.NewInternalError(err)
+	}
+	if auxDep.Enabled {
+		auxDep.Enabled = false
+		ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+		defer cf()
+		if err := h.storageHandler.UpdateAuxDep(ctxWt, nil, auxDep.AuxDepBase); err != nil {
 			return err
 		}
 	}
@@ -130,14 +151,9 @@ func (h *Handler) stopContainer(ctx context.Context, cID string) error {
 	return nil
 }
 
-func (h *Handler) restart(ctx context.Context, cID string) error {
-	if err := h.stopContainer(ctx, cID); err != nil {
+func (h *Handler) restart(ctx context.Context, auxDep lib_model.AuxDeployment) error {
+	if err := h.stopContainer(ctx, auxDep.Container.ID); err != nil {
 		return err
 	}
-	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
-	defer cf()
-	if err := h.cewClient.StartContainer(ctxWt, cID); err != nil {
-		return lib_model.NewInternalError(err)
-	}
-	return nil
+	return h.start(ctx, auxDep)
 }
