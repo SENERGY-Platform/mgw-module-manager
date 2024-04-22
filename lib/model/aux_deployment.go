@@ -30,6 +30,7 @@ type AuxDepBase struct {
 	Ref       string            `json:"ref"`
 	Name      string            `json:"name"`
 	RunConfig AuxDepRunConfig   `json:"run_config"`
+	Enabled   bool              `json:"enabled"`
 	Created   time.Time         `json:"created"`
 	Updated   time.Time         `json:"updated"`
 }

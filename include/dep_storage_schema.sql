@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS `aux_deployments`
     `updated`    TIMESTAMP(6)          NOT NULL,
     `ref`        VARCHAR(256)          NOT NULL,
     `name`       VARCHAR(256)          NOT NULL,
+    `enabled`    BOOLEAN               NOT NULL,
     `command`    VARCHAR(512),
     `pseudo_tty` BOOLEAN,
     UNIQUE KEY (`id`),

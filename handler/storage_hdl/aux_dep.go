@@ -28,7 +28,7 @@ import (
 )
 
 func (h *Handler) ListAuxDep(ctx context.Context, dID string, filter lib_model.AuxDepFilter, assets bool) (map[string]lib_model.AuxDeployment, error) {
-	q := "SELECT `id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name`, `command`, `pseudo_tty` FROM `aux_deployments`"
+	q := "SELECT `id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name`, `enabled`, `command`, `pseudo_tty` FROM `aux_deployments`"
 	fc, val := genAuxDepFilter(dID, filter)
 	if fc != "" {
 		q += fc
@@ -43,7 +43,7 @@ func (h *Handler) ListAuxDep(ctx context.Context, dID string, filter lib_model.A
 	for rows.Next() {
 		var auxDep lib_model.AuxDeployment
 		var ct, ut []uint8
-		if err = rows.Scan(&auxDep.ID, &auxDep.DepID, &auxDep.Image, &ct, &ut, &auxDep.Ref, &auxDep.Name, &auxDep.RunConfig.Command, &auxDep.RunConfig.PseudoTTY); err != nil {
+		if err = rows.Scan(&auxDep.ID, &auxDep.DepID, &auxDep.Image, &ct, &ut, &auxDep.Ref, &auxDep.Name, &auxDep.Enabled, &auxDep.RunConfig.Command, &auxDep.RunConfig.PseudoTTY); err != nil {
 			return nil, lib_model.NewInternalError(err)
 		}
 		auxDep.Created, err = time.Parse(tLayout, string(ct))
@@ -79,10 +79,10 @@ func (h *Handler) ListAuxDep(ctx context.Context, dID string, filter lib_model.A
 }
 
 func (h *Handler) ReadAuxDep(ctx context.Context, aID string, assets bool) (lib_model.AuxDeployment, error) {
-	row := h.db.QueryRowContext(ctx, "SELECT `id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name`, `command`, `pseudo_tty` FROM `aux_deployments` WHERE `id` = ?", aID)
+	row := h.db.QueryRowContext(ctx, "SELECT `id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name`, `enabled`, `command`, `pseudo_tty` FROM `aux_deployments` WHERE `id` = ?", aID)
 	var auxDep lib_model.AuxDeployment
 	var ct, ut []uint8
-	err := row.Scan(&auxDep.ID, &auxDep.DepID, &auxDep.Image, &ct, &ut, &auxDep.Ref, &auxDep.Name, &auxDep.RunConfig.Command, &auxDep.RunConfig.PseudoTTY)
+	err := row.Scan(&auxDep.ID, &auxDep.DepID, &auxDep.Image, &ct, &ut, &auxDep.Ref, &auxDep.Name, &auxDep.Enabled, &auxDep.RunConfig.Command, &auxDep.RunConfig.PseudoTTY)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return lib_model.AuxDeployment{}, lib_model.NewNotFoundError(err)
@@ -127,7 +127,7 @@ func (h *Handler) CreateAuxDep(ctx context.Context, txItf driver.Tx, auxDep lib_
 		}
 		defer tx.Rollback()
 	}
-	res, err := tx.ExecContext(ctx, "INSERT INTO `aux_deployments` (`id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name`, `command`, `pseudo_tty`) VALUES (UUID(), ?, ?, ?, ?, ?, ?)", auxDep.DepID, auxDep.Image, auxDep.Created, auxDep.Updated, auxDep.Ref, auxDep.Name, auxDep.RunConfig.Command, auxDep.RunConfig.PseudoTTY)
+	res, err := tx.ExecContext(ctx, "INSERT INTO `aux_deployments` (`id`, `dep_id`, `image`, `created`, `updated`, `ref`, `name`, `enabled`, `command`, `pseudo_tty`) VALUES (UUID(), ?, ?, ?, ?, ?, ?)", auxDep.DepID, auxDep.Image, auxDep.Created, auxDep.Updated, auxDep.Ref, auxDep.Name, auxDep.Enabled, auxDep.RunConfig.Command, auxDep.RunConfig.PseudoTTY)
 	if err != nil {
 		return "", lib_model.NewInternalError(err)
 	}
@@ -177,7 +177,7 @@ func (h *Handler) UpdateAuxDep(ctx context.Context, txItf driver.Tx, auxDep lib_
 		}
 		defer tx.Rollback()
 	}
-	res, err := tx.ExecContext(ctx, "UPDATE `aux_deployments` SET `image` = ?, `updated` = ?, `name` = ?, `command` = ?, `pseudo_tty` = ? WHERE `id` = ?", auxDep.Image, auxDep.Updated, auxDep.Name, auxDep.ID, auxDep.RunConfig.Command, auxDep.RunConfig.PseudoTTY, auxDep.ID)
+	res, err := tx.ExecContext(ctx, "UPDATE `aux_deployments` SET `image` = ?, `updated` = ?, `name` = ?, `enabled` = ?, `command` = ?, `pseudo_tty` = ? WHERE `id` = ?", auxDep.Image, auxDep.Updated, auxDep.Name, auxDep.Enabled, auxDep.RunConfig.Command, auxDep.RunConfig.PseudoTTY, auxDep.ID)
 	if err != nil {
 		return lib_model.NewInternalError(err)
 	}
