@@ -55,6 +55,7 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 			Image:   auxReq.Image,
 			Labels:  auxReq.Labels,
 			Configs: auxReq.Configs,
+			Volumes: auxReq.Volumes,
 			Ref:     auxReq.Ref,
 			Name:    auxSrv.Name,
 			Created: timestamp,
@@ -83,7 +84,7 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 		modVolumes[ref] = naming_hdl.Global.NewVolumeName(dep.ID, ref)
 	}
 	auxVolumes := make(map[string]string)
-	for ref := range auxReq.Volumes {
+	for ref := range auxDep.Volumes {
 		auxVolumes[ref] = naming_hdl.Global.NewVolumeName(auxDep.ID, ref)
 	}
 	if err = h.createVolumes(ctx, auxVolumes, dep.ID, auxDep.ID); err != nil {
