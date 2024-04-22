@@ -137,7 +137,7 @@ func (h *Handler) Update(ctx context.Context, aID string, mod model.Module, dep 
 		return err
 	}
 	if oldAuxDep.Enabled {
-		if e := h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), newAuxDep.Container.ID); err != nil {
+		if e := h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), newAuxDep.Container.ID); err != nil {
 			util.Logger.Error(e)
 		}
 	}
