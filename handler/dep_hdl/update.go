@@ -113,7 +113,7 @@ func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, dep
 	}
 	volumes, newVolumes, orphanVolumes, err := h.diffVolumes(ctx, id, mod.Volumes)
 	if err != nil {
-		return err
+		return lib_model.NewInternalError(err)
 	}
 	err = h.createVolumes(ctx, newVolumes, id)
 	if err != nil {
