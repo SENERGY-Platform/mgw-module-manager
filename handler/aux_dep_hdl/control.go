@@ -102,7 +102,7 @@ func (h *Handler) RestartAll(ctx context.Context, dID string, filter lib_model.A
 }
 
 func (h *Handler) start(ctx context.Context, auxDep lib_model.AuxDeployment) error {
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
 	defer cf()
 	if err := h.cewClient.StartContainer(ctxWt, auxDep.Container.ID); err != nil {
 		return lib_model.NewInternalError(err)
