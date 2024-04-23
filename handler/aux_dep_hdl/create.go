@@ -120,7 +120,11 @@ func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
 	}
-	envVars, err := getEnvVars(auxSrv, auxDep, globalConfigs, dep.Containers, requiredDep)
+	requiredDepModMap := make(map[string]lib_model.Deployment)
+	for _, d := range requiredDep {
+		requiredDepModMap[d.Module.ID] = d
+	}
+	envVars, err := getEnvVars(auxSrv, auxDep, globalConfigs, dep.Containers, requiredDepModMap)
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
 	}
