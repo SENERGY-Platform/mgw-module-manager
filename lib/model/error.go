@@ -36,6 +36,10 @@ type ResourceBusyError struct {
 	cError
 }
 
+type ForbiddenError struct {
+	cError
+}
+
 func (e *cError) Error() string {
 	return e.err.Error()
 }
@@ -58,4 +62,8 @@ func NewInvalidInputError(err error) error {
 
 func NewResourceBusyError(err error) error {
 	return &ResourceBusyError{cError{err: err}}
+}
+
+func NewForbiddenError(err error) error {
+	return &ForbiddenError{cError{err: err}}
 }
