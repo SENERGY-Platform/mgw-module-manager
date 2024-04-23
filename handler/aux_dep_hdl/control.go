@@ -26,12 +26,15 @@ import (
 	"time"
 )
 
-func (h *Handler) Start(ctx context.Context, aID string) error {
+func (h *Handler) Start(ctx context.Context, dID, aID string) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, false)
 	if err != nil {
 		return err
+	}
+	if auxDeployment.DepID != dID {
+		return lib_model.NewForbiddenError(errors.New("deployment ID mismatch"))
 	}
 	return h.start(ctx, auxDeployment)
 }
@@ -51,12 +54,15 @@ func (h *Handler) StartAll(ctx context.Context, dID string, filter lib_model.Aux
 	return nil
 }
 
-func (h *Handler) Stop(ctx context.Context, aID string) error {
+func (h *Handler) Stop(ctx context.Context, dID, aID string) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, false)
 	if err != nil {
 		return err
+	}
+	if auxDeployment.DepID != dID {
+		return lib_model.NewForbiddenError(errors.New("deployment ID mismatch"))
 	}
 	return h.stop(ctx, auxDeployment)
 }
@@ -76,12 +82,15 @@ func (h *Handler) StopAll(ctx context.Context, dID string, filter lib_model.AuxD
 	return nil
 }
 
-func (h *Handler) Restart(ctx context.Context, aID string) error {
+func (h *Handler) Restart(ctx context.Context, dID, aID string) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, false)
 	if err != nil {
 		return err
+	}
+	if auxDeployment.DepID != dID {
+		return lib_model.NewForbiddenError(errors.New("deployment ID mismatch"))
 	}
 	return h.restart(ctx, auxDeployment)
 }

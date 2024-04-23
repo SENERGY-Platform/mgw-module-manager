@@ -36,6 +36,9 @@ func (h *Handler) Update(ctx context.Context, aID string, mod model.Module, dep 
 	if err != nil {
 		return err
 	}
+	if oldAuxDep.DepID != dep.ID {
+		return lib_model.NewForbiddenError(errors.New("deployment ID mismatch"))
+	}
 	auxSrv, ok := mod.AuxServices[oldAuxDep.Ref]
 	if !ok {
 		return lib_model.NewInvalidInputError(fmt.Errorf("aux service ref '%s' not defined", auxReq.Ref))

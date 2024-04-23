@@ -18,6 +18,7 @@ package aux_dep_hdl
 
 import (
 	"context"
+	"errors"
 	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
@@ -88,12 +89,15 @@ func (h *Handler) List(ctx context.Context, dID string, filter lib_model.AuxDepF
 	return auxDeployments, nil
 }
 
-func (h *Handler) Get(ctx context.Context, aID string, assets, containerInfo bool) (lib_model.AuxDeployment, error) {
+func (h *Handler) Get(ctx context.Context, dID, aID string, assets, containerInfo bool) (lib_model.AuxDeployment, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, assets)
 	if err != nil {
 		return lib_model.AuxDeployment{}, err
+	}
+	if auxDeployment.DepID != dID {
+		return lib_model.AuxDeployment{}, lib_model.NewForbiddenError(errors.New("deployment ID mismatch"))
 	}
 	if containerInfo {
 		ctxWt2, cf2 := context.WithTimeout(ctx, h.httpTimeout)

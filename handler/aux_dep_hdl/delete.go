@@ -25,12 +25,15 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
 )
 
-func (h *Handler) Delete(ctx context.Context, aID string, force bool) error {
+func (h *Handler) Delete(ctx context.Context, dID, aID string, force bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, false)
 	if err != nil {
 		return err
+	}
+	if auxDeployment.DepID != dID {
+		return lib_model.NewForbiddenError(errors.New("deployment ID mismatch"))
 	}
 	return h.delete(ctx, auxDeployment, force)
 }
