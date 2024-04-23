@@ -35,7 +35,7 @@ type Api struct {
 	mu                   *util.RWMutex
 }
 
-func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModStagingHandler, moduleUpdateHandler handler.ModUpdateHandler, deploymentHandler handler.DeploymentHandler, auxDeploymentHandler handler.AuxDeploymentHandler, auxJobHandler handler.AuxJobHandler, jobHandler job_hdl.JobHandler, srvInfoHandler srv_info_hdl.SrvInfoHandler) *Api {
+func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModStagingHandler, moduleUpdateHandler handler.ModUpdateHandler, deploymentHandler handler.DeploymentHandler, auxDeploymentHandler handler.AuxDeploymentHandler, jobHandler job_hdl.JobHandler, auxJobHandler handler.AuxJobHandler, srvInfoHandler srv_info_hdl.SrvInfoHandler) *Api {
 	return &Api{
 		moduleHandler:        moduleHandler,
 		modStagingHandler:    moduleStagingHandler,
