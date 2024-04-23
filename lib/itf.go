@@ -49,6 +49,12 @@ type Api interface {
 	RestartDeployment(ctx context.Context, dID string) (string, error)
 	RestartDeployments(ctx context.Context, filter model.DepFilter) (string, error)
 	GetDeploymentUpdateTemplate(ctx context.Context, dID string) (model.DepUpdateTemplate, error)
+	AuxDeploymentApi
+	job_hdl_lib.Api
+	srv_info_lib.Api
+}
+
+type AuxDeploymentApi interface {
 	GetAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter, assets, containerInfo bool) (map[string]model.AuxDeployment, error)
 	GetAuxDeployment(ctx context.Context, dID, aID string, assets, containerInfo bool) (model.AuxDeployment, error)
 	CreateAuxDeployment(ctx context.Context, dID string, auxDepInput model.AuxDepReq) (string, error)
@@ -61,6 +67,7 @@ type Api interface {
 	StopAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter) (string, error)
 	RestartAuxDeployment(ctx context.Context, dID, aID string) (string, error)
 	RestartAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter) (string, error)
-	job_hdl_lib.Api
-	srv_info_lib.Api
+	GetAuxJobs(ctx context.Context, dID string, filter job_hdl_lib.JobFilter) ([]job_hdl_lib.Job, error)
+	GetAuxJob(ctx context.Context, dID string, jID string) (job_hdl_lib.Job, error)
+	CancelAuxJob(ctx context.Context, dID string, jID string) error
 }
