@@ -251,11 +251,17 @@ func (a *Api) StartDeployment(ctx context.Context, dID string, dependencies bool
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.Start(ctx, dID, dependencies)
+		started, err := a.deploymentHandler.Start(ctx, dID, dependencies)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return nil, err
+		enabled := true
+		for _, id := range started {
+			if e := a.auxDeploymentHandler.StartAll(ctx, id, lib_model.AuxDepFilter{Enabled: &enabled}); e != nil {
+				util.Logger.Errorf("%s: %s", metaStr, e)
+			}
+		}
+		return started, err
 	})
 	if err != nil {
 		a.mu.Unlock()
@@ -273,11 +279,17 @@ func (a *Api) StartDeployments(ctx context.Context, filter lib_model.DepFilter, 
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.StartAll(ctx, filter, dependencies)
+		started, err := a.deploymentHandler.StartAll(ctx, filter, dependencies)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return nil, err
+		enabled := true
+		for _, id := range started {
+			if e := a.auxDeploymentHandler.StartAll(ctx, id, lib_model.AuxDepFilter{Enabled: &enabled}); e != nil {
+				util.Logger.Errorf("%s: %s", metaStr, e)
+			}
+		}
+		return started, err
 	})
 	if err != nil {
 		a.mu.Unlock()
