@@ -76,12 +76,12 @@ type DeploymentHandler interface {
 	Get(ctx context.Context, dID string, dependencyInfo, assets, containers, containerInfo bool) (lib_model.Deployment, error)
 	Create(ctx context.Context, mod *module.Module, depReq lib_model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error)
 	Delete(ctx context.Context, dID string, force bool) error
-	DeleteAll(ctx context.Context, filter lib_model.DepFilter, force bool) error
+	DeleteAll(ctx context.Context, filter lib_model.DepFilter, force bool) ([]string, error)
 	Update(ctx context.Context, dID string, mod *module.Module, depReq lib_model.DepInput, incl dir_fs.DirFS) error
-	Start(ctx context.Context, dID string, dependencies bool) error
-	StartAll(ctx context.Context, filter lib_model.DepFilter, dependencies bool) error
+	Start(ctx context.Context, dID string, dependencies bool) ([]string, error)
+	StartAll(ctx context.Context, filter lib_model.DepFilter, dependencies bool) ([]string, error)
 	Stop(ctx context.Context, dID string, force bool) error
-	StopAll(ctx context.Context, filter lib_model.DepFilter, force bool) error
+	StopAll(ctx context.Context, filter lib_model.DepFilter, force bool) ([]string, error)
 	Restart(ctx context.Context, id string) error
 	RestartAll(ctx context.Context, filter lib_model.DepFilter) error
 }

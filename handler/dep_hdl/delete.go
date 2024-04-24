@@ -63,12 +63,12 @@ func (h *Handler) Delete(ctx context.Context, id string, force bool) error {
 	return h.delete(ctx, dep, force)
 }
 
-func (h *Handler) DeleteAll(ctx context.Context, filter lib_model.DepFilter, force bool) error {
+func (h *Handler) DeleteAll(ctx context.Context, filter lib_model.DepFilter, force bool) ([]string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	deployments, err := h.storageHandler.ListDep(ctxWt, filter, true, true, true)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !force {
 		var enabled []string
@@ -94,7 +94,7 @@ func (h *Handler) DeleteAll(ctx context.Context, filter lib_model.DepFilter, for
 			defer cf2()
 			deps, err := h.storageHandler.ListDep(ctxWt2, lib_model.DepFilter{IDs: reqByDepIDs}, false, false, false)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			var reqBy []string
 			for dID, dep := range deps {
@@ -105,23 +105,25 @@ func (h *Handler) DeleteAll(ctx context.Context, filter lib_model.DepFilter, for
 			errMsg += "required by " + strings.Join(reqBy, ", ")
 		}
 		if len(enabled) > 0 || len(reqByDepIDs) > 0 {
-			return lib_model.NewInternalError(errors.New(errMsg))
+			return nil, lib_model.NewInternalError(errors.New(errMsg))
 		}
 	}
 	order, err := sorting.GetDepOrder(deployments)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var deleted []string
 	for i := len(order) - 1; i >= 0; i-- {
 		dep, ok := deployments[order[i]]
 		if !ok {
-			return lib_model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", order[i]))
+			return deleted, lib_model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", order[i]))
 		}
 		if err = h.delete(ctx, dep, force); err != nil {
-			return err
+			return deleted, err
 		}
+		deleted = append(deleted, dep.ID)
 	}
-	return nil
+	return deleted, nil
 }
 
 func (h *Handler) delete(ctx context.Context, dep lib_model.Deployment, force bool) error {

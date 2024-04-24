@@ -31,34 +31,34 @@ import (
 	"time"
 )
 
-func (h *Handler) Start(ctx context.Context, id string, dependencies bool) error {
+func (h *Handler) Start(ctx context.Context, id string, dependencies bool) ([]string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	if dependencies {
 		depTree, err := h.storageHandler.ReadDepTree(ctxWt, id, true, true)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		return h.startTree(ctx, depTree)
 	} else {
 		dep, err := h.storageHandler.ReadDep(ctxWt, id, false, true, true)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return h.start(ctx, dep)
+		return []string{id}, h.start(ctx, dep)
 	}
 }
 
-func (h *Handler) StartAll(ctx context.Context, filter lib_model.DepFilter, dependencies bool) error {
+func (h *Handler) StartAll(ctx context.Context, filter lib_model.DepFilter, dependencies bool) ([]string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	deployments, err := h.storageHandler.ListDep(ctxWt, filter, true, true, true)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if dependencies {
 		if err = h.storageHandler.AppendDepTree(ctxWt, deployments, true, true); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	return h.startTree(ctx, deployments)
@@ -91,12 +91,12 @@ func (h *Handler) Stop(ctx context.Context, id string, force bool) error {
 	return h.stop(ctx, dep)
 }
 
-func (h *Handler) StopAll(ctx context.Context, filter lib_model.DepFilter, force bool) error {
+func (h *Handler) StopAll(ctx context.Context, filter lib_model.DepFilter, force bool) ([]string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	deployments, err := h.storageHandler.ListDep(ctxWt, filter, true, true, true)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !force {
 		var reqByDepIDs []string
@@ -114,7 +114,7 @@ func (h *Handler) StopAll(ctx context.Context, filter lib_model.DepFilter, force
 			defer cf2()
 			deps, err := h.storageHandler.ListDep(ctxWt2, lib_model.DepFilter{IDs: reqByDepIDs}, false, false, false)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			var reqBy []string
 			for dID, dep := range deps {
@@ -123,7 +123,7 @@ func (h *Handler) StopAll(ctx context.Context, filter lib_model.DepFilter, force
 				}
 			}
 			if len(reqBy) > 0 {
-				return lib_model.NewInternalError(fmt.Errorf("required by %s", strings.Join(reqBy, ", ")))
+				return nil, lib_model.NewInternalError(fmt.Errorf("required by %s", strings.Join(reqBy, ", ")))
 			}
 		}
 	}
@@ -171,21 +171,23 @@ func (h *Handler) start(ctx context.Context, dep lib_model.Deployment) error {
 	return nil
 }
 
-func (h *Handler) startTree(ctx context.Context, depTree map[string]lib_model.Deployment) error {
+func (h *Handler) startTree(ctx context.Context, depTree map[string]lib_model.Deployment) ([]string, error) {
 	order, err := sorting.GetDepOrder(depTree)
 	if err != nil {
-		return lib_model.NewInternalError(err)
+		return nil, lib_model.NewInternalError(err)
 	}
+	var started []string
 	for _, dID := range order {
 		dep, ok := depTree[dID]
 		if !ok {
-			return lib_model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", dID))
+			return started, lib_model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", dID))
 		}
 		if err = h.start(ctx, dep); err != nil {
-			return err
+			return started, err
 		}
+		started = append(started, dID)
 	}
-	return nil
+	return started, nil
 }
 
 func (h *Handler) stop(ctx context.Context, dep lib_model.Deployment) error {
@@ -206,21 +208,23 @@ func (h *Handler) stop(ctx context.Context, dep lib_model.Deployment) error {
 	return nil
 }
 
-func (h *Handler) stopTree(ctx context.Context, depTree map[string]lib_model.Deployment) error {
+func (h *Handler) stopTree(ctx context.Context, depTree map[string]lib_model.Deployment) ([]string, error) {
 	order, err := sorting.GetDepOrder(depTree)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var stopped []string
 	for i := len(order) - 1; i >= 0; i-- {
 		dep, ok := depTree[order[i]]
 		if !ok {
-			return lib_model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", order[i]))
+			return stopped, lib_model.NewInternalError(fmt.Errorf("deployment '%s' does not exist", order[i]))
 		}
 		if err = h.stop(ctx, dep); err != nil {
-			return err
+			return stopped, err
 		}
+		stopped = append(stopped, dep.ID)
 	}
-	return nil
+	return stopped, nil
 }
 
 func (h *Handler) restart(ctx context.Context, dep lib_model.Deployment) error {
