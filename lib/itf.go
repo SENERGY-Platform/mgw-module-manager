@@ -58,7 +58,7 @@ type AuxDeploymentApi interface {
 	GetAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter, assets, containerInfo bool) (map[string]model.AuxDeployment, error)
 	GetAuxDeployment(ctx context.Context, dID, aID string, assets, containerInfo bool) (model.AuxDeployment, error)
 	CreateAuxDeployment(ctx context.Context, dID string, auxDepInput model.AuxDepReq, forcePullImg bool) (string, error)
-	UpdateAuxDeployment(ctx context.Context, dID, aID string, auxDepInput model.AuxDepReq, forcePullImg bool) (string, error)
+	UpdateAuxDeployment(ctx context.Context, dID, aID string, auxDepInput model.AuxDepReq, incremental, forcePullImg bool) (string, error)
 	DeleteAuxDeployment(ctx context.Context, dID, aID string, force bool) (string, error)
 	DeleteAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter, force bool) (string, error)
 	StartAuxDeployment(ctx context.Context, dID, aID string) (string, error)
