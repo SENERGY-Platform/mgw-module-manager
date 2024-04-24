@@ -311,6 +311,11 @@ func (a *Api) StopDeployment(ctx context.Context, dID string, force bool) (strin
 		if err == nil {
 			err = ctx.Err()
 		}
+		if err == nil {
+			if e := a.auxDeploymentHandler.StopAll(ctx, dID, lib_model.AuxDepFilter{}, true); e != nil {
+				util.Logger.Errorf("%s: %s", metaStr, e)
+			}
+		}
 		return nil, err
 	})
 	if err != nil {
@@ -329,11 +334,16 @@ func (a *Api) StopDeployments(ctx context.Context, filter lib_model.DepFilter, f
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.StopAll(ctx, filter, force)
+		stopped, err := a.deploymentHandler.StopAll(ctx, filter, force)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return nil, err
+		for _, id := range stopped {
+			if e := a.auxDeploymentHandler.StopAll(ctx, id, lib_model.AuxDepFilter{}, true); e != nil {
+				util.Logger.Errorf("%s: %s", metaStr, e)
+			}
+		}
+		return stopped, err
 	})
 	if err != nil {
 		a.mu.Unlock()
