@@ -180,7 +180,7 @@ func (a *Api) StopAuxDeployment(ctx context.Context, dID, aID string) (string, e
 	metaStr := fmt.Sprintf("stop aux deployment (deployment_id=%s aux_deployment_id=%v)", dID, aID)
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer cf()
-		err := a.auxDeploymentHandler.Stop(ctx, dID, aID)
+		err := a.auxDeploymentHandler.Stop(ctx, dID, aID, false)
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -197,7 +197,7 @@ func (a *Api) StopAuxDeployments(ctx context.Context, dID string, filter model.A
 	metaStr := fmt.Sprintf("stop aux deployments (deployment_id=%s %s)", dID, getAuxDepFilterValues(filter))
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer cf()
-		err := a.auxDeploymentHandler.StopAll(ctx, dID, filter)
+		err := a.auxDeploymentHandler.StopAll(ctx, dID, filter, false)
 		if err == nil {
 			err = ctx.Err()
 		}
