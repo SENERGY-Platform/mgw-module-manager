@@ -54,7 +54,7 @@ func (h *Handler) StartAll(ctx context.Context, dID string, filter lib_model.Aux
 	return nil
 }
 
-func (h *Handler) Stop(ctx context.Context, dID, aID string) error {
+func (h *Handler) Stop(ctx context.Context, dID, aID string, noStore bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, false)
@@ -64,10 +64,10 @@ func (h *Handler) Stop(ctx context.Context, dID, aID string) error {
 	if auxDeployment.DepID != dID {
 		return lib_model.NewForbiddenError(errors.New("deployment ID mismatch"))
 	}
-	return h.stop(ctx, auxDeployment)
+	return h.stop(ctx, auxDeployment, noStore)
 }
 
-func (h *Handler) StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error {
+func (h *Handler) StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, noStore bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, false)
@@ -75,7 +75,7 @@ func (h *Handler) StopAll(ctx context.Context, dID string, filter lib_model.AuxD
 		return err
 	}
 	for _, auxDeployment := range auxDeployments {
-		if err = h.stop(ctx, auxDeployment); err != nil {
+		if err = h.stop(ctx, auxDeployment, noStore); err != nil {
 			return err
 		}
 	}
@@ -125,11 +125,11 @@ func (h *Handler) start(ctx context.Context, auxDep lib_model.AuxDeployment) err
 	return nil
 }
 
-func (h *Handler) stop(ctx context.Context, auxDep lib_model.AuxDeployment) error {
+func (h *Handler) stop(ctx context.Context, auxDep lib_model.AuxDeployment, noStore bool) error {
 	if err := h.stopContainer(ctx, auxDep.Container.ID); err != nil {
 		return lib_model.NewInternalError(err)
 	}
-	if auxDep.Enabled {
+	if !noStore && auxDep.Enabled {
 		auxDep.Enabled = false
 		ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 		defer cf()
