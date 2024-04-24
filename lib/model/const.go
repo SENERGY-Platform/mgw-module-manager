@@ -35,7 +35,7 @@ const (
 	DepStopPath           = "stop"
 	DepRestartPath        = "restart"
 	DepDeletePath         = "delete"
-	AuxDeployments        = "aux-deployments"
+	AuxDeploymentsPath    = "aux-deployments"
 	JobsPath              = "jobs"
 	JobsCancelPath        = "cancel"
 	SrvInfoPath           = "info"
