@@ -405,11 +405,11 @@ func (a *Api) StartEnabledDeployments(smClient sm_client.Client, delay time.Dura
 	_, err = a.jobHandler.Create(context.Background(), metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.startEnabledDeployments(ctx, smClient, delay, retries)
+		started, err := a.startEnabledDeployments(ctx, smClient, delay, retries)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return nil, err
+		return started, err
 	})
 	if err != nil {
 		a.mu.Unlock()
