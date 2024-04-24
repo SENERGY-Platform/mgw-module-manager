@@ -441,9 +441,9 @@ func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq lib_mo
 	return false, "", nil
 }
 
-func (a *Api) startEnabledDeployments(ctx context.Context, smClient sm_client.Client, delay time.Duration, retries int) error {
+func (a *Api) startEnabledDeployments(ctx context.Context, smClient sm_client.Client, delay time.Duration, retries int) ([]string, error) {
 	if err := waitForSM(ctx, smClient, delay, retries); err != nil {
-		return err
+		return nil, err
 	}
 	return a.deploymentHandler.StartAll(ctx, lib_model.DepFilter{Enabled: true}, false)
 }
