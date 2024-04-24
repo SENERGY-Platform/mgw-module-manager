@@ -180,6 +180,11 @@ func (a *Api) DeleteDeployment(ctx context.Context, id string, force bool) (stri
 		if err == nil {
 			err = ctx.Err()
 		}
+		if err != nil {
+			if e := a.auxDeploymentHandler.DeleteAll(ctx, id, lib_model.AuxDepFilter{}, true); e != nil {
+				util.Logger.Errorf("%s: %s", metaStr, e)
+			}
+		}
 		return nil, err
 	})
 	if err != nil {
@@ -198,11 +203,16 @@ func (a *Api) DeleteDeployments(ctx context.Context, filter lib_model.DepFilter,
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.DeleteAll(ctx, filter, force)
+		deleted, err := a.deploymentHandler.DeleteAll(ctx, filter, force)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return nil, err
+		for _, dID := range deleted {
+			if e := a.auxDeploymentHandler.DeleteAll(ctx, dID, lib_model.AuxDepFilter{}, true); e != nil {
+				util.Logger.Errorf("%s: %s", metaStr, e)
+			}
+		}
+		return deleted, err
 	})
 	if err != nil {
 		a.mu.Unlock()
