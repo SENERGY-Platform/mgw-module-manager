@@ -52,8 +52,9 @@ type AuxDepContainer struct {
 }
 
 type AuxDepFilter struct {
-	Labels map[string]string `json:"labels"`
-	Image  string            `json:"image"`
+	Labels  map[string]string `json:"labels"`
+	Image   string            `json:"image"`
+	Enabled *bool             `json:"enabled"`
 }
 
 type AuxDepReq struct {

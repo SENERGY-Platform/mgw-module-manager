@@ -323,6 +323,10 @@ func genAuxDepFilter(dID string, filter lib_model.AuxDepFilter) (string, []any) 
 		str += " AND `image` = ?"
 		val = append(val, filter.Image)
 	}
+	if filter.Enabled != nil {
+		str += " AND `enabled` = ?"
+		val = append(val, *filter.Enabled)
+	}
 	if len(val) > 0 {
 		return " WHERE" + str, val
 	}
