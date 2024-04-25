@@ -383,11 +383,11 @@ func (a *Api) RestartDeployments(ctx context.Context, filter lib_model.DepFilter
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
-		err := a.deploymentHandler.RestartAll(ctx, filter)
+		restarted, err := a.deploymentHandler.RestartAll(ctx, filter)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return nil, err
+		return restarted, err
 	})
 	if err != nil {
 		a.mu.Unlock()
