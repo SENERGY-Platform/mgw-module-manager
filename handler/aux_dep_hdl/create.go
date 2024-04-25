@@ -101,7 +101,7 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 			}
 		}
 	}()
-	auxDep.Container, err = h.createContainer(ctx, auxSrv, auxDep, mod.Module.Module, dep, requiredDep, modVolumes, auxVolumes, auxReq.Volumes)
+	auxDep.Container, err = h.createContainer(ctx, auxSrv, auxDep, mod.Module.Module, dep, requiredDep, modVolumes, auxVolumes, auxDep.Volumes)
 	if err != nil {
 		return "", err
 	}
