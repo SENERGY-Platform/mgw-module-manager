@@ -39,19 +39,21 @@ func (h *Handler) Start(ctx context.Context, dID, aID string) error {
 	return h.start(ctx, auxDeployment)
 }
 
-func (h *Handler) StartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error {
+func (h *Handler) StartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) ([]string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, false)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var started []string
 	for _, auxDeployment := range auxDeployments {
 		if err = h.start(ctx, auxDeployment); err != nil {
-			return err
+			return started, err
 		}
+		started = append(started, auxDeployment.ID)
 	}
-	return nil
+	return started, nil
 }
 
 func (h *Handler) Stop(ctx context.Context, dID, aID string, noStore bool) error {
@@ -67,19 +69,21 @@ func (h *Handler) Stop(ctx context.Context, dID, aID string, noStore bool) error
 	return h.stop(ctx, auxDeployment, noStore)
 }
 
-func (h *Handler) StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, noStore bool) error {
+func (h *Handler) StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, noStore bool) ([]string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, false)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var stopped []string
 	for _, auxDeployment := range auxDeployments {
 		if err = h.stop(ctx, auxDeployment, noStore); err != nil {
-			return err
+			return stopped, err
 		}
+		stopped = append(stopped, auxDeployment.ID)
 	}
-	return nil
+	return stopped, nil
 }
 
 func (h *Handler) Restart(ctx context.Context, dID, aID string) error {
@@ -95,19 +99,21 @@ func (h *Handler) Restart(ctx context.Context, dID, aID string) error {
 	return h.restart(ctx, auxDeployment)
 }
 
-func (h *Handler) RestartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error {
+func (h *Handler) RestartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) ([]string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, false)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var restarted []string
 	for _, auxDeployment := range auxDeployments {
 		if err = h.restart(ctx, auxDeployment); err != nil {
-			return err
+			return restarted, err
 		}
+		restarted = append(restarted, auxDeployment.ID)
 	}
-	return nil
+	return restarted, nil
 }
 
 func (h *Handler) start(ctx context.Context, auxDep lib_model.AuxDeployment) error {

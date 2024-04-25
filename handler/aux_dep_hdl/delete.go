@@ -38,19 +38,21 @@ func (h *Handler) Delete(ctx context.Context, dID, aID string, force bool) error
 	return h.delete(ctx, auxDeployment, force)
 }
 
-func (h *Handler) DeleteAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) error {
+func (h *Handler) DeleteAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) ([]string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, false)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var deleted []string
 	for _, auxDeployment := range auxDeployments {
 		if err = h.delete(ctx, auxDeployment, force); err != nil {
-			return err
+			return deleted, err
 		}
+		deleted = append(deleted, auxDeployment.ID)
 	}
-	return nil
+	return deleted, nil
 }
 
 func (h *Handler) delete(ctx context.Context, auxDep lib_model.AuxDeployment, force bool) error {

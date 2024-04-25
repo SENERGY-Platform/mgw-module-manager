@@ -109,13 +109,13 @@ type AuxDeploymentHandler interface {
 	Create(ctx context.Context, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg bool) (string, error)
 	Update(ctx context.Context, aID string, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg, incremental bool) error
 	Delete(ctx context.Context, dID, aID string, force bool) error
-	DeleteAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) error
+	DeleteAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) ([]string, error)
 	Start(ctx context.Context, dID, aID string) error
-	StartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
+	StartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) ([]string, error)
 	Stop(ctx context.Context, dID, aID string, noStore bool) error
-	StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, noStore bool) error
+	StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, noStore bool) ([]string, error)
 	Restart(ctx context.Context, dID, aID string) error
-	RestartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) error
+	RestartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) ([]string, error)
 }
 
 type AuxDepStorageHandler interface {
