@@ -181,7 +181,7 @@ func (a *Api) DeleteDeployment(ctx context.Context, id string, force bool) (stri
 			err = ctx.Err()
 		}
 		if err != nil {
-			if e := a.auxDeploymentHandler.DeleteAll(ctx, id, lib_model.AuxDepFilter{}, true); e != nil {
+			if _, e := a.auxDeploymentHandler.DeleteAll(ctx, id, lib_model.AuxDepFilter{}, true); e != nil {
 				util.Logger.Errorf("%s: %s", metaStr, e)
 			}
 		}
@@ -208,7 +208,7 @@ func (a *Api) DeleteDeployments(ctx context.Context, filter lib_model.DepFilter,
 			err = ctx.Err()
 		}
 		for _, dID := range deleted {
-			if e := a.auxDeploymentHandler.DeleteAll(ctx, dID, lib_model.AuxDepFilter{}, true); e != nil {
+			if _, e := a.auxDeploymentHandler.DeleteAll(ctx, dID, lib_model.AuxDepFilter{}, true); e != nil {
 				util.Logger.Errorf("%s: %s", metaStr, e)
 			}
 		}
@@ -257,7 +257,7 @@ func (a *Api) StartDeployment(ctx context.Context, dID string, dependencies bool
 		}
 		enabled := true
 		for _, id := range started {
-			if e := a.auxDeploymentHandler.StartAll(ctx, id, lib_model.AuxDepFilter{Enabled: &enabled}); e != nil {
+			if _, e := a.auxDeploymentHandler.StartAll(ctx, id, lib_model.AuxDepFilter{Enabled: &enabled}); e != nil {
 				util.Logger.Errorf("%s: %s", metaStr, e)
 			}
 		}
@@ -285,7 +285,7 @@ func (a *Api) StartDeployments(ctx context.Context, filter lib_model.DepFilter, 
 		}
 		enabled := true
 		for _, id := range started {
-			if e := a.auxDeploymentHandler.StartAll(ctx, id, lib_model.AuxDepFilter{Enabled: &enabled}); e != nil {
+			if _, e := a.auxDeploymentHandler.StartAll(ctx, id, lib_model.AuxDepFilter{Enabled: &enabled}); e != nil {
 				util.Logger.Errorf("%s: %s", metaStr, e)
 			}
 		}
@@ -312,7 +312,7 @@ func (a *Api) StopDeployment(ctx context.Context, dID string, force bool) (strin
 			err = ctx.Err()
 		}
 		if err == nil {
-			if e := a.auxDeploymentHandler.StopAll(ctx, dID, lib_model.AuxDepFilter{}, true); e != nil {
+			if _, e := a.auxDeploymentHandler.StopAll(ctx, dID, lib_model.AuxDepFilter{}, true); e != nil {
 				util.Logger.Errorf("%s: %s", metaStr, e)
 			}
 		}
@@ -339,7 +339,7 @@ func (a *Api) StopDeployments(ctx context.Context, filter lib_model.DepFilter, f
 			err = ctx.Err()
 		}
 		for _, id := range stopped {
-			if e := a.auxDeploymentHandler.StopAll(ctx, id, lib_model.AuxDepFilter{}, true); e != nil {
+			if _, e := a.auxDeploymentHandler.StopAll(ctx, id, lib_model.AuxDepFilter{}, true); e != nil {
 				util.Logger.Errorf("%s: %s", metaStr, e)
 			}
 		}
