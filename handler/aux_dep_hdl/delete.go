@@ -61,7 +61,7 @@ func (h *Handler) delete(ctx context.Context, auxDep lib_model.AuxDeployment, fo
 	}
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	volumes, err := h.cewClient.GetVolumes(ctxWt, cew_model.VolumeFilter{Labels: map[string]string{naming_hdl.DeploymentIDLabel: auxDep.DepID, naming_hdl.AuxDeploymentID: auxDep.ID}})
+	volumes, err := h.cewClient.GetVolumes(ctxWt, cew_model.VolumeFilter{Labels: map[string]string{naming_hdl.ManagerIDLabel: h.managerID, naming_hdl.DeploymentIDLabel: auxDep.DepID, naming_hdl.AuxDeploymentID: auxDep.ID}})
 	if err != nil {
 		return err
 	}
