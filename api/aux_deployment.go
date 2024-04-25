@@ -129,11 +129,11 @@ func (a *Api) DeleteAuxDeployments(ctx context.Context, dID string, filter model
 	metaStr := fmt.Sprintf("delete aux deployments (deployment_id=%s %s force=%v)", dID, getAuxDepFilterValues(filter), force)
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer cf()
-		err := a.auxDeploymentHandler.DeleteAll(ctx, dID, filter, force)
+		deleted, err := a.auxDeploymentHandler.DeleteAll(ctx, dID, filter, force)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return nil, err
+		return deleted, err
 	})
 	if err != nil {
 		return "", newApiErr(metaStr, err)
@@ -163,11 +163,11 @@ func (a *Api) StartAuxDeployments(ctx context.Context, dID string, filter model.
 	metaStr := fmt.Sprintf("start aux deployments (deployment_id=%s %s)", dID, getAuxDepFilterValues(filter))
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer cf()
-		err := a.auxDeploymentHandler.StartAll(ctx, dID, filter)
+		started, err := a.auxDeploymentHandler.StartAll(ctx, dID, filter)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return nil, err
+		return started, err
 	})
 	if err != nil {
 		return "", newApiErr(metaStr, err)
@@ -197,11 +197,11 @@ func (a *Api) StopAuxDeployments(ctx context.Context, dID string, filter model.A
 	metaStr := fmt.Sprintf("stop aux deployments (deployment_id=%s %s)", dID, getAuxDepFilterValues(filter))
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer cf()
-		err := a.auxDeploymentHandler.StopAll(ctx, dID, filter, false)
+		stopped, err := a.auxDeploymentHandler.StopAll(ctx, dID, filter, false)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return nil, err
+		return stopped, err
 	})
 	if err != nil {
 		return "", newApiErr(metaStr, err)
@@ -231,11 +231,11 @@ func (a *Api) RestartAuxDeployments(ctx context.Context, dID string, filter mode
 	metaStr := fmt.Sprintf("restart aux deployments (deployment_id=%s %s)", dID, getAuxDepFilterValues(filter))
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer cf()
-		err := a.auxDeploymentHandler.RestartAll(ctx, dID, filter)
+		restarted, err := a.auxDeploymentHandler.RestartAll(ctx, dID, filter)
 		if err == nil {
 			err = ctx.Err()
 		}
-		return nil, err
+		return restarted, err
 	})
 	if err != nil {
 		return "", newApiErr(metaStr, err)
