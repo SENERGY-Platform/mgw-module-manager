@@ -83,7 +83,7 @@ type DeploymentHandler interface {
 	Stop(ctx context.Context, dID string, force bool) error
 	StopAll(ctx context.Context, filter lib_model.DepFilter, force bool) ([]string, error)
 	Restart(ctx context.Context, id string) error
-	RestartAll(ctx context.Context, filter lib_model.DepFilter) error
+	RestartAll(ctx context.Context, filter lib_model.DepFilter) ([]string, error)
 }
 
 type DepStorageHandler interface {

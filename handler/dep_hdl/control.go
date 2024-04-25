@@ -140,19 +140,21 @@ func (h *Handler) Restart(ctx context.Context, id string) error {
 	return h.restart(ctx, dep)
 }
 
-func (h *Handler) RestartAll(ctx context.Context, filter lib_model.DepFilter) error {
+func (h *Handler) RestartAll(ctx context.Context, filter lib_model.DepFilter) ([]string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	deployments, err := h.storageHandler.ListDep(ctxWt, filter, false, true, true)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var restarted []string
 	for _, dep := range deployments {
 		if err = h.restart(ctx, dep); err != nil {
-			return err
+			return restarted, err
 		}
+		restarted = append(restarted, dep.ID)
 	}
-	return err
+	return restarted, err
 }
 
 func (h *Handler) start(ctx context.Context, dep lib_model.Deployment) error {
