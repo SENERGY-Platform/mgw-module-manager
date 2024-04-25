@@ -115,7 +115,7 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 	return auxDep.ID, nil
 }
 
-func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, modVolumes, auxVolumes, auxReqVolumes map[string]string) (lib_model.AuxDepContainer, error) {
+func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, modVolumes, auxVolumes, auxDepVolumes map[string]string) (lib_model.AuxDepContainer, error) {
 	globalConfigs, err := getGlobalConfigs(mod.Configs, dep.Configs, auxDep.Configs, auxSrv.Configs)
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
@@ -128,7 +128,7 @@ func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
 	}
-	mounts := newMounts(auxSrv, dep.Dir, h.depHostPath, auxReqVolumes, modVolumes, auxVolumes)
+	mounts := newMounts(auxSrv, dep.Dir, h.depHostPath, auxDepVolumes, modVolumes, auxVolumes)
 	ctrName, err := naming_hdl.Global.NewContainerName("aux-dep")
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
@@ -292,7 +292,7 @@ func getEnvVars(auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, globa
 	return envVars, nil
 }
 
-func newMounts(auxSrv *module.AuxService, depDir, depHostPath string, auxReqVolumes, modVolumes, auxVolumes map[string]string) []cew_model.Mount {
+func newMounts(auxSrv *module.AuxService, depDir, depHostPath string, auxDepVolumes, modVolumes, auxVolumes map[string]string) []cew_model.Mount {
 	var mounts []cew_model.Mount
 	for mntPoint, name := range auxSrv.Volumes {
 		if vol, ok := modVolumes[name]; ok {
@@ -303,7 +303,7 @@ func newMounts(auxSrv *module.AuxService, depDir, depHostPath string, auxReqVolu
 			})
 		}
 	}
-	for name, mntPoint := range auxReqVolumes {
+	for name, mntPoint := range auxDepVolumes {
 		if vol, ok := auxVolumes[name]; ok {
 			mounts = append(mounts, cew_model.Mount{
 				Type:   cew_model.VolumeMount,
