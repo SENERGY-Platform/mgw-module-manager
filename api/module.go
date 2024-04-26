@@ -23,6 +23,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/input_tmplt"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 )
@@ -432,6 +433,9 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput lib_model.De
 				err = a.deploymentHandler.Update(ctx, oldDep.ID, stgItem.Module(), dInput, stgItem.Dir())
 				if err != nil {
 					return err
+				}
+				if _, err = a.updateAllAuxDeployments(ctx, oldDep.ID, stgItem.Module()); err != nil {
+					util.Logger.Error(err)
 				}
 			} else {
 				if rootDeployed {
