@@ -433,11 +433,6 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput lib_model.De
 				if err != nil {
 					return err
 				}
-				if oldDep.Enabled {
-					if _, err = a.deploymentHandler.Start(ctx, oldDep.ID, false); err != nil {
-						return err
-					}
-				}
 			} else {
 				if rootDeployed {
 					dID, err := a.deploymentHandler.Create(ctx, stgItem.Module(), dependencies[mID], stgItem.Dir(), true)
