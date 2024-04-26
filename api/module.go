@@ -410,7 +410,7 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput lib_model.De
 					return err
 				}
 				if oldRootDep.Enabled {
-					if err = a.deploymentHandler.Start(ctx, dID, false); err != nil {
+					if _, err = a.deploymentHandler.Start(ctx, dID, false); err != nil {
 						return err
 					}
 				}
@@ -434,7 +434,7 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput lib_model.De
 					return err
 				}
 				if oldDep.Enabled {
-					if err = a.deploymentHandler.Start(ctx, oldDep.ID, false); err != nil {
+					if _, err = a.deploymentHandler.Start(ctx, oldDep.ID, false); err != nil {
 						return err
 					}
 				}
@@ -445,7 +445,7 @@ func (a *Api) updateModule(ctx context.Context, id string, depInput lib_model.De
 						return err
 					}
 					if oldRootDep.Enabled {
-						if err = a.deploymentHandler.Start(ctx, dID, false); err != nil {
+						if _, err = a.deploymentHandler.Start(ctx, dID, false); err != nil {
 							return err
 						}
 					}
