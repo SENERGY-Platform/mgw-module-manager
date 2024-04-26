@@ -22,6 +22,7 @@ import (
 	"fmt"
 	context_hdl "github.com/SENERGY-Platform/go-service-base/context-hdl"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
@@ -148,6 +149,88 @@ func (h *Handler) Update(ctx context.Context, aID string, mod model.Module, dep 
 		util.Logger.Error(e)
 	}
 	if e := h.removeVolumes(ctx, orphanAuxVolumes, true); e != nil {
+		util.Logger.Error(e)
+	}
+	return nil
+}
+
+func (h *Handler) UpdateAll(ctx context.Context, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment) ([]string, error) {
+	auxServices := make(map[string]*module.AuxService)
+	for ref, auxSrv := range mod.AuxServices {
+		if len(auxSrv.BindMounts)+len(auxSrv.Tmpfs)+len(auxSrv.Volumes)+len(auxSrv.Configs)+len(auxSrv.SrvReferences)+len(auxSrv.ExtDependencies) > 0 {
+			auxServices[ref] = auxSrv
+		}
+	}
+	var updated []string
+	if len(auxServices) > 0 {
+		modVolumes := make(map[string]string)
+		for ref := range mod.Volumes {
+			modVolumes[ref] = naming_hdl.Global.NewVolumeName(dep.ID, ref)
+		}
+		ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+		defer cf()
+		auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dep.ID, lib_model.AuxDepFilter{}, true)
+		if err != nil {
+			return nil, err
+		}
+		for _, auxDep := range auxDeployments {
+			if auxSrv, ok := auxServices[auxDep.Ref]; ok {
+				if err = h.updateBase(ctx, mod.Module.Module, modVolumes, dep, requiredDep, auxSrv, auxDep); err != nil {
+					util.Logger.Error(err)
+					continue
+				}
+				updated = append(updated, auxDep.ID)
+			}
+		}
+	}
+	return updated, nil
+}
+
+func (h *Handler) updateBase(ctx context.Context, mod *module.Module, modVolumes map[string]string, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxSrv *module.AuxService, auxDep lib_model.AuxDeployment) error {
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	if err := h.stopContainer(ctx, auxDep.Container.ID); err != nil {
+		return err
+	}
+	auxVolumes := make(map[string]string)
+	for ref := range auxDep.Volumes {
+		auxVolumes[ref] = naming_hdl.Global.NewVolumeName(auxDep.ID, ref)
+	}
+	auxDep.Updated = time.Now().UTC()
+	tx, err := h.storageHandler.BeginTransaction(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if err = h.storageHandler.DeleteAuxDepContainer(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, auxDep.Container.ID); err != nil {
+		return err
+	}
+	if err = h.storageHandler.UpdateAuxDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, auxDep.AuxDepBase); err != nil {
+		return err
+	}
+	container, err := h.createContainer(ctx, auxSrv, auxDep, mod, dep, requiredDep, modVolumes, auxVolumes)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if e := h.removeContainer(context.Background(), container.ID, true); e != nil {
+				util.Logger.Error(e)
+			}
+		}
+	}()
+	if err = h.storageHandler.CreateAuxDepContainer(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, auxDep.ID, container); err != nil {
+		return err
+	}
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+	if auxDep.Enabled {
+		if e := h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container.ID); err != nil {
+			util.Logger.Error(e)
+		}
+	}
+	if e := h.removeContainer(ctx, auxDep.Container.ID, true); e != nil {
 		util.Logger.Error(e)
 	}
 	return nil
