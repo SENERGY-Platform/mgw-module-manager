@@ -122,7 +122,7 @@ func (h *Handler) Update(ctx context.Context, aID string, mod model.Module, dep 
 			}
 		}
 	}()
-	newAuxDep.Container, err = h.createContainer(ctx, auxSrv, newAuxDep, mod.Module.Module, dep, requiredDep, modVolumes, auxVolumes, newAuxDep.Volumes)
+	newAuxDep.Container, err = h.createContainer(ctx, auxSrv, newAuxDep, mod.Module.Module, dep, requiredDep, modVolumes, auxVolumes)
 	if err != nil {
 		return err
 	}
