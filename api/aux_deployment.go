@@ -60,7 +60,7 @@ func (a *Api) CreateAuxDeployment(ctx context.Context, dID string, auxDepInput l
 	}
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer cf()
-		aID, err := a.auxDeploymentHandler.Create(ctx, mod, dep, requiredDep, auxDepInput, forcePullImg)
+		aID, err := a.auxDeploymentHandler.Create(ctx, mod.Module.Module, dep, requiredDep, auxDepInput, forcePullImg)
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -95,7 +95,7 @@ func (a *Api) UpdateAuxDeployment(ctx context.Context, dID, aID string, auxDepIn
 	}
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer cf()
-		err := a.auxDeploymentHandler.Update(ctx, aID, mod, dep, requiredDep, auxDepInput, forcePullImg, incremental)
+		err := a.auxDeploymentHandler.Update(ctx, aID, mod.Module.Module, dep, requiredDep, auxDepInput, forcePullImg, incremental)
 		if err == nil {
 			err = ctx.Err()
 		}
