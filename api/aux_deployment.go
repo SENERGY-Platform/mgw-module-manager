@@ -21,10 +21,10 @@ import (
 	"errors"
 	"fmt"
 	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func (a *Api) GetAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter, assets, containerInfo bool) (map[string]model.AuxDeployment, error) {
+func (a *Api) GetAuxDeployments(ctx context.Context, dID string, filter lib_model.AuxDepFilter, assets, containerInfo bool) (map[string]lib_model.AuxDeployment, error) {
 	auxDeps, err := a.auxDeploymentHandler.List(ctx, dID, filter, assets, containerInfo)
 	if err != nil {
 		return nil, newApiErr(fmt.Sprintf("get aux deployments (%s assets=%v container_info=%v)", getAuxDepFilterValues(filter), assets, containerInfo), err)
@@ -32,16 +32,16 @@ func (a *Api) GetAuxDeployments(ctx context.Context, dID string, filter model.Au
 	return auxDeps, nil
 }
 
-func (a *Api) GetAuxDeployment(ctx context.Context, dID, aID string, assets, containerInfo bool) (model.AuxDeployment, error) {
+func (a *Api) GetAuxDeployment(ctx context.Context, dID, aID string, assets, containerInfo bool) (lib_model.AuxDeployment, error) {
 	metaStr := fmt.Sprintf("get aux deployment (assets=%v container_info=%v)", assets, containerInfo)
 	auxDep, err := a.auxDeploymentHandler.Get(ctx, dID, aID, assets, containerInfo)
 	if err != nil {
-		return model.AuxDeployment{}, newApiErr(metaStr, err)
+		return lib_model.AuxDeployment{}, newApiErr(metaStr, err)
 	}
 	return auxDep, nil
 }
 
-func (a *Api) CreateAuxDeployment(ctx context.Context, dID string, auxDepInput model.AuxDepReq, forcePullImg bool) (string, error) {
+func (a *Api) CreateAuxDeployment(ctx context.Context, dID string, auxDepInput lib_model.AuxDepReq, forcePullImg bool) (string, error) {
 	metaStr := fmt.Sprintf("create aux deployment (deployment_id=%s ref=%s image=%s force_pull_image=%v)", dID, auxDepInput.Ref, auxDepInput.Image, forcePullImg)
 	dep, err := a.deploymentHandler.Get(ctx, dID, true, true, true, false)
 	if err != nil {
@@ -51,9 +51,9 @@ func (a *Api) CreateAuxDeployment(ctx context.Context, dID string, auxDepInput m
 	if err != nil {
 		return "", newApiErr(metaStr, err)
 	}
-	var requiredDep map[string]model.Deployment
+	var requiredDep map[string]lib_model.Deployment
 	if len(dep.RequiredDep) > 0 {
-		requiredDep, err = a.deploymentHandler.List(ctx, model.DepFilter{IDs: dep.RequiredDep}, false, false, true, false)
+		requiredDep, err = a.deploymentHandler.List(ctx, lib_model.DepFilter{IDs: dep.RequiredDep}, false, false, true, false)
 		if err != nil {
 			return "", newApiErr(metaStr, err)
 		}
@@ -76,7 +76,7 @@ func (a *Api) CreateAuxDeployment(ctx context.Context, dID string, auxDepInput m
 	return jID, nil
 }
 
-func (a *Api) UpdateAuxDeployment(ctx context.Context, dID, aID string, auxDepInput model.AuxDepReq, incremental, forcePullImg bool) (string, error) {
+func (a *Api) UpdateAuxDeployment(ctx context.Context, dID, aID string, auxDepInput lib_model.AuxDepReq, incremental, forcePullImg bool) (string, error) {
 	metaStr := fmt.Sprintf("update aux deployment (deployment_id=%s aux_deployment_id=%s ref=%s, image=%s force_pull_image=%v)", dID, aID, auxDepInput.Ref, auxDepInput.Image, forcePullImg)
 	dep, err := a.deploymentHandler.Get(ctx, dID, true, true, true, false)
 	if err != nil {
@@ -86,9 +86,9 @@ func (a *Api) UpdateAuxDeployment(ctx context.Context, dID, aID string, auxDepIn
 	if err != nil {
 		return "", newApiErr(metaStr, err)
 	}
-	var requiredDep map[string]model.Deployment
+	var requiredDep map[string]lib_model.Deployment
 	if len(dep.RequiredDep) > 0 {
-		requiredDep, err = a.deploymentHandler.List(ctx, model.DepFilter{IDs: dep.RequiredDep}, false, false, true, false)
+		requiredDep, err = a.deploymentHandler.List(ctx, lib_model.DepFilter{IDs: dep.RequiredDep}, false, false, true, false)
 		if err != nil {
 			return "", newApiErr(metaStr, err)
 		}
@@ -125,7 +125,7 @@ func (a *Api) DeleteAuxDeployment(ctx context.Context, dID, aID string, force bo
 	return jID, nil
 }
 
-func (a *Api) DeleteAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter, force bool) (string, error) {
+func (a *Api) DeleteAuxDeployments(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) (string, error) {
 	metaStr := fmt.Sprintf("delete aux deployments (deployment_id=%s %s force=%v)", dID, getAuxDepFilterValues(filter), force)
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer cf()
@@ -159,7 +159,7 @@ func (a *Api) StartAuxDeployment(ctx context.Context, dID, aID string) (string, 
 	return jID, nil
 }
 
-func (a *Api) StartAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter) (string, error) {
+func (a *Api) StartAuxDeployments(ctx context.Context, dID string, filter lib_model.AuxDepFilter) (string, error) {
 	metaStr := fmt.Sprintf("start aux deployments (deployment_id=%s %s)", dID, getAuxDepFilterValues(filter))
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer cf()
@@ -193,7 +193,7 @@ func (a *Api) StopAuxDeployment(ctx context.Context, dID, aID string) (string, e
 	return jID, nil
 }
 
-func (a *Api) StopAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter) (string, error) {
+func (a *Api) StopAuxDeployments(ctx context.Context, dID string, filter lib_model.AuxDepFilter) (string, error) {
 	metaStr := fmt.Sprintf("stop aux deployments (deployment_id=%s %s)", dID, getAuxDepFilterValues(filter))
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer cf()
@@ -227,7 +227,7 @@ func (a *Api) RestartAuxDeployment(ctx context.Context, dID, aID string) (string
 	return jID, nil
 }
 
-func (a *Api) RestartAuxDeployments(ctx context.Context, dID string, filter model.AuxDepFilter) (string, error) {
+func (a *Api) RestartAuxDeployments(ctx context.Context, dID string, filter lib_model.AuxDepFilter) (string, error) {
 	metaStr := fmt.Sprintf("restart aux deployments (deployment_id=%s %s)", dID, getAuxDepFilterValues(filter))
 	jID, err := a.jobHandler.Create(ctx, metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer cf()
@@ -261,7 +261,7 @@ func (a *Api) GetAuxJobs(ctx context.Context, dID string, filter job_hdl_lib.Job
 func (a *Api) GetAuxJob(ctx context.Context, dID string, jID string) (job_hdl_lib.Job, error) {
 	metaStr := fmt.Sprintf("get job (id=%v)", jID)
 	if !a.auxJobHandler.Check(dID, jID) {
-		return job_hdl_lib.Job{}, newApiErr(metaStr, model.NewForbiddenError(errors.New("forbidden")))
+		return job_hdl_lib.Job{}, newApiErr(metaStr, lib_model.NewForbiddenError(errors.New("forbidden")))
 	}
 	job, err := a.jobHandler.Get(ctx, jID)
 	if err != nil {
@@ -273,7 +273,7 @@ func (a *Api) GetAuxJob(ctx context.Context, dID string, jID string) (job_hdl_li
 func (a *Api) CancelAuxJob(ctx context.Context, dID string, jID string) error {
 	metaStr := fmt.Sprintf("cancel job (id=%v)", jID)
 	if !a.auxJobHandler.Check(dID, jID) {
-		return newApiErr(metaStr, model.NewForbiddenError(errors.New("forbidden")))
+		return newApiErr(metaStr, lib_model.NewForbiddenError(errors.New("forbidden")))
 	}
 	if err := a.jobHandler.Cancel(ctx, jID); err != nil {
 		return newApiErr(metaStr, err)
@@ -281,6 +281,6 @@ func (a *Api) CancelAuxJob(ctx context.Context, dID string, jID string) error {
 	return nil
 }
 
-func getAuxDepFilterValues(filter model.AuxDepFilter) string {
+func getAuxDepFilterValues(filter lib_model.AuxDepFilter) string {
 	return fmt.Sprintf("labels=%v image=%s", filter.Labels, filter.Image)
 }
