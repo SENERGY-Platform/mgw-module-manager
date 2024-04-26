@@ -101,7 +101,7 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 			}
 		}
 	}()
-	auxDep.Container, err = h.createContainer(ctx, auxSrv, auxDep, mod.Module.Module, dep, requiredDep, modVolumes, auxVolumes, auxDep.Volumes)
+	auxDep.Container, err = h.createContainer(ctx, auxSrv, auxDep, mod.Module.Module, dep, requiredDep, modVolumes, auxVolumes)
 	if err != nil {
 		return "", err
 	}
@@ -115,7 +115,7 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 	return auxDep.ID, nil
 }
 
-func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, modVolumes, auxVolumes, auxDepVolumes map[string]string) (lib_model.AuxDepContainer, error) {
+func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, modVolumes, auxVolumes map[string]string) (lib_model.AuxDepContainer, error) {
 	globalConfigs, err := getGlobalConfigs(mod.Configs, dep.Configs, auxDep.Configs, auxSrv.Configs)
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
@@ -128,7 +128,7 @@ func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
 	}
-	mounts := newMounts(auxSrv, dep.Dir, h.depHostPath, auxDepVolumes, modVolumes, auxVolumes)
+	mounts := newMounts(auxSrv, dep.Dir, h.depHostPath, auxDep.Volumes, modVolumes, auxVolumes)
 	ctrName, err := naming_hdl.Global.NewContainerName("aux-dep")
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
