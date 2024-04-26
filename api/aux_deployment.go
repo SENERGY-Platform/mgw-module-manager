@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
+	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
@@ -279,6 +280,21 @@ func (a *Api) CancelAuxJob(ctx context.Context, dID string, jID string) error {
 		return newApiErr(metaStr, err)
 	}
 	return nil
+}
+
+func (a *Api) updateAllAuxDeployments(ctx context.Context, dID string, mod *module.Module) ([]string, error) {
+	dep, err := a.deploymentHandler.Get(ctx, dID, true, true, true, false)
+	if err != nil {
+		return nil, err
+	}
+	var requiredDep map[string]lib_model.Deployment
+	if len(dep.RequiredDep) > 0 {
+		requiredDep, err = a.deploymentHandler.List(ctx, lib_model.DepFilter{IDs: dep.RequiredDep}, false, false, true, false)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return a.auxDeploymentHandler.UpdateAll(ctx, mod, dep, requiredDep)
 }
 
 func getAuxDepFilterValues(filter lib_model.AuxDepFilter) string {
