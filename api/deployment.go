@@ -158,6 +158,11 @@ func (a *Api) UpdateDeployment(ctx context.Context, dID string, depInput lib_mod
 		if err == nil {
 			err = ctx.Err()
 		}
+		if err == nil {
+			if _, e := a.updateAllAuxDeployments(ctx, dID, mod.Module.Module); e != nil {
+				util.Logger.Errorf("%s: %s", metaStr, e)
+			}
+		}
 		return nil, err
 	})
 	if err != nil {
