@@ -24,13 +24,12 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
 	"time"
 )
 
-func (h *Handler) Update(ctx context.Context, aID string, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg, incremental bool) error {
+func (h *Handler) Update(ctx context.Context, aID string, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg, incremental bool) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	oldAuxDep, err := h.storageHandler.ReadAuxDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), aID, true)
@@ -123,7 +122,7 @@ func (h *Handler) Update(ctx context.Context, aID string, mod model.Module, dep 
 			}
 		}
 	}()
-	newAuxDep.Container, err = h.createContainer(ctx, auxSrv, newAuxDep, mod.Module.Module, dep, requiredDep, modVolumes, auxVolumes)
+	newAuxDep.Container, err = h.createContainer(ctx, auxSrv, newAuxDep, mod, dep, requiredDep, modVolumes, auxVolumes)
 	if err != nil {
 		return err
 	}
@@ -154,7 +153,7 @@ func (h *Handler) Update(ctx context.Context, aID string, mod model.Module, dep 
 	return nil
 }
 
-func (h *Handler) UpdateAll(ctx context.Context, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment) ([]string, error) {
+func (h *Handler) UpdateAll(ctx context.Context, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment) ([]string, error) {
 	auxServices := make(map[string]*module.AuxService)
 	for ref, auxSrv := range mod.AuxServices {
 		if len(auxSrv.BindMounts)+len(auxSrv.Tmpfs)+len(auxSrv.Volumes)+len(auxSrv.Configs)+len(auxSrv.SrvReferences)+len(auxSrv.ExtDependencies) > 0 {
@@ -175,7 +174,7 @@ func (h *Handler) UpdateAll(ctx context.Context, mod model.Module, dep lib_model
 		}
 		for _, auxDep := range auxDeployments {
 			if auxSrv, ok := auxServices[auxDep.Ref]; ok {
-				if err = h.updateBase(ctx, mod.Module.Module, modVolumes, dep, requiredDep, auxSrv, auxDep); err != nil {
+				if err = h.updateBase(ctx, mod, modVolumes, dep, requiredDep, auxSrv, auxDep); err != nil {
 					util.Logger.Error(err)
 					continue
 				}

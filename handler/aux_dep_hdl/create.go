@@ -25,7 +25,6 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
@@ -35,7 +34,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg bool) (string, error) {
+func (h *Handler) Create(ctx context.Context, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg bool) (string, error) {
 	auxSrv, ok := mod.AuxServices[auxReq.Ref]
 	if !ok {
 		return "", lib_model.NewInvalidInputError(fmt.Errorf("aux service ref '%s' not defined", auxReq.Ref))
@@ -101,7 +100,7 @@ func (h *Handler) Create(ctx context.Context, mod model.Module, dep lib_model.De
 			}
 		}
 	}()
-	auxDep.Container, err = h.createContainer(ctx, auxSrv, auxDep, mod.Module.Module, dep, requiredDep, modVolumes, auxVolumes)
+	auxDep.Container, err = h.createContainer(ctx, auxSrv, auxDep, mod, dep, requiredDep, modVolumes, auxVolumes)
 	if err != nil {
 		return "", err
 	}

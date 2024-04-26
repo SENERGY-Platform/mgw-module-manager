@@ -106,9 +106,9 @@ type DepStorageHandler interface {
 type AuxDeploymentHandler interface {
 	List(ctx context.Context, dID string, filter lib_model.AuxDepFilter, assets, containerInfo bool) (map[string]lib_model.AuxDeployment, error)
 	Get(ctx context.Context, dID, aID string, assets, containerInfo bool) (lib_model.AuxDeployment, error)
-	Create(ctx context.Context, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg bool) (string, error)
-	Update(ctx context.Context, aID string, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg, incremental bool) error
-	UpdateAll(ctx context.Context, mod model.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment) ([]string, error)
+	Create(ctx context.Context, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg bool) (string, error)
+	Update(ctx context.Context, aID string, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg, incremental bool) error
+	UpdateAll(ctx context.Context, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment) ([]string, error)
 	Delete(ctx context.Context, dID, aID string, force bool) error
 	DeleteAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, force bool) ([]string, error)
 	Start(ctx context.Context, dID, aID string) error
