@@ -26,12 +26,15 @@ import (
 func SetRoutes(e *gin.Engine, a lib.Api) {
 	standardGrp := e.Group("")
 	restrictedGrp := e.Group(lib_model.RestrictedPath)
-	setSharedRoutes(a, standardGrp, restrictedGrp)
+	setSrvInfoRoutes(a, standardGrp, restrictedGrp)
 	setModulesRoutes(a, standardGrp.Group(lib_model.ModulesPath))
 	setUpdatesRoutes(a, standardGrp.Group(lib_model.ModUpdatesPath))
 	setDeploymentsRoutes(a, standardGrp.Group(lib_model.DeploymentsPath))
 	setDeploymentsBatchRoutes(a, standardGrp.Group(lib_model.DepBatchPath))
+	setAuxDeploymentsRoutes(a, standardGrp.Group(lib_model.AuxDeploymentsPath), restrictedGrp.Group(lib_model.AuxDeploymentsPath))
+	setAuxDeploymentsBatchRoutes(a, standardGrp.Group(lib_model.AuxDepBatchPath), restrictedGrp.Group(lib_model.AuxDepBatchPath))
 	setJobsRoutes(a, standardGrp.Group(lib_model.JobsPath))
+	setAuxJobsRoutes(a, restrictedGrp.Group(lib_model.JobsPath))
 	standardGrp.GET("health-check", getServiceHealthH(a))
 }
 
@@ -96,8 +99,36 @@ func setJobsRoutes(a lib.Api, rg *gin.RouterGroup) {
 	rg.PATCH(":"+jobIdParam+"/"+lib_model.JobsCancelPath, patchJobCancelH(a))
 }
 
-func setSharedRoutes(a lib.Api, rGroups ...*gin.RouterGroup) {
+func setSrvInfoRoutes(a lib.Api, rGroups ...*gin.RouterGroup) {
 	for _, rg := range rGroups {
 		rg.GET(lib_model.SrvInfoPath, getSrvInfoH(a))
 	}
+}
+
+func setAuxDeploymentsRoutes(a lib.Api, rGroups ...*gin.RouterGroup) {
+	for _, rg := range rGroups {
+		rg.GET("", getAuxDeploymentsH(a))
+		rg.POST("", postAuxDeploymentH(a))
+		rg.GET(":"+auxDepIdParam, getAuxDeploymentH(a))
+		rg.PATCH(":"+auxDepIdParam, patchAuxDeploymentUpdateH(a))
+		rg.DELETE(":"+auxDepIdParam, deleteAuxDeploymentH(a))
+		rg.PATCH(":"+auxDepIdParam+"/"+lib_model.DepStartPath, patchAuxDeploymentStartH(a))
+		rg.PATCH(":"+auxDepIdParam+"/"+lib_model.DepStopPath, patchAuxDeploymentStopH(a))
+		rg.PATCH(":"+auxDepIdParam+"/"+lib_model.DepRestartPath, patchAuxDeploymentRestartH(a))
+	}
+}
+
+func setAuxDeploymentsBatchRoutes(a lib.Api, rGroups ...*gin.RouterGroup) {
+	for _, rg := range rGroups {
+		rg.PATCH(lib_model.DepStartPath, patchAuxDeploymentsStartH(a))
+		rg.PATCH(lib_model.DepStopPath, patchAuxDeploymentsStopH(a))
+		rg.PATCH(lib_model.DepRestartPath, patchAuxDeploymentsRestartH(a))
+		rg.PATCH(lib_model.DepDeletePath, patchAuxDeploymentsDeleteH(a))
+	}
+}
+
+func setAuxJobsRoutes(a lib.Api, rg *gin.RouterGroup) {
+	rg.GET("", getAuxJobsH(a))
+	rg.GET(":"+jobIdParam, getAuxJobH(a))
+	rg.PATCH(":"+jobIdParam+"/"+lib_model.JobsCancelPath, patchAuxJobCancelH(a))
 }
