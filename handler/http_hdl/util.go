@@ -24,3 +24,18 @@ func parseStringSlice(s, sep string) []string {
 	}
 	return nil
 }
+
+func genLabels(sl []string) (l map[string]string) {
+	if sl != nil && len(sl) > 0 {
+		l = make(map[string]string)
+		for _, s := range sl {
+			p := strings.Split(s, "=")
+			if len(p) > 1 {
+				l[p[0]] = p[1]
+			} else {
+				l[p[0]] = ""
+			}
+		}
+	}
+	return
+}
