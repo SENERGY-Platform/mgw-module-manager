@@ -291,7 +291,7 @@ func insertAuxDepConfigs(ctx context.Context, pf func(ctx context.Context, query
 }
 
 func insertAuxDepVolumes(ctx context.Context, pf func(ctx context.Context, query string) (*sql.Stmt, error), id string, m map[string]string) error {
-	return insertStrMap(ctx, pf, "INSERT INTO `aux_configs` (`aux_id`, `name`, `mnt_point`) VALUES (?, ?, ?)", id, m)
+	return insertStrMap(ctx, pf, "INSERT INTO `aux_volumes` (`aux_id`, `name`, `mnt_point`) VALUES (?, ?, ?)", id, m)
 }
 
 func genAuxDepFilter(dID string, filter lib_model.AuxDepFilter) (string, []any) {
