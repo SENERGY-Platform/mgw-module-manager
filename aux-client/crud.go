@@ -40,7 +40,7 @@ func (c *Client) GetAuxDeployments(ctx context.Context, dID string, filter model
 		q += "container_info=true"
 	}
 	if q != "" {
-		u = "?" + q
+		u += "?" + q
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
@@ -68,7 +68,7 @@ func (c *Client) GetAuxDeployment(ctx context.Context, dID, aID string, assets, 
 		q += "container_info=true"
 	}
 	if q != "" {
-		u = "?" + q
+		u += "?" + q
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
@@ -116,7 +116,7 @@ func (c *Client) UpdateAuxDeployment(ctx context.Context, dID, aID string, auxDe
 		q += "force_pull_img=true"
 	}
 	if q != "" {
-		u = "?" + q
+		u += "?" + q
 	}
 	body, err := json.Marshal(auxDepInput)
 	if err != nil {
@@ -156,7 +156,7 @@ func (c *Client) DeleteAuxDeployments(ctx context.Context, dID string, filter mo
 		q += "force=true"
 	}
 	if q != "" {
-		u = "?" + q
+		u += "?" + q
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, u, nil)
 	if err != nil {
