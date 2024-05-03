@@ -169,8 +169,8 @@ func genAuxDepFilterQuery(filter model.AuxDepFilter) string {
 	if filter.Image != "" {
 		q = append(q, "image="+filter.Image)
 	}
-	if filter.Enabled != nil {
-		q = append(q, "enabled="+fmt.Sprintf("%v", *filter.Enabled))
+	if filter.Enabled != 0 {
+		q = append(q, "enabled="+fmt.Sprintf("%v", filter.Enabled))
 	}
 	if len(filter.Labels) > 0 {
 		q = append(q, "labels="+genLabels(filter.Labels, "=", ","))
