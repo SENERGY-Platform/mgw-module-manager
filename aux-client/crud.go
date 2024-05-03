@@ -34,14 +34,12 @@ func (c *Client) GetAuxDeployments(ctx context.Context, dID string, filter model
 	}
 	q := genAuxDepFilterQuery(filter)
 	if assets {
-		q += "assets=true"
+		q = append(q, "assets=true")
 	}
 	if containerInfo {
-		q += "container_info=true"
+		q = append(q, "container_info=true")
 	}
-	if q != "" {
-		u += "?" + q
-	}
+	u += genAuxDepQuery(q)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return nil, err
@@ -60,16 +58,14 @@ func (c *Client) GetAuxDeployment(ctx context.Context, dID, aID string, assets, 
 	if err != nil {
 		return model.AuxDeployment{}, err
 	}
-	q := ""
+	var q []string
 	if assets {
-		q += "assets=true"
+		q = append(q, "assets=true")
 	}
 	if containerInfo {
-		q += "container_info=true"
+		q = append(q, "container_info=true")
 	}
-	if q != "" {
-		u += "?" + q
-	}
+	u += genAuxDepQuery(q)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return model.AuxDeployment{}, err
@@ -108,16 +104,14 @@ func (c *Client) UpdateAuxDeployment(ctx context.Context, dID, aID string, auxDe
 	if err != nil {
 		return "", err
 	}
-	q := ""
+	var q []string
 	if incremental {
-		q += "incremental=true"
+		q = append(q, "incremental=true")
 	}
 	if forcePullImg {
-		q += "force_pull_img=true"
+		q = append(q, "force_pull_img=true")
 	}
-	if q != "" {
-		u += "?" + q
-	}
+	u += genAuxDepQuery(q)
 	body, err := json.Marshal(auxDepInput)
 	if err != nil {
 		return "", err
@@ -153,11 +147,9 @@ func (c *Client) DeleteAuxDeployments(ctx context.Context, dID string, filter mo
 	}
 	q := genAuxDepFilterQuery(filter)
 	if force {
-		q += "force=true"
+		q = append(q, "force=true")
 	}
-	if q != "" {
-		u += "?" + q
-	}
+	u += genAuxDepQuery(q)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, u, nil)
 	if err != nil {
 		return "", err
@@ -166,8 +158,7 @@ func (c *Client) DeleteAuxDeployments(ctx context.Context, dID string, filter mo
 	return c.baseClient.ExecRequestString(req)
 }
 
-func genAuxDepFilterQuery(filter model.AuxDepFilter) string {
-	var q []string
+func genAuxDepFilterQuery(filter model.AuxDepFilter) (q []string) {
 	if filter.Image != "" {
 		q = append(q, "image="+filter.Image)
 	}
@@ -177,8 +168,12 @@ func genAuxDepFilterQuery(filter model.AuxDepFilter) string {
 	if len(filter.Labels) > 0 {
 		q = append(q, "labels="+genLabels(filter.Labels, "=", ","))
 	}
+	return
+}
+
+func genAuxDepQuery(q []string) string {
 	if len(q) > 0 {
-		return strings.Join(q, "&")
+		return "?" + strings.Join(q, "&")
 	}
 	return ""
 }

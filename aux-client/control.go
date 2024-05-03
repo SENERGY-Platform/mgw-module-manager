@@ -41,7 +41,7 @@ func (c *Client) StartAuxDeployments(ctx context.Context, dID string, filter mod
 	if err != nil {
 		return "", err
 	}
-	u += genAuxDepFilterQuery(filter)
+	u += genAuxDepQuery(genAuxDepFilterQuery(filter))
 	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, u, nil)
 	if err != nil {
 		return "", err
@@ -68,7 +68,7 @@ func (c *Client) StopAuxDeployments(ctx context.Context, dID string, filter mode
 	if err != nil {
 		return "", err
 	}
-	u += genAuxDepFilterQuery(filter)
+	u += genAuxDepQuery(genAuxDepFilterQuery(filter))
 	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, u, nil)
 	if err != nil {
 		return "", err
@@ -95,7 +95,7 @@ func (c *Client) RestartAuxDeployments(ctx context.Context, dID string, filter m
 	if err != nil {
 		return "", err
 	}
-	u += genAuxDepFilterQuery(filter)
+	u += genAuxDepQuery(genAuxDepFilterQuery(filter))
 	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, u, nil)
 	if err != nil {
 		return "", err
