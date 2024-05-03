@@ -46,8 +46,8 @@ type AuxDeployment struct {
 }
 
 type AuxDepContainer struct {
-	ID    string         `json:"id"`    // docker container id
-	Alias string         `json:"alias"` // container alias: mgw-aux- + SubDeployment:ID
+	ID    string         `json:"id"`
+	Alias string         `json:"alias"`
 	Info  *ContainerInfo `json:"info"`
 }
 
