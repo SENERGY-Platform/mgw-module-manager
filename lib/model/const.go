@@ -49,3 +49,10 @@ const (
 	DepUnhealthy HealthState = "unhealthy"
 	DepTrans     HealthState = "transitioning"
 )
+
+type ToggleVal = int8
+
+const (
+	No  ToggleVal = -1
+	Yes ToggleVal = 1
+)
