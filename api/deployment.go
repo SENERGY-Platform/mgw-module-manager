@@ -260,9 +260,8 @@ func (a *Api) StartDeployment(ctx context.Context, dID string, dependencies bool
 		if err == nil {
 			err = ctx.Err()
 		}
-		enabled := true
 		for _, id := range started {
-			if _, e := a.auxDeploymentHandler.StartAll(ctx, id, lib_model.AuxDepFilter{Enabled: &enabled}); e != nil {
+			if _, e := a.auxDeploymentHandler.StartAll(ctx, id, lib_model.AuxDepFilter{Enabled: lib_model.Yes}); e != nil {
 				util.Logger.Errorf("%s: %s", metaStr, e)
 			}
 		}
@@ -288,9 +287,8 @@ func (a *Api) StartDeployments(ctx context.Context, filter lib_model.DepFilter, 
 		if err == nil {
 			err = ctx.Err()
 		}
-		enabled := true
 		for _, id := range started {
-			if _, e := a.auxDeploymentHandler.StartAll(ctx, id, lib_model.AuxDepFilter{Enabled: &enabled}); e != nil {
+			if _, e := a.auxDeploymentHandler.StartAll(ctx, id, lib_model.AuxDepFilter{Enabled: lib_model.Yes}); e != nil {
 				util.Logger.Errorf("%s: %s", metaStr, e)
 			}
 		}

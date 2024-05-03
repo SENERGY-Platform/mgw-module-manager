@@ -30,7 +30,7 @@ const auxDepIdParam = "ad"
 type getAuxDeploymentsFilterQuery struct {
 	Labels  string `form:"labels"`
 	Image   string `form:"image"`
-	Enabled *bool  `form:"enabled"`
+	Enabled int8   `form:"enabled"`
 }
 
 type getAuxDeploymentQuery struct {
