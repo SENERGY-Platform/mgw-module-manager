@@ -61,8 +61,8 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, dep lib_model.
 			Updated: timestamp,
 		},
 	}
-	if auxReq.Name != nil && *auxReq.Name != "" {
-		auxDep.Name = *auxReq.Name
+	if auxReq.Name != "" {
+		auxDep.Name = auxReq.Name
 	}
 	if auxReq.RunConfig != nil {
 		auxDep.RunConfig = *auxReq.RunConfig
@@ -359,8 +359,8 @@ func handleRunConfig(rc module.RunConfig, reqRC lib_model.AuxDepRunConfig) modul
 	if reqRC.PseudoTTY != rc.PseudoTTY {
 		rc.PseudoTTY = reqRC.PseudoTTY
 	}
-	if reqRC.Command != nil {
-		rc.Command = strings.Split(*reqRC.Command, "")
+	if reqRC.Command != "" {
+		rc.Command = strings.Split(reqRC.Command, "")
 	}
 	return rc
 }

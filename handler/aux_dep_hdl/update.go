@@ -67,8 +67,8 @@ func (h *Handler) Update(ctx context.Context, aID string, mod *module.Module, de
 		newAuxDep.Configs = auxReq.Configs
 		newAuxDep.Volumes = auxReq.Volumes
 	}
-	if auxReq.Name != nil && *auxReq.Name != "" {
-		newAuxDep.Name = *auxReq.Name
+	if auxReq.Name != "" {
+		newAuxDep.Name = auxReq.Name
 	}
 	if auxReq.RunConfig != nil {
 		newAuxDep.RunConfig = *auxReq.RunConfig
