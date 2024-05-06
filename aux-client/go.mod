@@ -8,4 +8,7 @@ require (
 	github.com/SENERGY-Platform/mgw-module-manager/lib v0.3.0
 )
 
-require github.com/SENERGY-Platform/mgw-module-lib v0.19.0 // indirect
+require (
+	github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib v0.0.2 // indirect
+	github.com/SENERGY-Platform/mgw-module-lib v0.19.0 // indirect
+)
