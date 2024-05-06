@@ -408,7 +408,7 @@ func (a *Api) StartEnabledDeployments(smClient sm_client.Client, delay time.Dura
 	_, err = a.jobHandler.Create(context.Background(), metaStr, func(ctx context.Context, cf context.CancelFunc) (any, error) {
 		defer a.mu.Unlock()
 		defer cf()
-		started, err := a.startEnabledDeployments(ctx, smClient, delay, retries)
+		started, err := a.startEnabledDeployments(ctx, smClient, delay, retries, metaStr)
 		if err == nil {
 			err = ctx.Err()
 		}
@@ -444,11 +444,17 @@ func (a *Api) createDepIfNotExist(ctx context.Context, mID string, depReq lib_mo
 	return false, "", nil
 }
 
-func (a *Api) startEnabledDeployments(ctx context.Context, smClient sm_client.Client, delay time.Duration, retries int) ([]string, error) {
+func (a *Api) startEnabledDeployments(ctx context.Context, smClient sm_client.Client, delay time.Duration, retries int, metaStr string) ([]string, error) {
 	if err := waitForSM(ctx, smClient, delay, retries); err != nil {
 		return nil, err
 	}
-	return a.deploymentHandler.StartAll(ctx, lib_model.DepFilter{Enabled: true}, false)
+	started, err := a.deploymentHandler.StartAll(ctx, lib_model.DepFilter{Enabled: true}, false)
+	for _, id := range started {
+		if _, e := a.auxDeploymentHandler.StartAll(ctx, id, lib_model.AuxDepFilter{Enabled: lib_model.Yes}); e != nil {
+			util.Logger.Errorf("%s: %s", metaStr, e)
+		}
+	}
+	return started, err
 }
 
 func waitForSM(ctx context.Context, smClient sm_client.Client, delay time.Duration, retries int) error {
