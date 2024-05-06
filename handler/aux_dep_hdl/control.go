@@ -29,7 +29,7 @@ import (
 func (h *Handler) Start(ctx context.Context, dID, aID string) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, false)
+	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, true)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (h *Handler) Start(ctx context.Context, dID, aID string) error {
 func (h *Handler) StartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) ([]string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, false)
+	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, true)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (h *Handler) StartAll(ctx context.Context, dID string, filter lib_model.Aux
 func (h *Handler) Stop(ctx context.Context, dID, aID string, noStore bool) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, false)
+	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, true)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (h *Handler) Stop(ctx context.Context, dID, aID string, noStore bool) error
 func (h *Handler) StopAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter, noStore bool) ([]string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, false)
+	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, true)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (h *Handler) StopAll(ctx context.Context, dID string, filter lib_model.AuxD
 func (h *Handler) Restart(ctx context.Context, dID, aID string) error {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, false)
+	auxDeployment, err := h.storageHandler.ReadAuxDep(ctxWt, aID, true)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func (h *Handler) Restart(ctx context.Context, dID, aID string) error {
 func (h *Handler) RestartAll(ctx context.Context, dID string, filter lib_model.AuxDepFilter) ([]string, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, false)
+	auxDeployments, err := h.storageHandler.ListAuxDep(ctxWt, dID, filter, true)
 	if err != nil {
 		return nil, err
 	}
