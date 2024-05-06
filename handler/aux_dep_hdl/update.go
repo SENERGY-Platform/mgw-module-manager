@@ -122,25 +122,25 @@ func (h *Handler) Update(ctx context.Context, aID string, mod *module.Module, de
 			}
 		}
 	}()
-	newAuxDep.Container, err = h.createContainer(ctx, auxSrv, newAuxDep, mod, dep, requiredDep, modVolumes, auxVolumes)
+	container, err := h.createContainer(ctx, auxSrv, newAuxDep, mod, dep, requiredDep, modVolumes, auxVolumes)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
-			if e := h.removeContainer(context.Background(), newAuxDep.Container.ID, true); e != nil {
+			if e := h.removeContainer(context.Background(), container.ID, true); e != nil {
 				util.Logger.Error(e)
 			}
 		}
 	}()
-	if err = h.storageHandler.CreateAuxDepContainer(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, aID, newAuxDep.Container); err != nil {
+	if err = h.storageHandler.CreateAuxDepContainer(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, aID, container); err != nil {
 		return err
 	}
 	if err = tx.Commit(); err != nil {
 		return err
 	}
 	if oldAuxDep.Enabled {
-		if e := h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), newAuxDep.Container.ID); err != nil {
+		if e := h.cewClient.StartContainer(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), container.ID); err != nil {
 			util.Logger.Error(e)
 		}
 	}
