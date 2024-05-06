@@ -98,7 +98,7 @@ func (h *Handler) Update(ctx context.Context, aID string, mod *module.Module, de
 		return err
 	}
 	defer tx.Rollback()
-	if err = h.storageHandler.DeleteAuxDepContainer(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, oldAuxDep.Container.ID); err != nil {
+	if err = h.storageHandler.DeleteAuxDepContainer(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, aID); err != nil {
 		return err
 	}
 	if err = h.storageHandler.UpdateAuxDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, newAuxDep.AuxDepBase); err != nil {
@@ -201,7 +201,7 @@ func (h *Handler) updateBase(ctx context.Context, mod *module.Module, modVolumes
 		return err
 	}
 	defer tx.Rollback()
-	if err = h.storageHandler.DeleteAuxDepContainer(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, auxDep.Container.ID); err != nil {
+	if err = h.storageHandler.DeleteAuxDepContainer(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, auxDep.ID); err != nil {
 		return err
 	}
 	if err = h.storageHandler.UpdateAuxDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, auxDep.AuxDepBase); err != nil {
