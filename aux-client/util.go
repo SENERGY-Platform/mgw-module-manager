@@ -17,10 +17,47 @@
 package aux_client
 
 import (
+	"context"
+	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"net/http"
 	"strings"
+	"time"
 )
+
+func AwaitJob(ctx context.Context, client lib.AuxDeploymentApi, dID, jID string, delay, httpTimeout time.Duration, logger interface{ Error(arg ...any) }) (job_hdl_lib.Job, error) {
+	ticker := time.NewTicker(delay)
+	defer ticker.Stop()
+	var cfs []context.CancelFunc
+	defer func() {
+		for _, cf := range cfs {
+			cf()
+		}
+	}()
+	for {
+		select {
+		case <-ctx.Done():
+			c, cf := context.WithTimeout(context.Background(), httpTimeout)
+			err := client.CancelAuxJob(c, dID, jID)
+			if err != nil && logger != nil {
+				logger.Error(err)
+			}
+			cf()
+			return job_hdl_lib.Job{}, ctx.Err()
+		case <-ticker.C:
+			c, cf := context.WithTimeout(context.Background(), httpTimeout)
+			cfs = append(cfs, cf)
+			j, err := client.GetAuxJob(c, dID, jID)
+			if err != nil {
+				return job_hdl_lib.Job{}, err
+			}
+			if j.Completed != nil {
+				return j, nil
+			}
+		}
+	}
+}
 
 func genLabels(m map[string]string, eqs, sep string) string {
 	var sl []string
