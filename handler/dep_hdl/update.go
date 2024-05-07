@@ -192,6 +192,9 @@ func (h *Handler) diffVolumes(ctx context.Context, dID string, mVolumes map[stri
 	volumes := make(map[string]string)
 	var orphanVolumes []string
 	for _, v := range cewVolumes {
+		if _, ok := v.Labels[naming_hdl.AuxDeploymentID]; ok {
+			continue
+		}
 		mName, ok := hashVolMap[v.Name]
 		if !ok {
 			if mName, ok = hashVolDeprecatedMap[v.Name]; !ok {
