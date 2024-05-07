@@ -121,8 +121,8 @@ func NewConfig(path string) (*Config, error) {
 			Timeout:    10000000000,
 		},
 		Jobs: JobsConfig{
-			BufferSize:  50,
-			MaxNumber:   10,
+			BufferSize:  200,
+			MaxNumber:   20,
 			CCHInterval: 500000,
 			JHInterval:  500000,
 			MaxAge:      3600000000,
