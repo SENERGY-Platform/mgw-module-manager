@@ -36,15 +36,15 @@ require (
 	code.cloudfoundry.org/bytefmt v0.0.0-20231017140541-3b893ed0421b // indirect
 	dario.cat/mergo v1.0.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Microsoft/go-winio v0.6.1 // indirect
+	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/SENERGY-Platform/go-base-http-client v0.0.2 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
-	github.com/cloudflare/circl v1.3.7 // indirect
+	github.com/cloudflare/circl v1.3.8 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
-	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
+	github.com/cyphar/filepath-securejoin v0.2.5 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -73,11 +73,10 @@ require (
 	github.com/y-du/go-env-loader v0.5.2 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
-	golang.org/x/mod v0.15.0 // indirect
+	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
-	golang.org/x/tools v0.17.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
