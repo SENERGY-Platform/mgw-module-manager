@@ -28,6 +28,7 @@ import (
 const auxDepIdParam = "ad"
 
 type getAuxDeploymentsFilterQuery struct {
+	IDs     string `form:"ids"`
 	Labels  string `form:"labels"`
 	Image   string `form:"image"`
 	Enabled int8   `form:"enabled"`
@@ -69,6 +70,7 @@ func getAuxDeploymentsH(a lib.Api) gin.HandlerFunc {
 			return
 		}
 		filter := lib_model.AuxDepFilter{
+			IDs:     parseStringSlice(query.IDs, ","),
 			Labels:  genLabels(parseStringSlice(query.Labels, ",")),
 			Image:   query.Image,
 			Enabled: query.Enabled,
@@ -166,6 +168,7 @@ func patchAuxDeploymentsDeleteH(a lib.Api) gin.HandlerFunc {
 			return
 		}
 		filter := lib_model.AuxDepFilter{
+			IDs:     parseStringSlice(query.IDs, ","),
 			Labels:  genLabels(parseStringSlice(query.Labels, ",")),
 			Image:   query.Image,
 			Enabled: query.Enabled,
@@ -198,6 +201,7 @@ func patchAuxDeploymentsStartH(a lib.Api) gin.HandlerFunc {
 			return
 		}
 		filter := lib_model.AuxDepFilter{
+			IDs:     parseStringSlice(query.IDs, ","),
 			Labels:  genLabels(parseStringSlice(query.Labels, ",")),
 			Image:   query.Image,
 			Enabled: query.Enabled,
@@ -230,6 +234,7 @@ func patchAuxDeploymentsStopH(a lib.Api) gin.HandlerFunc {
 			return
 		}
 		filter := lib_model.AuxDepFilter{
+			IDs:     parseStringSlice(query.IDs, ","),
 			Labels:  genLabels(parseStringSlice(query.Labels, ",")),
 			Image:   query.Image,
 			Enabled: query.Enabled,
@@ -262,6 +267,7 @@ func patchAuxDeploymentsRestartH(a lib.Api) gin.HandlerFunc {
 			return
 		}
 		filter := lib_model.AuxDepFilter{
+			IDs:     parseStringSlice(query.IDs, ","),
 			Labels:  genLabels(parseStringSlice(query.Labels, ",")),
 			Image:   query.Image,
 			Enabled: query.Enabled,
