@@ -317,6 +317,13 @@ func genAuxDepFilter(dID string, filter lib_model.AuxDepFilter) (string, []any) 
 	if str != "" {
 		str += " AND"
 	}
+	if len(filter.IDs) > 0 {
+		ids := removeDuplicates(filter.IDs)
+		str += " `id` IN (" + strings.Repeat("?, ", len(ids)-1) + "?) AND"
+		for _, id := range ids {
+			val = append(val, id)
+		}
+	}
 	str += " `dep_id` = ?"
 	val = append(val, dID)
 	if filter.Image != "" {
