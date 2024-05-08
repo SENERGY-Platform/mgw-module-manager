@@ -26,5 +26,6 @@ var Logger *log_level.Logger
 
 func InitLogger(config sb_util.LoggerConfig) (out *os.File, err error) {
 	Logger, out, err = sb_util.NewLogger(config)
+	Logger.SetLevelPrefix("ERROR ", "WARNING ", "INFO ", "DEBUG ")
 	return
 }
