@@ -25,8 +25,8 @@ github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.0.3 h1:/A2bZFh3Aol1u
 github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.0.3/go.mod h1:Go9v41HF8FYnGr40jnzl8pfT7xvls3HXinJOiPj4Yh0=
 github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib v0.0.2 h1:Bcdxt7i3DGGvlwS6U3NY9eGJjiPuv3ZpbMwebEUV+nE=
 github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib v0.0.2/go.mod h1:vcvyLaSoZsScGQ8K/OuJxlANTs5FPozsLvPzFUZgiVM=
-github.com/SENERGY-Platform/go-service-base/util v0.14.1 h1:Dy5JIVIWnVDiq5//RBGRF0JKAIG4TaqFsa80wtlfMKE=
-github.com/SENERGY-Platform/go-service-base/util v0.14.1/go.mod h1:8W+F6aCpUnrP6SsxVStk+0MZqF71wJADGySKmZzkFBM=
+github.com/SENERGY-Platform/go-service-base/util v1.0.0 h1:zxhKOn/9I1aRe5Fjvzj8g9rTWcdRsUl+vcgdI1Ph7Hg=
+github.com/SENERGY-Platform/go-service-base/util v1.0.0/go.mod h1:u1wXTQAfjKo+4tgXb6HDkVUpaxJR46SEN5qqEi5cliE=
 github.com/SENERGY-Platform/go-service-base/watchdog v0.4.2 h1:y88XOKuUbJdwvtDgUj9h2vTI+gwZvyB1giwoMvStrGI=
 github.com/SENERGY-Platform/go-service-base/watchdog v0.4.2/go.mod h1:g3L+QFVvGghsnOsB4V1dkoq4egiFGUoD1x83g2H6Imw=
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.15.1 h1:wb9WPdwiBavlt/xf9UrWXncy6u03tAtc907HIxOALgY=
@@ -204,8 +204,8 @@ github.com/xanzy/ssh-agent v0.3.3 h1:+/15pJfg/RsTxqYcX6fHqOXZwwMP+2VyYWJeWM2qQFM
 github.com/xanzy/ssh-agent v0.3.3/go.mod h1:6dzNDKs0J9rVPHPhaGCukekBHKqfl+L3KghI1Bc68Uw=
 github.com/y-du/go-env-loader v0.5.2 h1:LxubTfx7zl1VpBNzUQidSp3yub3/7mxMg63QSuRlhd4=
 github.com/y-du/go-env-loader v0.5.2/go.mod h1:QBaFGtrTdp4eiMUjg9UFf1F3TzbEbUhWDeHYyEsqs8Y=
-github.com/y-du/go-log-level v0.2.4 h1:COCFNczF7b7yd5leEAVMnO6OYaLZVu9lsrk68Qln6t4=
-github.com/y-du/go-log-level v0.2.4/go.mod h1:lhCvJlDCuSC9GfmtVDXuXc7lbbAd8igxl58qK8SjPX8=
+github.com/y-du/go-log-level v1.0.0 h1:Q4Ffqxmf/tn9DBbOMwcjEGkWwQyYMwPn+FR06k5HJ70=
+github.com/y-du/go-log-level v1.0.0/go.mod h1:lhCvJlDCuSC9GfmtVDXuXc7lbbAd8igxl58qK8SjPX8=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 golang.org/x/arch v0.0.0-20210923205945-b76863e36670/go.mod h1:5om86z9Hs0C8fWVUuoMHwpExlXzs5Tkyp9hOrfG7pp8=
 golang.org/x/arch v0.7.0 h1:pskyeJh/3AmoQ8CPE95vxHLqp1G1GfGNXTmcl9NEKTc=
