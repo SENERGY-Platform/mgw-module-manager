@@ -165,6 +165,9 @@ func genAuxDepFilterQuery(filter model.AuxDepFilter) (q []string) {
 	if filter.Enabled != 0 {
 		q = append(q, "enabled="+fmt.Sprintf("%v", filter.Enabled))
 	}
+	if len(filter.IDs) > 0 {
+		q = append(q, "ids="+strings.Join(filter.IDs, ","))
+	}
 	if len(filter.Labels) > 0 {
 		q = append(q, "labels="+genLabels(filter.Labels, "=", ","))
 	}
