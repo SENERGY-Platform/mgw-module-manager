@@ -26,7 +26,7 @@ require (
 	github.com/gin-contrib/requestid v1.0.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-git/go-git/v5 v5.11.0
-	github.com/go-sql-driver/mysql v1.7.1
+	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/y-du/go-log-level v1.0.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -35,6 +35,7 @@ require (
 require (
 	code.cloudfoundry.org/bytefmt v0.0.0-20231017140541-3b893ed0421b // indirect
 	dario.cat/mergo v1.0.0 // indirect
+	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/SENERGY-Platform/go-base-http-client v0.0.2 // indirect
