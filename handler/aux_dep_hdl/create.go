@@ -159,17 +159,21 @@ func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService
 	return auxDepContainer, nil
 }
 
-func (h *Handler) pullImage(ctx context.Context, img string, alwaysPull bool) error {
-	if !alwaysPull {
+func (h *Handler) pullImage(ctx context.Context, img string, forcePull bool) error {
+	if !forcePull {
 		ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
 		defer cf()
-		_, err := h.cewClient.GetImage(ctxWt, img)
+		imgParts := strings.Split(img, ":")
+		var tag string
+		if len(imgParts) > 1 {
+			tag = imgParts[1]
+		}
+		util.Logger.Error(imgParts, tag)
+		images, err := h.cewClient.GetImages(ctxWt, cew_model.ImageFilter{Name: imgParts[0], Tag: tag})
 		if err != nil {
-			var nfe *cew_model.NotFoundError
-			if !errors.As(err, &nfe) {
-				return lib_model.NewInternalError(err)
-			}
-		} else {
+			return lib_model.NewInternalError(err)
+		}
+		if len(images) > 0 {
 			return nil
 		}
 	}
