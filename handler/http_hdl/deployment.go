@@ -29,8 +29,8 @@ type getDeploymentsFilterQuery struct {
 	IDs      string `form:"ids"`
 	Name     string `form:"name"`
 	ModuleID string `form:"module_id"`
-	Enabled  bool   `form:"enabled"`
-	Indirect bool   `form:"indirect"`
+	Enabled  int8   `form:"enabled"`
+	Indirect int8   `form:"indirect"`
 }
 
 type getDeploymentQuery struct {
