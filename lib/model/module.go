@@ -33,7 +33,6 @@ type ModFilter struct {
 	Author         string
 	Type           string
 	DeploymentType string
-	Indirect       bool
 	Tags           map[string]struct{}
 }
 

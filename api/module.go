@@ -486,5 +486,5 @@ func inSlice(s string, sl []string) bool {
 }
 
 func getModFilterValues(filter lib_model.ModFilter) string {
-	return fmt.Sprintf("ids=%v type=%s deployment_type=%v name=%s author=%s indirect=%v tags=%v", filter.IDs, filter.Type, filter.DeploymentType, filter.Name, filter.Author, filter.Indirect, filter.Tags)
+	return fmt.Sprintf("ids=%v type=%s deployment_type=%v name=%s author=%s tags=%v", filter.IDs, filter.Type, filter.DeploymentType, filter.Name, filter.Author, filter.Tags)
 }
