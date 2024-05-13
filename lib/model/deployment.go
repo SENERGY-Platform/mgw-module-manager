@@ -102,8 +102,8 @@ type DepFilter struct {
 	IDs      []string
 	ModuleID string
 	Name     string
-	Enabled  bool
-	Indirect bool
+	Enabled  ToggleVal
+	Indirect ToggleVal
 }
 
 type DepUpdateTemplate struct {

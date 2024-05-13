@@ -448,7 +448,7 @@ func (a *Api) startEnabledDeployments(ctx context.Context, smClient sm_client.Cl
 	if err := waitForSM(ctx, smClient, delay, retries); err != nil {
 		return nil, err
 	}
-	started, err := a.deploymentHandler.StartAll(ctx, lib_model.DepFilter{Enabled: true}, false)
+	started, err := a.deploymentHandler.StartAll(ctx, lib_model.DepFilter{Enabled: lib_model.Yes}, false)
 	for _, id := range started {
 		if _, e := a.auxDeploymentHandler.StartAll(ctx, id, lib_model.AuxDepFilter{Enabled: lib_model.Yes}); e != nil {
 			util.Logger.Errorf("%s: %s", metaStr, e)
