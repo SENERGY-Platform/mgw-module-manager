@@ -136,6 +136,14 @@ type AuxJobHandler interface {
 	Purge(maxAge time.Duration)
 }
 
+type AdvertisementHandler interface {
+	List(filter lib_model.AdvFilter) ([]lib_model.Advertisement, error)
+	Get(dID, ref string) (lib_model.Advertisement, error)
+	Put(mID, dID string, adv lib_model.AdvertisementBase) error
+	Delete(dID, ref string) error
+	DeleteAll(dID string) error
+}
+
 type CfgValidationHandler interface {
 	ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error
 	ValidateTypeOptions(cType string, cTypeOpt module.ConfigTypeOptions) error
