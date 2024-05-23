@@ -30,4 +30,6 @@ type Advertisement struct {
 type AdvFilter struct {
 	ModuleID     string `json:"module_id"`
 	DeploymentID string `json:"deployment_id"`
+	Origin       string `json:"origin"`
+	Ref          string `json:"ref"`
 }

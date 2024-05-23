@@ -52,6 +52,12 @@ func (h *Handler) List(filter lib_model.AdvFilter) ([]lib_model.Advertisement, e
 			if filter.ModuleID != "" && filter.ModuleID != adv.ModuleID {
 				continue
 			}
+			if filter.Origin != "" && filter.Origin != adv.Origin {
+				continue
+			}
+			if filter.Ref != "" && filter.Ref != adv.Ref {
+				continue
+			}
 			ads = append(ads, adv.Advertisement)
 		}
 	}
