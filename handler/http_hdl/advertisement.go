@@ -17,6 +17,7 @@
 package http_hdl
 
 import (
+	"errors"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
@@ -79,6 +80,10 @@ func putAdvertisementH(a lib.Api) gin.HandlerFunc {
 		err := gc.ShouldBindJSON(&advBase)
 		if err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
+			return
+		}
+		if gc.Param(advRefParam) != advBase.Ref {
+			_ = gc.Error(lib_model.NewInvalidInputError(errors.New("reference mismatch")))
 			return
 		}
 		err = a.PutAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), advBase)
