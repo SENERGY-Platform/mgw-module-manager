@@ -72,5 +72,5 @@ func genLabels(m map[string]string, eqs, sep string) string {
 }
 
 func setDepIdHeader(r *http.Request, dID string) {
-	r.Header.Set(model.AuxDepIdHeaderKey, dID)
+	r.Header.Set(model.DepIdHeaderKey, dID)
 }
