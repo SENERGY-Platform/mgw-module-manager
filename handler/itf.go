@@ -137,13 +137,13 @@ type AuxJobHandler interface {
 }
 
 type AdvertisementHandler interface {
-	List(filter lib_model.AdvFilter) ([]lib_model.Advertisement, error)
-	Get(dID, ref string) (lib_model.Advertisement, error)
-	GetAll(dID string) (map[string]lib_model.Advertisement, error)
-	Put(mID, dID string, adv lib_model.AdvertisementBase) error
-	PutAll(mID, dID string, ads map[string]lib_model.AdvertisementBase) error
-	Delete(dID, ref string) error
-	DeleteAll(dID string) error
+	List(ctx context.Context, filter lib_model.AdvFilter) ([]lib_model.Advertisement, error)
+	Get(ctx context.Context, dID, ref string) (lib_model.Advertisement, error)
+	GetAll(ctx context.Context, dID string) (map[string]lib_model.Advertisement, error)
+	Put(ctx context.Context, mID, dID string, adv lib_model.AdvertisementBase) error
+	PutAll(ctx context.Context, mID, dID string, ads map[string]lib_model.AdvertisementBase) error
+	Delete(ctx context.Context, dID, ref string) error
+	DeleteAll(ctx context.Context, dID string) error
 }
 
 type CfgValidationHandler interface {

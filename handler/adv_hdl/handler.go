@@ -17,6 +17,7 @@
 package adv_hdl
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -41,7 +42,7 @@ func New() *Handler {
 	}
 }
 
-func (h *Handler) List(filter lib_model.AdvFilter) ([]lib_model.Advertisement, error) {
+func (h *Handler) List(_ context.Context, filter lib_model.AdvFilter) ([]lib_model.Advertisement, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	var ads []lib_model.Advertisement
@@ -65,7 +66,7 @@ func (h *Handler) List(filter lib_model.AdvFilter) ([]lib_model.Advertisement, e
 	return ads, nil
 }
 
-func (h *Handler) Get(dID, ref string) (lib_model.Advertisement, error) {
+func (h *Handler) Get(_ context.Context, dID, ref string) (lib_model.Advertisement, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	depAds, ok := h.ads[dID]
@@ -79,7 +80,7 @@ func (h *Handler) Get(dID, ref string) (lib_model.Advertisement, error) {
 	return adv.Advertisement, nil
 }
 
-func (h *Handler) GetAll(dID string) (map[string]lib_model.Advertisement, error) {
+func (h *Handler) GetAll(_ context.Context, dID string) (map[string]lib_model.Advertisement, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	depAds, ok := h.ads[dID]
@@ -93,7 +94,7 @@ func (h *Handler) GetAll(dID string) (map[string]lib_model.Advertisement, error)
 	return ads, nil
 }
 
-func (h *Handler) Put(mID, dID string, adv lib_model.AdvertisementBase) error {
+func (h *Handler) Put(_ context.Context, mID, dID string, adv lib_model.AdvertisementBase) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	depAds, ok := h.ads[dID]
@@ -105,7 +106,7 @@ func (h *Handler) Put(mID, dID string, adv lib_model.AdvertisementBase) error {
 	return nil
 }
 
-func (h *Handler) PutAll(mID, dID string, ads map[string]lib_model.AdvertisementBase) error {
+func (h *Handler) PutAll(_ context.Context, mID, dID string, ads map[string]lib_model.AdvertisementBase) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	depAds := make(map[string]advertisement)
@@ -119,7 +120,7 @@ func (h *Handler) PutAll(mID, dID string, ads map[string]lib_model.Advertisement
 	return nil
 }
 
-func (h *Handler) Delete(dID, ref string) error {
+func (h *Handler) Delete(_ context.Context, dID, ref string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	depAds, ok := h.ads[dID]
@@ -130,7 +131,7 @@ func (h *Handler) Delete(dID, ref string) error {
 	return nil
 }
 
-func (h *Handler) DeleteAll(dID string) error {
+func (h *Handler) DeleteAll(_ context.Context, dID string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	_, ok := h.ads[dID]
