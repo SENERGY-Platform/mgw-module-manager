@@ -86,16 +86,7 @@ func (h *Handler) Put(mID, dID string, adv lib_model.AdvertisementBase) error {
 		depAds = make(map[string]advertisement)
 		h.ads[dID] = depAds
 	}
-	hash := sha256.New()
-	hash.Write([]byte(dID))
-	depAds[adv.Ref] = advertisement{
-		DepID: dID,
-		Advertisement: lib_model.Advertisement{
-			ModuleID:          mID,
-			Origin:            hex.EncodeToString(hash.Sum(nil)),
-			AdvertisementBase: adv,
-		},
-	}
+	depAds[adv.Ref] = newAdv(mID, dID, adv)
 	return nil
 }
 
@@ -119,4 +110,17 @@ func (h *Handler) DeleteAll(dID string) error {
 	}
 	delete(h.ads, dID)
 	return nil
+}
+
+func newAdv(mID, dID string, adv lib_model.AdvertisementBase) advertisement {
+	hash := sha256.New()
+	hash.Write([]byte(dID))
+	return advertisement{
+		DepID: dID,
+		Advertisement: lib_model.Advertisement{
+			ModuleID:          mID,
+			Origin:            hex.EncodeToString(hash.Sum(nil)),
+			AdvertisementBase: adv,
+		},
+	}
 }
