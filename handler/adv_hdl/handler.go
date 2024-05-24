@@ -46,10 +46,7 @@ func (h *Handler) List(_ context.Context, filter lib_model.AdvFilter) ([]lib_mod
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	var ads []lib_model.Advertisement
-	for dID, depAds := range h.ads {
-		if filter.DeploymentID != "" && filter.DeploymentID != dID {
-			continue
-		}
+	for _, depAds := range h.ads {
 		for _, adv := range depAds {
 			if filter.ModuleID != "" && filter.ModuleID != adv.ModuleID {
 				continue
