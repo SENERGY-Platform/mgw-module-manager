@@ -189,6 +189,12 @@ func (a *Api) DeleteDeployment(ctx context.Context, id string, force bool) (stri
 			if _, e := a.auxDeploymentHandler.DeleteAll(ctx, id, lib_model.AuxDepFilter{}, true); e != nil {
 				util.Logger.Errorf("%s: %s", metaStr, e)
 			}
+			if e := a.advHandler.DeleteAll(ctx, id); e != nil {
+				var nfe *lib_model.NotFoundError
+				if !errors.As(e, &nfe) {
+					util.Logger.Errorf("%s: %s", metaStr, e)
+				}
+			}
 		}
 		return nil, err
 	})
@@ -215,6 +221,12 @@ func (a *Api) DeleteDeployments(ctx context.Context, filter lib_model.DepFilter,
 		for _, dID := range deleted {
 			if _, e := a.auxDeploymentHandler.DeleteAll(ctx, dID, lib_model.AuxDepFilter{}, true); e != nil {
 				util.Logger.Errorf("%s: %s", metaStr, e)
+			}
+			if e := a.advHandler.DeleteAll(ctx, dID); e != nil {
+				var nfe *lib_model.NotFoundError
+				if !errors.As(e, &nfe) {
+					util.Logger.Errorf("%s: %s", metaStr, e)
+				}
 			}
 		}
 		return deleted, err
@@ -318,6 +330,12 @@ func (a *Api) StopDeployment(ctx context.Context, dID string, force bool) (strin
 			if _, e := a.auxDeploymentHandler.StopAll(ctx, dID, lib_model.AuxDepFilter{}, true); e != nil {
 				util.Logger.Errorf("%s: %s", metaStr, e)
 			}
+			if e := a.advHandler.DeleteAll(ctx, dID); e != nil {
+				var nfe *lib_model.NotFoundError
+				if !errors.As(e, &nfe) {
+					util.Logger.Errorf("%s: %s", metaStr, e)
+				}
+			}
 		}
 		return nil, err
 	})
@@ -344,6 +362,12 @@ func (a *Api) StopDeployments(ctx context.Context, filter lib_model.DepFilter, f
 		for _, id := range stopped {
 			if _, e := a.auxDeploymentHandler.StopAll(ctx, id, lib_model.AuxDepFilter{}, true); e != nil {
 				util.Logger.Errorf("%s: %s", metaStr, e)
+			}
+			if e := a.advHandler.DeleteAll(ctx, id); e != nil {
+				var nfe *lib_model.NotFoundError
+				if !errors.As(e, &nfe) {
+					util.Logger.Errorf("%s: %s", metaStr, e)
+				}
 			}
 		}
 		return stopped, err
