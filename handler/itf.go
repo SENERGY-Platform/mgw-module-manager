@@ -141,6 +141,7 @@ type AdvertisementHandler interface {
 	Get(dID, ref string) (lib_model.Advertisement, error)
 	GetAll(dID string) (map[string]lib_model.Advertisement, error)
 	Put(mID, dID string, adv lib_model.AdvertisementBase) error
+	PutAll(mID, dID string, ads map[string]lib_model.AdvertisementBase) error
 	Delete(dID, ref string) error
 	DeleteAll(dID string) error
 }

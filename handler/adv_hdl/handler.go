@@ -20,6 +20,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"sync"
 )
@@ -101,6 +102,20 @@ func (h *Handler) Put(mID, dID string, adv lib_model.AdvertisementBase) error {
 		h.ads[dID] = depAds
 	}
 	depAds[adv.Ref] = newAdv(mID, dID, adv)
+	return nil
+}
+
+func (h *Handler) PutAll(mID, dID string, ads map[string]lib_model.AdvertisementBase) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	depAds := make(map[string]advertisement)
+	for ref, adv := range ads {
+		if ref != adv.Ref {
+			return lib_model.NewInvalidInputError(fmt.Errorf("reference mismatch: %s != %s", adv.Ref, ref))
+		}
+		depAds[ref] = newAdv(mID, dID, adv)
+	}
+	h.ads[dID] = depAds
 	return nil
 }
 
