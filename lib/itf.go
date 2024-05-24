@@ -50,7 +50,7 @@ type Api interface {
 	RestartDeployments(ctx context.Context, filter model.DepFilter) (string, error)
 	GetDeploymentUpdateTemplate(ctx context.Context, dID string) (model.DepUpdateTemplate, error)
 	AuxDeploymentApi
-	DiscoveryApi
+	AdvertisementApi
 	job_hdl_lib.Api
 	srv_info_lib.Api
 }
@@ -73,7 +73,7 @@ type AuxDeploymentApi interface {
 	CancelAuxJob(ctx context.Context, dID string, jID string) error
 }
 
-type DiscoveryApi interface {
+type AdvertisementApi interface {
 	QueryAdvertisements(ctx context.Context, filter model.AdvFilter) ([]model.Advertisement, error)
 	GetAdvertisement(ctx context.Context, dID, ref string) (model.Advertisement, error)
 	GetAdvertisements(ctx context.Context, dID string) (map[string]model.Advertisement, error)
