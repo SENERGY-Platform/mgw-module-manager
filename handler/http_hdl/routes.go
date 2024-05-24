@@ -35,6 +35,9 @@ func SetRoutes(e *gin.Engine, a lib.Api) {
 	setAuxDeploymentsBatchRoutes(a, standardGrp.Group(lib_model.AuxDepBatchPath), restrictedGrp.Group(lib_model.AuxDepBatchPath))
 	setJobsRoutes(a, standardGrp.Group(lib_model.JobsPath))
 	setAuxJobsRoutes(a, restrictedGrp.Group(lib_model.JobsPath))
+	setAdvertisementQueryRoutes(a, standardGrp.Group(lib_model.DiscoveryPath), restrictedGrp.Group(lib_model.DiscoveryPath))
+	setAdvertisementsRoutes(a, restrictedGrp.Group(lib_model.AdvertisementsPath))
+	setAdvertisementsBatchRoutes(a, restrictedGrp.Group(lib_model.AdvertisementsBatchPath))
 	standardGrp.GET("health-check", getServiceHealthH(a))
 }
 
@@ -131,4 +134,22 @@ func setAuxJobsRoutes(a lib.Api, rg *gin.RouterGroup) {
 	rg.GET("", getAuxJobsH(a))
 	rg.GET(":"+jobIdParam, getAuxJobH(a))
 	rg.PATCH(":"+jobIdParam+"/"+lib_model.JobsCancelPath, patchAuxJobCancelH(a))
+}
+
+func setAdvertisementQueryRoutes(a lib.Api, rGroups ...*gin.RouterGroup) {
+	for _, rg := range rGroups {
+		rg.GET("", getAdvertisementQueryH(a))
+	}
+}
+
+func setAdvertisementsRoutes(a lib.Api, rg *gin.RouterGroup) {
+	rg.GET("", getAdvertisementsH(a))
+	rg.GET(":"+advRefParam, getAdvertisementH(a))
+	rg.PUT(":"+advRefParam, putAdvertisementH(a))
+	rg.DELETE(":"+advRefParam, deleteAdvertisementH(a))
+}
+
+func setAdvertisementsBatchRoutes(a lib.Api, rg *gin.RouterGroup) {
+	rg.PUT("", putAdvertisementsH(a))
+	rg.DELETE("", deleteAdvertisementsH(a))
 }
