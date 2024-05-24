@@ -56,8 +56,8 @@ func (a *Api) GetAdvertisements(ctx context.Context, dID string) (map[string]mod
 	return ads, nil
 }
 
-func (a *Api) PutAdvertisement(ctx context.Context, mID, dID string, adv model.AdvertisementBase) error {
-	metaStr := fmt.Sprintf("put advertisement (module_id=%s deployment_id=%s)", mID, dID)
+func (a *Api) PutAdvertisement(ctx context.Context, dID string, adv model.AdvertisementBase) error {
+	metaStr := fmt.Sprintf("put advertisement (deployment_id=%s)", dID)
 	dep, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {
 		return newApiErr(metaStr, err)
@@ -68,8 +68,8 @@ func (a *Api) PutAdvertisement(ctx context.Context, mID, dID string, adv model.A
 	return nil
 }
 
-func (a *Api) PutAdvertisements(ctx context.Context, mID, dID string, ads map[string]model.AdvertisementBase) error {
-	metaStr := fmt.Sprintf("put advertisements (module_id=%s deployment_id=%s)", mID, dID)
+func (a *Api) PutAdvertisements(ctx context.Context, dID string, ads map[string]model.AdvertisementBase) error {
+	metaStr := fmt.Sprintf("put advertisements (deployment_id=%s)", dID)
 	dep, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {
 		return newApiErr(metaStr, err)
