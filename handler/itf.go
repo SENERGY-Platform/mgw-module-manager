@@ -139,6 +139,7 @@ type AuxJobHandler interface {
 type AdvertisementHandler interface {
 	List(filter lib_model.AdvFilter) ([]lib_model.Advertisement, error)
 	Get(dID, ref string) (lib_model.Advertisement, error)
+	GetAll(dID string) (map[string]lib_model.Advertisement, error)
 	Put(mID, dID string, adv lib_model.AdvertisementBase) error
 	Delete(dID, ref string) error
 	DeleteAll(dID string) error

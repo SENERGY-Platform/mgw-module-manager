@@ -78,6 +78,20 @@ func (h *Handler) Get(dID, ref string) (lib_model.Advertisement, error) {
 	return adv.Advertisement, nil
 }
 
+func (h *Handler) GetAll(dID string) (map[string]lib_model.Advertisement, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	depAds, ok := h.ads[dID]
+	if !ok {
+		return nil, lib_model.NewNotFoundError(errors.New("not found"))
+	}
+	ads := make(map[string]lib_model.Advertisement)
+	for ref, adv := range depAds {
+		ads[ref] = adv.Advertisement
+	}
+	return ads, nil
+}
+
 func (h *Handler) Put(mID, dID string, adv lib_model.AdvertisementBase) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
