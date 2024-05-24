@@ -75,7 +75,7 @@ func getAuxDeploymentsH(a lib.Api) gin.HandlerFunc {
 			Image:   query.Image,
 			Enabled: query.Enabled,
 		}
-		auxDeployments, err := a.GetAuxDeployments(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), filter, query.Assets, query.ContainerInfo)
+		auxDeployments, err := a.GetAuxDeployments(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), filter, query.Assets, query.ContainerInfo)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -91,7 +91,7 @@ func getAuxDeploymentH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		auxDeployment, err := a.GetAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), gc.Param(auxDepIdParam), query.Assets, query.ContainerInfo)
+		auxDeployment, err := a.GetAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(auxDepIdParam), query.Assets, query.ContainerInfo)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -113,7 +113,7 @@ func postAuxDeploymentH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		id, err := a.CreateAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), auxDepReq, query.ForcePullImg)
+		id, err := a.CreateAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), auxDepReq, query.ForcePullImg)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -135,7 +135,7 @@ func patchAuxDeploymentUpdateH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		jID, err := a.UpdateAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), gc.Param(auxDepIdParam), auxDepReq, query.Incremental, query.ForcePullImg)
+		jID, err := a.UpdateAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(auxDepIdParam), auxDepReq, query.Incremental, query.ForcePullImg)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -151,7 +151,7 @@ func deleteAuxDeploymentH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		jID, err := a.DeleteAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), gc.Param(auxDepIdParam), query.Force)
+		jID, err := a.DeleteAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(auxDepIdParam), query.Force)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -173,7 +173,7 @@ func patchAuxDeploymentsDeleteH(a lib.Api) gin.HandlerFunc {
 			Image:   query.Image,
 			Enabled: query.Enabled,
 		}
-		jID, err := a.DeleteAuxDeployments(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), filter, query.Force)
+		jID, err := a.DeleteAuxDeployments(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), filter, query.Force)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -184,7 +184,7 @@ func patchAuxDeploymentsDeleteH(a lib.Api) gin.HandlerFunc {
 
 func patchAuxDeploymentStartH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		jID, err := a.StartAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), gc.Param(auxDepIdParam))
+		jID, err := a.StartAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(auxDepIdParam))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -206,7 +206,7 @@ func patchAuxDeploymentsStartH(a lib.Api) gin.HandlerFunc {
 			Image:   query.Image,
 			Enabled: query.Enabled,
 		}
-		jID, err := a.StartAuxDeployments(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), filter)
+		jID, err := a.StartAuxDeployments(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), filter)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -217,7 +217,7 @@ func patchAuxDeploymentsStartH(a lib.Api) gin.HandlerFunc {
 
 func patchAuxDeploymentStopH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		jID, err := a.StopAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), gc.Param(auxDepIdParam))
+		jID, err := a.StopAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(auxDepIdParam))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -239,7 +239,7 @@ func patchAuxDeploymentsStopH(a lib.Api) gin.HandlerFunc {
 			Image:   query.Image,
 			Enabled: query.Enabled,
 		}
-		jID, err := a.StopAuxDeployments(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), filter)
+		jID, err := a.StopAuxDeployments(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), filter)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -250,7 +250,7 @@ func patchAuxDeploymentsStopH(a lib.Api) gin.HandlerFunc {
 
 func patchAuxDeploymentRestartH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		jID, err := a.RestartAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), gc.Param(auxDepIdParam))
+		jID, err := a.RestartAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(auxDepIdParam))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -272,7 +272,7 @@ func patchAuxDeploymentsRestartH(a lib.Api) gin.HandlerFunc {
 			Image:   query.Image,
 			Enabled: query.Enabled,
 		}
-		jID, err := a.RestartAuxDeployments(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), filter)
+		jID, err := a.RestartAuxDeployments(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), filter)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -308,14 +308,14 @@ func getAuxJobsH(a lib.Api) gin.HandlerFunc {
 			}
 			jobOptions.Until = t
 		}
-		jobs, _ := a.GetAuxJobs(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), jobOptions)
+		jobs, _ := a.GetAuxJobs(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), jobOptions)
 		gc.JSON(http.StatusOK, jobs)
 	}
 }
 
 func getAuxJobH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		job, err := a.GetAuxJob(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), gc.Param(jobIdParam))
+		job, err := a.GetAuxJob(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(jobIdParam))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -326,7 +326,7 @@ func getAuxJobH(a lib.Api) gin.HandlerFunc {
 
 func patchAuxJobCancelH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		err := a.CancelAuxJob(gc.Request.Context(), gc.GetHeader(lib_model.AuxDepIdHeaderKey), gc.Param(jobIdParam))
+		err := a.CancelAuxJob(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(jobIdParam))
 		if err != nil {
 			_ = gc.Error(err)
 			return

@@ -17,10 +17,10 @@
 package model
 
 const (
-	HeaderRequestID   = "X-Request-ID"
-	HeaderApiVer      = "X-Api-Version"
-	HeaderSrvName     = "X-Service"
-	AuxDepIdHeaderKey = "X-MGW-DID"
+	HeaderRequestID = "X-Request-ID"
+	HeaderApiVer    = "X-Api-Version"
+	HeaderSrvName   = "X-Service"
+	DepIdHeaderKey  = "X-MGW-DID"
 )
 
 const (
