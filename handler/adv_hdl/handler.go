@@ -22,8 +22,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	context_hdl "github.com/SENERGY-Platform/go-service-base/context-hdl"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
-	"sync"
+	"github.com/SENERGY-Platform/mgw-module-manager/model"
+	"time"
 )
 
 type advertisement struct {
@@ -32,121 +35,143 @@ type advertisement struct {
 }
 
 type Handler struct {
-	ads map[string]map[string]advertisement // {dID:{ref:advertisement}}
-	mu  sync.RWMutex
+	storageHandler handler.DepAdvStorageHandler
+	dbTimeout      time.Duration
 }
 
-func New() *Handler {
+func New(storageHandler handler.DepAdvStorageHandler, dbTimeout time.Duration) *Handler {
 	return &Handler{
-		ads: make(map[string]map[string]advertisement),
+		storageHandler: storageHandler,
+		dbTimeout:      dbTimeout,
 	}
 }
 
-func (h *Handler) List(_ context.Context, filter lib_model.AdvFilter) ([]lib_model.Advertisement, error) {
-	h.mu.RLock()
-	defer h.mu.RUnlock()
+func (h *Handler) List(ctx context.Context, filter lib_model.AdvFilter) ([]lib_model.Advertisement, error) {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	depAds, err := h.storageHandler.ListDepAdv(ctxWt, model.DepAdvFilter{AdvFilter: filter})
+	if err != nil {
+		return nil, err
+	}
 	var ads []lib_model.Advertisement
-	for _, depAds := range h.ads {
-		for _, adv := range depAds {
-			if filter.ModuleID != "" && filter.ModuleID != adv.ModuleID {
-				continue
-			}
-			if filter.Origin != "" && filter.Origin != adv.Origin {
-				continue
-			}
-			if filter.Ref != "" && filter.Ref != adv.Ref {
-				continue
-			}
-			ads = append(ads, adv.Advertisement)
-		}
+	for _, adv := range depAds {
+		ads = append(ads, adv.Advertisement)
 	}
 	return ads, nil
 }
 
-func (h *Handler) Get(_ context.Context, dID, ref string) (lib_model.Advertisement, error) {
-	h.mu.RLock()
-	defer h.mu.RUnlock()
-	depAds, ok := h.ads[dID]
-	if !ok {
-		return lib_model.Advertisement{}, lib_model.NewNotFoundError(errors.New("not found"))
+func (h *Handler) Get(ctx context.Context, dID, ref string) (lib_model.Advertisement, error) {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	depAdv, err := h.storageHandler.ReadDepAdv(ctxWt, dID, ref)
+	if err != nil {
+		return lib_model.Advertisement{}, err
 	}
-	adv, ok := depAds[ref]
-	if !ok {
-		return lib_model.Advertisement{}, lib_model.NewNotFoundError(errors.New("not found"))
-	}
-	return adv.Advertisement, nil
+	return depAdv.Advertisement, nil
 }
 
-func (h *Handler) GetAll(_ context.Context, dID string) (map[string]lib_model.Advertisement, error) {
-	h.mu.RLock()
-	defer h.mu.RUnlock()
-	depAds, ok := h.ads[dID]
-	if !ok {
-		return nil, lib_model.NewNotFoundError(errors.New("not found"))
+func (h *Handler) GetAll(ctx context.Context, dID string) (map[string]lib_model.Advertisement, error) {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	depAds, err := h.storageHandler.ListDepAdv(ctxWt, model.DepAdvFilter{DepID: dID})
+	if err != nil {
+		return nil, err
 	}
 	ads := make(map[string]lib_model.Advertisement)
-	for ref, adv := range depAds {
-		ads[ref] = adv.Advertisement
+	for _, adv := range depAds {
+		ads[adv.Ref] = adv.Advertisement
 	}
 	return ads, nil
 }
 
-func (h *Handler) Put(_ context.Context, mID, dID string, adv lib_model.AdvertisementBase) error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	depAds, ok := h.ads[dID]
-	if !ok {
-		depAds = make(map[string]advertisement)
-		h.ads[dID] = depAds
+func (h *Handler) Put(ctx context.Context, mID, dID string, adv lib_model.AdvertisementBase) error {
+	tx, err := h.storageHandler.BeginTransaction(ctx)
+	if err != nil {
+		return err
 	}
-	depAds[adv.Ref] = newAdv(mID, dID, adv)
+	defer tx.Rollback()
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	err = h.storageHandler.DeleteDepAdv(ctxWt, tx, dID, adv.Ref)
+	if err != nil {
+		var nfe *lib_model.NotFoundError
+		if !errors.As(err, &nfe) {
+			return err
+		}
+	}
+	ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf2()
+	_, err = h.storageHandler.CreateDepAdv(ctxWt2, nil, newAdv(mID, dID, adv))
+	if err != nil {
+		return err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return lib_model.NewInternalError(err)
+	}
 	return nil
 }
 
-func (h *Handler) PutAll(_ context.Context, mID, dID string, ads map[string]lib_model.AdvertisementBase) error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	depAds := make(map[string]advertisement)
+func (h *Handler) PutAll(ctx context.Context, mID, dID string, ads map[string]lib_model.AdvertisementBase) error {
+	tx, err := h.storageHandler.BeginTransaction(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	ch := context_hdl.New()
+	defer ch.CancelAll()
+	err = h.storageHandler.DeleteAllDepAdv(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, dID)
+	if err != nil {
+		var nfe *lib_model.NotFoundError
+		if !errors.As(err, &nfe) {
+			return err
+		}
+	}
 	for ref, adv := range ads {
 		if ref != adv.Ref {
 			return lib_model.NewInvalidInputError(fmt.Errorf("reference mismatch: %s != %s", adv.Ref, ref))
 		}
-		depAds[ref] = newAdv(mID, dID, adv)
+		_, err = h.storageHandler.CreateDepAdv(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), nil, newAdv(mID, dID, adv))
+		if err != nil {
+			return err
+		}
 	}
-	h.ads[dID] = depAds
+	err = tx.Commit()
+	if err != nil {
+		return lib_model.NewInternalError(err)
+	}
 	return nil
 }
 
-func (h *Handler) Delete(_ context.Context, dID, ref string) error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	depAds, ok := h.ads[dID]
-	if !ok {
-		return lib_model.NewNotFoundError(errors.New("not found"))
+func (h *Handler) Delete(ctx context.Context, dID, ref string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	err := h.storageHandler.DeleteDepAdv(ctxWt, nil, dID, ref)
+	if err != nil {
+		return err
 	}
-	delete(depAds, ref)
 	return nil
 }
 
-func (h *Handler) DeleteAll(_ context.Context, dID string) error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	_, ok := h.ads[dID]
-	if !ok {
-		return lib_model.NewNotFoundError(errors.New("not found"))
+func (h *Handler) DeleteAll(ctx context.Context, dID string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
+	defer cf()
+	err := h.storageHandler.DeleteAllDepAdv(ctxWt, nil, dID)
+	if err != nil {
+		return err
 	}
-	delete(h.ads, dID)
 	return nil
 }
 
-func newAdv(mID, dID string, adv lib_model.AdvertisementBase) advertisement {
+func newAdv(mID, dID string, adv lib_model.AdvertisementBase) model.DepAdvertisement {
 	hash := sha256.New()
 	hash.Write([]byte(dID))
-	return advertisement{
+	return model.DepAdvertisement{
 		DepID: dID,
 		Advertisement: lib_model.Advertisement{
 			ModuleID:          mID,
 			Origin:            hex.EncodeToString(hash.Sum(nil)),
+			Timestamp:         time.Now().UTC(),
 			AdvertisementBase: adv,
 		},
 	}
