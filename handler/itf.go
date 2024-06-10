@@ -147,7 +147,8 @@ type AdvertisementHandler interface {
 }
 
 type DepAdvStorageHandler interface {
-	ListDepAdv(ctx context.Context, dID string, filter lib_model.AdvFilter) (map[string]model.DepAdvertisement, error)
+	BeginTransaction(ctx context.Context) (driver.Tx, error)
+	ListDepAdv(ctx context.Context, filter model.DepAdvFilter) (map[string]model.DepAdvertisement, error)
 	ReadDepAdv(ctx context.Context, dID, ref string) (model.DepAdvertisement, error)
 	CreateDepAdv(ctx context.Context, tx driver.Tx, adv model.DepAdvertisement) (string, error)
 	DeleteDepAdv(ctx context.Context, tx driver.Tx, dID, ref string) error
