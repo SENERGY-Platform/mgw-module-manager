@@ -146,6 +146,14 @@ type AdvertisementHandler interface {
 	DeleteAll(ctx context.Context, dID string) error
 }
 
+type DepAdvStorageHandler interface {
+	ListDepAdv(ctx context.Context, dID string, filter lib_model.AdvFilter) (map[string]model.DepAdvertisement, error)
+	ReadDepAdv(ctx context.Context, dID, ref string) (model.DepAdvertisement, error)
+	CreateDepAdv(ctx context.Context, tx driver.Tx, adv model.DepAdvertisement) (string, error)
+	DeleteDepAdv(ctx context.Context, tx driver.Tx, dID, ref string) error
+	DeleteAllDepAdv(ctx context.Context, tx driver.Tx, dID string) error
+}
+
 type CfgValidationHandler interface {
 	ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error
 	ValidateTypeOptions(cType string, cTypeOpt module.ConfigTypeOptions) error
