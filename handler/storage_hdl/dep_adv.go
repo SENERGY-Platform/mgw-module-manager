@@ -27,9 +27,9 @@ import (
 	"time"
 )
 
-func (h *Handler) ListDepAdv(ctx context.Context, dID string, filter lib_model.AdvFilter) (map[string]model.DepAdvertisement, error) {
+func (h *Handler) ListDepAdv(ctx context.Context, filter model.DepAdvFilter) (map[string]model.DepAdvertisement, error) {
 	q := "SELECT `id`, `dep_id`, `mod_id`, `origin`, `ref`, `timestamp` FROM `dep_advertisements`"
-	fc, val := genDepAdvFilter(dID, filter)
+	fc, val := genDepAdvFilter(filter)
 	if fc != "" {
 		q += fc
 	}
@@ -169,9 +169,13 @@ func insertDepAdvItems(ctx context.Context, pf func(ctx context.Context, query s
 	return insertStrMap(ctx, pf, "INSERT INTO `dep_adv_items` (`adv_id`, `key`, `value`) VALUES (?, ?, ?)", id, m)
 }
 
-func genDepAdvFilter(dID string, filter lib_model.AdvFilter) (string, []any) {
-	fc := []string{"dep_id"}
-	val := []any{dID}
+func genDepAdvFilter(filter model.DepAdvFilter) (string, []any) {
+	var fc []string
+	var val []any
+	if filter.DepID != "" {
+		fc = append(fc, "`dep_id` = ?")
+		val = append(val, filter.DepID)
+	}
 	if filter.ModuleID != "" {
 		fc = append(fc, "`mod_id` = ?")
 		val = append(val, filter.ModuleID)
