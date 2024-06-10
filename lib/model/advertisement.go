@@ -16,14 +16,17 @@
 
 package model
 
+import "time"
+
 type AdvertisementBase struct {
 	Ref   string            `json:"ref"`
 	Items map[string]string `json:"items"`
 }
 
 type Advertisement struct {
-	ModuleID string `json:"module_id"`
-	Origin   string `json:"origin"`
+	ModuleID  string    `json:"module_id"`
+	Origin    string    `json:"origin"`
+	Timestamp time.Time `json:"timestamp"`
 	AdvertisementBase
 }
 
