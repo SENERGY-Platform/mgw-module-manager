@@ -23,3 +23,8 @@ type DepAdvertisement struct {
 	DepID string
 	lib_model.Advertisement
 }
+
+type DepAdvFilter struct {
+	DepID string `json:"dep_id"`
+	lib_model.AdvFilter
+}
