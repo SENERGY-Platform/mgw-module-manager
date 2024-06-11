@@ -36,8 +36,8 @@ func SetRoutes(e *gin.Engine, a lib.Api) {
 	setJobsRoutes(a, standardGrp.Group(lib_model.JobsPath))
 	setAuxJobsRoutes(a, restrictedGrp.Group(lib_model.JobsPath))
 	setAdvertisementQueryRoutes(a, standardGrp.Group(lib_model.DiscoveryPath), restrictedGrp.Group(lib_model.DiscoveryPath))
-	setAdvertisementsRoutes(a, restrictedGrp.Group(lib_model.AdvertisementsPath))
-	setAdvertisementsBatchRoutes(a, restrictedGrp.Group(lib_model.AdvertisementsBatchPath))
+	setAdvertisementsRoutes(a, restrictedGrp.Group(lib_model.DepAdvertisementsPath))
+	setAdvertisementsBatchRoutes(a, restrictedGrp.Group(lib_model.DepAdvertisementsBatchPath))
 	standardGrp.GET("health-check", getServiceHealthH(a))
 }
 
