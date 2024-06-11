@@ -136,7 +136,7 @@ type AuxJobHandler interface {
 	Purge(maxAge time.Duration)
 }
 
-type AdvertisementHandler interface {
+type DepAdvertisementHandler interface {
 	List(ctx context.Context, filter lib_model.AdvFilter) ([]lib_model.Advertisement, error)
 	Get(ctx context.Context, dID, ref string) (lib_model.Advertisement, error)
 	GetAll(ctx context.Context, dID string) (map[string]lib_model.Advertisement, error)

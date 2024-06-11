@@ -30,13 +30,13 @@ type Api struct {
 	deploymentHandler    handler.DeploymentHandler
 	auxDeploymentHandler handler.AuxDeploymentHandler
 	auxJobHandler        handler.AuxJobHandler
-	advHandler           handler.AdvertisementHandler
+	advHandler           handler.DepAdvertisementHandler
 	jobHandler           job_hdl.JobHandler
 	srvInfoHdl           srv_info_hdl.SrvInfoHandler
 	mu                   *util.RWMutex
 }
 
-func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModStagingHandler, moduleUpdateHandler handler.ModUpdateHandler, deploymentHandler handler.DeploymentHandler, auxDeploymentHandler handler.AuxDeploymentHandler, jobHandler job_hdl.JobHandler, auxJobHandler handler.AuxJobHandler, advHandler handler.AdvertisementHandler, srvInfoHandler srv_info_hdl.SrvInfoHandler) *Api {
+func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModStagingHandler, moduleUpdateHandler handler.ModUpdateHandler, deploymentHandler handler.DeploymentHandler, auxDeploymentHandler handler.AuxDeploymentHandler, jobHandler job_hdl.JobHandler, auxJobHandler handler.AuxJobHandler, advHandler handler.DepAdvertisementHandler, srvInfoHandler srv_info_hdl.SrvInfoHandler) *Api {
 	return &Api{
 		moduleHandler:        moduleHandler,
 		modStagingHandler:    moduleStagingHandler,
