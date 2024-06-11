@@ -41,45 +41,45 @@ func New(storageHandler handler.DepAdvStorageHandler, dbTimeout time.Duration) *
 	}
 }
 
-func (h *Handler) List(ctx context.Context, filter lib_model.AdvFilter) ([]lib_model.Advertisement, error) {
+func (h *Handler) List(ctx context.Context, filter lib_model.DepAdvFilter) ([]lib_model.DepAdvertisement, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
-	depAds, err := h.storageHandler.ListDepAdv(ctxWt, model.DepAdvFilter{AdvFilter: filter})
+	depAds, err := h.storageHandler.ListDepAdv(ctxWt, model.DepAdvFilter{DepAdvFilter: filter})
 	if err != nil {
 		return nil, err
 	}
-	var ads []lib_model.Advertisement
+	var ads []lib_model.DepAdvertisement
 	for _, adv := range depAds {
-		ads = append(ads, adv.Advertisement)
+		ads = append(ads, adv.DepAdvertisement)
 	}
 	return ads, nil
 }
 
-func (h *Handler) Get(ctx context.Context, dID, ref string) (lib_model.Advertisement, error) {
+func (h *Handler) Get(ctx context.Context, dID, ref string) (lib_model.DepAdvertisement, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	depAdv, err := h.storageHandler.ReadDepAdv(ctxWt, dID, ref)
 	if err != nil {
-		return lib_model.Advertisement{}, err
+		return lib_model.DepAdvertisement{}, err
 	}
-	return depAdv.Advertisement, nil
+	return depAdv.DepAdvertisement, nil
 }
 
-func (h *Handler) GetAll(ctx context.Context, dID string) (map[string]lib_model.Advertisement, error) {
+func (h *Handler) GetAll(ctx context.Context, dID string) (map[string]lib_model.DepAdvertisement, error) {
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf()
 	depAds, err := h.storageHandler.ListDepAdv(ctxWt, model.DepAdvFilter{DepID: dID})
 	if err != nil {
 		return nil, err
 	}
-	ads := make(map[string]lib_model.Advertisement)
+	ads := make(map[string]lib_model.DepAdvertisement)
 	for _, adv := range depAds {
-		ads[adv.Ref] = adv.Advertisement
+		ads[adv.Ref] = adv.DepAdvertisement
 	}
 	return ads, nil
 }
 
-func (h *Handler) Put(ctx context.Context, mID, dID string, adv lib_model.AdvertisementBase) error {
+func (h *Handler) Put(ctx context.Context, mID, dID string, adv lib_model.DepAdvertisementBase) error {
 	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {
 		return err
@@ -107,7 +107,7 @@ func (h *Handler) Put(ctx context.Context, mID, dID string, adv lib_model.Advert
 	return nil
 }
 
-func (h *Handler) PutAll(ctx context.Context, mID, dID string, ads map[string]lib_model.AdvertisementBase) error {
+func (h *Handler) PutAll(ctx context.Context, mID, dID string, ads map[string]lib_model.DepAdvertisementBase) error {
 	tx, err := h.storageHandler.BeginTransaction(ctx)
 	if err != nil {
 		return err
@@ -158,16 +158,16 @@ func (h *Handler) DeleteAll(ctx context.Context, dID string) error {
 	return nil
 }
 
-func newAdv(mID, dID string, adv lib_model.AdvertisementBase) model.DepAdvertisement {
+func newAdv(mID, dID string, adv lib_model.DepAdvertisementBase) model.DepAdvertisement {
 	hash := sha256.New()
 	hash.Write([]byte(dID))
 	return model.DepAdvertisement{
 		DepID: dID,
-		Advertisement: lib_model.Advertisement{
-			ModuleID:          mID,
-			Origin:            hex.EncodeToString(hash.Sum(nil)),
-			Timestamp:         time.Now().UTC(),
-			AdvertisementBase: adv,
+		DepAdvertisement: lib_model.DepAdvertisement{
+			ModuleID:             mID,
+			Origin:               hex.EncodeToString(hash.Sum(nil)),
+			Timestamp:            time.Now().UTC(),
+			DepAdvertisementBase: adv,
 		},
 	}
 }

@@ -22,7 +22,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func (a *Api) QueryAdvertisements(ctx context.Context, filter model.AdvFilter) ([]model.Advertisement, error) {
+func (a *Api) QueryAdvertisements(ctx context.Context, filter model.DepAdvFilter) ([]model.DepAdvertisement, error) {
 	list, err := a.advHandler.List(ctx, filter)
 	if err != nil {
 		return nil, newApiErr(fmt.Sprintf("query advertisements (module_id=%s origin=%s ref=%s)", filter.ModuleID, filter.Origin, filter.Ref), err)
@@ -30,20 +30,20 @@ func (a *Api) QueryAdvertisements(ctx context.Context, filter model.AdvFilter) (
 	return list, nil
 }
 
-func (a *Api) GetAdvertisement(ctx context.Context, dID, ref string) (model.Advertisement, error) {
+func (a *Api) GetAdvertisement(ctx context.Context, dID, ref string) (model.DepAdvertisement, error) {
 	metaStr := fmt.Sprintf("get advertisement (deployment_id=%s ref=%s)", dID, ref)
 	_, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {
-		return model.Advertisement{}, newApiErr(metaStr, err)
+		return model.DepAdvertisement{}, newApiErr(metaStr, err)
 	}
 	adv, err := a.advHandler.Get(ctx, dID, ref)
 	if err != nil {
-		return model.Advertisement{}, newApiErr(metaStr, err)
+		return model.DepAdvertisement{}, newApiErr(metaStr, err)
 	}
 	return adv, nil
 }
 
-func (a *Api) GetAdvertisements(ctx context.Context, dID string) (map[string]model.Advertisement, error) {
+func (a *Api) GetAdvertisements(ctx context.Context, dID string) (map[string]model.DepAdvertisement, error) {
 	metaStr := fmt.Sprintf("get advertisements (deployment_id=%s)", dID)
 	_, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {
@@ -56,7 +56,7 @@ func (a *Api) GetAdvertisements(ctx context.Context, dID string) (map[string]mod
 	return ads, nil
 }
 
-func (a *Api) PutAdvertisement(ctx context.Context, dID string, adv model.AdvertisementBase) error {
+func (a *Api) PutAdvertisement(ctx context.Context, dID string, adv model.DepAdvertisementBase) error {
 	metaStr := fmt.Sprintf("put advertisement (deployment_id=%s)", dID)
 	dep, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {
@@ -68,7 +68,7 @@ func (a *Api) PutAdvertisement(ctx context.Context, dID string, adv model.Advert
 	return nil
 }
 
-func (a *Api) PutAdvertisements(ctx context.Context, dID string, ads map[string]model.AdvertisementBase) error {
+func (a *Api) PutAdvertisements(ctx context.Context, dID string, ads map[string]model.DepAdvertisementBase) error {
 	metaStr := fmt.Sprintf("put advertisements (deployment_id=%s)", dID)
 	dep, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {

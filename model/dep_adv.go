@@ -21,10 +21,10 @@ import lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 type DepAdvertisement struct {
 	ID    string
 	DepID string
-	lib_model.Advertisement
+	lib_model.DepAdvertisement
 }
 
 type DepAdvFilter struct {
 	DepID string `json:"dep_id"`
-	lib_model.AdvFilter
+	lib_model.DepAdvFilter
 }

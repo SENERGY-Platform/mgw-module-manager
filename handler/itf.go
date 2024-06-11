@@ -137,11 +137,11 @@ type AuxJobHandler interface {
 }
 
 type DepAdvertisementHandler interface {
-	List(ctx context.Context, filter lib_model.AdvFilter) ([]lib_model.Advertisement, error)
-	Get(ctx context.Context, dID, ref string) (lib_model.Advertisement, error)
-	GetAll(ctx context.Context, dID string) (map[string]lib_model.Advertisement, error)
-	Put(ctx context.Context, mID, dID string, adv lib_model.AdvertisementBase) error
-	PutAll(ctx context.Context, mID, dID string, ads map[string]lib_model.AdvertisementBase) error
+	List(ctx context.Context, filter lib_model.DepAdvFilter) ([]lib_model.DepAdvertisement, error)
+	Get(ctx context.Context, dID, ref string) (lib_model.DepAdvertisement, error)
+	GetAll(ctx context.Context, dID string) (map[string]lib_model.DepAdvertisement, error)
+	Put(ctx context.Context, mID, dID string, adv lib_model.DepAdvertisementBase) error
+	PutAll(ctx context.Context, mID, dID string, ads map[string]lib_model.DepAdvertisementBase) error
 	Delete(ctx context.Context, dID, ref string) error
 	DeleteAll(ctx context.Context, dID string) error
 }

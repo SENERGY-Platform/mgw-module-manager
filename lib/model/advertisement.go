@@ -18,19 +18,19 @@ package model
 
 import "time"
 
-type AdvertisementBase struct {
+type DepAdvertisementBase struct {
 	Ref   string            `json:"ref"`
 	Items map[string]string `json:"items"`
 }
 
-type Advertisement struct {
+type DepAdvertisement struct {
 	ModuleID  string    `json:"module_id"`
 	Origin    string    `json:"origin"`
 	Timestamp time.Time `json:"timestamp"`
-	AdvertisementBase
+	DepAdvertisementBase
 }
 
-type AdvFilter struct {
+type DepAdvFilter struct {
 	ModuleID string `json:"module_id"`
 	Origin   string `json:"origin"`
 	Ref      string `json:"ref"`

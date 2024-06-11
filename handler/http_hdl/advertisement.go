@@ -39,7 +39,7 @@ func getAdvertisementQueryH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		ads, err := a.QueryAdvertisements(gc.Request.Context(), lib_model.AdvFilter{
+		ads, err := a.QueryAdvertisements(gc.Request.Context(), lib_model.DepAdvFilter{
 			ModuleID: query.ModuleID,
 			Origin:   query.Origin,
 			Ref:      query.Ref,
@@ -76,7 +76,7 @@ func getAdvertisementsH(a lib.Api) gin.HandlerFunc {
 
 func putAdvertisementH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		var advBase lib_model.AdvertisementBase
+		var advBase lib_model.DepAdvertisementBase
 		err := gc.ShouldBindJSON(&advBase)
 		if err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
@@ -97,7 +97,7 @@ func putAdvertisementH(a lib.Api) gin.HandlerFunc {
 
 func putAdvertisementsH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		var ads map[string]lib_model.AdvertisementBase
+		var ads map[string]lib_model.DepAdvertisementBase
 		err := gc.ShouldBindJSON(&ads)
 		if err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
