@@ -101,7 +101,7 @@ func (h *Handler) Put(ctx context.Context, mID, dID string, adv lib_model.Advert
 	}
 	ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf2()
-	_, err = h.storageHandler.CreateDepAdv(ctxWt2, nil, newAdv(mID, dID, adv))
+	_, err = h.storageHandler.CreateDepAdv(ctxWt2, tx, newAdv(mID, dID, adv))
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (h *Handler) PutAll(ctx context.Context, mID, dID string, ads map[string]li
 		if ref != adv.Ref {
 			return lib_model.NewInvalidInputError(fmt.Errorf("reference mismatch: %s != %s", adv.Ref, ref))
 		}
-		_, err = h.storageHandler.CreateDepAdv(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), nil, newAdv(mID, dID, adv))
+		_, err = h.storageHandler.CreateDepAdv(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), tx, newAdv(mID, dID, adv))
 		if err != nil {
 			return err
 		}
