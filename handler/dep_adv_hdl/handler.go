@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package adv_hdl
+package dep_adv_hdl
 
 import (
 	"context"

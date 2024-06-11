@@ -35,11 +35,11 @@ import (
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1gen"
 	"github.com/SENERGY-Platform/mgw-module-manager/api"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler/adv_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/aux_dep_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/aux_job_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl/validators"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_adv_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/dep_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/http_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/mod_hdl"
@@ -222,7 +222,7 @@ func main() {
 
 	modUpdateHandler := mod_update_hdl.New(modTransferHandler, modFileHandler)
 
-	mApi := api.New(modHandler, modStagingHandler, modUpdateHandler, depHandler, auxDepHandler, jobHandler, aux_job_hdl.New(), adv_hdl.New(storageHandler, time.Duration(config.Database.Timeout)), srvInfoHdl)
+	mApi := api.New(modHandler, modStagingHandler, modUpdateHandler, depHandler, auxDepHandler, jobHandler, aux_job_hdl.New(), dep_adv_hdl.New(storageHandler, time.Duration(config.Database.Timeout)), srvInfoHdl)
 
 	gin.SetMode(gin.ReleaseMode)
 	httpHandler := gin.New()
