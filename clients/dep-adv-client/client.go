@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package adv_client
+package dep_adv_client
 
 import (
 	base_client "github.com/SENERGY-Platform/go-base-http-client"

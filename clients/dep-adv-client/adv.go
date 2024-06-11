@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package adv_client
+package dep_adv_client
 
 import (
 	"bytes"
@@ -26,7 +26,7 @@ import (
 	"strings"
 )
 
-func (c *Client) QueryAdvertisements(ctx context.Context, filter model.AdvFilter) ([]model.Advertisement, error) {
+func (c *Client) QueryDepAdvertisements(ctx context.Context, filter model.DepAdvFilter) ([]model.DepAdvertisement, error) {
 	u, err := url.JoinPath(c.baseUrl, model.DiscoveryPath)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (c *Client) QueryAdvertisements(ctx context.Context, filter model.AdvFilter
 	if err != nil {
 		return nil, err
 	}
-	var ads []model.Advertisement
+	var ads []model.DepAdvertisement
 	err = c.baseClient.ExecRequestJSON(req, &ads)
 	if err != nil {
 		return nil, err
@@ -44,26 +44,26 @@ func (c *Client) QueryAdvertisements(ctx context.Context, filter model.AdvFilter
 	return ads, nil
 }
 
-func (c *Client) GetAdvertisement(ctx context.Context, dID, ref string) (model.Advertisement, error) {
-	u, err := url.JoinPath(c.baseUrl, model.AdvertisementsPath, ref)
+func (c *Client) GetDepAdvertisement(ctx context.Context, dID, ref string) (model.DepAdvertisement, error) {
+	u, err := url.JoinPath(c.baseUrl, model.DepAdvertisementsPath, ref)
 	if err != nil {
-		return model.Advertisement{}, err
+		return model.DepAdvertisement{}, err
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
-		return model.Advertisement{}, err
+		return model.DepAdvertisement{}, err
 	}
 	setDepIdHeader(req, dID)
-	var adv model.Advertisement
+	var adv model.DepAdvertisement
 	err = c.baseClient.ExecRequestJSON(req, &adv)
 	if err != nil {
-		return model.Advertisement{}, err
+		return model.DepAdvertisement{}, err
 	}
 	return adv, nil
 }
 
-func (c *Client) GetAdvertisements(ctx context.Context, dID string) (map[string]model.Advertisement, error) {
-	u, err := url.JoinPath(c.baseUrl, model.AdvertisementsPath)
+func (c *Client) GetDepAdvertisements(ctx context.Context, dID string) (map[string]model.DepAdvertisement, error) {
+	u, err := url.JoinPath(c.baseUrl, model.DepAdvertisementsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (c *Client) GetAdvertisements(ctx context.Context, dID string) (map[string]
 		return nil, err
 	}
 	setDepIdHeader(req, dID)
-	var ads map[string]model.Advertisement
+	var ads map[string]model.DepAdvertisement
 	err = c.baseClient.ExecRequestJSON(req, &ads)
 	if err != nil {
 		return nil, err
@@ -80,8 +80,8 @@ func (c *Client) GetAdvertisements(ctx context.Context, dID string) (map[string]
 	return ads, nil
 }
 
-func (c *Client) PutAdvertisement(ctx context.Context, dID string, adv model.AdvertisementBase) error {
-	u, err := url.JoinPath(c.baseUrl, model.AdvertisementsPath, adv.Ref)
+func (c *Client) PutDepAdvertisement(ctx context.Context, dID string, adv model.DepAdvertisementBase) error {
+	u, err := url.JoinPath(c.baseUrl, model.DepAdvertisementsPath, adv.Ref)
 	if err != nil {
 		return err
 	}
@@ -97,8 +97,8 @@ func (c *Client) PutAdvertisement(ctx context.Context, dID string, adv model.Adv
 	return c.baseClient.ExecRequestVoid(req)
 }
 
-func (c *Client) PutAdvertisements(ctx context.Context, dID string, ads map[string]model.AdvertisementBase) error {
-	u, err := url.JoinPath(c.baseUrl, model.AdvertisementsBatchPath)
+func (c *Client) PutDepAdvertisements(ctx context.Context, dID string, ads map[string]model.DepAdvertisementBase) error {
+	u, err := url.JoinPath(c.baseUrl, model.DepAdvertisementsBatchPath)
 	if err != nil {
 		return err
 	}
@@ -114,8 +114,8 @@ func (c *Client) PutAdvertisements(ctx context.Context, dID string, ads map[stri
 	return c.baseClient.ExecRequestVoid(req)
 }
 
-func (c *Client) DeleteAdvertisement(ctx context.Context, dID, ref string) error {
-	u, err := url.JoinPath(c.baseUrl, model.AdvertisementsPath, ref)
+func (c *Client) DeleteDepAdvertisement(ctx context.Context, dID, ref string) error {
+	u, err := url.JoinPath(c.baseUrl, model.DepAdvertisementsPath, ref)
 	if err != nil {
 		return err
 	}
@@ -127,8 +127,8 @@ func (c *Client) DeleteAdvertisement(ctx context.Context, dID, ref string) error
 	return c.baseClient.ExecRequestVoid(req)
 }
 
-func (c *Client) DeleteAdvertisements(ctx context.Context, dID string) error {
-	u, err := url.JoinPath(c.baseUrl, model.AdvertisementsBatchPath)
+func (c *Client) DeleteDepAdvertisements(ctx context.Context, dID string) error {
+	u, err := url.JoinPath(c.baseUrl, model.DepAdvertisementsBatchPath)
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (c *Client) DeleteAdvertisements(ctx context.Context, dID string) error {
 	return c.baseClient.ExecRequestVoid(req)
 }
 
-func genQueryAdvertisementsQuery(filter model.AdvFilter) string {
+func genQueryAdvertisementsQuery(filter model.DepAdvFilter) string {
 	var q []string
 	if filter.ModuleID != "" {
 		q = append(q, "module_id="+filter.ModuleID)
