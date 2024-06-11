@@ -74,11 +74,11 @@ type AuxDeploymentApi interface {
 }
 
 type DepAdvertisementApi interface {
-	QueryAdvertisements(ctx context.Context, filter model.DepAdvFilter) ([]model.DepAdvertisement, error)
-	GetAdvertisement(ctx context.Context, dID, ref string) (model.DepAdvertisement, error)
-	GetAdvertisements(ctx context.Context, dID string) (map[string]model.DepAdvertisement, error)
-	PutAdvertisement(ctx context.Context, dID string, adv model.DepAdvertisementBase) error
-	PutAdvertisements(ctx context.Context, dID string, ads map[string]model.DepAdvertisementBase) error
-	DeleteAdvertisement(ctx context.Context, dID, ref string) error
-	DeleteAdvertisements(ctx context.Context, dID string) error
+	QueryDepAdvertisements(ctx context.Context, filter model.DepAdvFilter) ([]model.DepAdvertisement, error)
+	GetDepAdvertisement(ctx context.Context, dID, ref string) (model.DepAdvertisement, error)
+	GetDepAdvertisements(ctx context.Context, dID string) (map[string]model.DepAdvertisement, error)
+	PutDepAdvertisement(ctx context.Context, dID string, adv model.DepAdvertisementBase) error
+	PutDepAdvertisements(ctx context.Context, dID string, ads map[string]model.DepAdvertisementBase) error
+	DeleteDepAdvertisement(ctx context.Context, dID, ref string) error
+	DeleteDepAdvertisements(ctx context.Context, dID string) error
 }

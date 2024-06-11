@@ -39,7 +39,7 @@ func getDepAdvertisementQueryH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		ads, err := a.QueryAdvertisements(gc.Request.Context(), lib_model.DepAdvFilter{
+		ads, err := a.QueryDepAdvertisements(gc.Request.Context(), lib_model.DepAdvFilter{
 			ModuleID: query.ModuleID,
 			Origin:   query.Origin,
 			Ref:      query.Ref,
@@ -54,7 +54,7 @@ func getDepAdvertisementQueryH(a lib.Api) gin.HandlerFunc {
 
 func getDepAdvertisementH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		adv, err := a.GetAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(advRefParam))
+		adv, err := a.GetDepAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(advRefParam))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -65,7 +65,7 @@ func getDepAdvertisementH(a lib.Api) gin.HandlerFunc {
 
 func getDepAdvertisementsH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		ads, err := a.GetAdvertisements(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey))
+		ads, err := a.GetDepAdvertisements(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -86,7 +86,7 @@ func putDepAdvertisementH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(errors.New("reference mismatch")))
 			return
 		}
-		err = a.PutAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), advBase)
+		err = a.PutDepAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), advBase)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -103,7 +103,7 @@ func putDepAdvertisementsH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		err = a.PutAdvertisements(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), ads)
+		err = a.PutDepAdvertisements(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), ads)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -114,7 +114,7 @@ func putDepAdvertisementsH(a lib.Api) gin.HandlerFunc {
 
 func deleteDepAdvertisementH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		err := a.DeleteAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(advRefParam))
+		err := a.DeleteDepAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(advRefParam))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -125,7 +125,7 @@ func deleteDepAdvertisementH(a lib.Api) gin.HandlerFunc {
 
 func deleteDepAdvertisementsH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
-		err := a.DeleteAdvertisements(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey))
+		err := a.DeleteDepAdvertisements(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey))
 		if err != nil {
 			_ = gc.Error(err)
 			return
