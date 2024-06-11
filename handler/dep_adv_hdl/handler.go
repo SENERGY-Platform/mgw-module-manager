@@ -29,11 +29,6 @@ import (
 	"time"
 )
 
-type advertisement struct {
-	DepID string
-	lib_model.Advertisement
-}
-
 type Handler struct {
 	storageHandler handler.DepAdvStorageHandler
 	dbTimeout      time.Duration
