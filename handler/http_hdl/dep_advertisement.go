@@ -32,7 +32,7 @@ type advertisementFilterQuery struct {
 	Ref      string `form:"ref"`
 }
 
-func getAdvertisementQueryH(a lib.Api) gin.HandlerFunc {
+func getDepAdvertisementQueryH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		var query advertisementFilterQuery
 		if err := gc.ShouldBindQuery(&query); err != nil {
@@ -52,7 +52,7 @@ func getAdvertisementQueryH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func getAdvertisementH(a lib.Api) gin.HandlerFunc {
+func getDepAdvertisementH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		adv, err := a.GetAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(advRefParam))
 		if err != nil {
@@ -63,7 +63,7 @@ func getAdvertisementH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func getAdvertisementsH(a lib.Api) gin.HandlerFunc {
+func getDepAdvertisementsH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		ads, err := a.GetAdvertisements(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey))
 		if err != nil {
@@ -74,7 +74,7 @@ func getAdvertisementsH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func putAdvertisementH(a lib.Api) gin.HandlerFunc {
+func putDepAdvertisementH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		var advBase lib_model.DepAdvertisementBase
 		err := gc.ShouldBindJSON(&advBase)
@@ -95,7 +95,7 @@ func putAdvertisementH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func putAdvertisementsH(a lib.Api) gin.HandlerFunc {
+func putDepAdvertisementsH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		var ads map[string]lib_model.DepAdvertisementBase
 		err := gc.ShouldBindJSON(&ads)
@@ -112,7 +112,7 @@ func putAdvertisementsH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func deleteAdvertisementH(a lib.Api) gin.HandlerFunc {
+func deleteDepAdvertisementH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		err := a.DeleteAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(advRefParam))
 		if err != nil {
@@ -123,7 +123,7 @@ func deleteAdvertisementH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func deleteAdvertisementsH(a lib.Api) gin.HandlerFunc {
+func deleteDepAdvertisementsH(a lib.Api) gin.HandlerFunc {
 	return func(gc *gin.Context) {
 		err := a.DeleteAdvertisements(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey))
 		if err != nil {

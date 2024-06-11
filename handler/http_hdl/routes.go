@@ -138,18 +138,18 @@ func setAuxJobsRoutes(a lib.Api, rg *gin.RouterGroup) {
 
 func setAdvertisementQueryRoutes(a lib.Api, rGroups ...*gin.RouterGroup) {
 	for _, rg := range rGroups {
-		rg.GET("", getAdvertisementQueryH(a))
+		rg.GET("", getDepAdvertisementQueryH(a))
 	}
 }
 
 func setAdvertisementsRoutes(a lib.Api, rg *gin.RouterGroup) {
-	rg.GET("", getAdvertisementsH(a))
-	rg.GET(":"+advRefParam, getAdvertisementH(a))
-	rg.PUT(":"+advRefParam, putAdvertisementH(a))
-	rg.DELETE(":"+advRefParam, deleteAdvertisementH(a))
+	rg.GET("", getDepAdvertisementsH(a))
+	rg.GET(":"+advRefParam, getDepAdvertisementH(a))
+	rg.PUT(":"+advRefParam, putDepAdvertisementH(a))
+	rg.DELETE(":"+advRefParam, deleteDepAdvertisementH(a))
 }
 
 func setAdvertisementsBatchRoutes(a lib.Api, rg *gin.RouterGroup) {
-	rg.PUT("", putAdvertisementsH(a))
-	rg.DELETE("", deleteAdvertisementsH(a))
+	rg.PUT("", putDepAdvertisementsH(a))
+	rg.DELETE("", deleteDepAdvertisementsH(a))
 }
