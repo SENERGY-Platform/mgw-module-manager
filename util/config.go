@@ -64,6 +64,7 @@ type JobsConfig struct {
 	MaxNumber   int   `json:"max_number" env_var:"JOBS_MAX_NUMBER"`
 	CCHInterval int   `json:"cch_interval" env_var:"JOBS_CCH_INTERVAL"`
 	JHInterval  int   `json:"jh_interval" env_var:"JOBS_JH_INTERVAL"`
+	PJHInterval int64 `json:"pjh_interval" env_var:"JOBS_PJH_INTERVAL"`
 	MaxAge      int64 `json:"max_age" env_var:"JOBS_MAX_AGE"`
 }
 
@@ -125,7 +126,8 @@ func NewConfig(path string) (*Config, error) {
 			MaxNumber:   20,
 			CCHInterval: 500000,
 			JHInterval:  500000,
-			MaxAge:      3600000000,
+			PJHInterval: 300000000000,
+			MaxAge:      172800000000000,
 		},
 		ManagerIDPath: "/opt/module-manager/data/mid",
 	}

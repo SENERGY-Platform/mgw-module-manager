@@ -192,6 +192,7 @@ func main() {
 	job_hdl.NewInternalErr = lib_model.NewInternalError
 	jobCtx, jobCF := context.WithCancel(context.Background())
 	jobHandler := job_hdl.New(jobCtx, ccHandler)
+	purgeJobsHdl := job_hdl.NewPurgeJobsHandler(jobHandler, time.Duration(config.Jobs.PJHInterval), time.Duration(config.Jobs.MaxAge))
 
 	wtchdg.RegisterStopFunc(func() error {
 		ccHandler.Stop()
@@ -279,6 +280,8 @@ func main() {
 		ec = 1
 		return
 	}
+
+	purgeJobsHdl.Start(jobCtx)
 
 	go func() {
 		defer dbCF()
