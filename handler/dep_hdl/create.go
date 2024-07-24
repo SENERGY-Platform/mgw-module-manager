@@ -267,6 +267,11 @@ func newHttpEndpoints(modServices map[string]*module.Service, depContainers map[
 					Host:    depContainer.Alias,
 					Port:    modEndpoint.Port,
 					ExtPath: extPath,
+					StringSub: cm_model.StringSub{
+						ReplaceOnce: modEndpoint.StringSub.ReplaceOnce,
+						MimeTypes:   modEndpoint.StringSub.MimeTypes,
+						Filters:     modEndpoint.StringSub.Filters,
+					},
 					Labels: map[string]string{
 						naming_hdl.HttpEndpointModIDLabel:  mID,
 						naming_hdl.HttpEndpointSrvRefLabel: depContainer.SrvRef,
