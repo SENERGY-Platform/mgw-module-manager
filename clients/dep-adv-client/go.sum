@@ -1,6 +1,6 @@
 github.com/SENERGY-Platform/go-base-http-client v0.0.2 h1:sF4QDRkNjhnKQh6d8ujfxQRpeWzSTiBeYIK/aNWWOls=
 github.com/SENERGY-Platform/go-base-http-client v0.0.2/go.mod h1:NfKW/relIVTkMXhz4OqZlzJXYPQUYEKxwqou8D0B/Kw=
-github.com/SENERGY-Platform/mgw-module-lib v0.20.0 h1:70yC/GTbDGfNwdGocTqj34q7rPIMeSDlo60hmvqeWGM=
-github.com/SENERGY-Platform/mgw-module-lib v0.20.0/go.mod h1:EIXS9Q/Clr+eBfnr+UgWwZ0vbqpZqDunCKrjpqTyppM=
-github.com/SENERGY-Platform/mgw-module-manager/lib v0.7.1 h1:ytem/n6SVN9CVff5YXgabKEca+5ICvejRd5UBoQfpOI=
-github.com/SENERGY-Platform/mgw-module-manager/lib v0.7.1/go.mod h1:Cc5+PF6cUf7DFdFnrsVW2FwBWamR2Nnz6o5eSB8E8x0=
+github.com/SENERGY-Platform/mgw-module-lib v0.21.0 h1:QWDN03Pld3BTEVYPNmlPjJiVRvSObubPC9zFAycXW54=
+github.com/SENERGY-Platform/mgw-module-lib v0.21.0/go.mod h1:EIXS9Q/Clr+eBfnr+UgWwZ0vbqpZqDunCKrjpqTyppM=
+github.com/SENERGY-Platform/mgw-module-manager/lib v0.7.2 h1:sc9Vzn84a+dzKqYC4gTgkV4Oy1DPjB6NVtJEhvCTitA=
+github.com/SENERGY-Platform/mgw-module-manager/lib v0.7.2/go.mod h1:yaB7jZztiEhPr060aZI1V7u3T9X1mfOwCSOlpH1SI2A=
