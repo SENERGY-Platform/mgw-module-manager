@@ -267,6 +267,11 @@ func newHttpEndpoints(modServices map[string]*module.Service, depContainers map[
 					Host:    depContainer.Alias,
 					Port:    modEndpoint.Port,
 					ExtPath: extPath,
+					ProxyConf: cm_model.ProxyConfig{
+						Headers:     modEndpoint.ProxyConf.Headers,
+						WebSocket:   modEndpoint.ProxyConf.WebSocket,
+						ReadTimeout: modEndpoint.ProxyConf.ReadTimeout,
+					},
 					StringSub: cm_model.StringSub{
 						ReplaceOnce: modEndpoint.StringSub.ReplaceOnce,
 						MimeTypes:   modEndpoint.StringSub.MimeTypes,
