@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/SENERGY-Platform/gin-middleware v0.4.3
 	github.com/SENERGY-Platform/go-cc-job-handler v0.1.2
-	github.com/SENERGY-Platform/go-service-base/config-hdl v0.1.0
+	github.com/SENERGY-Platform/go-service-base/config-hdl v0.1.1
 	github.com/SENERGY-Platform/go-service-base/context-hdl v0.0.3
 	github.com/SENERGY-Platform/go-service-base/job-hdl v1.1.1
 	github.com/SENERGY-Platform/go-service-base/job-hdl/lib v0.1.0
