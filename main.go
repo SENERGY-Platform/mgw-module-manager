@@ -23,6 +23,7 @@ import (
 	"github.com/SENERGY-Platform/gin-middleware"
 	"github.com/SENERGY-Platform/go-cc-job-handler/ccjh"
 	"github.com/SENERGY-Platform/go-service-base/job-hdl"
+	sb_logger "github.com/SENERGY-Platform/go-service-base/logger"
 	"github.com/SENERGY-Platform/go-service-base/sql-db-hdl"
 	srv_info_hdl "github.com/SENERGY-Platform/go-service-base/srv-info-hdl"
 	sb_util "github.com/SENERGY-Platform/go-service-base/util"
@@ -93,7 +94,7 @@ func main() {
 	logFile, err := util.InitLogger(config.Logger)
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
-		var logFileError *sb_util.LogFileError
+		var logFileError *sb_logger.LogFileError
 		if errors.As(err, &logFileError) {
 			ec = 1
 			return
@@ -122,7 +123,7 @@ func main() {
 	naming_hdl.Init(config.CoreID, "mgw")
 
 	sql_db_hdl.Logger = util.Logger
-	db, err := db.New(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd.String(), config.Database.Name)
+	db, err := db.New(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Passwd.Value(), config.Database.Name)
 	if err != nil {
 		util.Logger.Error(err)
 		ec = 1
@@ -289,7 +290,7 @@ func main() {
 			Addr: config.Database.Host,
 			Port: config.Database.Port,
 			User: config.Database.User,
-			PW:   config.Database.Passwd.String(),
+			PW:   config.Database.Passwd.Value(),
 		}, &modules_migr.Migration{
 			ModFileHandler: modFileHandler,
 			WrkSpcPath:     config.ModHandler.WorkdirPath,

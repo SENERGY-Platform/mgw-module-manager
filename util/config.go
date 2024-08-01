@@ -17,18 +17,19 @@
 package util
 
 import (
-	sb_util "github.com/SENERGY-Platform/go-service-base/util"
+	"github.com/SENERGY-Platform/go-service-base/config-hdl"
+	cfg_types "github.com/SENERGY-Platform/go-service-base/config-hdl/types"
 	"github.com/y-du/go-log-level/level"
 )
 
 type DatabaseConfig struct {
-	Host       string               `json:"host" env_var:"DB_HOST"`
-	Port       uint                 `json:"port" env_var:"DB_PORT"`
-	User       string               `json:"user" env_var:"DB_USER"`
-	Passwd     sb_util.SecretString `json:"passwd" env_var:"DB_PASSWD"`
-	Name       string               `json:"name" env_var:"DB_NAME"`
-	Timeout    int64                `json:"timeout" env_var:"DB_TIMEOUT"`
-	SchemaPath string               `json:"schema_path" env_var:"DB_SCHEMA_PATH"`
+	Host       string           `json:"host" env_var:"DB_HOST"`
+	Port       uint             `json:"port" env_var:"DB_PORT"`
+	User       string           `json:"user" env_var:"DB_USER"`
+	Passwd     cfg_types.Secret `json:"passwd" env_var:"DB_PASSWD"`
+	Name       string           `json:"name" env_var:"DB_NAME"`
+	Timeout    int64            `json:"timeout" env_var:"DB_TIMEOUT"`
+	SchemaPath string           `json:"schema_path" env_var:"DB_SCHEMA_PATH"`
 }
 
 type HttpClientConfig struct {
@@ -68,13 +69,23 @@ type JobsConfig struct {
 	MaxAge      int64 `json:"max_age" env_var:"JOBS_MAX_AGE"`
 }
 
+type LoggerConfig struct {
+	Level        level.Level `json:"level" env_var:"LOGGER_LEVEL"`
+	Utc          bool        `json:"utc" env_var:"LOGGER_UTC"`
+	Path         string      `json:"path" env_var:"LOGGER_PATH"`
+	FileName     string      `json:"file_name" env_var:"LOGGER_FILE_NAME"`
+	Terminal     bool        `json:"terminal" env_var:"LOGGER_TERMINAL"`
+	Microseconds bool        `json:"microseconds" env_var:"LOGGER_MICROSECONDS"`
+	Prefix       string      `json:"prefix" env_var:"LOGGER_PREFIX"`
+}
+
 type Config struct {
 	ServerPort         uint                     `json:"server_port" env_var:"SERVER_PORT"`
 	ModHandler         ModHandlerConfig         `json:"module_handler" env_var:"MH_CONFIG"`
 	ModTransferHandler ModTransferHandlerConfig `json:"module_transfer_handler" env_var:"MTH_CONFIG"`
 	ModStagingHandler  ModStagingHandlerConfig  `json:"module_staging_handler" env_var:"MSH_CONFIG"`
 	DepHandler         DepHandlerConfig         `json:"deployment_handler" env_var:"DH_CONFIG"`
-	Logger             sb_util.LoggerConfig     `json:"logger" env_var:"LOGGER_CONFIG"`
+	Logger             LoggerConfig             `json:"logger" env_var:"LOGGER_CONFIG"`
 	ConfigDefsPath     string                   `json:"config_defs_path" env_var:"CONFIG_DEFS_PATH"`
 	Database           DatabaseConfig           `json:"database" env_var:"DATABASE_CONFIG"`
 	HttpClient         HttpClientConfig         `json:"http_client" env_var:"HTTP_CLIENT_CONFIG"`
@@ -100,7 +111,7 @@ func NewConfig(path string) (*Config, error) {
 			WorkdirPath: "/opt/module-manager/deployments",
 			ModuleNet:   "module-net",
 		},
-		Logger: sb_util.LoggerConfig{
+		Logger: LoggerConfig{
 			Level:        level.Warning,
 			Utc:          true,
 			Microseconds: true,
@@ -131,6 +142,6 @@ func NewConfig(path string) (*Config, error) {
 		},
 		ManagerIDPath: "/opt/module-manager/data/mid",
 	}
-	err := sb_util.LoadConfig(path, &cfg, nil, nil, nil)
+	err := config_hdl.Load(&cfg, nil, nil, nil, path)
 	return &cfg, err
 }
