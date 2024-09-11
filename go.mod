@@ -19,8 +19,8 @@ require (
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.16.0
 	github.com/SENERGY-Platform/mgw-core-manager/client v0.7.0
 	github.com/SENERGY-Platform/mgw-core-manager/lib v0.7.0
-	github.com/SENERGY-Platform/mgw-host-manager/client v0.3.6
-	github.com/SENERGY-Platform/mgw-host-manager/lib v0.3.0
+	github.com/SENERGY-Platform/mgw-host-manager/client v1.2.0
+	github.com/SENERGY-Platform/mgw-host-manager/lib v1.2.1
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.18.0
 	github.com/SENERGY-Platform/mgw-module-lib v0.21.0
 	github.com/SENERGY-Platform/mgw-module-manager/lib v0.0.0-00010101000000-000000000000
@@ -30,6 +30,7 @@ require (
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
+	github.com/y-du/go-env-loader v0.5.2
 	github.com/y-du/go-log-level v1.0.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -72,7 +73,6 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	github.com/y-du/go-env-loader v0.5.2 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
