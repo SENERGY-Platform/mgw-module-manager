@@ -130,8 +130,8 @@ func NewConfig(path string) (*Config, error) {
 		},
 		HttpClient: HttpClientConfig{
 			CewBaseUrl: "http://core-api/ce-wrapper",
-			CmBaseUrl:  "http://core-api/core-manager",
-			HmBaseUrl:  "http://core-api/host-manager",
+			CmBaseUrl:  "http://core-api/c-manager",
+			HmBaseUrl:  "http://core-api/h-manager",
 			SmBaseUrl:  "http://secret-manager",
 			Timeout:    10000000000,
 		},
