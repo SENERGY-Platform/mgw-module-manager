@@ -43,10 +43,10 @@ github.com/SENERGY-Platform/mgw-core-manager/client v0.7.0 h1:SoJSpyleZSYDTuvxUY
 github.com/SENERGY-Platform/mgw-core-manager/client v0.7.0/go.mod h1:tGF66hbUJqyt46aZg6M1s5B6CdQENAmmurIcZFm6t7A=
 github.com/SENERGY-Platform/mgw-core-manager/lib v0.7.0 h1:uLHXVbcirdgFsPIT2vn/mZPUZmMjYMIDoYNeMbZ6gN4=
 github.com/SENERGY-Platform/mgw-core-manager/lib v0.7.0/go.mod h1:EVTePPTsKCnkfL7AXWToyOzvUHtu/sRAbNBhc2f7aRk=
-github.com/SENERGY-Platform/mgw-host-manager/client v1.2.0 h1:7JpJLxIedp7KPj16MEGuRK66KJJaX00YFZJCDoldj0I=
-github.com/SENERGY-Platform/mgw-host-manager/client v1.2.0/go.mod h1:4NmjbdUAP55p/X0gqUjbxhoAvdcCHQo5q72512QNfoo=
-github.com/SENERGY-Platform/mgw-host-manager/lib v1.2.1 h1:DA58A2bX4joQSA8r/73yato7WJa5htZzIjeGUTtEZ9o=
-github.com/SENERGY-Platform/mgw-host-manager/lib v1.2.1/go.mod h1:SNd5TWoaX9xiEr0VHxMTK4X3GBvGQTdBtk2fbh65aBk=
+github.com/SENERGY-Platform/mgw-host-manager/client v1.3.0 h1:q1Hebk+snM69uGuLxCEXNAcLcHg/xtteulsddzykTSY=
+github.com/SENERGY-Platform/mgw-host-manager/client v1.3.0/go.mod h1:5qqQyRZ2YorHaP51BVkp/f9RFCIOudUG65q4ENLckGk=
+github.com/SENERGY-Platform/mgw-host-manager/lib v1.3.0 h1:irzz+l0d4nXfyTO61pkF7pyIc6QDcyMFz90dmjCDKW4=
+github.com/SENERGY-Platform/mgw-host-manager/lib v1.3.0/go.mod h1:SNd5TWoaX9xiEr0VHxMTK4X3GBvGQTdBtk2fbh65aBk=
 github.com/SENERGY-Platform/mgw-modfile-lib v0.18.0 h1:hmCDt4erTEkX5QpMlV1Sk2Bq/HlCf11Opu5xB4lBwOs=
 github.com/SENERGY-Platform/mgw-modfile-lib v0.18.0/go.mod h1:mnFlFvh5lkXXne32kCRuEYn50BBLbkODEJN4wcemx8s=
 github.com/SENERGY-Platform/mgw-module-lib v0.21.0 h1:QWDN03Pld3BTEVYPNmlPjJiVRvSObubPC9zFAycXW54=
