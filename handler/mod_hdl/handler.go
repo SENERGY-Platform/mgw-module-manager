@@ -289,6 +289,21 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, modDir dir_fs.
 	if e := os.RemoveAll(path.Join(h.wrkSpcPath, oldMod.Dir)); e != nil {
 		util.Logger.Error(e)
 	}
+	images := make(map[string]struct{})
+	for _, srv := range mod.Services {
+		images[srv.Image] = struct{}{}
+	}
+	for _, srv := range oldMod.Services {
+		if _, ok := images[srv.Image]; !ok {
+			err = h.cewClient.RemoveImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), url.QueryEscape(srv.Image))
+			if err != nil {
+				var nfe *cew_model.NotFoundError
+				if !errors.As(err, &nfe) {
+					util.Logger.Error(err)
+				}
+			}
+		}
+	}
 	return nil
 }
 
