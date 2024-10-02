@@ -242,6 +242,10 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, modDir dir_fs.
 	if err != nil {
 		return err
 	}
+	oldMod.Module.Module, err = h.readModule(oldMod.Dir, oldMod.ModFile)
+	if err != nil {
+		return lib_model.NewInternalError(err)
+	}
 	newUUID, err := uuid.NewUUID()
 	if err != nil {
 		return lib_model.NewInternalError(err)
