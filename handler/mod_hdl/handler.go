@@ -219,7 +219,7 @@ func (h *Handler) Delete(ctx context.Context, mID string, force bool) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	for _, srv := range mod.Services {
-		err = h.cewClient.RemoveImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), url.QueryEscape(srv.Image))
+		err = h.cewClient.RemoveImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), url.QueryEscape(url.QueryEscape(srv.Image)))
 		if err != nil {
 			var nfe *cew_model.NotFoundError
 			if !errors.As(err, &nfe) {
@@ -295,7 +295,7 @@ func (h *Handler) Update(ctx context.Context, mod *module.Module, modDir dir_fs.
 	}
 	for _, srv := range oldMod.Services {
 		if _, ok := images[srv.Image]; !ok {
-			err = h.cewClient.RemoveImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), url.QueryEscape(srv.Image))
+			err = h.cewClient.RemoveImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), url.QueryEscape(url.QueryEscape(srv.Image)))
 			if err != nil {
 				var nfe *cew_model.NotFoundError
 				if !errors.As(err, &nfe) {

@@ -33,6 +33,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
+	"net/url"
 	"os"
 	"path"
 	"time"
@@ -203,7 +204,7 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[str
 func (h *Handler) addImage(ctx context.Context, img string) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
-	_, err := h.cewClient.GetImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), img)
+	_, err := h.cewClient.GetImage(ch.Add(context.WithTimeout(ctx, h.httpTimeout)), url.QueryEscape(url.QueryEscape(img)))
 	if err != nil {
 		var nfe *cew_model.NotFoundError
 		if !errors.As(err, &nfe) {
