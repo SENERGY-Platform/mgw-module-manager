@@ -33,6 +33,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/sorting"
 	"github.com/google/uuid"
+	"net/url"
 	"os"
 	"path"
 	"time"
@@ -152,7 +153,10 @@ func (h *Handler) createContainers(ctx context.Context, mod *module.Module, depB
 		mounts, devices := newMounts(srv, depBase, hostRes, secrets, h.depHostPath, h.secHostPath, volumes)
 		name, err := naming_hdl.Global.NewContainerName("dep")
 		if err != nil {
-			return nil, err
+			return nil, lib_model.NewInternalError(err)
+		}
+		if err = h.ensureImage(ctx, srv.Image); err != nil {
+			return nil, lib_model.NewInternalError(err)
 		}
 		alias := naming_hdl.Global.NewContainerAlias(depBase.ID, ref)
 		ctr, ok := existingContainers[ref]
@@ -252,6 +256,35 @@ func (h *Handler) addHttpEndpoints(ctx context.Context, endpoints []cm_model.End
 	}
 	if job.Error != nil {
 		return errors.New(job.Error.Message)
+	}
+	return nil
+}
+
+func (h *Handler) ensureImage(ctx context.Context, img string) error {
+	ctxWt, cf := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf()
+	_, err := h.cewClient.GetImage(ctxWt, url.QueryEscape(url.QueryEscape(img)))
+	if err != nil {
+		var nfe *cew_model.NotFoundError
+		if !errors.As(err, &nfe) {
+			return lib_model.NewInternalError(err)
+		}
+	} else {
+		return nil
+	}
+	util.Logger.Warningf("image '%s' not found, retrieving ...", img)
+	ctxWt2, cf2 := context.WithTimeout(ctx, h.httpTimeout)
+	defer cf2()
+	jID, err := h.cewClient.AddImage(ctxWt2, img)
+	if err != nil {
+		return lib_model.NewInternalError(err)
+	}
+	job, err := job_hdl_lib.Await(ctx, h.cewClient, jID, time.Second, h.httpTimeout, util.Logger)
+	if err != nil {
+		return err
+	}
+	if job.Error != nil {
+		return lib_model.NewInternalError(fmt.Errorf("%v", job.Error))
 	}
 	return nil
 }
