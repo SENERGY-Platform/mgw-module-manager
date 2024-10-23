@@ -9,8 +9,8 @@ github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERo
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/ProtonMail/go-crypto v1.0.0 h1:LRuvITjQWX+WIfr930YHG2HNfjR1uOfyf5vE0kC2U78=
 github.com/ProtonMail/go-crypto v1.0.0/go.mod h1:EjAoLdwvbIOoOQr3ihjnSoLZRtE8azugULFRteWMNc0=
-github.com/SENERGY-Platform/gin-middleware v0.4.3 h1:ox8i2+rFuHJAd/oKdHuayz2HHSlWfRQqAituwNVHRfA=
-github.com/SENERGY-Platform/gin-middleware v0.4.3/go.mod h1:TNjnCZSYjhYd+Rq0yu9FfYd2ct2sJK59wHtwA9Fog7o=
+github.com/SENERGY-Platform/gin-middleware v0.4.4 h1:W7eM53CHt8rLBFYiY9MjvrWqPJGgizJIjxuU8lHRA8A=
+github.com/SENERGY-Platform/gin-middleware v0.4.4/go.mod h1:yN3QxrcPOy/NpoBWLw8uTpmD3hCwvzdCpgOeSOhT1cI=
 github.com/SENERGY-Platform/go-base-http-client v0.0.2 h1:sF4QDRkNjhnKQh6d8ujfxQRpeWzSTiBeYIK/aNWWOls=
 github.com/SENERGY-Platform/go-base-http-client v0.0.2/go.mod h1:NfKW/relIVTkMXhz4OqZlzJXYPQUYEKxwqou8D0B/Kw=
 github.com/SENERGY-Platform/go-cc-job-handler v0.1.2 h1:Ly7lwoyVC3YUAZ38OOfrvGfE8gtJqnJnhw7OzWR+/0M=
