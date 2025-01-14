@@ -34,7 +34,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1dec"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1gen"
-	"github.com/SENERGY-Platform/mgw-module-manager/api"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/aux_dep_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/aux_job_hdl"
@@ -50,6 +49,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/modfile_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/storage_hdl"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/manager"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/db"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/db/instances_migr"
@@ -224,7 +224,7 @@ func main() {
 
 	modUpdateHandler := mod_update_hdl.New(modTransferHandler, modFileHandler)
 
-	mApi := api.New(modHandler, modStagingHandler, modUpdateHandler, depHandler, auxDepHandler, jobHandler, aux_job_hdl.New(), dep_adv_hdl.New(storageHandler, time.Duration(config.Database.Timeout)), srvInfoHdl)
+	mm := manager.New(modHandler, modStagingHandler, modUpdateHandler, depHandler, auxDepHandler, jobHandler, aux_job_hdl.New(), dep_adv_hdl.New(storageHandler, time.Duration(config.Database.Timeout)), srvInfoHdl)
 
 	gin.SetMode(gin.ReleaseMode)
 	httpHandler := gin.New()
@@ -237,7 +237,7 @@ func main() {
 	}), gin_mw.ErrorHandler(util.GetStatusCode, ", "), gin.Recovery())
 	httpHandler.UseRawPath = true
 
-	http_hdl.SetRoutes(httpHandler, mApi)
+	http_hdl.SetRoutes(httpHandler, mm)
 	util.Logger.Debugf("routes: %s", sb_util.ToJsonStr(http_hdl.GetRoutes(httpHandler)))
 
 	listener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
@@ -300,7 +300,7 @@ func main() {
 			wtchdg.Trigger()
 			return
 		}
-		if err = mApi.StartEnabledDeployments(smClient, time.Second*5, 3); err != nil {
+		if err = mm.StartEnabledDeployments(smClient, time.Second*5, 3); err != nil {
 			util.Logger.Error(err)
 		}
 	}()

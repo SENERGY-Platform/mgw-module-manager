@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package api
+package manager
 
 import (
 	"context"
@@ -22,83 +22,83 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func (a *Api) QueryDepAdvertisements(ctx context.Context, filter model.DepAdvFilter) ([]model.DepAdvertisement, error) {
-	list, err := a.advHandler.List(ctx, filter)
+func (m *Manager) QueryDepAdvertisements(ctx context.Context, filter model.DepAdvFilter) ([]model.DepAdvertisement, error) {
+	list, err := m.advHandler.List(ctx, filter)
 	if err != nil {
 		return nil, newApiErr(fmt.Sprintf("query advertisements (module_id=%s origin=%s ref=%s)", filter.ModuleID, filter.Origin, filter.Ref), err)
 	}
 	return list, nil
 }
 
-func (a *Api) GetDepAdvertisement(ctx context.Context, dID, ref string) (model.DepAdvertisement, error) {
+func (m *Manager) GetDepAdvertisement(ctx context.Context, dID, ref string) (model.DepAdvertisement, error) {
 	metaStr := fmt.Sprintf("get advertisement (deployment_id=%s ref=%s)", dID, ref)
-	_, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
+	_, err := m.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {
 		return model.DepAdvertisement{}, newApiErr(metaStr, err)
 	}
-	adv, err := a.advHandler.Get(ctx, dID, ref)
+	adv, err := m.advHandler.Get(ctx, dID, ref)
 	if err != nil {
 		return model.DepAdvertisement{}, newApiErr(metaStr, err)
 	}
 	return adv, nil
 }
 
-func (a *Api) GetDepAdvertisements(ctx context.Context, dID string) (map[string]model.DepAdvertisement, error) {
+func (m *Manager) GetDepAdvertisements(ctx context.Context, dID string) (map[string]model.DepAdvertisement, error) {
 	metaStr := fmt.Sprintf("get advertisements (deployment_id=%s)", dID)
-	_, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
+	_, err := m.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {
 		return nil, newApiErr(metaStr, err)
 	}
-	ads, err := a.advHandler.GetAll(ctx, dID)
+	ads, err := m.advHandler.GetAll(ctx, dID)
 	if err != nil {
 		return nil, newApiErr(metaStr, err)
 	}
 	return ads, nil
 }
 
-func (a *Api) PutDepAdvertisement(ctx context.Context, dID string, adv model.DepAdvertisementBase) error {
+func (m *Manager) PutDepAdvertisement(ctx context.Context, dID string, adv model.DepAdvertisementBase) error {
 	metaStr := fmt.Sprintf("put advertisement (deployment_id=%s)", dID)
-	dep, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
+	dep, err := m.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {
 		return newApiErr(metaStr, err)
 	}
-	if err = a.advHandler.Put(ctx, dep.Module.ID, dID, adv); err != nil {
+	if err = m.advHandler.Put(ctx, dep.Module.ID, dID, adv); err != nil {
 		return newApiErr(metaStr, err)
 	}
 	return nil
 }
 
-func (a *Api) PutDepAdvertisements(ctx context.Context, dID string, ads map[string]model.DepAdvertisementBase) error {
+func (m *Manager) PutDepAdvertisements(ctx context.Context, dID string, ads map[string]model.DepAdvertisementBase) error {
 	metaStr := fmt.Sprintf("put advertisements (deployment_id=%s)", dID)
-	dep, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
+	dep, err := m.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {
 		return newApiErr(metaStr, err)
 	}
-	if err = a.advHandler.PutAll(ctx, dep.Module.ID, dID, ads); err != nil {
+	if err = m.advHandler.PutAll(ctx, dep.Module.ID, dID, ads); err != nil {
 		return newApiErr(metaStr, err)
 	}
 	return nil
 }
 
-func (a *Api) DeleteDepAdvertisement(ctx context.Context, dID, ref string) error {
+func (m *Manager) DeleteDepAdvertisement(ctx context.Context, dID, ref string) error {
 	metaStr := fmt.Sprintf("delete advertisement (deployment_id=%s ref=%s)", dID, ref)
-	_, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
+	_, err := m.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {
 		return newApiErr(metaStr, err)
 	}
-	if err = a.advHandler.Delete(ctx, dID, ref); err != nil {
+	if err = m.advHandler.Delete(ctx, dID, ref); err != nil {
 		return newApiErr(metaStr, err)
 	}
 	return nil
 }
 
-func (a *Api) DeleteDepAdvertisements(ctx context.Context, dID string) error {
+func (m *Manager) DeleteDepAdvertisements(ctx context.Context, dID string) error {
 	metaStr := fmt.Sprintf("delete advertisements (deployment_id=%s)", dID)
-	_, err := a.deploymentHandler.Get(ctx, dID, false, false, false, false)
+	_, err := m.deploymentHandler.Get(ctx, dID, false, false, false, false)
 	if err != nil {
 		return newApiErr(metaStr, err)
 	}
-	if err = a.advHandler.DeleteAll(ctx, dID); err != nil {
+	if err = m.advHandler.DeleteAll(ctx, dID); err != nil {
 		return newApiErr(metaStr, err)
 	}
 	return nil

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package api
+package manager
 
 import (
 	"context"
@@ -22,24 +22,24 @@ import (
 	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 )
 
-func (a *Api) GetJobs(ctx context.Context, filter job_hdl_lib.JobFilter) ([]job_hdl_lib.Job, error) {
-	jobs, err := a.jobHandler.List(ctx, filter)
+func (m *Manager) GetJobs(ctx context.Context, filter job_hdl_lib.JobFilter) ([]job_hdl_lib.Job, error) {
+	jobs, err := m.jobHandler.List(ctx, filter)
 	if err != nil {
 		return nil, newApiErr(fmt.Sprintf("get jobs (%s)", getJobFilterValues(filter)), err)
 	}
 	return jobs, nil
 }
 
-func (a *Api) GetJob(ctx context.Context, id string) (job_hdl_lib.Job, error) {
-	job, err := a.jobHandler.Get(ctx, id)
+func (m *Manager) GetJob(ctx context.Context, id string) (job_hdl_lib.Job, error) {
+	job, err := m.jobHandler.Get(ctx, id)
 	if err != nil {
 		return job_hdl_lib.Job{}, newApiErr(fmt.Sprintf("get job (id=%s)", id), err)
 	}
 	return job, nil
 }
 
-func (a *Api) CancelJob(ctx context.Context, id string) error {
-	err := a.jobHandler.Cancel(ctx, id)
+func (m *Manager) CancelJob(ctx context.Context, id string) error {
+	err := m.jobHandler.Cancel(ctx, id)
 	if err != nil {
 		return newApiErr(fmt.Sprintf("cancel job (id=%s)", id), err)
 	}

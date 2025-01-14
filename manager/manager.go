@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package api
+package manager
 
 import (
 	"github.com/SENERGY-Platform/go-service-base/job-hdl"
@@ -23,7 +23,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 )
 
-type Api struct {
+type Manager struct {
 	moduleHandler        handler.ModuleHandler
 	modStagingHandler    handler.ModStagingHandler
 	modUpdateHandler     handler.ModUpdateHandler
@@ -36,8 +36,8 @@ type Api struct {
 	mu                   *util.RWMutex
 }
 
-func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModStagingHandler, moduleUpdateHandler handler.ModUpdateHandler, deploymentHandler handler.DeploymentHandler, auxDeploymentHandler handler.AuxDeploymentHandler, jobHandler job_hdl.JobHandler, auxJobHandler handler.AuxJobHandler, advHandler handler.DepAdvertisementHandler, srvInfoHandler srv_info_hdl.SrvInfoHandler) *Api {
-	return &Api{
+func New(moduleHandler handler.ModuleHandler, moduleStagingHandler handler.ModStagingHandler, moduleUpdateHandler handler.ModUpdateHandler, deploymentHandler handler.DeploymentHandler, auxDeploymentHandler handler.AuxDeploymentHandler, jobHandler job_hdl.JobHandler, auxJobHandler handler.AuxJobHandler, advHandler handler.DepAdvertisementHandler, srvInfoHandler srv_info_hdl.SrvInfoHandler) *Manager {
+	return &Manager{
 		moduleHandler:        moduleHandler,
 		modStagingHandler:    moduleStagingHandler,
 		modUpdateHandler:     moduleUpdateHandler,
