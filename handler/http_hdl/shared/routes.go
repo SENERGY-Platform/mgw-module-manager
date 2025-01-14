@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 InfAI (CC SES)
+ * Copyright 2025 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,26 @@
  * limitations under the License.
  */
 
-package http_hdl
+package shared
 
-import "strings"
+import (
+	gin_mw "github.com/SENERGY-Platform/gin-middleware"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib"
+)
 
-func parseStringSlice(s, sep string) []string {
-	if s != "" {
-		return strings.Split(s, sep)
-	}
-	return nil
-}
-
-func genLabels(sl []string) (l map[string]string) {
-	if sl != nil && len(sl) > 0 {
-		l = make(map[string]string)
-		for _, s := range sl {
-			p := strings.Split(s, "=")
-			if len(p) > 1 {
-				l[p[0]] = p[1]
-			} else {
-				l[p[0]] = ""
-			}
-		}
-	}
-	return
+var Routes = gin_mw.Routes[lib.Api]{
+	getAuxDeploymentsH,
+	getAuxDeploymentH,
+	postAuxDeploymentH,
+	patchAuxDeploymentUpdateH,
+	deleteAuxDeploymentH,
+	patchAuxDeploymentsDeleteH,
+	patchAuxDeploymentStartH,
+	patchAuxDeploymentsStartH,
+	patchAuxDeploymentStopH,
+	patchAuxDeploymentsStopH,
+	patchAuxDeploymentRestartH,
+	patchAuxDeploymentsRestartH,
+	getDepAdvertisementQueryH,
+	getSrvInfoH,
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 InfAI (CC SES)
+ * Copyright 2025 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,17 @@
  * limitations under the License.
  */
 
-package http_hdl
+package shared
 
 import (
-	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-func getServiceHealthH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		_, err := a.GetDeployments(gc.Request.Context(), lib_model.DepFilter{}, false, false)
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		_, err = a.GetModules(gc.Request.Context(), lib_model.ModFilter{})
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		_, err = a.GetJobs(gc.Request.Context(), job_hdl_lib.JobFilter{})
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		gc.Status(http.StatusOK)
+func getSrvInfoH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodGet, lib_model.SrvInfoPath, func(gc *gin.Context) {
+		gc.JSON(http.StatusOK, a.GetSrvInfo(gc.Request.Context()))
 	}
 }

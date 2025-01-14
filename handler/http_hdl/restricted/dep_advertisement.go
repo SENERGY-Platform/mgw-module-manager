@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 InfAI (CC SES)
+ * Copyright 2025 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package http_hdl
+package restricted
 
 import (
 	"errors"
@@ -22,39 +22,12 @@ import (
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"path"
 )
 
-const advRefParam = "r"
-
-type advertisementFilterQuery struct {
-	ModuleID string `form:"module_id"`
-	Origin   string `form:"origin"`
-	Ref      string `form:"ref"`
-}
-
-func getDepAdvertisementQueryH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		var query advertisementFilterQuery
-		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(lib_model.NewInvalidInputError(err))
-			return
-		}
-		ads, err := a.QueryDepAdvertisements(gc.Request.Context(), lib_model.DepAdvFilter{
-			ModuleID: query.ModuleID,
-			Origin:   query.Origin,
-			Ref:      query.Ref,
-		})
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		gc.JSON(http.StatusOK, ads)
-	}
-}
-
-func getDepAdvertisementH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		adv, err := a.GetDepAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(advRefParam))
+func getDepAdvertisementH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodGet, path.Join(lib_model.DepAdvertisementsPath, ":id"), func(gc *gin.Context) {
+		adv, err := a.GetDepAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -63,8 +36,8 @@ func getDepAdvertisementH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func getDepAdvertisementsH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
+func getDepAdvertisementsH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodGet, lib_model.DepAdvertisementsPath, func(gc *gin.Context) {
 		ads, err := a.GetDepAdvertisements(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey))
 		if err != nil {
 			_ = gc.Error(err)
@@ -74,15 +47,15 @@ func getDepAdvertisementsH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func putDepAdvertisementH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
+func putDepAdvertisementH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodPut, path.Join(lib_model.DepAdvertisementsPath, ":id"), func(gc *gin.Context) {
 		var advBase lib_model.DepAdvertisementBase
 		err := gc.ShouldBindJSON(&advBase)
 		if err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		if gc.Param(advRefParam) != advBase.Ref {
+		if gc.Param("id") != advBase.Ref {
 			_ = gc.Error(lib_model.NewInvalidInputError(errors.New("reference mismatch")))
 			return
 		}
@@ -95,8 +68,8 @@ func putDepAdvertisementH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func putDepAdvertisementsH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
+func putDepAdvertisementsH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodPut, lib_model.DepAdvertisementsBatchPath, func(gc *gin.Context) {
 		var ads map[string]lib_model.DepAdvertisementBase
 		err := gc.ShouldBindJSON(&ads)
 		if err != nil {
@@ -112,9 +85,9 @@ func putDepAdvertisementsH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func deleteDepAdvertisementH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		err := a.DeleteDepAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(advRefParam))
+func deleteDepAdvertisementH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodDelete, path.Join(lib_model.DepAdvertisementsPath, ":id"), func(gc *gin.Context) {
+		err := a.DeleteDepAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -123,8 +96,8 @@ func deleteDepAdvertisementH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func deleteDepAdvertisementsH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
+func deleteDepAdvertisementsH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodDelete, lib_model.DepAdvertisementsBatchPath, func(gc *gin.Context) {
 		err := a.DeleteDepAdvertisements(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey))
 		if err != nil {
 			_ = gc.Error(err)

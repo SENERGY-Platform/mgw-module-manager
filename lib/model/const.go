@@ -45,6 +45,7 @@ const (
 	DiscoveryPath              = "discovery"
 	SrvInfoPath                = "info"
 	RestrictedPath             = "restricted"
+	HealthCheckPath            = "health-check"
 )
 
 const (

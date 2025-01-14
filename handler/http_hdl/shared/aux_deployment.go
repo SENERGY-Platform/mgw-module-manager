@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 InfAI (CC SES)
+ * Copyright 2025 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package http_hdl
+package shared
 
 import (
-	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
+	"github.com/SENERGY-Platform/mgw-module-manager/handler/http_hdl/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"time"
+	"path"
 )
-
-const auxDepIdParam = "ad"
 
 type getAuxDeploymentsFilterQuery struct {
 	IDs     string `form:"ids"`
@@ -62,16 +60,16 @@ type deleteAuxDeploymentsQuery struct {
 	deleteAuxDeploymentQuery
 }
 
-func getAuxDeploymentsH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
+func getAuxDeploymentsH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodGet, lib_model.AuxDeploymentsPath, func(gc *gin.Context) {
 		var query getAuxDeploymentsQuery
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		filter := lib_model.AuxDepFilter{
-			IDs:     parseStringSlice(query.IDs, ","),
-			Labels:  genLabels(parseStringSlice(query.Labels, ",")),
+			IDs:     util.ParseStringSlice(query.IDs, ","),
+			Labels:  util.GenLabels(util.ParseStringSlice(query.Labels, ",")),
 			Image:   query.Image,
 			Enabled: query.Enabled,
 		}
@@ -84,14 +82,14 @@ func getAuxDeploymentsH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func getAuxDeploymentH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
+func getAuxDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodGet, path.Join(lib_model.AuxDeploymentsPath, ":id"), func(gc *gin.Context) {
 		var query getAuxDeploymentQuery
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		auxDeployment, err := a.GetAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(auxDepIdParam), query.Assets, query.ContainerInfo)
+		auxDeployment, err := a.GetAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"), query.Assets, query.ContainerInfo)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -100,8 +98,8 @@ func getAuxDeploymentH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func postAuxDeploymentH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
+func postAuxDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodPost, lib_model.AuxDeploymentsPath, func(gc *gin.Context) {
 		var query createAuxDeploymentQuery
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
@@ -122,8 +120,8 @@ func postAuxDeploymentH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchAuxDeploymentUpdateH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
+func patchAuxDeploymentUpdateH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodPatch, path.Join(lib_model.AuxDeploymentsPath, ":id"), func(gc *gin.Context) {
 		var query updateAuxDeploymentQuery
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
@@ -135,7 +133,7 @@ func patchAuxDeploymentUpdateH(a lib.Api) gin.HandlerFunc {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		jID, err := a.UpdateAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(auxDepIdParam), auxDepReq, query.Incremental, query.ForcePullImg)
+		jID, err := a.UpdateAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"), auxDepReq, query.Incremental, query.ForcePullImg)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -144,14 +142,14 @@ func patchAuxDeploymentUpdateH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func deleteAuxDeploymentH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
+func deleteAuxDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodDelete, path.Join(lib_model.AuxDeploymentsPath, ":id"), func(gc *gin.Context) {
 		var query deleteAuxDeploymentQuery
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		jID, err := a.DeleteAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(auxDepIdParam), query.Force)
+		jID, err := a.DeleteAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"), query.Force)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -160,16 +158,16 @@ func deleteAuxDeploymentH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchAuxDeploymentsDeleteH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
+func patchAuxDeploymentsDeleteH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodPatch, path.Join(lib_model.AuxDepBatchPath, lib_model.DepDeletePath), func(gc *gin.Context) {
 		var query deleteAuxDeploymentsQuery
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		filter := lib_model.AuxDepFilter{
-			IDs:     parseStringSlice(query.IDs, ","),
-			Labels:  genLabels(parseStringSlice(query.Labels, ",")),
+			IDs:     util.ParseStringSlice(query.IDs, ","),
+			Labels:  util.GenLabels(util.ParseStringSlice(query.Labels, ",")),
 			Image:   query.Image,
 			Enabled: query.Enabled,
 		}
@@ -182,9 +180,9 @@ func patchAuxDeploymentsDeleteH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchAuxDeploymentStartH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		jID, err := a.StartAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(auxDepIdParam))
+func patchAuxDeploymentStartH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodPatch, path.Join(lib_model.AuxDeploymentsPath, ":id", lib_model.DepStartPath), func(gc *gin.Context) {
+		jID, err := a.StartAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -193,16 +191,16 @@ func patchAuxDeploymentStartH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchAuxDeploymentsStartH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
+func patchAuxDeploymentsStartH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodPatch, path.Join(lib_model.AuxDepBatchPath, lib_model.DepStartPath), func(gc *gin.Context) {
 		var query getAuxDeploymentsFilterQuery
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		filter := lib_model.AuxDepFilter{
-			IDs:     parseStringSlice(query.IDs, ","),
-			Labels:  genLabels(parseStringSlice(query.Labels, ",")),
+			IDs:     util.ParseStringSlice(query.IDs, ","),
+			Labels:  util.GenLabels(util.ParseStringSlice(query.Labels, ",")),
 			Image:   query.Image,
 			Enabled: query.Enabled,
 		}
@@ -215,9 +213,9 @@ func patchAuxDeploymentsStartH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchAuxDeploymentStopH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		jID, err := a.StopAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(auxDepIdParam))
+func patchAuxDeploymentStopH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodPatch, path.Join(lib_model.AuxDeploymentsPath, ":id", lib_model.DepStopPath), func(gc *gin.Context) {
+		jID, err := a.StopAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -226,16 +224,16 @@ func patchAuxDeploymentStopH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchAuxDeploymentsStopH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
+func patchAuxDeploymentsStopH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodPatch, path.Join(lib_model.AuxDepBatchPath, lib_model.DepStopPath), func(gc *gin.Context) {
 		var query getAuxDeploymentsFilterQuery
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		filter := lib_model.AuxDepFilter{
-			IDs:     parseStringSlice(query.IDs, ","),
-			Labels:  genLabels(parseStringSlice(query.Labels, ",")),
+			IDs:     util.ParseStringSlice(query.IDs, ","),
+			Labels:  util.GenLabels(util.ParseStringSlice(query.Labels, ",")),
 			Image:   query.Image,
 			Enabled: query.Enabled,
 		}
@@ -248,9 +246,9 @@ func patchAuxDeploymentsStopH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchAuxDeploymentRestartH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		jID, err := a.RestartAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(auxDepIdParam))
+func patchAuxDeploymentRestartH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodPatch, path.Join(lib_model.AuxDeploymentsPath, ":id", lib_model.DepRestartPath), func(gc *gin.Context) {
+		jID, err := a.RestartAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -259,16 +257,16 @@ func patchAuxDeploymentRestartH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchAuxDeploymentsRestartH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
+func patchAuxDeploymentsRestartH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodPatch, path.Join(lib_model.AuxDepBatchPath, lib_model.DepRestartPath), func(gc *gin.Context) {
 		var query getAuxDeploymentsFilterQuery
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
 		filter := lib_model.AuxDepFilter{
-			IDs:     parseStringSlice(query.IDs, ","),
-			Labels:  genLabels(parseStringSlice(query.Labels, ",")),
+			IDs:     util.ParseStringSlice(query.IDs, ","),
+			Labels:  util.GenLabels(util.ParseStringSlice(query.Labels, ",")),
 			Image:   query.Image,
 			Enabled: query.Enabled,
 		}
@@ -278,59 +276,5 @@ func patchAuxDeploymentsRestartH(a lib.Api) gin.HandlerFunc {
 			return
 		}
 		gc.String(http.StatusOK, jID)
-	}
-}
-
-func getAuxJobsH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		query := jobsQuery{}
-		if err := gc.ShouldBindQuery(&query); err != nil {
-			_ = gc.Error(lib_model.NewInvalidInputError(err))
-			return
-		}
-		jobOptions := job_hdl_lib.JobFilter{
-			Status:   query.Status,
-			SortDesc: query.SortDesc,
-		}
-		if query.Since != "" {
-			t, err := time.Parse(time.RFC3339Nano, query.Since)
-			if err != nil {
-				_ = gc.Error(lib_model.NewInvalidInputError(err))
-				return
-			}
-			jobOptions.Since = t
-		}
-		if query.Until != "" {
-			t, err := time.Parse(time.RFC3339Nano, query.Until)
-			if err != nil {
-				_ = gc.Error(lib_model.NewInvalidInputError(err))
-				return
-			}
-			jobOptions.Until = t
-		}
-		jobs, _ := a.GetAuxJobs(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), jobOptions)
-		gc.JSON(http.StatusOK, jobs)
-	}
-}
-
-func getAuxJobH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		job, err := a.GetAuxJob(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(jobIdParam))
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		gc.JSON(http.StatusOK, job)
-	}
-}
-
-func patchAuxJobCancelH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		err := a.CancelAuxJob(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param(jobIdParam))
-		if err != nil {
-			_ = gc.Error(err)
-			return
-		}
-		gc.Status(http.StatusOK)
 	}
 }

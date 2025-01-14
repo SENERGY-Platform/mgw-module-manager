@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 InfAI (CC SES)
+ * Copyright 2025 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package http_hdl
+package standard
 
 import (
 	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
@@ -22,10 +22,9 @@ import (
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"path"
 	"time"
 )
-
-const jobIdParam = "j"
 
 type jobsQuery struct {
 	Status   string `form:"status"`
@@ -34,8 +33,8 @@ type jobsQuery struct {
 	Until    string `form:"until"`
 }
 
-func getJobsH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
+func getJobsH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodGet, lib_model.JobsPath, func(gc *gin.Context) {
 		query := jobsQuery{}
 		if err := gc.ShouldBindQuery(&query); err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
@@ -66,9 +65,9 @@ func getJobsH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func getJobH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		job, err := a.GetJob(gc.Request.Context(), gc.Param(jobIdParam))
+func getJobH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodGet, path.Join(lib_model.JobsPath, ":id"), func(gc *gin.Context) {
+		job, err := a.GetJob(gc.Request.Context(), gc.Param("id"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -77,9 +76,9 @@ func getJobH(a lib.Api) gin.HandlerFunc {
 	}
 }
 
-func patchJobCancelH(a lib.Api) gin.HandlerFunc {
-	return func(gc *gin.Context) {
-		err := a.CancelJob(gc.Request.Context(), gc.Param(jobIdParam))
+func patchJobCancelH(a lib.Api) (string, string, gin.HandlerFunc) {
+	return http.MethodPatch, path.Join(lib_model.JobsPath, ":id", lib_model.JobsCancelPath), func(gc *gin.Context) {
+		err := a.CancelJob(gc.Request.Context(), gc.Param("id"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
