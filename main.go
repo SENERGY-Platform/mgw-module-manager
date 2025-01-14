@@ -34,7 +34,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1dec"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1gen"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/aux_dep_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/aux_job_hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/cfg_valid_hdl"
@@ -68,7 +67,7 @@ import (
 
 var version string
 
-var inputValidators = map[string]handler.Validator{
+var inputValidators = map[string]cfg_valid_hdl.Validator{
 	"regex":            validators.Regex,
 	"number_compare":   validators.NumberCompare,
 	"text_len_compare": validators.TextLenCompare,

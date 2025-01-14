@@ -19,7 +19,7 @@ package mod_staging_hdl
 import (
 	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler"
+	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"os"
 	"time"
@@ -44,13 +44,13 @@ type modExtra struct {
 	indirect bool
 }
 
-func (s *stage) Get(mID string) (handler.StageItem, bool) {
+func (s *stage) Get(mID string) (model.StageItem, bool) {
 	extra, ok := s.items[mID]
 	return &item{module: s.modules[mID], modExtra: extra}, ok
 }
 
-func (s *stage) Items() map[string]handler.StageItem {
-	items := make(map[string]handler.StageItem)
+func (s *stage) Items() map[string]model.StageItem {
+	items := make(map[string]model.StageItem)
 	for mID, extra := range s.items {
 		items[mID] = &item{
 			module:   s.modules[mID],

@@ -24,7 +24,6 @@ import (
 	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
@@ -40,8 +39,8 @@ import (
 )
 
 type Handler struct {
-	storageHandler handler.ModStorageHandler
-	modFileHandler handler.ModFileHandler
+	storageHandler StorageHandler
+	modFileHandler ModFileHandler
 	cewClient      cew_lib.Api
 	dbTimeout      time.Duration
 	httpTimeout    time.Duration
@@ -49,7 +48,7 @@ type Handler struct {
 	mu             sync.RWMutex
 }
 
-func New(storageHandler handler.ModStorageHandler, modFileHandler handler.ModFileHandler, cewClient cew_lib.Api, dbTimeout, httpTimeout time.Duration, workspacePath string) *Handler {
+func New(storageHandler StorageHandler, modFileHandler ModFileHandler, cewClient cew_lib.Api, dbTimeout, httpTimeout time.Duration, workspacePath string) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		modFileHandler: modFileHandler,

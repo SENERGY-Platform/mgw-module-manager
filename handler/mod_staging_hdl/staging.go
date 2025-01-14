@@ -28,8 +28,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
 	"github.com/SENERGY-Platform/mgw-module-lib/validation"
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
@@ -41,14 +41,14 @@ import (
 
 type Handler struct {
 	wrkSpcPath              string
-	transferHandler         handler.ModTransferHandler
-	modFileHandler          handler.ModFileHandler
-	configValidationHandler handler.CfgValidationHandler
+	transferHandler         ModTransferHandler
+	modFileHandler          ModFileHandler
+	configValidationHandler CfgValidationHandler
 	cewClient               cew_lib.Api
 	httpTimeout             time.Duration
 }
 
-func New(workspacePath string, transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler, configValidationHandler handler.CfgValidationHandler, cewClient cew_lib.Api, httpTimeout time.Duration) *Handler {
+func New(workspacePath string, transferHandler ModTransferHandler, modFileHandler ModFileHandler, configValidationHandler CfgValidationHandler, cewClient cew_lib.Api, httpTimeout time.Duration) *Handler {
 	return &Handler{
 		wrkSpcPath:              workspacePath,
 		transferHandler:         transferHandler,
@@ -70,7 +70,7 @@ func (h *Handler) InitWorkspace(perm fs.FileMode) error {
 	return nil
 }
 
-func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string) (handler.Stage, error) {
+func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string) (model.Stage, error) {
 	stgPth, err := os.MkdirTemp(h.wrkSpcPath, "stg_")
 	if err != nil {
 		return nil, lib_model.NewInternalError(err)

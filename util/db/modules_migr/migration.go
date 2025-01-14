@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"io"
 	"io/fs"
@@ -32,7 +31,7 @@ import (
 )
 
 type Migration struct {
-	ModFileHandler handler.ModFileHandler
+	ModFileHandler ModFileHandler
 	WrkSpcPath     string
 	missing        []moduleWrapper
 }

@@ -23,18 +23,17 @@ import (
 	"errors"
 	"fmt"
 	context_hdl "github.com/SENERGY-Platform/go-service-base/context-hdl"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"time"
 )
 
 type Handler struct {
-	storageHandler handler.DepAdvStorageHandler
+	storageHandler StorageHandler
 	dbTimeout      time.Duration
 }
 
-func New(storageHandler handler.DepAdvStorageHandler, dbTimeout time.Duration) *Handler {
+func New(storageHandler StorageHandler, dbTimeout time.Duration) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		dbTimeout:      dbTimeout,

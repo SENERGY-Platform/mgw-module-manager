@@ -24,7 +24,6 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	cm_lib "github.com/SENERGY-Platform/mgw-core-manager/lib"
 	hm_lib "github.com/SENERGY-Platform/mgw-host-manager/lib"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
@@ -36,8 +35,8 @@ import (
 )
 
 type Handler struct {
-	storageHandler handler.DepStorageHandler
-	cfgVltHandler  handler.CfgValidationHandler
+	storageHandler StorageHandler
+	cfgVltHandler  CfgValidationHandler
 	cewClient      cew_lib.Api
 	cmClient       cm_lib.Api
 	hmClient       hm_lib.Api
@@ -52,7 +51,7 @@ type Handler struct {
 	moduleNet      string
 }
 
-func New(storageHandler handler.DepStorageHandler, cfgVltHandler handler.CfgValidationHandler, cewClient cew_lib.Api, cmClient cm_lib.Api, hmClient hm_lib.Api, smClient sm_client.Client, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath, depHostPath, secHostPath, managerID, moduleNet, coreID string) *Handler {
+func New(storageHandler StorageHandler, cfgVltHandler CfgValidationHandler, cewClient cew_lib.Api, cmClient cm_lib.Api, hmClient hm_lib.Api, smClient sm_client.Client, dbTimeout time.Duration, httpTimeout time.Duration, workspacePath, depHostPath, secHostPath, managerID, moduleNet, coreID string) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cfgVltHandler:  cfgVltHandler,

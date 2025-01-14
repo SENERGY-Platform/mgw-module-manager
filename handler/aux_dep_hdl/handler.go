@@ -21,7 +21,6 @@ import (
 	"errors"
 	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
@@ -29,7 +28,7 @@ import (
 )
 
 type Handler struct {
-	storageHandler handler.AuxDepStorageHandler
+	storageHandler StorageHandler
 	cewClient      cew_lib.Api
 	dbTimeout      time.Duration
 	httpTimeout    time.Duration
@@ -39,7 +38,7 @@ type Handler struct {
 	depHostPath    string
 }
 
-func New(storageHandler handler.AuxDepStorageHandler, cewClient cew_lib.Api, dbTimeout, httpTimeout time.Duration, managerID, moduleNet, coreID, depHostPath string) *Handler {
+func New(storageHandler StorageHandler, cewClient cew_lib.Api, dbTimeout, httpTimeout time.Duration, managerID, moduleNet, coreID, depHostPath string) *Handler {
 	return &Handler{
 		storageHandler: storageHandler,
 		cewClient:      cewClient,

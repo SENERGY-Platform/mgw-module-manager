@@ -21,28 +21,28 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"sync"
 	"time"
 )
 
 type Handler struct {
-	transferHandler handler.ModTransferHandler
-	modFileHandler  handler.ModFileHandler
+	transferHandler ModTransferHandler
+	modFileHandler  ModFileHandler
 	updates         map[string]update
 	mu              sync.RWMutex
 }
 
 type update struct {
 	lib_model.ModUpdate
-	stage  handler.Stage
+	stage  model.Stage
 	newIDs map[string]struct{}
 	uptIDs map[string]struct{}
 	ophIDs map[string]struct{}
 }
 
-func New(transferHandler handler.ModTransferHandler, modFileHandler handler.ModFileHandler) *Handler {
+func New(transferHandler ModTransferHandler, modFileHandler ModFileHandler) *Handler {
 	return &Handler{
 		transferHandler: transferHandler,
 		modFileHandler:  modFileHandler,
@@ -55,7 +55,7 @@ func (h *Handler) Check(ctx context.Context, modules map[string]*module.Module) 
 	if err := h.checkForPending(); err != nil {
 		return err
 	}
-	var modRepos []handler.ModRepo
+	var modRepos []model.ModRepo
 	defer func() {
 		for _, modRepo := range modRepos {
 			modRepo.Remove()
@@ -135,7 +135,7 @@ func (h *Handler) Remove(_ context.Context, mID string) error {
 	return nil
 }
 
-func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, stage handler.Stage, mID string) error {
+func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, stage model.Stage, mID string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if err := h.checkForPending(); err != nil {
@@ -206,7 +206,7 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	return nil
 }
 
-func (h *Handler) GetPending(_ context.Context, mID string) (handler.Stage, map[string]struct{}, map[string]struct{}, map[string]struct{}, error) {
+func (h *Handler) GetPending(_ context.Context, mID string) (model.Stage, map[string]struct{}, map[string]struct{}, map[string]struct{}, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	upt, ok := h.updates[mID]

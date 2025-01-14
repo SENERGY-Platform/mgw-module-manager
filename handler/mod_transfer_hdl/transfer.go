@@ -19,8 +19,8 @@ package mod_transfer_hdl
 import (
 	"context"
 	"fmt"
-	"github.com/SENERGY-Platform/mgw-module-manager/handler"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"io"
@@ -55,7 +55,7 @@ func (h *Handler) InitWorkspace(perm fs.FileMode) error {
 	return nil
 }
 
-func (h *Handler) Get(ctx context.Context, mID string) (handler.ModRepo, error) {
+func (h *Handler) Get(ctx context.Context, mID string) (model.ModRepo, error) {
 	rPth, err := os.MkdirTemp(h.wrkSpcPath, "repo_")
 	if err != nil {
 		return nil, lib_model.NewInternalError(err)
