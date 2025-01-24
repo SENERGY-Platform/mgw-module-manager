@@ -22,6 +22,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 var routes = gin_mw.Routes[lib.Api]{
@@ -70,5 +72,6 @@ func SetRoutes(e *gin.Engine, a lib.Api) error {
 	if err != nil {
 		return err
 	}
+	rg.GET("swagger/*any", ginSwagger.WrapHandler(swaggerFiles.NewHandler(), ginSwagger.InstanceName("restricted")))
 	return nil
 }
