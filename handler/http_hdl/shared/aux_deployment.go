@@ -60,6 +60,22 @@ type deleteAuxDeploymentsQuery struct {
 	deleteAuxDeploymentQuery
 }
 
+// getAuxDeploymentsH godoc
+// @Summary Get auxiliary deployments
+// @Description List auxiliary deployments for the current deployment.
+// @Tags Auxiliary Deployment
+// @Produce	json
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param ids query []string false "filter by aux deployment ids" collectionFormat(csv)
+// @Param labels query string false "filter by labels (e.g.: k1=v1,k2=v2,k3)"
+// @Param image query string false "filter by image"
+// @Param enabled query integer false "filter if enabled" Enums(-1, 1)
+// @Param assets query bool false "include assets"
+// @Param container_info query bool false "include container info"
+// @Success	200 {object} map[string]lib_model.AuxDeployment "auxiliary deployments"
+// @Failure	400 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /aux-deployments [get]
 func getAuxDeploymentsH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_model.AuxDeploymentsPath, func(gc *gin.Context) {
 		var query getAuxDeploymentsQuery
@@ -82,6 +98,20 @@ func getAuxDeploymentsH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// getAuxDeploymentH godoc
+// @Summary Get auxiliary deployment
+// @Description Get an auxiliary deployment for the current deployment.
+// @Tags Auxiliary Deployment
+// @Produce	json
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param id path string true "aux deployment ID"
+// @Param assets query bool false "include assets"
+// @Param container_info query bool false "include container info"
+// @Success	200 {object} lib_model.AuxDeployment "auxiliary deployment"
+// @Failure	400 {string} string "error message"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /aux-deployments/{id} [get]
 func getAuxDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, path.Join(lib_model.AuxDeploymentsPath, ":id"), func(gc *gin.Context) {
 		var query getAuxDeploymentQuery
@@ -98,6 +128,19 @@ func getAuxDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// postAuxDeploymentH godoc
+// @Summary Create auxiliary deployment
+// @Description Create a new auxiliary deployment for the current deployment.
+// @Tags Auxiliary Deployment
+// @Accept json
+// @Produce	plain
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param force_pull_img query bool false "force pull image"
+// @Param data body lib_model.AuxDepReq true "aux deployment data"
+// @Success	200 {string} string "job ID"
+// @Failure	400 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /aux-deployments [post]
 func postAuxDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_model.AuxDeploymentsPath, func(gc *gin.Context) {
 		var query createAuxDeploymentQuery
@@ -120,6 +163,22 @@ func postAuxDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// patchAuxDeploymentUpdateH godoc
+// @Summary Update auxiliary deployment
+// @Description Update an auxiliary deployment for the current deployment.
+// @Tags Auxiliary Deployment
+// @Accept json
+// @Produce	plain
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param id path string true "aux deployment ID"
+// @Param incremental query bool false "do an incremental update"
+// @Param force_pull_img query bool false "force pull image"
+// @Param data body lib_model.AuxDepReq true "aux deployment data"
+// @Success	200 {string} string "job ID"
+// @Failure	400 {string} string "error message"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /aux-deployments/{id} [patch]
 func patchAuxDeploymentUpdateH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, path.Join(lib_model.AuxDeploymentsPath, ":id"), func(gc *gin.Context) {
 		var query updateAuxDeploymentQuery
@@ -142,6 +201,19 @@ func patchAuxDeploymentUpdateH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// deleteAuxDeploymentH godoc
+// @Summary Delete auxiliary deployment
+// @Description Remove an auxiliary deployment for the current deployment.
+// @Tags Auxiliary Deployment
+// @Produce	plain
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param id path string true "aux deployment ID"
+// @Param force query bool false "force delete"
+// @Success	200 {string} string " job ID"
+// @Failure	400 {string} string "error message"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /aux-deployments/{id} [delete]
 func deleteAuxDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, path.Join(lib_model.AuxDeploymentsPath, ":id"), func(gc *gin.Context) {
 		var query deleteAuxDeploymentQuery
@@ -158,6 +230,22 @@ func deleteAuxDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// patchAuxDeploymentsDeleteH godoc
+// @Summary Delete auxiliary deployments
+// @Description Remove auxiliary deployments for the current deployment.
+// @Tags Auxiliary Deployment
+// @Produce	plain
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param ids query []string false "filter by aux deployment ids" collectionFormat(csv)
+// @Param labels query string false "filter by labels (e.g.: k1=v1,k2=v2,k3)"
+// @Param image query string false "filter by image"
+// @Param enabled query integer false "filter if enabled" Enums(-1, 1)
+// @Param force query bool false "force delete"
+// @Success	200 {string} string "job ID"
+// @Failure	400 {string} string "error message"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /aux-deployments-batch/delete [patch]
 func patchAuxDeploymentsDeleteH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, path.Join(lib_model.AuxDepBatchPath, lib_model.DepDeletePath), func(gc *gin.Context) {
 		var query deleteAuxDeploymentsQuery
@@ -180,6 +268,17 @@ func patchAuxDeploymentsDeleteH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// patchAuxDeploymentStartH godoc
+// @Summary Start auxiliary deployment
+// @Description Start an auxiliary deployment for the current deployment.
+// @Tags Auxiliary Deployment
+// @Produce	plain
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param id path string true "aux deployment ID"
+// @Success	200 {string} string "job ID"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /aux-deployments/{id}/start [patch]
 func patchAuxDeploymentStartH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, path.Join(lib_model.AuxDeploymentsPath, ":id", lib_model.DepStartPath), func(gc *gin.Context) {
 		jID, err := a.StartAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"))
@@ -191,6 +290,21 @@ func patchAuxDeploymentStartH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// patchAuxDeploymentsStartH godoc
+// @Summary Start auxiliary deployments
+// @Description Start auxiliary deployments for the current deployment.
+// @Tags Auxiliary Deployment
+// @Produce	plain
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param ids query []string false "filter by aux deployment ids" collectionFormat(csv)
+// @Param labels query string false "filter by labels (e.g.: k1=v1,k2=v2,k3)"
+// @Param image query string false "filter by image"
+// @Param enabled query integer false "filter if enabled" Enums(-1, 1)
+// @Success	200 {string} string "job ID"
+// @Failure	400 {string} string "error message"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /aux-deployments-batch/start [patch]
 func patchAuxDeploymentsStartH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, path.Join(lib_model.AuxDepBatchPath, lib_model.DepStartPath), func(gc *gin.Context) {
 		var query getAuxDeploymentsFilterQuery
@@ -213,6 +327,17 @@ func patchAuxDeploymentsStartH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// patchAuxDeploymentStopH godoc
+// @Summary Stop auxiliary deployment
+// @Description Stop an auxiliary deployment for the current deployment.
+// @Tags Auxiliary Deployment
+// @Produce	plain
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param id path string true "aux deployment ID"
+// @Success	200 {string} string "job ID"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /aux-deployments/{id}/stop [patch]
 func patchAuxDeploymentStopH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, path.Join(lib_model.AuxDeploymentsPath, ":id", lib_model.DepStopPath), func(gc *gin.Context) {
 		jID, err := a.StopAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"))
@@ -224,6 +349,21 @@ func patchAuxDeploymentStopH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// patchAuxDeploymentsStopH godoc
+// @Summary Stop auxiliary deployments
+// @Description Stop auxiliary deployments for the current deployment.
+// @Tags Auxiliary Deployment
+// @Produce	plain
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param ids query []string false "filter by aux deployment ids" collectionFormat(csv)
+// @Param labels query string false "filter by labels (e.g.: k1=v1,k2=v2,k3)"
+// @Param image query string false "filter by image"
+// @Param enabled query integer false "filter if enabled" Enums(-1, 1)
+// @Success	200 {string} string "job ID"
+// @Failure	400 {string} string "error message"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /aux-deployments-batch/stop [patch]
 func patchAuxDeploymentsStopH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, path.Join(lib_model.AuxDepBatchPath, lib_model.DepStopPath), func(gc *gin.Context) {
 		var query getAuxDeploymentsFilterQuery
@@ -246,6 +386,17 @@ func patchAuxDeploymentsStopH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// patchAuxDeploymentRestartH godoc
+// @Summary Restart auxiliary deployment
+// @Description Restart an auxiliary deployment for the current deployment.
+// @Tags Auxiliary Deployment
+// @Produce	plain
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param id path string true "aux deployment ID"
+// @Success	200 {string} string "job ID"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /aux-deployments/{id}/restart [patch]
 func patchAuxDeploymentRestartH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, path.Join(lib_model.AuxDeploymentsPath, ":id", lib_model.DepRestartPath), func(gc *gin.Context) {
 		jID, err := a.RestartAuxDeployment(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"))
@@ -257,6 +408,21 @@ func patchAuxDeploymentRestartH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// patchAuxDeploymentsRestartH godoc
+// @Summary Restart auxiliary deployments
+// @Description Restart auxiliary deployments for the current deployment.
+// @Tags Auxiliary Deployment
+// @Produce	plain
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param ids query []string false "filter by aux deployment ids" collectionFormat(csv)
+// @Param labels query string false "filter by labels (e.g.: k1=v1,k2=v2,k3)"
+// @Param image query string false "filter by image"
+// @Param enabled query integer false "filter if enabled" Enums(-1, 1)
+// @Success	200 {string} string "job ID"
+// @Failure	400 {string} string "error message"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /aux-deployments-batch/restart [patch]
 func patchAuxDeploymentsRestartH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, path.Join(lib_model.AuxDepBatchPath, lib_model.DepRestartPath), func(gc *gin.Context) {
 		var query getAuxDeploymentsFilterQuery

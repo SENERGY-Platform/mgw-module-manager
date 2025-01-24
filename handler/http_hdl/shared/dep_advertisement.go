@@ -29,6 +29,18 @@ type advertisementFilterQuery struct {
 	Ref      string `form:"ref"`
 }
 
+// getDepAdvertisementQueryH godoc
+// @Summary Query advertisements
+// @Description Query deployment advertisements.
+// @Tags Deployment Advertisement
+// @Produce	json
+// @Param module_id query string false "filter by module ID"
+// @Param origin query string false "filter by origin"
+// @Param ref query string false "filter by reference"
+// @Success	200 {array} lib_model.DepAdvertisement "advertisements"
+// @Failure	400 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /discovery [get]
 func getDepAdvertisementQueryH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_model.DiscoveryPath, func(gc *gin.Context) {
 		var query advertisementFilterQuery

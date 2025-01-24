@@ -56,6 +56,13 @@ var routes = gin_mw.Routes[lib.Api]{
 	getServiceHealthH,
 }
 
+// SetRoutes
+// @title Module Manager API
+// @version 0.7.2
+// @description Provides access to module and deployment management functions.
+// @license.name Apache-2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @BasePath /
 func SetRoutes(e *gin.Engine, a lib.Api) error {
 	rg := e.Group("")
 	routes = append(routes, shared.Routes...)

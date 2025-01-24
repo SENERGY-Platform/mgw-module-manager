@@ -25,9 +25,20 @@ import (
 	"path"
 )
 
+// getDepAdvertisementH godoc
+// @Summary Get advertisement
+// @Description Get an advertisement for the current deployment.
+// @Tags Deployment Advertisement
+// @Produce	json
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param ref path string true "advertisement reference"
+// @Success	200 {object} lib_model.DepAdvertisement "advertisement"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /dep-advertisements/{ref} [get]
 func getDepAdvertisementH(a lib.Api) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, path.Join(lib_model.DepAdvertisementsPath, ":id"), func(gc *gin.Context) {
-		adv, err := a.GetDepAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"))
+	return http.MethodGet, path.Join(lib_model.DepAdvertisementsPath, ":ref"), func(gc *gin.Context) {
+		adv, err := a.GetDepAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("ref"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -36,6 +47,16 @@ func getDepAdvertisementH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// getDepAdvertisementsH godoc
+// @Summary Get advertisements
+// @Description Get all advertisements for the current deployment.
+// @Tags Deployment Advertisement
+// @Produce	json
+// @Param X-MGW-DID header string true "deployment ID"
+// @Success	200 {object} map[string]lib_model.DepAdvertisement "advertisements"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /dep-advertisements [get]
 func getDepAdvertisementsH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_model.DepAdvertisementsPath, func(gc *gin.Context) {
 		ads, err := a.GetDepAdvertisements(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey))
@@ -47,15 +68,28 @@ func getDepAdvertisementsH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// putDepAdvertisementH godoc
+// @Summary Create / Update advertisement
+// @Description Create or update an advertisement for the current deployment.
+// @Tags Deployment Advertisement
+// @Accept json
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param ref path string true "advertisement reference"
+// @Param advertisement body lib_model.DepAdvertisementBase true "advertisement data"
+// @Success	200
+// @Failure	400 {string} string "error message"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /dep-advertisements/{ref} [put]
 func putDepAdvertisementH(a lib.Api) (string, string, gin.HandlerFunc) {
-	return http.MethodPut, path.Join(lib_model.DepAdvertisementsPath, ":id"), func(gc *gin.Context) {
+	return http.MethodPut, path.Join(lib_model.DepAdvertisementsPath, ":ref"), func(gc *gin.Context) {
 		var advBase lib_model.DepAdvertisementBase
 		err := gc.ShouldBindJSON(&advBase)
 		if err != nil {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		if gc.Param("id") != advBase.Ref {
+		if gc.Param("ref") != advBase.Ref {
 			_ = gc.Error(lib_model.NewInvalidInputError(errors.New("reference mismatch")))
 			return
 		}
@@ -68,6 +102,18 @@ func putDepAdvertisementH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// putDepAdvertisementsH godoc
+// @Summary Create / Update advertisements
+// @Description Create or update advertisements for the current deployment.
+// @Tags Deployment Advertisement
+// @Accept json
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param advertisements body map[string]lib_model.DepAdvertisementBase true "advertisement data"
+// @Success	200
+// @Failure	400 {string} string "error message"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /dep-advertisements-batch [put]
 func putDepAdvertisementsH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPut, lib_model.DepAdvertisementsBatchPath, func(gc *gin.Context) {
 		var ads map[string]lib_model.DepAdvertisementBase
@@ -85,9 +131,19 @@ func putDepAdvertisementsH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// deleteDepAdvertisementH godoc
+// @Summary Delete advertisement
+// @Description Remove an advertisement for the current deployment.
+// @Tags Deployment Advertisement
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param ref path string true "advertisement reference"
+// @Success	200
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /dep-advertisements/{ref} [delete]
 func deleteDepAdvertisementH(a lib.Api) (string, string, gin.HandlerFunc) {
-	return http.MethodDelete, path.Join(lib_model.DepAdvertisementsPath, ":id"), func(gc *gin.Context) {
-		err := a.DeleteDepAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"))
+	return http.MethodDelete, path.Join(lib_model.DepAdvertisementsPath, ":ref"), func(gc *gin.Context) {
+		err := a.DeleteDepAdvertisement(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("ref"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -96,6 +152,15 @@ func deleteDepAdvertisementH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// deleteDepAdvertisementsH godoc
+// @Summary Delete advertisements
+// @Description Remove advertisements for the current deployment.
+// @Tags Deployment Advertisement
+// @Param X-MGW-DID header string true "deployment ID"
+// @Success	200
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /dep-advertisements-batch [delete]
 func deleteDepAdvertisementsH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, lib_model.DepAdvertisementsBatchPath, func(gc *gin.Context) {
 		err := a.DeleteDepAdvertisements(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey))

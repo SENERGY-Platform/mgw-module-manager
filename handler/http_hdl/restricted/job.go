@@ -33,6 +33,20 @@ type jobsQuery struct {
 	Until    string `form:"until"`
 }
 
+// getAuxJobsH godoc
+// @Summary List jobs
+// @Description List all jobs for the current deployment.
+// @Tags Deployment Jobs
+// @Produce	json
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param status query string false "status to filter by" Enums(pending, running, canceled, completed, error, ok)
+// @Param sort_desc query bool false "sort in descending order"
+// @Param since query string false "list jobs since timestamp"
+// @Param until query string false "list jobs until timestamp"
+// @Success	200 {array} job_hdl_lib.Job "jobs"
+// @Failure	400 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /jobs [get]
 func getAuxJobsH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_model.JobsPath, func(gc *gin.Context) {
 		query := jobsQuery{}
@@ -65,6 +79,17 @@ func getAuxJobsH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// getAuxJobH godoc
+// @Summary Get job
+// @Description Get a job for the current deployment.
+// @Tags Deployment Jobs
+// @Produce	json
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param id path string true "job id"
+// @Success	200 {object} job_hdl_lib.Job "job"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /jobs/{id} [get]
 func getAuxJobH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, path.Join(lib_model.JobsPath, ":id"), func(gc *gin.Context) {
 		job, err := a.GetAuxJob(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"))
@@ -76,6 +101,16 @@ func getAuxJobH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// patchAuxJobCancelH godoc
+// @Summary Cancel job
+// @Description Cancel a job for the current deployment.
+// @Tags Deployment Jobs
+// @Param X-MGW-DID header string true "deployment ID"
+// @Param id path string true "job id"
+// @Success	200
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /jobs/{id}/cancel [patch]
 func patchAuxJobCancelH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, path.Join(lib_model.JobsPath, ":id", lib_model.JobsCancelPath), func(gc *gin.Context) {
 		err := a.CancelAuxJob(gc.Request.Context(), gc.GetHeader(lib_model.DepIdHeaderKey), gc.Param("id"))

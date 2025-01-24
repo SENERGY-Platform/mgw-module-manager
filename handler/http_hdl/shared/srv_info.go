@@ -17,12 +17,21 @@
 package shared
 
 import (
+	_ "github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
+// getSrvInfoH godoc
+// @Summary Get service info
+// @Description	Get basic service and runtime information.
+// @Tags Info
+// @Produce	json
+// @Success	200 {object} lib.SrvInfo "info"
+// @Failure	500 {string} string "error message"
+// @Router /info [get]
 func getSrvInfoH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_model.SrvInfoPath, func(gc *gin.Context) {
 		gc.JSON(http.StatusOK, a.GetSrvInfo(gc.Request.Context()))
