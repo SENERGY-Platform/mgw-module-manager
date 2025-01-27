@@ -19,6 +19,7 @@ package restricted
 import (
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
 	"github.com/SENERGY-Platform/mgw-module-manager/handler/http_hdl/shared"
+	_ "github.com/SENERGY-Platform/mgw-module-manager/handler/http_hdl/swagger_docs"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
