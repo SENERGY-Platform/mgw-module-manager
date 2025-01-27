@@ -30,13 +30,27 @@ type modulesQuery struct {
 	Author         string `form:"author"`
 	Type           string `form:"type"`
 	DeploymentType string `form:"deployment_type"`
-	Tags           string `form:"tag"`
+	Tags           string `form:"tags"`
 }
 
 type deleteModuleQuery struct {
 	Force bool `form:"force"`
 }
 
+// getModulesH godoc
+// @Summary Get modules
+// @Description List installed modules.
+// @Tags Modules
+// @Produce	json
+// @Param name query string false "filter by name"
+// @Param author query string false "filter by author"
+// @Param type query string false "filter by type"
+// @Param deployment_type query string false "filter by deployment type"
+// @Param tags query []string false "filter by tags" collectionFormat(csv)
+// @Success	200 {object} map[string]lib_model.Module "modules"
+// @Failure	400 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /modules [get]
 func getModulesH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_model.ModulesPath, func(gc *gin.Context) {
 		query := modulesQuery{}
@@ -67,6 +81,16 @@ func getModulesH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// getModuleH godoc
+// @Summary Get module
+// @Description Get an installed module.
+// @Tags Modules
+// @Produce	json
+// @Param id path string true "module ID"
+// @Success	200 {object} lib_model.Module "module"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /modules/{id} [get]
 func getModuleH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, path.Join(lib_model.ModulesPath, ":id"), func(gc *gin.Context) {
 		module, err := a.GetModule(gc.Request.Context(), gc.Param("id"))
@@ -78,6 +102,18 @@ func getModuleH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// postModuleH godoc
+// @Summary Add module
+// @Description Download a module.
+// @Tags Modules
+// @Accept json
+// @Produce	plain
+// @Param info body lib_model.ModAddRequest true "module info"
+// @Success	200 {string} string "job ID"
+// @Failure	400 {string} string "error message"
+// @Failure	409 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /modules [post]
 func postModuleH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_model.ModulesPath, func(gc *gin.Context) {
 		var modReq lib_model.ModAddRequest
@@ -95,6 +131,19 @@ func postModuleH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// deleteModuleH godoc
+// @Summary Delete module
+// @Description Remove a module.
+// @Tags Modules
+// @Produce	plain
+// @Param id path string true "module ID"
+// @Param force query bool false "force remove"
+// @Success	200 {string} string "job ID"
+// @Failure	400 {string} string "error message"
+// @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /modules/{id} [delete]
 func deleteModuleH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, path.Join(lib_model.ModulesPath, ":id"), func(gc *gin.Context) {
 		query := deleteModuleQuery{}
@@ -111,6 +160,17 @@ func deleteModuleH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// getModuleDeployTemplateH godoc
+// @Summary Get deployment template
+// @Description Get a template for the deployment of a module.
+// @Tags Modules
+// @Produce	json
+// @Param id path string true "module ID"
+// @Success	200 {object} lib_model.ModDeployTemplate "template"
+// @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /modules/{id}/dep-template [get,put,post,patch,delete]
 func getModuleDeployTemplateH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, path.Join(lib_model.ModulesPath, ":id", lib_model.DepTemplatePath), func(gc *gin.Context) {
 		inputTemplate, err := a.GetModuleDeployTemplate(gc.Request.Context(), gc.Param("id"))
@@ -122,6 +182,14 @@ func getModuleDeployTemplateH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// getModuleUpdatesH godoc
+// @Summary Get module updates
+// @Description List available module updates.
+// @Tags Modules
+// @Produce	json
+// @Success	200 {object} map[string]lib_model.ModUpdate "module updates"
+// @Failure	500 {string} string "error message"
+// @Router /updates [get]
 func getModuleUpdatesH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_model.ModUpdatesPath, func(gc *gin.Context) {
 		updates, err := a.GetModuleUpdates(gc.Request.Context())
@@ -133,6 +201,17 @@ func getModuleUpdatesH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// getModuleUpdateH godoc
+// @Summary Get module update
+// @Description Get module update info.
+// @Tags Modules
+// @Produce	json
+// @Param id path string true "module ID"
+// @Success	200 {object} lib_model.ModUpdate "update info"
+// @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /updates/{id} [get]
 func getModuleUpdateH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, path.Join(lib_model.ModUpdatesPath, ":id"), func(gc *gin.Context) {
 		update, err := a.GetModuleUpdate(gc.Request.Context(), gc.Param("id"))
@@ -144,6 +223,15 @@ func getModuleUpdateH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// postCheckModuleUpdatesH godoc
+// @Summary Check module updates
+// @Description Check for new module updates.
+// @Tags Modules
+// @Produce	plain
+// @Success	200 {string} string "job ID"
+// @Failure	409 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /updates [post]
 func postCheckModuleUpdatesH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_model.ModUpdatesPath, func(gc *gin.Context) {
 		jID, err := a.CheckModuleUpdates(gc.Request.Context())
@@ -155,6 +243,20 @@ func postCheckModuleUpdatesH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// patchPrepareModuleUpdateH godoc
+// @Summary Prepare module update
+// @Description Checks dependencies, downloads and marks update as pending.
+// @Tags Modules
+// @Accept json
+// @Produce	plain
+// @Param id path string true "module ID"
+// @Param info body lib_model.ModUpdatePrepareRequest true "module info"
+// @Success	200 {string} string "job ID"
+// @Failure	400 {string} string "error message"
+// @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /updates/{id}/prepare [patch]
 func patchPrepareModuleUpdateH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, path.Join(lib_model.ModUpdatesPath, ":id", lib_model.ModUptPreparePath), func(gc *gin.Context) {
 		var modUptReq lib_model.ModUpdatePrepareRequest
@@ -172,6 +274,16 @@ func patchPrepareModuleUpdateH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// patchCancelPendingModuleUpdateH godoc
+// @Summary Cancel module update
+// @Description Cancel a pending module update.
+// @Tags Modules
+// @Param id path string true "module ID"
+// @Success	200
+// @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /updates/{id}/cancel [patch]
 func patchCancelPendingModuleUpdateH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, path.Join(lib_model.ModUpdatesPath, ":id", lib_model.ModUptCancelPath), func(gc *gin.Context) {
 		err := a.CancelPendingModuleUpdate(gc.Request.Context(), gc.Param("id"))
@@ -183,6 +295,20 @@ func patchCancelPendingModuleUpdateH(a lib.Api) (string, string, gin.HandlerFunc
 	}
 }
 
+// patchModuleUpdateH godoc
+// @Summary Update module
+// @Description Execute a pending module update. Dependencies and existing deployments will also be updated.
+// @Tags Modules
+// @Accept json
+// @Produce	plain
+// @Param id path string true "module ID"
+// @Param data body lib_model.ModUpdateRequest true "update data"
+// @Success	200 {string} string "job ID"
+// @Failure	400 {string} string "error message"
+// @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /updates/{id} [patch]
 func patchModuleUpdateH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, path.Join(lib_model.ModUpdatesPath, ":id"), func(gc *gin.Context) {
 		var uptReq lib_model.ModUpdateRequest
@@ -191,15 +317,27 @@ func patchModuleUpdateH(a lib.Api) (string, string, gin.HandlerFunc) {
 			_ = gc.Error(lib_model.NewInvalidInputError(err))
 			return
 		}
-		id, err := a.UpdateModule(gc.Request.Context(), gc.Param("id"), uptReq.DepInput, uptReq.Dependencies)
+		jID, err := a.UpdateModule(gc.Request.Context(), gc.Param("id"), uptReq.DepInput, uptReq.Dependencies)
 		if err != nil {
 			_ = gc.Error(err)
 			return
 		}
-		gc.String(http.StatusOK, id)
+		gc.String(http.StatusOK, jID)
 	}
 }
 
+// getPendingModuleUpdateTemplateH godoc
+// @Summary Get module update template
+// @Description Get update template for pending module update.
+// @Tags Modules
+// @Produce	json
+// @Param id path string true "module ID"
+// @Success	200 {object} lib_model.ModUpdateTemplate "template"
+// @Failure	400 {string} string "error message"
+// @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /updates/{id}/upt-template [get]
 func getPendingModuleUpdateTemplateH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, path.Join(lib_model.ModUpdatesPath, ":id", lib_model.DepUpdateTemplatePath), func(gc *gin.Context) {
 		updateTemplate, err := a.GetModuleUpdateTemplate(gc.Request.Context(), gc.Param("id"))
