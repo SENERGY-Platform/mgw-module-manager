@@ -1,0 +1,3904 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Provides access to module and deployment management functions.",
+        "title": "Module Manager API",
+        "contact": {},
+        "license": {
+            "name": "Apache-2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "0.7.2"
+    },
+    "basePath": "/",
+    "paths": {
+        "/aux-deployments": {
+            "get": {
+                "description": "List auxiliary deployments for the current deployment.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auxiliary Deployments"
+                ],
+                "summary": "Get auxiliary deployments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "X-MGW-DID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filter by aux deployment ids",
+                        "name": "ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by labels (e.g.: k1=v1,k2=v2,k3)",
+                        "name": "labels",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by image",
+                        "name": "image",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            -1,
+                            1
+                        ],
+                        "type": "integer",
+                        "description": "filter if enabled",
+                        "name": "enabled",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "include assets",
+                        "name": "assets",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "include container info",
+                        "name": "container_info",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "auxiliary deployments",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/model.AuxDeployment"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new auxiliary deployment for the current deployment.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Auxiliary Deployments"
+                ],
+                "summary": "Create auxiliary deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "X-MGW-DID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "force pull image",
+                        "name": "force_pull_img",
+                        "in": "query"
+                    },
+                    {
+                        "description": "aux deployment data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AuxDepReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/aux-deployments-batch/delete": {
+            "patch": {
+                "description": "Remove auxiliary deployments for the current deployment.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Auxiliary Deployments"
+                ],
+                "summary": "Delete auxiliary deployments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "X-MGW-DID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filter by aux deployment ids",
+                        "name": "ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by labels (e.g.: k1=v1,k2=v2,k3)",
+                        "name": "labels",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by image",
+                        "name": "image",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            -1,
+                            1
+                        ],
+                        "type": "integer",
+                        "description": "filter if enabled",
+                        "name": "enabled",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "force delete",
+                        "name": "force",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/aux-deployments-batch/restart": {
+            "patch": {
+                "description": "Restart auxiliary deployments for the current deployment.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Auxiliary Deployments"
+                ],
+                "summary": "Restart auxiliary deployments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "X-MGW-DID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filter by aux deployment ids",
+                        "name": "ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by labels (e.g.: k1=v1,k2=v2,k3)",
+                        "name": "labels",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by image",
+                        "name": "image",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            -1,
+                            1
+                        ],
+                        "type": "integer",
+                        "description": "filter if enabled",
+                        "name": "enabled",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/aux-deployments-batch/start": {
+            "patch": {
+                "description": "Start auxiliary deployments for the current deployment.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Auxiliary Deployments"
+                ],
+                "summary": "Start auxiliary deployments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "X-MGW-DID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filter by aux deployment ids",
+                        "name": "ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by labels (e.g.: k1=v1,k2=v2,k3)",
+                        "name": "labels",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by image",
+                        "name": "image",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            -1,
+                            1
+                        ],
+                        "type": "integer",
+                        "description": "filter if enabled",
+                        "name": "enabled",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/aux-deployments-batch/stop": {
+            "patch": {
+                "description": "Stop auxiliary deployments for the current deployment.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Auxiliary Deployments"
+                ],
+                "summary": "Stop auxiliary deployments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "X-MGW-DID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filter by aux deployment ids",
+                        "name": "ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by labels (e.g.: k1=v1,k2=v2,k3)",
+                        "name": "labels",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by image",
+                        "name": "image",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            -1,
+                            1
+                        ],
+                        "type": "integer",
+                        "description": "filter if enabled",
+                        "name": "enabled",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/aux-deployments/{id}": {
+            "get": {
+                "description": "Get an auxiliary deployment for the current deployment.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auxiliary Deployments"
+                ],
+                "summary": "Get auxiliary deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "X-MGW-DID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "aux deployment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "include assets",
+                        "name": "assets",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "include container info",
+                        "name": "container_info",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "auxiliary deployment",
+                        "schema": {
+                            "$ref": "#/definitions/model.AuxDeployment"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Remove an auxiliary deployment for the current deployment.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Auxiliary Deployments"
+                ],
+                "summary": "Delete auxiliary deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "X-MGW-DID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "aux deployment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "force delete",
+                        "name": "force",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": " job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update an auxiliary deployment for the current deployment.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Auxiliary Deployments"
+                ],
+                "summary": "Update auxiliary deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "X-MGW-DID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "aux deployment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "do an incremental update",
+                        "name": "incremental",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "force pull image",
+                        "name": "force_pull_img",
+                        "in": "query"
+                    },
+                    {
+                        "description": "aux deployment data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AuxDepReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/aux-deployments/{id}/restart": {
+            "patch": {
+                "description": "Restart an auxiliary deployment for the current deployment.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Auxiliary Deployments"
+                ],
+                "summary": "Restart auxiliary deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "X-MGW-DID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "aux deployment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/aux-deployments/{id}/start": {
+            "patch": {
+                "description": "Start an auxiliary deployment for the current deployment.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Auxiliary Deployments"
+                ],
+                "summary": "Start auxiliary deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "X-MGW-DID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "aux deployment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/aux-deployments/{id}/stop": {
+            "patch": {
+                "description": "Stop an auxiliary deployment for the current deployment.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Auxiliary Deployments"
+                ],
+                "summary": "Stop auxiliary deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "X-MGW-DID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "aux deployment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/deployments": {
+            "get": {
+                "description": "Get all deployments.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Deployments"
+                ],
+                "summary": "Get Deployments",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filter by deployment ids",
+                        "name": "ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by module ID",
+                        "name": "module_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by enabled status",
+                        "name": "enabled",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by indirect status",
+                        "name": "indirect",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "include assets",
+                        "name": "assets",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "include container info",
+                        "name": "container_info",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "deployments",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/model.Deployment"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new deployment.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Deployments"
+                ],
+                "summary": "Create deployment",
+                "parameters": [
+                    {
+                        "description": "deployment data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.DepCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/deployments-batch/delete": {
+            "patch": {
+                "description": "Delete multiple deployments.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Deployments"
+                ],
+                "summary": "Delete deployments",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filter by deployment ids",
+                        "name": "ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by module ID",
+                        "name": "module_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by enabled status",
+                        "name": "enabled",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by indirect status",
+                        "name": "indirect",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "toggle force delete",
+                        "name": "force",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/deployments-batch/restart": {
+            "patch": {
+                "description": "Restart multiple deployments.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Deployments"
+                ],
+                "summary": "Restart deployments",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filter by deployment ids",
+                        "name": "ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by module ID",
+                        "name": "module_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by enabled status",
+                        "name": "enabled",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by indirect status",
+                        "name": "indirect",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/deployments-batch/start": {
+            "patch": {
+                "description": "Start multiple deployments.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Deployments"
+                ],
+                "summary": "Start deployments",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filter by deployment ids",
+                        "name": "ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by module ID",
+                        "name": "module_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by enabled status",
+                        "name": "enabled",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by indirect status",
+                        "name": "indirect",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "toggle start dependencies",
+                        "name": "dependencies",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/deployments-batch/stop": {
+            "patch": {
+                "description": "Stop multiple deployments.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Deployments"
+                ],
+                "summary": "Stop deployments",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filter by deployment ids",
+                        "name": "ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by module ID",
+                        "name": "module_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by enabled status",
+                        "name": "enabled",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by indirect status",
+                        "name": "indirect",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "toggle force stop",
+                        "name": "force",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/deployments/{id}": {
+            "get": {
+                "description": "Get a deployment.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Deployments"
+                ],
+                "summary": "Get deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "include assets",
+                        "name": "assets",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "include container info",
+                        "name": "container_info",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "deployment",
+                        "schema": {
+                            "$ref": "#/definitions/model.Deployment"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a deployment.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Deployments"
+                ],
+                "summary": "Delete deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "toggle force delete",
+                        "name": "force",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update a deployment.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Deployments"
+                ],
+                "summary": "Update deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "deployment data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.DepInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/deployments/{id}/restart": {
+            "patch": {
+                "description": "Restart a deployment.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Deployments"
+                ],
+                "summary": "Restart deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/deployments/{id}/start": {
+            "patch": {
+                "description": "Start a deployment.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Deployments"
+                ],
+                "summary": "Start deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "toggle start dependencies",
+                        "name": "dependencies",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/deployments/{id}/stop": {
+            "patch": {
+                "description": "Stop a deployment.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Deployments"
+                ],
+                "summary": "Stop deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "toggle force stop",
+                        "name": "force",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/deployments/{id}/upt-template": {
+            "get": {
+                "description": "Get a template for updating a deployment.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Deployments"
+                ],
+                "summary": "Get update template",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deployment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "template",
+                        "schema": {
+                            "$ref": "#/definitions/model.DepUpdateTemplate"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/discovery": {
+            "get": {
+                "description": "Query deployment advertisements.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Deployment Advertisements"
+                ],
+                "summary": "Query advertisements",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "filter by module ID",
+                        "name": "module_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by origin",
+                        "name": "origin",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by reference",
+                        "name": "ref",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "advertisements",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.DepAdvertisement"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/info": {
+            "get": {
+                "description": "Get basic service and runtime information.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Info"
+                ],
+                "summary": "Get service info",
+                "responses": {
+                    "200": {
+                        "description": "info",
+                        "schema": {
+                            "$ref": "#/definitions/lib.SrvInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs": {
+            "get": {
+                "description": "List all jobs.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "List jobs",
+                "parameters": [
+                    {
+                        "enum": [
+                            "pending",
+                            "running",
+                            "canceled",
+                            "completed",
+                            "error",
+                            "ok"
+                        ],
+                        "type": "string",
+                        "description": "status to filter by",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "sort in descending order",
+                        "name": "sort_desc",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "list jobs since timestamp",
+                        "name": "since",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "list jobs until timestamp",
+                        "name": "until",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "jobs",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/lib.Job"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/{id}": {
+            "get": {
+                "description": "Get a job.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Get job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job",
+                        "schema": {
+                            "$ref": "#/definitions/lib.Job"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/{id}/cancel": {
+            "patch": {
+                "description": "Cancels a job.",
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Cancel job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/modules": {
+            "get": {
+                "description": "List installed modules.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Modules"
+                ],
+                "summary": "Get modules",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "filter by name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by author",
+                        "name": "author",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by type",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by deployment type",
+                        "name": "deployment_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filter by tags",
+                        "name": "tags",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "modules",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/model.Module"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Download a module.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Modules"
+                ],
+                "summary": "Add module",
+                "parameters": [
+                    {
+                        "description": "module info",
+                        "name": "info",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ModAddRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/modules/{id}": {
+            "get": {
+                "description": "Get an installed module.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Modules"
+                ],
+                "summary": "Get module",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "module ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "module",
+                        "schema": {
+                            "$ref": "#/definitions/model.Module"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Remove a module.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Modules"
+                ],
+                "summary": "Delete module",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "module ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "force remove",
+                        "name": "force",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/modules/{id}/dep-template": {
+            "get": {
+                "description": "Get a template for the deployment of a module.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Modules"
+                ],
+                "summary": "Get deployment template",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "module ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "template",
+                        "schema": {
+                            "$ref": "#/definitions/model.ModDeployTemplate"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/updates": {
+            "get": {
+                "description": "List available module updates.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Modules"
+                ],
+                "summary": "Get module updates",
+                "responses": {
+                    "200": {
+                        "description": "module updates",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/model.ModUpdate"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Check for new module updates.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Modules"
+                ],
+                "summary": "Check module updates",
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/updates/{id}": {
+            "get": {
+                "description": "Get module update info.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Modules"
+                ],
+                "summary": "Get module update",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "module ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "update info",
+                        "schema": {
+                            "$ref": "#/definitions/model.ModUpdate"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Execute a pending module update. Dependencies and existing deployments will also be updated.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Modules"
+                ],
+                "summary": "Update module",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "module ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ModUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/updates/{id}/cancel": {
+            "patch": {
+                "description": "Cancel a pending module update.",
+                "tags": [
+                    "Modules"
+                ],
+                "summary": "Cancel module update",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "module ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/updates/{id}/prepare": {
+            "patch": {
+                "description": "Checks dependencies, downloads and marks update as pending.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Modules"
+                ],
+                "summary": "Prepare module update",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "module ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "module info",
+                        "name": "info",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ModUpdatePrepareRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "job ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/updates/{id}/upt-template": {
+            "get": {
+                "description": "Get update template for pending module update.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Modules"
+                ],
+                "summary": "Get module update template",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "module ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "template",
+                        "schema": {
+                            "$ref": "#/definitions/model.ModUpdateTemplate"
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "lib.Job": {
+            "type": "object",
+            "properties": {
+                "canceled": {
+                    "type": "string"
+                },
+                "completed": {
+                    "type": "string"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "error": {
+                    "$ref": "#/definitions/lib.JobErr"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "result": {},
+                "started": {
+                    "type": "string"
+                }
+            }
+        },
+        "lib.JobErr": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "lib.MemStats": {
+            "type": "object",
+            "properties": {
+                "alloc": {
+                    "type": "integer"
+                },
+                "alloc_total": {
+                    "type": "integer"
+                },
+                "gc_cycles": {
+                    "type": "integer"
+                },
+                "sys_total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "lib.SrvInfo": {
+            "type": "object",
+            "properties": {
+                "mem_stats": {
+                    "$ref": "#/definitions/lib.MemStats"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "up_time": {
+                    "$ref": "#/definitions/time.Duration"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.AuxDepContainer": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "info": {
+                    "$ref": "#/definitions/model.ContainerInfo"
+                }
+            }
+        },
+        "model.AuxDepReq": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "image": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "ref": {
+                    "description": "only required by create method",
+                    "type": "string"
+                },
+                "run_config": {
+                    "$ref": "#/definitions/model.AuxDepRunConfig"
+                },
+                "volumes": {
+                    "description": "{name:mntPoint}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "model.AuxDepRunConfig": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string"
+                },
+                "pseudo_tty": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "model.AuxDeployment": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "container": {
+                    "$ref": "#/definitions/model.AuxDepContainer"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "dep_id": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "description": "uuid",
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "ref": {
+                    "type": "string"
+                },
+                "run_config": {
+                    "$ref": "#/definitions/model.AuxDepRunConfig"
+                },
+                "updated": {
+                    "type": "string"
+                },
+                "volumes": {
+                    "description": "{name:mntPoint}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "model.ContainerInfo": {
+            "type": "object",
+            "properties": {
+                "image_id": {
+                    "description": "docker image id",
+                    "type": "string"
+                },
+                "state": {
+                    "description": "docker container state",
+                    "type": "string"
+                }
+            }
+        },
+        "model.DepAdvertisement": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "module_id": {
+                    "type": "string"
+                },
+                "origin": {
+                    "type": "string"
+                },
+                "ref": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.DepConfig": {
+            "type": "object",
+            "properties": {
+                "data_type": {
+                    "$ref": "#/definitions/module.DataType"
+                },
+                "is_slice": {
+                    "type": "boolean"
+                },
+                "value": {}
+            }
+        },
+        "model.DepContainer": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "info": {
+                    "$ref": "#/definitions/model.ContainerInfo"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "srv_ref": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.DepCreateRequest": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "{ref:value}",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "dependencies": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.DepInput"
+                    }
+                },
+                "host_resources": {
+                    "description": "{ref:resourceID}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "module_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "defaults to module name if nil",
+                    "type": "string"
+                },
+                "secretRequests": {
+                    "description": "{ref:value}",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "secrets": {
+                    "description": "{ref:secretID}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "model.DepInput": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "{ref:value}",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "host_resources": {
+                    "description": "{ref:resourceID}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "defaults to module name if nil",
+                    "type": "string"
+                },
+                "secretRequests": {
+                    "description": "{ref:value}",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "secrets": {
+                    "description": "{ref:secretID}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "model.DepModule": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.DepSecret": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "variants": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.DepSecretVariant"
+                    }
+                }
+            }
+        },
+        "model.DepSecretVariant": {
+            "type": "object",
+            "properties": {
+                "as_env": {
+                    "type": "boolean"
+                },
+                "as_mount": {
+                    "type": "boolean"
+                },
+                "item": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.DepUpdateTemplate": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "{ref:ConfigInput}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.InputTemplateConfig"
+                    }
+                },
+                "host_resources": {
+                    "description": "{ref:ResourceInput}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.InputTemplateHostRes"
+                    }
+                },
+                "input_groups": {
+                    "description": "{ref:InputGroup}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.InputGroup"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "secrets": {
+                    "description": "{ref:SecretInput}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.InputTemplateSecret"
+                    }
+                }
+            }
+        },
+        "model.Deployment": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "{ref:DepConfig}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.DepConfig"
+                    }
+                },
+                "containers": {
+                    "description": "{ref:DepContainer}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.DepContainer"
+                    }
+                },
+                "created": {
+                    "type": "string"
+                },
+                "dep_requiring": {
+                    "description": "deployments requiring this deployment",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "dir": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "host_resources": {
+                    "description": "{ref:resourceID}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "indirect": {
+                    "type": "boolean"
+                },
+                "module": {
+                    "$ref": "#/definitions/model.DepModule"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "required_dep": {
+                    "description": "deployments required by this deployment",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "secrets": {
+                    "description": "{ref:DepSecret}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.DepSecret"
+                    }
+                },
+                "state": {
+                    "$ref": "#/definitions/model.HealthState"
+                },
+                "updated": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.HealthState": {
+            "type": "string",
+            "enum": [
+                "healthy",
+                "unhealthy",
+                "transitioning"
+            ],
+            "x-enum-varnames": [
+                "DepHealthy",
+                "DepUnhealthy",
+                "DepTrans"
+            ]
+        },
+        "model.InputTemplate": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "{ref:ConfigInput}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.InputTemplateConfig"
+                    }
+                },
+                "host_resources": {
+                    "description": "{ref:ResourceInput}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.InputTemplateHostRes"
+                    }
+                },
+                "input_groups": {
+                    "description": "{ref:InputGroup}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.InputGroup"
+                    }
+                },
+                "secrets": {
+                    "description": "{ref:SecretInput}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.InputTemplateSecret"
+                    }
+                }
+            }
+        },
+        "model.InputTemplateConfig": {
+            "type": "object",
+            "properties": {
+                "data_type": {
+                    "$ref": "#/definitions/module.DataType"
+                },
+                "default": {},
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "is_list": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "opt_ext": {
+                    "type": "boolean"
+                },
+                "options": {},
+                "required": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "type_opt": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "value": {}
+            }
+        },
+        "model.InputTemplateHostRes": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "tags": {
+                    "$ref": "#/definitions/util.Set-string"
+                },
+                "value": {}
+            }
+        },
+        "model.InputTemplateSecret": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "tags": {
+                    "$ref": "#/definitions/util.Set-string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "value": {}
+            }
+        },
+        "model.ModAddRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ModDeployTemplate": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "{ref:ConfigInput}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.InputTemplateConfig"
+                    }
+                },
+                "dependencies": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.InputTemplate"
+                    }
+                },
+                "host_resources": {
+                    "description": "{ref:ResourceInput}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.InputTemplateHostRes"
+                    }
+                },
+                "input_groups": {
+                    "description": "{ref:InputGroup}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.InputGroup"
+                    }
+                },
+                "secrets": {
+                    "description": "{ref:SecretInput}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.InputTemplateSecret"
+                    }
+                }
+            }
+        },
+        "model.ModUpdate": {
+            "type": "object",
+            "properties": {
+                "checked": {
+                    "type": "string"
+                },
+                "pending": {
+                    "type": "boolean"
+                },
+                "pending_versions": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "versions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "model.ModUpdatePrepareRequest": {
+            "type": "object",
+            "properties": {
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ModUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "{ref:value}",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "dependencies": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.DepInput"
+                    }
+                },
+                "host_resources": {
+                    "description": "{ref:resourceID}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "defaults to module name if nil",
+                    "type": "string"
+                },
+                "secretRequests": {
+                    "description": "{ref:value}",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "secrets": {
+                    "description": "{ref:secretID}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "model.ModUpdateTemplate": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "{ref:ConfigInput}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.InputTemplateConfig"
+                    }
+                },
+                "dependencies": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.InputTemplate"
+                    }
+                },
+                "host_resources": {
+                    "description": "{ref:ResourceInput}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.InputTemplateHostRes"
+                    }
+                },
+                "input_groups": {
+                    "description": "{ref:InputGroup}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.InputGroup"
+                    }
+                },
+                "secrets": {
+                    "description": "{ref:SecretInput}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/model.InputTemplateSecret"
+                    }
+                }
+            }
+        },
+        "model.Module": {
+            "type": "object",
+            "properties": {
+                "added": {
+                    "type": "string"
+                },
+                "architectures": {
+                    "$ref": "#/definitions/util.Set-module_CPUArch"
+                },
+                "author": {
+                    "type": "string"
+                },
+                "aux_img_src": {
+                    "$ref": "#/definitions/util.Set-string"
+                },
+                "aux_services": {
+                    "description": "{ref:AuxService}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.AuxService"
+                    }
+                },
+                "configs": {
+                    "description": "{ref:ConfigValue}",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/module.Configs"
+                        }
+                    ]
+                },
+                "dependencies": {
+                    "description": "{moduleID:moduleVersion}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "deployment_type": {
+                    "$ref": "#/definitions/module.DeploymentType"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "host_resources": {
+                    "description": "{ref:{tag}}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.HostResource"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "inputs": {
+                    "$ref": "#/definitions/module.Inputs"
+                },
+                "license": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "secrets": {
+                    "description": "{ref:Secret}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.Secret"
+                    }
+                },
+                "services": {
+                    "description": "{ref:Service}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.Service"
+                    }
+                },
+                "tags": {
+                    "$ref": "#/definitions/util.Set-string"
+                },
+                "type": {
+                    "$ref": "#/definitions/module.ModuleType"
+                },
+                "updated": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "volumes": {
+                    "description": "{volName}",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/util.Set-string"
+                        }
+                    ]
+                }
+            }
+        },
+        "module.AuxService": {
+            "type": "object",
+            "properties": {
+                "bind_mounts": {
+                    "description": "{mntPoint:BindMount}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.BindMount"
+                    }
+                },
+                "configs": {
+                    "description": "{refVar:ref}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "ext_dependencies": {
+                    "description": "{refVar:ExtDependencyTarget}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.ExtDependencyTarget"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "run_config": {
+                    "$ref": "#/definitions/module.RunConfig"
+                },
+                "srv_references": {
+                    "description": "{refVar:SrvRefTarget}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.SrvRefTarget"
+                    }
+                },
+                "tmpfs": {
+                    "description": "{mntPoint:TmpfsMount}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.TmpfsMount"
+                    }
+                },
+                "volumes": {
+                    "description": "{mntPoint:volName}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "module.BindMount": {
+            "type": "object",
+            "properties": {
+                "read_only": {
+                    "type": "boolean"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "module.ConfigTypeOptions": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/module.configTypeOption"
+            }
+        },
+        "module.Configs": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/module.configValue"
+            }
+        },
+        "module.DataType": {
+            "type": "string",
+            "enum": [
+                "bool",
+                "int",
+                "float",
+                "string"
+            ],
+            "x-enum-varnames": [
+                "BoolType",
+                "Int64Type",
+                "Float64Type",
+                "StringType"
+            ]
+        },
+        "module.DeploymentType": {
+            "type": "string",
+            "enum": [
+                "single",
+                "multiple"
+            ],
+            "x-enum-varnames": [
+                "SingleDeployment",
+                "MultipleDeployment"
+            ]
+        },
+        "module.ExtDependencyTarget": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "template": {
+                    "type": "string"
+                }
+            }
+        },
+        "module.HostResTarget": {
+            "type": "object",
+            "properties": {
+                "read_only": {
+                    "type": "boolean"
+                },
+                "ref": {
+                    "type": "string"
+                }
+            }
+        },
+        "module.HostResource": {
+            "type": "object",
+            "properties": {
+                "required": {
+                    "type": "boolean"
+                },
+                "tags": {
+                    "$ref": "#/definitions/util.Set-string"
+                }
+            }
+        },
+        "module.HttpEndpoint": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "description": "internal path",
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "proxy_conf": {
+                    "$ref": "#/definitions/module.HttpEndpointProxyConf"
+                },
+                "string_sub": {
+                    "$ref": "#/definitions/module.HttpEndpointStrSub"
+                }
+            }
+        },
+        "module.HttpEndpointProxyConf": {
+            "type": "object",
+            "properties": {
+                "headers": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "read_timeout": {
+                    "$ref": "#/definitions/time.Duration"
+                },
+                "websocket": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "module.HttpEndpointStrSub": {
+            "type": "object",
+            "properties": {
+                "filters": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "mime_types": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "replace_once": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "module.Input": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "module.InputGroup": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "module.Inputs": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "{ref:Input}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.Input"
+                    }
+                },
+                "groups": {
+                    "description": "{ref:InputGroup}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.InputGroup"
+                    }
+                },
+                "resources": {
+                    "description": "{ref:Input}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.Input"
+                    }
+                },
+                "secrets": {
+                    "description": "{ref:Input}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.Input"
+                    }
+                }
+            }
+        },
+        "module.ModuleType": {
+            "type": "string",
+            "enum": [
+                "add-on",
+                "device-connector"
+            ],
+            "x-enum-varnames": [
+                "AddOnModule",
+                "DeviceConnectorModule"
+            ]
+        },
+        "module.Port": {
+            "type": "object",
+            "properties": {
+                "bindings": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "integer"
+                },
+                "protocol": {
+                    "$ref": "#/definitions/module.PortProtocol"
+                }
+            }
+        },
+        "module.PortProtocol": {
+            "type": "string",
+            "enum": [
+                "tcp",
+                "udp"
+            ],
+            "x-enum-varnames": [
+                "TcpPort",
+                "UdpPort"
+            ]
+        },
+        "module.RunConfig": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "max_retries": {
+                    "type": "integer"
+                },
+                "pseudo_tty": {
+                    "type": "boolean"
+                },
+                "run_once": {
+                    "type": "boolean"
+                },
+                "stop_signal": {
+                    "type": "string"
+                },
+                "stop_timeout": {
+                    "$ref": "#/definitions/time.Duration"
+                }
+            }
+        },
+        "module.Secret": {
+            "type": "object",
+            "properties": {
+                "required": {
+                    "type": "boolean"
+                },
+                "tags": {
+                    "$ref": "#/definitions/util.Set-string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "module.SecretTarget": {
+            "type": "object",
+            "properties": {
+                "item": {
+                    "type": "string"
+                },
+                "ref": {
+                    "type": "string"
+                }
+            }
+        },
+        "module.Service": {
+            "type": "object",
+            "properties": {
+                "bind_mounts": {
+                    "description": "{mntPoint:BindMount}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.BindMount"
+                    }
+                },
+                "configs": {
+                    "description": "{refVar:ref}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "ext_dependencies": {
+                    "description": "{refVar:ExtDependencyTarget}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.ExtDependencyTarget"
+                    }
+                },
+                "host_resources": {
+                    "description": "{mntPoint:HostResTarget}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.HostResTarget"
+                    }
+                },
+                "http_endpoints": {
+                    "description": "{externalPath:HttpEndpoint}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.HttpEndpoint"
+                    }
+                },
+                "image": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "ports": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/module.Port"
+                    }
+                },
+                "required_by_srv": {
+                    "description": "{ref}",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/util.Set-string"
+                        }
+                    ]
+                },
+                "required_srv": {
+                    "description": "{ref}",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/util.Set-string"
+                        }
+                    ]
+                },
+                "run_config": {
+                    "$ref": "#/definitions/module.RunConfig"
+                },
+                "secret_mounts": {
+                    "description": "{mntPoint:SecretTarget}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.SecretTarget"
+                    }
+                },
+                "secret_vars": {
+                    "description": "{refVar:SecretTarget}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.SecretTarget"
+                    }
+                },
+                "srv_references": {
+                    "description": "{refVar:SrvRefTarget}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.SrvRefTarget"
+                    }
+                },
+                "tmpfs": {
+                    "description": "{mntPoint:TmpfsMount}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/module.TmpfsMount"
+                    }
+                },
+                "volumes": {
+                    "description": "{mntPoint:volName}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "module.SrvRefTarget": {
+            "type": "object",
+            "properties": {
+                "ref": {
+                    "type": "string"
+                },
+                "template": {
+                    "type": "string"
+                }
+            }
+        },
+        "module.TmpfsMount": {
+            "type": "object",
+            "properties": {
+                "mode": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "module.configTypeOption": {
+            "type": "object",
+            "properties": {
+                "data_type": {
+                    "$ref": "#/definitions/module.DataType"
+                },
+                "value": {}
+            }
+        },
+        "module.configValue": {
+            "type": "object",
+            "properties": {
+                "data_type": {
+                    "$ref": "#/definitions/module.DataType"
+                },
+                "default": {},
+                "delimiter": {
+                    "type": "string"
+                },
+                "is_slice": {
+                    "type": "boolean"
+                },
+                "opt_ext": {
+                    "type": "boolean"
+                },
+                "options": {},
+                "required": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "type_opt": {
+                    "$ref": "#/definitions/module.ConfigTypeOptions"
+                }
+            }
+        },
+        "time.Duration": {
+            "type": "integer",
+            "enum": [
+                1,
+                1000,
+                1000000,
+                1000000000,
+                60000000000,
+                3600000000000
+            ],
+            "x-enum-varnames": [
+                "Nanosecond",
+                "Microsecond",
+                "Millisecond",
+                "Second",
+                "Minute",
+                "Hour"
+            ]
+        },
+        "util.Set-module_CPUArch": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object"
+            }
+        },
+        "util.Set-string": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object"
+            }
+        }
+    }
+}

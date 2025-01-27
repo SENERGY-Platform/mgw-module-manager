@@ -1,0 +1,1076 @@
+basePath: /
+definitions:
+  lib.Job:
+    properties:
+      canceled:
+        type: string
+      completed:
+        type: string
+      created:
+        type: string
+      description:
+        type: string
+      error:
+        $ref: '#/definitions/lib.JobErr'
+      id:
+        type: string
+      result: {}
+      started:
+        type: string
+    type: object
+  lib.JobErr:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  lib.MemStats:
+    properties:
+      alloc:
+        type: integer
+      alloc_total:
+        type: integer
+      gc_cycles:
+        type: integer
+      sys_total:
+        type: integer
+    type: object
+  lib.SrvInfo:
+    properties:
+      mem_stats:
+        $ref: '#/definitions/lib.MemStats'
+      name:
+        type: string
+      up_time:
+        $ref: '#/definitions/time.Duration'
+      version:
+        type: string
+    type: object
+  model.AuxDepContainer:
+    properties:
+      alias:
+        type: string
+      id:
+        type: string
+      info:
+        $ref: '#/definitions/model.ContainerInfo'
+    type: object
+  model.AuxDepReq:
+    properties:
+      configs:
+        additionalProperties:
+          type: string
+        type: object
+      image:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      ref:
+        description: only required by create method
+        type: string
+      run_config:
+        $ref: '#/definitions/model.AuxDepRunConfig'
+      volumes:
+        additionalProperties:
+          type: string
+        description: '{name:mntPoint}'
+        type: object
+    type: object
+  model.AuxDepRunConfig:
+    properties:
+      command:
+        type: string
+      pseudo_tty:
+        type: boolean
+    type: object
+  model.AuxDeployment:
+    properties:
+      configs:
+        additionalProperties:
+          type: string
+        type: object
+      container:
+        $ref: '#/definitions/model.AuxDepContainer'
+      created:
+        type: string
+      dep_id:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        description: uuid
+        type: string
+      image:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      ref:
+        type: string
+      run_config:
+        $ref: '#/definitions/model.AuxDepRunConfig'
+      updated:
+        type: string
+      volumes:
+        additionalProperties:
+          type: string
+        description: '{name:mntPoint}'
+        type: object
+    type: object
+  model.ContainerInfo:
+    properties:
+      image_id:
+        description: docker image id
+        type: string
+      state:
+        description: docker container state
+        type: string
+    type: object
+  model.DepAdvertisement:
+    properties:
+      items:
+        additionalProperties:
+          type: string
+        type: object
+      module_id:
+        type: string
+      origin:
+        type: string
+      ref:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  model.DepAdvertisementBase:
+    properties:
+      items:
+        additionalProperties:
+          type: string
+        type: object
+      ref:
+        type: string
+    type: object
+  time.Duration:
+    enum:
+    - 1
+    - 1000
+    - 1000000
+    - 1000000000
+    type: integer
+    x-enum-varnames:
+    - Nanosecond
+    - Microsecond
+    - Millisecond
+    - Second
+info:
+  contact: {}
+  description: Provides access to selected deployment management functions.
+  license:
+    name: Apache-2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Module Manager restricted API
+  version: 0.7.2
+paths:
+  /aux-deployments:
+    get:
+      description: List auxiliary deployments for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: filter by aux deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: 'filter by labels (e.g.: k1=v1,k2=v2,k3)'
+        in: query
+        name: labels
+        type: string
+      - description: filter by image
+        in: query
+        name: image
+        type: string
+      - description: filter if enabled
+        enum:
+        - -1
+        - 1
+        in: query
+        name: enabled
+        type: integer
+      - description: include assets
+        in: query
+        name: assets
+        type: boolean
+      - description: include container info
+        in: query
+        name: container_info
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: auxiliary deployments
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/model.AuxDeployment'
+            type: object
+        "400":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get auxiliary deployments
+      tags:
+      - Auxiliary Deployments
+    post:
+      consumes:
+      - application/json
+      description: Create a new auxiliary deployment for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: force pull image
+        in: query
+        name: force_pull_img
+        type: boolean
+      - description: aux deployment data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.AuxDepReq'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Create auxiliary deployment
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments-batch/delete:
+    patch:
+      description: Remove auxiliary deployments for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: filter by aux deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: 'filter by labels (e.g.: k1=v1,k2=v2,k3)'
+        in: query
+        name: labels
+        type: string
+      - description: filter by image
+        in: query
+        name: image
+        type: string
+      - description: filter if enabled
+        enum:
+        - -1
+        - 1
+        in: query
+        name: enabled
+        type: integer
+      - description: force delete
+        in: query
+        name: force
+        type: boolean
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Delete auxiliary deployments
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments-batch/restart:
+    patch:
+      description: Restart auxiliary deployments for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: filter by aux deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: 'filter by labels (e.g.: k1=v1,k2=v2,k3)'
+        in: query
+        name: labels
+        type: string
+      - description: filter by image
+        in: query
+        name: image
+        type: string
+      - description: filter if enabled
+        enum:
+        - -1
+        - 1
+        in: query
+        name: enabled
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Restart auxiliary deployments
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments-batch/start:
+    patch:
+      description: Start auxiliary deployments for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: filter by aux deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: 'filter by labels (e.g.: k1=v1,k2=v2,k3)'
+        in: query
+        name: labels
+        type: string
+      - description: filter by image
+        in: query
+        name: image
+        type: string
+      - description: filter if enabled
+        enum:
+        - -1
+        - 1
+        in: query
+        name: enabled
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Start auxiliary deployments
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments-batch/stop:
+    patch:
+      description: Stop auxiliary deployments for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: filter by aux deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: 'filter by labels (e.g.: k1=v1,k2=v2,k3)'
+        in: query
+        name: labels
+        type: string
+      - description: filter by image
+        in: query
+        name: image
+        type: string
+      - description: filter if enabled
+        enum:
+        - -1
+        - 1
+        in: query
+        name: enabled
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Stop auxiliary deployments
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments/{id}:
+    delete:
+      description: Remove an auxiliary deployment for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: aux deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: force delete
+        in: query
+        name: force
+        type: boolean
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: ' job ID'
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Delete auxiliary deployment
+      tags:
+      - Auxiliary Deployments
+    get:
+      description: Get an auxiliary deployment for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: aux deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: include assets
+        in: query
+        name: assets
+        type: boolean
+      - description: include container info
+        in: query
+        name: container_info
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: auxiliary deployment
+          schema:
+            $ref: '#/definitions/model.AuxDeployment'
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get auxiliary deployment
+      tags:
+      - Auxiliary Deployments
+    patch:
+      consumes:
+      - application/json
+      description: Update an auxiliary deployment for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: aux deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: do an incremental update
+        in: query
+        name: incremental
+        type: boolean
+      - description: force pull image
+        in: query
+        name: force_pull_img
+        type: boolean
+      - description: aux deployment data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.AuxDepReq'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Update auxiliary deployment
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments/{id}/restart:
+    patch:
+      description: Restart an auxiliary deployment for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: aux deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Restart auxiliary deployment
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments/{id}/start:
+    patch:
+      description: Start an auxiliary deployment for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: aux deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Start auxiliary deployment
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments/{id}/stop:
+    patch:
+      description: Stop an auxiliary deployment for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: aux deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Stop auxiliary deployment
+      tags:
+      - Auxiliary Deployments
+  /dep-advertisements:
+    get:
+      description: Get all advertisements for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: advertisements
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/model.DepAdvertisement'
+            type: object
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get advertisements
+      tags:
+      - Deployment Advertisements
+  /dep-advertisements-batch:
+    delete:
+      description: Remove advertisements for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Delete advertisements
+      tags:
+      - Deployment Advertisements
+    put:
+      consumes:
+      - application/json
+      description: Create or update advertisements for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: advertisement data
+        in: body
+        name: advertisements
+        required: true
+        schema:
+          additionalProperties:
+            $ref: '#/definitions/model.DepAdvertisementBase'
+          type: object
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Create / Update advertisements
+      tags:
+      - Deployment Advertisements
+  /dep-advertisements/{ref}:
+    delete:
+      description: Remove an advertisement for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: advertisement reference
+        in: path
+        name: ref
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Delete advertisement
+      tags:
+      - Deployment Advertisements
+    get:
+      description: Get an advertisement for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: advertisement reference
+        in: path
+        name: ref
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: advertisement
+          schema:
+            $ref: '#/definitions/model.DepAdvertisement'
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get advertisement
+      tags:
+      - Deployment Advertisements
+    put:
+      consumes:
+      - application/json
+      description: Create or update an advertisement for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: advertisement reference
+        in: path
+        name: ref
+        required: true
+        type: string
+      - description: advertisement data
+        in: body
+        name: advertisement
+        required: true
+        schema:
+          $ref: '#/definitions/model.DepAdvertisementBase'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Create / Update advertisement
+      tags:
+      - Deployment Advertisements
+  /discovery:
+    get:
+      description: Query deployment advertisements.
+      parameters:
+      - description: filter by module ID
+        in: query
+        name: module_id
+        type: string
+      - description: filter by origin
+        in: query
+        name: origin
+        type: string
+      - description: filter by reference
+        in: query
+        name: ref
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: advertisements
+          schema:
+            items:
+              $ref: '#/definitions/model.DepAdvertisement'
+            type: array
+        "400":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Query advertisements
+      tags:
+      - Deployment Advertisements
+  /info:
+    get:
+      description: Get basic service and runtime information.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: info
+          schema:
+            $ref: '#/definitions/lib.SrvInfo'
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get service info
+      tags:
+      - Info
+  /jobs:
+    get:
+      description: List all jobs for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: status to filter by
+        enum:
+        - pending
+        - running
+        - canceled
+        - completed
+        - error
+        - ok
+        in: query
+        name: status
+        type: string
+      - description: sort in descending order
+        in: query
+        name: sort_desc
+        type: boolean
+      - description: list jobs since timestamp
+        in: query
+        name: since
+        type: string
+      - description: list jobs until timestamp
+        in: query
+        name: until
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: jobs
+          schema:
+            items:
+              $ref: '#/definitions/lib.Job'
+            type: array
+        "400":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: List jobs
+      tags:
+      - Deployment Jobs
+  /jobs/{id}:
+    get:
+      description: Get a job for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: job
+          schema:
+            $ref: '#/definitions/lib.Job'
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get job
+      tags:
+      - Deployment Jobs
+  /jobs/{id}/cancel:
+    patch:
+      description: Cancel a job for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Cancel job
+      tags:
+      - Deployment Jobs
+swagger: "2.0"

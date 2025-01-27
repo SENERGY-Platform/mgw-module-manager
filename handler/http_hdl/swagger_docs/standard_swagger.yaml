@@ -1,0 +1,2614 @@
+basePath: /
+definitions:
+  lib.Job:
+    properties:
+      canceled:
+        type: string
+      completed:
+        type: string
+      created:
+        type: string
+      description:
+        type: string
+      error:
+        $ref: '#/definitions/lib.JobErr'
+      id:
+        type: string
+      result: {}
+      started:
+        type: string
+    type: object
+  lib.JobErr:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  lib.MemStats:
+    properties:
+      alloc:
+        type: integer
+      alloc_total:
+        type: integer
+      gc_cycles:
+        type: integer
+      sys_total:
+        type: integer
+    type: object
+  lib.SrvInfo:
+    properties:
+      mem_stats:
+        $ref: '#/definitions/lib.MemStats'
+      name:
+        type: string
+      up_time:
+        $ref: '#/definitions/time.Duration'
+      version:
+        type: string
+    type: object
+  model.AuxDepContainer:
+    properties:
+      alias:
+        type: string
+      id:
+        type: string
+      info:
+        $ref: '#/definitions/model.ContainerInfo'
+    type: object
+  model.AuxDepReq:
+    properties:
+      configs:
+        additionalProperties:
+          type: string
+        type: object
+      image:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      ref:
+        description: only required by create method
+        type: string
+      run_config:
+        $ref: '#/definitions/model.AuxDepRunConfig'
+      volumes:
+        additionalProperties:
+          type: string
+        description: '{name:mntPoint}'
+        type: object
+    type: object
+  model.AuxDepRunConfig:
+    properties:
+      command:
+        type: string
+      pseudo_tty:
+        type: boolean
+    type: object
+  model.AuxDeployment:
+    properties:
+      configs:
+        additionalProperties:
+          type: string
+        type: object
+      container:
+        $ref: '#/definitions/model.AuxDepContainer'
+      created:
+        type: string
+      dep_id:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        description: uuid
+        type: string
+      image:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      ref:
+        type: string
+      run_config:
+        $ref: '#/definitions/model.AuxDepRunConfig'
+      updated:
+        type: string
+      volumes:
+        additionalProperties:
+          type: string
+        description: '{name:mntPoint}'
+        type: object
+    type: object
+  model.ContainerInfo:
+    properties:
+      image_id:
+        description: docker image id
+        type: string
+      state:
+        description: docker container state
+        type: string
+    type: object
+  model.DepAdvertisement:
+    properties:
+      items:
+        additionalProperties:
+          type: string
+        type: object
+      module_id:
+        type: string
+      origin:
+        type: string
+      ref:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  model.DepConfig:
+    properties:
+      data_type:
+        $ref: '#/definitions/module.DataType'
+      is_slice:
+        type: boolean
+      value: {}
+    type: object
+  model.DepContainer:
+    properties:
+      alias:
+        type: string
+      id:
+        type: string
+      info:
+        $ref: '#/definitions/model.ContainerInfo'
+      order:
+        type: integer
+      srv_ref:
+        type: string
+    type: object
+  model.DepCreateRequest:
+    properties:
+      configs:
+        additionalProperties: {}
+        description: '{ref:value}'
+        type: object
+      dependencies:
+        additionalProperties:
+          $ref: '#/definitions/model.DepInput'
+        type: object
+      host_resources:
+        additionalProperties:
+          type: string
+        description: '{ref:resourceID}'
+        type: object
+      module_id:
+        type: string
+      name:
+        description: defaults to module name if nil
+        type: string
+      secretRequests:
+        additionalProperties: {}
+        description: '{ref:value}'
+        type: object
+      secrets:
+        additionalProperties:
+          type: string
+        description: '{ref:secretID}'
+        type: object
+    type: object
+  model.DepInput:
+    properties:
+      configs:
+        additionalProperties: {}
+        description: '{ref:value}'
+        type: object
+      host_resources:
+        additionalProperties:
+          type: string
+        description: '{ref:resourceID}'
+        type: object
+      name:
+        description: defaults to module name if nil
+        type: string
+      secretRequests:
+        additionalProperties: {}
+        description: '{ref:value}'
+        type: object
+      secrets:
+        additionalProperties:
+          type: string
+        description: '{ref:secretID}'
+        type: object
+    type: object
+  model.DepModule:
+    properties:
+      id:
+        type: string
+      version:
+        type: string
+    type: object
+  model.DepSecret:
+    properties:
+      id:
+        type: string
+      variants:
+        items:
+          $ref: '#/definitions/model.DepSecretVariant'
+        type: array
+    type: object
+  model.DepSecretVariant:
+    properties:
+      as_env:
+        type: boolean
+      as_mount:
+        type: boolean
+      item:
+        type: string
+    type: object
+  model.DepUpdateTemplate:
+    properties:
+      configs:
+        additionalProperties:
+          $ref: '#/definitions/model.InputTemplateConfig'
+        description: '{ref:ConfigInput}'
+        type: object
+      host_resources:
+        additionalProperties:
+          $ref: '#/definitions/model.InputTemplateHostRes'
+        description: '{ref:ResourceInput}'
+        type: object
+      input_groups:
+        additionalProperties:
+          $ref: '#/definitions/module.InputGroup'
+        description: '{ref:InputGroup}'
+        type: object
+      name:
+        type: string
+      secrets:
+        additionalProperties:
+          $ref: '#/definitions/model.InputTemplateSecret'
+        description: '{ref:SecretInput}'
+        type: object
+    type: object
+  model.Deployment:
+    properties:
+      configs:
+        additionalProperties:
+          $ref: '#/definitions/model.DepConfig'
+        description: '{ref:DepConfig}'
+        type: object
+      containers:
+        additionalProperties:
+          $ref: '#/definitions/model.DepContainer'
+        description: '{ref:DepContainer}'
+        type: object
+      created:
+        type: string
+      dep_requiring:
+        description: deployments requiring this deployment
+        items:
+          type: string
+        type: array
+      dir:
+        type: string
+      enabled:
+        type: boolean
+      host_resources:
+        additionalProperties:
+          type: string
+        description: '{ref:resourceID}'
+        type: object
+      id:
+        type: string
+      indirect:
+        type: boolean
+      module:
+        $ref: '#/definitions/model.DepModule'
+      name:
+        type: string
+      required_dep:
+        description: deployments required by this deployment
+        items:
+          type: string
+        type: array
+      secrets:
+        additionalProperties:
+          $ref: '#/definitions/model.DepSecret'
+        description: '{ref:DepSecret}'
+        type: object
+      state:
+        $ref: '#/definitions/model.HealthState'
+      updated:
+        type: string
+    type: object
+  model.HealthState:
+    enum:
+    - healthy
+    - unhealthy
+    - transitioning
+    type: string
+    x-enum-varnames:
+    - DepHealthy
+    - DepUnhealthy
+    - DepTrans
+  model.InputTemplate:
+    properties:
+      configs:
+        additionalProperties:
+          $ref: '#/definitions/model.InputTemplateConfig'
+        description: '{ref:ConfigInput}'
+        type: object
+      host_resources:
+        additionalProperties:
+          $ref: '#/definitions/model.InputTemplateHostRes'
+        description: '{ref:ResourceInput}'
+        type: object
+      input_groups:
+        additionalProperties:
+          $ref: '#/definitions/module.InputGroup'
+        description: '{ref:InputGroup}'
+        type: object
+      secrets:
+        additionalProperties:
+          $ref: '#/definitions/model.InputTemplateSecret'
+        description: '{ref:SecretInput}'
+        type: object
+    type: object
+  model.InputTemplateConfig:
+    properties:
+      data_type:
+        $ref: '#/definitions/module.DataType'
+      default: {}
+      description:
+        type: string
+      group:
+        type: string
+      is_list:
+        type: boolean
+      name:
+        type: string
+      opt_ext:
+        type: boolean
+      options: {}
+      required:
+        type: boolean
+      type:
+        type: string
+      type_opt:
+        additionalProperties: {}
+        type: object
+      value: {}
+    type: object
+  model.InputTemplateHostRes:
+    properties:
+      description:
+        type: string
+      group:
+        type: string
+      name:
+        type: string
+      required:
+        type: boolean
+      tags:
+        $ref: '#/definitions/util.Set-string'
+      value: {}
+    type: object
+  model.InputTemplateSecret:
+    properties:
+      description:
+        type: string
+      group:
+        type: string
+      name:
+        type: string
+      required:
+        type: boolean
+      tags:
+        $ref: '#/definitions/util.Set-string'
+      type:
+        type: string
+      value: {}
+    type: object
+  model.ModAddRequest:
+    properties:
+      id:
+        type: string
+      version:
+        type: string
+    type: object
+  model.ModDeployTemplate:
+    properties:
+      configs:
+        additionalProperties:
+          $ref: '#/definitions/model.InputTemplateConfig'
+        description: '{ref:ConfigInput}'
+        type: object
+      dependencies:
+        additionalProperties:
+          $ref: '#/definitions/model.InputTemplate'
+        type: object
+      host_resources:
+        additionalProperties:
+          $ref: '#/definitions/model.InputTemplateHostRes'
+        description: '{ref:ResourceInput}'
+        type: object
+      input_groups:
+        additionalProperties:
+          $ref: '#/definitions/module.InputGroup'
+        description: '{ref:InputGroup}'
+        type: object
+      secrets:
+        additionalProperties:
+          $ref: '#/definitions/model.InputTemplateSecret'
+        description: '{ref:SecretInput}'
+        type: object
+    type: object
+  model.ModUpdate:
+    properties:
+      checked:
+        type: string
+      pending:
+        type: boolean
+      pending_versions:
+        additionalProperties:
+          type: string
+        type: object
+      versions:
+        items:
+          type: string
+        type: array
+    type: object
+  model.ModUpdatePrepareRequest:
+    properties:
+      version:
+        type: string
+    type: object
+  model.ModUpdateRequest:
+    properties:
+      configs:
+        additionalProperties: {}
+        description: '{ref:value}'
+        type: object
+      dependencies:
+        additionalProperties:
+          $ref: '#/definitions/model.DepInput'
+        type: object
+      host_resources:
+        additionalProperties:
+          type: string
+        description: '{ref:resourceID}'
+        type: object
+      name:
+        description: defaults to module name if nil
+        type: string
+      secretRequests:
+        additionalProperties: {}
+        description: '{ref:value}'
+        type: object
+      secrets:
+        additionalProperties:
+          type: string
+        description: '{ref:secretID}'
+        type: object
+    type: object
+  model.ModUpdateTemplate:
+    properties:
+      configs:
+        additionalProperties:
+          $ref: '#/definitions/model.InputTemplateConfig'
+        description: '{ref:ConfigInput}'
+        type: object
+      dependencies:
+        additionalProperties:
+          $ref: '#/definitions/model.InputTemplate'
+        type: object
+      host_resources:
+        additionalProperties:
+          $ref: '#/definitions/model.InputTemplateHostRes'
+        description: '{ref:ResourceInput}'
+        type: object
+      input_groups:
+        additionalProperties:
+          $ref: '#/definitions/module.InputGroup'
+        description: '{ref:InputGroup}'
+        type: object
+      secrets:
+        additionalProperties:
+          $ref: '#/definitions/model.InputTemplateSecret'
+        description: '{ref:SecretInput}'
+        type: object
+    type: object
+  model.Module:
+    properties:
+      added:
+        type: string
+      architectures:
+        $ref: '#/definitions/util.Set-module_CPUArch'
+      author:
+        type: string
+      aux_img_src:
+        $ref: '#/definitions/util.Set-string'
+      aux_services:
+        additionalProperties:
+          $ref: '#/definitions/module.AuxService'
+        description: '{ref:AuxService}'
+        type: object
+      configs:
+        allOf:
+        - $ref: '#/definitions/module.Configs'
+        description: '{ref:ConfigValue}'
+      dependencies:
+        additionalProperties:
+          type: string
+        description: '{moduleID:moduleVersion}'
+        type: object
+      deployment_type:
+        $ref: '#/definitions/module.DeploymentType'
+      description:
+        type: string
+      host_resources:
+        additionalProperties:
+          $ref: '#/definitions/module.HostResource'
+        description: '{ref:{tag}}'
+        type: object
+      id:
+        type: string
+      inputs:
+        $ref: '#/definitions/module.Inputs'
+      license:
+        type: string
+      name:
+        type: string
+      secrets:
+        additionalProperties:
+          $ref: '#/definitions/module.Secret'
+        description: '{ref:Secret}'
+        type: object
+      services:
+        additionalProperties:
+          $ref: '#/definitions/module.Service'
+        description: '{ref:Service}'
+        type: object
+      tags:
+        $ref: '#/definitions/util.Set-string'
+      type:
+        $ref: '#/definitions/module.ModuleType'
+      updated:
+        type: string
+      version:
+        type: string
+      volumes:
+        allOf:
+        - $ref: '#/definitions/util.Set-string'
+        description: '{volName}'
+    type: object
+  module.AuxService:
+    properties:
+      bind_mounts:
+        additionalProperties:
+          $ref: '#/definitions/module.BindMount'
+        description: '{mntPoint:BindMount}'
+        type: object
+      configs:
+        additionalProperties:
+          type: string
+        description: '{refVar:ref}'
+        type: object
+      ext_dependencies:
+        additionalProperties:
+          $ref: '#/definitions/module.ExtDependencyTarget'
+        description: '{refVar:ExtDependencyTarget}'
+        type: object
+      name:
+        type: string
+      run_config:
+        $ref: '#/definitions/module.RunConfig'
+      srv_references:
+        additionalProperties:
+          $ref: '#/definitions/module.SrvRefTarget'
+        description: '{refVar:SrvRefTarget}'
+        type: object
+      tmpfs:
+        additionalProperties:
+          $ref: '#/definitions/module.TmpfsMount'
+        description: '{mntPoint:TmpfsMount}'
+        type: object
+      volumes:
+        additionalProperties:
+          type: string
+        description: '{mntPoint:volName}'
+        type: object
+    type: object
+  module.BindMount:
+    properties:
+      read_only:
+        type: boolean
+      source:
+        type: string
+    type: object
+  module.ConfigTypeOptions:
+    additionalProperties:
+      $ref: '#/definitions/module.configTypeOption'
+    type: object
+  module.Configs:
+    additionalProperties:
+      $ref: '#/definitions/module.configValue'
+    type: object
+  module.DataType:
+    enum:
+    - bool
+    - int
+    - float
+    - string
+    type: string
+    x-enum-varnames:
+    - BoolType
+    - Int64Type
+    - Float64Type
+    - StringType
+  module.DeploymentType:
+    enum:
+    - single
+    - multiple
+    type: string
+    x-enum-varnames:
+    - SingleDeployment
+    - MultipleDeployment
+  module.ExtDependencyTarget:
+    properties:
+      id:
+        type: string
+      service:
+        type: string
+      template:
+        type: string
+    type: object
+  module.HostResTarget:
+    properties:
+      read_only:
+        type: boolean
+      ref:
+        type: string
+    type: object
+  module.HostResource:
+    properties:
+      required:
+        type: boolean
+      tags:
+        $ref: '#/definitions/util.Set-string'
+    type: object
+  module.HttpEndpoint:
+    properties:
+      name:
+        type: string
+      path:
+        description: internal path
+        type: string
+      port:
+        type: integer
+      proxy_conf:
+        $ref: '#/definitions/module.HttpEndpointProxyConf'
+      string_sub:
+        $ref: '#/definitions/module.HttpEndpointStrSub'
+    type: object
+  module.HttpEndpointProxyConf:
+    properties:
+      headers:
+        additionalProperties:
+          type: string
+        type: object
+      read_timeout:
+        $ref: '#/definitions/time.Duration'
+      websocket:
+        type: boolean
+    type: object
+  module.HttpEndpointStrSub:
+    properties:
+      filters:
+        additionalProperties:
+          type: string
+        type: object
+      mime_types:
+        items:
+          type: string
+        type: array
+      replace_once:
+        type: boolean
+    type: object
+  module.Input:
+    properties:
+      description:
+        type: string
+      group:
+        type: string
+      name:
+        type: string
+    type: object
+  module.InputGroup:
+    properties:
+      description:
+        type: string
+      group:
+        type: string
+      name:
+        type: string
+    type: object
+  module.Inputs:
+    properties:
+      configs:
+        additionalProperties:
+          $ref: '#/definitions/module.Input'
+        description: '{ref:Input}'
+        type: object
+      groups:
+        additionalProperties:
+          $ref: '#/definitions/module.InputGroup'
+        description: '{ref:InputGroup}'
+        type: object
+      resources:
+        additionalProperties:
+          $ref: '#/definitions/module.Input'
+        description: '{ref:Input}'
+        type: object
+      secrets:
+        additionalProperties:
+          $ref: '#/definitions/module.Input'
+        description: '{ref:Input}'
+        type: object
+    type: object
+  module.ModuleType:
+    enum:
+    - add-on
+    - device-connector
+    type: string
+    x-enum-varnames:
+    - AddOnModule
+    - DeviceConnectorModule
+  module.Port:
+    properties:
+      bindings:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      number:
+        type: integer
+      protocol:
+        $ref: '#/definitions/module.PortProtocol'
+    type: object
+  module.PortProtocol:
+    enum:
+    - tcp
+    - udp
+    type: string
+    x-enum-varnames:
+    - TcpPort
+    - UdpPort
+  module.RunConfig:
+    properties:
+      command:
+        items:
+          type: string
+        type: array
+      max_retries:
+        type: integer
+      pseudo_tty:
+        type: boolean
+      run_once:
+        type: boolean
+      stop_signal:
+        type: string
+      stop_timeout:
+        $ref: '#/definitions/time.Duration'
+    type: object
+  module.Secret:
+    properties:
+      required:
+        type: boolean
+      tags:
+        $ref: '#/definitions/util.Set-string'
+      type:
+        type: string
+    type: object
+  module.SecretTarget:
+    properties:
+      item:
+        type: string
+      ref:
+        type: string
+    type: object
+  module.Service:
+    properties:
+      bind_mounts:
+        additionalProperties:
+          $ref: '#/definitions/module.BindMount'
+        description: '{mntPoint:BindMount}'
+        type: object
+      configs:
+        additionalProperties:
+          type: string
+        description: '{refVar:ref}'
+        type: object
+      ext_dependencies:
+        additionalProperties:
+          $ref: '#/definitions/module.ExtDependencyTarget'
+        description: '{refVar:ExtDependencyTarget}'
+        type: object
+      host_resources:
+        additionalProperties:
+          $ref: '#/definitions/module.HostResTarget'
+        description: '{mntPoint:HostResTarget}'
+        type: object
+      http_endpoints:
+        additionalProperties:
+          $ref: '#/definitions/module.HttpEndpoint'
+        description: '{externalPath:HttpEndpoint}'
+        type: object
+      image:
+        type: string
+      name:
+        type: string
+      ports:
+        items:
+          $ref: '#/definitions/module.Port'
+        type: array
+      required_by_srv:
+        allOf:
+        - $ref: '#/definitions/util.Set-string'
+        description: '{ref}'
+      required_srv:
+        allOf:
+        - $ref: '#/definitions/util.Set-string'
+        description: '{ref}'
+      run_config:
+        $ref: '#/definitions/module.RunConfig'
+      secret_mounts:
+        additionalProperties:
+          $ref: '#/definitions/module.SecretTarget'
+        description: '{mntPoint:SecretTarget}'
+        type: object
+      secret_vars:
+        additionalProperties:
+          $ref: '#/definitions/module.SecretTarget'
+        description: '{refVar:SecretTarget}'
+        type: object
+      srv_references:
+        additionalProperties:
+          $ref: '#/definitions/module.SrvRefTarget'
+        description: '{refVar:SrvRefTarget}'
+        type: object
+      tmpfs:
+        additionalProperties:
+          $ref: '#/definitions/module.TmpfsMount'
+        description: '{mntPoint:TmpfsMount}'
+        type: object
+      volumes:
+        additionalProperties:
+          type: string
+        description: '{mntPoint:volName}'
+        type: object
+    type: object
+  module.SrvRefTarget:
+    properties:
+      ref:
+        type: string
+      template:
+        type: string
+    type: object
+  module.TmpfsMount:
+    properties:
+      mode:
+        type: integer
+      size:
+        type: integer
+    type: object
+  module.configTypeOption:
+    properties:
+      data_type:
+        $ref: '#/definitions/module.DataType'
+      value: {}
+    type: object
+  module.configValue:
+    properties:
+      data_type:
+        $ref: '#/definitions/module.DataType'
+      default: {}
+      delimiter:
+        type: string
+      is_slice:
+        type: boolean
+      opt_ext:
+        type: boolean
+      options: {}
+      required:
+        type: boolean
+      type:
+        type: string
+      type_opt:
+        $ref: '#/definitions/module.ConfigTypeOptions'
+    type: object
+  time.Duration:
+    enum:
+    - 1
+    - 1000
+    - 1000000
+    - 1000000000
+    - 60000000000
+    - 3600000000000
+    type: integer
+    x-enum-varnames:
+    - Nanosecond
+    - Microsecond
+    - Millisecond
+    - Second
+    - Minute
+    - Hour
+  util.Set-module_CPUArch:
+    additionalProperties:
+      type: object
+    type: object
+  util.Set-string:
+    additionalProperties:
+      type: object
+    type: object
+info:
+  contact: {}
+  description: Provides access to module and deployment management functions.
+  license:
+    name: Apache-2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Module Manager API
+  version: 0.7.2
+paths:
+  /aux-deployments:
+    get:
+      description: List auxiliary deployments for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: filter by aux deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: 'filter by labels (e.g.: k1=v1,k2=v2,k3)'
+        in: query
+        name: labels
+        type: string
+      - description: filter by image
+        in: query
+        name: image
+        type: string
+      - description: filter if enabled
+        enum:
+        - -1
+        - 1
+        in: query
+        name: enabled
+        type: integer
+      - description: include assets
+        in: query
+        name: assets
+        type: boolean
+      - description: include container info
+        in: query
+        name: container_info
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: auxiliary deployments
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/model.AuxDeployment'
+            type: object
+        "400":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get auxiliary deployments
+      tags:
+      - Auxiliary Deployments
+    post:
+      consumes:
+      - application/json
+      description: Create a new auxiliary deployment for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: force pull image
+        in: query
+        name: force_pull_img
+        type: boolean
+      - description: aux deployment data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.AuxDepReq'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Create auxiliary deployment
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments-batch/delete:
+    patch:
+      description: Remove auxiliary deployments for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: filter by aux deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: 'filter by labels (e.g.: k1=v1,k2=v2,k3)'
+        in: query
+        name: labels
+        type: string
+      - description: filter by image
+        in: query
+        name: image
+        type: string
+      - description: filter if enabled
+        enum:
+        - -1
+        - 1
+        in: query
+        name: enabled
+        type: integer
+      - description: force delete
+        in: query
+        name: force
+        type: boolean
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Delete auxiliary deployments
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments-batch/restart:
+    patch:
+      description: Restart auxiliary deployments for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: filter by aux deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: 'filter by labels (e.g.: k1=v1,k2=v2,k3)'
+        in: query
+        name: labels
+        type: string
+      - description: filter by image
+        in: query
+        name: image
+        type: string
+      - description: filter if enabled
+        enum:
+        - -1
+        - 1
+        in: query
+        name: enabled
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Restart auxiliary deployments
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments-batch/start:
+    patch:
+      description: Start auxiliary deployments for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: filter by aux deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: 'filter by labels (e.g.: k1=v1,k2=v2,k3)'
+        in: query
+        name: labels
+        type: string
+      - description: filter by image
+        in: query
+        name: image
+        type: string
+      - description: filter if enabled
+        enum:
+        - -1
+        - 1
+        in: query
+        name: enabled
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Start auxiliary deployments
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments-batch/stop:
+    patch:
+      description: Stop auxiliary deployments for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: filter by aux deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: 'filter by labels (e.g.: k1=v1,k2=v2,k3)'
+        in: query
+        name: labels
+        type: string
+      - description: filter by image
+        in: query
+        name: image
+        type: string
+      - description: filter if enabled
+        enum:
+        - -1
+        - 1
+        in: query
+        name: enabled
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Stop auxiliary deployments
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments/{id}:
+    delete:
+      description: Remove an auxiliary deployment for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: aux deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: force delete
+        in: query
+        name: force
+        type: boolean
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: ' job ID'
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Delete auxiliary deployment
+      tags:
+      - Auxiliary Deployments
+    get:
+      description: Get an auxiliary deployment for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: aux deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: include assets
+        in: query
+        name: assets
+        type: boolean
+      - description: include container info
+        in: query
+        name: container_info
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: auxiliary deployment
+          schema:
+            $ref: '#/definitions/model.AuxDeployment'
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get auxiliary deployment
+      tags:
+      - Auxiliary Deployments
+    patch:
+      consumes:
+      - application/json
+      description: Update an auxiliary deployment for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: aux deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: do an incremental update
+        in: query
+        name: incremental
+        type: boolean
+      - description: force pull image
+        in: query
+        name: force_pull_img
+        type: boolean
+      - description: aux deployment data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.AuxDepReq'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Update auxiliary deployment
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments/{id}/restart:
+    patch:
+      description: Restart an auxiliary deployment for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: aux deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Restart auxiliary deployment
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments/{id}/start:
+    patch:
+      description: Start an auxiliary deployment for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: aux deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Start auxiliary deployment
+      tags:
+      - Auxiliary Deployments
+  /aux-deployments/{id}/stop:
+    patch:
+      description: Stop an auxiliary deployment for the current deployment.
+      parameters:
+      - description: deployment ID
+        in: header
+        name: X-MGW-DID
+        required: true
+        type: string
+      - description: aux deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Stop auxiliary deployment
+      tags:
+      - Auxiliary Deployments
+  /deployments:
+    get:
+      description: Get all deployments.
+      parameters:
+      - collectionFormat: csv
+        description: filter by deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: filter by name
+        in: query
+        name: name
+        type: string
+      - description: filter by module ID
+        in: query
+        name: module_id
+        type: string
+      - description: filter by enabled status
+        in: query
+        name: enabled
+        type: string
+      - description: filter by indirect status
+        in: query
+        name: indirect
+        type: string
+      - description: include assets
+        in: query
+        name: assets
+        type: boolean
+      - description: include container info
+        in: query
+        name: container_info
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: deployments
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/model.Deployment'
+            type: object
+        "400":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get Deployments
+      tags:
+      - Deployments
+    post:
+      consumes:
+      - application/json
+      description: Create a new deployment.
+      parameters:
+      - description: deployment data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.DepCreateRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Create deployment
+      tags:
+      - Deployments
+  /deployments-batch/delete:
+    patch:
+      description: Delete multiple deployments.
+      parameters:
+      - collectionFormat: csv
+        description: filter by deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: filter by name
+        in: query
+        name: name
+        type: string
+      - description: filter by module ID
+        in: query
+        name: module_id
+        type: string
+      - description: filter by enabled status
+        in: query
+        name: enabled
+        type: string
+      - description: filter by indirect status
+        in: query
+        name: indirect
+        type: string
+      - description: toggle force delete
+        in: query
+        name: force
+        type: boolean
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Delete deployments
+      tags:
+      - Deployments
+  /deployments-batch/restart:
+    patch:
+      description: Restart multiple deployments.
+      parameters:
+      - collectionFormat: csv
+        description: filter by deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: filter by name
+        in: query
+        name: name
+        type: string
+      - description: filter by module ID
+        in: query
+        name: module_id
+        type: string
+      - description: filter by enabled status
+        in: query
+        name: enabled
+        type: string
+      - description: filter by indirect status
+        in: query
+        name: indirect
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Restart deployments
+      tags:
+      - Deployments
+  /deployments-batch/start:
+    patch:
+      description: Start multiple deployments.
+      parameters:
+      - collectionFormat: csv
+        description: filter by deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: filter by name
+        in: query
+        name: name
+        type: string
+      - description: filter by module ID
+        in: query
+        name: module_id
+        type: string
+      - description: filter by enabled status
+        in: query
+        name: enabled
+        type: string
+      - description: filter by indirect status
+        in: query
+        name: indirect
+        type: string
+      - description: toggle start dependencies
+        in: query
+        name: dependencies
+        type: boolean
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Start deployments
+      tags:
+      - Deployments
+  /deployments-batch/stop:
+    patch:
+      description: Stop multiple deployments.
+      parameters:
+      - collectionFormat: csv
+        description: filter by deployment ids
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
+      - description: filter by name
+        in: query
+        name: name
+        type: string
+      - description: filter by module ID
+        in: query
+        name: module_id
+        type: string
+      - description: filter by enabled status
+        in: query
+        name: enabled
+        type: string
+      - description: filter by indirect status
+        in: query
+        name: indirect
+        type: string
+      - description: toggle force stop
+        in: query
+        name: force
+        type: boolean
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Stop deployments
+      tags:
+      - Deployments
+  /deployments/{id}:
+    delete:
+      description: Delete a deployment.
+      parameters:
+      - description: deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: toggle force delete
+        in: query
+        name: force
+        type: boolean
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Delete deployment
+      tags:
+      - Deployments
+    get:
+      description: Get a deployment.
+      parameters:
+      - description: deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: include assets
+        in: query
+        name: assets
+        type: boolean
+      - description: include container info
+        in: query
+        name: container_info
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: deployment
+          schema:
+            $ref: '#/definitions/model.Deployment'
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get deployment
+      tags:
+      - Deployments
+    patch:
+      consumes:
+      - application/json
+      description: Update a deployment.
+      parameters:
+      - description: deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: deployment data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.DepInput'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Update deployment
+      tags:
+      - Deployments
+  /deployments/{id}/restart:
+    patch:
+      description: Restart a deployment.
+      parameters:
+      - description: deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Restart deployment
+      tags:
+      - Deployments
+  /deployments/{id}/start:
+    patch:
+      description: Start a deployment.
+      parameters:
+      - description: deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: toggle start dependencies
+        in: query
+        name: dependencies
+        type: boolean
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Start deployment
+      tags:
+      - Deployments
+  /deployments/{id}/stop:
+    patch:
+      description: Stop a deployment.
+      parameters:
+      - description: deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: toggle force stop
+        in: query
+        name: force
+        type: boolean
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Stop deployment
+      tags:
+      - Deployments
+  /deployments/{id}/upt-template:
+    get:
+      description: Get a template for updating a deployment.
+      parameters:
+      - description: deployment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: template
+          schema:
+            $ref: '#/definitions/model.DepUpdateTemplate'
+        "404":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get update template
+      tags:
+      - Deployments
+  /discovery:
+    get:
+      description: Query deployment advertisements.
+      parameters:
+      - description: filter by module ID
+        in: query
+        name: module_id
+        type: string
+      - description: filter by origin
+        in: query
+        name: origin
+        type: string
+      - description: filter by reference
+        in: query
+        name: ref
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: advertisements
+          schema:
+            items:
+              $ref: '#/definitions/model.DepAdvertisement'
+            type: array
+        "400":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Query advertisements
+      tags:
+      - Deployment Advertisements
+  /info:
+    get:
+      description: Get basic service and runtime information.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: info
+          schema:
+            $ref: '#/definitions/lib.SrvInfo'
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get service info
+      tags:
+      - Info
+  /jobs:
+    get:
+      description: List all jobs.
+      parameters:
+      - description: status to filter by
+        enum:
+        - pending
+        - running
+        - canceled
+        - completed
+        - error
+        - ok
+        in: query
+        name: status
+        type: string
+      - description: sort in descending order
+        in: query
+        name: sort_desc
+        type: boolean
+      - description: list jobs since timestamp
+        in: query
+        name: since
+        type: string
+      - description: list jobs until timestamp
+        in: query
+        name: until
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: jobs
+          schema:
+            items:
+              $ref: '#/definitions/lib.Job'
+            type: array
+        "400":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: List jobs
+      tags:
+      - Jobs
+  /jobs/{id}:
+    get:
+      description: Get a job.
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: job
+          schema:
+            $ref: '#/definitions/lib.Job'
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get job
+      tags:
+      - Jobs
+  /jobs/{id}/cancel:
+    patch:
+      description: Cancels a job.
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Cancel job
+      tags:
+      - Jobs
+  /modules:
+    get:
+      description: List installed modules.
+      parameters:
+      - description: filter by name
+        in: query
+        name: name
+        type: string
+      - description: filter by author
+        in: query
+        name: author
+        type: string
+      - description: filter by type
+        in: query
+        name: type
+        type: string
+      - description: filter by deployment type
+        in: query
+        name: deployment_type
+        type: string
+      - collectionFormat: csv
+        description: filter by tags
+        in: query
+        items:
+          type: string
+        name: tags
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: modules
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/model.Module'
+            type: object
+        "400":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get modules
+      tags:
+      - Modules
+    post:
+      consumes:
+      - application/json
+      description: Download a module.
+      parameters:
+      - description: module info
+        in: body
+        name: info
+        required: true
+        schema:
+          $ref: '#/definitions/model.ModAddRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Add module
+      tags:
+      - Modules
+  /modules/{id}:
+    delete:
+      description: Remove a module.
+      parameters:
+      - description: module ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: force remove
+        in: query
+        name: force
+        type: boolean
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Delete module
+      tags:
+      - Modules
+    get:
+      description: Get an installed module.
+      parameters:
+      - description: module ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: module
+          schema:
+            $ref: '#/definitions/model.Module'
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get module
+      tags:
+      - Modules
+  /modules/{id}/dep-template:
+    get:
+      description: Get a template for the deployment of a module.
+      parameters:
+      - description: module ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: template
+          schema:
+            $ref: '#/definitions/model.ModDeployTemplate'
+        "404":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get deployment template
+      tags:
+      - Modules
+  /updates:
+    get:
+      description: List available module updates.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: module updates
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/model.ModUpdate'
+            type: object
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get module updates
+      tags:
+      - Modules
+    post:
+      description: Check for new module updates.
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Check module updates
+      tags:
+      - Modules
+  /updates/{id}:
+    get:
+      description: Get module update info.
+      parameters:
+      - description: module ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: update info
+          schema:
+            $ref: '#/definitions/model.ModUpdate'
+        "404":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get module update
+      tags:
+      - Modules
+    patch:
+      consumes:
+      - application/json
+      description: Execute a pending module update. Dependencies and existing deployments
+        will also be updated.
+      parameters:
+      - description: module ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: update data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.ModUpdateRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Update module
+      tags:
+      - Modules
+  /updates/{id}/cancel:
+    patch:
+      description: Cancel a pending module update.
+      parameters:
+      - description: module ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Cancel module update
+      tags:
+      - Modules
+  /updates/{id}/prepare:
+    patch:
+      consumes:
+      - application/json
+      description: Checks dependencies, downloads and marks update as pending.
+      parameters:
+      - description: module ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: module info
+        in: body
+        name: info
+        required: true
+        schema:
+          $ref: '#/definitions/model.ModUpdatePrepareRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: job ID
+          schema:
+            type: string
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Prepare module update
+      tags:
+      - Modules
+  /updates/{id}/upt-template:
+    get:
+      description: Get update template for pending module update.
+      parameters:
+      - description: module ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: template
+          schema:
+            $ref: '#/definitions/model.ModUpdateTemplate'
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "409":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get module update template
+      tags:
+      - Modules
+swagger: "2.0"
