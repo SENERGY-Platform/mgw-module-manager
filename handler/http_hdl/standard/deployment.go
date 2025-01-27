@@ -148,6 +148,7 @@ func getDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
 // @Success	200 {string} string "job ID"
 // @Failure	400 {string} string "error message"
 // @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
 // @Failure	500 {string} string "error message"
 // @Router /deployments [post]
 func postDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
@@ -178,6 +179,7 @@ func postDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
 // @Success	200 {string} string "job ID"
 // @Failure	400 {string} string "error message"
 // @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
 // @Failure	500 {string} string "error message"
 // @Router /deployments/{id} [patch]
 func patchDeploymentUpdateH(a lib.Api) (string, string, gin.HandlerFunc) {
@@ -207,6 +209,7 @@ func patchDeploymentUpdateH(a lib.Api) (string, string, gin.HandlerFunc) {
 // @Success	200 {string} string "job ID"
 // @Failure	400 {string} string "error message"
 // @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
 // @Failure	500 {string} string "error message"
 // @Router /deployments/{id}/start [patch]
 func patchDeploymentStartH(a lib.Api) (string, string, gin.HandlerFunc) {
@@ -238,7 +241,7 @@ func patchDeploymentStartH(a lib.Api) (string, string, gin.HandlerFunc) {
 // @Param dependencies query bool false "toggle start dependencies"
 // @Success	200 {string} string "job ID"
 // @Failure	400 {string} string "error message"
-// @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
 // @Failure	500 {string} string "error message"
 // @Router /deployments-batch/start [patch]
 func patchDeploymentsStartH(a lib.Api) (string, string, gin.HandlerFunc) {
@@ -273,6 +276,7 @@ func patchDeploymentsStartH(a lib.Api) (string, string, gin.HandlerFunc) {
 // @Success	200 {string} string "job ID"
 // @Failure	400 {string} string "error message"
 // @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
 // @Failure	500 {string} string "error message"
 // @Router /deployments/{id}/stop [patch]
 func patchDeploymentStopH(a lib.Api) (string, string, gin.HandlerFunc) {
@@ -304,7 +308,7 @@ func patchDeploymentStopH(a lib.Api) (string, string, gin.HandlerFunc) {
 // @Param force query bool false "toggle force stop"
 // @Success	200 {string} string "job ID"
 // @Failure	400 {string} string "error message"
-// @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
 // @Failure	500 {string} string "error message"
 // @Router /deployments-batch/stop [patch]
 func patchDeploymentsStopH(a lib.Api) (string, string, gin.HandlerFunc) {
@@ -337,6 +341,7 @@ func patchDeploymentsStopH(a lib.Api) (string, string, gin.HandlerFunc) {
 // @Param id path string true "deployment ID"
 // @Success	200 {string} string "job ID"
 // @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
 // @Failure	500 {string} string "error message"
 // @Router /deployments/{id}/restart [patch]
 func patchDeploymentRestartH(a lib.Api) (string, string, gin.HandlerFunc) {
@@ -362,7 +367,7 @@ func patchDeploymentRestartH(a lib.Api) (string, string, gin.HandlerFunc) {
 // @Param indirect query string false "filter by indirect status"
 // @Success	200 {string} string "job ID"
 // @Failure	400 {string} string "error message"
-// @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
 // @Failure	500 {string} string "error message"
 // @Router /deployments-batch/restart [patch]
 func patchDeploymentsRestartH(a lib.Api) (string, string, gin.HandlerFunc) {
@@ -397,6 +402,7 @@ func patchDeploymentsRestartH(a lib.Api) (string, string, gin.HandlerFunc) {
 // @Success	200 {string} string "job ID"
 // @Failure	400 {string} string "error message"
 // @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
 // @Failure	500 {string} string "error message"
 // @Router /deployments/{id} [delete]
 func deleteDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
@@ -428,7 +434,7 @@ func deleteDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
 // @Param force query bool false "toggle force delete"
 // @Success	200 {string} string "job ID"
 // @Failure	400 {string} string "error message"
-// @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
 // @Failure	500 {string} string "error message"
 // @Router /deployments-batch/delete [patch]
 func patchDeploymentsDeleteH(a lib.Api) (string, string, gin.HandlerFunc) {
@@ -461,6 +467,7 @@ func patchDeploymentsDeleteH(a lib.Api) (string, string, gin.HandlerFunc) {
 // @Param id path string true "deployment ID"
 // @Success	200 {object} lib_model.DepUpdateTemplate "template"
 // @Failure	404 {string} string "error message"
+// @Failure	409 {string} string "error message"
 // @Failure	500 {string} string "error message"
 // @Router /deployments/{id}/upt-template [get]
 func getDeploymentUpdateTemplateH(a lib.Api) (string, string, gin.HandlerFunc) {
