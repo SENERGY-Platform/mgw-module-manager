@@ -33,6 +33,19 @@ type jobsQuery struct {
 	Until    string `form:"until"`
 }
 
+// getJobsH godoc
+// @Summary List jobs
+// @Description	List all jobs.
+// @Tags Jobs
+// @Produce	json
+// @Param status query string false "status to filter by" Enums(pending, running, canceled, completed, error, ok)
+// @Param sort_desc query bool false "sort in descending order"
+// @Param since query string false "list jobs since timestamp"
+// @Param until query string false "list jobs until timestamp"
+// @Success	200 {array} job_hdl_lib.Job "jobs"
+// @Failure	400 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /jobs [get]
 func getJobsH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_model.JobsPath, func(gc *gin.Context) {
 		query := jobsQuery{}
@@ -65,6 +78,16 @@ func getJobsH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// getJobH godoc
+// @Summary Get job
+// @Description	Get a job.
+// @Tags Jobs
+// @Produce	json
+// @Param id path string true "job id"
+// @Success	200 {object} job_hdl_lib.Job "job"
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /jobs/{id} [get]
 func getJobH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, path.Join(lib_model.JobsPath, ":id"), func(gc *gin.Context) {
 		job, err := a.GetJob(gc.Request.Context(), gc.Param("id"))
@@ -76,6 +99,15 @@ func getJobH(a lib.Api) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// patchJobCancelH godoc
+// @Summary Cancel job
+// @Description	Cancels a job.
+// @Tags Jobs
+// @Param id path string true "job id"
+// @Success	200
+// @Failure	404 {string} string "error message"
+// @Failure	500 {string} string "error message"
+// @Router /jobs/{id}/cancel [patch]
 func patchJobCancelH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, path.Join(lib_model.JobsPath, ":id", lib_model.JobsCancelPath), func(gc *gin.Context) {
 		err := a.CancelJob(gc.Request.Context(), gc.Param("id"))
