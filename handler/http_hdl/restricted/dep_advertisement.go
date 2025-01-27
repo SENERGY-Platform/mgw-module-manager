@@ -28,7 +28,7 @@ import (
 // getDepAdvertisementH godoc
 // @Summary Get advertisement
 // @Description Get an advertisement for the current deployment.
-// @Tags Deployment Advertisement
+// @Tags Deployment Advertisements
 // @Produce	json
 // @Param X-MGW-DID header string true "deployment ID"
 // @Param ref path string true "advertisement reference"
@@ -50,7 +50,7 @@ func getDepAdvertisementH(a lib.Api) (string, string, gin.HandlerFunc) {
 // getDepAdvertisementsH godoc
 // @Summary Get advertisements
 // @Description Get all advertisements for the current deployment.
-// @Tags Deployment Advertisement
+// @Tags Deployment Advertisements
 // @Produce	json
 // @Param X-MGW-DID header string true "deployment ID"
 // @Success	200 {object} map[string]lib_model.DepAdvertisement "advertisements"
@@ -71,7 +71,7 @@ func getDepAdvertisementsH(a lib.Api) (string, string, gin.HandlerFunc) {
 // putDepAdvertisementH godoc
 // @Summary Create / Update advertisement
 // @Description Create or update an advertisement for the current deployment.
-// @Tags Deployment Advertisement
+// @Tags Deployment Advertisements
 // @Accept json
 // @Param X-MGW-DID header string true "deployment ID"
 // @Param ref path string true "advertisement reference"
@@ -105,7 +105,7 @@ func putDepAdvertisementH(a lib.Api) (string, string, gin.HandlerFunc) {
 // putDepAdvertisementsH godoc
 // @Summary Create / Update advertisements
 // @Description Create or update advertisements for the current deployment.
-// @Tags Deployment Advertisement
+// @Tags Deployment Advertisements
 // @Accept json
 // @Param X-MGW-DID header string true "deployment ID"
 // @Param advertisements body map[string]lib_model.DepAdvertisementBase true "advertisement data"
@@ -134,7 +134,7 @@ func putDepAdvertisementsH(a lib.Api) (string, string, gin.HandlerFunc) {
 // deleteDepAdvertisementH godoc
 // @Summary Delete advertisement
 // @Description Remove an advertisement for the current deployment.
-// @Tags Deployment Advertisement
+// @Tags Deployment Advertisements
 // @Param X-MGW-DID header string true "deployment ID"
 // @Param ref path string true "advertisement reference"
 // @Success	200
@@ -155,7 +155,7 @@ func deleteDepAdvertisementH(a lib.Api) (string, string, gin.HandlerFunc) {
 // deleteDepAdvertisementsH godoc
 // @Summary Delete advertisements
 // @Description Remove advertisements for the current deployment.
-// @Tags Deployment Advertisement
+// @Tags Deployment Advertisements
 // @Param X-MGW-DID header string true "deployment ID"
 // @Success	200
 // @Failure	404 {string} string "error message"

@@ -32,7 +32,7 @@ type advertisementFilterQuery struct {
 // getDepAdvertisementQueryH godoc
 // @Summary Query advertisements
 // @Description Query deployment advertisements.
-// @Tags Deployment Advertisement
+// @Tags Deployment Advertisements
 // @Produce	json
 // @Param module_id query string false "filter by module ID"
 // @Param origin query string false "filter by origin"

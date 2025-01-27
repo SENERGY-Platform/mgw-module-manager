@@ -63,7 +63,7 @@ type deleteAuxDeploymentsQuery struct {
 // getAuxDeploymentsH godoc
 // @Summary Get auxiliary deployments
 // @Description List auxiliary deployments for the current deployment.
-// @Tags Auxiliary Deployment
+// @Tags Auxiliary Deployments
 // @Produce	json
 // @Param X-MGW-DID header string true "deployment ID"
 // @Param ids query []string false "filter by aux deployment ids" collectionFormat(csv)
@@ -101,7 +101,7 @@ func getAuxDeploymentsH(a lib.Api) (string, string, gin.HandlerFunc) {
 // getAuxDeploymentH godoc
 // @Summary Get auxiliary deployment
 // @Description Get an auxiliary deployment for the current deployment.
-// @Tags Auxiliary Deployment
+// @Tags Auxiliary Deployments
 // @Produce	json
 // @Param X-MGW-DID header string true "deployment ID"
 // @Param id path string true "aux deployment ID"
@@ -131,7 +131,7 @@ func getAuxDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
 // postAuxDeploymentH godoc
 // @Summary Create auxiliary deployment
 // @Description Create a new auxiliary deployment for the current deployment.
-// @Tags Auxiliary Deployment
+// @Tags Auxiliary Deployments
 // @Accept json
 // @Produce	plain
 // @Param X-MGW-DID header string true "deployment ID"
@@ -166,7 +166,7 @@ func postAuxDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
 // patchAuxDeploymentUpdateH godoc
 // @Summary Update auxiliary deployment
 // @Description Update an auxiliary deployment for the current deployment.
-// @Tags Auxiliary Deployment
+// @Tags Auxiliary Deployments
 // @Accept json
 // @Produce	plain
 // @Param X-MGW-DID header string true "deployment ID"
@@ -204,7 +204,7 @@ func patchAuxDeploymentUpdateH(a lib.Api) (string, string, gin.HandlerFunc) {
 // deleteAuxDeploymentH godoc
 // @Summary Delete auxiliary deployment
 // @Description Remove an auxiliary deployment for the current deployment.
-// @Tags Auxiliary Deployment
+// @Tags Auxiliary Deployments
 // @Produce	plain
 // @Param X-MGW-DID header string true "deployment ID"
 // @Param id path string true "aux deployment ID"
@@ -233,7 +233,7 @@ func deleteAuxDeploymentH(a lib.Api) (string, string, gin.HandlerFunc) {
 // patchAuxDeploymentsDeleteH godoc
 // @Summary Delete auxiliary deployments
 // @Description Remove auxiliary deployments for the current deployment.
-// @Tags Auxiliary Deployment
+// @Tags Auxiliary Deployments
 // @Produce	plain
 // @Param X-MGW-DID header string true "deployment ID"
 // @Param ids query []string false "filter by aux deployment ids" collectionFormat(csv)
@@ -271,7 +271,7 @@ func patchAuxDeploymentsDeleteH(a lib.Api) (string, string, gin.HandlerFunc) {
 // patchAuxDeploymentStartH godoc
 // @Summary Start auxiliary deployment
 // @Description Start an auxiliary deployment for the current deployment.
-// @Tags Auxiliary Deployment
+// @Tags Auxiliary Deployments
 // @Produce	plain
 // @Param X-MGW-DID header string true "deployment ID"
 // @Param id path string true "aux deployment ID"
@@ -293,7 +293,7 @@ func patchAuxDeploymentStartH(a lib.Api) (string, string, gin.HandlerFunc) {
 // patchAuxDeploymentsStartH godoc
 // @Summary Start auxiliary deployments
 // @Description Start auxiliary deployments for the current deployment.
-// @Tags Auxiliary Deployment
+// @Tags Auxiliary Deployments
 // @Produce	plain
 // @Param X-MGW-DID header string true "deployment ID"
 // @Param ids query []string false "filter by aux deployment ids" collectionFormat(csv)
@@ -330,7 +330,7 @@ func patchAuxDeploymentsStartH(a lib.Api) (string, string, gin.HandlerFunc) {
 // patchAuxDeploymentStopH godoc
 // @Summary Stop auxiliary deployment
 // @Description Stop an auxiliary deployment for the current deployment.
-// @Tags Auxiliary Deployment
+// @Tags Auxiliary Deployments
 // @Produce	plain
 // @Param X-MGW-DID header string true "deployment ID"
 // @Param id path string true "aux deployment ID"
@@ -352,7 +352,7 @@ func patchAuxDeploymentStopH(a lib.Api) (string, string, gin.HandlerFunc) {
 // patchAuxDeploymentsStopH godoc
 // @Summary Stop auxiliary deployments
 // @Description Stop auxiliary deployments for the current deployment.
-// @Tags Auxiliary Deployment
+// @Tags Auxiliary Deployments
 // @Produce	plain
 // @Param X-MGW-DID header string true "deployment ID"
 // @Param ids query []string false "filter by aux deployment ids" collectionFormat(csv)
@@ -389,7 +389,7 @@ func patchAuxDeploymentsStopH(a lib.Api) (string, string, gin.HandlerFunc) {
 // patchAuxDeploymentRestartH godoc
 // @Summary Restart auxiliary deployment
 // @Description Restart an auxiliary deployment for the current deployment.
-// @Tags Auxiliary Deployment
+// @Tags Auxiliary Deployments
 // @Produce	plain
 // @Param X-MGW-DID header string true "deployment ID"
 // @Param id path string true "aux deployment ID"
@@ -411,7 +411,7 @@ func patchAuxDeploymentRestartH(a lib.Api) (string, string, gin.HandlerFunc) {
 // patchAuxDeploymentsRestartH godoc
 // @Summary Restart auxiliary deployments
 // @Description Restart auxiliary deployments for the current deployment.
-// @Tags Auxiliary Deployment
+// @Tags Auxiliary Deployments
 // @Produce	plain
 // @Param X-MGW-DID header string true "deployment ID"
 // @Param ids query []string false "filter by aux deployment ids" collectionFormat(csv)
