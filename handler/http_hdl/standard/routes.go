@@ -73,6 +73,6 @@ func SetRoutes(e *gin.Engine, a lib.Api) error {
 	if err != nil {
 		return err
 	}
-	rg.GET("swagger/*any", ginSwagger.WrapHandler(swaggerFiles.NewHandler(), ginSwagger.InstanceName("restricted")))
+	rg.GET("swagger/*any", ginSwagger.WrapHandler(swaggerFiles.NewHandler(), ginSwagger.InstanceName("standard")))
 	return nil
 }
