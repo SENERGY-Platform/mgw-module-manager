@@ -170,7 +170,7 @@ func deleteModuleH(a lib.Api) (string, string, gin.HandlerFunc) {
 // @Failure	404 {string} string "error message"
 // @Failure	409 {string} string "error message"
 // @Failure	500 {string} string "error message"
-// @Router /modules/{id}/dep-template [get,put,post,patch,delete]
+// @Router /modules/{id}/dep-template [get]
 func getModuleDeployTemplateH(a lib.Api) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, path.Join(lib_model.ModulesPath, ":id", lib_model.DepTemplatePath), func(gc *gin.Context) {
 		inputTemplate, err := a.GetModuleDeployTemplate(gc.Request.Context(), gc.Param("id"))
