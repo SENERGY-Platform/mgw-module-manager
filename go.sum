@@ -53,8 +53,8 @@ github.com/SENERGY-Platform/mgw-modfile-lib v0.19.0 h1:3Umi8hIfYB2Y2BSIx57mWNB+U
 github.com/SENERGY-Platform/mgw-modfile-lib v0.19.0/go.mod h1:bgEOfu4zj28fAe7IoI0oWE7ZpKaSWUPKDSdi2VNr1xM=
 github.com/SENERGY-Platform/mgw-module-lib v0.22.0 h1:77ssTquaIf24da74a+9b/scIyYQdsH0ewVjbBp3jQm4=
 github.com/SENERGY-Platform/mgw-module-lib v0.22.0/go.mod h1:EIXS9Q/Clr+eBfnr+UgWwZ0vbqpZqDunCKrjpqTyppM=
-github.com/SENERGY-Platform/mgw-secret-manager/pkg v0.1.5 h1:Xply9Pd24VA3LXZpNPKB84H9+XzwRQFBpfpwsJ+ay0o=
-github.com/SENERGY-Platform/mgw-secret-manager/pkg v0.1.5/go.mod h1:IItmrV9RXNCON4d5DmskIuUzkV8nZe8YKtWIvzMZ69Q=
+github.com/SENERGY-Platform/mgw-secret-manager/pkg v0.2.0 h1:att8BkfkxrmEtFzZnlHPunUGwKAKn1i7qjCEuWbcpy0=
+github.com/SENERGY-Platform/mgw-secret-manager/pkg v0.2.0/go.mod h1:3mRzTzGgSgO5iZb6JaCYREUMq68L1K/6HKMLAmKcAH8=
 github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be h1:9AeTilPcZAjCFIImctFaOjnTIavg87rW78vTPkQqLI8=
 github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be/go.mod h1:ySMOLuWl6zY27l47sB3qLNK6tF2fkHG55UZxx8oIVo4=
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 h1:0CwZNZbxp69SHPdPJAN/hZIm0C4OItdklCFmMRWYpio=
