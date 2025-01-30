@@ -1,4 +1,4 @@
-basePath: /
+basePath: /restricted
 definitions:
   lib.Job:
     properties:

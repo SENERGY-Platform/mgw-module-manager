@@ -46,7 +46,7 @@ var routes = gin_mw.Routes[lib.Api]{
 // @description Provides access to selected deployment management functions.
 // @license.name Apache-2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-// @BasePath /
+// @BasePath /restricted
 func SetRoutes(e *gin.Engine, a lib.Api) error {
 	rg := e.Group(lib_model.RestrictedPath)
 	routes = append(routes, shared.Routes...)

@@ -10,7 +10,7 @@
         },
         "version": "0.7.2"
     },
-    "basePath": "/",
+    "basePath": "/restricted",
     "paths": {
         "/aux-deployments": {
             "get": {
