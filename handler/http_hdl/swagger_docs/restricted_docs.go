@@ -1619,7 +1619,7 @@ const docTemplaterestricted = `{
 var SwaggerInforestricted = &swag.Spec{
 	Version:          "0.7.2",
 	Host:             "",
-	BasePath:         "/restricted",
+	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Module Manager restricted API",
 	Description:      "Provides access to selected deployment management functions.",
