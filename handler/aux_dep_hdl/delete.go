@@ -19,8 +19,8 @@ package aux_dep_hdl
 import (
 	"context"
 	"errors"
-	"github.com/SENERGY-Platform/go-service-base/context-hdl"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	"github.com/SENERGY-Platform/mgw-go-service-base/context-hdl"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
 )

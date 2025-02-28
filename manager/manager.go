@@ -17,8 +17,8 @@
 package manager
 
 import (
-	"github.com/SENERGY-Platform/go-service-base/job-hdl"
-	"github.com/SENERGY-Platform/go-service-base/srv-info-hdl"
+	"github.com/SENERGY-Platform/mgw-go-service-base/job-hdl"
+	"github.com/SENERGY-Platform/mgw-go-service-base/srv-info-hdl"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 )
 

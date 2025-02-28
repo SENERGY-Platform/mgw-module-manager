@@ -17,7 +17,7 @@
 package restricted
 
 import (
-	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
+	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"

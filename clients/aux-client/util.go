@@ -18,7 +18,7 @@ package aux_client
 
 import (
 	"context"
-	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
+	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"net/http"

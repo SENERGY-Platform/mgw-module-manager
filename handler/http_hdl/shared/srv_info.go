@@ -17,7 +17,7 @@
 package shared
 
 import (
-	_ "github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib"
+	_ "github.com/SENERGY-Platform/mgw-go-service-base/srv-info-hdl/lib"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/gin-gonic/gin"

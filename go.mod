@@ -6,21 +6,21 @@ require (
 	github.com/SENERGY-Platform/gin-middleware v0.5.1
 	github.com/SENERGY-Platform/go-cc-job-handler v0.1.2
 	github.com/SENERGY-Platform/go-service-base/config-hdl v0.1.1
-	github.com/SENERGY-Platform/go-service-base/context-hdl v0.0.3
-	github.com/SENERGY-Platform/go-service-base/job-hdl v1.1.1
-	github.com/SENERGY-Platform/go-service-base/job-hdl/lib v0.1.0
 	github.com/SENERGY-Platform/go-service-base/logger v0.2.0
-	github.com/SENERGY-Platform/go-service-base/sql-db-hdl v0.0.1
-	github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.0.3
-	github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib v0.0.2
-	github.com/SENERGY-Platform/go-service-base/util v1.1.0
-	github.com/SENERGY-Platform/go-service-base/watchdog v0.4.2
-	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.15.1
-	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.16.0
-	github.com/SENERGY-Platform/mgw-core-manager/client v0.9.1
-	github.com/SENERGY-Platform/mgw-core-manager/lib v0.8.2
-	github.com/SENERGY-Platform/mgw-host-manager/client v1.3.0
-	github.com/SENERGY-Platform/mgw-host-manager/lib v1.3.0
+	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.15.2
+	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.16.1
+	github.com/SENERGY-Platform/mgw-core-manager/client v0.9.4
+	github.com/SENERGY-Platform/mgw-core-manager/lib v0.10.1
+	github.com/SENERGY-Platform/mgw-go-service-base/context-hdl v0.0.5
+	github.com/SENERGY-Platform/mgw-go-service-base/job-hdl v1.1.2
+	github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib v0.1.1
+	github.com/SENERGY-Platform/mgw-go-service-base/sql-db-hdl v0.0.2
+	github.com/SENERGY-Platform/mgw-go-service-base/srv-info-hdl v0.0.4
+	github.com/SENERGY-Platform/mgw-go-service-base/srv-info-hdl/lib v0.0.3
+	github.com/SENERGY-Platform/mgw-go-service-base/util v1.1.1
+	github.com/SENERGY-Platform/mgw-go-service-base/watchdog v0.4.3
+	github.com/SENERGY-Platform/mgw-host-manager/client v1.3.4
+	github.com/SENERGY-Platform/mgw-host-manager/lib v1.3.1
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.19.0
 	github.com/SENERGY-Platform/mgw-module-lib v0.22.0
 	github.com/SENERGY-Platform/mgw-module-manager/lib v0.0.0-00010101000000-000000000000

@@ -22,7 +22,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	context_hdl "github.com/SENERGY-Platform/go-service-base/context-hdl"
+	context_hdl "github.com/SENERGY-Platform/mgw-go-service-base/context-hdl"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"time"

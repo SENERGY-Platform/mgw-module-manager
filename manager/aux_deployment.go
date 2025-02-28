@@ -20,7 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	job_hdl_lib "github.com/SENERGY-Platform/go-service-base/job-hdl/lib"
+	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )

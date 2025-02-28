@@ -18,9 +18,9 @@ package dep_hdl
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/go-service-base/context-hdl"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	cm_model "github.com/SENERGY-Platform/mgw-core-manager/lib/model"
+	"github.com/SENERGY-Platform/mgw-go-service-base/context-hdl"
 	"github.com/SENERGY-Platform/mgw-module-lib/module"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
