@@ -468,6 +468,10 @@ func newPorts(sPorts []module.Port) (ports []cew_model.Port) {
 func newCewContainer(srv *module.Service, name, alias, moduleNet string, labels, envVars map[string]string, mounts []cew_model.Mount, devices []cew_model.Device, ports []cew_model.Port) cew_model.Container {
 	retries := int(srv.RunConfig.MaxRetries)
 	stopTimeout := srv.RunConfig.StopTimeout
+	restartStrategy := cew_model.RestartAlways
+	if len(srv.SecretMounts) > 0 {
+		restartStrategy = cew_model.RestartNotStopped
+	}
 	return cew_model.Container{
 		Name:    name,
 		Image:   srv.Image,
@@ -483,7 +487,7 @@ func newCewContainer(srv *module.Service, name, alias, moduleNet string, labels,
 			},
 		},
 		RunConfig: cew_model.RunConfig{
-			RestartStrategy: cew_model.RestartNotStopped,
+			RestartStrategy: restartStrategy,
 			Retries:         &retries,
 			StopTimeout:     &stopTimeout,
 			StopSignal:      srv.RunConfig.StopSignal,
