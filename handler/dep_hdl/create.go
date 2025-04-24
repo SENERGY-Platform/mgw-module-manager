@@ -483,7 +483,7 @@ func newCewContainer(srv *module.Service, name, alias, moduleNet string, labels,
 			},
 		},
 		RunConfig: cew_model.RunConfig{
-			RestartStrategy: cew_model.RestartOnFail,
+			RestartStrategy: cew_model.RestartNotStopped,
 			Retries:         &retries,
 			StopTimeout:     &stopTimeout,
 			StopSignal:      srv.RunConfig.StopSignal,

@@ -292,9 +292,9 @@ func main() {
 			wtchdg.Trigger()
 			return
 		}
-		if err = mm.StartEnabledDeployments(smClient, time.Second*5, 3); err != nil {
-			util.Logger.Error(err)
-		}
+		//if err = mm.StartEnabledDeployments(smClient, time.Second*5, 3); err != nil {
+		//	util.Logger.Error(err)
+		//}
 	}()
 
 	go func() {
