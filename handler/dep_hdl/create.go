@@ -482,7 +482,7 @@ func newCewContainer(srv *module.Service, name, alias, moduleNet string, labels,
 			},
 		},
 		RunConfig: cew_model.RunConfig{
-			RestartStrategy: cew_model.RestartAlways,
+			RestartStrategy: cew_model.RestartNotStopped,
 			StopTimeout:     &stopTimeout,
 			StopSignal:      srv.RunConfig.StopSignal,
 			PseudoTTY:       srv.RunConfig.PseudoTTY,
@@ -492,7 +492,7 @@ func newCewContainer(srv *module.Service, name, alias, moduleNet string, labels,
 	if len(srv.SecretMounts) > 0 {
 		retries := int(srv.RunConfig.MaxRetries)
 		ctr.RunConfig.Retries = &retries
-		ctr.RunConfig.RestartStrategy = cew_model.RestartNotStopped
+		ctr.RunConfig.RestartStrategy = cew_model.RestartOnFail
 	}
 	return ctr
 }
