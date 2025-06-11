@@ -1,0 +1,65 @@
+package modfile_util
+
+import (
+	"errors"
+	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
+	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1dec"
+	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1gen"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/fs_util"
+	"gopkg.in/yaml.v3"
+	"io"
+	"io/fs"
+	"regexp"
+)
+
+func init() {
+	mfDecoders.Add(v1dec.GetDecoder)
+	mfGenerators.Add(v1gen.GetGenerator)
+}
+
+var mfDecoders = make(modfile.Decoders)
+var mfGenerators = make(modfile.Generators)
+
+var RegExp = regexp.MustCompile(`^Modfile\.(?:yml|yaml)$`)
+
+func Open(fSys fs.FS) (fs.File, error) {
+	mfPath, err := fs_util.FindFile(fSys, RegExp.MatchString)
+	if err != nil {
+		return nil, err
+	}
+	if mfPath == "" {
+		return nil, errors.New("modfile not found")
+	}
+	file, err := fSys.Open(mfPath)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
+}
+
+func Decode(r io.Reader) (*modfile.MfWrapper, error) {
+	mf := modfile.New(mfDecoders, mfGenerators)
+	err := yaml.NewDecoder(r).Decode(&mf)
+	if err != nil {
+		return nil, err
+	}
+	return mf, nil
+}
+
+func GetModule(fSys fs.FS) (*module_lib.Module, error) {
+	file, err := Open(fSys)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	mf, err := Decode(file)
+	if err != nil {
+		return nil, err
+	}
+	mod, err := mf.GetModule()
+	if err != nil {
+		return nil, err
+	}
+	return mod, nil
+}
