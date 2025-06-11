@@ -1,10 +1,10 @@
 package mod_repos_hdl
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 )
 
-type moduleVariant struct {
-	models.RepoModuleVariant
+type moduleWrapper struct {
+	models_repo.Module
 	FSysRef string
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/modfile_util"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	"io/fs"
 	"sync"
 )
@@ -12,7 +13,7 @@ import (
 type Handler struct {
 	repoHandlers  map[string]RepoHandler
 	defaultSource string
-	variantsMap   map[string]map[string]map[string]moduleVariant // {moduleID:{source:{channel:variant}}}
+	variantsMap   map[string]map[string]map[string]moduleWrapper // {moduleID:{source:{channel:variant}}}
 	mu            sync.RWMutex
 }
 
@@ -67,12 +68,12 @@ func (h *Handler) SetDefaultRepository(source string) error {
 	return nil
 }
 
-func (h *Handler) Repositories(_ context.Context) (map[string]models.Repository, error) {
+func (h *Handler) Repositories(_ context.Context) (map[string]models_repo.Repository, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	reposMap := make(map[string]models.Repository)
+	reposMap := make(map[string]models_repo.Repository)
 	for source, handler := range h.repoHandlers {
-		reposMap[source] = models.Repository{
+		reposMap[source] = models_repo.Repository{
 			Source:         source,
 			Default:        source == h.defaultSource,
 			Channels:       handler.Channels(),
@@ -82,28 +83,28 @@ func (h *Handler) Repositories(_ context.Context) (map[string]models.Repository,
 	return reposMap, nil
 }
 
-func (h *Handler) Modules(_ context.Context) ([]models.RepoModuleVariant, error) {
+func (h *Handler) Modules(_ context.Context) ([]models_repo.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	var variants []models.RepoModuleVariant
+	var variants []models_repo.Module
 	for _, sources := range h.variantsMap {
 		for _, channels := range sources {
 			for _, variant := range channels {
-				variants = append(variants, variant.RepoModuleVariant)
+				variants = append(variants, variant.Module)
 			}
 		}
 	}
 	return variants, nil
 }
 
-func (h *Handler) Module(_ context.Context, id, source, channel string) (models.RepoModuleVariant, error) {
+func (h *Handler) Module(_ context.Context, id, source, channel string) (models_repo.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	variant, err := h.getModuleVariant(id, source, channel)
 	if err != nil {
-		return models.RepoModuleVariant{}, err
+		return models_repo.Module{}, err
 	}
-	return variant.RepoModuleVariant, nil
+	return variant.Module, nil
 }
 
 func (h *Handler) ModuleFS(ctx context.Context, id, source, channel string) (fs.FS, error) {
@@ -125,7 +126,7 @@ func (h *Handler) ModuleFS(ctx context.Context, id, source, channel string) (fs.
 }
 
 func (h *Handler) updateVariantsMap(ctx context.Context) error {
-	variantsMap := make(map[string]map[string]map[string]moduleVariant)
+	variantsMap := make(map[string]map[string]map[string]moduleWrapper)
 	var errs []error
 	for source, handler := range h.repoHandlers {
 		for _, channel := range handler.Channels() {
@@ -145,17 +146,17 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 				}
 				sources, ok := variantsMap[mod.ID]
 				if !ok {
-					sources = make(map[string]map[string]moduleVariant)
+					sources = make(map[string]map[string]moduleWrapper)
 					variantsMap[mod.ID] = sources
 				}
 				channels, ok := sources[source]
 				if !ok {
-					channels = make(map[string]moduleVariant)
+					channels = make(map[string]moduleWrapper)
 					sources[source] = channels
 				}
-				channels[channel] = moduleVariant{
-					RepoModuleVariant: models.RepoModuleVariant{
-						RepoModuleVariantBase: models.RepoModuleVariantBase{
+				channels[channel] = moduleWrapper{
+					Module: models_repo.Module{
+						ModuleBase: models_repo.ModuleBase{
 							ID:      mod.ID,
 							Source:  source,
 							Channel: channel,
@@ -176,18 +177,18 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 	return nil
 }
 
-func (h *Handler) getModuleVariant(id, source, channel string) (moduleVariant, error) {
+func (h *Handler) getModuleVariant(id, source, channel string) (moduleWrapper, error) {
 	sources, ok := h.variantsMap[id]
 	if !ok {
-		return moduleVariant{}, errors.New("module not found")
+		return moduleWrapper{}, errors.New("module not found")
 	}
 	channels, ok := sources[source]
 	if !ok {
-		return moduleVariant{}, errors.New("source not found")
+		return moduleWrapper{}, errors.New("source not found")
 	}
 	variant, ok := channels[channel]
 	if !ok {
-		return moduleVariant{}, errors.New("channel not found")
+		return moduleWrapper{}, errors.New("channel not found")
 	}
 	return variant, nil
 }

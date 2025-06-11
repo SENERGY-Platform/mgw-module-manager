@@ -6,7 +6,7 @@ import (
 	"fmt"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/modfile_util"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	"reflect"
 )
 
@@ -18,8 +18,8 @@ func New(modReposHandler ModuleReposHandler) *Service {
 	return &Service{modReposHandler: modReposHandler}
 }
 
-func (s *Service) selectRepoModules(ctx context.Context, reqItems []models.RepoModuleVariantBase) (map[string]modWrapper, error) {
-	reqItemMap := make(map[string]models.RepoModuleVariantBase)
+func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.ModuleBase) (map[string]modWrapper, error) {
+	reqItemMap := make(map[string]models_repo.ModuleBase)
 	for _, item := range reqItems {
 		tmp, ok := reqItemMap[item.ID]
 		if ok {
@@ -110,7 +110,7 @@ func (s *Service) addRepoModDepsToMap(ctx context.Context, mod *module_lib.Modul
 	return nil
 }
 
-func selectChannel(repo models.Repository) string {
+func selectChannel(repo models_repo.Repository) string {
 	channel := repo.DefaultChannel
 	if channel == "" && len(repo.Channels) > 0 {
 		channel = repo.Channels[0]
