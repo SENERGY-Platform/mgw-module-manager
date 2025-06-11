@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/modfile_util"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	"io/fs"
 	"sync"
@@ -34,11 +34,11 @@ func (h *Handler) InitRepositories(ctx context.Context) error {
 	var errs []error
 	for source, handler := range h.repoHandlers {
 		if err := handler.Init(); err != nil {
-			errs = append(errs, models.NewRepoErr(source, err))
+			errs = append(errs, models_error.NewRepoErr(source, err))
 		}
 	}
 	if len(errs) > 0 {
-		return models.NewMultiError(errs)
+		return models_error.NewMultiError(errs)
 	}
 	return h.updateVariantsMap(ctx)
 }
@@ -49,11 +49,11 @@ func (h *Handler) RefreshRepositories(ctx context.Context) error {
 	var errs []error
 	for source, handler := range h.repoHandlers {
 		if err := handler.Refresh(ctx); err != nil {
-			errs = append(errs, models.NewRepoErr(source, err))
+			errs = append(errs, models_error.NewRepoErr(source, err))
 		}
 	}
 	if len(errs) > 0 {
-		return models.NewMultiError(errs)
+		return models_error.NewMultiError(errs)
 	}
 	return h.updateVariantsMap(ctx)
 }
@@ -132,7 +132,7 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 		for _, channel := range handler.Channels() {
 			fsMap, err := handler.FileSystemsMap(ctx, channel)
 			if err != nil {
-				errs = append(errs, models.NewRepoModuleErr(source, channel, err))
+				errs = append(errs, models_error.NewRepoModuleErr(source, channel, err))
 				continue
 			}
 			for ref, fSys := range fsMap {
@@ -141,7 +141,7 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 				}
 				mod, err := modfile_util.GetModule(fSys)
 				if err != nil {
-					errs = append(errs, models.NewRepoModuleErr(source, channel, err))
+					errs = append(errs, models_error.NewRepoModuleErr(source, channel, err))
 					continue
 				}
 				sources, ok := variantsMap[mod.ID]
@@ -171,7 +171,7 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 		}
 	}
 	if len(errs) > 0 {
-		return models.NewMultiError(errs)
+		return models_error.NewMultiError(errs)
 	}
 	h.variantsMap = variantsMap
 	return nil
