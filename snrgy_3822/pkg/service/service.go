@@ -117,24 +117,3 @@ func selectChannel(repo models.Repository) string {
 	}
 	return channel
 }
-
-/*
-
-liste von modules zum installieren
-	ziel
-		autmatisieren was nicht explizit ausgewählt wird
-		nutzer soll auch alles auswhählen können um die automatisierung zu umgehen
-	erst die auswahl durchgehen und dann automatiseren
-	mehr als ein repo
-		zuerst module der default source nehmen
-		abhängigkeiten werden aus der jeweiligen source genommen
-			wie mit dublicaten umgehen?
-				sources ohne default sortieren und dann einfach der reihe nach
-	mehr als ein channel
-		default channel hat vorrang
-		gibt es keinen default wird erster in der liste genommen
-		abhängigkeiten werden aus default oder erster in der liste genommen
-
-
-
-*/
