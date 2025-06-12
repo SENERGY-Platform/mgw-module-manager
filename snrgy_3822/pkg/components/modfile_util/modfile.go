@@ -23,7 +23,7 @@ var mfGenerators = make(modfile.Generators)
 
 var RegExp = regexp.MustCompile(`^Modfile\.(?:yml|yaml)$`)
 
-func Open(fSys fs.FS) (fs.File, error) {
+func open(fSys fs.FS) (fs.File, error) {
 	mfPath, err := fs_util.FindFile(fSys, RegExp.MatchString)
 	if err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func Open(fSys fs.FS) (fs.File, error) {
 	return file, nil
 }
 
-func Decode(r io.Reader) (*modfile.MfWrapper, error) {
+func decode(r io.Reader) (*modfile.MfWrapper, error) {
 	mf := modfile.New(mfDecoders, mfGenerators)
 	err := yaml.NewDecoder(r).Decode(&mf)
 	if err != nil {
@@ -47,19 +47,22 @@ func Decode(r io.Reader) (*modfile.MfWrapper, error) {
 	return mf, nil
 }
 
-func GetModule(fSys fs.FS) (*module_lib.Module, error) {
-	file, err := Open(fSys)
+func GetModule(fSys fs.FS) (module_lib.Module, error) {
+	file, err := open(fSys)
 	if err != nil {
-		return nil, err
+		return module_lib.Module{}, err
 	}
 	defer file.Close()
-	mf, err := Decode(file)
+	mf, err := decode(file)
 	if err != nil {
-		return nil, err
+		return module_lib.Module{}, err
 	}
 	mod, err := mf.GetModule()
 	if err != nil {
-		return nil, err
+		return module_lib.Module{}, err
 	}
-	return mod, nil
+	if mod == nil {
+		return module_lib.Module{}, errors.New("nil module")
+	}
+	return *mod, nil
 }
