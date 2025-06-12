@@ -41,19 +41,6 @@ func (h *Handler) Init() error {
 	if err := os.MkdirAll(h.workDirPath, 0775); err != nil {
 		return err
 	}
-	dirEntries, err := os.ReadDir(h.workDirPath)
-	if err != nil {
-		return err
-	}
-	for _, entry := range dirEntries {
-		modFS := os.DirFS(path.Join(h.workDirPath, entry.Name()))
-		mod, err := modfile_util.GetModule(modFS)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		h.modules[mod.ID] = mod
-	}
 	return nil
 }
 
