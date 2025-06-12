@@ -176,7 +176,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 	}
 	ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf2()
-	if err = h.storageHdl.CreateMod(ctxWt2, nil, mod); err != nil {
+	if err = h.storageHdl.CreateMod(ctxWt2, mod); err != nil {
 		return err
 	}
 	h.cacheSet(id, tmp)
@@ -223,7 +223,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	}
 	ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf2()
-	if err = h.storageHdl.UpdateMod(ctxWt2, nil, newMod); err != nil {
+	if err = h.storageHdl.UpdateMod(ctxWt2, newMod); err != nil {
 		return err
 	}
 	h.cacheSet(id, tmp)
@@ -248,7 +248,7 @@ func (h *Handler) Delete(ctx context.Context, id string) error {
 	}
 	ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
 	defer cf2()
-	if err = h.storageHdl.DeleteMod(ctxWt2, nil, id); err != nil {
+	if err = h.storageHdl.DeleteMod(ctxWt2, id); err != nil {
 		return err
 	}
 	h.cacheDel(id)

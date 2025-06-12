@@ -18,7 +18,6 @@ package mod_hdl
 
 import (
 	"context"
-	"database/sql/driver"
 	"errors"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
@@ -366,7 +365,7 @@ type storageHandlerMock struct {
 	Mods map[string]models_storage.Module
 }
 
-func (m *storageHandlerMock) ListMod(ctx context.Context, filter models_storage.ModuleFilter) (map[string]models_storage.Module, error) {
+func (m *storageHandlerMock) ListMod(_ context.Context, _ models_storage.ModuleFilter) (map[string]models_storage.Module, error) {
 	if m.Err != nil {
 		return nil, m.Err
 	}
@@ -384,7 +383,7 @@ func (m *storageHandlerMock) ReadMod(_ context.Context, id string) (models_stora
 	return mod, nil
 }
 
-func (m *storageHandlerMock) CreateMod(_ context.Context, _ driver.Tx, mod models_storage.ModuleBase) error {
+func (m *storageHandlerMock) CreateMod(_ context.Context, mod models_storage.ModuleBase) error {
 	if m.Err != nil {
 		return m.Err
 	}
@@ -401,7 +400,7 @@ func (m *storageHandlerMock) CreateMod(_ context.Context, _ driver.Tx, mod model
 	return nil
 }
 
-func (m *storageHandlerMock) UpdateMod(_ context.Context, _ driver.Tx, mod models_storage.ModuleBase) error {
+func (m *storageHandlerMock) UpdateMod(_ context.Context, mod models_storage.ModuleBase) error {
 	if m.Err != nil {
 		return m.Err
 	}
@@ -417,7 +416,7 @@ func (m *storageHandlerMock) UpdateMod(_ context.Context, _ driver.Tx, mod model
 	return nil
 }
 
-func (m *storageHandlerMock) DeleteMod(_ context.Context, _ driver.Tx, id string) error {
+func (m *storageHandlerMock) DeleteMod(_ context.Context, id string) error {
 	if m.Err != nil {
 		return m.Err
 	}
