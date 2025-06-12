@@ -21,10 +21,16 @@ import "time"
 type ModuleBase struct {
 	ID      string
 	DirName string
+	Source  string
+	Channel string
 }
 
 type Module struct {
 	ModuleBase
 	Added   time.Time
 	Updated time.Time
+}
+
+type ModuleFilter struct {
+	IDs []string
 }
