@@ -20,16 +20,17 @@ import (
 
 type Handler struct {
 	storageHdl  StorageHandler
-	modules     map[string]module_lib.Module
+	cache       map[string]module_lib.Module
 	workDirPath string
 	dbTimeout   time.Duration
+	cacheMU     sync.RWMutex
 	mu          sync.RWMutex
 }
 
 func New(storageHdl StorageHandler, workDirPath string, dbTimeout time.Duration) *Handler {
 	return &Handler{
 		storageHdl:  storageHdl,
-		modules:     make(map[string]module_lib.Module),
+		cache:       make(map[string]module_lib.Module),
 		workDirPath: workDirPath,
 		dbTimeout:   dbTimeout,
 	}
@@ -56,7 +57,7 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 	modulesMap := make(map[string]models_module.ModuleAbbreviated)
 	var errs []error
 	for _, storedMod := range storedMods {
-		mod, ok := h.modules[storedMod.ID]
+		mod, ok := h.cacheGet(storedMod.ID)
 		if !ok {
 			fmt.Println("WARNING: module not in cache")
 			modFS := os.DirFS(path.Join(h.workDirPath, storedMod.DirName))
@@ -66,6 +67,7 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 				fmt.Println(err)
 				continue
 			}
+			h.cacheSet(storedMod.ID, mod)
 		}
 		modulesMap[storedMod.ID] = models_module.ModuleAbbreviated{
 			ID:      storedMod.ID,
@@ -95,7 +97,7 @@ func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, 
 	if err != nil {
 		return models_module.Module{}, err
 	}
-	mod, ok := h.modules[id]
+	mod, ok := h.cacheGet(id)
 	if !ok {
 		fmt.Println("WARNING: module not in cache")
 		modFS := os.DirFS(path.Join(h.workDirPath, storedMod.DirName))
@@ -103,6 +105,7 @@ func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, 
 		if err != nil {
 			return models_module.Module{}, err
 		}
+		h.cacheSet(id, mod)
 	}
 	return models_module.Module{
 		Module: mod,
@@ -176,7 +179,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 	if err = h.storageHdl.CreateMod(ctxWt2, nil, mod); err != nil {
 		return err
 	}
-	h.modules[id] = tmp
+	h.cacheSet(id, tmp)
 	return nil
 }
 
@@ -223,7 +226,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	if err = h.storageHdl.UpdateMod(ctxWt2, nil, newMod); err != nil {
 		return err
 	}
-	h.modules[id] = tmp
+	h.cacheSet(id, tmp)
 	if e := os.RemoveAll(path.Join(h.workDirPath, oldMod.DirName)); e != nil {
 		fmt.Println(e)
 	}
@@ -248,6 +251,25 @@ func (h *Handler) Delete(ctx context.Context, id string) error {
 	if err = h.storageHdl.DeleteMod(ctxWt2, nil, id); err != nil {
 		return err
 	}
-	delete(h.modules, id)
+	h.cacheDel(id)
 	return nil
+}
+
+func (h *Handler) cacheGet(id string) (module_lib.Module, bool) {
+	h.cacheMU.RLock()
+	defer h.cacheMU.RUnlock()
+	mod, ok := h.cache[id]
+	return mod, ok
+}
+
+func (h *Handler) cacheSet(id string, mod module_lib.Module) {
+	h.cacheMU.Lock()
+	defer h.cacheMU.Unlock()
+	h.cache[id] = mod
+}
+
+func (h *Handler) cacheDel(id string) {
+	h.cacheMU.Lock()
+	defer h.cacheMU.Unlock()
+	delete(h.cache, id)
 }
