@@ -23,7 +23,7 @@ import (
 )
 
 func TestExtractTarGz(t *testing.T) {
-	file, err := os.Open("test.tar.gz")
+	file, err := os.Open("./test/test.tar.gz")
 	if err != nil {
 		t.Fatal(err)
 	}
