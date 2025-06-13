@@ -93,7 +93,7 @@ func (h *Handler) FileSystemsMap(ctx context.Context, channelID string) (map[str
 	if err != nil {
 		return nil, err
 	}
-	dirEntries, err := os.ReadDir(path.Join(h.wrkPath, channel.Name, repo.Source))
+	dirEntries, err := os.ReadDir(path.Join(h.wrkPath, channel.Name, repo.DirName))
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (h *Handler) FileSystemsMap(ctx context.Context, channelID string) (map[str
 			return nil, ctx.Err()
 		}
 		if entry.IsDir() && !inSlice(commonBlacklist, entry.Name()) && !inSlice(channel.Blacklist, entry.Name()) {
-			fsMap[entry.Name()] = os.DirFS(path.Join(h.wrkPath, channel.Name, repo.Source, entry.Name()))
+			fsMap[entry.Name()] = os.DirFS(path.Join(h.wrkPath, channel.Name, repo.DirName, entry.Name()))
 		}
 	}
 	return fsMap, nil
@@ -120,7 +120,7 @@ func (h *Handler) FileSystem(ctx context.Context, channelID, fsRef string) (fs.F
 	if err != nil {
 		return nil, err
 	}
-	dirEntries, err := os.ReadDir(path.Join(h.wrkPath, channel.Name, repo.Source))
+	dirEntries, err := os.ReadDir(path.Join(h.wrkPath, channel.Name, repo.DirName))
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func (h *Handler) FileSystem(ctx context.Context, channelID, fsRef string) (fs.F
 			return nil, ctx.Err()
 		}
 		if entry.IsDir() && entry.Name() == fsRef {
-			return os.DirFS(path.Join(h.wrkPath, channel.Name, repo.Source, entry.Name())), nil
+			return os.DirFS(path.Join(h.wrkPath, channel.Name, repo.DirName, entry.Name())), nil
 		}
 	}
 	return nil, errors.New("reference does not exist")
@@ -172,19 +172,19 @@ func (h *Handler) refresh(ctx context.Context, channel Channel) error {
 		return err
 	}
 	defer repoArchive.Close()
-	newRepo.Source, err = archive_util.ExtractTarGz(repoArchive, path.Join(h.wrkPath, channel.Name))
+	newRepo.DirName, err = archive_util.ExtractTarGz(repoArchive, path.Join(h.wrkPath, channel.Name))
 	if err != nil {
 		_, _ = io.ReadAll(repoArchive)
 		return err
 	}
 	if err = writeRepoFile(path.Join(h.wrkPath, channel.Name), newRepo); err != nil {
-		if e := os.RemoveAll(path.Join(path.Join(h.wrkPath, channel.Name), newRepo.Source)); e != nil {
+		if e := os.RemoveAll(path.Join(path.Join(h.wrkPath, channel.Name), newRepo.DirName)); e != nil {
 			return errors.Join(err, e)
 		}
 		return err
 	}
-	if oldRepo.Source != "" && oldRepo.Source != newRepo.Source {
-		if e := os.RemoveAll(path.Join(path.Join(h.wrkPath, channel.Name), oldRepo.Source)); e != nil {
+	if oldRepo.DirName != "" && oldRepo.DirName != newRepo.DirName {
+		if e := os.RemoveAll(path.Join(path.Join(h.wrkPath, channel.Name), oldRepo.DirName)); e != nil {
 			fmt.Println(e)
 		}
 	}

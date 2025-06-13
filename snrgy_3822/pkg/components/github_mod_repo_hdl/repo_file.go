@@ -16,7 +16,7 @@ const (
 
 type repoFile struct {
 	GitCommit github_clt.GitCommit `json:"git_commit"`
-	Source    string               `json:"source"`
+	DirName   string               `json:"dir_name"`
 }
 
 func readRepoFile(p string) (repoFile, error) {
