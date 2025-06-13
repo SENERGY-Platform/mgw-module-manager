@@ -3,8 +3,8 @@ package github_clt
 import "time"
 
 type GitCommit struct {
-	Sha  string
-	Date time.Time
+	Sha  string    `json:"sha"`
+	Date time.Time `json:"date"`
 }
 
 type commit struct {
