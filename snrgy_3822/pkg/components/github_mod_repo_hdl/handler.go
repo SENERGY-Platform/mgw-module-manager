@@ -53,8 +53,8 @@ func (h *Handler) Init() error {
 	if err != nil {
 		return err
 	}
-	for _, reference := range h.channels {
-		if err = os.MkdirAll(path.Join(h.wrkPath, reference.Name), 0775); err != nil {
+	for _, channel := range h.channels {
+		if err = os.MkdirAll(path.Join(h.wrkPath, channel.Name), 0775); err != nil {
 			return err
 		}
 	}
