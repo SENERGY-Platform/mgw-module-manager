@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"io"
 	"io/fs"
-	"log"
 	"os"
 	"path"
 	"strings"
@@ -14,7 +13,7 @@ import (
 func ExtractTarGz(rc io.Reader, targetPath string) (string, error) {
 	gzipReader, err := gzip.NewReader(rc)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	defer gzipReader.Close()
 	tarReader := tar.NewReader(gzipReader)
