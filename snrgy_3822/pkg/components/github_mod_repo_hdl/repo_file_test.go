@@ -30,7 +30,7 @@ func Test_readRepoFile(t *testing.T) {
 		GitCommit: github_clt.GitCommit{
 			Sha: "test_sha",
 		},
-		Source: "test_source",
+		DirName: "test_source",
 	}
 	tempDir := t.TempDir()
 	err := createTestFile(a, path.Join(tempDir, repoFileName))
@@ -60,7 +60,7 @@ func Test_writeRepoFile(t *testing.T) {
 		GitCommit: github_clt.GitCommit{
 			Sha: "test_sha",
 		},
-		Source: "test_source",
+		DirName: "test_source",
 	}
 	tempDir := t.TempDir()
 	err := writeRepoFile(tempDir, a)
