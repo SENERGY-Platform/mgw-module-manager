@@ -278,6 +278,8 @@ func (h *Handler) addImages(ctx context.Context, services map[string]*module_lib
 			if !errors.As(err, &notFoundErr) {
 				return err
 			}
+		} else {
+			continue
 		}
 		jID, err := h.cewClient.AddImage(ctx, image)
 		if err != nil {
