@@ -41,12 +41,7 @@ func New(storageHdl StorageHandler, cewClient ContainerEngineWrapperClient, logg
 }
 
 func (h *Handler) Init() error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	if err := os.MkdirAll(h.config.WorkDirPath, 0775); err != nil {
-		return err
-	}
-	return nil
+	return os.MkdirAll(h.config.WorkDirPath, 0775)
 }
 
 func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter) (map[string]models_module.ModuleAbbreviated, error) {
