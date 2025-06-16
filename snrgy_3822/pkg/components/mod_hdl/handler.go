@@ -233,7 +233,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	return nil
 }
 
-func (h *Handler) Delete(ctx context.Context, id string) error {
+func (h *Handler) Remove(ctx context.Context, id string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)

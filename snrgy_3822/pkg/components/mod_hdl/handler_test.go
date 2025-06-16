@@ -320,7 +320,7 @@ func TestHandler_Delete(t *testing.T) {
 		t.Fatal(err)
 	}
 	h.cache["github.com/org/repo"] = module_lib.Module{}
-	err = h.Delete(context.Background(), "github.com/org/repo")
+	err = h.Remove(context.Background(), "github.com/org/repo")
 	if err != nil {
 		t.Error(err)
 	}
@@ -342,7 +342,7 @@ func TestHandler_Delete(t *testing.T) {
 		t.Run("storage error", func(t *testing.T) {
 			testErr := errors.New("test error")
 			stgHdlMock.Err = testErr
-			err = h.Delete(context.Background(), "github.com/org/repo")
+			err = h.Remove(context.Background(), "github.com/org/repo")
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -352,7 +352,7 @@ func TestHandler_Delete(t *testing.T) {
 			stgHdlMock.Err = nil
 		})
 		t.Run("does not exist", func(t *testing.T) {
-			err = h.Delete(context.Background(), "test")
+			err = h.Remove(context.Background(), "test")
 			if err == nil {
 				t.Error("expected error")
 			}
