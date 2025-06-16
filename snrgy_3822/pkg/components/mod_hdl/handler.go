@@ -12,7 +12,6 @@ import (
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
-	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/google/uuid"
 	"io/fs"
 	"net/url"
