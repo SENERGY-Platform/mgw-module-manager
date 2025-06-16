@@ -18,6 +18,8 @@ package mod_hdl
 
 import (
 	"context"
+	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 )
 
@@ -27,4 +29,18 @@ type StorageHandler interface {
 	CreateMod(ctx context.Context, mod models_storage.ModuleBase) error
 	UpdateMod(ctx context.Context, mod models_storage.ModuleBase) error
 	DeleteMod(ctx context.Context, id string) error
+}
+
+type ContainerEngineWrapperClient interface {
+	GetImages(ctx context.Context, filter cew_model.ImageFilter) ([]cew_model.Image, error)
+	GetImage(ctx context.Context, id string) (cew_model.Image, error)
+	AddImage(ctx context.Context, img string) (jobId string, err error)
+	RemoveImage(ctx context.Context, id string) error
+	GetJob(ctx context.Context, jID string) (job_hdl_lib.Job, error)
+	CancelJob(ctx context.Context, jID string) error
+}
+
+type Logger interface {
+	Errorf(format string, v ...any)
+	Warningf(format string, v ...any)
 }
