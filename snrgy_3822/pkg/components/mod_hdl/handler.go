@@ -4,42 +4,47 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/fs_util"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/job_util"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/modfile_util"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/google/uuid"
 	"io/fs"
+	"net/url"
 	"os"
 	"path"
 	"sync"
-	"time"
 )
 
 type Handler struct {
-	storageHdl  StorageHandler
-	cache       map[string]module_lib.Module
-	workDirPath string
-	dbTimeout   time.Duration
-	cacheMU     sync.RWMutex
-	mu          sync.RWMutex
+	storageHdl StorageHandler
+	cewClient  ContainerEngineWrapperClient
+	logger     Logger
+	config     Config
+	cache      map[string]module_lib.Module
+	cacheMU    sync.RWMutex
+	mu         sync.RWMutex
 }
 
-func New(storageHdl StorageHandler, workDirPath string, dbTimeout time.Duration) *Handler {
+func New(storageHdl StorageHandler, cewClient ContainerEngineWrapperClient, logger Logger, config Config) *Handler {
 	return &Handler{
-		storageHdl:  storageHdl,
-		cache:       make(map[string]module_lib.Module),
-		workDirPath: workDirPath,
-		dbTimeout:   dbTimeout,
+		storageHdl: storageHdl,
+		cewClient:  cewClient,
+		logger:     logger,
+		cache:      make(map[string]module_lib.Module),
+		config:     config,
 	}
 }
 
 func (h *Handler) Init() error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	if err := os.MkdirAll(h.workDirPath, 0775); err != nil {
+	if err := os.MkdirAll(h.config.WorkDirPath, 0775); err != nil {
 		return err
 	}
 	return nil
@@ -48,9 +53,7 @@ func (h *Handler) Init() error {
 func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter) (map[string]models_module.ModuleAbbreviated, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	storedMods, err := h.storageHdl.ListMod(ctxWt, models_storage.ModuleFilter{IDs: filter.IDs})
+	storedMods, err := h.storageHdl.ListMod(ctx, models_storage.ModuleFilter{IDs: filter.IDs})
 	if err != nil {
 		return nil, err
 	}
@@ -59,12 +62,12 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 	for _, storedMod := range storedMods {
 		mod, ok := h.cacheGet(storedMod.ID)
 		if !ok {
-			fmt.Println("WARNING: module not in cache")
-			modFS := os.DirFS(path.Join(h.workDirPath, storedMod.DirName))
+			h.logger.Warningf("module '%s' not in cache", storedMod.ID)
+			modFS := os.DirFS(path.Join(h.config.WorkDirPath, storedMod.DirName))
 			mod, err = modfile_util.GetModule(modFS)
 			if err != nil {
 				errs = append(errs, err)
-				fmt.Println(err)
+				h.logger.Errorf("getting module '%s' failed: %s", storedMod.ID, err)
 				continue
 			}
 			h.cacheSet(storedMod.ID, mod)
@@ -91,16 +94,14 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	storedMod, err := h.storageHdl.ReadMod(ctxWt, id)
+	storedMod, err := h.storageHdl.ReadMod(ctx, id)
 	if err != nil {
 		return models_module.Module{}, err
 	}
 	mod, ok := h.cacheGet(id)
 	if !ok {
-		fmt.Println("WARNING: module not in cache")
-		modFS := os.DirFS(path.Join(h.workDirPath, storedMod.DirName))
+		h.logger.Warningf("module '%s' not in cache", storedMod.ID)
+		modFS := os.DirFS(path.Join(h.config.WorkDirPath, storedMod.DirName))
 		mod, err = modfile_util.GetModule(modFS)
 		if err != nil {
 			return models_module.Module{}, err
@@ -121,21 +122,17 @@ func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, 
 func (h *Handler) ModuleFS(ctx context.Context, id string) (fs.FS, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	storedMod, err := h.storageHdl.ReadMod(ctxWt, id)
+	storedMod, err := h.storageHdl.ReadMod(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return os.DirFS(path.Join(h.workDirPath, storedMod.DirName)), nil
+	return os.DirFS(path.Join(h.config.WorkDirPath, storedMod.DirName)), nil
 }
 
 func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.FS) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	if tmp, err := h.storageHdl.ReadMod(ctxWt, id); err != nil {
+	if tmp, err := h.storageHdl.ReadMod(ctx, id); err != nil {
 		var notFoundErr *models_error.NotFoundError
 		if !errors.As(err, &notFoundErr) {
 			return err
@@ -155,14 +152,14 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 		Source:  source,
 		Channel: channel,
 	}
-	dstPath := path.Join(h.workDirPath, mod.DirName)
+	dstPath := path.Join(h.config.WorkDirPath, mod.DirName)
 	if err = fs_util.CopyAll(fSys, dstPath); err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				fmt.Println(e)
+				h.logger.Errorf("removing new dir '%s' of '%s' failed: %s", dstPath, id, e)
 			}
 		}
 	}()
@@ -174,9 +171,10 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 		err = errors.New("id mismatch")
 		return err
 	}
-	ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf2()
-	if err = h.storageHdl.CreateMod(ctxWt2, mod); err != nil {
+	if err = h.addImages(ctx, tmp.Services); err != nil {
+		return err
+	}
+	if err = h.storageHdl.CreateMod(ctx, mod); err != nil {
 		return err
 	}
 	h.cacheSet(id, tmp)
@@ -186,9 +184,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys fs.FS) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	oldMod, err := h.storageHdl.ReadMod(ctxWt, id)
+	oldMod, err := h.storageHdl.ReadMod(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -202,14 +198,14 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 		Source:  source,
 		Channel: channel,
 	}
-	dstPath := path.Join(h.workDirPath, newMod.DirName)
+	dstPath := path.Join(h.config.WorkDirPath, newMod.DirName)
 	if err = fs_util.CopyAll(fSys, dstPath); err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				fmt.Println(e)
+				h.logger.Errorf("removing new dir '%s' of '%s' failed: %s", dstPath, id, e)
 			}
 		}
 	}()
@@ -221,14 +217,15 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 		err = errors.New("id mismatch")
 		return err
 	}
-	ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf2()
-	if err = h.storageHdl.UpdateMod(ctxWt2, newMod); err != nil {
+	if err = h.addImages(ctx, tmp.Services); err != nil {
+		return err
+	}
+	if err = h.storageHdl.UpdateMod(ctx, newMod); err != nil {
 		return err
 	}
 	h.cacheSet(id, tmp)
-	if e := os.RemoveAll(path.Join(h.workDirPath, oldMod.DirName)); e != nil {
-		fmt.Println(e)
+	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, oldMod.DirName)); e != nil {
+		h.logger.Errorf("removing old dir '%s' of '%s' failed: %s", path.Join(h.config.WorkDirPath, oldMod.DirName), id, e)
 	}
 	return nil
 }
@@ -236,19 +233,15 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 func (h *Handler) Remove(ctx context.Context, id string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	ctxWt, cf := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf()
-	mod, err := h.storageHdl.ReadMod(ctxWt, id)
+	mod, err := h.storageHdl.ReadMod(ctx, id)
 	if err != nil {
 		return err
 	}
-	err = os.RemoveAll(path.Join(h.workDirPath, mod.DirName))
+	err = os.RemoveAll(path.Join(h.config.WorkDirPath, mod.DirName))
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
-	ctxWt2, cf2 := context.WithTimeout(ctx, h.dbTimeout)
-	defer cf2()
-	if err = h.storageHdl.DeleteMod(ctxWt2, id); err != nil {
+	if err = h.storageHdl.DeleteMod(ctx, id); err != nil {
 		return err
 	}
 	h.cacheDel(id)
