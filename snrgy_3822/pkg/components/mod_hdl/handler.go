@@ -273,3 +273,71 @@ func (h *Handler) cacheDel(id string) {
 	defer h.cacheMU.Unlock()
 	delete(h.cache, id)
 }
+
+func (h *Handler) addImages(ctx context.Context, services map[string]*module_lib.Service) error {
+	images := make(map[string]struct{})
+	for _, service := range services {
+		images[service.Image] = struct{}{}
+	}
+	for image := range images {
+		_, err := h.cewClient.GetImage(ctx, url.QueryEscape(url.QueryEscape(image)))
+		if err != nil {
+			var notFoundErr *cew_model.NotFoundError
+			if !errors.As(err, &notFoundErr) {
+				return err
+			}
+		}
+		jID, err := h.cewClient.AddImage(ctx, image)
+		if err != nil {
+			return err
+		}
+		job, err := job_util.Await(ctx, h.cewClient, jID, h.config.JobPollInterval)
+		if err != nil {
+			return err
+		}
+		if job.Error != nil {
+			return fmt.Errorf("%v", job.Error)
+		}
+	}
+	return nil
+}
+
+func (h *Handler) removeImages(ctx context.Context, services map[string]*module_lib.Service) error {
+	images := make(map[string]struct{})
+	for _, service := range services {
+		images[service.Image] = struct{}{}
+	}
+	for image := range images {
+		err := h.cewClient.RemoveImage(ctx, url.QueryEscape(url.QueryEscape(image)))
+		if err != nil {
+			var notFoundErr *cew_model.NotFoundError
+			if !errors.As(err, &notFoundErr) {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (h *Handler) removeOldImages(ctx context.Context, oldServices, newServices map[string]*module_lib.Service) error {
+	newImages := make(map[string]struct{})
+	for _, service := range newServices {
+		newImages[service.Image] = struct{}{}
+	}
+	oldImages := make(map[string]struct{})
+	for _, service := range oldServices {
+		if _, ok := newImages[service.Image]; !ok {
+			oldImages[service.Image] = struct{}{}
+		}
+	}
+	for image := range oldImages {
+		err := h.cewClient.RemoveImage(ctx, url.QueryEscape(url.QueryEscape(image)))
+		if err != nil {
+			var notFoundErr *cew_model.NotFoundError
+			if !errors.As(err, &notFoundErr) {
+				return err
+			}
+		}
+	}
+	return nil
+}
