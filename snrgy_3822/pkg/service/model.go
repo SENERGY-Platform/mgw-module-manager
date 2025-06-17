@@ -6,7 +6,7 @@ import (
 )
 
 type modWrapper struct {
-	Mod     *module_lib.Module
+	Mod     module_lib.Module
 	FS      fs.FS
 	Source  string
 	Channel string

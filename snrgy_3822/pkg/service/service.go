@@ -84,7 +84,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 	return mods, nil
 }
 
-func (s *Service) addRepoModDepsToMap(ctx context.Context, mod *module_lib.Module, source, channel string, deps map[string]modWrapper) error {
+func (s *Service) addRepoModDepsToMap(ctx context.Context, mod module_lib.Module, source, channel string, deps map[string]modWrapper) error {
 	for depID := range mod.Dependencies {
 		if _, ok := deps[depID]; !ok {
 			depFS, err := s.modReposHandler.ModuleFS(ctx, depID, source, channel)
