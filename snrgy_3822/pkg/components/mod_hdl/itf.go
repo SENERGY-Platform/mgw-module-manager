@@ -32,7 +32,6 @@ type StorageHandler interface {
 }
 
 type ContainerEngineWrapperClient interface {
-	GetImages(ctx context.Context, filter cew_model.ImageFilter) ([]cew_model.Image, error)
 	GetImage(ctx context.Context, id string) (cew_model.Image, error)
 	AddImage(ctx context.Context, img string) (jobId string, err error)
 	RemoveImage(ctx context.Context, id string) error
