@@ -11,11 +11,11 @@ import (
 )
 
 type Service struct {
-	modReposHandler ModuleReposHandler
+	modReposHdl ModuleReposHandler
 }
 
 func New(modReposHandler ModuleReposHandler) *Service {
-	return &Service{modReposHandler: modReposHandler}
+	return &Service{modReposHdl: modReposHandler}
 }
 
 func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.ModuleBase) (map[string]modWrapper, error) {
@@ -32,7 +32,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 	}
 	mods := make(map[string]modWrapper)
 	for id, reqItem := range reqItemMap {
-		modFS, err := s.modReposHandler.ModuleFS(ctx, id, reqItem.Source, reqItem.Channel)
+		modFS, err := s.modReposHdl.ModuleFS(ctx, id, reqItem.Source, reqItem.Channel)
 		if err != nil {
 			return nil, err
 		}
@@ -49,7 +49,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 			}
 		}
 	}
-	modRepos, err := s.modReposHandler.Repositories(ctx)
+	modRepos, err := s.modReposHdl.Repositories(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 func (s *Service) addRepoModDepsToMap(ctx context.Context, mod module_lib.Module, source, channel string, deps map[string]modWrapper) error {
 	for depID := range mod.Dependencies {
 		if _, ok := deps[depID]; !ok {
-			depFS, err := s.modReposHandler.ModuleFS(ctx, depID, source, channel)
+			depFS, err := s.modReposHdl.ModuleFS(ctx, depID, source, channel)
 			if err != nil {
 				return err
 			}
