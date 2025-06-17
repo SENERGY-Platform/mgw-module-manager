@@ -47,39 +47,39 @@ func (h *Handler) Init() error {
 func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter) (map[string]models_module.ModuleAbbreviated, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	storedMods, err := h.storageHdl.ListMod(ctx, models_storage.ModuleFilter{IDs: filter.IDs})
+	stgMods, err := h.storageHdl.ListMod(ctx, models_storage.ModuleFilter{IDs: filter.IDs})
 	if err != nil {
 		return nil, err
 	}
 	modulesMap := make(map[string]models_module.ModuleAbbreviated)
 	var errs []error
-	for _, storedMod := range storedMods {
-		mod, ok := h.cacheGet(storedMod.ID)
+	for _, stgMod := range stgMods {
+		mod, ok := h.cacheGet(stgMod.ID)
 		if !ok {
-			h.logger.Warningf("module '%s' not in cache", storedMod.ID)
-			modFS := os.DirFS(path.Join(h.config.WorkDirPath, storedMod.DirName))
+			h.logger.Warningf("module '%s' not in cache", stgMod.ID)
+			modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 			mod, err = modfile_util.GetModule(modFS)
 			if err != nil {
 				errs = append(errs, err)
-				h.logger.Errorf("getting module '%s' failed: %s", storedMod.ID, err)
+				h.logger.Errorf("getting module '%s' failed: %s", stgMod.ID, err)
 				continue
 			}
-			h.cacheSet(storedMod.ID, mod)
+			h.cacheSet(stgMod.ID, mod)
 		}
-		modulesMap[storedMod.ID] = models_module.ModuleAbbreviated{
-			ID:      storedMod.ID,
+		modulesMap[stgMod.ID] = models_module.ModuleAbbreviated{
+			ID:      stgMod.ID,
 			Name:    mod.Name,
 			Desc:    mod.Description,
 			Version: mod.Version,
 			ModuleBase: models_module.ModuleBase{
-				Source:  storedMod.Source,
-				Channel: storedMod.Channel,
-				Added:   storedMod.Added,
-				Updated: storedMod.Updated,
+				Source:  stgMod.Source,
+				Channel: stgMod.Channel,
+				Added:   stgMod.Added,
+				Updated: stgMod.Updated,
 			},
 		}
 	}
-	if len(errs) == len(storedMods) {
+	if len(errs) == len(stgMods) {
 		return nil, models_error.NewMultiError(errs)
 	}
 	return modulesMap, nil
@@ -88,14 +88,14 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	storedMod, err := h.storageHdl.ReadMod(ctx, id)
+	stgMod, err := h.storageHdl.ReadMod(ctx, id)
 	if err != nil {
 		return models_module.Module{}, err
 	}
 	mod, ok := h.cacheGet(id)
 	if !ok {
-		h.logger.Warningf("module '%s' not in cache", storedMod.ID)
-		modFS := os.DirFS(path.Join(h.config.WorkDirPath, storedMod.DirName))
+		h.logger.Warningf("module '%s' not in cache", stgMod.ID)
+		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 		mod, err = modfile_util.GetModule(modFS)
 		if err != nil {
 			return models_module.Module{}, err
@@ -105,10 +105,10 @@ func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, 
 	return models_module.Module{
 		Module: mod,
 		ModuleBase: models_module.ModuleBase{
-			Source:  storedMod.Source,
-			Channel: storedMod.Channel,
-			Added:   storedMod.Added,
-			Updated: storedMod.Updated,
+			Source:  stgMod.Source,
+			Channel: stgMod.Channel,
+			Added:   stgMod.Added,
+			Updated: stgMod.Updated,
 		},
 	}, nil
 }
@@ -126,100 +126,116 @@ func (h *Handler) ModuleFS(ctx context.Context, id string) (fs.FS, error) {
 func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.FS) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	if tmp, err := h.storageHdl.ReadMod(ctx, id); err != nil {
+	stgMod, err := h.storageHdl.ReadMod(ctx, id)
+	if err != nil {
 		var notFoundErr *models_error.NotFoundError
 		if !errors.As(err, &notFoundErr) {
 			return err
 		}
-	} else {
-		if tmp.ID != "" {
-			return errors.New("already exists")
-		}
 	}
-	newUUID, err := uuid.NewUUID()
+	if stgMod.ID != "" {
+		return errors.New("already exists")
+	}
+	stgModBase, err := newStgModBase(id, source, channel)
 	if err != nil {
 		return err
 	}
-	mod := models_storage.ModuleBase{
-		ID:      id,
-		DirName: newUUID.String(),
-		Source:  source,
-		Channel: channel,
-	}
-	dstPath := path.Join(h.config.WorkDirPath, mod.DirName)
+	dstPath := path.Join(h.config.WorkDirPath, stgModBase.DirName)
 	if err = fs_util.CopyAll(fSys, dstPath); err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				h.logger.Errorf("removing new dir '%s' of '%s' failed: %s", dstPath, id, e)
+				h.logger.Errorf("removing dir '%s' of '%s' failed: %s", stgModBase.DirName, id, e)
 			}
 		}
 	}()
-	tmp, err := modfile_util.GetModule(os.DirFS(dstPath))
+	mod, err := modfile_util.GetModule(os.DirFS(dstPath))
 	if err != nil {
 		return err
 	}
-	if id != tmp.ID {
+	if id != mod.ID {
 		err = errors.New("id mismatch")
 		return err
 	}
-	if err = h.addImages(ctx, tmp.Services); err != nil {
+	newImages, err := h.addImages(ctx, imagesAsSet(mod.Services))
+	if err != nil {
 		return err
 	}
-	if err = h.storageHdl.CreateMod(ctx, mod); err != nil {
+	defer func() {
+		if err != nil {
+			if e := h.removeImages(ctx, newImages); e != nil {
+				h.logger.Errorf("removing images of '%s' failed: %s", id, e)
+			}
+		}
+	}()
+	if err = h.storageHdl.CreateMod(ctx, stgModBase); err != nil {
 		return err
 	}
-	h.cacheSet(id, tmp)
+	h.cacheSet(id, mod)
 	return nil
 }
 
 func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys fs.FS) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	oldMod, err := h.storageHdl.ReadMod(ctx, id)
+	stgMod, err := h.storageHdl.ReadMod(ctx, id)
 	if err != nil {
 		return err
 	}
-	newUUID, err := uuid.NewUUID()
+	oldMod, ok := h.cacheGet(id)
+	if !ok {
+		h.logger.Warningf("module '%s' not in cache", stgMod.ID)
+		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
+		oldMod, err = modfile_util.GetModule(modFS)
+		if err != nil {
+			return err
+		}
+	}
+	stgModBase, err := newStgModBase(id, source, channel)
 	if err != nil {
 		return err
 	}
-	newMod := models_storage.ModuleBase{
-		ID:      id,
-		DirName: newUUID.String(),
-		Source:  source,
-		Channel: channel,
-	}
-	dstPath := path.Join(h.config.WorkDirPath, newMod.DirName)
+	dstPath := path.Join(h.config.WorkDirPath, stgModBase.DirName)
 	if err = fs_util.CopyAll(fSys, dstPath); err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				h.logger.Errorf("removing new dir '%s' of '%s' failed: %s", dstPath, id, e)
+				h.logger.Errorf("removing dir '%s' of '%s' failed: %s", stgModBase.DirName, id, e)
 			}
 		}
 	}()
-	tmp, err := modfile_util.GetModule(os.DirFS(dstPath))
+	newMod, err := modfile_util.GetModule(os.DirFS(dstPath))
 	if err != nil {
 		return err
 	}
-	if id != tmp.ID {
+	if id != newMod.ID {
 		err = errors.New("id mismatch")
 		return err
 	}
-	if err = h.addImages(ctx, tmp.Services); err != nil {
+	newImages, err := h.addImages(ctx, imagesAsSet(newMod.Services))
+	if err != nil {
 		return err
 	}
-	if err = h.storageHdl.UpdateMod(ctx, newMod); err != nil {
+	defer func() {
+		if err != nil {
+			if e := h.removeImages(ctx, newImages); e != nil {
+				h.logger.Errorf("removing new images of '%s' failed: %s", id, e)
+			}
+		}
+	}()
+	if err = h.storageHdl.UpdateMod(ctx, stgModBase); err != nil {
 		return err
 	}
-	h.cacheSet(id, tmp)
-	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, oldMod.DirName)); e != nil {
-		h.logger.Errorf("removing old dir '%s' of '%s' failed: %s", path.Join(h.config.WorkDirPath, oldMod.DirName), id, e)
+	h.cacheSet(id, newMod)
+	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, stgMod.DirName)); e != nil {
+		h.logger.Errorf("removing dir '%s' of '%s' failed: %s", stgMod.DirName, id, e)
+	}
+	if e := h.removeOldImages(ctx, imagesAsSet(oldMod.Services), imagesAsSet(newMod.Services)); e != nil {
+		h.logger.Errorf("removing images of '%s' failed: %s", id, e)
 	}
 	return nil
 }
@@ -227,12 +243,24 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 func (h *Handler) Remove(ctx context.Context, id string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	mod, err := h.storageHdl.ReadMod(ctx, id)
+	stgMod, err := h.storageHdl.ReadMod(ctx, id)
 	if err != nil {
 		return err
 	}
-	err = os.RemoveAll(path.Join(h.config.WorkDirPath, mod.DirName))
+	mod, ok := h.cacheGet(id)
+	if !ok {
+		h.logger.Warningf("module '%s' not in cache", stgMod.ID)
+		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
+		mod, err = modfile_util.GetModule(modFS)
+		if err != nil {
+			return err
+		}
+	}
+	err = os.RemoveAll(path.Join(h.config.WorkDirPath, stgMod.DirName))
 	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	if err = h.removeImages(ctx, imagesAsSet(mod.Services)); err != nil {
 		return err
 	}
 	if err = h.storageHdl.DeleteMod(ctx, id); err != nil {
@@ -261,41 +289,35 @@ func (h *Handler) cacheDel(id string) {
 	delete(h.cache, id)
 }
 
-func (h *Handler) addImages(ctx context.Context, services map[string]*module_lib.Service) error {
-	images := make(map[string]struct{})
-	for _, service := range services {
-		images[service.Image] = struct{}{}
-	}
+func (h *Handler) addImages(ctx context.Context, images map[string]struct{}) (map[string]struct{}, error) {
+	newImages := make(map[string]struct{})
 	for image := range images {
 		_, err := h.cewClient.GetImage(ctx, url.QueryEscape(url.QueryEscape(image)))
 		if err != nil {
 			var notFoundErr *cew_model.NotFoundError
 			if !errors.As(err, &notFoundErr) {
-				return err
+				return newImages, err
 			}
 		} else {
 			continue
 		}
 		jID, err := h.cewClient.AddImage(ctx, image)
 		if err != nil {
-			return err
+			return newImages, err
 		}
 		job, err := job_util.Await(ctx, h.cewClient, jID, h.config.JobPollInterval)
 		if err != nil {
-			return err
+			return newImages, err
 		}
 		if job.Error != nil {
-			return fmt.Errorf("%v", job.Error)
+			return newImages, fmt.Errorf("%v", job.Error)
 		}
+		newImages[image] = struct{}{}
 	}
-	return nil
+	return newImages, nil
 }
 
-func (h *Handler) removeImages(ctx context.Context, services map[string]*module_lib.Service) error {
-	images := make(map[string]struct{})
-	for _, service := range services {
-		images[service.Image] = struct{}{}
-	}
+func (h *Handler) removeImages(ctx context.Context, images map[string]struct{}) error {
 	for image := range images {
 		err := h.cewClient.RemoveImage(ctx, url.QueryEscape(url.QueryEscape(image)))
 		if err != nil {
@@ -308,25 +330,38 @@ func (h *Handler) removeImages(ctx context.Context, services map[string]*module_
 	return nil
 }
 
-func (h *Handler) removeOldImages(ctx context.Context, oldServices, newServices map[string]*module_lib.Service) error {
-	newImages := make(map[string]struct{})
-	for _, service := range newServices {
-		newImages[service.Image] = struct{}{}
-	}
-	oldImages := make(map[string]struct{})
-	for _, service := range oldServices {
-		if _, ok := newImages[service.Image]; !ok {
-			oldImages[service.Image] = struct{}{}
-		}
-	}
+func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages map[string]struct{}) error {
 	for image := range oldImages {
-		err := h.cewClient.RemoveImage(ctx, url.QueryEscape(url.QueryEscape(image)))
-		if err != nil {
-			var notFoundErr *cew_model.NotFoundError
-			if !errors.As(err, &notFoundErr) {
-				return err
+		if _, ok := newImages[image]; !ok {
+			err := h.cewClient.RemoveImage(ctx, url.QueryEscape(url.QueryEscape(image)))
+			if err != nil {
+				var notFoundErr *cew_model.NotFoundError
+				if !errors.As(err, &notFoundErr) {
+					return err
+				}
 			}
 		}
 	}
 	return nil
+}
+
+func imagesAsSet(services map[string]*module_lib.Service) map[string]struct{} {
+	images := make(map[string]struct{})
+	for _, service := range services {
+		images[service.Image] = struct{}{}
+	}
+	return images
+}
+
+func newStgModBase(id, source, channel string) (models_storage.ModuleBase, error) {
+	newUUID, err := uuid.NewUUID()
+	if err != nil {
+		return models_storage.ModuleBase{}, err
+	}
+	return models_storage.ModuleBase{
+		ID:      id,
+		DirName: newUUID.String(),
+		Source:  source,
+		Channel: channel,
+	}, nil
 }
