@@ -12,33 +12,6 @@ type modWrapper struct {
 	Channel string
 }
 
-/*
-models_repo.Module{
-	"id": "",
-	"name": "",
-	"description": "",
-	"version": "",
-	"source": "",
-	"channel": ""
-}
-models_module.ModuleAbbreviated{
-	"id": "",
-	"name": "",
-	"description": "",
-	"version": "",
-	"source": "",
-	"channel": "",
-	"added": "0001-01-01T00:00:00Z",
-	"updated": "0001-01-01T00:00:00Z"
-}
-models_repo.Repository{
-	"Source": "",
-	"Default": false,
-	"Channels": null,
-	"DefaultChannel": ""
-}
-*/
-
 type repoModAbbreviated struct {
 	Name    string
 	Desc    string
