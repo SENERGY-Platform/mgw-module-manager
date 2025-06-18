@@ -68,19 +68,19 @@ func (h *Handler) SetDefaultRepository(source string) error {
 	return nil
 }
 
-func (h *Handler) Repositories(_ context.Context) (map[string]models_repo.Repository, error) {
+func (h *Handler) Repositories(_ context.Context) ([]models_repo.Repository, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	reposMap := make(map[string]models_repo.Repository)
+	var repos []models_repo.Repository
 	for source, handler := range h.repoHandlers {
-		reposMap[source] = models_repo.Repository{
+		repos = append(repos, models_repo.Repository{
 			Source:         source,
 			Default:        source == h.defaultSource,
 			Channels:       handler.Channels(),
 			DefaultChannel: handler.DefaultChannel(),
-		}
+		})
 	}
-	return reposMap, nil
+	return repos, nil
 }
 
 func (h *Handler) Modules(_ context.Context) ([]models_repo.Module, error) {
