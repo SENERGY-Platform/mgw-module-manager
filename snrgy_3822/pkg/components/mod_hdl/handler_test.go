@@ -73,9 +73,16 @@ func TestHandler_Modules(t *testing.T) {
 	if len(mods) != 1 {
 		t.Errorf("expected len 1 but got %d", len(mods))
 	}
-	b, ok := mods["github.com/org/repo"]
+	var b models_module.ModuleAbbreviated
+	ok := false
+	for _, mod := range mods {
+		if mod.ID == "github.com/org/repo" {
+			b = mod
+			ok = true
+		}
+	}
 	if !ok {
-		t.Error(errors.New("module not in map"))
+		t.Error(errors.New("module not in slice"))
 	}
 	if !reflect.DeepEqual(a, b) {
 		t.Errorf("expected %v, got %v", a, b)

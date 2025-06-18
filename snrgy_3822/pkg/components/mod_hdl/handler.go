@@ -44,14 +44,14 @@ func (h *Handler) Init() error {
 	return os.MkdirAll(h.config.WorkDirPath, 0775)
 }
 
-func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter) (map[string]models_module.ModuleAbbreviated, error) {
+func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter) ([]models_module.ModuleAbbreviated, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	stgMods, err := h.storageHdl.ListMod(ctx, models_storage.ModuleFilter{IDs: filter.IDs})
 	if err != nil {
 		return nil, err
 	}
-	modulesMap := make(map[string]models_module.ModuleAbbreviated)
+	var modules []models_module.ModuleAbbreviated
 	var errs []error
 	for _, stgMod := range stgMods {
 		mod, ok := h.cacheGet(stgMod.ID)
@@ -66,7 +66,7 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 			}
 			h.cacheSet(stgMod.ID, mod)
 		}
-		modulesMap[stgMod.ID] = models_module.ModuleAbbreviated{
+		modules = append(modules, models_module.ModuleAbbreviated{
 			ID:      stgMod.ID,
 			Name:    mod.Name,
 			Desc:    mod.Description,
@@ -77,12 +77,12 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 				Added:   stgMod.Added,
 				Updated: stgMod.Updated,
 			},
-		}
+		})
 	}
 	if len(errs) == len(stgMods) {
 		return nil, models_error.NewMultiError(errs)
 	}
-	return modulesMap, nil
+	return modules, nil
 }
 
 func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, error) {
