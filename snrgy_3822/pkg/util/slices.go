@@ -37,3 +37,16 @@ func SliceToMapSafe[S ~[]E, E any](sl S, keyF func(item E) string) (map[string]E
 	}
 	return m, nil
 }
+
+func SelectByPriority[S ~[]E, E any](sl S, comp func(item E, lastPrio int) (int, bool)) E {
+	var lastPrio int
+	var candidate E
+	for i := 0; i < len(sl); i++ {
+		prio, ok := comp(sl[i], lastPrio)
+		if i == 0 || ok {
+			lastPrio = prio
+			candidate = sl[i]
+		}
+	}
+	return candidate
+}
