@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/archive_util"
+	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	"io"
 	"io/fs"
 	"os"
@@ -65,21 +66,12 @@ func (h *Handler) Source() string {
 	return path.Join(gitHubCom, h.owner, h.repo)
 }
 
-func (h *Handler) Channels() []string {
-	var channels []string
+func (h *Handler) Channels() []models_repo.Channel {
+	var channels []models_repo.Channel
 	for _, channel := range h.channels {
-		channels = append(channels, channel.Name)
+		channels = append(channels, models_repo.Channel{Name: channel.Name, Priority: channel.Priority})
 	}
 	return channels
-}
-
-func (h *Handler) DefaultChannel() string {
-	for _, channel := range h.channels {
-		if channel.Default {
-			return channel.Name
-		}
-	}
-	return ""
 }
 
 func (h *Handler) FileSystemsMap(ctx context.Context, channelName string) (map[string]fs.FS, error) {

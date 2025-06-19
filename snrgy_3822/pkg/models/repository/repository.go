@@ -17,10 +17,14 @@
 package repository
 
 type Repository struct {
-	Source         string
-	Default        bool
-	Channels       []string
-	DefaultChannel string
+	Source   string
+	Priority int
+	Channels []Channel
+}
+
+type Channel struct {
+	Name     string
+	Priority int
 }
 
 type ModuleBase struct {

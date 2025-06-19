@@ -27,14 +27,14 @@ type RepoModule struct {
 
 type Repository struct {
 	Source   string    `json:"source"`
-	Default  bool      `json:"default"`
+	Priority int       `json:"priority"`
 	Channels []Channel `json:"channels"`
 }
 
 type Channel struct {
-	Name    string `json:"name"`
-	Default bool   `json:"default"`
-	Version string `json:"version"`
+	Name     string `json:"name"`
+	Priority int    `json:"priority"`
+	Version  string `json:"version"`
 }
 
 type ModuleVariant struct {

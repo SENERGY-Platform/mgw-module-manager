@@ -46,9 +46,7 @@ func (s *Service) RepoModules(ctx context.Context) ([]models_service.RepoModule,
 }
 
 func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_repo.Module, installedMods []models_module.ModuleAbbreviated) ([]models_service.RepoModule, error) {
-	reposMap := util.SliceToMap(repos, func(item models_repo.Repository) string {
-		return item.Source
-	})
+	reposTree := buildReposTree(repos)
 	installedModsMap := util.SliceToMap(installedMods, func(item models_module.ModuleAbbreviated) string {
 		return item.ID
 	})
@@ -62,52 +60,40 @@ func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_
 				Version: variant.Version,
 			}
 		}
-		var defaultRepo bool
 		var fErr error
 		for source, channels := range sources {
-			repo, ok := reposMap[source]
+			repo, ok := reposTree[source]
 			if !ok {
 				fErr = fmt.Errorf("repo '%s' not found", source)
 				break
 			}
-			if repo.Default {
-				defaultRepo = true
-			}
 			repository := models_service.Repository{
-				Source:  source,
-				Default: repo.Default,
+				Source:   source,
+				Priority: repo.Priority,
 			}
-			var defaultChannel bool
 			for channel, repoMod := range channels {
-				if channel == repo.DefaultChannel {
-					defaultChannel = true
-					repoModule.Name = repoMod.Name
-					repoModule.Desc = repoMod.Desc
-					repoModule.Version = repoMod.Version
+				channelPrio, ok := repo.Channels[channel]
+				if !ok {
+					fErr = fmt.Errorf("channel '%s' not found", channel)
+					break
 				}
 				repository.Channels = append(repository.Channels, models_service.Channel{
-					Name:    channel,
-					Default: channel == repo.DefaultChannel,
-					Version: repoMod.Version,
+					Name:     channel,
+					Priority: channelPrio,
+					Version:  repoMod.Version,
 				})
 			}
 			slices.SortStableFunc(repository.Channels, func(a, b models_service.Channel) int {
-				return strings.Compare(a.Name, b.Name)
+				return b.Priority - a.Priority
 			})
-			if !defaultChannel {
-				var tmpChannels []models_service.Channel
-				for i, channel := range repository.Channels {
-					if i == 0 {
-						channel.Default = true
-						repoMod := channels[channel.Name]
-						repoModule.Name = repoMod.Name
-						repoModule.Desc = repoMod.Desc
-						repoModule.Version = repoMod.Version
-					}
-					tmpChannels = append(tmpChannels, channel)
-				}
-				repository.Channels = tmpChannels
+			if len(repository.Channels) == 0 {
+				fErr = fmt.Errorf("no channels for '%s'", source)
+				break
 			}
+			repoMod := channels[repository.Channels[0].Name]
+			repoModule.Name = repoMod.Name
+			repoModule.Desc = repoMod.Desc
+			repoModule.Version = repoMod.Version
 			repoModule.Repositories = append(repoModule.Repositories, repository)
 		}
 		if fErr != nil {
@@ -115,18 +101,8 @@ func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_
 			continue
 		}
 		slices.SortStableFunc(repoModule.Repositories, func(a, b models_service.Repository) int {
-			return strings.Compare(a.Source, b.Source)
+			return b.Priority - a.Priority
 		})
-		if !defaultRepo {
-			var tmpRepos []models_service.Repository
-			for i, repository := range repoModule.Repositories {
-				if i == 0 {
-					repository.Default = true
-				}
-				tmpRepos = append(tmpRepos, repository)
-			}
-			repoModule.Repositories = tmpRepos
-		}
 		repoModules = append(repoModules, repoModule)
 	}
 	slices.SortStableFunc(repoModules, func(a, b models_service.RepoModule) int {
@@ -171,17 +147,17 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 		return nil, err
 	}
 	deps := make(map[string]modWrapper)
-	for _, repo := range modRepos {
-		if repo.Default {
-			channel := selectChannel(repo)
-			for _, wrapper := range mods {
-				if wrapper.Source == repo.Source {
-					if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, channel, deps); err != nil {
-						return nil, err
-					}
-				}
+	highestPrioRepo := util.SelectByPriority(modRepos, func(item models_repo.Repository, lastPrio int) (int, bool) {
+		return item.Priority, item.Priority >= lastPrio
+	})
+	highestPrioChannel := util.SelectByPriority(highestPrioRepo.Channels, func(item models_repo.Channel, lastPrio int) (int, bool) {
+		return item.Priority, item.Priority >= lastPrio
+	})
+	for _, wrapper := range mods {
+		if wrapper.Source == highestPrioRepo.Source {
+			if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, highestPrioChannel.Name, deps); err != nil {
+				return nil, err
 			}
-			break
 		}
 	}
 	modReposMap := util.SliceToMap(modRepos, func(item models_repo.Repository) string {
@@ -192,7 +168,10 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 		if !ok {
 			return nil, errors.New("source not found")
 		}
-		if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, selectChannel(repo), deps); err != nil {
+		highestPrioChannel = util.SelectByPriority(repo.Channels, func(item models_repo.Channel, lastPrio int) (int, bool) {
+			return item.Priority, item.Priority >= lastPrio
+		})
+		if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, highestPrioChannel.Name, deps); err != nil {
 			return nil, err
 		}
 	}
@@ -230,16 +209,8 @@ func (s *Service) addRepoModDepsToMap(ctx context.Context, mod module_lib.Module
 	return nil
 }
 
-func selectChannel(repo models_repo.Repository) string {
-	channel := repo.DefaultChannel
-	if channel == "" && len(repo.Channels) > 0 {
-		channel = repo.Channels[0]
-	}
-	return channel
-}
-
 func buildRepoModsTree(repoMods []models_repo.Module) map[string]map[string]map[string]repoModAbbreviated {
-	repoModsTree := make(map[string]map[string]map[string]repoModAbbreviated) // {id:{source:{channel:models_repo.Module}}}
+	repoModsTree := make(map[string]map[string]map[string]repoModAbbreviated) // {id:{source:{channel:repoModAbbreviated}}}
 	for _, repoMod := range repoMods {
 		sources, ok := repoModsTree[repoMod.ID]
 		if !ok {
@@ -258,4 +229,19 @@ func buildRepoModsTree(repoMods []models_repo.Module) map[string]map[string]map[
 		}
 	}
 	return repoModsTree
+}
+
+func buildReposTree(repos []models_repo.Repository) map[string]repoAbbreviated {
+	reposTree := make(map[string]repoAbbreviated) // {source:repoAbbreviated}
+	for _, repo := range repos {
+		channels := make(map[string]int)
+		for _, channel := range repo.Channels {
+			channels[channel.Name] = channel.Priority
+		}
+		reposTree[repo.Source] = repoAbbreviated{
+			Priority: repo.Priority,
+			Channels: channels,
+		}
+	}
+	return reposTree
 }

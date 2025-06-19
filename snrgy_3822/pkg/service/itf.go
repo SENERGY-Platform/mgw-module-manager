@@ -9,7 +9,6 @@ import (
 
 type ModuleReposHandler interface {
 	RefreshRepositories(ctx context.Context) error
-	SetDefaultRepository(source string) error
 	Repositories(ctx context.Context) ([]models_repo.Repository, error)
 	Module(ctx context.Context, id, source, channel string) (models_repo.Module, error)
 	Modules(ctx context.Context) ([]models_repo.Module, error)

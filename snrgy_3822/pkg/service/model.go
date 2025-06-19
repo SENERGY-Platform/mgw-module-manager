@@ -12,6 +12,11 @@ type modWrapper struct {
 	Channel string
 }
 
+type repoAbbreviated struct {
+	Priority int
+	Channels map[string]int
+}
+
 type repoModAbbreviated struct {
 	Name    string
 	Desc    string
