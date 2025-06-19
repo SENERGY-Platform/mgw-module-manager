@@ -17,12 +17,12 @@
 package service
 
 type RepoModule struct {
-	ID               string         `json:"id"`
-	Name             string         `json:"name"`
-	Desc             string         `json:"description"`
-	Version          string         `json:"version"`
-	Repositories     []Repository   `json:"repositories"`
-	InstalledVariant *ModuleVariant `json:"installed_variant"`
+	ID           string         `json:"id"`
+	Name         string         `json:"name"`
+	Desc         string         `json:"description"`
+	Version      string         `json:"version"`
+	Repositories []Repository   `json:"repositories"`
+	Installed    *ModuleVariant `json:"installed"`
 }
 
 type Repository struct {

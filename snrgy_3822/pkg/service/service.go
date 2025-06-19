@@ -56,7 +56,7 @@ func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_
 	for id, sources := range buildRepoModsTree(repoMods) {
 		repoModule := models_service.RepoModule{ID: id}
 		if variant, ok := installedModsMap[id]; ok {
-			repoModule.InstalledVariant = &models_service.ModuleVariant{
+			repoModule.Installed = &models_service.ModuleVariant{
 				Source:  variant.Source,
 				Channel: variant.Channel,
 				Version: variant.Version,
