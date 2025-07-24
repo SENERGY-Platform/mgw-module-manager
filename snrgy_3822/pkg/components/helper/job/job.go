@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package job_util
+package job
 
 import (
 	"context"

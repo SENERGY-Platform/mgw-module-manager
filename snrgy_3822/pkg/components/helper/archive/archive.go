@@ -1,4 +1,4 @@
-package archive_util
+package archive
 
 import (
 	"archive/tar"

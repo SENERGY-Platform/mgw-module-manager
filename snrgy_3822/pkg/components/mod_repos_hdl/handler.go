@@ -3,7 +3,7 @@ package mod_repos_hdl
 import (
 	"context"
 	"errors"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/modfile_util"
+	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	"io/fs"
@@ -126,7 +126,7 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 				if ctx.Err() != nil {
 					return ctx.Err()
 				}
-				mod, err := modfile_util.GetModule(fSys)
+				mod, err := helper_modfile.GetModule(fSys)
 				if err != nil {
 					errs = append(errs, models_error.NewRepoModuleErr(source, channel.Name, err))
 					continue

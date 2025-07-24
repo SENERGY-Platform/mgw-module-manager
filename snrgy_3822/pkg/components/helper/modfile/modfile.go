@@ -1,4 +1,4 @@
-package modfile_util
+package modfile
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1dec"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1gen"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/fs_util"
+	helper_file_sys "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
 	"gopkg.in/yaml.v3"
 	"io"
 	"io/fs"
@@ -24,7 +24,7 @@ var mfGenerators = make(modfile.Generators)
 var RegExp = regexp.MustCompile(`^Modfile\.(?:yml|yaml)$`)
 
 func open(fSys fs.FS) (fs.File, error) {
-	mfPath, err := fs_util.FindFile(fSys, RegExp.MatchString)
+	mfPath, err := helper_file_sys.FindFile(fSys, RegExp.MatchString)
 	if err != nil {
 		return nil, err
 	}

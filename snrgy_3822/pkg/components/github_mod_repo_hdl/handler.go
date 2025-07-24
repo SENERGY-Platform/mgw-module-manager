@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/archive_util"
+	helper_archive "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/archive"
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	"io"
 	"io/fs"
@@ -170,7 +170,7 @@ func (h *Handler) refresh(ctx context.Context, channel Channel) error {
 	if err = os.MkdirAll(path.Join(basePath, newRepo.GitCommit.Sha), 0775); err != nil {
 		return err
 	}
-	rootDir, err := archive_util.ExtractTarGz(repoArchive, path.Join(basePath, newRepo.GitCommit.Sha))
+	rootDir, err := helper_archive.ExtractTarGz(repoArchive, path.Join(basePath, newRepo.GitCommit.Sha))
 	if err != nil {
 		_, _ = io.ReadAll(repoArchive)
 		return err

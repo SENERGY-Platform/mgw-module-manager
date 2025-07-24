@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/modfile_util"
+	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
@@ -39,6 +39,18 @@ func (s *Service) RepoModules(ctx context.Context) ([]models_service.RepoModule,
 		return nil, err
 	}
 	installedMods, err := s.modHdl.Modules(ctx, models_module.ModuleFilter{})
+	if err != nil {
+		return nil, err
+	}
+	return s.repoModules(repos, repoMods, installedMods)
+}
+
+func (s *Service) Test(ctx context.Context, installedMods []models_module.ModuleAbbreviated) ([]models_service.RepoModule, error) {
+	repos, err := s.modReposHdl.Repositories(ctx)
+	if err != nil {
+		return nil, err
+	}
+	repoMods, err := s.modReposHdl.Modules(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +141,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 		if err != nil {
 			return nil, err
 		}
-		mod, err := modfile_util.GetModule(modFS)
+		mod, err := helper_modfile.GetModule(modFS)
 		if err != nil {
 			return nil, err
 		}
@@ -190,7 +202,7 @@ func (s *Service) addRepoModDepsToMap(ctx context.Context, mod module_lib.Module
 			if err != nil {
 				return err
 			}
-			dep, err := modfile_util.GetModule(depFS)
+			dep, err := helper_modfile.GetModule(depFS)
 			if err != nil {
 				return err
 			}

@@ -6,9 +6,9 @@ import (
 	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/fs_util"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/job_util"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/modfile_util"
+	helper_file_sys "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
+	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
+	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
@@ -58,7 +58,7 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 		if !ok {
 			h.logger.Warningf("module '%s' not in cache", stgMod.ID)
 			modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
-			mod, err = modfile_util.GetModule(modFS)
+			mod, err = helper_modfile.GetModule(modFS)
 			if err != nil {
 				errs = append(errs, err)
 				h.logger.Errorf("getting module '%s' failed: %s", stgMod.ID, err)
@@ -96,7 +96,7 @@ func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, 
 	if !ok {
 		h.logger.Warningf("module '%s' not in cache", stgMod.ID)
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
-		mod, err = modfile_util.GetModule(modFS)
+		mod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
 			return models_module.Module{}, err
 		}
@@ -141,7 +141,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 		return err
 	}
 	dstPath := path.Join(h.config.WorkDirPath, stgModBase.DirName)
-	if err = fs_util.CopyAll(fSys, dstPath); err != nil {
+	if err = helper_file_sys.CopyAll(fSys, dstPath); err != nil {
 		return err
 	}
 	defer func() {
@@ -151,7 +151,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 			}
 		}
 	}()
-	mod, err := modfile_util.GetModule(os.DirFS(dstPath))
+	mod, err := helper_modfile.GetModule(os.DirFS(dstPath))
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	if !ok {
 		h.logger.Warningf("module '%s' not in cache", stgMod.ID)
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
-		oldMod, err = modfile_util.GetModule(modFS)
+		oldMod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
 			return err
 		}
@@ -198,7 +198,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 		return err
 	}
 	dstPath := path.Join(h.config.WorkDirPath, stgModBase.DirName)
-	if err = fs_util.CopyAll(fSys, dstPath); err != nil {
+	if err = helper_file_sys.CopyAll(fSys, dstPath); err != nil {
 		return err
 	}
 	defer func() {
@@ -208,7 +208,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 			}
 		}
 	}()
-	newMod, err := modfile_util.GetModule(os.DirFS(dstPath))
+	newMod, err := helper_modfile.GetModule(os.DirFS(dstPath))
 	if err != nil {
 		return err
 	}
@@ -251,7 +251,7 @@ func (h *Handler) Remove(ctx context.Context, id string) error {
 	if !ok {
 		h.logger.Warningf("module '%s' not in cache", stgMod.ID)
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
-		mod, err = modfile_util.GetModule(modFS)
+		mod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
 			return err
 		}
@@ -305,7 +305,7 @@ func (h *Handler) addImages(ctx context.Context, images map[string]struct{}) (ma
 		if err != nil {
 			return newImages, err
 		}
-		job, err := job_util.Await(ctx, h.cewClient, jID, h.config.JobPollInterval)
+		job, err := helper_job.Await(ctx, h.cewClient, jID, h.config.JobPollInterval)
 		if err != nil {
 			return newImages, err
 		}
