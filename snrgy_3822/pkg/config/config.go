@@ -19,8 +19,8 @@ package config
 import (
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
 	sb_config_types "github.com/SENERGY-Platform/go-service-base/config-hdl/types"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/logger"
-	"github.com/y-du/go-log-level/level"
+	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
+	"time"
 )
 
 type DatabaseConfig struct {
@@ -76,7 +76,7 @@ type Config struct {
 	ModTransferHandler ModTransferHandlerConfig `json:"module_transfer_handler" env_var:"MTH_CONFIG"`
 	ModStagingHandler  ModStagingHandlerConfig  `json:"module_staging_handler" env_var:"MSH_CONFIG"`
 	DepHandler         DepHandlerConfig         `json:"deployment_handler" env_var:"DH_CONFIG"`
-	Logger             logger.Config            `json:"logger" env_var:"LOGGER_CONFIG"`
+	Logger             struct_logger.Config     `json:"logger"`
 	ConfigDefsPath     string                   `json:"config_defs_path" env_var:"CONFIG_DEFS_PATH"`
 	Database           DatabaseConfig           `json:"database" env_var:"DATABASE_CONFIG"`
 	HttpClient         HttpClientConfig         `json:"http_client" env_var:"HTTP_CLIENT_CONFIG"`
@@ -102,11 +102,12 @@ func New(path string) (*Config, error) {
 			WorkdirPath: "/opt/module-manager/deployments",
 			ModuleNet:   "module-net",
 		},
-		Logger: logger.Config{
-			Level:        level.Warning,
-			Utc:          true,
-			Microseconds: true,
-			Terminal:     true,
+		Logger: struct_logger.Config{
+			Handler:    struct_logger.TextHandlerSelector,
+			Level:      struct_logger.LevelInfo,
+			TimeFormat: time.RFC3339Nano,
+			TimeUtc:    true,
+			AddMeta:    true,
 		},
 		ConfigDefsPath: "include/config_definitions.json",
 		Database: DatabaseConfig{
