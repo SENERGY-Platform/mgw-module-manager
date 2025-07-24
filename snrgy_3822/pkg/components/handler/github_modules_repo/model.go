@@ -1,4 +1,4 @@
-package github_mod_repo_hdl
+package github_modules_repo
 
 type Channel struct {
 	Name      string

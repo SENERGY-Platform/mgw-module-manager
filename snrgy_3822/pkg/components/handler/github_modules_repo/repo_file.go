@@ -1,9 +1,9 @@
-package github_mod_repo_hdl
+package github_modules_repo
 
 import (
 	"encoding/json"
 	"errors"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/github_mod_repo_hdl/github_clt"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/github_modules_repo/github_clt"
 	"io"
 	"os"
 	"path"

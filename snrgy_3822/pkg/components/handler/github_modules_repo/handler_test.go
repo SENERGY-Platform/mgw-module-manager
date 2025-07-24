@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package github_mod_repo_hdl
+package github_modules_repo
 
 import (
 	"context"
-	github_clt2 "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/github_mod_repo_hdl/github_clt"
+	github_clt2 "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/github_modules_repo/github_clt"
 	"io"
 	"io/fs"
 	"net/http"

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package mod_hdl
+package modules
 
 import (
 	"context"

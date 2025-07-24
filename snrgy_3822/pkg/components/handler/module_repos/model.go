@@ -1,4 +1,4 @@
-package mod_repos_hdl
+package module_repos
 
 import (
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
