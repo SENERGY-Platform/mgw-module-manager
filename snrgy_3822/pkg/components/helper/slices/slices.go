@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package util
+package slices
 
 import "fmt"
 

@@ -21,10 +21,10 @@ func init() {
 var mfDecoders = make(modfile.Decoders)
 var mfGenerators = make(modfile.Generators)
 
-var RegExp = regexp.MustCompile(`^Modfile\.(?:yml|yaml)$`)
+var regExp = regexp.MustCompile(`^Modfile\.(?:yml|yaml)$`)
 
 func open(fSys fs.FS) (fs.File, error) {
-	mfPath, err := helper_file_sys.FindFile(fSys, RegExp.MatchString)
+	mfPath, err := helper_file_sys.FindFile(fSys, regExp.MatchString)
 	if err != nil {
 		return nil, err
 	}
