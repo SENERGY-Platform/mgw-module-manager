@@ -21,15 +21,15 @@ import (
 )
 
 type Handler struct {
-	storageHdl StorageHandler
-	cewClient  ContainerEngineWrapperClient
+	storageHdl storageHandler
+	cewClient  containerEngineWrapperClient
 	config     Config
 	cache      map[string]models_external.Module
 	cacheMU    sync.RWMutex
 	mu         sync.RWMutex
 }
 
-func New(storageHdl StorageHandler, cewClient ContainerEngineWrapperClient, config Config) *Handler {
+func New(storageHdl storageHandler, cewClient containerEngineWrapperClient, config Config) *Handler {
 	return &Handler{
 		storageHdl: storageHdl,
 		cewClient:  cewClient,

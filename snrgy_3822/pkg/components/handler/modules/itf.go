@@ -22,7 +22,7 @@ import (
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 )
 
-type StorageHandler interface {
+type storageHandler interface {
 	ListMod(ctx context.Context, filter models_storage.ModuleFilter) (map[string]models_storage.Module, error)
 	ReadMod(ctx context.Context, id string) (models_storage.Module, error)
 	CreateMod(ctx context.Context, mod models_storage.ModuleBase) error
@@ -30,7 +30,7 @@ type StorageHandler interface {
 	DeleteMod(ctx context.Context, id string) error
 }
 
-type ContainerEngineWrapperClient interface {
+type containerEngineWrapperClient interface {
 	GetImage(ctx context.Context, id string) (models_external.Image, error)
 	AddImage(ctx context.Context, img string) (jobId string, err error)
 	RemoveImage(ctx context.Context, id string) error

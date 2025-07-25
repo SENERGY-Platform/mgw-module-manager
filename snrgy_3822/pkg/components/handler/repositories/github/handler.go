@@ -22,7 +22,7 @@ var commonBlacklist = []string{
 }
 
 type Handler struct {
-	gitHubClt GitHubClient
+	gitHubClt gitHubClient
 	owner     string
 	repo      string
 	channels  map[string]Channel
@@ -30,7 +30,7 @@ type Handler struct {
 	mu        sync.RWMutex
 }
 
-func New(gitHubClt GitHubClient, wrkPath, owner, repo string, channels []Channel) *Handler {
+func New(gitHubClt gitHubClient, wrkPath, owner, repo string, channels []Channel) *Handler {
 	channelsMap := make(map[string]Channel)
 	for _, channel := range channels {
 		channelsMap[channel.Name] = channel
