@@ -44,18 +44,6 @@ func (s *Service) RepoModules(ctx context.Context) ([]models_service.RepoModule,
 	return s.repoModules(repos, repoMods, installedMods)
 }
 
-//func (s *Service) Test(ctx context.Context, installedMods []models_module.ModuleAbbreviated) ([]models_service.RepoModule, error) {
-//	repos, err := s.modReposHdl.Repositories(ctx)
-//	if err != nil {
-//		return nil, err
-//	}
-//	repoMods, err := s.modReposHdl.Modules(ctx)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return s.repoModules(repos, repoMods, installedMods)
-//}
-
 func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_repo.Module, installedMods []models_module.ModuleAbbreviated) ([]models_service.RepoModule, error) {
 	reposTree := buildReposTree(repos)
 	installedModsMap := helper_slices.SliceToMap(installedMods, func(item models_module.ModuleAbbreviated) string {
