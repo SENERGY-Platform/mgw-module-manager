@@ -19,6 +19,6 @@ package modules
 import "time"
 
 type Config struct {
-	WorkDirPath     string
-	JobPollInterval time.Duration
+	WorkDirPath     string        `json:"work_dir_path" env_var:"MODULES_HANDLER_WORK_DIR_PATH"`
+	JobPollInterval time.Duration `json:"job_poll_interval" env_var:"MODULES_HANDLER_JOB_POLL_INTERVAL"`
 }
