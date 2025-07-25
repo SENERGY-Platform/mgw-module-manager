@@ -38,8 +38,3 @@ type ContainerEngineWrapperClient interface {
 	GetJob(ctx context.Context, jID string) (job_hdl_lib.Job, error)
 	CancelJob(ctx context.Context, jID string) error
 }
-
-type Logger interface {
-	Errorf(format string, v ...any)
-	Warningf(format string, v ...any)
-}

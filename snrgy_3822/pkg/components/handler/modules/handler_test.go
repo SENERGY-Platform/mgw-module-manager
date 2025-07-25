@@ -27,6 +27,7 @@ import (
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 	"io"
+	"log/slog"
 	"net/url"
 	"os"
 	"path"
@@ -36,6 +37,7 @@ import (
 )
 
 func TestHandler_Modules(t *testing.T) {
+	InitLogger(slog.Default())
 	timestamp := time.Now().UTC()
 	stgHdlMock := &storageHandlerMock{Mods: map[string]models_storage.Module{
 		"github.com/org/repo": {
@@ -61,7 +63,7 @@ func TestHandler_Modules(t *testing.T) {
 			Updated: timestamp,
 		},
 	}
-	h := New(stgHdlMock, nil, &loggerMock{Writer: os.Stdout}, Config{WorkDirPath: "./test"})
+	h := New(stgHdlMock, nil, Config{WorkDirPath: "./test"})
 	err := h.Init()
 	if err != nil {
 		t.Fatal(err)
@@ -90,6 +92,7 @@ func TestHandler_Modules(t *testing.T) {
 }
 
 func TestHandler_Module(t *testing.T) {
+	InitLogger(slog.Default())
 	timestamp := time.Now().UTC()
 	stgHdlMock := &storageHandlerMock{Mods: map[string]models_storage.Module{
 		"github.com/org/repo": {
@@ -109,7 +112,7 @@ func TestHandler_Module(t *testing.T) {
 		Added:   timestamp,
 		Updated: timestamp,
 	}
-	h := New(stgHdlMock, nil, &loggerMock{Writer: os.Stdout}, Config{WorkDirPath: "./test"})
+	h := New(stgHdlMock, nil, Config{WorkDirPath: "./test"})
 	err := h.Init()
 	if err != nil {
 		t.Fatal(err)
@@ -154,10 +157,11 @@ func TestHandler_Module(t *testing.T) {
 }
 
 func TestHandler_Add(t *testing.T) {
+	InitLogger(slog.Default())
 	stgHdlMock := &storageHandlerMock{Mods: make(map[string]models_storage.Module)}
 	cewCltMock := &cewClientMock{Images: make(map[string]cew_model.Image), Jobs: make(map[string]job_hdl_lib.Job), JobCompleteDelay: time.Second * 1}
 	workDir := t.TempDir()
-	h := New(stgHdlMock, cewCltMock, &loggerMock{Writer: os.Stdout}, Config{WorkDirPath: workDir, JobPollInterval: time.Millisecond * 250})
+	h := New(stgHdlMock, cewCltMock, Config{WorkDirPath: workDir, JobPollInterval: time.Millisecond * 250})
 	err := h.Init()
 	if err != nil {
 		t.Fatal(err)
@@ -275,6 +279,7 @@ func TestHandler_Add(t *testing.T) {
 }
 
 func TestHandler_Update(t *testing.T) {
+	InitLogger(slog.Default())
 	timestamp := time.Now().UTC()
 	stgHdlMock := &storageHandlerMock{Mods: map[string]models_storage.Module{
 		"github.com/org/repo": {
@@ -294,7 +299,7 @@ func TestHandler_Update(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h := New(stgHdlMock, cewCltMock, &loggerMock{Writer: os.Stdout}, Config{WorkDirPath: workDir})
+	h := New(stgHdlMock, cewCltMock, Config{WorkDirPath: workDir})
 	err = h.Init()
 	if err != nil {
 		t.Fatal(err)
@@ -484,6 +489,7 @@ func TestHandler_Update(t *testing.T) {
 }
 
 func TestHandler_Delete(t *testing.T) {
+	InitLogger(slog.Default())
 	stgHdlMock := &storageHandlerMock{}
 	cewCltMock := &cewClientMock{Images: make(map[string]cew_model.Image), Jobs: make(map[string]job_hdl_lib.Job), JobCompleteDelay: time.Second * 1}
 	workDir := t.TempDir()
@@ -491,7 +497,7 @@ func TestHandler_Delete(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h := New(stgHdlMock, cewCltMock, &loggerMock{Writer: os.Stdout}, Config{WorkDirPath: workDir})
+	h := New(stgHdlMock, cewCltMock, Config{WorkDirPath: workDir})
 	err = h.Init()
 	if err != nil {
 		t.Fatal(err)

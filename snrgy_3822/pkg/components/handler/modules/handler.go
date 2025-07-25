@@ -11,6 +11,7 @@ import (
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 	"github.com/google/uuid"
 	"io/fs"
@@ -23,18 +24,16 @@ import (
 type Handler struct {
 	storageHdl StorageHandler
 	cewClient  ContainerEngineWrapperClient
-	logger     Logger
 	config     Config
 	cache      map[string]module_lib.Module
 	cacheMU    sync.RWMutex
 	mu         sync.RWMutex
 }
 
-func New(storageHdl StorageHandler, cewClient ContainerEngineWrapperClient, logger Logger, config Config) *Handler {
+func New(storageHdl StorageHandler, cewClient ContainerEngineWrapperClient, config Config) *Handler {
 	return &Handler{
 		storageHdl: storageHdl,
 		cewClient:  cewClient,
-		logger:     logger,
 		cache:      make(map[string]module_lib.Module),
 		config:     config,
 	}
@@ -56,12 +55,12 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 	for _, stgMod := range stgMods {
 		mod, ok := h.cacheGet(stgMod.ID)
 		if !ok {
-			h.logger.Warningf("module '%s' not in cache", stgMod.ID)
+			logger.Warn("module not in cache", slog_attr.IDKey, stgMod.ID)
 			modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 			mod, err = helper_modfile.GetModule(modFS)
 			if err != nil {
 				errs = append(errs, err)
-				h.logger.Errorf("getting module '%s' failed: %s", stgMod.ID, err)
+				logger.Error("getting module failed", slog_attr.IDKey, stgMod.ID, slog_attr.ErrorKey, err)
 				continue
 			}
 			h.cacheSet(stgMod.ID, mod)
@@ -94,7 +93,7 @@ func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, 
 	}
 	mod, ok := h.cacheGet(id)
 	if !ok {
-		h.logger.Warningf("module '%s' not in cache", stgMod.ID)
+		logger.Warn("module not in cache", slog_attr.IDKey, stgMod.ID)
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 		mod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
@@ -147,7 +146,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				h.logger.Errorf("removing dir '%s' of '%s' failed: %s", stgModBase.DirName, id, e)
+				logger.Error("removing dir failed", slog_attr.DirNameKey, stgModBase.DirName, slog_attr.IDKey, id, slog_attr.ErrorKey, e)
 			}
 		}
 	}()
@@ -166,7 +165,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				h.logger.Errorf("removing images of '%s' failed: %s", id, e)
+				logger.Error("removing images failed", slog_attr.IDKey, id, slog_attr.ErrorKey, e)
 			}
 		}
 	}()
@@ -186,7 +185,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	}
 	oldMod, ok := h.cacheGet(id)
 	if !ok {
-		h.logger.Warningf("module '%s' not in cache", stgMod.ID)
+		logger.Warn("module not in cache", slog_attr.IDKey, stgMod.ID)
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 		oldMod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
@@ -204,7 +203,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				h.logger.Errorf("removing dir '%s' of '%s' failed: %s", stgModBase.DirName, id, e)
+				logger.Error("removing dir failed", slog_attr.DirNameKey, stgModBase.DirName, slog_attr.IDKey, id, slog_attr.ErrorKey, e)
 			}
 		}
 	}()
@@ -223,7 +222,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				h.logger.Errorf("removing new images of '%s' failed: %s", id, e)
+				logger.Error("removing new images failed", slog_attr.IDKey, id, slog_attr.ErrorKey, e)
 			}
 		}
 	}()
@@ -232,10 +231,10 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	}
 	h.cacheSet(id, newMod)
 	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, stgMod.DirName)); e != nil {
-		h.logger.Errorf("removing dir '%s' of '%s' failed: %s", stgMod.DirName, id, e)
+		logger.Error("removing dir failed", slog_attr.DirNameKey, stgMod.DirName, slog_attr.IDKey, id, slog_attr.ErrorKey, e)
 	}
 	if e := h.removeOldImages(ctx, imagesAsSet(oldMod.Services), imagesAsSet(newMod.Services)); e != nil {
-		h.logger.Errorf("removing images of '%s' failed: %s", id, e)
+		logger.Error("removing images failed", slog_attr.IDKey, id, slog_attr.ErrorKey, e)
 	}
 	return nil
 }
@@ -249,7 +248,7 @@ func (h *Handler) Remove(ctx context.Context, id string) error {
 	}
 	mod, ok := h.cacheGet(id)
 	if !ok {
-		h.logger.Warningf("module '%s' not in cache", stgMod.ID)
+		logger.Warn("module not in cache", slog_attr.IDKey, stgMod.ID)
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 		mod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
