@@ -83,6 +83,7 @@ type Config struct {
 	Jobs               JobsConfig               `json:"jobs" env_var:"JOBS_CONFIG"`
 	ManagerIDPath      string                   `json:"manager_id_path" env_var:"MANAGER_ID_PATH"`
 	CoreID             string                   `json:"core_id" env_var:"CORE_ID"`
+	HttpAccessLog      bool                     `json:"http_access_log" env_var:"HTTP_ACCESS_LOG"`
 }
 
 func New(path string) (*Config, error) {
