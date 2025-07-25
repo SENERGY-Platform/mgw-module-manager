@@ -12,7 +12,6 @@ import (
 	"path"
 	"strings"
 	"sync"
-	"time"
 )
 
 const gitHubCom = "github.com"
@@ -23,27 +22,25 @@ var commonBlacklist = []string{
 }
 
 type Handler struct {
-	gitHubClt   GitHubClient
-	httpTimeout time.Duration
-	owner       string
-	repo        string
-	channels    map[string]Channel
-	wrkPath     string
-	mu          sync.RWMutex
+	gitHubClt GitHubClient
+	owner     string
+	repo      string
+	channels  map[string]Channel
+	wrkPath   string
+	mu        sync.RWMutex
 }
 
-func New(gitHubClt GitHubClient, httpTimeout time.Duration, wrkPath, owner, repo string, channels []Channel) *Handler {
+func New(gitHubClt GitHubClient, wrkPath, owner, repo string, channels []Channel) *Handler {
 	channelsMap := make(map[string]Channel)
 	for _, channel := range channels {
 		channelsMap[channel.Name] = channel
 	}
 	return &Handler{
-		gitHubClt:   gitHubClt,
-		httpTimeout: httpTimeout,
-		owner:       owner,
-		repo:        repo,
-		channels:    channelsMap,
-		wrkPath:     path.Join(wrkPath, strings.Replace(strings.Replace(gitHubCom+"_"+owner+"_"+repo, "/", "_", -1), ".", "_", -1)),
+		gitHubClt: gitHubClt,
+		owner:     owner,
+		repo:      repo,
+		channels:  channelsMap,
+		wrkPath:   path.Join(wrkPath, strings.Replace(strings.Replace(gitHubCom+"_"+owner+"_"+repo, "/", "_", -1), ".", "_", -1)),
 	}
 }
 
