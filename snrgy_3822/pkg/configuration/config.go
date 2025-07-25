@@ -34,11 +34,11 @@ type DatabaseConfig struct {
 }
 
 type HttpClientConfig struct {
-	CewBaseUrl string `json:"cew_base_url" env_var:"CEW_BASE_URL"`
-	CmBaseUrl  string `json:"cm_base_url" env_var:"CM_BASE_URL"`
-	HmBaseUrl  string `json:"hm_base_url" env_var:"HM_BASE_URL"`
-	SmBaseUrl  string `json:"sm_base_url" env_var:"SM_BASE_URL"`
-	Timeout    int64  `json:"timeout" env_var:"HTTP_TIMEOUT"`
+	CewBaseUrl string        `json:"cew_base_url" env_var:"CEW_BASE_URL"`
+	CmBaseUrl  string        `json:"cm_base_url" env_var:"CM_BASE_URL"`
+	HmBaseUrl  string        `json:"hm_base_url" env_var:"HM_BASE_URL"`
+	SmBaseUrl  string        `json:"sm_base_url" env_var:"SM_BASE_URL"`
+	Timeout    time.Duration `json:"timeout" env_var:"HTTP_TIMEOUT"`
 }
 
 type ModHandlerConfig struct {
@@ -123,7 +123,7 @@ func New(path string) (*Config, error) {
 			CmBaseUrl:  "http://core-api/c-manager",
 			HmBaseUrl:  "http://core-api/h-manager",
 			SmBaseUrl:  "http://secret-manager",
-			Timeout:    10000000000,
+			Timeout:    time.Second * 15,
 		},
 		Jobs: JobsConfig{
 			BufferSize:  200,
