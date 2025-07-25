@@ -17,44 +17,44 @@ import (
 )
 
 type Service struct {
-	modReposHdl ModuleReposHandler
-	modHdl      ModuleHandler
+	reposHdl RepositoriesHandler
+	modsHdl  ModulesHandler
 }
 
-func New(modReposHdl ModuleReposHandler, modHdl ModuleHandler) *Service {
+func New(reposHdl RepositoriesHandler, modsHdl ModulesHandler) *Service {
 	return &Service{
-		modReposHdl: modReposHdl,
-		modHdl:      modHdl,
+		reposHdl: reposHdl,
+		modsHdl:  modsHdl,
 	}
 }
 
 func (s *Service) RepoModules(ctx context.Context) ([]models_service.RepoModule, error) {
-	repos, err := s.modReposHdl.Repositories(ctx)
+	repos, err := s.reposHdl.Repositories(ctx)
 	if err != nil {
 		return nil, err
 	}
-	repoMods, err := s.modReposHdl.Modules(ctx)
+	repoMods, err := s.reposHdl.Modules(ctx)
 	if err != nil {
 		return nil, err
 	}
-	installedMods, err := s.modHdl.Modules(ctx, models_module.ModuleFilter{})
+	installedMods, err := s.modsHdl.Modules(ctx, models_module.ModuleFilter{})
 	if err != nil {
 		return nil, err
 	}
 	return s.repoModules(repos, repoMods, installedMods)
 }
 
-func (s *Service) Test(ctx context.Context, installedMods []models_module.ModuleAbbreviated) ([]models_service.RepoModule, error) {
-	repos, err := s.modReposHdl.Repositories(ctx)
-	if err != nil {
-		return nil, err
-	}
-	repoMods, err := s.modReposHdl.Modules(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return s.repoModules(repos, repoMods, installedMods)
-}
+//func (s *Service) Test(ctx context.Context, installedMods []models_module.ModuleAbbreviated) ([]models_service.RepoModule, error) {
+//	repos, err := s.modReposHdl.Repositories(ctx)
+//	if err != nil {
+//		return nil, err
+//	}
+//	repoMods, err := s.modReposHdl.Modules(ctx)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return s.repoModules(repos, repoMods, installedMods)
+//}
 
 func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_repo.Module, installedMods []models_module.ModuleAbbreviated) ([]models_service.RepoModule, error) {
 	reposTree := buildReposTree(repos)
@@ -136,7 +136,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 	}
 	mods := make(map[string]modWrapper)
 	for id, reqItem := range reqItemMap {
-		modFS, err := s.modReposHdl.ModuleFS(ctx, id, reqItem.Source, reqItem.Channel)
+		modFS, err := s.reposHdl.ModuleFS(ctx, id, reqItem.Source, reqItem.Channel)
 		if err != nil {
 			return nil, err
 		}
@@ -153,7 +153,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 			}
 		}
 	}
-	modRepos, err := s.modReposHdl.Repositories(ctx)
+	modRepos, err := s.reposHdl.Repositories(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +197,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 func (s *Service) addRepoModDepsToMap(ctx context.Context, mod module_lib.Module, source, channel string, deps map[string]modWrapper) error {
 	for depID := range mod.Dependencies {
 		if _, ok := deps[depID]; !ok {
-			depFS, err := s.modReposHdl.ModuleFS(ctx, depID, source, channel)
+			depFS, err := s.reposHdl.ModuleFS(ctx, depID, source, channel)
 			if err != nil {
 				return err
 			}
