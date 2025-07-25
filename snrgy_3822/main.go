@@ -28,7 +28,7 @@ func main() {
 		os.Exit(ec)
 	}()
 
-	srvInfoHdl := srv_info_hdl.New("cert-manager", version)
+	srvInfoHdl := srv_info_hdl.New("module-manager", version)
 
 	config.ParseFlags()
 
