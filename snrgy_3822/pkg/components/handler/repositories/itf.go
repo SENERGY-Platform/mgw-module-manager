@@ -6,7 +6,7 @@ import (
 	"io/fs"
 )
 
-type RepoHandler interface {
+type repositoryHandler interface {
 	Init() error
 	Source() string
 	Channels() []models_repo.Channel

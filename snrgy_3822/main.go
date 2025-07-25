@@ -52,9 +52,9 @@ func main() {
 
 	gitHubClt := client_repositories_github.New(helper_http.NewClient(config.GitHubModulesRepoHandler.Timeout), config.GitHubModulesRepoHandler.BaseUrl)
 
-	repositoriesHdl := handler_repositories.New([]handler_repositories.RepoHandlerWrapper{
+	repositoriesHdl := handler_repositories.New([]handler_repositories.Repository{
 		{
-			RepoHandler: handler_repositories_github.New(gitHubClt, config.GitHubModulesRepoHandler.WorkDirPath, "SENERGY-Platform", "mgw-module-repository", []handler_repositories_github.Channel{
+			Handler: handler_repositories_github.New(gitHubClt, config.GitHubModulesRepoHandler.WorkDirPath, "SENERGY-Platform", "mgw-module-repository", []handler_repositories_github.Channel{
 				{
 					Name:      "main",
 					Reference: "main-validated",

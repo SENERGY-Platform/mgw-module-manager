@@ -11,18 +11,18 @@ import (
 )
 
 type Handler struct {
-	repoHandlers map[string]RepoHandlerWrapper
+	repositories map[string]Repository
 	variantsMap  map[string]map[string]map[string]moduleWrapper // {moduleID:{source:{channel:variant}}}
 	mu           sync.RWMutex
 }
 
-func New(repoHandlers []RepoHandlerWrapper) *Handler {
-	handlerMap := make(map[string]RepoHandlerWrapper)
-	for _, handler := range repoHandlers {
-		handlerMap[handler.Source()] = handler
+func New(repositories []Repository) *Handler {
+	tmp := make(map[string]Repository)
+	for _, repo := range repositories {
+		tmp[repo.Handler.Source()] = repo
 	}
 	return &Handler{
-		repoHandlers: handlerMap,
+		repositories: tmp,
 	}
 }
 
@@ -30,8 +30,8 @@ func (h *Handler) InitRepositories(ctx context.Context) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	var errs []error
-	for source, handler := range h.repoHandlers {
-		if err := handler.Init(); err != nil {
+	for source, repo := range h.repositories {
+		if err := repo.Handler.Init(); err != nil {
 			errs = append(errs, models_error.NewRepoErr(source, err))
 		}
 	}
@@ -45,8 +45,8 @@ func (h *Handler) RefreshRepositories(ctx context.Context) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	var errs []error
-	for source, handler := range h.repoHandlers {
-		if err := handler.Refresh(ctx); err != nil {
+	for source, repo := range h.repositories {
+		if err := repo.Handler.Refresh(ctx); err != nil {
 			errs = append(errs, models_error.NewRepoErr(source, err))
 		}
 	}
@@ -60,11 +60,11 @@ func (h *Handler) Repositories(_ context.Context) ([]models_repo.Repository, err
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	var repos []models_repo.Repository
-	for source, handler := range h.repoHandlers {
+	for source, repo := range h.repositories {
 		repos = append(repos, models_repo.Repository{
 			Source:   source,
-			Priority: handler.Priority,
-			Channels: handler.Channels(),
+			Priority: repo.Priority,
+			Channels: repo.Handler.Channels(),
 		})
 	}
 	return repos, nil
@@ -101,11 +101,11 @@ func (h *Handler) ModuleFS(ctx context.Context, id, source, channel string) (fs.
 	if err != nil {
 		return nil, err
 	}
-	repoHandler, ok := h.repoHandlers[variant.Source]
+	repo, ok := h.repositories[variant.Source]
 	if !ok {
 		return nil, errors.New("repo handler not found")
 	}
-	fSys, err := repoHandler.FileSystem(ctx, variant.Channel, variant.FSysRef)
+	fSys, err := repo.Handler.FileSystem(ctx, variant.Channel, variant.FSysRef)
 	if err != nil {
 		return nil, err
 	}
@@ -115,9 +115,9 @@ func (h *Handler) ModuleFS(ctx context.Context, id, source, channel string) (fs.
 func (h *Handler) updateVariantsMap(ctx context.Context) error {
 	variantsMap := make(map[string]map[string]map[string]moduleWrapper)
 	var errs []error
-	for source, handler := range h.repoHandlers {
-		for _, channel := range handler.Channels() {
-			fsMap, err := handler.FileSystemsMap(ctx, channel.Name)
+	for source, repo := range h.repositories {
+		for _, channel := range repo.Handler.Channels() {
+			fsMap, err := repo.Handler.FileSystemsMap(ctx, channel.Name)
 			if err != nil {
 				errs = append(errs, models_error.NewRepoModuleErr(source, channel.Name, err))
 				continue
