@@ -7,10 +7,17 @@ import (
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
 	"github.com/SENERGY-Platform/go-service-base/srv-info-hdl"
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
+	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/api"
+	handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
+	handler_modules_repo_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules_repo/github"
+	client_modules_repo_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules_repo/github/client"
+	handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
+	helper_http "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/http"
 	helper_os_signal "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/os_signal"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/configuration"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"net"
 	"net/http"
 	"os"
@@ -43,8 +50,36 @@ func main() {
 
 	logger.Info("starting service", slog_attr.VersionKey, srvInfoHdl.Version(), slog_attr.ConfigValuesKey, sb_config_hdl.StructToMap(config, true))
 
+	gitHubClt := client_modules_repo_github.New(helper_http.NewClient(config.GitHubModulesRepoHandler.Timeout), config.GitHubModulesRepoHandler.BaseUrl)
+
+	repositoriesHdl := handler_repositories.New([]handler_repositories.RepoHandlerWrapper{
+		{
+			RepoHandler: handler_modules_repo_github.New(gitHubClt, config.GitHubModulesRepoHandler.WorkDirPath, "SENERGY-Platform", "mgw-module-repository", []handler_modules_repo_github.Channel{
+				{
+					Name:      "main",
+					Reference: "main-validated",
+					Priority:  1,
+				},
+				{
+					Name:      "testing",
+					Reference: "testing-validated",
+					Priority:  0,
+				},
+			}),
+			Priority: 1,
+		},
+	})
+
+	cewClient := cew_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CewBaseUrl)
+
+	handler_modules.InitLogger(logger)
+	modulesHdl := handler_modules.New(nil, cewClient, config.ModulesHandler)
+
+	service.InitLogger(logger)
+	srv := service.New(repositoriesHdl, modulesHdl)
+
 	httpApi, err := api.New(
-		nil,
+		srv,
 		srvInfoHdl,
 		logger,
 		config.HttpAccessLog,
@@ -64,6 +99,20 @@ func main() {
 	}
 
 	ctx, cf := context.WithCancel(context.Background())
+
+	err = repositoriesHdl.InitRepositories(ctx)
+	if err != nil {
+		logger.Error("initializing module repositories failed", slog_attr.ErrorKey, err)
+		ec = 1
+		return
+	}
+
+	err = modulesHdl.Init()
+	if err != nil {
+		logger.Error("initializing modules handler failed", slog_attr.ErrorKey, err)
+		ec = 1
+		return
+	}
 
 	go func() {
 		helper_os_signal.Wait(ctx, logger, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)

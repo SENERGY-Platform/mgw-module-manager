@@ -7,6 +7,7 @@ require (
 	github.com/SENERGY-Platform/go-service-base/config-hdl v1.2.0
 	github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.2.0
 	github.com/SENERGY-Platform/go-service-base/struct-logger v0.4.1
+	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.15.2
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.17.0
 	github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib v0.1.1
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.20.0
@@ -20,7 +21,9 @@ require (
 
 require (
 	code.cloudfoundry.org/bytefmt v0.31.0 // indirect
+	github.com/SENERGY-Platform/go-base-http-client v0.0.2 // indirect
 	github.com/SENERGY-Platform/go-env-loader v0.5.3 // indirect
+	github.com/SENERGY-Platform/mgw-go-service-base/srv-info-hdl/lib v0.0.3 // indirect
 	github.com/bytedance/sonic v1.13.2 // indirect
 	github.com/bytedance/sonic/loader v0.2.4 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect

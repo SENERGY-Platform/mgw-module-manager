@@ -2,6 +2,8 @@ code.cloudfoundry.org/bytefmt v0.31.0 h1:7Vh8P2Vnz7W89QgtArF1kaS5DS7RnktTCZ7eUKy
 code.cloudfoundry.org/bytefmt v0.31.0/go.mod h1:HIz0xOci24hA/16xtQ6aeIT9yXP7KxokFlaJ0Orfs/8=
 github.com/SENERGY-Platform/gin-middleware v0.9.0 h1:1qE19YozfRnpHSfv2INLju7oZ9j+LoubtuCLW5oXSuQ=
 github.com/SENERGY-Platform/gin-middleware v0.9.0/go.mod h1:txJcOsdkT3M/X1XucUaBjqkdBDlIB6A9tVUbV9SEsRE=
+github.com/SENERGY-Platform/go-base-http-client v0.0.2 h1:sF4QDRkNjhnKQh6d8ujfxQRpeWzSTiBeYIK/aNWWOls=
+github.com/SENERGY-Platform/go-base-http-client v0.0.2/go.mod h1:NfKW/relIVTkMXhz4OqZlzJXYPQUYEKxwqou8D0B/Kw=
 github.com/SENERGY-Platform/go-env-loader v0.5.3 h1:sNM/psxYBs3DeDCw8P8gWM2hvySijwy9t2DdSGdhF1c=
 github.com/SENERGY-Platform/go-env-loader v0.5.3/go.mod h1:vdEOp4x1VIzmCR+5u/4/GmO8bUOkYsP6NQaLy/46AVE=
 github.com/SENERGY-Platform/go-service-base/config-hdl v1.2.0 h1:OST21YZ0/Or10Ey2woQbaN5OVJHr+2Ix84pCygx5S3o=
@@ -10,10 +12,14 @@ github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.2.0 h1:EQbMcWBVgzArb
 github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.2.0/go.mod h1:mgNdIRGzrn3Vey2d0j/OtGSt8APIp5Io54MD80UorPs=
 github.com/SENERGY-Platform/go-service-base/struct-logger v0.4.1 h1:FF4jhIpxYbXkBQRm4oV/1KiTq1U7a5EQ0x5jqGhZDoY=
 github.com/SENERGY-Platform/go-service-base/struct-logger v0.4.1/go.mod h1:WuvuHGXhnLtXn2ry2kfTaQwco3EY3XTCefLeNqUT+jg=
+github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.15.2 h1:2R2sVFY5RTQw2y0iF80Ir9wnSRRNqIxnXDwsM3TBBDU=
+github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.15.2/go.mod h1:bRJ67PTTa41pY6EM2Ff66N5khTi5fBa9KAiG9kyfmvE=
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.17.0 h1:ljN1PJSlLhXBOPwPv+LL25Kf/gZOnzCE9JoOieumRCw=
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.17.0/go.mod h1:/lZf+P+IVb6HCuwP5syNCb2oozlZ/uDCoRXrQjScdxw=
 github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib v0.1.1 h1:IygyZ7cC91fiMz8O7ZUghKYAfJFk7XAJnoBBc+62RkE=
 github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib v0.1.1/go.mod h1:5FGXcRj/fiLQAww1TBYs4OpQZmjWmxQjOdlRN5343Qw=
+github.com/SENERGY-Platform/mgw-go-service-base/srv-info-hdl/lib v0.0.3 h1:+yoS/vw24gobIpqKp/m1x/riO//Hh2Cp03VXlFuToK8=
+github.com/SENERGY-Platform/mgw-go-service-base/srv-info-hdl/lib v0.0.3/go.mod h1:LVe27aJcwV4k0e4BjY6UBg62l6vyZ6BiB+zyR/4lAEE=
 github.com/SENERGY-Platform/mgw-modfile-lib v0.20.0 h1:Nrn9dNf5KwC+N4vSNozt56FeBMLm+VDdeYw+j8j8iS8=
 github.com/SENERGY-Platform/mgw-modfile-lib v0.20.0/go.mod h1:mLuYXucM2c7x6adU+JT5bAXrP1250WE9vaXq65y9GyA=
 github.com/SENERGY-Platform/mgw-module-lib v0.23.0 h1:Fa+NAYsLTO1tlQd2+CIWQFb6OyLwBTGa8PwTE4NRbR0=
