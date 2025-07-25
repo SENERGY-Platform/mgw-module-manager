@@ -10,6 +10,7 @@ import (
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	"reflect"
 	"slices"
 	"strings"
@@ -18,14 +19,12 @@ import (
 type Service struct {
 	modReposHdl ModuleReposHandler
 	modHdl      ModuleHandler
-	logger      Logger
 }
 
-func New(modReposHdl ModuleReposHandler, modHdl ModuleHandler, logger Logger) *Service {
+func New(modReposHdl ModuleReposHandler, modHdl ModuleHandler) *Service {
 	return &Service{
 		modReposHdl: modReposHdl,
 		modHdl:      modHdl,
-		logger:      logger,
 	}
 }
 
@@ -76,7 +75,7 @@ func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_
 		for source, channels := range sources {
 			repo, ok := reposTree[source]
 			if !ok {
-				fErr = fmt.Errorf("repo '%s' not found", source)
+				fErr = fmt.Errorf("repository '%s' not found", source)
 				break
 			}
 			repository := models_service.Repository{
@@ -109,7 +108,7 @@ func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_
 			repoModule.Repositories = append(repoModule.Repositories, repository)
 		}
 		if fErr != nil {
-			s.logger.Error(fErr)
+			logger.Error("invalid repository module", slog_attr.IDKey, id, slog_attr.ErrorKey, fErr)
 			continue
 		}
 		slices.SortStableFunc(repoModule.Repositories, func(a, b models_service.Repository) int {
