@@ -18,7 +18,7 @@ package github
 
 import (
 	"encoding/json"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules_repo/github/client"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 	"os"
 	"path"
 	"reflect"

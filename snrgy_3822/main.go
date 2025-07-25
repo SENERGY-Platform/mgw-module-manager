@@ -10,9 +10,9 @@ import (
 	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/api"
 	handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
-	handler_modules_repo_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules_repo/github"
-	client_modules_repo_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules_repo/github/client"
 	handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
+	handler_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github"
+	client_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 	helper_http "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/http"
 	helper_os_signal "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/os_signal"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/configuration"
@@ -50,11 +50,11 @@ func main() {
 
 	logger.Info("starting service", slog_attr.VersionKey, srvInfoHdl.Version(), slog_attr.ConfigValuesKey, sb_config_hdl.StructToMap(config, true))
 
-	gitHubClt := client_modules_repo_github.New(helper_http.NewClient(config.GitHubModulesRepoHandler.Timeout), config.GitHubModulesRepoHandler.BaseUrl)
+	gitHubClt := client_repositories_github.New(helper_http.NewClient(config.GitHubModulesRepoHandler.Timeout), config.GitHubModulesRepoHandler.BaseUrl)
 
 	repositoriesHdl := handler_repositories.New([]handler_repositories.RepoHandlerWrapper{
 		{
-			RepoHandler: handler_modules_repo_github.New(gitHubClt, config.GitHubModulesRepoHandler.WorkDirPath, "SENERGY-Platform", "mgw-module-repository", []handler_modules_repo_github.Channel{
+			RepoHandler: handler_repositories_github.New(gitHubClt, config.GitHubModulesRepoHandler.WorkDirPath, "SENERGY-Platform", "mgw-module-repository", []handler_repositories_github.Channel{
 				{
 					Name:      "main",
 					Reference: "main-validated",

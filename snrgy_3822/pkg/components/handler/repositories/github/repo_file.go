@@ -3,7 +3,7 @@ package github
 import (
 	"encoding/json"
 	"errors"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules_repo/github/client"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 	"io"
 	"os"
 	"path"

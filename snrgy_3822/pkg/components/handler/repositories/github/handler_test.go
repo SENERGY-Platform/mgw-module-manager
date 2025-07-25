@@ -18,7 +18,7 @@ package github
 
 import (
 	"context"
-	github_clt2 "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules_repo/github/client"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	"io"
 	"io/fs"
@@ -144,7 +144,7 @@ func TestHandler_FileSystem(t *testing.T) {
 
 func TestHandler_Refresh(t *testing.T) {
 	mockClient := &gitHubClientMock{
-		Commits: map[string]map[string]map[string]github_clt2.GitCommit{
+		Commits: map[string]map[string]map[string]client.GitCommit{
 			"test_owner": {
 				"test_repo": {
 					"test_ref": {
@@ -188,7 +188,7 @@ func TestHandler_Refresh(t *testing.T) {
 		t.Error(err)
 	}
 	t.Run("refresh existing", func(t *testing.T) {
-		mockClient.Commits = map[string]map[string]map[string]github_clt2.GitCommit{
+		mockClient.Commits = map[string]map[string]map[string]client.GitCommit{
 			"test_owner": {
 				"test_repo": {
 					"test_ref": {
@@ -236,25 +236,25 @@ func TestHandler_Refresh(t *testing.T) {
 
 type gitHubClientMock struct {
 	Err      error
-	Commits  map[string]map[string]map[string]github_clt2.GitCommit
+	Commits  map[string]map[string]map[string]client.GitCommit
 	Archives map[string]map[string]map[string]string
 }
 
-func (m *gitHubClientMock) GetLastCommit(ctx context.Context, owner, repo, ref string) (github_clt2.GitCommit, error) {
+func (m *gitHubClientMock) GetLastCommit(ctx context.Context, owner, repo, ref string) (client.GitCommit, error) {
 	if m.Err != nil {
-		return github_clt2.GitCommit{}, m.Err
+		return client.GitCommit{}, m.Err
 	}
 	repos, ok := m.Commits[owner]
 	if !ok {
-		return github_clt2.GitCommit{}, github_clt2.NewResponseError(http.StatusNotFound, "commit: owner not found")
+		return client.GitCommit{}, client.NewResponseError(http.StatusNotFound, "commit: owner not found")
 	}
 	refs, ok := repos[repo]
 	if !ok {
-		return github_clt2.GitCommit{}, github_clt2.NewResponseError(http.StatusNotFound, "commit: repo not found")
+		return client.GitCommit{}, client.NewResponseError(http.StatusNotFound, "commit: repo not found")
 	}
 	commit, ok := refs[ref]
 	if !ok {
-		return github_clt2.GitCommit{}, github_clt2.NewResponseError(http.StatusNotFound, "commit: ref not found")
+		return client.GitCommit{}, client.NewResponseError(http.StatusNotFound, "commit: ref not found")
 	}
 	return commit, nil
 }
@@ -265,15 +265,15 @@ func (m *gitHubClientMock) GetRepoTarGzArchive(ctx context.Context, owner, repo,
 	}
 	repos, ok := m.Archives[owner]
 	if !ok {
-		return nil, github_clt2.NewResponseError(http.StatusNotFound, "archive: owner not found")
+		return nil, client.NewResponseError(http.StatusNotFound, "archive: owner not found")
 	}
 	refs, ok := repos[repo]
 	if !ok {
-		return nil, github_clt2.NewResponseError(http.StatusNotFound, "archive: repo not found")
+		return nil, client.NewResponseError(http.StatusNotFound, "archive: repo not found")
 	}
 	filePath, ok := refs[ref]
 	if !ok {
-		return nil, github_clt2.NewResponseError(http.StatusNotFound, "archive: ref not found")
+		return nil, client.NewResponseError(http.StatusNotFound, "archive: ref not found")
 	}
 	return os.Open(filePath)
 }
