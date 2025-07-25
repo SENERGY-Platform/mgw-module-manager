@@ -151,18 +151,14 @@ func (h *Handler) refresh(ctx context.Context, channel Channel) error {
 		return err
 	}
 	var newRepo repoFile
-	ctxWt1, cf1 := context.WithTimeout(ctx, h.httpTimeout)
-	defer cf1()
-	newRepo.GitCommit, err = h.gitHubClt.GetLastCommit(ctxWt1, h.owner, h.repo, channel.Reference)
+	newRepo.GitCommit, err = h.gitHubClt.GetLastCommit(ctx, h.owner, h.repo, channel.Reference)
 	if err != nil {
 		return err
 	}
 	if newRepo.GitCommit.Sha == oldRepo.GitCommit.Sha {
 		return nil
 	}
-	ctxWt2, cf2 := context.WithTimeout(ctx, h.httpTimeout)
-	defer cf2()
-	repoArchive, err := h.gitHubClt.GetRepoTarGzArchive(ctxWt2, h.owner, h.repo, newRepo.GitCommit.Sha)
+	repoArchive, err := h.gitHubClt.GetRepoTarGzArchive(ctx, h.owner, h.repo, newRepo.GitCommit.Sha)
 	if err != nil {
 		return err
 	}
