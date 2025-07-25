@@ -126,8 +126,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 	defer h.mu.Unlock()
 	stgMod, err := h.storageHdl.ReadMod(ctx, id)
 	if err != nil {
-		var notFoundErr *models_error.NotFoundError
-		if !errors.As(err, &notFoundErr) {
+		if !errors.Is(err, models_error.NotFoundErr) {
 			return err
 		}
 	}

@@ -697,7 +697,7 @@ func (m *storageHandlerMock) ReadMod(_ context.Context, id string) (models_stora
 	}
 	mod, ok := m.Mods[id]
 	if !ok {
-		return models_storage.Module{}, models_error.NewNotFoundError(errors.New("module not found"))
+		return models_storage.Module{}, models_error.NotFoundErr
 	}
 	return mod, nil
 }
@@ -725,7 +725,7 @@ func (m *storageHandlerMock) UpdateMod(_ context.Context, mod models_storage.Mod
 	}
 	tmp, ok := m.Mods[mod.ID]
 	if !ok {
-		return models_error.NewNotFoundError(errors.New("module not found"))
+		return models_error.NotFoundErr
 	}
 	m.Mods[mod.ID] = models_storage.Module{
 		ModuleBase: mod,
@@ -741,7 +741,7 @@ func (m *storageHandlerMock) DeleteMod(_ context.Context, id string) error {
 	}
 	_, ok := m.Mods[id]
 	if !ok {
-		return models_error.NewNotFoundError(errors.New("module not found"))
+		return models_error.NotFoundErr
 	}
 	delete(m.Mods, id)
 	return nil
