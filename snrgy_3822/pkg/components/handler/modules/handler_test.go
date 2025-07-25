@@ -20,10 +20,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
-	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 	"io"
@@ -159,7 +158,7 @@ func TestHandler_Module(t *testing.T) {
 func TestHandler_Add(t *testing.T) {
 	InitLogger(slog.Default())
 	stgHdlMock := &storageHandlerMock{Mods: make(map[string]models_storage.Module)}
-	cewCltMock := &cewClientMock{Images: make(map[string]cew_model.Image), Jobs: make(map[string]job_hdl_lib.Job), JobCompleteDelay: time.Second * 1}
+	cewCltMock := &cewClientMock{Images: make(map[string]models_external.Image), Jobs: make(map[string]models_external.Job), JobCompleteDelay: time.Second * 1}
 	workDir := t.TempDir()
 	h := New(stgHdlMock, cewCltMock, Config{WorkDirPath: workDir, JobPollInterval: time.Millisecond * 250})
 	err := h.Init()
@@ -250,7 +249,7 @@ func TestHandler_Add(t *testing.T) {
 		t.Run("add image", func(t *testing.T) {
 			testErr := errors.New("test error")
 			cewCltMock.AddImageErr = testErr
-			cewCltMock.Images = make(map[string]cew_model.Image)
+			cewCltMock.Images = make(map[string]models_external.Image)
 			stgHdlMock.Mods = make(map[string]models_storage.Module)
 			err = h.Add(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS("./test/test_mod"))
 			if err == nil {
@@ -264,7 +263,7 @@ func TestHandler_Add(t *testing.T) {
 		t.Run("add image await job", func(t *testing.T) {
 			testErr := errors.New("test error")
 			cewCltMock.GetJobErr = testErr
-			cewCltMock.Images = make(map[string]cew_model.Image)
+			cewCltMock.Images = make(map[string]models_external.Image)
 			stgHdlMock.Mods = make(map[string]models_storage.Module)
 			err = h.Add(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS("./test/test_mod"))
 			if err == nil {
@@ -293,7 +292,7 @@ func TestHandler_Update(t *testing.T) {
 			Updated: timestamp,
 		},
 	}}
-	cewCltMock := &cewClientMock{Images: make(map[string]cew_model.Image), Jobs: make(map[string]job_hdl_lib.Job), JobCompleteDelay: time.Second * 1}
+	cewCltMock := &cewClientMock{Images: make(map[string]models_external.Image), Jobs: make(map[string]models_external.Job), JobCompleteDelay: time.Second * 1}
 	workDir := t.TempDir()
 	err := os.MkdirAll(path.Join(workDir, "test_dir"), 0775)
 	if err != nil {
@@ -438,7 +437,7 @@ func TestHandler_Update(t *testing.T) {
 		t.Run("add image", func(t *testing.T) {
 			testErr := errors.New("test error")
 			cewCltMock.AddImageErr = testErr
-			cewCltMock.Images = make(map[string]cew_model.Image)
+			cewCltMock.Images = make(map[string]models_external.Image)
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
 					ModuleBase: models_storage.ModuleBase{
@@ -463,7 +462,7 @@ func TestHandler_Update(t *testing.T) {
 		t.Run("add image await job error", func(t *testing.T) {
 			testErr := errors.New("test error")
 			cewCltMock.GetJobErr = testErr
-			cewCltMock.Images = make(map[string]cew_model.Image)
+			cewCltMock.Images = make(map[string]models_external.Image)
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
 					ModuleBase: models_storage.ModuleBase{
@@ -491,7 +490,7 @@ func TestHandler_Update(t *testing.T) {
 func TestHandler_Delete(t *testing.T) {
 	InitLogger(slog.Default())
 	stgHdlMock := &storageHandlerMock{}
-	cewCltMock := &cewClientMock{Images: make(map[string]cew_model.Image), Jobs: make(map[string]job_hdl_lib.Job), JobCompleteDelay: time.Second * 1}
+	cewCltMock := &cewClientMock{Images: make(map[string]models_external.Image), Jobs: make(map[string]models_external.Job), JobCompleteDelay: time.Second * 1}
 	workDir := t.TempDir()
 	err := os.MkdirAll(path.Join(workDir, "test_dir"), 0775)
 	if err != nil {
@@ -513,7 +512,7 @@ func TestHandler_Delete(t *testing.T) {
 					},
 				},
 			}
-			cewCltMock.Images["ghcr.io/org/repo:test"] = cew_model.Image{}
+			cewCltMock.Images["ghcr.io/org/repo:test"] = models_external.Image{}
 			err = h.Remove(context.Background(), "github.com/org/repo")
 			if err != nil {
 				t.Error(err)
@@ -543,7 +542,7 @@ func TestHandler_Delete(t *testing.T) {
 					},
 				},
 			}
-			cewCltMock.Images["ghcr.io/org/repo:test"] = cew_model.Image{}
+			cewCltMock.Images["ghcr.io/org/repo:test"] = models_external.Image{}
 			h.cache["github.com/org/repo"] = module_lib.Module{Services: map[string]*module_lib.Service{"test": {Image: "ghcr.io/org/repo:test"}}}
 			err = h.Remove(context.Background(), "github.com/org/repo")
 			if err != nil {
@@ -578,7 +577,7 @@ func TestHandler_Delete(t *testing.T) {
 					},
 				},
 			}
-			cewCltMock.Images = make(map[string]cew_model.Image)
+			cewCltMock.Images = make(map[string]models_external.Image)
 			err = h.Remove(context.Background(), "github.com/org/repo")
 			if err != nil {
 				t.Error(err)
@@ -606,7 +605,7 @@ func TestHandler_Delete(t *testing.T) {
 					},
 				},
 			}
-			cewCltMock.Images["ghcr.io/org/repo:test"] = cew_model.Image{}
+			cewCltMock.Images["ghcr.io/org/repo:test"] = models_external.Image{}
 			testErr := errors.New("test error")
 			stgHdlMock.Err = testErr
 			err = h.Remove(context.Background(), "github.com/org/repo")
@@ -628,7 +627,7 @@ func TestHandler_Delete(t *testing.T) {
 					},
 				},
 			}
-			cewCltMock.Images["ghcr.io/org/repo:test"] = cew_model.Image{}
+			cewCltMock.Images["ghcr.io/org/repo:test"] = models_external.Image{}
 			err = h.Remove(context.Background(), "test")
 			if err == nil {
 				t.Error("expected error")
@@ -646,7 +645,7 @@ func TestHandler_Delete(t *testing.T) {
 			}
 			testErr := errors.New("test error")
 			cewCltMock.RemoveImageErr = testErr
-			cewCltMock.Images["ghcr.io/org/repo:test"] = cew_model.Image{}
+			cewCltMock.Images["ghcr.io/org/repo:test"] = models_external.Image{}
 			err = h.Remove(context.Background(), "github.com/org/repo")
 			if err == nil {
 				t.Error("expected error")
@@ -749,8 +748,8 @@ func (m *storageHandlerMock) DeleteMod(_ context.Context, id string) error {
 }
 
 type cewClientMock struct {
-	Images           map[string]cew_model.Image
-	Jobs             map[string]job_hdl_lib.Job
+	Images           map[string]models_external.Image
+	Jobs             map[string]models_external.Job
 	JobCompleteDelay time.Duration
 	GetImageErr      error
 	AddImageErr      error
@@ -759,13 +758,13 @@ type cewClientMock struct {
 	CancelJobErr     error
 }
 
-func (m *cewClientMock) GetImage(_ context.Context, id string) (cew_model.Image, error) {
+func (m *cewClientMock) GetImage(_ context.Context, id string) (models_external.Image, error) {
 	if m.GetImageErr != nil {
-		return cew_model.Image{}, m.GetImageErr
+		return models_external.Image{}, m.GetImageErr
 	}
 	img, ok := m.Images[id]
 	if !ok {
-		return cew_model.Image{}, cew_model.NewNotFoundError(errors.New("image not found"))
+		return models_external.Image{}, &models_external.CEWNotFoundErr{}
 	}
 	return img, nil
 }
@@ -774,10 +773,10 @@ func (m *cewClientMock) AddImage(_ context.Context, img string) (jobId string, e
 	if m.AddImageErr != nil {
 		return "", m.AddImageErr
 	}
-	m.Images[img] = cew_model.Image{}
+	m.Images[img] = models_external.Image{}
 	jID := fmt.Sprintf("%d", len(m.Jobs))
 	timestamp := time.Now().UTC()
-	m.Jobs[jID] = job_hdl_lib.Job{
+	m.Jobs[jID] = models_external.Job{
 		ID:      jID,
 		Created: timestamp,
 		Started: &timestamp,
@@ -799,19 +798,19 @@ func (m *cewClientMock) RemoveImage(_ context.Context, id string) error {
 	}
 	_, ok := m.Images[id]
 	if !ok {
-		return cew_model.NewNotFoundError(errors.New("image not found"))
+		return &models_external.CEWNotFoundErr{}
 	}
 	delete(m.Images, id)
 	return nil
 }
 
-func (m *cewClientMock) GetJob(_ context.Context, jID string) (job_hdl_lib.Job, error) {
+func (m *cewClientMock) GetJob(_ context.Context, jID string) (models_external.Job, error) {
 	if m.GetJobErr != nil {
-		return job_hdl_lib.Job{}, m.GetJobErr
+		return models_external.Job{}, m.GetJobErr
 	}
 	job, ok := m.Jobs[jID]
 	if !ok {
-		return job_hdl_lib.Job{}, errors.New("not found")
+		return models_external.Job{}, errors.New("not found")
 	}
 	if time.Since(*job.Started) >= m.JobCompleteDelay {
 		timestamp := time.Now().UTC()

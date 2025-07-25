@@ -4,12 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
-	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	helper_file_sys "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
@@ -25,7 +24,7 @@ type Handler struct {
 	storageHdl StorageHandler
 	cewClient  ContainerEngineWrapperClient
 	config     Config
-	cache      map[string]module_lib.Module
+	cache      map[string]models_external.Module
 	cacheMU    sync.RWMutex
 	mu         sync.RWMutex
 }
@@ -34,7 +33,7 @@ func New(storageHdl StorageHandler, cewClient ContainerEngineWrapperClient, conf
 	return &Handler{
 		storageHdl: storageHdl,
 		cewClient:  cewClient,
-		cache:      make(map[string]module_lib.Module),
+		cache:      make(map[string]models_external.Module),
 		config:     config,
 	}
 }
@@ -269,14 +268,14 @@ func (h *Handler) Remove(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *Handler) cacheGet(id string) (module_lib.Module, bool) {
+func (h *Handler) cacheGet(id string) (models_external.Module, bool) {
 	h.cacheMU.RLock()
 	defer h.cacheMU.RUnlock()
 	mod, ok := h.cache[id]
 	return mod, ok
 }
 
-func (h *Handler) cacheSet(id string, mod module_lib.Module) {
+func (h *Handler) cacheSet(id string, mod models_external.Module) {
 	h.cacheMU.Lock()
 	defer h.cacheMU.Unlock()
 	h.cache[id] = mod
@@ -293,7 +292,7 @@ func (h *Handler) addImages(ctx context.Context, images map[string]struct{}) (ma
 	for image := range images {
 		_, err := h.cewClient.GetImage(ctx, url.QueryEscape(url.QueryEscape(image)))
 		if err != nil {
-			var notFoundErr *cew_model.NotFoundError
+			var notFoundErr *models_external.CEWNotFoundErr
 			if !errors.As(err, &notFoundErr) {
 				return newImages, err
 			}
@@ -320,7 +319,7 @@ func (h *Handler) removeImages(ctx context.Context, images map[string]struct{}) 
 	for image := range images {
 		err := h.cewClient.RemoveImage(ctx, url.QueryEscape(url.QueryEscape(image)))
 		if err != nil {
-			var notFoundErr *cew_model.NotFoundError
+			var notFoundErr *models_external.CEWNotFoundErr
 			if !errors.As(err, &notFoundErr) {
 				return err
 			}
@@ -334,7 +333,7 @@ func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages map[
 		if _, ok := newImages[image]; !ok {
 			err := h.cewClient.RemoveImage(ctx, url.QueryEscape(url.QueryEscape(image)))
 			if err != nil {
-				var notFoundErr *cew_model.NotFoundError
+				var notFoundErr *models_external.CEWNotFoundErr
 				if !errors.As(err, &notFoundErr) {
 					return err
 				}
@@ -344,7 +343,7 @@ func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages map[
 	return nil
 }
 
-func imagesAsSet(services map[string]*module_lib.Service) map[string]struct{} {
+func imagesAsSet(services map[string]*models_external.ModuleService) map[string]struct{} {
 	images := make(map[string]struct{})
 	for _, service := range services {
 		images[service.Image] = struct{}{}

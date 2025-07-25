@@ -18,8 +18,7 @@ package modules
 
 import (
 	"context"
-	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
-	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 )
 
@@ -32,9 +31,9 @@ type StorageHandler interface {
 }
 
 type ContainerEngineWrapperClient interface {
-	GetImage(ctx context.Context, id string) (cew_model.Image, error)
+	GetImage(ctx context.Context, id string) (models_external.Image, error)
 	AddImage(ctx context.Context, img string) (jobId string, err error)
 	RemoveImage(ctx context.Context, id string) error
-	GetJob(ctx context.Context, jID string) (job_hdl_lib.Job, error)
+	GetJob(ctx context.Context, jID string) (models_external.Job, error)
 	CancelJob(ctx context.Context, jID string) error
 }
