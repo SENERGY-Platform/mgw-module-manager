@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package github_modules_repo
+package github
 
 import (
 	"encoding/json"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/github_modules_repo/github_clt"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules_repo/github/client"
 	"os"
 	"path"
 	"reflect"
@@ -27,7 +27,7 @@ import (
 
 func Test_readRepoFile(t *testing.T) {
 	a := repoFile{
-		GitCommit: github_clt.GitCommit{
+		GitCommit: client.GitCommit{
 			Sha: "test_sha",
 		},
 		Path: "test_source",
@@ -57,7 +57,7 @@ func Test_readRepoFile(t *testing.T) {
 
 func Test_writeRepoFile(t *testing.T) {
 	a := repoFile{
-		GitCommit: github_clt.GitCommit{
+		GitCommit: client.GitCommit{
 			Sha: "test_sha",
 		},
 		Path: "test_source",

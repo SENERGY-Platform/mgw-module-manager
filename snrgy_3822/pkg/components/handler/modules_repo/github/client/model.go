@@ -1,4 +1,4 @@
-package github_clt
+package client
 
 import "time"
 

@@ -1,4 +1,4 @@
-package module_repos
+package repositories
 
 import (
 	"context"

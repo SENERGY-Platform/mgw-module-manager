@@ -1,4 +1,4 @@
-package github_modules_repo
+package github
 
 import (
 	"context"

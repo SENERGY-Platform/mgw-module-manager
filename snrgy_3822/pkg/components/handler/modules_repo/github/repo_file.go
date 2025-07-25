@@ -1,9 +1,9 @@
-package github_modules_repo
+package github
 
 import (
 	"encoding/json"
 	"errors"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/github_modules_repo/github_clt"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules_repo/github/client"
 	"io"
 	"os"
 	"path"
@@ -15,8 +15,8 @@ const (
 )
 
 type repoFile struct {
-	GitCommit github_clt.GitCommit `json:"git_commit"`
-	Path      string               `json:"path"`
+	GitCommit client.GitCommit `json:"git_commit"`
+	Path      string           `json:"path"`
 }
 
 func readRepoFile(p string) (repoFile, error) {
