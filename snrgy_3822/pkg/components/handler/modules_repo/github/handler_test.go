@@ -33,7 +33,7 @@ import (
 
 func TestHandler_Init(t *testing.T) {
 	tempDir := t.TempDir()
-	h := New(nil, time.Second, tempDir, "test_owner", "test_repo", []Channel{
+	h := New(nil, tempDir, "test_owner", "test_repo", []Channel{
 		{
 			Name: "test_channel",
 		},
@@ -49,14 +49,14 @@ func TestHandler_Init(t *testing.T) {
 }
 
 func TestHandler_Source(t *testing.T) {
-	h := New(nil, time.Second, "", "test_owner", "test_repo", nil)
+	h := New(nil, "", "test_owner", "test_repo", nil)
 	if h.Source() != "github.com/test_owner/test_repo" {
 		t.Errorf("expect github.com/test_owner/test_repo, got %s", h.Source())
 	}
 }
 
 func TestHandler_Channels(t *testing.T) {
-	h := New(nil, time.Second, "", "test_owner", "test_repo", []Channel{
+	h := New(nil, "", "test_owner", "test_repo", []Channel{
 		{
 			Name: "test_channel",
 		},
@@ -69,7 +69,7 @@ func TestHandler_Channels(t *testing.T) {
 }
 
 func TestHandler_FileSystemsMap(t *testing.T) {
-	h := New(nil, time.Second, "./test", "test_owner", "test_repo", []Channel{
+	h := New(nil, "./test", "test_owner", "test_repo", []Channel{
 		{
 			Name:      "test_channel",
 			Reference: "test_ref",
@@ -88,7 +88,7 @@ func TestHandler_FileSystemsMap(t *testing.T) {
 		t.Errorf("expected %v, got %v", a, b)
 	}
 	t.Run("no repo file", func(t *testing.T) {
-		h2 := New(nil, time.Second, "./test", "test_owner", "test_repo_2", []Channel{
+		h2 := New(nil, "./test", "test_owner", "test_repo_2", []Channel{
 			{
 				Name:      "test_channel",
 				Reference: "test_ref",
@@ -111,7 +111,7 @@ func TestHandler_FileSystemsMap(t *testing.T) {
 }
 
 func TestHandler_FileSystem(t *testing.T) {
-	h := New(nil, time.Second, "./test", "test_owner", "test_repo", []Channel{
+	h := New(nil, "./test", "test_owner", "test_repo", []Channel{
 		{
 			Name:      "test_channel",
 			Reference: "test_ref",
@@ -163,7 +163,7 @@ func TestHandler_Refresh(t *testing.T) {
 		},
 	}
 	tempDir := t.TempDir()
-	h := New(mockClient, time.Second, tempDir, "test_owner", "test_repo", []Channel{
+	h := New(mockClient, tempDir, "test_owner", "test_repo", []Channel{
 		{
 			Name:      "test_channel",
 			Reference: "test_ref",
