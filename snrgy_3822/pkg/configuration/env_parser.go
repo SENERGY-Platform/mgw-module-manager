@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package config
+package configuration
 
-import "flag"
+import (
+	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
+	sb_config_env_parser "github.com/SENERGY-Platform/go-service-base/config-hdl/env_parser"
+	sb_config_types "github.com/SENERGY-Platform/go-service-base/config-hdl/types"
+)
 
-var ConfPath string
-var ManagerID string
-
-func ParseFlags() {
-	flag.StringVar(&ConfPath, "config", "", "path to config JSON file")
-	flag.StringVar(&ManagerID, "manager-id", "", "override manager id")
-	flag.Parse()
-	return
+var envTypeParser = []sb_config_hdl.EnvTypeParser{
+	sb_config_types.SecretEnvTypeParser,
+	sb_config_env_parser.DurationEnvTypeParser,
 }

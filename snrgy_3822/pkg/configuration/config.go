@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package config
+package configuration
 
 import (
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"

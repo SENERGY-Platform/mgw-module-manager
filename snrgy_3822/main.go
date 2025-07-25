@@ -9,7 +9,7 @@ import (
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/api"
 	helper_os_signal "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/os_signal"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/config"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/configuration"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	"net"
 	"net/http"
@@ -30,24 +30,24 @@ func main() {
 
 	srvInfoHdl := srv_info_hdl.New("module-manager", version)
 
-	config.ParseFlags()
+	configuration.ParseFlags()
 
-	cfg, err := config.New(config.ConfPath)
+	config, err := configuration.New(configuration.ConfPath)
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		ec = 1
 		return
 	}
 
-	logger := struct_logger.New(cfg.Logger, os.Stderr, "", srvInfoHdl.Name())
+	logger := struct_logger.New(config.Logger, os.Stderr, "", srvInfoHdl.Name())
 
-	logger.Info("starting service", slog_attr.VersionKey, srvInfoHdl.Version(), slog_attr.ConfigValuesKey, sb_config_hdl.StructToMap(cfg, true))
+	logger.Info("starting service", slog_attr.VersionKey, srvInfoHdl.Version(), slog_attr.ConfigValuesKey, sb_config_hdl.StructToMap(config, true))
 
 	httpApi, err := api.New(
 		nil,
 		srvInfoHdl,
 		logger,
-		cfg.HttpAccessLog,
+		config.HttpAccessLog,
 	)
 	if err != nil {
 		logger.Error("creating http engine failed", slog_attr.ErrorKey, err)
@@ -56,7 +56,7 @@ func main() {
 	}
 
 	httpServer := &http.Server{Handler: httpApi.Handler()}
-	serverListener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(cfg.ServerPort), 10))
+	serverListener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
 		logger.Error("creating server listener failed", slog_attr.ErrorKey, err)
 		ec = 1
