@@ -18,47 +18,23 @@ package configuration
 
 import (
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
-	sb_config_types "github.com/SENERGY-Platform/go-service-base/config-hdl/types"
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
+	handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
 	"time"
 )
 
-type DatabaseConfig struct {
-	Host       string                 `json:"host" env_var:"DB_HOST"`
-	Port       uint                   `json:"port" env_var:"DB_PORT"`
-	User       string                 `json:"user" env_var:"DB_USER"`
-	Passwd     sb_config_types.Secret `json:"passwd" env_var:"DB_PASSWD"`
-	Name       string                 `json:"name" env_var:"DB_NAME"`
-	Timeout    int64                  `json:"timeout" env_var:"DB_TIMEOUT"`
-	SchemaPath string                 `json:"schema_path" env_var:"DB_SCHEMA_PATH"`
+type MGWConfig struct {
+	CewBaseUrl string        `json:"cew_base_url" env_var:"MGW_CEW_BASE_URL"`
+	CmBaseUrl  string        `json:"cm_base_url" env_var:"MGW_CM_BASE_URL"`
+	HmBaseUrl  string        `json:"hm_base_url" env_var:"MGW_HM_BASE_URL"`
+	SmBaseUrl  string        `json:"sm_base_url" env_var:"MGW_SM_BASE_URL"`
+	Timeout    time.Duration `json:"timeout" env_var:"MGW_HTTP_TIMEOUT"`
 }
 
-type HttpClientConfig struct {
-	CewBaseUrl string        `json:"cew_base_url" env_var:"CEW_BASE_URL"`
-	CmBaseUrl  string        `json:"cm_base_url" env_var:"CM_BASE_URL"`
-	HmBaseUrl  string        `json:"hm_base_url" env_var:"HM_BASE_URL"`
-	SmBaseUrl  string        `json:"sm_base_url" env_var:"SM_BASE_URL"`
-	Timeout    time.Duration `json:"timeout" env_var:"HTTP_TIMEOUT"`
-}
-
-type ModHandlerConfig struct {
-	WorkdirPath string `json:"workdir_path" env_var:"MH_WORKDIR_PATH"`
-}
-
-type ModTransferHandlerConfig struct {
-	WorkdirPath string `json:"workdir_path" env_var:"MTH_WORKDIR_PATH"`
-	Timeout     int64  `json:"timeout" env_var:"MTH_TIMEOUT"`
-}
-
-type ModStagingHandlerConfig struct {
-	WorkdirPath string `json:"workdir_path" env_var:"MSH_WORKDIR_PATH"`
-}
-
-type DepHandlerConfig struct {
-	WorkdirPath string `json:"workdir_path" env_var:"DH_WORKDIR_PATH"`
-	HostDepPath string `json:"host_dep_path" env_var:"DH_HOST_DEP_PATH"`
-	HostSecPath string `json:"host_sec_path" env_var:"DH_HOST_SEC_PATH"`
-	ModuleNet   string `json:"module_net" env_var:"DH_MODULE_NET"`
+type GitHubModulesRepoHandlerConfig struct {
+	BaseUrl     string        `json:"base_url" env_var:"GITHUB_BASE_URL"`
+	Timeout     time.Duration `json:"timeout" env_var:"GITHUB_TIMEOUT"`
+	WorkDirPath string        `json:"work_dir_path" env_var:"GITHUB_MODULES_REPO_HANDLER_WORK_DIR_PATH"`
 }
 
 type JobsConfig struct {
@@ -71,59 +47,41 @@ type JobsConfig struct {
 }
 
 type Config struct {
-	ServerPort         uint                     `json:"server_port" env_var:"SERVER_PORT"`
-	ModHandler         ModHandlerConfig         `json:"module_handler" env_var:"MH_CONFIG"`
-	ModTransferHandler ModTransferHandlerConfig `json:"module_transfer_handler" env_var:"MTH_CONFIG"`
-	ModStagingHandler  ModStagingHandlerConfig  `json:"module_staging_handler" env_var:"MSH_CONFIG"`
-	DepHandler         DepHandlerConfig         `json:"deployment_handler" env_var:"DH_CONFIG"`
-	Logger             struct_logger.Config     `json:"logger"`
-	ConfigDefsPath     string                   `json:"config_defs_path" env_var:"CONFIG_DEFS_PATH"`
-	Database           DatabaseConfig           `json:"database" env_var:"DATABASE_CONFIG"`
-	HttpClient         HttpClientConfig         `json:"http_client" env_var:"HTTP_CLIENT_CONFIG"`
-	Jobs               JobsConfig               `json:"jobs" env_var:"JOBS_CONFIG"`
-	ManagerIDPath      string                   `json:"manager_id_path" env_var:"MANAGER_ID_PATH"`
-	CoreID             string                   `json:"core_id" env_var:"CORE_ID"`
-	HttpAccessLog      bool                     `json:"http_access_log" env_var:"HTTP_ACCESS_LOG"`
+	ServerPort               uint                           `json:"server_port" env_var:"SERVER_PORT"`
+	MGW                      MGWConfig                      `json:"mgw"`
+	ModulesHandler           handler_modules.Config         `json:"modules_handler"`
+	Logger                   struct_logger.Config           `json:"logger"`
+	GitHubModulesRepoHandler GitHubModulesRepoHandlerConfig `json:"github_modules_repo_handler"`
+	Jobs                     JobsConfig                     `json:"jobs"`
+	ManagerIDPath            string                         `json:"manager_id_path" env_var:"MANAGER_ID_PATH"`
+	CoreID                   string                         `json:"core_id" env_var:"CORE_ID"`
+	HttpAccessLog            bool                           `json:"http_access_log" env_var:"HTTP_ACCESS_LOG"`
 }
 
 func New(path string) (*Config, error) {
 	cfg := Config{
 		ServerPort: 80,
-		ModHandler: ModHandlerConfig{
-			WorkdirPath: "/opt/module-manager/modules",
+		MGW: MGWConfig{
+			CewBaseUrl: "http://core-api/ce-wrapper",
+			CmBaseUrl:  "http://core-api/c-manager",
+			HmBaseUrl:  "http://core-api/h-manager",
+			SmBaseUrl:  "http://secret-manager",
+			Timeout:    time.Second * 30,
 		},
-		ModTransferHandler: ModTransferHandlerConfig{
-			WorkdirPath: "/opt/module-manager/transfer",
-			Timeout:     30000000000,
-		},
-		ModStagingHandler: ModStagingHandlerConfig{
-			WorkdirPath: "/opt/module-manager/staging",
-		},
-		DepHandler: DepHandlerConfig{
-			WorkdirPath: "/opt/module-manager/deployments",
-			ModuleNet:   "module-net",
+		ModulesHandler: handler_modules.Config{
+			WorkDirPath:     "/opt/module-manager/modules",
+			JobPollInterval: time.Millisecond * 500,
 		},
 		Logger: struct_logger.Config{
 			Handler:    struct_logger.TextHandlerSelector,
 			Level:      struct_logger.LevelInfo,
 			TimeFormat: time.RFC3339Nano,
 			TimeUtc:    true,
-			AddMeta:    true,
+			AddMeta:    false,
 		},
-		ConfigDefsPath: "include/config_definitions.json",
-		Database: DatabaseConfig{
-			Host:       "core-db",
-			Port:       3306,
-			Name:       "module_manager",
-			Timeout:    5000000000,
-			SchemaPath: "include/dep_storage_schema.sql",
-		},
-		HttpClient: HttpClientConfig{
-			CewBaseUrl: "http://core-api/ce-wrapper",
-			CmBaseUrl:  "http://core-api/c-manager",
-			HmBaseUrl:  "http://core-api/h-manager",
-			SmBaseUrl:  "http://secret-manager",
-			Timeout:    time.Second * 15,
+		GitHubModulesRepoHandler: GitHubModulesRepoHandlerConfig{
+			BaseUrl: "https://api.github.com",
+			Timeout: time.Minute,
 		},
 		Jobs: JobsConfig{
 			BufferSize:  200,
