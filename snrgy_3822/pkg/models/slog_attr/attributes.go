@@ -16,10 +16,14 @@
 
 package slog_attr
 
+import "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
+
 const (
+	ErrorKey        = attributes.ErrorKey
 	RequestIDKey    = "request_id"
 	StackTraceKey   = "stack_trace"
 	IDKey           = "id"
+	DirNameKey      = "dir_name"
 	SignalKey       = "signal"
 	VersionKey      = "version"
 	ConfigValuesKey = "config_values"
