@@ -11,10 +11,15 @@ import (
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
-	"reflect"
 	"slices"
 	"strings"
 )
+
+func (s *Service) RefreshRepositories(ctx context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.reposHdl.RefreshRepositories(ctx)
+}
 
 func (s *Service) RepoModules(ctx context.Context) ([]models_service.RepoModule, error) {
 	s.mu.RLock()
