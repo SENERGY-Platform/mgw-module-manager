@@ -17,6 +17,8 @@ import (
 )
 
 func (s *Service) RepoModules(ctx context.Context) ([]models_service.RepoModule, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	repos, err := s.reposHdl.Repositories(ctx)
 	if err != nil {
 		return nil, err

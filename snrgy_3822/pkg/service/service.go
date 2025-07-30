@@ -1,8 +1,14 @@
 package service
 
+import (
+	"sync"
+)
+
 type Service struct {
-	reposHdl RepositoriesHandler
-	modsHdl  ModulesHandler
+	reposHdl   RepositoriesHandler
+	modsHdl    ModulesHandler
+	installReq *modulesInstallRequest
+	mu         sync.RWMutex
 }
 
 func New(reposHdl RepositoriesHandler, modsHdl ModulesHandler) *Service {
