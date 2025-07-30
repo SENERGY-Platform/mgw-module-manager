@@ -105,7 +105,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 	for _, item := range reqItems {
 		tmp, ok := reqItemMap[item.ID]
 		if ok {
-			if !reflect.DeepEqual(tmp, item) {
+			if !equalMods(tmp.ID, tmp.Source, tmp.Channel, "", item.ID, item.Source, item.Channel, "") {
 				return nil, fmt.Errorf("duplicate entry for %s", item.ID)
 			}
 			continue
