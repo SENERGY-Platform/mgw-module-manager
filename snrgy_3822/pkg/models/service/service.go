@@ -16,6 +16,8 @@
 
 package service
 
+import "time"
+
 type RepoModule struct {
 	ID           string         `json:"id"`
 	Name         string         `json:"name"`
@@ -41,4 +43,17 @@ type ModuleVariant struct {
 	Source  string `json:"source"`
 	Channel string `json:"channel"`
 	Version string `json:"version"`
+}
+
+type ModulesInstallRequest struct {
+	New     []ModuleAbbreviated    `json:"new"`
+	STC     [][2]ModuleAbbreviated `json:"stc"`
+	Created time.Time              `json:"created"`
+}
+
+type ModuleAbbreviated struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Desc string `json:"description"`
+	ModuleVariant
 }
