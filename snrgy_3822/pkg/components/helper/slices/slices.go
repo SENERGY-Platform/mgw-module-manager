@@ -50,3 +50,13 @@ func SelectByPriority[S ~[]E, E any](sl S, comp func(item E, lastPrio int) (int,
 	}
 	return candidate
 }
+
+func SelectByValue[S ~[]E, E any, T comparable](sl S, value T, valF func(item E) T) (E, bool) {
+	for i := 0; i < len(sl); i++ {
+		if valF(sl[i]) == value {
+			return sl[i], true
+		}
+	}
+	var tmp E
+	return tmp, false
+}
