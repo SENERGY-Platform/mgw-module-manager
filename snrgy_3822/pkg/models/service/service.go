@@ -57,3 +57,14 @@ type ModuleAbbreviated struct {
 	Desc string `json:"description"`
 	ModuleVariant
 }
+
+type ModulesInstallReport struct {
+	Success []ModuleAbbreviated          `json:"success"`
+	Failed  []ModulesInstallFailedReport `json:"failed"`
+	Created time.Time                    `json:"created"`
+}
+
+type ModulesInstallFailedReport struct {
+	ModuleAbbreviated
+	Error string `json:"error"`
+}

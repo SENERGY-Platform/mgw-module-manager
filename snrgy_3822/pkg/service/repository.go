@@ -18,6 +18,7 @@ import (
 func (s *Service) RefreshRepositories(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	s.installReq = nil
 	return s.reposHdl.RefreshRepositories(ctx)
 }
 

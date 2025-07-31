@@ -63,18 +63,44 @@ func (s *Service) NewModulesInstallRequest(ctx context.Context, reqItems []model
 	return transformModulesInstallRequest(installRequest), nil
 }
 
-func (s *Service) ExecModulesInstallRequest(ctx context.Context) error {
+func (s *Service) ExecModulesInstallRequest(ctx context.Context) (models_service.ModulesInstallReport, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.installReq == nil {
-		return models_error.NotFoundErr
+		return models_service.ModulesInstallReport{}, models_error.NotFoundErr
 	}
 	defer func() {
 		s.installReq = nil
 	}()
+	var success []models_service.ModuleAbbreviated
+	var failed []models_service.ModulesInstallFailedReport
 	for _, repoMod := range s.installReq.New {
-
+		err := s.modsHdl.Add(ctx, repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.FS)
+		if err != nil {
+			failed = append(failed, models_service.ModulesInstallFailedReport{
+				ModuleAbbreviated: modWrapperToServiceModuleAbbreviated(repoMod),
+				Error:             err.Error(),
+			})
+			continue
+		}
+		success = append(success, modWrapperToServiceModuleAbbreviated(repoMod))
 	}
+	for _, item := range s.installReq.STC {
+		err := s.modsHdl.Update(ctx, item.Next.Mod.ID, item.Next.Source, item.Next.Channel, item.Next.FS)
+		if err != nil {
+			failed = append(failed, models_service.ModulesInstallFailedReport{
+				ModuleAbbreviated: modWrapperToServiceModuleAbbreviated(item.Next),
+				Error:             err.Error(),
+			})
+			continue
+		}
+		success = append(success, modWrapperToServiceModuleAbbreviated(item.Next))
+	}
+	return models_service.ModulesInstallReport{
+		Success: success,
+		Failed:  failed,
+		Created: time.Now().UTC(),
+	}, nil
 }
 
 func (s *Service) CancelModulesInstallRequest(_ context.Context) error {
@@ -125,40 +151,13 @@ func newModulesInstallRequest(selectedRepoMods map[string]modWrapper, installedM
 func transformModulesInstallRequest(req modulesInstallRequest) models_service.ModulesInstallRequest {
 	newMods := make([]models_service.ModuleAbbreviated, len(req.New))
 	for _, mod := range req.New {
-		newMods = append(newMods, models_service.ModuleAbbreviated{
-			ID:   mod.Mod.ID,
-			Name: mod.Mod.Name,
-			Desc: mod.Mod.Description,
-			ModuleVariant: models_service.ModuleVariant{
-				Source:  mod.Source,
-				Channel: mod.Channel,
-				Version: mod.Mod.Version,
-			},
-		})
+		newMods = append(newMods, modWrapperToServiceModuleAbbreviated(mod))
 	}
 	stcMods := make([][2]models_service.ModuleAbbreviated, len(req.STC))
 	for _, item := range req.STC {
 		stcMods = append(stcMods, [2]models_service.ModuleAbbreviated{
-			{
-				ID:   item.Previous.ID,
-				Name: item.Previous.Name,
-				Desc: item.Previous.Desc,
-				ModuleVariant: models_service.ModuleVariant{
-					Source:  item.Previous.Source,
-					Channel: item.Previous.Channel,
-					Version: item.Previous.Version,
-				},
-			},
-			{
-				ID:   item.Next.Mod.ID,
-				Name: item.Next.Mod.Name,
-				Desc: item.Next.Mod.Description,
-				ModuleVariant: models_service.ModuleVariant{
-					Source:  item.Next.Source,
-					Channel: item.Next.Channel,
-					Version: item.Next.Mod.Version,
-				},
-			},
+			item.Previous,
+			modWrapperToServiceModuleAbbreviated(item.Next),
 		})
 	}
 	return models_service.ModulesInstallRequest{
@@ -168,51 +167,15 @@ func transformModulesInstallRequest(req modulesInstallRequest) models_service.Mo
 	}
 }
 
-//func newAndSTCMods(selectedRepoMods map[string]modWrapper, installedMods []models_module.ModuleAbbreviated) ([]models_service.ModuleAbbreviated, [][2]models_service.ModuleAbbreviated) {
-//	var newMods []models_service.ModuleAbbreviated
-//	var stcMods [][2]models_service.ModuleAbbreviated
-//	for id, repoMod := range selectedRepoMods {
-//		installedMod, ok := helper_slices.SelectByValue(installedMods, id, func(item models_module.ModuleAbbreviated) string {
-//			return item.ID
-//		})
-//		if ok {
-//			if equalMods(repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.Mod.Version, installedMod.ID, installedMod.Source, installedMod.Channel, installedMod.Version) {
-//				continue
-//			}
-//			stcMods = append(stcMods, [2]models_service.ModuleAbbreviated{
-//				{
-//					ID:   installedMod.ID,
-//					Name: installedMod.Name,
-//					Desc: installedMod.Desc,
-//					ModuleVariant: models_service.ModuleVariant{
-//						Source:  installedMod.Source,
-//						Channel: installedMod.Channel,
-//						Version: installedMod.Version,
-//					},
-//				},
-//				{
-//					ID:   repoMod.Mod.ID,
-//					Name: repoMod.Mod.Name,
-//					Desc: repoMod.Mod.Description,
-//					ModuleVariant: models_service.ModuleVariant{
-//						Source:  repoMod.Source,
-//						Channel: repoMod.Channel,
-//						Version: repoMod.Mod.Version,
-//					},
-//				},
-//			})
-//			continue
-//		}
-//		newMods = append(newMods, models_service.ModuleAbbreviated{
-//			ID:   repoMod.Mod.ID,
-//			Name: repoMod.Mod.Name,
-//			Desc: repoMod.Mod.Description,
-//			ModuleVariant: models_service.ModuleVariant{
-//				Source:  repoMod.Source,
-//				Channel: repoMod.Channel,
-//				Version: repoMod.Mod.Version,
-//			},
-//		})
-//	}
-//	return newMods, stcMods
-//}
+func modWrapperToServiceModuleAbbreviated(w modWrapper) models_service.ModuleAbbreviated {
+	return models_service.ModuleAbbreviated{
+		ID:   w.Mod.ID,
+		Name: w.Mod.Name,
+		Desc: w.Mod.Description,
+		ModuleVariant: models_service.ModuleVariant{
+			Source:  w.Source,
+			Channel: w.Channel,
+			Version: w.Mod.Version,
+		},
+	}
+}
