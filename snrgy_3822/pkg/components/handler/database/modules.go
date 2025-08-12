@@ -92,23 +92,31 @@ func (h *Handler) CreateMod(ctx context.Context, mod models_storage.Module) erro
 }
 
 func (h *Handler) UpdateMod(ctx context.Context, mod models_storage.Module) error {
-	_, err := h.sqlDB.ExecContext(ctx, "UPDATE modules SET dir = ?, source = ?, channel = ?, updated = ? WHERE id = ?", mod.DirName, mod.Source, mod.Channel, mod.Updated, mod.ID)
+	res, err := h.sqlDB.ExecContext(ctx, "UPDATE modules SET dir = ?, source = ?, channel = ?, updated = ? WHERE id = ?", mod.DirName, mod.Source, mod.Channel, mod.Updated, mod.ID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return models_error.NotFoundErr
-		}
 		return err
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return models_error.NotFoundErr
 	}
 	return nil
 }
 
 func (h *Handler) DeleteMod(ctx context.Context, id string) error {
-	_, err := h.sqlDB.ExecContext(ctx, "DELETE FROM modules WHERE id = ?", id)
+	res, err := h.sqlDB.ExecContext(ctx, "DELETE FROM modules WHERE id = ?", id)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return models_error.NotFoundErr
-		}
 		return err
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return models_error.NotFoundErr
 	}
 	return nil
 }
