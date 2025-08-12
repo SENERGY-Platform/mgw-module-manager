@@ -80,8 +80,8 @@ func (h *Handler) CreateMod(ctx context.Context, mod models_storage.Module) erro
 		"INSERT INTO modules (id, dir, source, channel, added, updated) VALUES (?, ?, ?, ?, ?, ?)",
 		mod.ID,
 		mod.DirName,
-		mod.Channel,
 		mod.Source,
+		mod.Channel,
 		mod.Added,
 		mod.Updated,
 	)
