@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package storage
+package schema
 
-import "time"
+import _ "embed"
 
-type Module struct {
-	ID      string
-	DirName string
-	Source  string
-	Channel string
-	Added   time.Time
-	Updated time.Time
-}
+//go:embed modules.sql
+var modules []byte
 
-type ModuleFilter struct {
-	IDs     []string
-	Source  string
-	Channel string
+//go:embed deployments.sql
+var deployments []byte
+
+//go:embed aux_deployments.sql
+var auxDeployments []byte
+
+//go:embed dep_advertisements.sql
+var depAdvertisements []byte
+
+var Init = migration{
+	modules,
+	deployments,
+	auxDeployments,
+	depAdvertisements,
 }

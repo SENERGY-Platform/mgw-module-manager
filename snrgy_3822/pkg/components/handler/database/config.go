@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package storage
+package database
 
 import "time"
 
-type Module struct {
-	ID      string
-	DirName string
-	Source  string
-	Channel string
-	Added   time.Time
-	Updated time.Time
-}
-
-type ModuleFilter struct {
-	IDs     []string
-	Source  string
-	Channel string
+type Config struct {
+	Address  string        `json:"address" env_var:"DATABASE_ADDRESS"`
+	Database string        `json:"database" env_var:"DATABASE_NAME"`
+	User     string        `json:"user" env_var:"DATABASE_USER"`
+	Password string        `json:"password" env_var:"DATABASE_PASSWORD"`
+	Timeout  time.Duration `json:"timeout" env_var:"DATABASE_TIMEOUT"`
 }

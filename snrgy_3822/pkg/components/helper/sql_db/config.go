@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package storage
+package sql_db
 
 import "time"
 
-type Module struct {
-	ID      string
-	DirName string
-	Source  string
-	Channel string
-	Added   time.Time
-	Updated time.Time
-}
-
-type ModuleFilter struct {
-	IDs     []string
-	Source  string
-	Channel string
+type Config struct {
+	MaxOpenConns    int           `json:"max_open_conns" env_var:"DATABASE_MAX_OPEN_CONNS"`
+	MaxIdleConns    int           `json:"max_idle_conns" env_var:"DATABASE_MAX_IDLE_CONNS"`
+	ConnMaxLifetime time.Duration `json:"conn_max_lifetime" env_var:"DATABASE_CONN_MAX_LIFETIME"`
 }

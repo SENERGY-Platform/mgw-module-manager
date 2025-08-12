@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package storage
+package time
 
 import "time"
 
-type Module struct {
-	ID      string
-	DirName string
-	Source  string
-	Channel string
-	Added   time.Time
-	Updated time.Time
+var UTC bool
+
+func Now() time.Time {
+	if UTC {
+		return time.Now().UTC()
+	}
+	return time.Now()
 }
 
-type ModuleFilter struct {
-	IDs     []string
-	Source  string
-	Channel string
+func Date(year int, month time.Month, day, hour, min, sec, nsec int) time.Time {
+	if UTC {
+		return time.Date(year, month, day, hour, min, sec, nsec, time.UTC)
+	}
+	return time.Date(year, month, day, hour, min, sec, nsec, time.Local)
 }

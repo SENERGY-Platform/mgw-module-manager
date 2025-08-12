@@ -19,6 +19,7 @@ package error
 import "errors"
 
 var NotFoundErr = errors.New("not found")
+var DuplicateErr = errors.New("duplicate")
 
 type MultiError struct {
 	errs []error

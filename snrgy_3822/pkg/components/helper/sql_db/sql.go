@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package storage
+package sql_db
 
-import "time"
+import (
+	"database/sql"
+	"database/sql/driver"
+)
 
-type Module struct {
-	ID      string
-	DirName string
-	Source  string
-	Channel string
-	Added   time.Time
-	Updated time.Time
-}
-
-type ModuleFilter struct {
-	IDs     []string
-	Source  string
-	Channel string
+func NewSQLDatabase(connector driver.Connector, config Config) *sql.DB {
+	db := sql.OpenDB(connector)
+	db.SetMaxOpenConns(config.MaxOpenConns)
+	db.SetMaxIdleConns(config.MaxIdleConns)
+	db.SetConnMaxLifetime(config.ConnMaxLifetime)
+	return db
 }

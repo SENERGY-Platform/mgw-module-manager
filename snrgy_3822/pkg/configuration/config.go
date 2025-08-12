@@ -19,7 +19,9 @@ package configuration
 import (
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
+	handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
 	handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
+	helper_sql_db "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"
 	"time"
 )
 
@@ -46,6 +48,11 @@ type JobsConfig struct {
 	MaxAge      int64 `json:"max_age" env_var:"JOBS_MAX_AGE"`
 }
 
+type DatabaseConfig struct {
+	MySQL handler_database.Config
+	SQL   helper_sql_db.Config
+}
+
 type Config struct {
 	ServerPort               uint                           `json:"server_port" env_var:"SERVER_PORT"`
 	MGW                      MGWConfig                      `json:"mgw"`
@@ -53,9 +60,11 @@ type Config struct {
 	Logger                   struct_logger.Config           `json:"logger"`
 	GitHubModulesRepoHandler GitHubModulesRepoHandlerConfig `json:"github_modules_repo_handler"`
 	Jobs                     JobsConfig                     `json:"jobs"`
+	Database                 DatabaseConfig                 `json:"database"`
 	ManagerIDPath            string                         `json:"manager_id_path" env_var:"MANAGER_ID_PATH"`
 	CoreID                   string                         `json:"core_id" env_var:"CORE_ID"`
 	HttpAccessLog            bool                           `json:"http_access_log" env_var:"HTTP_ACCESS_LOG"`
+	UseUTC                   bool                           `json:"use_utc" env_var:"USE_UTC"`
 }
 
 func New(path string) (*Config, error) {
@@ -91,7 +100,20 @@ func New(path string) (*Config, error) {
 			PJHInterval: 300000000000,
 			MaxAge:      172800000000000,
 		},
+		Database: DatabaseConfig{
+			MySQL: handler_database.Config{
+				Address:  "core-db:3306",
+				Database: "module_manager",
+				Timeout:  time.Second * 30,
+			},
+			SQL: helper_sql_db.Config{
+				MaxOpenConns:    25,
+				MaxIdleConns:    25,
+				ConnMaxLifetime: time.Minute * 5,
+			},
+		},
 		ManagerIDPath: "/opt/module-manager/data/mid",
+		UseUTC:        true,
 	}
 	err := sb_config_hdl.Load(&cfg, nil, envTypeParser, nil, path)
 	return &cfg, err

@@ -7,6 +7,7 @@ import (
 	helper_file_sys "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
+	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
@@ -124,27 +125,29 @@ func (h *Handler) ModuleFS(ctx context.Context, id string) (fs.FS, error) {
 func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.FS) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	stgMod, err := h.storageHdl.ReadMod(ctx, id)
+	_, err := h.storageHdl.ReadMod(ctx, id)
 	if err != nil {
 		if !errors.Is(err, models_error.NotFoundErr) {
 			return err
 		}
+	} else {
+		return models_error.DuplicateErr
 	}
-	if stgMod.ID != "" {
-		return errors.New("already exists")
-	}
-	stgModBase, err := newStgModBase(id, source, channel)
+	stgMod, err := newStgMod(id, source, channel)
 	if err != nil {
 		return err
 	}
-	dstPath := path.Join(h.config.WorkDirPath, stgModBase.DirName)
+	timestamp := helper_time.Now()
+	stgMod.Added = timestamp
+	stgMod.Updated = timestamp
+	dstPath := path.Join(h.config.WorkDirPath, stgMod.DirName)
 	if err = helper_file_sys.CopyAll(fSys, dstPath); err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("removing dir failed", slog_attr.DirNameKey, stgModBase.DirName, slog_attr.IDKey, id, slog_attr.ErrorKey, e)
+				logger.Error("removing dir failed", slog_attr.DirNameKey, stgMod.DirName, slog_attr.IDKey, id, slog_attr.ErrorKey, e)
 			}
 		}
 	}()
@@ -167,7 +170,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 			}
 		}
 	}()
-	if err = h.storageHdl.CreateMod(ctx, stgModBase); err != nil {
+	if err = h.storageHdl.CreateMod(ctx, stgMod); err != nil {
 		return err
 	}
 	h.cacheSet(id, mod)
@@ -177,31 +180,33 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys fs.FS) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	stgMod, err := h.storageHdl.ReadMod(ctx, id)
+	stgModOld, err := h.storageHdl.ReadMod(ctx, id)
 	if err != nil {
 		return err
 	}
 	oldMod, ok := h.cacheGet(id)
 	if !ok {
-		logger.Warn("module not in cache", slog_attr.IDKey, stgMod.ID)
-		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
+		logger.Warn("module not in cache", slog_attr.IDKey, stgModOld.ID)
+		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgModOld.DirName))
 		oldMod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
 			return err
 		}
 	}
-	stgModBase, err := newStgModBase(id, source, channel)
+	stgModNew, err := newStgMod(id, source, channel)
 	if err != nil {
 		return err
 	}
-	dstPath := path.Join(h.config.WorkDirPath, stgModBase.DirName)
+	stgModNew.Added = stgModOld.Added
+	stgModNew.Updated = helper_time.Now()
+	dstPath := path.Join(h.config.WorkDirPath, stgModNew.DirName)
 	if err = helper_file_sys.CopyAll(fSys, dstPath); err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("removing dir failed", slog_attr.DirNameKey, stgModBase.DirName, slog_attr.IDKey, id, slog_attr.ErrorKey, e)
+				logger.Error("removing dir failed", slog_attr.DirNameKey, stgModNew.DirName, slog_attr.IDKey, id, slog_attr.ErrorKey, e)
 			}
 		}
 	}()
@@ -224,12 +229,12 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 			}
 		}
 	}()
-	if err = h.storageHdl.UpdateMod(ctx, stgModBase); err != nil {
+	if err = h.storageHdl.UpdateMod(ctx, stgModNew); err != nil {
 		return err
 	}
 	h.cacheSet(id, newMod)
-	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, stgMod.DirName)); e != nil {
-		logger.Error("removing dir failed", slog_attr.DirNameKey, stgMod.DirName, slog_attr.IDKey, id, slog_attr.ErrorKey, e)
+	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, stgModOld.DirName)); e != nil {
+		logger.Error("removing dir failed", slog_attr.DirNameKey, stgModOld.DirName, slog_attr.IDKey, id, slog_attr.ErrorKey, e)
 	}
 	if e := h.removeOldImages(ctx, imagesAsSet(oldMod.Services), imagesAsSet(newMod.Services)); e != nil {
 		logger.Error("removing images failed", slog_attr.IDKey, id, slog_attr.ErrorKey, e)
@@ -350,12 +355,12 @@ func imagesAsSet(services map[string]*models_external.ModuleService) map[string]
 	return images
 }
 
-func newStgModBase(id, source, channel string) (models_storage.ModuleBase, error) {
+func newStgMod(id, source, channel string) (models_storage.Module, error) {
 	newUUID, err := uuid.NewUUID()
 	if err != nil {
-		return models_storage.ModuleBase{}, err
+		return models_storage.Module{}, err
 	}
-	return models_storage.ModuleBase{
+	return models_storage.Module{
 		ID:      id,
 		DirName: newUUID.String(),
 		Source:  source,

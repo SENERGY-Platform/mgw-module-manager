@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package storage
+package database
 
-import "time"
+import (
+	"context"
+	"database/sql"
+)
 
-type Module struct {
-	ID      string
-	DirName string
-	Source  string
-	Channel string
-	Added   time.Time
-	Updated time.Time
-}
-
-type ModuleFilter struct {
-	IDs     []string
-	Source  string
-	Channel string
+type migration interface {
+	Required(ctx context.Context, db *sql.DB) (bool, error)
+	Run(ctx context.Context, db *sql.DB) error
 }

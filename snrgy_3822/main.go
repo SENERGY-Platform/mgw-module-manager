@@ -9,12 +9,16 @@ import (
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
 	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/api"
+	handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
+	handler_database_schema "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/schema"
 	handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
 	handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
 	handler_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github"
 	client_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 	helper_http "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/http"
 	helper_os_signal "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/os_signal"
+	helper_sql_db "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"
+	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/configuration"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
@@ -46,9 +50,30 @@ func main() {
 		return
 	}
 
+	helper_time.UTC = config.UseUTC
+
 	logger := struct_logger.New(config.Logger, os.Stderr, "", srvInfoHdl.Name())
 
 	logger.Info("starting service", slog_attr.VersionKey, srvInfoHdl.Version(), slog_attr.ConfigValuesKey, sb_config_hdl.StructToMap(config, true))
+
+	ctx, cf := context.WithCancel(context.Background())
+
+	mySQLConnector, err := handler_database.NewConnector(config.Database.MySQL)
+	if err != nil {
+		logger.Error("creating mysql connector failed", slog_attr.ErrorKey, err)
+		ec = 1
+		return
+	}
+	sqlDB := helper_sql_db.NewSQLDatabase(mySQLConnector, config.Database.SQL)
+	defer sqlDB.Close()
+
+	databaseHdl := handler_database.New(sqlDB)
+	err = databaseHdl.Migrate(ctx, handler_database_schema.Init)
+	if err != nil {
+		logger.Error("database migration failed", slog_attr.ErrorKey, err)
+		ec = 1
+		return
+	}
 
 	gitHubClt := client_repositories_github.New(helper_http.NewClient(config.GitHubModulesRepoHandler.Timeout), config.GitHubModulesRepoHandler.BaseUrl)
 
@@ -73,7 +98,7 @@ func main() {
 	cewClient := cew_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CewBaseUrl)
 
 	handler_modules.InitLogger(logger)
-	modulesHdl := handler_modules.New(nil, cewClient, config.ModulesHandler)
+	modulesHdl := handler_modules.New(databaseHdl, cewClient, config.ModulesHandler)
 
 	service.InitLogger(logger)
 	srv := service.New(repositoriesHdl, modulesHdl)
@@ -97,8 +122,6 @@ func main() {
 		ec = 1
 		return
 	}
-
-	ctx, cf := context.WithCancel(context.Background())
 
 	err = repositoriesHdl.InitRepositories(ctx)
 	if err != nil {

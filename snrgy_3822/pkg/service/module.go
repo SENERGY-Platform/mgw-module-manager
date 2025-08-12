@@ -19,11 +19,11 @@ package service
 import (
 	"context"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
-	"time"
 )
 
 func (s *Service) Modules(ctx context.Context, filter models_module.ModuleFilter) ([]models_module.ModuleAbbreviated, error) {
@@ -99,7 +99,7 @@ func (s *Service) ExecModulesInstallRequest(ctx context.Context) (models_service
 	return models_service.ModulesInstallReport{
 		Success: success,
 		Failed:  failed,
-		Created: time.Now().UTC(),
+		Created: helper_time.Now(),
 	}, nil
 }
 
@@ -144,7 +144,7 @@ func newModulesInstallRequest(selectedRepoMods map[string]modWrapper, installedM
 	return modulesInstallRequest{
 		New:     newMods,
 		STC:     stcMods,
-		Created: time.Now().UTC(),
+		Created: helper_time.Now(),
 	}
 }
 

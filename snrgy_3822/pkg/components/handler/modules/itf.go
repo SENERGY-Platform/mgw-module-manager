@@ -25,8 +25,8 @@ import (
 type storageHandler interface {
 	ListMod(ctx context.Context, filter models_storage.ModuleFilter) (map[string]models_storage.Module, error)
 	ReadMod(ctx context.Context, id string) (models_storage.Module, error)
-	CreateMod(ctx context.Context, mod models_storage.ModuleBase) error
-	UpdateMod(ctx context.Context, mod models_storage.ModuleBase) error
+	CreateMod(ctx context.Context, mod models_storage.Module) error
+	UpdateMod(ctx context.Context, mod models_storage.Module) error
 	DeleteMod(ctx context.Context, id string) error
 }
 

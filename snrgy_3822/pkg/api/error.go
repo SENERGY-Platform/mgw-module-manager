@@ -18,9 +18,14 @@ package api
 
 import (
 	"errors"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"net/http"
 )
 
-var errMap = map[error]int{}
+var errMap = map[error]int{
+	models_error.NotFoundErr:  http.StatusNotFound,
+	models_error.DuplicateErr: http.StatusConflict,
+}
 
 func getStatusCode(err error) int {
 	for e, c := range errMap {
