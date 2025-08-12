@@ -30,7 +30,7 @@ const selectFromModulesStatement = "SELECT id, dir, source, channel, added, upda
 
 func (h *Handler) ListMod(ctx context.Context, filter models_storage.ModuleFilter) (map[string]models_storage.Module, error) {
 	fc, val := genModFilter(filter)
-	rows, err := h.sqlDB.QueryContext(ctx, selectFromModulesStatement+fc+";", val)
+	rows, err := h.sqlDB.QueryContext(ctx, selectFromModulesStatement+fc+";", val...)
 	if err != nil {
 		return nil, err
 	}
