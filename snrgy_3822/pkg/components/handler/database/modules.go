@@ -55,7 +55,7 @@ func (h *Handler) ListMod(ctx context.Context, filter models_storage.ModuleFilte
 }
 
 func (h *Handler) ReadMod(ctx context.Context, id string) (models_storage.Module, error) {
-	row := h.sqlDB.QueryRowContext(ctx, selectFromModulesStatement+"WHERE id = ?;", id)
+	row := h.sqlDB.QueryRowContext(ctx, selectFromModulesStatement+" WHERE id = ?;", id)
 	var mod models_storage.Module
 	var at, ut []uint8
 	err := row.Scan(&mod.ID, &mod.DirName, &mod.Source, &mod.Channel, &at, &ut)
