@@ -22,7 +22,6 @@ import (
 	"database/sql"
 	_ "embed"
 	"io"
-	"strings"
 )
 
 type migration [][]byte
@@ -64,7 +63,7 @@ func readStatements(b []byte) ([]string, error) {
 		} else if err != nil {
 			return nil, err
 		}
-		stmts = append(stmts, strings.TrimSuffix(stmt, ";"))
+		stmts = append(stmts, stmt)
 	}
 	return stmts, nil
 }

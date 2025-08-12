@@ -77,7 +77,7 @@ func (h *Handler) ReadMod(ctx context.Context, id string) (models_storage.Module
 func (h *Handler) CreateMod(ctx context.Context, mod models_storage.Module) error {
 	_, err := h.sqlDB.ExecContext(
 		ctx,
-		"INSERT INTO modules (id, dir, source, channel, added, updated) VALUES (?, ?, ?, ?, ?, ?)",
+		"INSERT INTO modules (id, dir, source, channel, added, updated) VALUES (?, ?, ?, ?, ?, ?);",
 		mod.ID,
 		mod.DirName,
 		mod.Source,
@@ -92,7 +92,7 @@ func (h *Handler) CreateMod(ctx context.Context, mod models_storage.Module) erro
 }
 
 func (h *Handler) UpdateMod(ctx context.Context, mod models_storage.Module) error {
-	res, err := h.sqlDB.ExecContext(ctx, "UPDATE modules SET dir = ?, source = ?, channel = ?, updated = ? WHERE id = ?", mod.DirName, mod.Source, mod.Channel, mod.Updated, mod.ID)
+	res, err := h.sqlDB.ExecContext(ctx, "UPDATE modules SET dir = ?, source = ?, channel = ?, updated = ? WHERE id = ?;", mod.DirName, mod.Source, mod.Channel, mod.Updated, mod.ID)
 	if err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func (h *Handler) UpdateMod(ctx context.Context, mod models_storage.Module) erro
 }
 
 func (h *Handler) DeleteMod(ctx context.Context, id string) error {
-	res, err := h.sqlDB.ExecContext(ctx, "DELETE FROM modules WHERE id = ?", id)
+	res, err := h.sqlDB.ExecContext(ctx, "DELETE FROM modules WHERE id = ?;", id)
 	if err != nil {
 		return err
 	}
