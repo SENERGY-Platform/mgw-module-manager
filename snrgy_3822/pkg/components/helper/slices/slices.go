@@ -16,47 +16,16 @@
 
 package slices
 
-import "fmt"
+import (
+	"iter"
+)
 
-func SliceToMap[S ~[]E, E any](sl S, keyF func(item E) string) map[string]E {
-	m := make(map[string]E)
-	for i := 0; i < len(sl); i++ {
-		m[keyF(sl[i])] = sl[i]
-	}
-	return m
-}
-
-func SliceToMapSafe[S ~[]E, E any](sl S, keyF func(item E) string) (map[string]E, error) {
-	m := make(map[string]E)
-	for i := 0; i < len(sl); i++ {
-		k := keyF(sl[i])
-		if _, ok := m[k]; ok {
-			return nil, fmt.Errorf("duplicate key: %s", k)
-		}
-		m[k] = sl[i]
-	}
-	return m, nil
-}
-
-func SelectByPriority[S ~[]E, E any](sl S, comp func(item E, lastPrio int) (int, bool)) E {
-	var lastPrio int
-	var candidate E
-	for i := 0; i < len(sl); i++ {
-		prio, ok := comp(sl[i], lastPrio)
-		if i == 0 || ok {
-			lastPrio = prio
-			candidate = sl[i]
+func AllFunc[S ~[]E, E any, K comparable](sl S, keyF func(item E) K) iter.Seq2[K, E] {
+	return func(yield func(K, E) bool) {
+		for i, v := range sl {
+			if !yield(keyF(sl[i]), v) {
+				return
+			}
 		}
 	}
-	return candidate
-}
-
-func SelectByValue[S ~[]E, E any, T comparable](sl S, value T, valF func(item E) T) (E, bool) {
-	for i := 0; i < len(sl); i++ {
-		if valF(sl[i]) == value {
-			return sl[i], true
-		}
-	}
-	var tmp E
-	return tmp, false
 }

@@ -15,9 +15,11 @@ import (
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 	"github.com/google/uuid"
 	"io/fs"
+	"maps"
 	"net/url"
 	"os"
 	"path"
+	"slices"
 	"sync"
 )
 
@@ -46,7 +48,11 @@ func (h *Handler) Init() error {
 func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter) ([]models_module.ModuleAbbreviated, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	stgMods, err := h.storageHdl.ListMod(ctx, models_storage.ModuleFilter{IDs: filter.IDs})
+	stgMods, err := h.storageHdl.ListMod(ctx, models_storage.ModuleFilter{
+		IDs:     filter.IDs,
+		Source:  filter.Source,
+		Channel: filter.Channel,
+	})
 	if err != nil {
 		return nil, err
 	}

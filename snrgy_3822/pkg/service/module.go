@@ -18,12 +18,12 @@ package service
 
 import (
 	"context"
-	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+	"slices"
 )
 
 func (s *Service) Modules(ctx context.Context, filter models_module.ModuleFilter) ([]models_module.ModuleAbbreviated, error) {
@@ -117,10 +117,11 @@ func newModulesInstallRequest(selectedRepoMods map[string]modWrapper, installedM
 	var newMods []modWrapper
 	var stcMods []moduleSTC
 	for id, repoMod := range selectedRepoMods {
-		installedMod, ok := helper_slices.SelectByValue(installedMods, id, func(item models_module.ModuleAbbreviated) string {
-			return item.ID
+		i := slices.IndexFunc(installedMods, func(item models_module.ModuleAbbreviated) bool {
+			return item.ID == id
 		})
-		if ok {
+		if i >= 0 {
+			installedMod := installedMods[i]
 			if equalMods(repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.Mod.Version, installedMod.ID, installedMod.Source, installedMod.Channel, installedMod.Version) {
 				continue
 			}

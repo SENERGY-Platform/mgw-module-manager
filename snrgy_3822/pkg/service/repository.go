@@ -11,6 +11,7 @@ import (
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
+	"maps"
 	"slices"
 	"strings"
 )
@@ -42,9 +43,9 @@ func (s *Service) RepoModules(ctx context.Context) ([]models_service.RepoModule,
 
 func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_repo.Module, installedMods []models_module.ModuleAbbreviated) ([]models_service.RepoModule, error) {
 	reposTree := buildReposTree(repos)
-	installedModsMap := helper_slices.SliceToMap(installedMods, func(item models_module.ModuleAbbreviated) string {
+	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.ModuleAbbreviated) string {
 		return item.ID
-	})
+	}))
 	var repoModules []models_service.RepoModule
 	for id, sources := range buildRepoModsTree(repoMods) {
 		repoModule := models_service.RepoModule{ID: id}
@@ -142,10 +143,10 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 		return nil, err
 	}
 	deps := make(map[string]modWrapper)
-	highestPrioRepo := helper_slices.SelectByPriority(modRepos, func(item models_repo.Repository, lastPrio int) (int, bool) {
+	highestPrioRepo := selectByPriority(modRepos, func(item models_repo.Repository, lastPrio int) (int, bool) {
 		return item.Priority, item.Priority >= lastPrio
 	})
-	highestPrioChannel := helper_slices.SelectByPriority(highestPrioRepo.Channels, func(item models_repo.Channel, lastPrio int) (int, bool) {
+	highestPrioChannel := selectByPriority(highestPrioRepo.Channels, func(item models_repo.Channel, lastPrio int) (int, bool) {
 		return item.Priority, item.Priority >= lastPrio
 	})
 	for _, wrapper := range mods {
@@ -155,15 +156,15 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 			}
 		}
 	}
-	modReposMap := helper_slices.SliceToMap(modRepos, func(item models_repo.Repository) string {
+	modReposMap := maps.Collect(helper_slices.AllFunc(modRepos, func(item models_repo.Repository) string {
 		return item.Source
-	})
+	}))
 	for _, wrapper := range mods {
 		repo, ok := modReposMap[wrapper.Source]
 		if !ok {
 			return nil, errors.New("source not found")
 		}
-		highestPrioChannel = helper_slices.SelectByPriority(repo.Channels, func(item models_repo.Channel, lastPrio int) (int, bool) {
+		highestPrioChannel = selectByPriority(repo.Channels, func(item models_repo.Channel, lastPrio int) (int, bool) {
 			return item.Priority, item.Priority >= lastPrio
 		})
 		if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, highestPrioChannel.Name, deps); err != nil {
@@ -239,4 +240,17 @@ func buildReposTree(repos []models_repo.Repository) map[string]repoAbbreviated {
 		}
 	}
 	return reposTree
+}
+
+func selectByPriority[S ~[]E, E any](sl S, comp func(item E, lastPrio int) (int, bool)) E {
+	var lastPrio int
+	var candidate E
+	for i := 0; i < len(sl); i++ {
+		prio, ok := comp(sl[i], lastPrio)
+		if i == 0 || ok {
+			lastPrio = prio
+			candidate = sl[i]
+		}
+	}
+	return candidate
 }
