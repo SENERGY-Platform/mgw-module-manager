@@ -80,14 +80,6 @@ func removeDuplicates[S ~[]E, E comparable](sl S) []E {
 	return sl2
 }
 
-func toAnySlice[S ~[]E, E any](sl S) []any {
-	anySl := make([]any, len(sl))
-	for i, v := range sl {
-		anySl[i] = v
-	}
-	return anySl
-}
-
 func genQuestionMarks(numCol int) string {
 	if numCol <= 0 {
 		return ""
