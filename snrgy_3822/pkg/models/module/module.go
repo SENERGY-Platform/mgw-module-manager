@@ -29,10 +29,14 @@ type ModuleBase struct {
 }
 
 type ModuleAbbreviated struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Desc    string `json:"description"`
-	Version string `json:"version"`
+	ID      string   `json:"id"`
+	Name    string   `json:"name"`
+	Desc    string   `json:"description"`
+	Tags    []string `json:"tags"`
+	License string   `json:"license"`
+	Author  string   `json:"author"`
+	Type    string   `json:"type"`
+	Version string   `json:"version"`
 	ModuleBase
 }
 
@@ -42,5 +46,8 @@ type Module struct {
 }
 
 type ModuleFilter struct {
-	IDs []string
+	IDs     []string
+	Source  string
+	Channel string
+	Type    string
 }

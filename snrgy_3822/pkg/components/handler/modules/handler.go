@@ -69,6 +69,10 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 			ID:      stgMod.ID,
 			Name:    mod.Name,
 			Desc:    mod.Description,
+			Tags:    slices.Collect(maps.Keys(mod.Tags)),
+			License: mod.License,
+			Author:  mod.Author,
+			Type:    mod.Type,
 			Version: mod.Version,
 			ModuleBase: models_module.ModuleBase{
 				Source:  stgMod.Source,
