@@ -1,87 +1,71 @@
 CREATE TABLE IF NOT EXISTS deployments
 (
-    `index`    BIGINT AUTO_INCREMENT NOT NULL,
-    id       CHAR(36)              NOT NULL,
-    mod_id   VARCHAR(256)          NOT NULL,
-    mod_ver  VARCHAR(256)          NOT NULL,
-    name     VARCHAR(256)          NOT NULL,
-    dir      VARCHAR(256)          NOT NULL,
-    enabled  BOOLEAN               NOT NULL,
-    indirect BOOLEAN               NOT NULL,
-    created  TIMESTAMP(6)          NOT NULL,
-    updated  TIMESTAMP(6)          NOT NULL,
-    UNIQUE KEY (id),
-    PRIMARY KEY (`index`),
+    id       CHAR(36)     NOT NULL,
+    mod_id   VARCHAR(256) NOT NULL,
+    mod_ver  VARCHAR(256) NOT NULL,
+    name     VARCHAR(256) NOT NULL,
+    dir      VARCHAR(256) NOT NULL,
+    enabled  BOOLEAN      NOT NULL,
+    indirect BOOLEAN      NOT NULL,
+    created  TIMESTAMP(6) NOT NULL,
+    updated  TIMESTAMP(6) NOT NULL,
+    PRIMARY KEY (id),
     FOREIGN KEY (mod_id) REFERENCES modules (id) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
-CREATE TABLE IF NOT EXISTS dependencies
+CREATE TABLE IF NOT EXISTS dep_containers
 (
-    `index`  BIGINT AUTO_INCREMENT NOT NULL,
-    dep_id CHAR(36)              NOT NULL,
-    req_id CHAR(36)              NOT NULL,
-    UNIQUE KEY (dep_id, req_id),
-    PRIMARY KEY (`index`),
-    FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
-);
-CREATE TABLE IF NOT EXISTS containers
-(
-    `index`   BIGINT AUTO_INCREMENT NOT NULL,
-    dep_id  CHAR(36)              NOT NULL,
-    ctr_id  VARCHAR(256)          NOT NULL,
-    srv_ref VARCHAR(256)          NOT NULL,
-    alias   VARCHAR(256)          NOT NULL,
-    `order`   BIGINT                NOT NULL,
+    dep_id  CHAR(36)     NOT NULL,
+    ctr_id  VARCHAR(256) NOT NULL,
+    srv_ref VARCHAR(256) NOT NULL,
+    alias   VARCHAR(256) NOT NULL,
+    `order` BIGINT       NOT NULL,
     UNIQUE KEY (dep_id, ctr_id, srv_ref),
-    PRIMARY KEY (`index`),
+    INDEX (ctr_id),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
-CREATE TABLE IF NOT EXISTS host_resources
+CREATE TABLE IF NOT EXISTS dep_host_resources
 (
-    `index`  BIGINT AUTO_INCREMENT NOT NULL,
-    dep_id CHAR(36)              NOT NULL,
-    ref    VARCHAR(128)          NOT NULL,
-    res_id VARCHAR(256)          NOT NULL,
+    dep_id CHAR(36)     NOT NULL,
+    ref    VARCHAR(128) NOT NULL,
+    res_id VARCHAR(256) NOT NULL,
     UNIQUE KEY (dep_id, ref),
-    PRIMARY KEY (`index`),
+    INDEX (dep_id),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
-CREATE TABLE IF NOT EXISTS secrets
+CREATE TABLE IF NOT EXISTS dep_secrets
 (
-    `index`    BIGINT AUTO_INCREMENT NOT NULL,
-    dep_id   CHAR(36)              NOT NULL,
-    ref      VARCHAR(128)          NOT NULL,
-    sec_id   VARCHAR(256)          NOT NULL,
-    item     VARCHAR(128)          NULL,
+    dep_id   CHAR(36)     NOT NULL,
+    ref      VARCHAR(128) NOT NULL,
+    sec_id   VARCHAR(256) NOT NULL,
+    item     VARCHAR(128) NULL,
     as_mount BOOLEAN,
     as_env   BOOLEAN,
     UNIQUE KEY (dep_id, ref, item),
-    PRIMARY KEY (`index`),
+    INDEX (dep_id),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
-CREATE TABLE IF NOT EXISTS configs
+CREATE TABLE IF NOT EXISTS dep_configs
 (
-    `index`    BIGINT AUTO_INCREMENT NOT NULL,
-    dep_id   CHAR(36)              NOT NULL,
-    ref      VARCHAR(128)          NOT NULL,
+    dep_id   CHAR(36)     NOT NULL,
+    ref      VARCHAR(128) NOT NULL,
     v_string VARCHAR(512),
     v_int    BIGINT,
     v_float  DOUBLE,
     v_bool   BOOLEAN,
     UNIQUE KEY (dep_id, ref),
-    PRIMARY KEY (`index`),
+    INDEX (dep_id),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
-CREATE TABLE IF NOT EXISTS list_configs
+CREATE TABLE IF NOT EXISTS dep_list_configs
 (
-    `index`    BIGINT AUTO_INCREMENT NOT NULL,
-    dep_id   CHAR(36)              NOT NULL,
-    ref      VARCHAR(128)          NOT NULL,
-    ord      SMALLINT              NOT NULL,
+    dep_id   CHAR(36)     NOT NULL,
+    ref      VARCHAR(128) NOT NULL,
+    ord      SMALLINT     NOT NULL,
     v_string VARCHAR(512),
     v_int    BIGINT,
     v_float  DOUBLE,
     v_bool   BOOLEAN,
     UNIQUE KEY (dep_id, ref, ord),
-    PRIMARY KEY (`index`),
+    INDEX (dep_id),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
