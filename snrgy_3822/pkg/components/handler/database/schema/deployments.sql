@@ -19,8 +19,9 @@ CREATE TABLE IF NOT EXISTS dep_containers
     srv_ref VARCHAR(256) NOT NULL,
     alias   VARCHAR(256) NOT NULL,
     `order` BIGINT       NOT NULL,
-    UNIQUE KEY (dep_id, ctr_id, srv_ref),
-    INDEX (ctr_id),
+    UNIQUE KEY uk_dep_id_ctr_id_srv_ref (dep_id, ctr_id, srv_ref),
+    INDEX i_dep_id (dep_id),
+    INDEX i_ctr_id (ctr_id),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS dep_host_resources
@@ -28,8 +29,8 @@ CREATE TABLE IF NOT EXISTS dep_host_resources
     dep_id CHAR(36)     NOT NULL,
     ref    VARCHAR(128) NOT NULL,
     res_id VARCHAR(256) NOT NULL,
-    UNIQUE KEY (dep_id, ref),
-    INDEX (dep_id),
+    UNIQUE KEY uk_dep_id_ref (dep_id, ref),
+    INDEX i_dep_id (dep_id),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS dep_secrets
@@ -40,8 +41,8 @@ CREATE TABLE IF NOT EXISTS dep_secrets
     item     VARCHAR(128) NULL,
     as_mount BOOLEAN,
     as_env   BOOLEAN,
-    UNIQUE KEY (dep_id, ref, item),
-    INDEX (dep_id),
+    UNIQUE KEY uk_dep_id_ref_item (dep_id, ref, item),
+    INDEX i_dep_id (dep_id),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS dep_configs
@@ -52,8 +53,8 @@ CREATE TABLE IF NOT EXISTS dep_configs
     v_int    BIGINT,
     v_float  DOUBLE,
     v_bool   BOOLEAN,
-    UNIQUE KEY (dep_id, ref),
-    INDEX (dep_id),
+    UNIQUE KEY uk_dep_id_ref (dep_id, ref),
+    INDEX i_dep_id (dep_id),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS dep_list_configs
@@ -65,7 +66,7 @@ CREATE TABLE IF NOT EXISTS dep_list_configs
     v_int    BIGINT,
     v_float  DOUBLE,
     v_bool   BOOLEAN,
-    UNIQUE KEY (dep_id, ref, ord),
-    INDEX (dep_id),
+    UNIQUE KEY uk_dep_id_ref_ord (dep_id, ref, ord),
+    INDEX i_dep_id (dep_id),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
