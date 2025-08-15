@@ -39,18 +39,13 @@ func (m migration) Run(ctx context.Context, db *sql.DB) error {
 		}
 		stmts = append(stmts, tmp...)
 	}
-	tx, err := db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
 	for _, stmt := range stmts {
-		_, err = tx.ExecContext(ctx, stmt)
+		_, err := db.ExecContext(ctx, stmt)
 		if err != nil {
 			return err
 		}
 	}
-	return tx.Commit()
+	return nil
 }
 
 func readStatements(b []byte) ([]string, error) {
