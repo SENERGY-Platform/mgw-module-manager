@@ -52,5 +52,9 @@ func (m *Migration) Run(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
+	err = migrateDepAdvertisementsTab(ctx, db)
+	if err != nil {
+		return err
+	}
 	return nil
 }
