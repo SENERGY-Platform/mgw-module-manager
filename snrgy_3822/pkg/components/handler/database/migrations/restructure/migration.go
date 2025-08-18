@@ -90,3 +90,29 @@ func (m *Migration) Run(ctx context.Context, db *sql.DB) error {
 	}
 	return nil
 }
+
+func dropTables(ctx context.Context, db *sql.DB) error {
+	ok, err := tableExists(ctx, db, "dependencies")
+	if err != nil {
+		return err
+	}
+	if ok {
+		logger.Info("dropping table", attrTable, "dependencies")
+		err = dropTable(ctx, db, "dependencies")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = tableExists(ctx, db, "mod_dependencies")
+	if err != nil {
+		return err
+	}
+	if ok {
+		logger.Info("dropping table", attrTable, "mod_dependencies")
+		err = dropTable(ctx, db, "mod_dependencies")
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
