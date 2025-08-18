@@ -19,7 +19,6 @@ package restructure
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"slices"
 )
 
@@ -51,29 +50,6 @@ func migrateAuxLabelsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
-	fkName := fmt.Sprintf("%s_ibfk_1", tableName)
-	logger.Info("dropping foreign key", attrForeignKey, fkName, attrTable, tableName)
-	err = dropForeignKey(ctx, db, tableName, fkName)
-	if err != nil {
-		return err
-	}
-	currentIndexKeys, err := indexKeyNames(ctx, db, tableName)
-	if err != nil {
-		return err
-	}
-	newIndexKeys := []string{"uk_aux_dep_id_name", "i_aux_dep_id"}
-	for _, key := range currentIndexKeys {
-		if key == "PRIMARY" {
-			continue
-		}
-		if !slices.Contains(newIndexKeys, key) {
-			logger.Info("dropping index", attrIndex, key, attrTable, tableName)
-			err = dropIndex(ctx, db, tableName, key)
-			if err != nil {
-				return err
-			}
-		}
-	}
 	ok, err = indexExists(ctx, db, tableName, "uk_aux_dep_id_name")
 	if err != nil {
 		return err
@@ -96,10 +72,22 @@ func migrateAuxLabelsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
-	logger.Info("adding foreign key", attrSourceCol, "aux_dep_id", attrTargetTable, "aux_deployments", attrTargetColumn, "id", attrTable, tableName)
-	err = addForeignKey(ctx, db, tableName, "aux_dep_id", "aux_deployments", "id", "CASCADE", "RESTRICT")
+	currentIndexKeys, err := indexKeyNames(ctx, db, tableName)
 	if err != nil {
 		return err
+	}
+	newIndexKeys := []string{"uk_aux_dep_id_name", "i_aux_dep_id"}
+	for _, key := range currentIndexKeys {
+		if key == "PRIMARY" {
+			continue
+		}
+		if !slices.Contains(newIndexKeys, key) {
+			logger.Info("dropping index", attrIndex, key, attrTable, tableName)
+			err = dropIndex(ctx, db, tableName, key)
+			if err != nil {
+				return err
+			}
+		}
 	}
 	logger.Info("renaming table", attrTable, tableName, attrNewName, "aux_dep_labels")
 	return renameTable(ctx, db, tableName, "aux_dep_labels")
