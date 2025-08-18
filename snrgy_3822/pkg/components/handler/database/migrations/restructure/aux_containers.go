@@ -29,7 +29,6 @@ func migrateAuxContainersTab(ctx context.Context, db *sql.DB) error {
 	if !ok {
 		return nil
 	}
-	logger.Info("migrating table", attrTable, tableName)
 	ok, err = columnExists(ctx, db, tableName, "index")
 	if err != nil {
 		return err
