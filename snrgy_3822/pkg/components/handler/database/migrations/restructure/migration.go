@@ -32,5 +32,17 @@ func (m *Migration) Run(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
+	err = migrateAuxContainersTab(ctx, db)
+	if err != nil {
+		return err
+	}
+	err = migrateAuxLabelsTab(ctx, db)
+	if err != nil {
+		return err
+	}
+	err = migrateAuxVolumesTab(ctx, db)
+	if err != nil {
+		return err
+	}
 	return nil
 }
