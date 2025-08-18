@@ -64,5 +64,13 @@ func (m *Migration) Run(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
+	err = migrateHostResourcesTab(ctx, db)
+	if err != nil {
+		return err
+	}
+	err = migrateListConfigsTab(ctx, db)
+	if err != nil {
+		return err
+	}
 	return nil
 }
