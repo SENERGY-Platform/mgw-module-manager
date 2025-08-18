@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS deployments
     created  TIMESTAMP(6) NOT NULL,
     updated  TIMESTAMP(6) NOT NULL,
     PRIMARY KEY (id),
+    INDEX i_mod_id (mod_id),
     FOREIGN KEY (mod_id) REFERENCES modules (id) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS dep_containers
