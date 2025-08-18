@@ -185,3 +185,13 @@ func dropIndex(ctx context.Context, db *sql.DB, tableName, indexName string) err
 	}
 	return nil
 }
+
+const dropTableStmt = "DROP TABLE %s;"
+
+func dropTable(ctx context.Context, db *sql.DB, tableName string) error {
+	_, err := db.ExecContext(ctx, fmt.Sprintf(dropTableStmt, tableName))
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -80,5 +80,13 @@ func (m *Migration) Run(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
+	err = migrateModulesTab(ctx, db)
+	if err != nil {
+		return err
+	}
+	err = dropTables(ctx, db)
+	if err != nil {
+		return err
+	}
 	return nil
 }
