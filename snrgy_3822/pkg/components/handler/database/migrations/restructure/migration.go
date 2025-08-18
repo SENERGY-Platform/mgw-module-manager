@@ -21,72 +21,36 @@ import (
 	"database/sql"
 )
 
-type Migration struct{}
+type migration []func(ctx context.Context, db *sql.DB) error
 
-func (m *Migration) Required(_ context.Context, _ *sql.DB) (bool, error) {
+var Migration = migration{
+	migrateAuxConfigsTab,
+	migrateAuxContainersTab,
+	migrateAuxLabelsTab,
+	migrateAuxVolumesTab,
+	migrateAuxDeployments,
+	migrateDepAdvItemsTab,
+	migrateDepAdvertisementsTab,
+	migrateConfigsTab,
+	migrateContainersTab,
+	migrateHostResourcesTab,
+	migrateListConfigsTab,
+	migrateSecretsTab,
+	migrateDeploymentsTab,
+	migrateModulesTab,
+	dropTables,
+}
+
+func (m migration) Required(_ context.Context, _ *sql.DB) (bool, error) {
 	return true, nil
 }
 
-func (m *Migration) Run(ctx context.Context, db *sql.DB) error {
-	err := migrateAuxConfigsTab(ctx, db)
-	if err != nil {
-		return err
-	}
-	err = migrateAuxContainersTab(ctx, db)
-	if err != nil {
-		return err
-	}
-	err = migrateAuxLabelsTab(ctx, db)
-	if err != nil {
-		return err
-	}
-	err = migrateAuxVolumesTab(ctx, db)
-	if err != nil {
-		return err
-	}
-	err = migrateAuxDeployments(ctx, db)
-	if err != nil {
-		return err
-	}
-	err = migrateDepAdvItemsTab(ctx, db)
-	if err != nil {
-		return err
-	}
-	err = migrateDepAdvertisementsTab(ctx, db)
-	if err != nil {
-		return err
-	}
-	err = migrateConfigsTab(ctx, db)
-	if err != nil {
-		return err
-	}
-	err = migrateContainersTab(ctx, db)
-	if err != nil {
-		return err
-	}
-	err = migrateHostResourcesTab(ctx, db)
-	if err != nil {
-		return err
-	}
-	err = migrateListConfigsTab(ctx, db)
-	if err != nil {
-		return err
-	}
-	err = migrateSecretsTab(ctx, db)
-	if err != nil {
-		return err
-	}
-	err = migrateDeploymentsTab(ctx, db)
-	if err != nil {
-		return err
-	}
-	err = migrateModulesTab(ctx, db)
-	if err != nil {
-		return err
-	}
-	err = dropTables(ctx, db)
-	if err != nil {
-		return err
+func (m migration) Run(ctx context.Context, db *sql.DB) error {
+	for _, f := range m {
+		err := f(ctx, db)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
