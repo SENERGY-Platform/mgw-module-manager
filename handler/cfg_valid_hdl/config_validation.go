@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"os"
 	"regexp"
 	"strings"
@@ -40,7 +40,7 @@ func New(definitions map[string]ConfigDefinition, validators map[string]Validato
 	return &Handler{definitions: definitions, validators: validators}, nil
 }
 
-func (h *Handler) ValidateBase(cType string, cTypeOpts module.ConfigTypeOptions, dataType module.DataType) error {
+func (h *Handler) ValidateBase(cType string, cTypeOpts module_lib.ConfigTypeOptions, dataType module_lib.DataType) error {
 	cDef, ok := h.definitions[cType]
 	if !ok {
 		return fmt.Errorf("config type '%s' not defined", cType)
@@ -48,7 +48,7 @@ func (h *Handler) ValidateBase(cType string, cTypeOpts module.ConfigTypeOptions,
 	return vltBase(cDef, cTypeOpts, dataType)
 }
 
-func (h *Handler) ValidateTypeOptions(cType string, cTypeOpts module.ConfigTypeOptions) error {
+func (h *Handler) ValidateTypeOptions(cType string, cTypeOpts module_lib.ConfigTypeOptions) error {
 	cDef, ok := h.definitions[cType]
 	if !ok {
 		return fmt.Errorf("config type '%s' not defined", cType)
@@ -56,20 +56,20 @@ func (h *Handler) ValidateTypeOptions(cType string, cTypeOpts module.ConfigTypeO
 	return vltTypeOpts(cDef.Validators, cTypeOpts, h.validators)
 }
 
-func (h *Handler) ValidateValue(cType string, cTypeOpts module.ConfigTypeOptions, value any, isSlice bool, dataType module.DataType) error {
+func (h *Handler) ValidateValue(cType string, cTypeOpts module_lib.ConfigTypeOptions, value any, isSlice bool, dataType module_lib.DataType) error {
 	cDef, ok := h.definitions[cType]
 	if !ok {
 		return fmt.Errorf("config type '%s' not defined", cType)
 	}
 	if isSlice {
 		switch dataType {
-		case module.StringType:
+		case module_lib.StringType:
 			return vltValSlice[string](cDef.Validators, cTypeOpts, h.validators, value)
-		case module.BoolType:
+		case module_lib.BoolType:
 			return vltValSlice[bool](cDef.Validators, cTypeOpts, h.validators, value)
-		case module.Int64Type:
+		case module_lib.Int64Type:
 			return vltValSlice[int64](cDef.Validators, cTypeOpts, h.validators, value)
-		case module.Float64Type:
+		case module_lib.Float64Type:
 			return vltValSlice[float64](cDef.Validators, cTypeOpts, h.validators, value)
 		default:
 			return fmt.Errorf("unknown data type '%s'", dataType)
@@ -79,16 +79,16 @@ func (h *Handler) ValidateValue(cType string, cTypeOpts module.ConfigTypeOptions
 	}
 }
 
-func (h *Handler) ValidateValInOpt(cOpt any, value any, isSlice bool, dataType module.DataType) (err error) {
+func (h *Handler) ValidateValInOpt(cOpt any, value any, isSlice bool, dataType module_lib.DataType) (err error) {
 	var ok bool
 	switch dataType {
-	case module.StringType:
+	case module_lib.StringType:
 		ok, err = vltValInOptF[string](isSlice)(value, cOpt)
-	case module.BoolType:
+	case module_lib.BoolType:
 		ok, err = vltValInOptF[bool](isSlice)(value, cOpt)
-	case module.Int64Type:
+	case module_lib.Int64Type:
 		ok, err = vltValInOptF[int64](isSlice)(value, cOpt)
-	case module.Float64Type:
+	case module_lib.Float64Type:
 		ok, err = vltValInOptF[float64](isSlice)(value, cOpt)
 	default:
 		err = fmt.Errorf("unknown data type '%s'", dataType)
@@ -149,7 +149,7 @@ func vltValSlInOpt[T comparable](val any, opt any) (bool, error) {
 	return k, nil
 }
 
-func vltValSlice[T any](cDefVlts []ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]Validator, value any) error {
+func vltValSlice[T any](cDefVlts []ConfigDefinitionValidator, cTypeOpts module_lib.ConfigTypeOptions, validators map[string]Validator, value any) error {
 	valSl, ok := value.([]T)
 	if !ok {
 		return fmt.Errorf("invlaid data type: %T != %T", value, *new(T))
@@ -211,7 +211,7 @@ func validateDefs(configDefs map[string]ConfigDefinition, validators map[string]
 	return nil
 }
 
-func vltBase(cDef ConfigDefinition, cTypeOpts module.ConfigTypeOptions, dataType module.DataType) error {
+func vltBase(cDef ConfigDefinition, cTypeOpts module_lib.ConfigTypeOptions, dataType module_lib.DataType) error {
 	if _, ok := cDef.DataType[dataType]; !ok {
 		return fmt.Errorf("data type '%s' not supported", dataType)
 	}
@@ -241,7 +241,7 @@ func vltBase(cDef ConfigDefinition, cTypeOpts module.ConfigTypeOptions, dataType
 	return nil
 }
 
-func genVltOptParams(cDefVltParams map[string]ConfigDefinitionValidatorParam, cTypeOpts module.ConfigTypeOptions) map[string]any {
+func genVltOptParams(cDefVltParams map[string]ConfigDefinitionValidatorParam, cTypeOpts module_lib.ConfigTypeOptions) map[string]any {
 	vp := make(map[string]any)
 	for name, cDefVP := range cDefVltParams {
 		if cDefVP.Ref != nil {
@@ -272,7 +272,7 @@ func genVltOptParams(cDefVltParams map[string]ConfigDefinitionValidatorParam, cT
 	return vp
 }
 
-func vltTypeOpts(cDefVlts []ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]Validator) error {
+func vltTypeOpts(cDefVlts []ConfigDefinitionValidator, cTypeOpts module_lib.ConfigTypeOptions, validators map[string]Validator) error {
 	for _, cDefVlt := range cDefVlts {
 		p := genVltOptParams(cDefVlt.Parameter, cTypeOpts)
 		if len(p) > 0 {
@@ -289,7 +289,7 @@ func vltTypeOpts(cDefVlts []ConfigDefinitionValidator, cTypeOpts module.ConfigTy
 	return nil
 }
 
-func genVltValParams(cDefVltParams map[string]ConfigDefinitionValidatorParam, cTypeOpts module.ConfigTypeOptions, value any) map[string]any {
+func genVltValParams(cDefVltParams map[string]ConfigDefinitionValidatorParam, cTypeOpts module_lib.ConfigTypeOptions, value any) map[string]any {
 	vp := make(map[string]any)
 	for name, cDefVP := range cDefVltParams {
 		if cDefVP.Ref != nil {
@@ -324,7 +324,7 @@ func genVltValParams(cDefVltParams map[string]ConfigDefinitionValidatorParam, cT
 	return vp
 }
 
-func vltValue(cDefVlts []ConfigDefinitionValidator, cTypeOpts module.ConfigTypeOptions, validators map[string]Validator, value any) error {
+func vltValue(cDefVlts []ConfigDefinitionValidator, cTypeOpts module_lib.ConfigTypeOptions, validators map[string]Validator, value any) error {
 	for _, cDefVlt := range cDefVlts {
 		p := genVltValParams(cDefVlt.Parameter, cTypeOpts, value)
 		if len(p) > 0 {

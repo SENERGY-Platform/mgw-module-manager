@@ -23,7 +23,7 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-go-service-base/context-hdl"
 	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
@@ -34,7 +34,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Create(ctx context.Context, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg bool) (string, error) {
+func (h *Handler) Create(ctx context.Context, mod *module_lib.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg bool) (string, error) {
 	auxSrv, ok := mod.AuxServices[auxReq.Ref]
 	if !ok {
 		return "", lib_model.NewInvalidInputError(fmt.Errorf("aux service ref '%s' not defined", auxReq.Ref))
@@ -114,7 +114,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, dep lib_model.
 	return auxDep.ID, nil
 }
 
-func (h *Handler) createContainer(ctx context.Context, auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, modVolumes, auxVolumes map[string]string) (lib_model.AuxDepContainer, error) {
+func (h *Handler) createContainer(ctx context.Context, auxSrv *module_lib.AuxService, auxDep lib_model.AuxDeployment, mod *module_lib.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, modVolumes, auxVolumes map[string]string) (lib_model.AuxDepContainer, error) {
 	globalConfigs, err := getGlobalConfigs(mod.Configs, dep.Configs, auxDep.Configs, auxSrv.Configs)
 	if err != nil {
 		return lib_model.AuxDepContainer{}, lib_model.NewInternalError(err)
@@ -223,7 +223,7 @@ func (h *Handler) createVolumes(ctx context.Context, volumes map[string]string, 
 	return nil
 }
 
-func getGlobalConfigs(modConfigs module.Configs, depConfigs map[string]lib_model.DepConfig, auxReqConfigs, configMap map[string]string) (map[string]string, error) {
+func getGlobalConfigs(modConfigs module_lib.Configs, depConfigs map[string]lib_model.DepConfig, auxReqConfigs, configMap map[string]string) (map[string]string, error) {
 	configs := make(map[string]string)
 	for refVar, ref := range configMap {
 		modConfig, ok := modConfigs[ref]
@@ -264,7 +264,7 @@ func getGlobalConfigs(modConfigs module.Configs, depConfigs map[string]lib_model
 	return configs, nil
 }
 
-func getEnvVars(auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, globalConfigs map[string]string, depContainers map[string]lib_model.DepContainer, requiredDep map[string]lib_model.Deployment) (map[string]string, error) {
+func getEnvVars(auxSrv *module_lib.AuxService, auxDep lib_model.AuxDeployment, globalConfigs map[string]string, depContainers map[string]lib_model.DepContainer, requiredDep map[string]lib_model.Deployment) (map[string]string, error) {
 	envVars := make(map[string]string)
 	for refVar, val := range globalConfigs {
 		envVars[refVar] = val
@@ -295,7 +295,7 @@ func getEnvVars(auxSrv *module.AuxService, auxDep lib_model.AuxDeployment, globa
 	return envVars, nil
 }
 
-func newMounts(auxSrv *module.AuxService, depDir, depHostPath string, auxDepVolumes, modVolumes, auxVolumes map[string]string) []cew_model.Mount {
+func newMounts(auxSrv *module_lib.AuxService, depDir, depHostPath string, auxDepVolumes, modVolumes, auxVolumes map[string]string) []cew_model.Mount {
 	var mounts []cew_model.Mount
 	for mntPoint, name := range auxSrv.Volumes {
 		if vol, ok := modVolumes[name]; ok {
@@ -334,7 +334,7 @@ func newMounts(auxSrv *module.AuxService, depDir, depHostPath string, auxDepVolu
 	return mounts
 }
 
-func newCewContainer(runConfig module.RunConfig, image, name, alias, moduleNet string, labels, envVars map[string]string, mounts []cew_model.Mount) cew_model.Container {
+func newCewContainer(runConfig module_lib.RunConfig, image, name, alias, moduleNet string, labels, envVars map[string]string, mounts []cew_model.Mount) cew_model.Container {
 	retries := int(runConfig.MaxRetries)
 	stopTimeout := runConfig.StopTimeout
 	return cew_model.Container{
@@ -359,7 +359,7 @@ func newCewContainer(runConfig module.RunConfig, image, name, alias, moduleNet s
 	}
 }
 
-func handleRunConfig(rc module.RunConfig, reqRC lib_model.AuxDepRunConfig) module.RunConfig {
+func handleRunConfig(rc module_lib.RunConfig, reqRC lib_model.AuxDepRunConfig) module_lib.RunConfig {
 	if reqRC.PseudoTTY != rc.PseudoTTY {
 		rc.PseudoTTY = reqRC.PseudoTTY
 	}

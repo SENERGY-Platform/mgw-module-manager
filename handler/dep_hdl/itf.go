@@ -19,7 +19,7 @@ package dep_hdl
 import (
 	"context"
 	"database/sql/driver"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
@@ -41,8 +41,8 @@ type StorageHandler interface {
 }
 
 type CfgValidationHandler interface {
-	ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error
-	ValidateTypeOptions(cType string, cTypeOpt module.ConfigTypeOptions) error
-	ValidateValue(cType string, cTypeOpt module.ConfigTypeOptions, value any, isSlice bool, dataType module.DataType) error
-	ValidateValInOpt(cOpt any, value any, isSlice bool, dataType module.DataType) error
+	ValidateBase(cType string, cTypeOpt module_lib.ConfigTypeOptions, dataType module_lib.DataType) error
+	ValidateTypeOptions(cType string, cTypeOpt module_lib.ConfigTypeOptions) error
+	ValidateValue(cType string, cTypeOpt module_lib.ConfigTypeOptions, value any, isSlice bool, dataType module_lib.DataType) error
+	ValidateValInOpt(cOpt any, value any, isSlice bool, dataType module_lib.DataType) error
 }

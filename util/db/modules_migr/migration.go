@@ -21,7 +21,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"io"
 	"io/fs"
@@ -46,7 +46,7 @@ type item struct {
 }
 
 type moduleWrapper struct {
-	*module.Module
+	*module_lib.Module
 	Dir     string
 	ModFile string
 	Added   time.Time

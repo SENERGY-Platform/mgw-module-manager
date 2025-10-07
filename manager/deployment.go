@@ -20,7 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
@@ -43,7 +43,7 @@ func (m *Manager) CreateDeployment(ctx context.Context, id string, depInput lib_
 	}
 	mod := modTree[id]
 	delete(modTree, id)
-	if mod.DeploymentType == module.SingleDeployment {
+	if mod.DeploymentType == module_lib.SingleDeployment {
 		if l, err := m.deploymentHandler.List(ctx, lib_model.DepFilter{ModuleID: mod.ID}, false, false, false, false); err != nil {
 			m.mu.Unlock()
 			return "", newApiErr(metaStr, err)
@@ -73,7 +73,7 @@ func (m *Manager) CreateDeployment(ctx context.Context, id string, depInput lib_
 
 func (m *Manager) createDeployment(ctx context.Context, mod model.Module, modTree map[string]model.Module, depInput lib_model.DepInput, dependencies map[string]lib_model.DepInput) (string, error) {
 	if len(modTree) > 0 {
-		modMap := make(map[string]*module.Module)
+		modMap := make(map[string]*module_lib.Module)
 		for _, m := range modTree {
 			modMap[m.ID] = m.Module.Module
 		}

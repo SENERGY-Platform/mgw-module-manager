@@ -18,7 +18,7 @@ package mod_staging_hdl
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
@@ -29,13 +29,13 @@ type ModTransferHandler interface {
 }
 
 type ModFileHandler interface {
-	GetModule(file fs.File) (*module.Module, error)
+	GetModule(file fs.File) (*module_lib.Module, error)
 	GetModFile(dir dir_fs.DirFS) (fs.File, string, error)
 }
 
 type CfgValidationHandler interface {
-	ValidateBase(cType string, cTypeOpt module.ConfigTypeOptions, dataType module.DataType) error
-	ValidateTypeOptions(cType string, cTypeOpt module.ConfigTypeOptions) error
-	ValidateValue(cType string, cTypeOpt module.ConfigTypeOptions, value any, isSlice bool, dataType module.DataType) error
-	ValidateValInOpt(cOpt any, value any, isSlice bool, dataType module.DataType) error
+	ValidateBase(cType string, cTypeOpt module_lib.ConfigTypeOptions, dataType module_lib.DataType) error
+	ValidateTypeOptions(cType string, cTypeOpt module_lib.ConfigTypeOptions) error
+	ValidateValue(cType string, cTypeOpt module_lib.ConfigTypeOptions, value any, isSlice bool, dataType module_lib.DataType) error
+	ValidateValInOpt(cOpt any, value any, isSlice bool, dataType module_lib.DataType) error
 }

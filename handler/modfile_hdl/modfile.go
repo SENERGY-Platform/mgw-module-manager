@@ -19,7 +19,7 @@ package modfile_hdl
 import (
 	"errors"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"gopkg.in/yaml.v3"
@@ -39,7 +39,7 @@ func New(mfDecoders modfile.Decoders, mfGenerators modfile.Generators) *Handler 
 	}
 }
 
-func (h *Handler) GetModule(file fs.File) (*module.Module, error) {
+func (h *Handler) GetModule(file fs.File) (*module_lib.Module, error) {
 	defer file.Close()
 	yd := yaml.NewDecoder(file)
 	mf := modfile.New(h.mfDecoders, h.mfGenerators)

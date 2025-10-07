@@ -17,7 +17,7 @@
 package model
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 )
 
@@ -28,7 +28,7 @@ type ModRepo interface {
 }
 
 type StageItem interface {
-	Module() *module.Module
+	Module() *module_lib.Module
 	ModFile() string
 	Dir() dir_fs.DirFS
 	Indirect() bool

@@ -20,7 +20,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"strconv"
 	"strings"
@@ -77,13 +77,13 @@ func InsertDepConfigs(ctx context.Context, tx *sql.Tx, dID string, depConfigs ma
 		if depConfig.IsSlice {
 			var err error
 			switch depConfig.DataType {
-			case module.StringType:
+			case module_lib.StringType:
 				err = execCfgSlStmt[string](ctx, stmt, dID, ref, depConfig.Value)
-			case module.BoolType:
+			case module_lib.BoolType:
 				err = execCfgSlStmt[bool](ctx, stmt, dID, ref, depConfig.Value)
-			case module.Int64Type:
+			case module_lib.Int64Type:
 				err = execCfgSlStmt[int64](ctx, stmt, dID, ref, depConfig.Value)
-			case module.Float64Type:
+			case module_lib.Float64Type:
 				err = execCfgSlStmt[float64](ctx, stmt, dID, ref, depConfig.Value)
 			default:
 				err = fmt.Errorf("unknown data type '%s'", depConfig.Value)
@@ -100,7 +100,7 @@ func InsertDepConfigs(ctx context.Context, tx *sql.Tx, dID string, depConfigs ma
 	return nil
 }
 
-func genCfgInsertQuery(dataType module.DataType, isSlice bool) string {
+func genCfgInsertQuery(dataType module_lib.DataType, isSlice bool) string {
 	table := "configs"
 	cols := []string{"`dep_id`", "`ref`", fmt.Sprintf("`v_%s`", dataType)}
 	if isSlice {

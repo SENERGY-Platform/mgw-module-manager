@@ -17,20 +17,19 @@
 package cfg_valid_hdl
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-lib/util"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 )
 
 type ConfigDefinition struct {
-	DataType   util.Set[module.DataType]         `json:"data_type"`
+	DataType   map[module_lib.DataType]struct{}  `json:"data_type"`
 	Options    map[string]ConfigDefinitionOption `json:"options"`
 	Validators []ConfigDefinitionValidator       `json:"validators"`
 }
 
 type ConfigDefinitionOption struct {
-	DataType util.Set[module.DataType] `json:"data_type"`
-	Inherit  bool                      `json:"inherit"`
-	Required bool                      `json:"required"`
+	DataType map[module_lib.DataType]struct{} `json:"data_type"`
+	Inherit  bool                             `json:"inherit"`
+	Required bool                             `json:"required"`
 }
 
 type ConfigDefinitionValidator struct {

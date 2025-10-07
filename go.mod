@@ -7,8 +7,8 @@ require (
 	github.com/SENERGY-Platform/go-cc-job-handler v0.1.2
 	github.com/SENERGY-Platform/go-service-base/config-hdl v0.1.1
 	github.com/SENERGY-Platform/go-service-base/logger v0.2.0
-	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.15.2
-	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.16.1
+	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.16.1
+	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.17.1
 	github.com/SENERGY-Platform/mgw-core-manager/client v0.9.4
 	github.com/SENERGY-Platform/mgw-core-manager/lib v0.10.1
 	github.com/SENERGY-Platform/mgw-go-service-base/context-hdl v0.0.5
@@ -21,8 +21,8 @@ require (
 	github.com/SENERGY-Platform/mgw-go-service-base/watchdog v0.4.3
 	github.com/SENERGY-Platform/mgw-host-manager/client v1.3.4
 	github.com/SENERGY-Platform/mgw-host-manager/lib v1.3.1
-	github.com/SENERGY-Platform/mgw-modfile-lib v0.19.0
-	github.com/SENERGY-Platform/mgw-module-lib v0.22.0
+	github.com/SENERGY-Platform/mgw-modfile-lib v0.21.0
+	github.com/SENERGY-Platform/mgw-module-lib v0.24.0
 	github.com/SENERGY-Platform/mgw-module-manager/lib v0.0.0-00010101000000-000000000000
 	github.com/SENERGY-Platform/mgw-secret-manager/pkg v0.2.0
 	github.com/gin-contrib/requestid v1.0.4
@@ -39,7 +39,7 @@ require (
 )
 
 require (
-	code.cloudfoundry.org/bytefmt v0.25.0 // indirect
+	code.cloudfoundry.org/bytefmt v0.31.0 // indirect
 	dario.cat/mergo v1.0.1 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
@@ -84,13 +84,13 @@ require (
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	golang.org/x/arch v0.13.0 // indirect
-	golang.org/x/crypto v0.32.0 // indirect
-	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
-	golang.org/x/tools v0.29.0 // indirect
+	golang.org/x/crypto v0.33.0 // indirect
+	golang.org/x/mod v0.23.0 // indirect
+	golang.org/x/net v0.35.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/tools v0.30.0 // indirect
 	google.golang.org/protobuf v1.36.4 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )

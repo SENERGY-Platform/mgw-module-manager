@@ -19,8 +19,8 @@ package mod_update_hdl
 import (
 	"context"
 	"fmt"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
+	"github.com/SENERGY-Platform/mgw-module-lib/util/sem_ver"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"sync"
@@ -49,7 +49,7 @@ func New(transferHandler ModTransferHandler, modFileHandler ModFileHandler) *Han
 	}
 }
 
-func (h *Handler) Check(ctx context.Context, modules map[string]*module.Module) error {
+func (h *Handler) Check(ctx context.Context, modules map[string]*module_lib.Module) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if err := h.checkForPending(); err != nil {
@@ -135,7 +135,7 @@ func (h *Handler) Remove(_ context.Context, mID string) error {
 	return nil
 }
 
-func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, stage model.Stage, mID string) error {
+func (h *Handler) Prepare(ctx context.Context, modules map[string]*module_lib.Module, stage model.Stage, mID string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if err := h.checkForPending(); err != nil {
@@ -151,7 +151,7 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	if !ok {
 		return lib_model.NewInternalError(fmt.Errorf("module '%s' not found", mID))
 	}
-	reqMod := make(map[string]*module.Module)
+	reqMod := make(map[string]*module_lib.Module)
 	err := getRequiredMod(mod, modules, reqMod)
 	if err != nil {
 		return lib_model.NewInternalError(err)
@@ -250,7 +250,7 @@ func (h *Handler) checkForPending() error {
 	return nil
 }
 
-func getModRequiring(mID string, modules map[string]*module.Module) map[string]string {
+func getModRequiring(mID string, modules map[string]*module_lib.Module) map[string]string {
 	modReq := make(map[string]string)
 	for _, mod := range modules {
 		if verRng, ok := mod.Dependencies[mID]; ok {
@@ -260,7 +260,7 @@ func getModRequiring(mID string, modules map[string]*module.Module) map[string]s
 	return modReq
 }
 
-func getRequiredMod(mod *module.Module, modules map[string]*module.Module, reqMod map[string]*module.Module) error {
+func getRequiredMod(mod *module_lib.Module, modules map[string]*module_lib.Module, reqMod map[string]*module_lib.Module) error {
 	for id := range mod.Dependencies {
 		if _, ok := reqMod[id]; !ok {
 			m, k := modules[id]

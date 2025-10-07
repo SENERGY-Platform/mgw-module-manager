@@ -19,32 +19,32 @@ package parser
 import (
 	"errors"
 	"fmt"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"strconv"
 	"strings"
 )
 
-func DataTypeToString(val any, dataType module.DataType) (string, error) {
+func DataTypeToString(val any, dataType module_lib.DataType) (string, error) {
 	switch dataType {
-	case module.StringType:
+	case module_lib.StringType:
 		s, err := toString(val)
 		if err != nil {
 			return "", err
 		}
 		return s, nil
-	case module.BoolType:
+	case module_lib.BoolType:
 		b, err := toBool(val)
 		if err != nil {
 			return "", err
 		}
 		return strconv.FormatBool(b), nil
-	case module.Int64Type:
+	case module_lib.Int64Type:
 		i, err := toInt64(val)
 		if err != nil {
 			return "", err
 		}
 		return strconv.FormatInt(i, 10), nil
-	case module.Float64Type:
+	case module_lib.Float64Type:
 		f, err := toFloat64(val)
 		if err != nil {
 			return "", err
@@ -55,16 +55,16 @@ func DataTypeToString(val any, dataType module.DataType) (string, error) {
 	}
 }
 
-func DataTypeToStringList(val any, delimiter string, dataType module.DataType) (string, error) {
+func DataTypeToStringList(val any, delimiter string, dataType module_lib.DataType) (string, error) {
 	var sSl []string
 	switch dataType {
-	case module.StringType:
+	case module_lib.StringType:
 		sl, err := toSliceT[string](val)
 		if err != nil {
 			return "", err
 		}
 		sSl = sl
-	case module.BoolType:
+	case module_lib.BoolType:
 		sl, err := toSliceT[bool](val)
 		if err != nil {
 			return "", err
@@ -72,7 +72,7 @@ func DataTypeToStringList(val any, delimiter string, dataType module.DataType) (
 		for _, b := range sl {
 			sSl = append(sSl, strconv.FormatBool(b))
 		}
-	case module.Int64Type:
+	case module_lib.Int64Type:
 		sl, err := toSliceT[int64](val)
 		if err != nil {
 			return "", err
@@ -80,7 +80,7 @@ func DataTypeToStringList(val any, delimiter string, dataType module.DataType) (
 		for _, i := range sl {
 			sSl = append(sSl, strconv.FormatInt(i, 10))
 		}
-	case module.Float64Type:
+	case module_lib.Float64Type:
 		sl, err := toSliceT[float64](val)
 		if err != nil {
 			return "", err
@@ -94,15 +94,15 @@ func DataTypeToStringList(val any, delimiter string, dataType module.DataType) (
 	return strings.Join(sSl, delimiter), nil
 }
 
-func AnyToDataType(val any, dataType module.DataType) (v any, err error) {
+func AnyToDataType(val any, dataType module_lib.DataType) (v any, err error) {
 	switch dataType {
-	case module.StringType:
+	case module_lib.StringType:
 		v, err = toString(val)
-	case module.BoolType:
+	case module_lib.BoolType:
 		v, err = toBool(val)
-	case module.Int64Type:
+	case module_lib.Int64Type:
 		v, err = toInt64(val)
-	case module.Float64Type:
+	case module_lib.Float64Type:
 		v, err = toFloat64(val)
 	default:
 		return nil, fmt.Errorf("unknown data type '%s'", dataType)
@@ -110,7 +110,7 @@ func AnyToDataType(val any, dataType module.DataType) (v any, err error) {
 	return
 }
 
-func AnyToDataTypeSlice(val any, dataType module.DataType) (v any, err error) {
+func AnyToDataTypeSlice(val any, dataType module_lib.DataType) (v any, err error) {
 	vSl, ok := val.([]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid data type '%T'", val)
@@ -119,13 +119,13 @@ func AnyToDataTypeSlice(val any, dataType module.DataType) (v any, err error) {
 		return nil, errors.New("no values to parse")
 	}
 	switch dataType {
-	case module.StringType:
+	case module_lib.StringType:
 		v, err = sliceToSliceT(vSl, toString)
-	case module.BoolType:
+	case module_lib.BoolType:
 		v, err = sliceToSliceT(vSl, toBool)
-	case module.Int64Type:
+	case module_lib.Int64Type:
 		v, err = sliceToSliceT(vSl, toInt64)
-	case module.Float64Type:
+	case module_lib.Float64Type:
 		v, err = sliceToSliceT(vSl, toFloat64)
 	default:
 		return nil, fmt.Errorf("unknown data type '%s'", dataType)

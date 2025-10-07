@@ -23,7 +23,7 @@ import (
 	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-go-service-base/context-hdl"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
@@ -138,7 +138,7 @@ func (h *Handler) AppendModTree(ctx context.Context, tree map[string]model.Modul
 	return nil
 }
 
-func (h *Handler) Add(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string) error {
+func (h *Handler) Add(ctx context.Context, mod *module_lib.Module, modDir dir_fs.DirFS, modFile string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	newUUID, err := uuid.NewUUID()
@@ -232,7 +232,7 @@ func (h *Handler) Delete(ctx context.Context, mID string, force bool) error {
 	return h.storageHandler.DeleteMod(ctx, nil, mID)
 }
 
-func (h *Handler) Update(ctx context.Context, mod *module.Module, modDir dir_fs.DirFS, modFile string) error {
+func (h *Handler) Update(ctx context.Context, mod *module_lib.Module, modDir dir_fs.DirFS, modFile string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	ch := context_hdl.New()
@@ -331,7 +331,7 @@ func (h *Handler) appendModTree(ctx context.Context, mod model.Module, tree map[
 	return nil
 }
 
-func (h *Handler) readModule(dir, modFile string) (*module.Module, error) {
+func (h *Handler) readModule(dir, modFile string) (*module_lib.Module, error) {
 	f, err := os.Open(path.Join(h.wrkSpcPath, dir, modFile))
 	if err != nil {
 		return nil, err
@@ -343,7 +343,7 @@ func (h *Handler) readModule(dir, modFile string) (*module.Module, error) {
 	return m, nil
 }
 
-func filterMod(filter lib_model.ModFilter, m *module.Module) bool {
+func filterMod(filter lib_model.ModFilter, m *module_lib.Module) bool {
 	if filter.Name != "" {
 		if m.Name != filter.Name {
 			return false
