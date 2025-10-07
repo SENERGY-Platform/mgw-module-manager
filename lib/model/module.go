@@ -17,12 +17,12 @@
 package model
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"time"
 )
 
 type Module struct {
-	*module.Module
+	*module_lib.Module
 	Added   time.Time `json:"added"`
 	Updated time.Time `json:"updated"`
 }

@@ -16,36 +16,36 @@
 
 package model
 
-import "github.com/SENERGY-Platform/mgw-module-lib/module"
+import module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 
 type InputTemplate struct {
-	HostResources map[string]InputTemplateHostRes `json:"host_resources"` // {ref:ResourceInput}
-	Secrets       map[string]InputTemplateSecret  `json:"secrets"`        // {ref:SecretInput}
-	Configs       map[string]InputTemplateConfig  `json:"configs"`        // {ref:ConfigInput}
-	InputGroups   map[string]module.InputGroup    `json:"input_groups"`   // {ref:InputGroup}
+	HostResources map[string]InputTemplateHostRes  `json:"host_resources"` // {ref:ResourceInput}
+	Secrets       map[string]InputTemplateSecret   `json:"secrets"`        // {ref:SecretInput}
+	Configs       map[string]InputTemplateConfig   `json:"configs"`        // {ref:ConfigInput}
+	InputGroups   map[string]module_lib.InputGroup `json:"input_groups"`   // {ref:InputGroup}
 }
 
 type InputTemplateHostRes struct {
-	module.Input
-	module.HostResource
+	module_lib.Input
+	module_lib.HostResource
 	Value any `json:"value"`
 }
 
 type InputTemplateSecret struct {
-	module.Input
-	module.Secret
+	module_lib.Input
+	module_lib.Secret
 	Value any `json:"value"`
 }
 
 type InputTemplateConfig struct {
-	module.Input
-	Value    any             `json:"value"`
-	Default  any             `json:"default"`
-	Options  any             `json:"options"`
-	OptExt   bool            `json:"opt_ext"`
-	Type     string          `json:"type"`
-	TypeOpt  map[string]any  `json:"type_opt"`
-	DataType module.DataType `json:"data_type"`
-	IsList   bool            `json:"is_list"`
-	Required bool            `json:"required"`
+	module_lib.Input
+	Value    any                 `json:"value"`
+	Default  any                 `json:"default"`
+	Options  any                 `json:"options"`
+	OptExt   bool                `json:"opt_ext"`
+	Type     string              `json:"type"`
+	TypeOpt  map[string]any      `json:"type_opt"`
+	DataType module_lib.DataType `json:"data_type"`
+	IsList   bool                `json:"is_list"`
+	Required bool                `json:"required"`
 }
