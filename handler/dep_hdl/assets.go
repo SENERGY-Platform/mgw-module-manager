@@ -22,14 +22,14 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-go-service-base/context-hdl"
 	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/parser"
 	sm_model "github.com/SENERGY-Platform/mgw-secret-manager/pkg/api_model"
 )
 
-func (h *Handler) getDepAssets(ctx context.Context, mod *module.Module, dID string, depInput lib_model.DepInput) (map[string]hm_model.HostResource, map[string]secret, map[string]lib_model.DepConfig, error) {
+func (h *Handler) getDepAssets(ctx context.Context, mod *module_lib.Module, dID string, depInput lib_model.DepInput) (map[string]hm_model.HostResource, map[string]secret, map[string]lib_model.DepConfig, error) {
 	hostResources, err := h.getHostResources(ctx, mod.HostResources, depInput.HostResources)
 	if err != nil {
 		return nil, nil, nil, err
@@ -71,7 +71,7 @@ func (h *Handler) newDepAssets(hostResources map[string]hm_model.HostResource, s
 	return depAssets
 }
 
-func (h *Handler) getUserConfigs(mConfigs module.Configs, userInput map[string]any) (map[string]lib_model.DepConfig, error) {
+func (h *Handler) getUserConfigs(mConfigs module_lib.Configs, userInput map[string]any) (map[string]lib_model.DepConfig, error) {
 	userConfigs := make(map[string]lib_model.DepConfig)
 	for ref, mConfig := range mConfigs {
 		val, ok := userInput[ref]
@@ -108,7 +108,7 @@ func (h *Handler) getUserConfigs(mConfigs module.Configs, userInput map[string]a
 	return userConfigs, nil
 }
 
-func (h *Handler) getHostResources(ctx context.Context, mHostRes map[string]module.HostResource, userInput map[string]string) (map[string]hm_model.HostResource, error) {
+func (h *Handler) getHostResources(ctx context.Context, mHostRes map[string]module_lib.HostResource, userInput map[string]string) (map[string]hm_model.HostResource, error) {
 	usrHostRes, missing, err := getUserHostRes(userInput, mHostRes)
 	if err != nil {
 		return nil, lib_model.NewInvalidInputError(err)
@@ -129,7 +129,7 @@ func (h *Handler) getHostResources(ctx context.Context, mHostRes map[string]modu
 	return hostRes, nil
 }
 
-func (h *Handler) getSecrets(ctx context.Context, mod *module.Module, dID string, userInput map[string]string) (map[string]secret, error) {
+func (h *Handler) getSecrets(ctx context.Context, mod *module_lib.Module, dID string, userInput map[string]string) (map[string]secret, error) {
 	usrSecrets, missing, err := getUserSecrets(userInput, mod.Secrets)
 	if err != nil {
 		return nil, lib_model.NewInvalidInputError(err)
@@ -245,7 +245,7 @@ func newSecretVariantID(id string, item *string) string {
 	return id
 }
 
-func getUserHostRes(userInput map[string]string, mHostRes map[string]module.HostResource) (map[string]string, []string, error) {
+func getUserHostRes(userInput map[string]string, mHostRes map[string]module_lib.HostResource) (map[string]string, []string, error) {
 	usrHostRes := make(map[string]string)
 	var missing []string
 	for ref, mHR := range mHostRes {
@@ -265,7 +265,7 @@ func getUserHostRes(userInput map[string]string, mHostRes map[string]module.Host
 	return usrHostRes, missing, nil
 }
 
-func getUserSecrets(userInput map[string]string, mSecrets map[string]module.Secret) (map[string]string, []string, error) {
+func getUserSecrets(userInput map[string]string, mSecrets map[string]module_lib.Secret) (map[string]string, []string, error) {
 	usrSecrets := make(map[string]string)
 	var missing []string
 	for ref, mS := range mSecrets {

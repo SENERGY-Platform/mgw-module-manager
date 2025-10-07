@@ -17,12 +17,12 @@
 package modules_migr
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"io/fs"
 )
 
 type ModFileHandler interface {
-	GetModule(file fs.File) (*module.Module, error)
+	GetModule(file fs.File) (*module_lib.Module, error)
 	GetModFile(dir dir_fs.DirFS) (fs.File, string, error)
 }

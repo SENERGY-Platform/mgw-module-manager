@@ -21,7 +21,7 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	cm_model "github.com/SENERGY-Platform/mgw-core-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-go-service-base/context-hdl"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
@@ -31,7 +31,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Update(ctx context.Context, id string, mod *module.Module, depInput lib_model.DepInput, incl dir_fs.DirFS) error {
+func (h *Handler) Update(ctx context.Context, id string, mod *module_lib.Module, depInput lib_model.DepInput, incl dir_fs.DirFS) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	oldDep, err := h.storageHandler.ReadDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), id, true, true, true)

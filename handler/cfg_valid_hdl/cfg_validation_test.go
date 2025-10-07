@@ -18,15 +18,14 @@ package cfg_valid_hdl
 
 import (
 	"errors"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-lib/util"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"reflect"
 	"testing"
 )
 
 func TestGenVltOptParams(t *testing.T) {
 	cDefVP := make(map[string]ConfigDefinitionValidatorParam)
-	var cTypeO module.ConfigTypeOptions
+	var cTypeO module_lib.ConfigTypeOptions
 	if b := genVltOptParams(cDefVP, cTypeO); len(b) != 0 {
 		t.Errorf("len(%v) != 0", b)
 	}
@@ -55,7 +54,7 @@ func TestGenVltOptParams(t *testing.T) {
 		t.Errorf("%v != %v", a, b)
 	}
 	// ------------------------------
-	cTypeO = make(module.ConfigTypeOptions)
+	cTypeO = make(module_lib.ConfigTypeOptions)
 	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: str,
 		Ref:   &oRef,
@@ -112,7 +111,7 @@ func TestGenVltOptParams(t *testing.T) {
 
 func TestGenVltValParams(t *testing.T) {
 	cDefVP := make(map[string]ConfigDefinitionValidatorParam)
-	var cTypeO module.ConfigTypeOptions
+	var cTypeO module_lib.ConfigTypeOptions
 	if b := genVltValParams(cDefVP, cTypeO, nil); len(b) != 0 {
 		t.Errorf("len(%v) != 0", b)
 	}
@@ -150,7 +149,7 @@ func TestGenVltValParams(t *testing.T) {
 		t.Errorf("%v != %v", a, b)
 	}
 	// ------------------------------
-	cTypeO = make(module.ConfigTypeOptions)
+	cTypeO = make(module_lib.ConfigTypeOptions)
 	cDefVP[""] = ConfigDefinitionValidatorParam{
 		Value: str,
 		Ref:   &oRef,
@@ -312,7 +311,7 @@ func TestVltValue(t *testing.T) {
 
 func TestVltBase(t *testing.T) {
 	var cDef ConfigDefinition
-	var cTypeOpts module.ConfigTypeOptions
+	var cTypeOpts module_lib.ConfigTypeOptions
 	if err := vltBase(cDef, cTypeOpts, ""); err == nil {
 		t.Error("err == nil")
 	}
@@ -320,7 +319,7 @@ func TestVltBase(t *testing.T) {
 	dt := "dt"
 	opt := "opt"
 	cDef = ConfigDefinition{
-		DataType:   util.Set[string]{dt: {}},
+		DataType:   map[module_lib.DataType]struct{}{dt: {}},
 		Options:    nil,
 		Validators: nil,
 	}
@@ -329,7 +328,7 @@ func TestVltBase(t *testing.T) {
 	}
 	// ------------------------------
 	cDef = ConfigDefinition{
-		DataType: util.Set[string]{dt: {}},
+		DataType: map[module_lib.DataType]struct{}{dt: {}},
 		Options: map[string]ConfigDefinitionOption{
 			opt: {},
 		},
@@ -340,7 +339,7 @@ func TestVltBase(t *testing.T) {
 	}
 	// ------------------------------
 	cDef = ConfigDefinition{
-		DataType: util.Set[string]{dt: {}},
+		DataType: map[module_lib.DataType]struct{}{dt: {}},
 		Options: map[string]ConfigDefinitionOption{
 			opt: {
 				Required: true,
@@ -352,10 +351,10 @@ func TestVltBase(t *testing.T) {
 		t.Error("err == nil")
 	}
 	// ------------------------------
-	cTypeOpts = make(module.ConfigTypeOptions)
+	cTypeOpts = make(module_lib.ConfigTypeOptions)
 	cTypeOpts.SetString(opt, dt)
 	cDef = ConfigDefinition{
-		DataType:   util.Set[string]{dt: {}},
+		DataType:   map[module_lib.DataType]struct{}{dt: {}},
 		Options:    nil,
 		Validators: nil,
 	}
@@ -364,7 +363,7 @@ func TestVltBase(t *testing.T) {
 	}
 	// ------------------------------
 	cDef = ConfigDefinition{
-		DataType: util.Set[string]{dt: {}},
+		DataType: map[module_lib.DataType]struct{}{dt: {}},
 		Options: map[string]ConfigDefinitionOption{
 			opt: {},
 		},
@@ -375,10 +374,10 @@ func TestVltBase(t *testing.T) {
 	}
 	// ------------------------------
 	cDef = ConfigDefinition{
-		DataType: util.Set[string]{dt: {}},
+		DataType: map[module_lib.DataType]struct{}{dt: {}},
 		Options: map[string]ConfigDefinitionOption{
 			opt: {
-				DataType: util.Set[string]{dt: {}},
+				DataType: map[module_lib.DataType]struct{}{dt: {}},
 			},
 		},
 		Validators: nil,
@@ -388,7 +387,7 @@ func TestVltBase(t *testing.T) {
 	}
 	// ------------------------------
 	cDef = ConfigDefinition{
-		DataType: util.Set[string]{dt: {}},
+		DataType: map[module_lib.DataType]struct{}{dt: {}},
 		Options: map[string]ConfigDefinitionOption{
 			opt: {
 				Inherit: true,
@@ -401,10 +400,10 @@ func TestVltBase(t *testing.T) {
 	}
 	// ------------------------------
 	cDef = ConfigDefinition{
-		DataType: util.Set[string]{dt: {}},
+		DataType: map[module_lib.DataType]struct{}{dt: {}},
 		Options: map[string]ConfigDefinitionOption{
 			opt: {
-				DataType: util.Set[string]{module.StringType: {}},
+				DataType: map[module_lib.DataType]struct{}{module_lib.StringType: {}},
 			},
 		},
 		Validators: nil,
@@ -414,7 +413,7 @@ func TestVltBase(t *testing.T) {
 	}
 	// ------------------------------
 	cDef = ConfigDefinition{
-		DataType: util.Set[string]{module.StringType: {}},
+		DataType: map[module_lib.DataType]struct{}{module_lib.StringType: {}},
 		Options: map[string]ConfigDefinitionOption{
 			opt: {
 				Inherit: true,
@@ -422,12 +421,12 @@ func TestVltBase(t *testing.T) {
 		},
 		Validators: nil,
 	}
-	if err := vltBase(cDef, cTypeOpts, module.StringType); err != nil {
+	if err := vltBase(cDef, cTypeOpts, module_lib.StringType); err != nil {
 		t.Error("err != nil")
 	}
 	// ------------------------------
 	cTypeOpts.SetString("test", dt)
-	if err := vltBase(cDef, cTypeOpts, module.StringType); err == nil {
+	if err := vltBase(cDef, cTypeOpts, module_lib.StringType); err == nil {
 		t.Error("err == nil")
 	}
 }

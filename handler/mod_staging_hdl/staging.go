@@ -24,10 +24,10 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-go-service-base/context-hdl"
 	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
+	"github.com/SENERGY-Platform/mgw-module-lib/util/sem_ver"
+	"github.com/SENERGY-Platform/mgw-module-lib/util/tsort"
 	"github.com/SENERGY-Platform/mgw-module-lib/validation"
-	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
@@ -70,13 +70,13 @@ func (h *Handler) InitWorkspace(perm fs.FileMode) error {
 	return nil
 }
 
-func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module, mID, ver string) (model.Stage, error) {
+func (h *Handler) Prepare(ctx context.Context, modules map[string]*module_lib.Module, mID, ver string) (model.Stage, error) {
 	stgPth, err := os.MkdirTemp(h.wrkSpcPath, "stg_")
 	if err != nil {
 		return nil, lib_model.NewInternalError(err)
 	}
 	stg := &stage{
-		modules:     make(map[string]*module.Module),
+		modules:     make(map[string]*module_lib.Module),
 		items:       make(map[string]modExtra),
 		path:        stgPth,
 		cewClient:   h.cewClient,
@@ -117,7 +117,7 @@ func (h *Handler) Prepare(ctx context.Context, modules map[string]*module.Module
 	return stg, nil
 }
 
-func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[string]*module.Module, mID, ver, verRng, stgPath, reqBy string, indirect bool) error {
+func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[string]*module_lib.Module, mID, ver, verRng, stgPath, reqBy string, indirect bool) error {
 	mod, ok := modules[mID]
 	if !ok {
 		if i, ok := stg.Get(mID); !ok {
@@ -151,8 +151,8 @@ func (h *Handler) getStageItems(ctx context.Context, stg *stage, modules map[str
 			if err = h.validateModule(mod, mID, ver); err != nil {
 				return err
 			}
-			if indirect && mod.DeploymentType == module.MultipleDeployment {
-				return fmt.Errorf("dependencies with deployment type '%s' not supported", module.MultipleDeployment)
+			if indirect && mod.DeploymentType == module_lib.MultipleDeployment {
+				return fmt.Errorf("dependencies with deployment type '%s' not supported", module_lib.MultipleDeployment)
 			}
 			for _, srv := range mod.Services {
 				for _, bindMount := range srv.BindMounts {
@@ -255,7 +255,7 @@ func getVersion(versions []string, verRanges []string) (string, error) {
 	return ver, nil
 }
 
-func (h *Handler) validateModule(m *module.Module, mID, ver string) error {
+func (h *Handler) validateModule(m *module_lib.Module, mID, ver string) error {
 	if mID != m.ID {
 		return fmt.Errorf("module ID mismatch: %s != %s", mID, m.ID)
 	}
@@ -279,7 +279,7 @@ func (h *Handler) validateModule(m *module.Module, mID, ver string) error {
 	return nil
 }
 
-func getVerRanges(modules map[string]*module.Module, mID string) []string {
+func getVerRanges(modules map[string]*module_lib.Module, mID string) []string {
 	var verRanges []string
 	for _, mod := range modules {
 		if verRng, ok := mod.Dependencies[mID]; ok {

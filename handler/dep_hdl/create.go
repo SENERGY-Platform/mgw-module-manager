@@ -25,7 +25,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-go-service-base/context-hdl"
 	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
 	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
@@ -39,7 +39,7 @@ import (
 	"time"
 )
 
-func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput lib_model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error) {
+func (h *Handler) Create(ctx context.Context, mod *module_lib.Module, depInput lib_model.DepInput, incl dir_fs.DirFS, indirect bool) (string, error) {
 	modDependencyDeps, err := h.getModDependencyDeployments(ctx, mod.Dependencies)
 	if err != nil {
 		return "", err
@@ -137,7 +137,7 @@ func (h *Handler) Create(ctx context.Context, mod *module.Module, depInput lib_m
 	return dep.ID, nil
 }
 
-func (h *Handler) createContainers(ctx context.Context, mod *module.Module, depBase lib_model.DepBase, userConfigs map[string]lib_model.DepConfig, hostRes map[string]hm_model.HostResource, secrets map[string]secret, modDependencyDeps map[string]lib_model.Deployment, existingContainers map[string]lib_model.DepContainer, volumes map[string]string) (map[string]lib_model.DepContainer, error) {
+func (h *Handler) createContainers(ctx context.Context, mod *module_lib.Module, depBase lib_model.DepBase, userConfigs map[string]lib_model.DepConfig, hostRes map[string]hm_model.HostResource, secrets map[string]secret, modDependencyDeps map[string]lib_model.Deployment, existingContainers map[string]lib_model.DepContainer, volumes map[string]string) (map[string]lib_model.DepContainer, error) {
 	stringValues, err := userConfigsToStringValues(mod.Configs, userConfigs)
 	if err != nil {
 		return nil, lib_model.NewInternalError(err)
@@ -169,7 +169,7 @@ func (h *Handler) createContainers(ctx context.Context, mod *module.Module, depB
 			naming_hdl.DeploymentIDLabel: depBase.ID,
 			naming_hdl.ServiceRefLabel:   ref,
 		}
-		cewContainers[ref] = newCewContainer(srv, name, alias, h.moduleNet, labels, envVars, mounts, devices, newPorts(srv.Ports))
+		cewContainers[ref] = newCewContainer(srv, name, alias, h.moduleNet, labels, envVars, mounts, devices, newPorts(srv.Ports), srv.DeviceCGroupRules)
 		depContainers[ref] = lib_model.DepContainer{
 			Alias:  alias,
 			SrvRef: ref,
@@ -289,7 +289,7 @@ func (h *Handler) ensureImage(ctx context.Context, img string) error {
 	return nil
 }
 
-func newHttpEndpoints(modServices map[string]*module.Service, depContainers map[string]lib_model.DepContainer, mID, dID string) []cm_model.EndpointBase {
+func newHttpEndpoints(modServices map[string]*module_lib.Service, depContainers map[string]lib_model.DepContainer, mID, dID string) []cm_model.EndpointBase {
 	var endpoints []cm_model.EndpointBase
 	for _, depContainer := range depContainers {
 		modService, ok := modServices[depContainer.SrvRef]
@@ -325,7 +325,7 @@ func newHttpEndpoints(modServices map[string]*module.Service, depContainers map[
 	return endpoints
 }
 
-func newDepBase(mod *module.Module, depInput lib_model.DepInput, inclDir string, indirect bool) lib_model.DepBase {
+func newDepBase(mod *module_lib.Module, depInput lib_model.DepInput, inclDir string, indirect bool) lib_model.DepBase {
 	timestamp := time.Now().UTC()
 	return lib_model.DepBase{
 		Module: lib_model.DepModule{
@@ -347,7 +347,7 @@ func newDepDependencies(modDependencyDeps map[string]lib_model.Deployment) (depe
 	return
 }
 
-func newMounts(srv *module.Service, depBase lib_model.DepBase, hostRes map[string]hm_model.HostResource, secrets map[string]secret, depHostPath, secHostPath string, volumes map[string]string) ([]cew_model.Mount, []cew_model.Device) {
+func newMounts(srv *module_lib.Service, depBase lib_model.DepBase, hostRes map[string]hm_model.HostResource, secrets map[string]secret, depHostPath, secHostPath string, volumes map[string]string) ([]cew_model.Mount, []cew_model.Device) {
 	var mounts []cew_model.Mount
 	var devices []cew_model.Device
 	for mntPoint, name := range srv.Volumes {
@@ -410,7 +410,7 @@ func newMounts(srv *module.Service, depBase lib_model.DepBase, hostRes map[strin
 	return mounts, devices
 }
 
-func getEnvVars(srv *module.Service, configs map[string]string, modDependencyDeps map[string]lib_model.Deployment, secrets map[string]secret, dID string, existingContainers map[string]lib_model.DepContainer) (map[string]string, error) {
+func getEnvVars(srv *module_lib.Service, configs map[string]string, modDependencyDeps map[string]lib_model.Deployment, secrets map[string]secret, dID string, existingContainers map[string]lib_model.DepContainer) (map[string]string, error) {
 	envVars := make(map[string]string)
 	for eVar, cRef := range srv.Configs {
 		if val, ok := configs[cRef]; ok {
@@ -447,7 +447,7 @@ func getEnvVars(srv *module.Service, configs map[string]string, modDependencyDep
 	return envVars, nil
 }
 
-func newPorts(sPorts []module.Port) (ports []cew_model.Port) {
+func newPorts(sPorts []module_lib.Port) (ports []cew_model.Port) {
 	for _, port := range sPorts {
 		p := cew_model.Port{
 			Number:   int(port.Number),
@@ -465,16 +465,17 @@ func newPorts(sPorts []module.Port) (ports []cew_model.Port) {
 	return ports
 }
 
-func newCewContainer(srv *module.Service, name, alias, moduleNet string, labels, envVars map[string]string, mounts []cew_model.Mount, devices []cew_model.Device, ports []cew_model.Port) cew_model.Container {
+func newCewContainer(srv *module_lib.Service, name, alias, moduleNet string, labels, envVars map[string]string, mounts []cew_model.Mount, devices []cew_model.Device, ports []cew_model.Port, deviceCGroupRules []string) cew_model.Container {
 	stopTimeout := srv.RunConfig.StopTimeout
 	ctr := cew_model.Container{
-		Name:    name,
-		Image:   srv.Image,
-		EnvVars: envVars,
-		Labels:  labels,
-		Mounts:  mounts,
-		Devices: devices,
-		Ports:   ports,
+		Name:              name,
+		Image:             srv.Image,
+		EnvVars:           envVars,
+		Labels:            labels,
+		Mounts:            mounts,
+		Devices:           devices,
+		DeviceCGroupRules: deviceCGroupRules,
+		Ports:             ports,
 		Networks: []cew_model.ContainerNet{
 			{
 				Name:        moduleNet,
@@ -497,7 +498,7 @@ func newCewContainer(srv *module.Service, name, alias, moduleNet string, labels,
 	return ctr
 }
 
-func userConfigsToStringValues(modConfigs module.Configs, userConfigs map[string]lib_model.DepConfig) (map[string]string, error) {
+func userConfigsToStringValues(modConfigs module_lib.Configs, userConfigs map[string]lib_model.DepConfig) (map[string]string, error) {
 	values := make(map[string]string)
 	for ref, mConfig := range modConfigs {
 		depConfig, ok := userConfigs[ref]

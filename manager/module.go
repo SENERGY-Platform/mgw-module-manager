@@ -20,7 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
@@ -43,7 +43,7 @@ func (m *Manager) AddModule(ctx context.Context, id, version string) (string, er
 		m.mu.Unlock()
 		return "", newApiErr(metaStr, err)
 	}
-	modMap := make(map[string]*module.Module)
+	modMap := make(map[string]*module_lib.Module)
 	for _, m := range modules {
 		modMap[m.ID] = m.Module.Module
 	}
@@ -129,7 +129,7 @@ func (m *Manager) CheckModuleUpdates(ctx context.Context) (string, error) {
 		m.mu.Unlock()
 		return "", newApiErr(metaStr, err)
 	}
-	modMap := make(map[string]*module.Module)
+	modMap := make(map[string]*module_lib.Module)
 	for _, mod := range modules {
 		modMap[mod.ID] = mod.Module.Module
 	}
@@ -187,7 +187,7 @@ func (m *Manager) PrepareModuleUpdate(ctx context.Context, id, version string) (
 		m.mu.Unlock()
 		return "", newApiErr(metaStr, err)
 	}
-	modMap := make(map[string]*module.Module)
+	modMap := make(map[string]*module_lib.Module)
 	for _, mod := range modules {
 		modMap[mod.ID] = mod.Module.Module
 	}
@@ -359,7 +359,7 @@ func (m *Manager) modDeployed(ctx context.Context, id string) (bool, error) {
 	return false, nil
 }
 
-func (m *Manager) addModule(ctx context.Context, id, version string, modMap map[string]*module.Module) error {
+func (m *Manager) addModule(ctx context.Context, id, version string, modMap map[string]*module_lib.Module) error {
 	stage, err := m.modStagingHandler.Prepare(ctx, modMap, id, version)
 	if err != nil {
 		return err
@@ -374,7 +374,7 @@ func (m *Manager) addModule(ctx context.Context, id, version string, modMap map[
 	return nil
 }
 
-func (m *Manager) prepareModuleUpdate(ctx context.Context, modules map[string]*module.Module, id, version string) error {
+func (m *Manager) prepareModuleUpdate(ctx context.Context, modules map[string]*module_lib.Module, id, version string) error {
 	stg, err := m.modStagingHandler.Prepare(ctx, nil, id, version)
 	if err != nil {
 		return err
@@ -394,7 +394,7 @@ func (m *Manager) updateModule(ctx context.Context, id string, depInput lib_mode
 		modDepMap[dep.Module.ID] = dep
 	}
 	oldRootDep, rootDeployed := modDepMap[id]
-	stgMods := make(map[string]*module.Module)
+	stgMods := make(map[string]*module_lib.Module)
 	for mID, stgItem := range stg.Items() {
 		stgMods[mID] = stgItem.Module()
 	}

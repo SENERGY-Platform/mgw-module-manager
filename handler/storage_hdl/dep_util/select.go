@@ -19,7 +19,7 @@ package dep_util
 import (
 	"context"
 	"database/sql"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
@@ -92,16 +92,16 @@ func SelectConfigs(ctx context.Context, db *sql.DB, dID string, configs map[stri
 		dc := lib_model.DepConfig{}
 		if vString.Valid {
 			dc.Value = vString.String
-			dc.DataType = module.StringType
+			dc.DataType = module_lib.StringType
 		} else if vInt.Valid {
 			dc.Value = vInt.Int64
-			dc.DataType = module.Int64Type
+			dc.DataType = module_lib.Int64Type
 		} else if vFloat.Valid {
 			dc.Value = vFloat.Float64
-			dc.DataType = module.Float64Type
+			dc.DataType = module_lib.Float64Type
 		} else if vBool.Valid {
 			dc.Value = vBool.Bool
-			dc.DataType = module.BoolType
+			dc.DataType = module_lib.BoolType
 		}
 		configs[ref] = dc
 	}
@@ -132,26 +132,26 @@ func SelectListConfigs(ctx context.Context, db *sql.DB, dID string, configs map[
 			dc = lib_model.DepConfig{IsSlice: true}
 			if vString.Valid {
 				dc.Value = []string{}
-				dc.DataType = module.StringType
+				dc.DataType = module_lib.StringType
 			} else if vInt.Valid {
 				dc.Value = []int64{}
-				dc.DataType = module.Int64Type
+				dc.DataType = module_lib.Int64Type
 			} else if vFloat.Valid {
 				dc.Value = []float64{}
-				dc.DataType = module.Float64Type
+				dc.DataType = module_lib.Float64Type
 			} else if vBool.Valid {
 				dc.Value = []bool{}
-				dc.DataType = module.BoolType
+				dc.DataType = module_lib.BoolType
 			}
 		}
 		switch dc.DataType {
-		case module.StringType:
+		case module_lib.StringType:
 			dc.Value = append(dc.Value.([]string), vString.String)
-		case module.Int64Type:
+		case module_lib.Int64Type:
 			dc.Value = append(dc.Value.([]int64), vInt.Int64)
-		case module.Float64Type:
+		case module_lib.Float64Type:
 			dc.Value = append(dc.Value.([]float64), vFloat.Float64)
-		case module.BoolType:
+		case module_lib.BoolType:
 			dc.Value = append(dc.Value.([]bool), vBool.Bool)
 		}
 		configs[ref] = dc

@@ -17,12 +17,12 @@
 package sorting
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
-	"github.com/SENERGY-Platform/mgw-module-lib/tsort"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
+	"github.com/SENERGY-Platform/mgw-module-lib/util/tsort"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func GetModOrder(modules map[string]*module.Module) (order []string, err error) {
+func GetModOrder(modules map[string]*module_lib.Module) (order []string, err error) {
 	if len(modules) > 1 {
 		nodes := make(tsort.Nodes)
 		for _, m := range modules {
@@ -73,7 +73,7 @@ func GetDepOrder(dep map[string]lib_model.Deployment) (order []string, err error
 	return
 }
 
-func GetSrvOrder(services map[string]*module.Service) (order []string, err error) {
+func GetSrvOrder(services map[string]*module_lib.Service) (order []string, err error) {
 	if len(services) > 1 {
 		nodes := make(tsort.Nodes)
 		for ref, srv := range services {

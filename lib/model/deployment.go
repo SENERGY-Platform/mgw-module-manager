@@ -17,7 +17,7 @@
 package model
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"time"
 )
 
@@ -64,9 +64,9 @@ type DepSecretVariant struct {
 }
 
 type DepConfig struct {
-	Value    any             `json:"value"`
-	DataType module.DataType `json:"data_type"`
-	IsSlice  bool            `json:"is_slice"`
+	Value    any                 `json:"value"`
+	DataType module_lib.DataType `json:"data_type"`
+	IsSlice  bool                `json:"is_slice"`
 }
 
 type DepContainer struct {

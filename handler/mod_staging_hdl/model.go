@@ -18,7 +18,7 @@ package mod_staging_hdl
 
 import (
 	cew_lib "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"os"
@@ -26,7 +26,7 @@ import (
 )
 
 type stage struct {
-	modules     map[string]*module.Module
+	modules     map[string]*module_lib.Module
 	items       map[string]modExtra
 	path        string
 	cewClient   cew_lib.Api
@@ -34,7 +34,7 @@ type stage struct {
 }
 
 type item struct {
-	module *module.Module
+	module *module_lib.Module
 	modExtra
 }
 
@@ -60,7 +60,7 @@ func (s *stage) Items() map[string]model.StageItem {
 	return items
 }
 
-func (s *stage) addItem(mod *module.Module, modFile string, dir dir_fs.DirFS, indirect bool) {
+func (s *stage) addItem(mod *module_lib.Module, modFile string, dir dir_fs.DirFS, indirect bool) {
 	s.items[mod.ID] = modExtra{
 		modFile:  modFile,
 		dir:      dir,
@@ -69,7 +69,7 @@ func (s *stage) addItem(mod *module.Module, modFile string, dir dir_fs.DirFS, in
 	s.addMod(mod)
 }
 
-func (s *stage) addMod(mod *module.Module) {
+func (s *stage) addMod(mod *module_lib.Module) {
 	s.modules[mod.ID] = mod
 }
 
@@ -77,7 +77,7 @@ func (s *stage) Remove() error {
 	return os.RemoveAll(s.path)
 }
 
-func (i *item) Module() *module.Module {
+func (i *item) Module() *module_lib.Module {
 	return i.module
 }
 

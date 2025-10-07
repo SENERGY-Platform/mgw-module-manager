@@ -18,7 +18,7 @@ package mod_transfer_hdl
 
 import (
 	"errors"
-	"github.com/SENERGY-Platform/mgw-module-lib/validation/sem_ver"
+	"github.com/SENERGY-Platform/mgw-module-lib/util/sem_ver"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/dir_fs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"

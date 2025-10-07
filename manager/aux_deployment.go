@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
@@ -282,7 +282,7 @@ func (m *Manager) CancelAuxJob(ctx context.Context, dID string, jID string) erro
 	return nil
 }
 
-func (m *Manager) updateAllAuxDeployments(ctx context.Context, dID string, mod *module.Module) ([]string, error) {
+func (m *Manager) updateAllAuxDeployments(ctx context.Context, dID string, mod *module_lib.Module) ([]string, error) {
 	dep, err := m.deploymentHandler.Get(ctx, dID, true, true, true, false)
 	if err != nil {
 		return nil, err

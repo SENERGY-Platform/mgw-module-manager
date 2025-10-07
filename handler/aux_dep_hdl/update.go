@@ -22,14 +22,14 @@ import (
 	"fmt"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	context_hdl "github.com/SENERGY-Platform/mgw-go-service-base/context-hdl"
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/util"
 	"github.com/SENERGY-Platform/mgw-module-manager/util/naming_hdl"
 	"time"
 )
 
-func (h *Handler) Update(ctx context.Context, aID string, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg, incremental bool) error {
+func (h *Handler) Update(ctx context.Context, aID string, mod *module_lib.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxReq lib_model.AuxDepReq, forcePullImg, incremental bool) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	oldAuxDep, err := h.storageHandler.ReadAuxDep(ch.Add(context.WithTimeout(ctx, h.dbTimeout)), aID, true)
@@ -153,8 +153,8 @@ func (h *Handler) Update(ctx context.Context, aID string, mod *module.Module, de
 	return nil
 }
 
-func (h *Handler) UpdateAll(ctx context.Context, mod *module.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment) ([]string, error) {
-	auxServices := make(map[string]*module.AuxService)
+func (h *Handler) UpdateAll(ctx context.Context, mod *module_lib.Module, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment) ([]string, error) {
+	auxServices := make(map[string]*module_lib.AuxService)
 	for ref, auxSrv := range mod.AuxServices {
 		if len(auxSrv.BindMounts)+len(auxSrv.Tmpfs)+len(auxSrv.Volumes)+len(auxSrv.Configs)+len(auxSrv.SrvReferences)+len(auxSrv.ExtDependencies) > 0 {
 			auxServices[ref] = auxSrv
@@ -185,7 +185,7 @@ func (h *Handler) UpdateAll(ctx context.Context, mod *module.Module, dep lib_mod
 	return updated, nil
 }
 
-func (h *Handler) updateBase(ctx context.Context, mod *module.Module, modVolumes map[string]string, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxSrv *module.AuxService, auxDep lib_model.AuxDeployment) error {
+func (h *Handler) updateBase(ctx context.Context, mod *module_lib.Module, modVolumes map[string]string, dep lib_model.Deployment, requiredDep map[string]lib_model.Deployment, auxSrv *module_lib.AuxService, auxDep lib_model.AuxDeployment) error {
 	ch := context_hdl.New()
 	defer ch.CancelAll()
 	if err := h.stopContainer(ctx, auxDep.Container.ID); err != nil {

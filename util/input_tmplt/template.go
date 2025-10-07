@@ -17,11 +17,11 @@
 package input_tmplt
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-lib/module"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	lib_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
-func GetModDepTemplate(mod *module.Module) lib_model.InputTemplate {
+func GetModDepTemplate(mod *module_lib.Module) lib_model.InputTemplate {
 	it := lib_model.InputTemplate{
 		HostResources: make(map[string]lib_model.InputTemplateHostRes),
 		Secrets:       make(map[string]lib_model.InputTemplateSecret),
@@ -61,7 +61,7 @@ func GetModDepTemplate(mod *module.Module) lib_model.InputTemplate {
 	return it
 }
 
-func GetDepUpTemplate(mod *module.Module, dep lib_model.Deployment) lib_model.InputTemplate {
+func GetDepUpTemplate(mod *module_lib.Module, dep lib_model.Deployment) lib_model.InputTemplate {
 	it := lib_model.InputTemplate{
 		HostResources: make(map[string]lib_model.InputTemplateHostRes),
 		Secrets:       make(map[string]lib_model.InputTemplateSecret),
