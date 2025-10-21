@@ -23,13 +23,9 @@ import (
 const (
 	attrKeyMigration = "migration"
 	attrNewName      = "new_name"
-	attrSourceCol    = "source_column"
-	attrTargetTable  = "target_table"
-	attrTargetColumn = "target_column"
 	attrTable        = "table"
 	attrColumn       = "column"
 	attrIndex        = "index"
-	attrForeignKey   = "foreign key"
 )
 
 var logger *slog.Logger
