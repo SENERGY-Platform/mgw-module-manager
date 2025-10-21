@@ -69,6 +69,7 @@ func main() {
 	defer sqlDB.Close()
 
 	databaseHdl := handler_database.New(sqlDB)
+	handler_database_restructure.InitLogger(logger)
 	err = databaseHdl.Migrate(ctx, handler_database_schema.Init, handler_database_restructure.Migration)
 	if err != nil {
 		logger.Error("database migration failed", slog_attr.ErrorKey, err)
