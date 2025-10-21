@@ -4,6 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
+	"strings"
+
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
@@ -11,9 +15,6 @@ import (
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
-	"maps"
-	"slices"
-	"strings"
 )
 
 func (s *Service) RefreshRepositories(ctx context.Context) error {

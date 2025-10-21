@@ -18,8 +18,9 @@ package job
 
 import (
 	"context"
-	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
 	"time"
+
+	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
 )
 
 func Await(ctx context.Context, client Client, id string, interval time.Duration) (job_hdl_lib.Job, error) {

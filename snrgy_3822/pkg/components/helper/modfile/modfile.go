@@ -2,15 +2,16 @@ package modfile
 
 import (
 	"errors"
+	"io"
+	"io/fs"
+	"regexp"
+
 	"github.com/SENERGY-Platform/mgw-modfile-lib/modfile"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1dec"
 	"github.com/SENERGY-Platform/mgw-modfile-lib/v1/v1gen"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	helper_file_sys "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
 	"gopkg.in/yaml.v3"
-	"io"
-	"io/fs"
-	"regexp"
 )
 
 func init() {

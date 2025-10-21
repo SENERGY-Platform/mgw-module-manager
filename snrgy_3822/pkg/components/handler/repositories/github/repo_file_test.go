@@ -18,11 +18,12 @@ package github
 
 import (
 	"encoding/json"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 	"os"
 	"path"
 	"reflect"
 	"testing"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 )
 
 func Test_readRepoFile(t *testing.T) {

@@ -20,10 +20,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 	"strings"
 	"time"
+
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 )
 
 const selectFromModulesStatement = "SELECT id, dir, source, channel, added, updated FROM modules"

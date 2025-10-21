@@ -18,10 +18,11 @@ package os_signal
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	"log/slog"
 	"os"
 	"os/signal"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 )
 
 func Wait(ctx context.Context, logger *slog.Logger, signals ...os.Signal) {

@@ -20,8 +20,9 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"github.com/go-sql-driver/mysql"
 	"strings"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 const timeLayout = "2006-01-02 15:04:05.000000"

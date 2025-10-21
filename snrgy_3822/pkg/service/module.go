@@ -18,12 +18,13 @@ package service
 
 import (
 	"context"
+	"slices"
+
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
-	"slices"
 )
 
 func (s *Service) Modules(ctx context.Context, filter models_module.ModuleFilter) ([]models_module.ModuleAbbreviated, error) {

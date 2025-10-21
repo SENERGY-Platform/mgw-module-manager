@@ -17,8 +17,9 @@
 package modules
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	"log/slog"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 )
 
 var logger *slog.Logger

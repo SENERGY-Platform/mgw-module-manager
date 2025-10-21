@@ -2,8 +2,9 @@ package repositories
 
 import (
 	"context"
-	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	"io/fs"
+
+	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 )
 
 type repositoryHandler interface {

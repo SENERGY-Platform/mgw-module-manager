@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	helper_archive "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/archive"
-	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	"io"
 	"io/fs"
 	"os"
 	"path"
 	"strings"
 	"sync"
+
+	helper_archive "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/archive"
+	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 )
 
 const gitHubCom = "github.com"

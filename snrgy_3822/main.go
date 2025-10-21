@@ -4,6 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
+	"net/http"
+	"os"
+	"strconv"
+	"sync"
+	"syscall"
+	"time"
+
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
 	"github.com/SENERGY-Platform/go-service-base/srv-info-hdl"
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
@@ -23,13 +31,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/configuration"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
-	"net"
-	"net/http"
-	"os"
-	"strconv"
-	"sync"
-	"syscall"
-	"time"
 )
 
 var version string

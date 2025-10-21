@@ -17,8 +17,9 @@
 package module
 
 import (
-	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"time"
+
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 )
 
 type ModuleBase struct {

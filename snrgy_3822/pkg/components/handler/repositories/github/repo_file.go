@@ -3,10 +3,11 @@ package github
 import (
 	"encoding/json"
 	"errors"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 	"io"
 	"os"
 	"path"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 )
 
 const (

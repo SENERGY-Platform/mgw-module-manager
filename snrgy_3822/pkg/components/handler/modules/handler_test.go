@@ -20,11 +20,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
-	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 	"io"
 	"log/slog"
 	"net/url"
@@ -33,6 +28,12 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
+	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 )
 
 func TestHandler_Modules(t *testing.T) {

@@ -18,8 +18,6 @@ package github
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	"io"
 	"io/fs"
 	"net/http"
@@ -29,6 +27,9 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 )
 
 func TestHandler_Init(t *testing.T) {

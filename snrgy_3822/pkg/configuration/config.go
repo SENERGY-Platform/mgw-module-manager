@@ -17,12 +17,13 @@
 package configuration
 
 import (
+	"time"
+
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
 	handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
 	handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
 	helper_sql_db "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"
-	"time"
 )
 
 type MGWConfig struct {

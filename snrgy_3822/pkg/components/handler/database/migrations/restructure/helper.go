@@ -21,9 +21,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/go-sql-driver/mysql"
 	"slices"
 	"strings"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 const showIndexFromStmt = "SHOW INDEX FROM %s;"

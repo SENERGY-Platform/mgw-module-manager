@@ -18,6 +18,7 @@ package modules
 
 import (
 	"context"
+
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 )

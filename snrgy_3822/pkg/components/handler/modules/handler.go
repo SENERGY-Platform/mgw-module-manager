@@ -4,6 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
+	"maps"
+	"net/url"
+	"os"
+	"path"
+	"slices"
+	"sync"
+
 	helper_file_sys "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
@@ -14,13 +22,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 	"github.com/google/uuid"
-	"io/fs"
-	"maps"
-	"net/url"
-	"os"
-	"path"
-	"slices"
-	"sync"
 )
 
 type Handler struct {

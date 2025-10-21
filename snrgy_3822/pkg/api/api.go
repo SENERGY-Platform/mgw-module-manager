@@ -17,12 +17,13 @@
 package api
 
 import (
+	"log/slog"
+
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
 	models_api "github.com/SENERGY-Platform/mgw-module-manager/lib/models/api"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
-	"log/slog"
 )
 
 func init() {
