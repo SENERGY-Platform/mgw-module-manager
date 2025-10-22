@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/fs"
 	"maps"
-	"net/url"
 	"os"
 	"path"
 	"slices"
@@ -16,6 +15,7 @@ import (
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
+	helper_url "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
@@ -89,7 +89,8 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 			},
 		})
 	}
-	if len(errs) == len(stgMods) {
+	lenErrs := len(errs)
+	if lenErrs > 0 && lenErrs == len(stgMods) {
 		return nil, models_error.NewMultiError(errs)
 	}
 	return modules, nil
@@ -305,7 +306,7 @@ func (h *Handler) cacheDel(id string) {
 func (h *Handler) addImages(ctx context.Context, images map[string]struct{}) (map[string]struct{}, error) {
 	newImages := make(map[string]struct{})
 	for image := range images {
-		_, err := h.cewClient.GetImage(ctx, url.QueryEscape(url.QueryEscape(image)))
+		_, err := h.cewClient.GetImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 		if err != nil {
 			var notFoundErr *models_external.CEWNotFoundErr
 			if !errors.As(err, &notFoundErr) {
@@ -332,7 +333,7 @@ func (h *Handler) addImages(ctx context.Context, images map[string]struct{}) (ma
 
 func (h *Handler) removeImages(ctx context.Context, images map[string]struct{}) error {
 	for image := range images {
-		err := h.cewClient.RemoveImage(ctx, url.QueryEscape(url.QueryEscape(image)))
+		err := h.cewClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 		if err != nil {
 			var notFoundErr *models_external.CEWNotFoundErr
 			if !errors.As(err, &notFoundErr) {
@@ -346,7 +347,7 @@ func (h *Handler) removeImages(ctx context.Context, images map[string]struct{}) 
 func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages map[string]struct{}) error {
 	for image := range oldImages {
 		if _, ok := newImages[image]; !ok {
-			err := h.cewClient.RemoveImage(ctx, url.QueryEscape(url.QueryEscape(image)))
+			err := h.cewClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 			if err != nil {
 				var notFoundErr *models_external.CEWNotFoundErr
 				if !errors.As(err, &notFoundErr) {
