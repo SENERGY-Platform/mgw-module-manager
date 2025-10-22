@@ -152,15 +152,15 @@ func newModulesInstallRequest(selectedRepoMods map[string]modWrapper, installedM
 
 func transformModulesInstallRequest(req modulesInstallRequest) models_service.ModulesInstallRequest {
 	newMods := make([]models_service.ModuleAbbreviated, len(req.New))
-	for _, mod := range req.New {
-		newMods = append(newMods, modWrapperToServiceModuleAbbreviated(mod))
+	for i, mod := range req.New {
+		newMods[i] = modWrapperToServiceModuleAbbreviated(mod)
 	}
 	stcMods := make([][2]models_service.ModuleAbbreviated, len(req.STC))
-	for _, item := range req.STC {
-		stcMods = append(stcMods, [2]models_service.ModuleAbbreviated{
+	for i, item := range req.STC {
+		stcMods[i] = [2]models_service.ModuleAbbreviated{
 			item.Previous,
 			modWrapperToServiceModuleAbbreviated(item.Next),
-		})
+		}
 	}
 	return models_service.ModulesInstallRequest{
 		New:     newMods,
