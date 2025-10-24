@@ -43,7 +43,7 @@ func New(gitHubClt gitHubClient, wrkPath, owner, repo, reference string, channel
 		repo:      repo,
 		reference: reference,
 		channels:  channelsMap,
-		wrkPath:   path.Join(wrkPath, strings.Replace(strings.Replace(gitHubCom+"_"+owner+"_"+repo, "/", "_", -1), ".", "_", -1)),
+		wrkPath:   path.Join(wrkPath, strings.Replace(strings.Replace(gitHubCom+"_"+owner+"_"+repo+"_"+reference, "/", "_", -1), ".", "_", -1)),
 	}
 }
 
