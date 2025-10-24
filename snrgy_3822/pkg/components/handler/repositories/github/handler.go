@@ -26,12 +26,13 @@ type Handler struct {
 	gitHubClt gitHubClient
 	owner     string
 	repo      string
+	reference string
 	channels  map[string]Channel
 	wrkPath   string
 	mu        sync.RWMutex
 }
 
-func New(gitHubClt gitHubClient, wrkPath, owner, repo string, channels []Channel) *Handler {
+func New(gitHubClt gitHubClient, wrkPath, owner, repo, reference string, channels []Channel) *Handler {
 	channelsMap := make(map[string]Channel)
 	for _, channel := range channels {
 		channelsMap[channel.Name] = channel
@@ -40,6 +41,7 @@ func New(gitHubClt gitHubClient, wrkPath, owner, repo string, channels []Channel
 		gitHubClt: gitHubClt,
 		owner:     owner,
 		repo:      repo,
+		reference: reference,
 		channels:  channelsMap,
 		wrkPath:   path.Join(wrkPath, strings.Replace(strings.Replace(gitHubCom+"_"+owner+"_"+repo, "/", "_", -1), ".", "_", -1)),
 	}
@@ -51,11 +53,6 @@ func (h *Handler) Init() error {
 	err := os.MkdirAll(h.wrkPath, 0775)
 	if err != nil {
 		return err
-	}
-	for _, channel := range h.channels {
-		if err = os.MkdirAll(path.Join(h.wrkPath, channel.Name), 0775); err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -79,12 +76,11 @@ func (h *Handler) FileSystemsMap(ctx context.Context, channelName string) (map[s
 	if !ok {
 		return nil, errors.New("channel does not exist")
 	}
-	basePath := path.Join(h.wrkPath, channel.Name)
-	repo, err := readRepoFile(basePath)
+	repo, err := readRepoFile(h.wrkPath)
 	if err != nil {
 		return nil, err
 	}
-	dirEntries, err := os.ReadDir(path.Join(basePath, repo.Path))
+	dirEntries, err := os.ReadDir(path.Join(h.wrkPath, repo.Path, channel.Name))
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +90,7 @@ func (h *Handler) FileSystemsMap(ctx context.Context, channelName string) (map[s
 			return nil, ctx.Err()
 		}
 		if entry.IsDir() && !inSlice(commonBlacklist, entry.Name()) && !inSlice(channel.Blacklist, entry.Name()) {
-			fsMap[entry.Name()] = os.DirFS(path.Join(basePath, repo.Path, entry.Name()))
+			fsMap[entry.Name()] = os.DirFS(path.Join(h.wrkPath, repo.Path, channel.Name, entry.Name()))
 		}
 	}
 	return fsMap, nil
@@ -107,12 +103,11 @@ func (h *Handler) FileSystem(ctx context.Context, channelName, fsRef string) (fs
 	if !ok {
 		return nil, errors.New("channel does not exist")
 	}
-	basePath := path.Join(h.wrkPath, channel.Name)
-	repo, err := readRepoFile(basePath)
+	repo, err := readRepoFile(h.wrkPath)
 	if err != nil {
 		return nil, err
 	}
-	dirEntries, err := os.ReadDir(path.Join(basePath, repo.Path))
+	dirEntries, err := os.ReadDir(path.Join(h.wrkPath, repo.Path, channel.Name))
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +116,7 @@ func (h *Handler) FileSystem(ctx context.Context, channelName, fsRef string) (fs
 			return nil, ctx.Err()
 		}
 		if entry.IsDir() && entry.Name() == fsRef {
-			return os.DirFS(path.Join(basePath, repo.Path, entry.Name())), nil
+			return os.DirFS(path.Join(h.wrkPath, repo.Path, channel.Name, entry.Name())), nil
 		}
 	}
 	return nil, errors.New("reference does not exist")
@@ -143,13 +138,12 @@ func (h *Handler) Refresh(ctx context.Context) error {
 }
 
 func (h *Handler) refresh(ctx context.Context, channel Channel) error {
-	basePath := path.Join(h.wrkPath, channel.Name)
-	oldRepo, err := readRepoFile(basePath)
+	oldRepo, err := readRepoFile(h.wrkPath)
 	if err != nil {
 		return err
 	}
 	var newRepo repoFile
-	newRepo.GitCommit, err = h.gitHubClt.GetLastCommit(ctx, h.owner, h.repo, channel.Reference)
+	newRepo.GitCommit, err = h.gitHubClt.GetLastCommit(ctx, h.owner, h.repo, h.reference)
 	if err != nil {
 		return err
 	}
@@ -161,24 +155,24 @@ func (h *Handler) refresh(ctx context.Context, channel Channel) error {
 		return err
 	}
 	defer repoArchive.Close()
-	if err = os.MkdirAll(path.Join(basePath, newRepo.GitCommit.Sha), 0775); err != nil {
+	if err = os.MkdirAll(path.Join(h.wrkPath, newRepo.GitCommit.Sha), 0775); err != nil {
 		return err
 	}
-	rootDir, err := helper_archive.ExtractTarGz(repoArchive, path.Join(basePath, newRepo.GitCommit.Sha))
+	rootDir, err := helper_archive.ExtractTarGz(repoArchive, path.Join(h.wrkPath, newRepo.GitCommit.Sha))
 	if err != nil {
 		_, _ = io.ReadAll(repoArchive)
 		return err
 	}
 	newRepo.Path = path.Join(newRepo.GitCommit.Sha, rootDir)
-	if err = writeRepoFile(basePath, newRepo); err != nil {
-		if e := os.RemoveAll(path.Join(basePath, newRepo.GitCommit.Sha)); e != nil {
+	if err = writeRepoFile(h.wrkPath, newRepo); err != nil {
+		if e := os.RemoveAll(path.Join(h.wrkPath, newRepo.GitCommit.Sha)); e != nil {
 			return errors.Join(err, e)
 		}
 		return err
 	}
 	if oldRepo.Path != "" && oldRepo.Path != newRepo.Path {
-		fmt.Println(path.Join(basePath, oldRepo.Path))
-		if e := os.RemoveAll(path.Join(basePath, oldRepo.GitCommit.Sha)); e != nil {
+		fmt.Println(path.Join(h.wrkPath, oldRepo.Path))
+		if e := os.RemoveAll(path.Join(h.wrkPath, oldRepo.GitCommit.Sha)); e != nil {
 			fmt.Println(e)
 		}
 	}
