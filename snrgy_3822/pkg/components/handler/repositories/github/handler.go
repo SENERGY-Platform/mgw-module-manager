@@ -82,6 +82,9 @@ func (h *Handler) FileSystemsMap(ctx context.Context, channelName string) (map[s
 	}
 	dirEntries, err := os.ReadDir(path.Join(h.wrkPath, repo.Path, channel.Name))
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	fsMap := make(map[string]fs.FS)
