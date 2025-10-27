@@ -34,7 +34,7 @@ import (
 
 func TestHandler_Init(t *testing.T) {
 	tempDir := t.TempDir()
-	h := New(nil, tempDir, "test_owner", "test_repo", []Channel{
+	h := New(nil, tempDir, "test_owner", "test_repo", "test_ref", []Channel{
 		{
 			Name: "test_channel",
 		},
@@ -43,21 +43,21 @@ func TestHandler_Init(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = os.Stat(filepath.Join(tempDir, "github_com_test_owner_test_repo/test_channel"))
+	_, err = os.Stat(filepath.Join(tempDir, "github_com_test_owner_test_repo_test_ref"))
 	if err != nil {
 		t.Error(err)
 	}
 }
 
 func TestHandler_Source(t *testing.T) {
-	h := New(nil, "", "test_owner", "test_repo", nil)
+	h := New(nil, "", "test_owner", "test_repo", "test_ref", nil)
 	if h.Source() != "github.com/test_owner/test_repo" {
 		t.Errorf("expect github.com/test_owner/test_repo, got %s", h.Source())
 	}
 }
 
 func TestHandler_Channels(t *testing.T) {
-	h := New(nil, "", "test_owner", "test_repo", []Channel{
+	h := New(nil, "", "test_owner", "test_repo", "test_ref", []Channel{
 		{
 			Name: "test_channel",
 		},
@@ -70,16 +70,15 @@ func TestHandler_Channels(t *testing.T) {
 }
 
 func TestHandler_FileSystemsMap(t *testing.T) {
-	h := New(nil, "./test", "test_owner", "test_repo", []Channel{
+	h := New(nil, "./test", "test_owner", "test_repo", "test_ref", []Channel{
 		{
 			Name:      "test_channel",
-			Reference: "test_ref",
 			Blacklist: []string{"test_dir"},
 		},
 	})
 	a := map[string]fs.FS{
-		"test_mod_1": os.DirFS("test/github_com_test_owner_test_repo/test_channel/sha_ref/mods/test_mod_1"),
-		"test_mod_2": os.DirFS("test/github_com_test_owner_test_repo/test_channel/sha_ref/mods/test_mod_2"),
+		"test_mod_1": os.DirFS("test/github_com_test_owner_test_repo_test_ref/sha_ref/mods/test_channel/test_mod_1"),
+		"test_mod_2": os.DirFS("test/github_com_test_owner_test_repo_test_ref/sha_ref/mods/test_channel/test_mod_2"),
 	}
 	b, err := h.FileSystemsMap(context.Background(), "test_channel")
 	if err != nil {
@@ -89,10 +88,9 @@ func TestHandler_FileSystemsMap(t *testing.T) {
 		t.Errorf("expected %v, got %v", a, b)
 	}
 	t.Run("no repo file", func(t *testing.T) {
-		h2 := New(nil, "./test", "test_owner", "test_repo_2", []Channel{
+		h2 := New(nil, "./test", "test_owner", "test_repo_2", "test_ref", []Channel{
 			{
-				Name:      "test_channel",
-				Reference: "test_ref",
+				Name: "test_channel",
 			},
 		})
 		fsMap, err := h2.FileSystemsMap(context.Background(), "test_channel")
@@ -112,14 +110,13 @@ func TestHandler_FileSystemsMap(t *testing.T) {
 }
 
 func TestHandler_FileSystem(t *testing.T) {
-	h := New(nil, "./test", "test_owner", "test_repo", []Channel{
+	h := New(nil, "./test", "test_owner", "test_repo", "test_ref", []Channel{
 		{
 			Name:      "test_channel",
-			Reference: "test_ref",
 			Blacklist: []string{"test_dir"},
 		},
 	})
-	a := os.DirFS("test/github_com_test_owner_test_repo/test_channel/sha_ref/mods/test_mod_1")
+	a := os.DirFS("test/github_com_test_owner_test_repo_test_ref/sha_ref/mods/test_channel/test_mod_1")
 	b, err := h.FileSystem(context.Background(), "test_channel", "test_mod_1")
 	if err != nil {
 		t.Error(err)
@@ -164,17 +161,16 @@ func TestHandler_Refresh(t *testing.T) {
 		},
 	}
 	tempDir := t.TempDir()
-	h := New(mockClient, tempDir, "test_owner", "test_repo", []Channel{
+	h := New(mockClient, tempDir, "test_owner", "test_repo", "test_ref", []Channel{
 		{
-			Name:      "test_channel",
-			Reference: "test_ref",
+			Name: "test_channel",
 		},
 	})
 	err := h.Refresh(context.Background())
 	if err != nil {
 		t.Error(err)
 	}
-	rf, err := readRepoFile(path.Join(tempDir, "github_com_test_owner_test_repo/test_channel"))
+	rf, err := readRepoFile(path.Join(tempDir, "github_com_test_owner_test_repo_test_ref"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -184,7 +180,7 @@ func TestHandler_Refresh(t *testing.T) {
 	if rf.Path != "1234/test" {
 		t.Errorf("expect test, got %s", rf.Path)
 	}
-	_, err = os.Stat(path.Join(tempDir, "github_com_test_owner_test_repo/test_channel/1234/test/test_mod/Modfile.yml"))
+	_, err = os.Stat(path.Join(tempDir, "github_com_test_owner_test_repo_test_ref/1234/test/test_channel/test_mod/Modfile.yml"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -210,7 +206,7 @@ func TestHandler_Refresh(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		rf, err = readRepoFile(path.Join(tempDir, "github_com_test_owner_test_repo/test_channel"))
+		rf, err = readRepoFile(path.Join(tempDir, "github_com_test_owner_test_repo_test_ref"))
 		if err != nil {
 			t.Error(err)
 		}
@@ -220,11 +216,11 @@ func TestHandler_Refresh(t *testing.T) {
 		if rf.Path != "5678/test" {
 			t.Errorf("expect test, got %s", rf.Path)
 		}
-		_, err = os.Stat(path.Join(tempDir, "github_com_test_owner_test_repo/test_channel/5678/test/test_mod/Modfile.yml"))
+		_, err = os.Stat(path.Join(tempDir, "github_com_test_owner_test_repo_test_ref/5678/test/test_channel/test_mod/Modfile.yml"))
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = os.Stat(path.Join(tempDir, "github_com_test_owner_test_repo/test_channel/1234"))
+		_, err = os.Stat(path.Join(tempDir, "github_com_test_owner_test_repo_test_ref/1234"))
 		if err != nil {
 			if !os.IsNotExist(err) {
 				t.Error(err)
