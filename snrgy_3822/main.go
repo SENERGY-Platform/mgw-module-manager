@@ -82,16 +82,18 @@ func main() {
 
 	repositoriesHdl := handler_repositories.New([]handler_repositories.Repository{
 		{
-			Handler: handler_repositories_github.New(gitHubClt, config.GitHubModulesRepoHandler.WorkDirPath, "SENERGY-Platform", "mgw-module-repository", []handler_repositories_github.Channel{
+			Handler: handler_repositories_github.New(gitHubClt, config.GitHubModulesRepoHandler.WorkDirPath, "SENERGY-Platform", "mgw-module-repository", "main-validated", []handler_repositories_github.Channel{
 				{
-					Name:      "main",
-					Reference: "main-validated",
-					Priority:  1,
+					Name:     "main",
+					Priority: 2,
 				},
 				{
-					Name:      "testing",
-					Reference: "testing-validated",
-					Priority:  0,
+					Name:     "testing",
+					Priority: 1,
+				},
+				{
+					Name:     "legacy",
+					Priority: 0,
 				},
 			}),
 			Priority: 1,
