@@ -27,6 +27,17 @@ type RepoModule struct {
 	Installed    *ModuleVariant `json:"installed"`
 }
 
+type RepoModuleFilter struct {
+	Name         string             `json:"name"`
+	Repositories []RepositoryFilter `json:"repositories"`
+	Installed    bool               `json:"installed"`
+}
+
+type RepositoryFilter struct {
+	Source   string   `json:"source"`
+	Channels []string `json:"channels"`
+}
+
 type Repository struct {
 	Source   string    `json:"source"`
 	Priority int       `json:"priority"`
