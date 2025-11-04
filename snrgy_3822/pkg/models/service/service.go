@@ -56,10 +56,17 @@ type ModuleVariant struct {
 	Version string `json:"version"`
 }
 
-type ModulesInstallRequest struct {
-	New     []ModuleAbbreviated    `json:"new"`
-	STC     [][2]ModuleAbbreviated `json:"stc"`
-	Created time.Time              `json:"created"`
+type ChangeRequestItem struct {
+	ID      string        `json:"id"`
+	Variant ModuleVariant `json:"variant"`
+	Remove  bool          `json:"remove"`
+}
+
+type ModulesChangeRequest struct {
+	New             []ModuleAbbreviated    `json:"new"`
+	SubjectToChange [][2]ModuleAbbreviated `json:"subject_to_change"`
+	Remove          []string               `json:"remove"`
+	Created         time.Time              `json:"created"`
 }
 
 type ModuleAbbreviated struct {
@@ -69,13 +76,13 @@ type ModuleAbbreviated struct {
 	ModuleVariant
 }
 
-type ModulesInstallReport struct {
-	Success []ModuleAbbreviated          `json:"success"`
-	Failed  []ModulesInstallFailedReport `json:"failed"`
-	Created time.Time                    `json:"created"`
+type ModulesChangeReport struct {
+	Success []ModuleAbbreviated   `json:"success"`
+	Failed  []ModulesFailedReport `json:"failed"`
+	Created time.Time             `json:"created"`
 }
 
-type ModulesInstallFailedReport struct {
+type ModulesFailedReport struct {
 	ModuleAbbreviated
 	Error string `json:"error"`
 }

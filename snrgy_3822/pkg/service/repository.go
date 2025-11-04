@@ -11,6 +11,7 @@ import (
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
@@ -20,11 +21,11 @@ import (
 func (s *Service) RefreshRepositories(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.installReq = nil
+	s.changeReq = nil
 	return s.reposHdl.RefreshRepositories(ctx)
 }
 
-func (s *Service) RepoModules(ctx context.Context) ([]models_service.RepoModule, error) {
+func (s *Service) RepoModules(ctx context.Context, filter models_service.RepoModuleFilter) ([]models_service.RepoModule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	repos, err := s.reposHdl.Repositories(ctx)
@@ -108,21 +109,14 @@ func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_
 	return repoModules, nil
 }
 
-func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.ModuleBase) (map[string]modWrapper, error) {
-	reqItemMap := make(map[string]models_repo.ModuleBase)
+func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_service.ChangeRequestItem) (map[string]modWrapper, error) {
+	// get module filesystem and modfile
+	mods := make(map[string]modWrapper)
 	for _, item := range reqItems {
-		tmp, ok := reqItemMap[item.ID]
-		if ok {
-			if !equalMods(tmp.ID, tmp.Source, tmp.Channel, "", item.ID, item.Source, item.Channel, "") {
-				return nil, fmt.Errorf("duplicate entry for %s", item.ID)
-			}
+		if item.Remove {
 			continue
 		}
-		reqItemMap[item.ID] = item
-	}
-	mods := make(map[string]modWrapper)
-	for id, reqItem := range reqItemMap {
-		modFS, err := s.reposHdl.ModuleFS(ctx, id, reqItem.Source, reqItem.Channel)
+		modFS, err := s.reposHdl.ModuleFS(ctx, item.ID, item.Variant.Source, item.Variant.Channel)
 		if err != nil {
 			return nil, err
 		}
@@ -134,44 +128,36 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 			mods[mod.ID] = modWrapper{
 				Mod:     mod,
 				FS:      modFS,
-				Source:  reqItem.Source,
-				Channel: reqItem.Channel,
+				Source:  item.Variant.Source,
+				Channel: item.Variant.Channel,
 			}
 		}
 	}
+	// get repo with the highest priority
 	modRepos, err := s.reposHdl.Repositories(ctx)
 	if err != nil {
 		return nil, err
 	}
-	deps := make(map[string]modWrapper)
 	highestPrioRepo := selectByPriority(modRepos, func(item models_repo.Repository, lastPrio int) (int, bool) {
 		return item.Priority, item.Priority >= lastPrio
 	})
 	highestPrioChannel := selectByPriority(highestPrioRepo.Channels, func(item models_repo.Channel, lastPrio int) (int, bool) {
 		return item.Priority, item.Priority >= lastPrio
 	})
+	deps := make(map[string]modWrapper)
+	// select dependencies from main source and channel
 	for _, wrapper := range mods {
-		if wrapper.Source == highestPrioRepo.Source {
-			if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, highestPrioChannel.Name, deps); err != nil {
-				return nil, err
-			}
-		}
-	}
-	modReposMap := maps.Collect(helper_slices.AllFunc(modRepos, func(item models_repo.Repository) string {
-		return item.Source
-	}))
-	for _, wrapper := range mods {
-		repo, ok := modReposMap[wrapper.Source]
-		if !ok {
-			return nil, errors.New("source not found")
-		}
-		highestPrioChannel = selectByPriority(repo.Channels, func(item models_repo.Channel, lastPrio int) (int, bool) {
-			return item.Priority, item.Priority >= lastPrio
-		})
-		if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, highestPrioChannel.Name, deps); err != nil {
+		if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, highestPrioRepo.Source, highestPrioChannel.Name, deps, true); err != nil {
 			return nil, err
 		}
 	}
+	// select dependencies only available in origin repo and channel
+	for _, wrapper := range mods {
+		if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, wrapper.Channel, deps, false); err != nil {
+			return nil, err
+		}
+	}
+	// add dependencies to module selection
 	for id, wrapper := range deps {
 		if _, ok := mods[id]; !ok {
 			mods[id] = wrapper
@@ -180,11 +166,14 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_repo.
 	return mods, nil
 }
 
-func (s *Service) addRepoModDepsToMap(ctx context.Context, mod module_lib.Module, source, channel string, deps map[string]modWrapper) error {
+func (s *Service) addRepoModDepsToMap(ctx context.Context, mod module_lib.Module, source, channel string, deps map[string]modWrapper, skipNotFound bool) error {
 	for depID := range mod.Dependencies {
 		if _, ok := deps[depID]; !ok {
 			depFS, err := s.reposHdl.ModuleFS(ctx, depID, source, channel)
 			if err != nil {
+				if errors.Is(err, models_error.NotFoundErr) && skipNotFound {
+					continue
+				}
 				return err
 			}
 			dep, err := helper_modfile.GetModule(depFS)
@@ -197,7 +186,7 @@ func (s *Service) addRepoModDepsToMap(ctx context.Context, mod module_lib.Module
 				Source:  source,
 				Channel: channel,
 			}
-			err = s.addRepoModDepsToMap(ctx, dep, source, channel, deps)
+			err = s.addRepoModDepsToMap(ctx, dep, source, channel, deps, skipNotFound)
 			if err != nil {
 				return err
 			}

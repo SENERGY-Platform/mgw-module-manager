@@ -18,12 +18,13 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 	"slices"
 
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
-	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
@@ -39,46 +40,68 @@ func (s *Service) Module(ctx context.Context, id string) (models_module.Module, 
 	return s.modsHdl.Module(ctx, id)
 }
 
-func (s *Service) ModulesInstallRequest(_ context.Context) (models_service.ModulesInstallRequest, error) {
+func (s *Service) ModulesChangeRequest(_ context.Context) (models_service.ModulesChangeRequest, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	if s.installReq == nil {
-		return models_service.ModulesInstallRequest{}, models_error.NotFoundErr
+	if s.changeReq == nil {
+		return models_service.ModulesChangeRequest{}, models_error.NotFoundErr
 	}
-	return transformModulesInstallRequest(*s.installReq), nil
+	return transformModulesChangeRequest(*s.changeReq), nil
 }
 
-func (s *Service) NewModulesInstallRequest(ctx context.Context, reqItems []models_repo.ModuleBase) (models_service.ModulesInstallRequest, error) {
+func (s *Service) NewModulesChangeRequest(ctx context.Context, reqItems []models_service.ChangeRequestItem) (models_service.ModulesChangeRequest, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	var err error
+	reqItems, err = filterReqItems(reqItems)
+	if err != nil {
+		return models_service.ModulesChangeRequest{}, err
+	}
 	selectedRepoMods, err := s.selectRepoModules(ctx, reqItems)
 	if err != nil {
-		return models_service.ModulesInstallRequest{}, nil
+		return models_service.ModulesChangeRequest{}, err
 	}
 	installedMods, err := s.modsHdl.Modules(ctx, models_module.ModuleFilter{})
 	if err != nil {
-		return models_service.ModulesInstallRequest{}, nil
+		return models_service.ModulesChangeRequest{}, err
 	}
-	installRequest := newModulesInstallRequest(selectedRepoMods, installedMods)
-	s.installReq = &installRequest
-	return transformModulesInstallRequest(installRequest), nil
+	var toRemoveMods []string
+	for _, item := range reqItems {
+		if item.Remove {
+			toRemoveMods = append(toRemoveMods, item.ID)
+		}
+	}
+	changeRequest := newModulesChangeRequest(selectedRepoMods, installedMods, toRemoveMods)
+	s.changeReq = &changeRequest
+	return transformModulesChangeRequest(changeRequest), nil
 }
 
-func (s *Service) ExecModulesInstallRequest(ctx context.Context) (models_service.ModulesInstallReport, error) {
+func (s *Service) ExecModulesChangeRequest(ctx context.Context) (models_service.ModulesChangeReport, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.installReq == nil {
-		return models_service.ModulesInstallReport{}, models_error.NotFoundErr
+	if s.changeReq == nil {
+		return models_service.ModulesChangeReport{}, models_error.NotFoundErr
 	}
 	defer func() {
-		s.installReq = nil
+		s.changeReq = nil
 	}()
 	var success []models_service.ModuleAbbreviated
-	var failed []models_service.ModulesInstallFailedReport
-	for _, repoMod := range s.installReq.New {
+	var failed []models_service.ModulesFailedReport
+	for _, id := range s.changeReq.RM {
+		err := s.modsHdl.Remove(ctx, id)
+		if err != nil {
+			failed = append(failed, models_service.ModulesFailedReport{
+				ModuleAbbreviated: models_service.ModuleAbbreviated{ID: id},
+				Error:             err.Error(),
+			})
+			continue
+		}
+		success = append(success, models_service.ModuleAbbreviated{ID: id})
+	}
+	for _, repoMod := range s.changeReq.New {
 		err := s.modsHdl.Add(ctx, repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.FS)
 		if err != nil {
-			failed = append(failed, models_service.ModulesInstallFailedReport{
+			failed = append(failed, models_service.ModulesFailedReport{
 				ModuleAbbreviated: modWrapperToServiceModuleAbbreviated(repoMod),
 				Error:             err.Error(),
 			})
@@ -86,10 +109,10 @@ func (s *Service) ExecModulesInstallRequest(ctx context.Context) (models_service
 		}
 		success = append(success, modWrapperToServiceModuleAbbreviated(repoMod))
 	}
-	for _, item := range s.installReq.STC {
+	for _, item := range s.changeReq.STC {
 		err := s.modsHdl.Update(ctx, item.Next.Mod.ID, item.Next.Source, item.Next.Channel, item.Next.FS)
 		if err != nil {
-			failed = append(failed, models_service.ModulesInstallFailedReport{
+			failed = append(failed, models_service.ModulesFailedReport{
 				ModuleAbbreviated: modWrapperToServiceModuleAbbreviated(item.Next),
 				Error:             err.Error(),
 			})
@@ -97,26 +120,43 @@ func (s *Service) ExecModulesInstallRequest(ctx context.Context) (models_service
 		}
 		success = append(success, modWrapperToServiceModuleAbbreviated(item.Next))
 	}
-	return models_service.ModulesInstallReport{
+	return models_service.ModulesChangeReport{
 		Success: success,
 		Failed:  failed,
 		Created: helper_time.Now(),
 	}, nil
 }
 
-func (s *Service) CancelModulesInstallRequest(_ context.Context) error {
+func (s *Service) CancelModulesChangeRequest(_ context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.installReq == nil {
+	if s.changeReq == nil {
 		return models_error.NotFoundErr
 	}
-	s.installReq = nil
+	s.changeReq = nil
 	return nil
 }
 
-func newModulesInstallRequest(selectedRepoMods map[string]modWrapper, installedMods []models_module.ModuleAbbreviated) modulesInstallRequest {
+func filterReqItems(reqItems []models_service.ChangeRequestItem) ([]models_service.ChangeRequestItem, error) {
+	var filteredItems []models_service.ChangeRequestItem
+	tmpMap := make(map[string]models_service.ChangeRequestItem)
+	for _, item := range reqItems {
+		if tmp, ok := tmpMap[item.ID]; ok {
+			if !reflect.DeepEqual(tmp, item) {
+				return nil, fmt.Errorf("duplicate entry for %s", item.ID)
+			}
+			continue
+		}
+		tmpMap[item.ID] = item
+		filteredItems = append(filteredItems, item)
+	}
+	return filteredItems, nil
+}
+
+func newModulesChangeRequest(selectedRepoMods map[string]modWrapper, installedMods []models_module.ModuleAbbreviated, toRemoveMods []string) modulesChangeRequest {
 	var newMods []modWrapper
 	var stcMods []moduleSTC
+	var rmMods []string
 	for id, repoMod := range selectedRepoMods {
 		i := slices.IndexFunc(installedMods, func(item models_module.ModuleAbbreviated) bool {
 			return item.ID == id
@@ -143,30 +183,45 @@ func newModulesInstallRequest(selectedRepoMods map[string]modWrapper, installedM
 		}
 		newMods = append(newMods, repoMod)
 	}
-	return modulesInstallRequest{
+	for _, id := range toRemoveMods {
+		if !slices.ContainsFunc(installedMods, func(m models_module.ModuleAbbreviated) bool {
+			return m.ID == id
+		}) {
+			continue
+		}
+		if _, ok := selectedRepoMods[id]; ok {
+			continue
+		}
+		rmMods = append(rmMods, id)
+	}
+	return modulesChangeRequest{
 		New:     newMods,
 		STC:     stcMods,
+		RM:      rmMods,
 		Created: helper_time.Now(),
 	}
 }
 
-func transformModulesInstallRequest(req modulesInstallRequest) models_service.ModulesInstallRequest {
-	newMods := make([]models_service.ModuleAbbreviated, len(req.New))
-	for i, mod := range req.New {
-		newMods[i] = modWrapperToServiceModuleAbbreviated(mod)
+func transformModulesChangeRequest(req modulesChangeRequest) models_service.ModulesChangeRequest {
+	mcr := models_service.ModulesChangeRequest{
+		New:             make([]models_service.ModuleAbbreviated, len(req.New)),
+		SubjectToChange: make([][2]models_service.ModuleAbbreviated, len(req.STC)),
+		Remove:          make([]string, len(req.RM)),
+		Created:         req.Created,
 	}
-	stcMods := make([][2]models_service.ModuleAbbreviated, len(req.STC))
+	for i, mod := range req.New {
+		mcr.New[i] = modWrapperToServiceModuleAbbreviated(mod)
+	}
 	for i, item := range req.STC {
-		stcMods[i] = [2]models_service.ModuleAbbreviated{
+		mcr.SubjectToChange[i] = [2]models_service.ModuleAbbreviated{
 			item.Previous,
 			modWrapperToServiceModuleAbbreviated(item.Next),
 		}
 	}
-	return models_service.ModulesInstallRequest{
-		New:     newMods,
-		STC:     stcMods,
-		Created: req.Created,
+	if req.RM != nil {
+		mcr.Remove = req.RM
 	}
+	return mcr
 }
 
 func modWrapperToServiceModuleAbbreviated(w modWrapper) models_service.ModuleAbbreviated {

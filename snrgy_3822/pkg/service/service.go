@@ -5,10 +5,10 @@ import (
 )
 
 type Service struct {
-	reposHdl   RepositoriesHandler
-	modsHdl    ModulesHandler
-	installReq *modulesInstallRequest
-	mu         sync.RWMutex
+	reposHdl  RepositoriesHandler
+	modsHdl   ModulesHandler
+	changeReq *modulesChangeRequest
+	mu        sync.RWMutex
 }
 
 func New(reposHdl RepositoriesHandler, modsHdl ModulesHandler) *Service {

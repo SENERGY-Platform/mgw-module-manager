@@ -26,9 +26,10 @@ type repoModAbbreviated struct {
 	Version string
 }
 
-type modulesInstallRequest struct {
+type modulesChangeRequest struct {
 	New     []modWrapper
-	STC     []moduleSTC
+	STC     []moduleSTC // subject to change
+	RM      []string    // to be removed
 	Created time.Time
 }
 
