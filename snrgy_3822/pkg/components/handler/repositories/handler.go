@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"sync"
 
@@ -168,15 +169,15 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 func (h *Handler) getModuleVariant(id, source, channel string) (moduleWrapper, error) {
 	sources, ok := h.variantsMap[id]
 	if !ok {
-		return moduleWrapper{}, errors.New("module not found")
+		return moduleWrapper{}, fmt.Errorf("module '%s' %w", id, models_error.NotFoundErr)
 	}
 	channels, ok := sources[source]
 	if !ok {
-		return moduleWrapper{}, errors.New("source not found")
+		return moduleWrapper{}, fmt.Errorf("source '%s' %w", source, models_error.NotFoundErr)
 	}
 	variant, ok := channels[channel]
 	if !ok {
-		return moduleWrapper{}, errors.New("channel not found")
+		return moduleWrapper{}, fmt.Errorf("channel '%s' %w", channel, models_error.NotFoundErr)
 	}
 	return variant, nil
 }
