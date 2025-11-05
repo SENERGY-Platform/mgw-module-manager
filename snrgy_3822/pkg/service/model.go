@@ -27,13 +27,13 @@ type repoModAbbreviated struct {
 }
 
 type modulesChangeRequest struct {
-	New     []modWrapper
-	STC     []moduleSTC // subject to change
-	RM      []string    // to be removed
+	Install []modWrapper
+	Change  []changeItem
+	Remove  []string
 	Created time.Time
 }
 
-type moduleSTC struct {
+type changeItem struct {
 	Previous models_service.ModuleAbbreviated
 	Next     modWrapper
 }

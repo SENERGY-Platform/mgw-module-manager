@@ -63,10 +63,10 @@ type ChangeRequestItem struct {
 }
 
 type ModulesChangeRequest struct {
-	New             []ModuleAbbreviated    `json:"new"`
-	SubjectToChange [][2]ModuleAbbreviated `json:"subject_to_change"`
-	Remove          []string               `json:"remove"`
-	Created         time.Time              `json:"created"`
+	Install []ModuleAbbreviated    `json:"install"`
+	Change  [][2]ModuleAbbreviated `json:"change"`
+	Remove  []string               `json:"remove"`
+	Created time.Time              `json:"created"`
 }
 
 type ModuleAbbreviated struct {
@@ -76,9 +76,25 @@ type ModuleAbbreviated struct {
 	ModuleVariant
 }
 
+const (
+	ChangeActionInstall = "install"
+	ChangeActionChange  = "change"
+	ChangeActionRemove  = "remove"
+)
+
+type ChangeReportItem struct {
+	ID     string `json:"id"`
+	Action string `json:"action"`
+}
+
+type ChangeReportErrItem struct {
+	ChangeReportItem
+	Error string `json:"error"`
+}
+
 type ModulesChangeReport struct {
-	Success []ModuleAbbreviated   `json:"success"`
-	Failed  []ModulesFailedReport `json:"failed"`
+	Success []ChangeReportItem    `json:"success"`
+	Failed  []ChangeReportErrItem `json:"failed"`
 	Created time.Time             `json:"created"`
 }
 
