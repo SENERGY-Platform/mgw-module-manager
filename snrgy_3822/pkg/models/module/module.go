@@ -48,6 +48,7 @@ type Module struct {
 
 type ModuleFilter struct {
 	IDs     []string
+	Name    string
 	Source  string
 	Channel string
 }
