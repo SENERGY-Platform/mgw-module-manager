@@ -62,7 +62,6 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 	for _, stgMod := range stgMods {
 		mod, ok := h.cacheGet(stgMod.ID)
 		if !ok {
-			logger.Warn("module not in cache", slog_attr.IDKey, stgMod.ID)
 			modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 			mod, err = helper_modfile.GetModule(modFS)
 			if err != nil {
@@ -105,7 +104,6 @@ func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, 
 	}
 	mod, ok := h.cacheGet(id)
 	if !ok {
-		logger.Warn("module not in cache", slog_attr.IDKey, stgMod.ID)
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 		mod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
@@ -198,7 +196,6 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	}
 	oldMod, ok := h.cacheGet(id)
 	if !ok {
-		logger.Warn("module not in cache", slog_attr.IDKey, stgModOld.ID)
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgModOld.DirName))
 		oldMod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
@@ -263,7 +260,6 @@ func (h *Handler) Remove(ctx context.Context, id string) error {
 	}
 	mod, ok := h.cacheGet(id)
 	if !ok {
-		logger.Warn("module not in cache", slog_attr.IDKey, stgMod.ID)
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 		mod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
