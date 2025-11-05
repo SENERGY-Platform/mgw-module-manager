@@ -27,7 +27,8 @@ type RepoModule struct {
 	Installed    *ModuleVariant `json:"installed"`
 }
 
-type RepoModuleFilter struct {
+type RepoModulesFilter struct {
+	IDs          []string           `json:"ids"`
 	Name         string             `json:"name"`
 	Repositories []RepositoryFilter `json:"repositories"`
 	Installed    bool               `json:"installed"`

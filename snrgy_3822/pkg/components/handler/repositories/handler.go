@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"slices"
+	"strings"
 	"sync"
 
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
@@ -72,13 +74,26 @@ func (h *Handler) Repositories(_ context.Context) ([]models_repo.Repository, err
 	return repos, nil
 }
 
-func (h *Handler) Modules(_ context.Context) ([]models_repo.Module, error) {
+func (h *Handler) Modules(_ context.Context, filter models_repo.ModulesFilter) ([]models_repo.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
+	filterByID := len(filter.IDs) > 0
+	filterBySource := len(filter.Sources) > 0
+	filter.Name = strings.ToLower(filter.Name)
+	sourceFilterMap := newSourceFilterMap(filter.Sources)
 	var variants []models_repo.Module
-	for _, sources := range h.variantsMap {
-		for _, channels := range sources {
-			for _, variant := range channels {
+	for modID, sources := range h.variantsMap {
+		if filterByID && !slices.Contains(filter.IDs, modID) {
+			continue
+		}
+		for source, channels := range sources {
+			for channel, variant := range channels {
+				if filterBySource && !filterSources(source, channel, sourceFilterMap) {
+					continue
+				}
+				if !strings.Contains(strings.ToLower(variant.Module.Name), filter.Name) { // empty string = true
+					continue
+				}
 				variants = append(variants, variant.Module)
 			}
 		}
@@ -180,4 +195,31 @@ func (h *Handler) getModuleVariant(id, source, channel string) (moduleWrapper, e
 		return moduleWrapper{}, fmt.Errorf("channel '%s' %w", channel, models_error.NotFoundErr)
 	}
 	return variant, nil
+}
+
+func newSourceFilterMap(sourceFilters []models_repo.SourceFilter) map[string]map[string]struct{} {
+	sourceFilterMap := make(map[string]map[string]struct{})
+	for _, sourceFilter := range sourceFilters {
+		channels, ok := sourceFilterMap[sourceFilter.Name]
+		if !ok {
+			channels = make(map[string]struct{})
+			sourceFilterMap[sourceFilter.Name] = channels
+		}
+		for _, channel := range sourceFilter.Channels {
+			channels[channel] = struct{}{}
+		}
+	}
+	return sourceFilterMap
+}
+
+func filterSources(source, channel string, filter map[string]map[string]struct{}) bool {
+	channels, ok := filter[source]
+	if !ok {
+		return false
+	}
+	if len(channels) > 0 {
+		_, ok = channels[channel]
+		return ok
+	}
+	return true
 }

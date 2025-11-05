@@ -39,3 +39,14 @@ type Module struct {
 	Desc    string `json:"description"`
 	Version string `json:"version"`
 }
+
+type ModulesFilter struct {
+	IDs     []string
+	Name    string
+	Sources []SourceFilter
+}
+
+type SourceFilter struct {
+	Name     string
+	Channels []string
+}

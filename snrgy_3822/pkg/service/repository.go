@@ -25,14 +25,18 @@ func (s *Service) RefreshRepositories(ctx context.Context) error {
 	return s.reposHdl.RefreshRepositories(ctx)
 }
 
-func (s *Service) RepoModules(ctx context.Context, filter models_service.RepoModuleFilter) ([]models_service.RepoModule, error) {
+func (s *Service) RepoModules(ctx context.Context, filter models_service.RepoModulesFilter) ([]models_service.RepoModule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	repos, err := s.reposHdl.Repositories(ctx)
 	if err != nil {
 		return nil, err
 	}
-	repoMods, err := s.reposHdl.Modules(ctx)
+	repoMods, err := s.reposHdl.Modules(ctx, models_repo.ModulesFilter{
+		IDs:     filter.IDs,
+		Name:    filter.Name,
+		Sources: newSourceFilters(filter.Repositories),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -40,10 +44,10 @@ func (s *Service) RepoModules(ctx context.Context, filter models_service.RepoMod
 	if err != nil {
 		return nil, err
 	}
-	return s.repoModules(repos, repoMods, installedMods)
+	return s.repoModules(repos, repoMods, installedMods, filter.Installed)
 }
 
-func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_repo.Module, installedMods []models_module.ModuleAbbreviated) ([]models_service.RepoModule, error) {
+func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_repo.Module, installedMods []models_module.ModuleAbbreviated, onlyInstalled bool) ([]models_service.RepoModule, error) {
 	reposTree := buildReposTree(repos)
 	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.ModuleAbbreviated) string {
 		return item.ID
@@ -56,6 +60,10 @@ func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_
 				Source:  variant.Source,
 				Channel: variant.Channel,
 				Version: variant.Version,
+			}
+		} else {
+			if onlyInstalled {
+				continue
 			}
 		}
 		var fErr error
@@ -193,6 +201,17 @@ func (s *Service) addRepoModDepsToMap(ctx context.Context, mod module_lib.Module
 		}
 	}
 	return nil
+}
+
+func newSourceFilters(repoFilters []models_service.RepositoryFilter) []models_repo.SourceFilter {
+	var sourcesFilter []models_repo.SourceFilter
+	for _, repoFilter := range repoFilters {
+		sourcesFilter = append(sourcesFilter, models_repo.SourceFilter{
+			Name:     repoFilter.Source,
+			Channels: repoFilter.Channels,
+		})
+	}
+	return sourcesFilter
 }
 
 func buildRepoModsTree(repoMods []models_repo.Module) map[string]map[string]map[string]repoModAbbreviated {

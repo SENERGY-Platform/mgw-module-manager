@@ -58,6 +58,7 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 	if err != nil {
 		return nil, err
 	}
+	filter.Name = strings.ToLower(filter.Name)
 	var modules []models_module.ModuleAbbreviated
 	var errs []error
 	for _, stgMod := range stgMods {
@@ -72,7 +73,7 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 			}
 			h.cacheSet(stgMod.ID, mod)
 		}
-		if !strings.Contains(mod.Name, filter.Name) { // empty string = true
+		if !strings.Contains(strings.ToLower(mod.Name), filter.Name) { // empty string = true
 			continue
 		}
 		modules = append(modules, models_module.ModuleAbbreviated{
