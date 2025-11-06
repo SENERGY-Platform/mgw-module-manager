@@ -19,19 +19,25 @@ package service
 import "time"
 
 type RepoModule struct {
-	ID           string         `json:"id"`
-	Name         string         `json:"name"`
-	Desc         string         `json:"description"`
-	Version      string         `json:"version"`
-	Repositories []Repository   `json:"repositories"`
-	Installed    *ModuleVariant `json:"installed"`
+	ID           string                  `json:"id"`
+	Name         string                  `json:"name"`
+	Desc         string                  `json:"description"`
+	Version      string                  `json:"version"`
+	Repositories []Repository            `json:"repositories"`
+	Installed    *InstalledModuleVariant `json:"installed"`
+}
+
+type InstalledModuleVariant struct {
+	ModuleVariant
+	NextVersion string `json:"next_version"`
 }
 
 type RepoModulesFilter struct {
-	IDs          []string           `json:"ids"`
-	Name         string             `json:"name"`
-	Repositories []RepositoryFilter `json:"repositories"`
-	Installed    bool               `json:"installed"`
+	IDs             []string           `json:"ids"`
+	Name            string             `json:"name"`
+	Repositories    []RepositoryFilter `json:"repositories"`
+	Installed       bool               `json:"installed"`
+	UpdateAvailable bool               `json:"update_available"`
 }
 
 type RepositoryFilter struct {

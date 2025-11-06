@@ -40,32 +40,22 @@ func (s *Service) RepoModules(ctx context.Context, filter models_service.RepoMod
 	if err != nil {
 		return nil, err
 	}
+	mods, err := s.repoModules(repos, repoMods)
+	if err != nil {
+		return nil, err
+	}
 	installedMods, err := s.modsHdl.Modules(ctx, models_module.ModuleFilter{})
 	if err != nil {
 		return nil, err
 	}
-	return s.repoModules(repos, repoMods, installedMods, filter.Installed)
+	return handleInstalledMods(mods, installedMods, filter.Installed, filter.UpdateAvailable), nil
 }
 
-func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_repo.Module, installedMods []models_module.ModuleAbbreviated, onlyInstalled bool) ([]models_service.RepoModule, error) {
+func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_repo.Module) ([]models_service.RepoModule, error) {
 	reposTree := buildReposTree(repos)
-	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.ModuleAbbreviated) string {
-		return item.ID
-	}))
 	var repoModules []models_service.RepoModule
 	for id, sources := range buildRepoModsTree(repoMods) {
 		repoModule := models_service.RepoModule{ID: id}
-		if variant, ok := installedModsMap[id]; ok {
-			repoModule.Installed = &models_service.ModuleVariant{
-				Source:  variant.Source,
-				Channel: variant.Channel,
-				Version: variant.Version,
-			}
-		} else {
-			if onlyInstalled {
-				continue
-			}
-		}
 		var fErr error
 		for source, channels := range sources {
 			repo, ok := reposTree[source]
@@ -249,6 +239,57 @@ func buildReposTree(repos []models_repo.Repository) map[string]repoAbbreviated {
 		}
 	}
 	return reposTree
+}
+
+func handleInstalledMods(mods []models_service.RepoModule, installedMods []models_module.ModuleAbbreviated, filterInstalled, filterUpdateAvailable bool) []models_service.RepoModule {
+	if len(installedMods) == 0 {
+		return mods
+	}
+	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.ModuleAbbreviated) string {
+		return item.ID
+	}))
+	var tmp []models_service.RepoModule
+	for _, mod := range mods {
+		variant, ok := installedModsMap[mod.ID]
+		if ok {
+			nextVersion := getNextVersion(variant, mod.Repositories)
+			if filterUpdateAvailable && nextVersion == "" {
+				continue
+			}
+			mod.Installed = &models_service.InstalledModuleVariant{
+				ModuleVariant: models_service.ModuleVariant{
+					Source:  variant.Source,
+					Channel: variant.Channel,
+					Version: variant.Version,
+				},
+				NextVersion: nextVersion,
+			}
+		} else {
+			if filterInstalled {
+				continue
+			}
+			if filterUpdateAvailable {
+				continue
+			}
+		}
+		tmp = append(tmp, mod)
+	}
+	return tmp
+}
+
+func getNextVersion(installed models_module.ModuleAbbreviated, repos []models_service.Repository) string {
+	for _, repo := range repos {
+		if repo.Source == installed.Source {
+			for _, channel := range repo.Channels {
+				if channel.Name == installed.Channel {
+					if channel.Version != installed.Version {
+						return channel.Version
+					}
+				}
+			}
+		}
+	}
+	return ""
 }
 
 func selectByPriority[S ~[]E, E any](sl S, comp func(item E, lastPrio int) (int, bool)) E {
