@@ -26,6 +26,7 @@ import (
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
+	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
@@ -151,6 +152,43 @@ func (s *Service) CancelModulesChangeRequest(_ context.Context) error {
 	}
 	s.changeReq = nil
 	return nil
+}
+
+func (s *Service) ModulesUpdateCount(ctx context.Context) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	installedMods, err := s.modsHdl.Modules(ctx, models_module.ModuleFilter{})
+	if err != nil {
+		return 0, err
+	}
+	if len(installedMods) == 0 {
+		return 0, nil
+	}
+	installedModIDs := make([]string, len(installedMods))
+	for i, mod := range installedMods {
+		installedModIDs[i] = mod.ID
+	}
+	repoMods, err := s.reposHdl.Modules(ctx, models_repo.ModulesFilter{IDs: installedModIDs})
+	if err != nil {
+		return 0, err
+	}
+	if len(repoMods) == 0 {
+		return 0, nil
+	}
+	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.ModuleAbbreviated) string {
+		return item.ID
+	}))
+	var count int
+	for _, repoMod := range repoMods {
+		installedMod, ok := installedModsMap[repoMod.ID]
+		if !ok {
+			continue
+		}
+		if installedMod.Source == repoMod.Source && installedMod.Channel == repoMod.Channel && installedMod.Version != repoMod.Version {
+			count++
+		}
+	}
+	return count, nil
 }
 
 func validateReqItems(reqItems []models_service.ChangeRequestItem) ([]models_service.ChangeRequestItem, error) {
