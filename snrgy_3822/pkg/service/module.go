@@ -54,8 +54,7 @@ func (s *Service) ModulesChangeRequest(_ context.Context) (models_service.Module
 func (s *Service) NewModulesChangeRequest(ctx context.Context, reqItems []models_service.ChangeRequestItem) (models_service.ModulesChangeRequest, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	var err error
-	reqItems, err = validateReqItems(reqItems)
+	reqItems, err := validateReqItems(reqItems)
 	if err != nil {
 		return models_service.ModulesChangeRequest{}, err
 	}
@@ -157,12 +156,31 @@ func (s *Service) CancelModulesChangeRequest(_ context.Context) error {
 func (s *Service) ModulesAvailableUpdates(ctx context.Context) (int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	installedMods, err := s.modsHdl.Modules(ctx, models_module.ModuleFilter{})
+	changeRequest, err := s.newModulesUpdateAllChangeRequest(ctx)
 	if err != nil {
 		return 0, err
 	}
+	return len(changeRequest.Change), nil
+}
+
+func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (models_service.ModulesChangeRequest, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	changeRequest, err := s.newModulesUpdateAllChangeRequest(ctx)
+	if err != nil {
+		return models_service.ModulesChangeRequest{}, err
+	}
+	s.changeReq = &changeRequest
+	return transformModulesChangeRequest(changeRequest), nil
+}
+
+func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modulesChangeRequest, error) {
+	installedMods, err := s.modsHdl.Modules(ctx, models_module.ModuleFilter{})
+	if err != nil {
+		return modulesChangeRequest{}, err
+	}
 	if len(installedMods) == 0 {
-		return 0, nil
+		return modulesChangeRequest{}, nil
 	}
 	installedModIDs := make([]string, len(installedMods))
 	for i, mod := range installedMods {
@@ -170,25 +188,33 @@ func (s *Service) ModulesAvailableUpdates(ctx context.Context) (int, error) {
 	}
 	repoMods, err := s.reposHdl.Modules(ctx, models_repo.ModulesFilter{IDs: installedModIDs})
 	if err != nil {
-		return 0, err
+		return modulesChangeRequest{}, err
 	}
 	if len(repoMods) == 0 {
-		return 0, nil
+		return modulesChangeRequest{}, nil
 	}
 	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.ModuleAbbreviated) string {
 		return item.ID
 	}))
-	var count int
+	var reqItems []models_service.ChangeRequestItem
 	for _, repoMod := range repoMods {
 		installedMod, ok := installedModsMap[repoMod.ID]
 		if !ok {
 			continue
 		}
 		if installedMod.Source == repoMod.Source && installedMod.Channel == repoMod.Channel && installedMod.Version != repoMod.Version {
-			count++
+			reqItems = append(reqItems, models_service.ChangeRequestItem{
+				ID:      installedMod.ID,
+				Source:  installedMod.Source,
+				Channel: installedMod.Channel,
+			})
 		}
 	}
-	return count, nil
+	selectedRepoMods, err := s.selectRepoModules(ctx, reqItems, installedModsMap)
+	if err != nil {
+		return modulesChangeRequest{}, err
+	}
+	return newModulesChangeRequest(selectedRepoMods, installedModsMap, nil), nil
 }
 
 func validateReqItems(reqItems []models_service.ChangeRequestItem) ([]models_service.ChangeRequestItem, error) {
