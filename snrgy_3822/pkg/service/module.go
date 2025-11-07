@@ -19,9 +19,10 @@ package service
 import (
 	"context"
 	"fmt"
+	"maps"
 	"reflect"
-	"slices"
 
+	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
@@ -53,15 +54,18 @@ func (s *Service) NewModulesChangeRequest(ctx context.Context, reqItems []models
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	var err error
-	reqItems, err = filterReqItems(reqItems)
-	if err != nil {
-		return models_service.ModulesChangeRequest{}, err
-	}
-	selectedRepoMods, err := s.selectRepoModules(ctx, reqItems)
+	reqItems, err = validateReqItems(reqItems)
 	if err != nil {
 		return models_service.ModulesChangeRequest{}, err
 	}
 	installedMods, err := s.modsHdl.Modules(ctx, models_module.ModuleFilter{})
+	if err != nil {
+		return models_service.ModulesChangeRequest{}, err
+	}
+	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.ModuleAbbreviated) string {
+		return item.ID
+	}))
+	selectedRepoMods, err := s.selectRepoModules(ctx, reqItems, installedModsMap)
 	if err != nil {
 		return models_service.ModulesChangeRequest{}, err
 	}
@@ -71,7 +75,7 @@ func (s *Service) NewModulesChangeRequest(ctx context.Context, reqItems []models
 			toRemoveMods = append(toRemoveMods, item.ID)
 		}
 	}
-	changeRequest := newModulesChangeRequest(selectedRepoMods, installedMods, toRemoveMods)
+	changeRequest := newModulesChangeRequest(selectedRepoMods, installedModsMap, toRemoveMods)
 	s.changeReq = &changeRequest
 	return transformModulesChangeRequest(changeRequest), nil
 }
@@ -149,32 +153,32 @@ func (s *Service) CancelModulesChangeRequest(_ context.Context) error {
 	return nil
 }
 
-func filterReqItems(reqItems []models_service.ChangeRequestItem) ([]models_service.ChangeRequestItem, error) {
-	var filteredItems []models_service.ChangeRequestItem
+func validateReqItems(reqItems []models_service.ChangeRequestItem) ([]models_service.ChangeRequestItem, error) {
+	var validatedItems []models_service.ChangeRequestItem
 	tmpMap := make(map[string]models_service.ChangeRequestItem)
 	for _, item := range reqItems {
+		if (item.Update && item.Remove) || (!(item.Update || item.Remove) && item.Source+item.Channel == "") {
+			return nil, fmt.Errorf("ivalid change request for '%s'", item.ID)
+		}
 		if tmp, ok := tmpMap[item.ID]; ok {
 			if !reflect.DeepEqual(tmp, item) {
-				return nil, fmt.Errorf("duplicate entry for %s", item.ID)
+				return nil, fmt.Errorf("duplicate entry for '%s'", item.ID)
 			}
 			continue
 		}
 		tmpMap[item.ID] = item
-		filteredItems = append(filteredItems, item)
+		validatedItems = append(validatedItems, item)
 	}
-	return filteredItems, nil
+	return validatedItems, nil
 }
 
-func newModulesChangeRequest(selectedRepoMods map[string]modWrapper, installedMods []models_module.ModuleAbbreviated, toRemoveMods []string) modulesChangeRequest {
+func newModulesChangeRequest(selectedRepoMods map[string]modWrapper, installedModsMap map[string]models_module.ModuleAbbreviated, toRemoveMods []string) modulesChangeRequest {
 	var install []modWrapper
 	var change []changeItem
 	var remove []string
 	for id, repoMod := range selectedRepoMods {
-		i := slices.IndexFunc(installedMods, func(item models_module.ModuleAbbreviated) bool {
-			return item.ID == id
-		})
-		if i >= 0 {
-			installedMod := installedMods[i]
+		installedMod, ok := installedModsMap[id]
+		if ok {
 			if equalMods(repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.Mod.Version, installedMod.ID, installedMod.Source, installedMod.Channel, installedMod.Version) {
 				continue
 			}
@@ -196,9 +200,7 @@ func newModulesChangeRequest(selectedRepoMods map[string]modWrapper, installedMo
 		install = append(install, repoMod)
 	}
 	for _, id := range toRemoveMods {
-		if !slices.ContainsFunc(installedMods, func(m models_module.ModuleAbbreviated) bool {
-			return m.ID == id
-		}) {
+		if _, ok := installedModsMap[id]; !ok {
 			continue
 		}
 		if _, ok := selectedRepoMods[id]; ok {

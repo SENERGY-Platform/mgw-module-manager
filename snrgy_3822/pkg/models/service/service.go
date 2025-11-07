@@ -64,9 +64,11 @@ type ModuleVariant struct {
 }
 
 type ChangeRequestItem struct {
-	ID      string        `json:"id"`
-	Variant ModuleVariant `json:"variant"`
-	Remove  bool          `json:"remove"`
+	ID      string `json:"id"`
+	Source  string `json:"source"`
+	Channel string `json:"channel"`
+	Remove  bool   `json:"remove"`
+	Update  bool   `json:"update"`
 }
 
 type ModulesChangeRequest struct {

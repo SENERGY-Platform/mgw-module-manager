@@ -107,14 +107,24 @@ func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_
 	return repoModules, nil
 }
 
-func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_service.ChangeRequestItem) (map[string]modWrapper, error) {
+func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_service.ChangeRequestItem, installedModsMap map[string]models_module.ModuleAbbreviated) (map[string]modWrapper, error) {
 	// get module filesystem and modfile
 	mods := make(map[string]modWrapper)
 	for _, item := range reqItems {
 		if item.Remove {
 			continue
 		}
-		modFS, err := s.reposHdl.ModuleFS(ctx, item.ID, item.Variant.Source, item.Variant.Channel)
+		var installedVer string
+		if item.Update {
+			installedMod, ok := installedModsMap[item.ID]
+			if !ok {
+				continue
+			}
+			item.Source = installedMod.Source
+			item.Channel = installedMod.Channel
+			installedVer = installedMod.Version
+		}
+		modFS, err := s.reposHdl.ModuleFS(ctx, item.ID, item.Source, item.Channel)
 		if err != nil {
 			return nil, err
 		}
@@ -122,12 +132,15 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_servi
 		if err != nil {
 			return nil, err
 		}
+		if item.Update && (mod.Version == installedVer) {
+			continue
+		}
 		if _, ok := mods[mod.ID]; !ok {
 			mods[mod.ID] = modWrapper{
 				Mod:     mod,
 				FS:      modFS,
-				Source:  item.Variant.Source,
-				Channel: item.Variant.Channel,
+				Source:  item.Source,
+				Channel: item.Channel,
 			}
 		}
 	}
