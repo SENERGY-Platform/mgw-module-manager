@@ -154,7 +154,7 @@ func (s *Service) CancelModulesChangeRequest(_ context.Context) error {
 	return nil
 }
 
-func (s *Service) ModulesUpdateCount(ctx context.Context) (int, error) {
+func (s *Service) ModulesAvailableUpdates(ctx context.Context) (int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	installedMods, err := s.modsHdl.Modules(ctx, models_module.ModuleFilter{})
