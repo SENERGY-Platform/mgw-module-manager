@@ -232,7 +232,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 		err = errors.New("id mismatch")
 		return err
 	}
-	newImages, err := h.addImages(ctx, imagesAsSet(newMod.Services))
+	newImages, err := h.pullImages(ctx, imagesAsSet(newMod.Services))
 	if err != nil {
 		return err
 	}
