@@ -23,6 +23,8 @@ type ModulesHandler interface {
 	Add(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Update(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Remove(ctx context.Context, id string) error
+	PullModuleImages(ctx context.Context, id string) error
+	PullModulesImages(ctx context.Context) error
 }
 
 type Logger interface {
