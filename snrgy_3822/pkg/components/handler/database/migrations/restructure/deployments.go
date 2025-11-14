@@ -38,6 +38,17 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
+	ok, err = columnExists(ctx, db, tableName, "indirect")
+	if err != nil {
+		return err
+	}
+	if ok {
+		logger.Info("dropping column", attrColumn, "indirect", attrTable, tableName)
+		err = dropColumn(ctx, db, tableName, "`indirect`")
+		if err != nil {
+			return err
+		}
+	}
 	ok, err = indexExists(ctx, db, tableName, "PRIMARY")
 	if err != nil {
 		return err

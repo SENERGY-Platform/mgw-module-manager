@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS deployments
     name     VARCHAR(256) NOT NULL,
     dir      VARCHAR(256) NOT NULL,
     enabled  BOOLEAN      NOT NULL,
-    indirect BOOLEAN      NOT NULL,
     created  TIMESTAMP(6) NOT NULL,
     updated  TIMESTAMP(6) NOT NULL,
     PRIMARY KEY (id),
