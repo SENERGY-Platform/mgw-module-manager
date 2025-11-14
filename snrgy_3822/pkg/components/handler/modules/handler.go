@@ -174,7 +174,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 		err = errors.New("id mismatch")
 		return err
 	}
-	newImages, err := h.addImages(ctx, imagesAsSet(mod.Services))
+	newImages, err := h.pullImages(ctx, imagesAsSet(mod.Services))
 	if err != nil {
 		return err
 	}
@@ -304,7 +304,7 @@ func (h *Handler) cacheDel(id string) {
 	delete(h.cache, id)
 }
 
-func (h *Handler) addImages(ctx context.Context, images map[string]struct{}) (map[string]struct{}, error) {
+func (h *Handler) pullImages(ctx context.Context, images map[string]struct{}) (map[string]struct{}, error) {
 	newImages := make(map[string]struct{})
 	for image := range images {
 		_, err := h.cewClient.GetImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
