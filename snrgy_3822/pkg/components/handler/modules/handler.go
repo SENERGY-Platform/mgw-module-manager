@@ -272,57 +272,9 @@ func (h *Handler) Remove(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *Handler) PullModuleImages(ctx context.Context, id string) error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	stgMod, err := h.storageHdl.ReadMod(ctx, id)
-	if err != nil {
+func (h *Handler) PullImages(ctx context.Context, services map[string]*models_external.ModuleService) error {
+	if _, err := h.pullImages(ctx, imagesAsSet(services)); err != nil {
 		return err
-	}
-	mod, ok := h.cacheGet(id)
-	if !ok {
-		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
-		mod, err = helper_modfile.GetModule(modFS)
-		if err != nil {
-			return err
-		}
-		h.cacheSet(id, mod)
-	}
-	_, err = h.pullImages(ctx, imagesAsSet(mod.Services))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (h *Handler) PullModulesImages(ctx context.Context, idFilter []string) error {
-	h.mu.RLock()
-	defer h.mu.RUnlock()
-	stgMods, err := h.storageHdl.ListMod(ctx, models_storage.ModuleFilter{IDs: idFilter})
-	if err != nil {
-		return err
-	}
-	var errs []error
-	for _, stgMod := range stgMods {
-		mod, ok := h.cacheGet(stgMod.ID)
-		if !ok {
-			modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
-			mod, err = helper_modfile.GetModule(modFS)
-			if err != nil {
-				errs = append(errs, err)
-				logger.Error("getting module failed", slog_attr.IDKey, stgMod.ID, slog_attr.ErrorKey, err)
-				continue
-			}
-			h.cacheSet(stgMod.ID, mod)
-		}
-		_, err = h.pullImages(ctx, imagesAsSet(mod.Services))
-		if err != nil {
-			return err
-		}
-	}
-	lenErrs := len(errs)
-	if lenErrs > 0 && lenErrs == len(stgMods) {
-		return models_error.NewMultiError(errs)
 	}
 	return nil
 }
