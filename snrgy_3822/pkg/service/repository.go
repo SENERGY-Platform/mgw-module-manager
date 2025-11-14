@@ -107,7 +107,7 @@ func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_
 	return repoModules, nil
 }
 
-func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_service.ChangeRequestItem, installedModsMap map[string]models_module.ModuleAbbreviated) (map[string]modWrapper, error) {
+func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_service.ChangeRequestItem, installedModsMap map[string]models_module.Module) (map[string]modWrapper, error) {
 	// get module filesystem and modfile
 	mods := make(map[string]modWrapper)
 	for _, item := range reqItems {
@@ -254,11 +254,11 @@ func buildReposTree(repos []models_repo.Repository) map[string]repoAbbreviated {
 	return reposTree
 }
 
-func handleInstalledMods(mods []models_service.RepoModule, installedMods []models_module.ModuleAbbreviated, filterInstalled, filterUpdateAvailable bool) []models_service.RepoModule {
+func handleInstalledMods(mods []models_service.RepoModule, installedMods []models_module.Module, filterInstalled, filterUpdateAvailable bool) []models_service.RepoModule {
 	if len(installedMods) == 0 {
 		return mods
 	}
-	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.ModuleAbbreviated) string {
+	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.Module) string {
 		return item.ID
 	}))
 	var tmp []models_service.RepoModule
@@ -290,7 +290,7 @@ func handleInstalledMods(mods []models_service.RepoModule, installedMods []model
 	return tmp
 }
 
-func getNextVersion(installed models_module.ModuleAbbreviated, repos []models_service.Repository) string {
+func getNextVersion(installed models_module.Module, repos []models_service.Repository) string {
 	for _, repo := range repos {
 		if repo.Source == installed.Source {
 			for _, channel := range repo.Channels {

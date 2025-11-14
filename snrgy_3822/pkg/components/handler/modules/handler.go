@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"maps"
 	"os"
 	"path"
-	"slices"
 	"strings"
 	"sync"
 
@@ -47,7 +45,7 @@ func (h *Handler) Init() error {
 	return os.MkdirAll(h.config.WorkDirPath, 0775)
 }
 
-func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter) ([]models_module.ModuleAbbreviated, error) {
+func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter) ([]models_module.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	stgMods, err := h.storageHdl.ListMod(ctx, models_storage.ModuleFilter{
@@ -59,7 +57,7 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 		return nil, err
 	}
 	filter.Name = strings.ToLower(filter.Name)
-	var modules []models_module.ModuleAbbreviated
+	var modules []models_module.Module
 	var errs []error
 	for _, stgMod := range stgMods {
 		mod, ok := h.cacheGet(stgMod.ID)
@@ -76,21 +74,12 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 		if !strings.Contains(strings.ToLower(mod.Name), filter.Name) { // empty string = true
 			continue
 		}
-		modules = append(modules, models_module.ModuleAbbreviated{
-			ID:      stgMod.ID,
-			Name:    mod.Name,
-			Desc:    mod.Description,
-			Tags:    slices.Collect(maps.Keys(mod.Tags)),
-			License: mod.License,
-			Author:  mod.Author,
-			Type:    mod.Type,
-			Version: mod.Version,
-			ModuleBase: models_module.ModuleBase{
-				Source:  stgMod.Source,
-				Channel: stgMod.Channel,
-				Added:   stgMod.Added,
-				Updated: stgMod.Updated,
-			},
+		modules = append(modules, models_module.Module{
+			Module:  mod,
+			Source:  stgMod.Source,
+			Channel: stgMod.Channel,
+			Added:   stgMod.Added,
+			Updated: stgMod.Updated,
 		})
 	}
 	lenErrs := len(errs)
@@ -117,13 +106,11 @@ func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, 
 		h.cacheSet(id, mod)
 	}
 	return models_module.Module{
-		Module: mod,
-		ModuleBase: models_module.ModuleBase{
-			Source:  stgMod.Source,
-			Channel: stgMod.Channel,
-			Added:   stgMod.Added,
-			Updated: stgMod.Updated,
-		},
+		Module:  mod,
+		Source:  stgMod.Source,
+		Channel: stgMod.Channel,
+		Added:   stgMod.Added,
+		Updated: stgMod.Updated,
 	}, nil
 }
 
@@ -308,10 +295,10 @@ func (h *Handler) PullModuleImages(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *Handler) PullModulesImages(ctx context.Context) error {
+func (h *Handler) PullModulesImages(ctx context.Context, idFilter []string) error {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	stgMods, err := h.storageHdl.ListMod(ctx, models_storage.ModuleFilter{})
+	stgMods, err := h.storageHdl.ListMod(ctx, models_storage.ModuleFilter{IDs: idFilter})
 	if err != nil {
 		return err
 	}

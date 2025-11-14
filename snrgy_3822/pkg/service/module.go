@@ -30,7 +30,7 @@ import (
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
-func (s *Service) Modules(ctx context.Context, filter models_module.ModuleFilter) ([]models_module.ModuleAbbreviated, error) {
+func (s *Service) Modules(ctx context.Context, filter models_module.ModuleFilter) ([]models_module.Module, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.modsHdl.Modules(ctx, filter)
@@ -62,7 +62,7 @@ func (s *Service) NewModulesChangeRequest(ctx context.Context, reqItems []models
 	if err != nil {
 		return models_service.ModulesChangeRequest{}, err
 	}
-	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.ModuleAbbreviated) string {
+	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.Module) string {
 		return item.ID
 	}))
 	selectedRepoMods, err := s.selectRepoModules(ctx, reqItems, installedModsMap)
@@ -193,7 +193,7 @@ func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modules
 	if len(repoMods) == 0 {
 		return modulesChangeRequest{}, nil
 	}
-	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.ModuleAbbreviated) string {
+	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.Module) string {
 		return item.ID
 	}))
 	var reqItems []models_service.ChangeRequestItem
@@ -236,7 +236,7 @@ func validateReqItems(reqItems []models_service.ChangeRequestItem) ([]models_ser
 	return validatedItems, nil
 }
 
-func newModulesChangeRequest(selectedRepoMods map[string]modWrapper, installedModsMap map[string]models_module.ModuleAbbreviated, toRemoveMods []string) modulesChangeRequest {
+func newModulesChangeRequest(selectedRepoMods map[string]modWrapper, installedModsMap map[string]models_module.Module, toRemoveMods []string) modulesChangeRequest {
 	var install []modWrapper
 	var change []changeItem
 	var remove []string
@@ -250,7 +250,7 @@ func newModulesChangeRequest(selectedRepoMods map[string]modWrapper, installedMo
 				Previous: models_service.ModuleAbbreviated{
 					ID:   installedMod.ID,
 					Name: installedMod.Name,
-					Desc: installedMod.Desc,
+					Desc: installedMod.Description,
 					ModuleVariant: models_service.ModuleVariant{
 						Source:  installedMod.Source,
 						Channel: installedMod.Channel,

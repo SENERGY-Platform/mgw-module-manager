@@ -22,28 +22,24 @@ import (
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 )
 
-type ModuleBase struct {
+//type ModuleAbbreviated struct {
+//	ID      string   `json:"id"`
+//	Name    string   `json:"name"`
+//	Desc    string   `json:"description"`
+//	Tags    []string `json:"tags"`
+//	License string   `json:"license"`
+//	Author  string   `json:"author"`
+//	Type    string   `json:"type"`
+//	Version string   `json:"version"`
+//	ModuleBase
+//}
+
+type Module struct {
+	module_lib.Module
 	Source  string    `json:"source"`
 	Channel string    `json:"channel"`
 	Added   time.Time `json:"added"`
 	Updated time.Time `json:"updated"`
-}
-
-type ModuleAbbreviated struct {
-	ID      string   `json:"id"`
-	Name    string   `json:"name"`
-	Desc    string   `json:"description"`
-	Tags    []string `json:"tags"`
-	License string   `json:"license"`
-	Author  string   `json:"author"`
-	Type    string   `json:"type"`
-	Version string   `json:"version"`
-	ModuleBase
-}
-
-type Module struct {
-	module_lib.Module
-	ModuleBase
 }
 
 type ModuleFilter struct {

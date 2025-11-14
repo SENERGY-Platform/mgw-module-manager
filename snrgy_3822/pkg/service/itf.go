@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/fs"
 
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 )
@@ -17,14 +18,14 @@ type RepositoriesHandler interface {
 }
 
 type ModulesHandler interface {
-	Modules(ctx context.Context, filter models_module.ModuleFilter) ([]models_module.ModuleAbbreviated, error)
+	Modules(ctx context.Context, filter models_module.ModuleFilter) ([]models_module.Module, error)
 	Module(ctx context.Context, id string) (models_module.Module, error)
 	ModuleFS(ctx context.Context, id string) (fs.FS, error)
 	Add(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Update(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Remove(ctx context.Context, id string) error
 	PullModuleImages(ctx context.Context, id string) error
-	PullModulesImages(ctx context.Context) error
+	PullModulesImages(ctx context.Context, idFilter []string) error
 }
 
 type Logger interface {
