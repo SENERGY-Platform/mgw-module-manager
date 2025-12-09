@@ -16,7 +16,9 @@
 
 package storage
 
-import "time"
+import (
+	"time"
+)
 
 type Module struct {
 	ID      string
@@ -31,4 +33,86 @@ type ModulesFilter struct {
 	IDs     []string
 	Source  string
 	Channel string
+}
+
+type Deployment struct {
+	ID      string
+	Module  DeploymentModule
+	Name    string
+	DirName string
+	Enabled bool
+	Created time.Time
+	Updated time.Time
+}
+
+type DeploymentModule struct {
+	ID      string
+	Source  string
+	Channel string
+	Version string
+}
+
+type DeploymentContainer struct {
+	ID           string
+	DeploymentID string
+	Reference    string
+	Alias        string
+	Order        int
+}
+
+type DeploymentHostResource struct {
+	ID           string
+	DeploymentID string
+	Reference    string
+}
+
+type DeploymentSecret struct {
+	ID           string
+	DeploymentID string
+	Reference    string
+	Items        []DeploymentSecretItem
+}
+
+type DeploymentSecretItem struct {
+	Name    string
+	AsMount bool
+	AsEnv   bool
+}
+
+type DeploymentConfig struct {
+	String       string
+	StringSlice  []string
+	Int64        int64
+	Int64Slice   []int64
+	Float64      float64
+	Float64Slice []float64
+	Bool         bool
+	BoolSlice    []bool
+	DataType     int
+	IsSlice      bool
+}
+
+const (
+	StringType = iota
+	Int64Type
+	Float64Type
+	BoolType
+)
+
+type DeploymentsFilter struct {
+	IDs     []string
+	Name    string
+	Enabled int
+}
+
+type DeploymentsHostResourcesFilter struct {
+	IDs           []string
+	DeploymentIDs []string
+}
+
+type DeploymentsSecretsFilter struct {
+	IDs           []string
+	DeploymentIDs []string
+	AsMount       int
+	AsEnv         int
 }
