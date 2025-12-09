@@ -118,7 +118,7 @@ func genModulesFilter(filter models_storage.ModulesFilter) (string, []any) {
 	var val []any
 	if len(filter.IDs) > 0 {
 		ids := removeDuplicates(filter.IDs)
-		fc = append(fc, "id IN ("+genQuestionMarks(len(filter.IDs))+")")
+		fc = append(fc, "id IN ("+genQuestionMarks(len(ids))+")")
 		for _, id := range ids {
 			val = append(val, id)
 		}
