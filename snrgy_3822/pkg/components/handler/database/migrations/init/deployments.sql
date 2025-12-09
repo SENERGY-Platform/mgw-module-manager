@@ -1,13 +1,15 @@
 CREATE TABLE IF NOT EXISTS deployments
 (
-    id       CHAR(36)     NOT NULL,
-    mod_id   VARCHAR(256) NOT NULL,
-    mod_ver  VARCHAR(256) NOT NULL,
-    name     VARCHAR(256) NOT NULL,
-    dir      VARCHAR(256) NOT NULL,
-    enabled  BOOLEAN      NOT NULL,
-    created  TIMESTAMP(6) NOT NULL,
-    updated  TIMESTAMP(6) NOT NULL,
+    id          CHAR(36)     NOT NULL,
+    mod_id      VARCHAR(256) NOT NULL,
+    mod_source  VARCHAR(512) NOT NULL,
+    mod_channel VARCHAR(256) NOT NULL,
+    mod_ver     VARCHAR(256) NOT NULL,
+    name        VARCHAR(256) NOT NULL,
+    dir         VARCHAR(256) NOT NULL,
+    enabled     BOOLEAN      NOT NULL,
+    created     TIMESTAMP(6) NOT NULL,
+    updated     TIMESTAMP(6) NOT NULL,
     PRIMARY KEY (id),
     INDEX i_mod_id (mod_id),
     FOREIGN KEY (mod_id) REFERENCES modules (id) ON DELETE RESTRICT ON UPDATE RESTRICT
@@ -38,7 +40,7 @@ CREATE TABLE IF NOT EXISTS dep_secrets
     dep_id   CHAR(36)     NOT NULL,
     ref      VARCHAR(128) NOT NULL,
     sec_id   VARCHAR(256) NOT NULL,
-    item     VARCHAR(128) NULL,
+    item     VARCHAR(128) NULL, # e.g. user credentials consist of 'username' and 'password' stored as a single secret
     as_mount BOOLEAN,
     as_env   BOOLEAN,
     UNIQUE KEY uk_dep_id_ref_item (dep_id, ref, item),

@@ -49,6 +49,28 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
+	ok, err = columnExists(ctx, db, tableName, "mod_source")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.Info("adding column", attrColumn, "mod_source", attrTable, tableName)
+		err = addColumn(ctx, db, tableName, "mod_source", "VARCHAR(512)", "NOT NULL", "AFTER mod_id")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = columnExists(ctx, db, tableName, "mod_channel")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.Info("adding column", attrColumn, "mod_channel", attrTable, tableName)
+		err = addColumn(ctx, db, tableName, "mod_channel", "VARCHAR(256)", "NOT NULL", "AFTER mod_source")
+		if err != nil {
+			return err
+		}
+	}
 	ok, err = indexExists(ctx, db, tableName, "PRIMARY")
 	if err != nil {
 		return err
