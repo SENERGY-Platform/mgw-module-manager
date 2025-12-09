@@ -4,7 +4,6 @@ import (
 	"context"
 	"io/fs"
 
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
 	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
 )
@@ -24,9 +23,4 @@ type ModulesHandler interface {
 	Add(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Update(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Remove(ctx context.Context, id string) error
-	PullImages(ctx context.Context, services map[string]*models_external.ModuleService) error
-}
-
-type Logger interface {
-	Error(v ...any)
 }
