@@ -49,17 +49,17 @@ func TestHandler_Modules(t *testing.T) {
 			Updated: timestamp,
 		},
 	}}
-	a := models_module.ModuleAbbreviated{
-		ID:      "github.com/org/repo",
-		Name:    "Test Module",
-		Desc:    "Module for tests.",
-		Version: "v1.0.0",
-		ModuleBase: models_module.ModuleBase{
-			Source:  "test_source",
-			Channel: "test_channel",
-			Added:   timestamp,
-			Updated: timestamp,
+	a := models_module.Module{
+		Module: models_external.Module{
+			ID:          "github.com/org/repo",
+			Name:        "Test Module",
+			Description: "Module for tests.",
+			Version:     "v1.0.0",
 		},
+		Source:  "test_source",
+		Channel: "test_channel",
+		Added:   timestamp,
+		Updated: timestamp,
 	}
 	h := New(stgHdlMock, nil, Config{WorkDirPath: "./test"})
 	err := h.Init()
@@ -73,7 +73,7 @@ func TestHandler_Modules(t *testing.T) {
 	if len(mods) != 1 {
 		t.Errorf("expected len 1 but got %d", len(mods))
 	}
-	var b models_module.ModuleAbbreviated
+	var b models_module.Module
 	ok := false
 	for _, mod := range mods {
 		if mod.ID == "github.com/org/repo" {
@@ -84,6 +84,11 @@ func TestHandler_Modules(t *testing.T) {
 	if !ok {
 		t.Error(errors.New("module not in slice"))
 	}
+	if a.Version != b.Version {
+		t.Errorf("expected %v, got %v", a.Version, b.Version)
+	}
+	a.Module = models_external.Module{}
+	b.Module = models_external.Module{}
 	if !reflect.DeepEqual(a, b) {
 		t.Errorf("expected %v, got %v", a, b)
 	}
@@ -102,7 +107,13 @@ func TestHandler_Module(t *testing.T) {
 			Updated: timestamp,
 		},
 	}}
-	a := models_module.ModuleBase{
+	a := models_module.Module{
+		Module: models_external.Module{
+			ID:          "github.com/org/repo",
+			Name:        "Test Module",
+			Description: "Module for tests.",
+			Version:     "v1.0.0",
+		},
 		Source:  "test_source",
 		Channel: "test_channel",
 		Added:   timestamp,
@@ -117,8 +128,13 @@ func TestHandler_Module(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if !reflect.DeepEqual(a, mod.ModuleBase) {
-		t.Errorf("expected: %v, got: %v", a, mod.ModuleBase)
+	if a.Version != mod.Version {
+		t.Errorf("expected %v, got %v", a.Version, mod.Version)
+	}
+	a.Module = models_external.Module{}
+	mod.Module = models_external.Module{}
+	if !reflect.DeepEqual(a, mod) {
+		t.Errorf("expected: %v, got: %v", a, mod)
 	}
 	t.Run("error", func(t *testing.T) {
 		t.Run("does not exist", func(t *testing.T) {
@@ -653,14 +669,14 @@ type storageHandlerMock struct {
 	Mods map[string]models_storage.Module
 }
 
-func (m *storageHandlerMock) ListMod(_ context.Context, _ models_storage.ModuleFilter) (map[string]models_storage.Module, error) {
+func (m *storageHandlerMock) Modules(_ context.Context, _ models_storage.ModulesFilter) (map[string]models_storage.Module, error) {
 	if m.Err != nil {
 		return nil, m.Err
 	}
 	return m.Mods, nil
 }
 
-func (m *storageHandlerMock) ReadMod(_ context.Context, id string) (models_storage.Module, error) {
+func (m *storageHandlerMock) Module(_ context.Context, id string) (models_storage.Module, error) {
 	if m.Err != nil {
 		return models_storage.Module{}, m.Err
 	}
@@ -671,7 +687,7 @@ func (m *storageHandlerMock) ReadMod(_ context.Context, id string) (models_stora
 	return mod, nil
 }
 
-func (m *storageHandlerMock) CreateMod(_ context.Context, mod models_storage.Module) error {
+func (m *storageHandlerMock) CreateModule(_ context.Context, mod models_storage.Module) error {
 	if m.Err != nil {
 		return m.Err
 	}
@@ -683,7 +699,7 @@ func (m *storageHandlerMock) CreateMod(_ context.Context, mod models_storage.Mod
 	return nil
 }
 
-func (m *storageHandlerMock) UpdateMod(_ context.Context, mod models_storage.Module) error {
+func (m *storageHandlerMock) UpdateModule(_ context.Context, mod models_storage.Module) error {
 	if m.Err != nil {
 		return m.Err
 	}
@@ -695,7 +711,7 @@ func (m *storageHandlerMock) UpdateMod(_ context.Context, mod models_storage.Mod
 	return nil
 }
 
-func (m *storageHandlerMock) DeleteMod(_ context.Context, id string) error {
+func (m *storageHandlerMock) DeleteModule(_ context.Context, id string) error {
 	if m.Err != nil {
 		return m.Err
 	}
