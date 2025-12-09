@@ -27,7 +27,7 @@ type Module struct {
 	Updated time.Time
 }
 
-type ModuleFilter struct {
+type ModulesFilter struct {
 	IDs     []string
 	Source  string
 	Channel string

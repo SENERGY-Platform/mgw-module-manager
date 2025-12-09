@@ -18,8 +18,6 @@ package database
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"strings"
 	"time"
 
@@ -27,11 +25,24 @@ import (
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 )
 
-const selectFromModulesStatement = "SELECT id, dir, source, channel, added, updated FROM modules"
+func (h *Handler) Module(ctx context.Context, id string) (models_storage.Module, error) {
+	modules, err := h.Modules(ctx, models_storage.ModulesFilter{IDs: []string{id}})
+	if err != nil {
+		return models_storage.Module{}, err
+	}
+	if len(modules) == 0 {
+		return models_storage.Module{}, models_error.NotFoundErr
+	}
+	return modules[id], nil
+}
 
-func (h *Handler) ListMod(ctx context.Context, filter models_storage.ModuleFilter) (map[string]models_storage.Module, error) {
-	fc, val := genModFilter(filter)
-	rows, err := h.sqlDB.QueryContext(ctx, selectFromModulesStatement+fc+";", val...)
+func (h *Handler) Modules(ctx context.Context, filter models_storage.ModulesFilter) (map[string]models_storage.Module, error) {
+	fc, val := genModulesFilter(filter)
+	rows, err := h.sqlDB.QueryContext(
+		ctx,
+		"SELECT id, dir, source, channel, added, updated FROM modules"+fc+";",
+		val...,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -55,27 +66,7 @@ func (h *Handler) ListMod(ctx context.Context, filter models_storage.ModuleFilte
 	return mods, nil
 }
 
-func (h *Handler) ReadMod(ctx context.Context, id string) (models_storage.Module, error) {
-	row := h.sqlDB.QueryRowContext(ctx, selectFromModulesStatement+" WHERE id = ?;", id)
-	var mod models_storage.Module
-	var at, ut []uint8
-	err := row.Scan(&mod.ID, &mod.DirName, &mod.Source, &mod.Channel, &at, &ut)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return models_storage.Module{}, models_error.NotFoundErr
-		}
-		return models_storage.Module{}, err
-	}
-	if mod.Added, err = time.Parse(timeLayout, string(at)); err != nil {
-		return models_storage.Module{}, err
-	}
-	if mod.Updated, err = time.Parse(timeLayout, string(ut)); err != nil {
-		return models_storage.Module{}, err
-	}
-	return mod, nil
-}
-
-func (h *Handler) CreateMod(ctx context.Context, mod models_storage.Module) error {
+func (h *Handler) CreateModule(ctx context.Context, mod models_storage.Module) error {
 	_, err := h.sqlDB.ExecContext(
 		ctx,
 		"INSERT INTO modules (id, dir, source, channel, added, updated) VALUES (?, ?, ?, ?, ?, ?);",
@@ -92,7 +83,7 @@ func (h *Handler) CreateMod(ctx context.Context, mod models_storage.Module) erro
 	return nil
 }
 
-func (h *Handler) UpdateMod(ctx context.Context, mod models_storage.Module) error {
+func (h *Handler) UpdateModule(ctx context.Context, mod models_storage.Module) error {
 	res, err := h.sqlDB.ExecContext(ctx, "UPDATE modules SET dir = ?, source = ?, channel = ?, updated = ? WHERE id = ?;", mod.DirName, mod.Source, mod.Channel, mod.Updated, mod.ID)
 	if err != nil {
 		return err
@@ -107,7 +98,7 @@ func (h *Handler) UpdateMod(ctx context.Context, mod models_storage.Module) erro
 	return nil
 }
 
-func (h *Handler) DeleteMod(ctx context.Context, id string) error {
+func (h *Handler) DeleteModule(ctx context.Context, id string) error {
 	res, err := h.sqlDB.ExecContext(ctx, "DELETE FROM modules WHERE id = ?;", id)
 	if err != nil {
 		return err
@@ -122,7 +113,7 @@ func (h *Handler) DeleteMod(ctx context.Context, id string) error {
 	return nil
 }
 
-func genModFilter(filter models_storage.ModuleFilter) (string, []any) {
+func genModulesFilter(filter models_storage.ModulesFilter) (string, []any) {
 	var fc []string
 	var val []any
 	if len(filter.IDs) > 0 {

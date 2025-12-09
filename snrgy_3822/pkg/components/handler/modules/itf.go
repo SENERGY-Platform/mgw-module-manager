@@ -24,11 +24,11 @@ import (
 )
 
 type storageHandler interface {
-	ListMod(ctx context.Context, filter models_storage.ModuleFilter) (map[string]models_storage.Module, error)
-	ReadMod(ctx context.Context, id string) (models_storage.Module, error)
-	CreateMod(ctx context.Context, mod models_storage.Module) error
-	UpdateMod(ctx context.Context, mod models_storage.Module) error
-	DeleteMod(ctx context.Context, id string) error
+	Modules(ctx context.Context, filter models_storage.ModulesFilter) (map[string]models_storage.Module, error)
+	Module(ctx context.Context, id string) (models_storage.Module, error)
+	CreateModule(ctx context.Context, mod models_storage.Module) error
+	UpdateModule(ctx context.Context, mod models_storage.Module) error
+	DeleteModule(ctx context.Context, id string) error
 }
 
 type containerEngineWrapperClient interface {

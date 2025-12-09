@@ -48,7 +48,7 @@ func (h *Handler) Init() error {
 func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter) ([]models_module.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	stgMods, err := h.storageHdl.ListMod(ctx, models_storage.ModuleFilter{
+	stgMods, err := h.storageHdl.Modules(ctx, models_storage.ModulesFilter{
 		IDs:     filter.IDs,
 		Source:  filter.Source,
 		Channel: filter.Channel,
@@ -92,7 +92,7 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	stgMod, err := h.storageHdl.ReadMod(ctx, id)
+	stgMod, err := h.storageHdl.Module(ctx, id)
 	if err != nil {
 		return models_module.Module{}, err
 	}
@@ -117,7 +117,7 @@ func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, 
 func (h *Handler) ModuleFS(ctx context.Context, id string) (fs.FS, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	storedMod, err := h.storageHdl.ReadMod(ctx, id)
+	storedMod, err := h.storageHdl.Module(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (h *Handler) ModuleFS(ctx context.Context, id string) (fs.FS, error) {
 func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.FS) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	_, err := h.storageHdl.ReadMod(ctx, id)
+	_, err := h.storageHdl.Module(ctx, id)
 	if err != nil {
 		if !errors.Is(err, models_error.NotFoundErr) {
 			return err
@@ -172,7 +172,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 			}
 		}
 	}()
-	if err = h.storageHdl.CreateMod(ctx, stgMod); err != nil {
+	if err = h.storageHdl.CreateModule(ctx, stgMod); err != nil {
 		return err
 	}
 	h.cacheSet(id, mod)
@@ -182,7 +182,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys fs.FS) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	stgModOld, err := h.storageHdl.ReadMod(ctx, id)
+	stgModOld, err := h.storageHdl.Module(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -230,7 +230,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 			}
 		}
 	}()
-	if err = h.storageHdl.UpdateMod(ctx, stgModNew); err != nil {
+	if err = h.storageHdl.UpdateModule(ctx, stgModNew); err != nil {
 		return err
 	}
 	h.cacheSet(id, newMod)
@@ -246,7 +246,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 func (h *Handler) Remove(ctx context.Context, id string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	stgMod, err := h.storageHdl.ReadMod(ctx, id)
+	stgMod, err := h.storageHdl.Module(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -265,17 +265,10 @@ func (h *Handler) Remove(ctx context.Context, id string) error {
 	if err = h.removeImages(ctx, imagesAsSet(mod.Services)); err != nil {
 		return err
 	}
-	if err = h.storageHdl.DeleteMod(ctx, id); err != nil {
+	if err = h.storageHdl.DeleteModule(ctx, id); err != nil {
 		return err
 	}
 	h.cacheDel(id)
-	return nil
-}
-
-func (h *Handler) PullImages(ctx context.Context, services map[string]*models_external.ModuleService) error {
-	if _, err := h.pullImages(ctx, imagesAsSet(services)); err != nil {
-		return err
-	}
 	return nil
 }
 
