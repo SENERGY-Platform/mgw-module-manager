@@ -19,7 +19,7 @@ package module
 import (
 	"time"
 
-	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 //type ModuleAbbreviated struct {
@@ -35,7 +35,7 @@ import (
 //}
 
 type Module struct {
-	module_lib.Module
+	models_external.Module
 	Source  string    `json:"source"`
 	Channel string    `json:"channel"`
 	Added   time.Time `json:"added"`
