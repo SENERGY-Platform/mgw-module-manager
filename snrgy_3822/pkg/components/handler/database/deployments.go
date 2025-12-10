@@ -83,6 +83,117 @@ func (h *Handler) Deployments(ctx context.Context, filter models_storage.Deploym
 	return deps, nil
 }
 
+func (h *Handler) CreateDeployment(ctx context.Context, deployment models_storage.Deployment) error {
+	return h.CreateDeployments(ctx, []models_storage.Deployment{deployment})
+}
+
+func (h *Handler) CreateDeployments(ctx context.Context, deployments []models_storage.Deployment) (err error) {
+	var db sqlDatabase = h.sqlDB
+	var tx *sql.Tx
+	if len(deployments) > 0 {
+		tx, err = h.sqlDB.BeginTx(ctx, nil)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			err = tx.Rollback()
+		}()
+		db = tx
+	}
+	for _, deployment := range deployments {
+		_, err = db.ExecContext(
+			ctx,
+			"INSERT INTO deployments (id, mod_id, mod_source, mod_channel, mod_ver, name, dir, enabled, created, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			deployment.Id,
+			deployment.Module.Id,
+			deployment.Module.Source,
+			deployment.Module.Channel,
+			deployment.Module.Version,
+			deployment.Name,
+			deployment.DirName,
+			deployment.Enabled,
+			deployment.Created,
+			deployment.Updated,
+		)
+		if err != nil {
+			return
+		}
+	}
+	if tx != nil {
+		err = tx.Commit()
+	}
+	return
+}
+
+func (h *Handler) UpdateDeployment(ctx context.Context, deployment models_storage.Deployment) error {
+	return h.UpdateDeployments(ctx, []models_storage.Deployment{deployment})
+}
+
+func (h *Handler) UpdateDeployments(ctx context.Context, deployments []models_storage.Deployment) (err error) {
+	var db sqlDatabase = h.sqlDB
+	var tx *sql.Tx
+	if len(deployments) > 0 {
+		tx, err = h.sqlDB.BeginTx(ctx, nil)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			err = tx.Rollback()
+		}()
+		db = tx
+	}
+	for _, deployment := range deployments {
+		_, err = db.ExecContext(
+			ctx,
+			"UPDATE deployments SET mod_source = ?, mod_channel = ?, mod_ver = ?, name = ?, dir = ?, enabled = ?, indirect = ?, updated = ? WHERE id = ?",
+			deployment.Module.Source,
+			deployment.Module.Channel,
+			deployment.Module.Version,
+			deployment.Name,
+			deployment.DirName,
+			deployment.Enabled,
+			deployment.Created,
+			deployment.Updated,
+		)
+		if err != nil {
+			return
+		}
+	}
+	if tx != nil {
+		err = tx.Commit()
+	}
+	return
+}
+
+func (h *Handler) DeleteDeployment(ctx context.Context, id string) error {
+	return h.DeleteDeployments(ctx, []string{id})
+}
+
+func (h *Handler) DeleteDeployments(ctx context.Context, ids []string) (err error) {
+	var db sqlDatabase = h.sqlDB
+	var tx *sql.Tx
+	if len(ids) > 0 {
+		tx, err = h.sqlDB.BeginTx(ctx, nil)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			err = tx.Rollback()
+		}()
+		db = tx
+	}
+	for _, id := range ids {
+		_, err = db.ExecContext(ctx, "DELETE FROM deployments WHERE id = ?", id)
+		if err != nil {
+			return
+		}
+	}
+	if tx != nil {
+		err = tx.Commit()
+	}
+	return
+}
+
 func (h *Handler) DeploymentContainers(ctx context.Context, deploymentId string) (map[string]models_storage.DeploymentContainer, error) {
 	deploymentsContainers, err := h.DeploymentsContainers(ctx, []string{deploymentId})
 	if err != nil {
@@ -426,6 +537,13 @@ func genDeploymentsFilter(filter models_storage.DeploymentsFilter) (string, []an
 	if len(filter.Ids) > 0 {
 		ids := helper_slices.RemoveDuplicates(filter.Ids)
 		fc = append(fc, "id IN ("+genQuestionMarks(len(ids))+")")
+		for _, id := range ids {
+			val = append(val, id)
+		}
+	}
+	if len(filter.ModuleIds) > 0 {
+		ids := helper_slices.RemoveDuplicates(filter.ModuleIds)
+		fc = append(fc, "mod_id IN ("+genQuestionMarks(len(ids))+")")
 		for _, id := range ids {
 			val = append(val, id)
 		}

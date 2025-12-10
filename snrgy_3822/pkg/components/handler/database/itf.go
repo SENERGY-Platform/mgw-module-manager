@@ -25,3 +25,7 @@ type migration interface {
 	Required(ctx context.Context, db *sql.DB) (bool, error)
 	Run(ctx context.Context, db *sql.DB) error
 }
+
+type sqlDatabase interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+}
