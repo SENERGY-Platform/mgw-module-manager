@@ -145,15 +145,15 @@ func (h *Handler) UpdateDeployments(ctx context.Context, deployments []models_st
 	for _, deployment := range deployments {
 		_, err = db.ExecContext(
 			ctx,
-			"UPDATE deployments SET mod_source = ?, mod_channel = ?, mod_ver = ?, name = ?, dir = ?, enabled = ?, indirect = ?, updated = ? WHERE id = ?",
+			"UPDATE deployments SET mod_source = ?, mod_channel = ?, mod_ver = ?, name = ?, dir = ?, enabled = ?, updated = ? WHERE id = ?",
 			deployment.Module.Source,
 			deployment.Module.Channel,
 			deployment.Module.Version,
 			deployment.Name,
 			deployment.DirName,
 			deployment.Enabled,
-			deployment.Created,
 			deployment.Updated,
+			deployment.Id,
 		)
 		if err != nil {
 			return
