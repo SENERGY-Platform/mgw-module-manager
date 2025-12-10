@@ -66,21 +66,6 @@ func (h *Handler) Ping(ctx context.Context) error {
 	return h.sqlDB.PingContext(ctx)
 }
 
-func removeDuplicates[S ~[]E, E comparable](sl S) []E {
-	if len(sl) < 2 {
-		return sl
-	}
-	set := make(map[E]struct{})
-	var sl2 []E
-	for _, s := range sl {
-		if _, ok := set[s]; !ok {
-			sl2 = append(sl2, s)
-		}
-		set[s] = struct{}{}
-	}
-	return sl2
-}
-
 func genQuestionMarks(numCol int) string {
 	if numCol <= 0 {
 		return ""

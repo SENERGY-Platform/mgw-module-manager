@@ -29,3 +29,34 @@ func AllFunc[S ~[]E, E any, K comparable](sl S, keyF func(item E) K) iter.Seq2[K
 		}
 	}
 }
+
+func RemoveDuplicates[S ~[]E, E comparable](sl S) []E {
+	if len(sl) < 2 {
+		return sl
+	}
+	set := make(map[E]struct{})
+	var sl2 []E
+	for _, s := range sl {
+		if _, ok := set[s]; !ok {
+			sl2 = append(sl2, s)
+		}
+		set[s] = struct{}{}
+	}
+	return sl2
+}
+
+func RemoveDuplicatesFunc[S ~[]E, E any, K comparable](sl S, f func(E) K) []E {
+	if len(sl) < 2 {
+		return sl
+	}
+	set := make(map[K]struct{})
+	var sl2 []E
+	for _, s := range sl {
+		key := f(s)
+		if _, ok := set[key]; !ok {
+			sl2 = append(sl2, s)
+		}
+		set[key] = struct{}{}
+	}
+	return sl2
+}
