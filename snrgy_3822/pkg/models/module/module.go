@@ -22,18 +22,6 @@ import (
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
-//type ModuleAbbreviated struct {
-//	ID      string   `json:"id"`
-//	Name    string   `json:"name"`
-//	Desc    string   `json:"description"`
-//	Tags    []string `json:"tags"`
-//	License string   `json:"license"`
-//	Author  string   `json:"author"`
-//	Type    string   `json:"type"`
-//	Version string   `json:"version"`
-//	ModuleBase
-//}
-
 type Module struct {
 	models_external.Module
 	Source  string    `json:"source"`
