@@ -28,7 +28,7 @@ type Channel struct {
 }
 
 type ModuleBase struct {
-	ID      string `json:"id"`
+	Id      string `json:"id"`
 	Source  string `json:"source"`
 	Channel string `json:"channel"`
 }
@@ -41,7 +41,7 @@ type Module struct {
 }
 
 type ModulesFilter struct {
-	IDs     []string
+	Ids     []string
 	Name    string
 	Sources []SourceFilter
 }

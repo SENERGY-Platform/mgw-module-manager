@@ -43,7 +43,7 @@ type Module struct {
 }
 
 type ModuleFilter struct {
-	IDs     []string
+	Ids     []string
 	Name    string
 	Source  string
 	Channel string

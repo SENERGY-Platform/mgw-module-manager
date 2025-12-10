@@ -33,7 +33,7 @@ func (s *Service) RepoModules(ctx context.Context, filter models_service.RepoMod
 		return nil, err
 	}
 	repoMods, err := s.reposHdl.Modules(ctx, models_repo.ModulesFilter{
-		IDs:     filter.IDs,
+		Ids:     filter.Ids,
 		Name:    filter.Name,
 		Sources: newSourceFilters(filter.Repositories),
 	})
@@ -55,7 +55,7 @@ func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_
 	reposTree := buildReposTree(repos)
 	var repoModules []models_service.RepoModule
 	for id, sources := range buildRepoModsTree(repoMods) {
-		repoModule := models_service.RepoModule{ID: id}
+		repoModule := models_service.RepoModule{Id: id}
 		var fErr error
 		for source, channels := range sources {
 			repo, ok := reposTree[source]
@@ -93,7 +93,7 @@ func (s *Service) repoModules(repos []models_repo.Repository, repoMods []models_
 			repoModule.Repositories = append(repoModule.Repositories, repository)
 		}
 		if fErr != nil {
-			logger.Error("invalid repository module", slog_attr.IDKey, id, slog_attr.ErrorKey, fErr)
+			logger.Error("invalid repository module", slog_attr.IdKey, id, slog_attr.ErrorKey, fErr)
 			continue
 		}
 		slices.SortStableFunc(repoModule.Repositories, func(a, b models_service.Repository) int {
@@ -116,7 +116,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_servi
 		}
 		var installedVer string
 		if item.Update {
-			installedMod, ok := installedModsMap[item.ID]
+			installedMod, ok := installedModsMap[item.Id]
 			if !ok {
 				continue
 			}
@@ -124,7 +124,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_servi
 			item.Channel = installedMod.Channel
 			installedVer = installedMod.Version
 		}
-		modFS, err := s.reposHdl.ModuleFS(ctx, item.ID, item.Source, item.Channel)
+		modFS, err := s.reposHdl.ModuleFS(ctx, item.Id, item.Source, item.Channel)
 		if err != nil {
 			return nil, err
 		}
@@ -178,9 +178,9 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_servi
 }
 
 func (s *Service) addRepoModDepsToMap(ctx context.Context, mod module_lib.Module, source, channel string, deps map[string]modWrapper, skipNotFound bool) error {
-	for depID := range mod.Dependencies {
-		if _, ok := deps[depID]; !ok {
-			depFS, err := s.reposHdl.ModuleFS(ctx, depID, source, channel)
+	for depId := range mod.Dependencies {
+		if _, ok := deps[depId]; !ok {
+			depFS, err := s.reposHdl.ModuleFS(ctx, depId, source, channel)
 			if err != nil {
 				if errors.Is(err, models_error.NotFoundErr) && skipNotFound {
 					continue
@@ -191,7 +191,7 @@ func (s *Service) addRepoModDepsToMap(ctx context.Context, mod module_lib.Module
 			if err != nil {
 				return err
 			}
-			deps[depID] = modWrapper{
+			deps[depId] = modWrapper{
 				Mod:     dep,
 				FS:      depFS,
 				Source:  source,
@@ -220,10 +220,10 @@ func newSourceFilters(repoFilters []models_service.RepositoryFilter) []models_re
 func buildRepoModsTree(repoMods []models_repo.Module) map[string]map[string]map[string]repoModAbbreviated {
 	repoModsTree := make(map[string]map[string]map[string]repoModAbbreviated) // {id:{source:{channel:repoModAbbreviated}}}
 	for _, repoMod := range repoMods {
-		sources, ok := repoModsTree[repoMod.ID]
+		sources, ok := repoModsTree[repoMod.Id]
 		if !ok {
 			sources = make(map[string]map[string]repoModAbbreviated)
-			repoModsTree[repoMod.ID] = sources
+			repoModsTree[repoMod.Id] = sources
 		}
 		channels, ok := sources[repoMod.Source]
 		if !ok {
@@ -263,7 +263,7 @@ func handleInstalledMods(mods []models_service.RepoModule, installedMods []model
 	}))
 	var tmp []models_service.RepoModule
 	for _, mod := range mods {
-		variant, ok := installedModsMap[mod.ID]
+		variant, ok := installedModsMap[mod.Id]
 		if ok {
 			nextVersion := getNextVersion(variant, mod.Repositories)
 			if filterUpdateAvailable && nextVersion == "" {

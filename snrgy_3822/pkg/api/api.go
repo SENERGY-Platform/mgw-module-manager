@@ -47,7 +47,7 @@ func New(service serviceItf, infoHdl infoHandler, logger *slog.Logger, accessLog
 				slog_attr.Provider,
 				nil,
 				nil,
-				requestIDGenerator,
+				requestIdGenerator,
 			),
 		)
 	}
@@ -56,7 +56,7 @@ func New(service serviceItf, infoHdl infoHandler, logger *slog.Logger, accessLog
 			models_api.HeaderApiVer:  infoHdl.Version(),
 			models_api.HeaderSrvName: infoHdl.Name(),
 		}),
-		requestid.New(requestid.WithCustomHeaderStrKey(models_api.HeaderRequestID)),
+		requestid.New(requestid.WithCustomHeaderStrKey(models_api.HeaderRequestId)),
 		gin_mw.ErrorHandler(getStatusCode, ", "),
 		gin_mw.StructRecoveryHandler(logger, gin_mw.DefaultRecoveryFunc),
 	)
@@ -81,6 +81,6 @@ func (a *Api) Handler() *gin.Engine {
 	return a.ginEngine
 }
 
-func requestIDGenerator(gc *gin.Context) (string, any) {
-	return slog_attr.RequestIDKey, requestid.Get(gc)
+func requestIdGenerator(gc *gin.Context) (string, any) {
+	return slog_attr.RequestIdKey, requestid.Get(gc)
 }

@@ -49,7 +49,7 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	stgMods, err := h.storageHdl.Modules(ctx, models_storage.ModulesFilter{
-		IDs:     filter.IDs,
+		Ids:     filter.Ids,
 		Source:  filter.Source,
 		Channel: filter.Channel,
 	})
@@ -60,16 +60,16 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 	var modules []models_module.Module
 	var errs []error
 	for _, stgMod := range stgMods {
-		mod, ok := h.cacheGet(stgMod.ID)
+		mod, ok := h.cacheGet(stgMod.Id)
 		if !ok {
 			modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 			mod, err = helper_modfile.GetModule(modFS)
 			if err != nil {
 				errs = append(errs, err)
-				logger.Error("getting module failed", slog_attr.IDKey, stgMod.ID, slog_attr.ErrorKey, err)
+				logger.Error("getting module failed", slog_attr.IdKey, stgMod.Id, slog_attr.ErrorKey, err)
 				continue
 			}
-			h.cacheSet(stgMod.ID, mod)
+			h.cacheSet(stgMod.Id, mod)
 		}
 		if !strings.Contains(strings.ToLower(mod.Name), filter.Name) { // empty string = true
 			continue
@@ -149,7 +149,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("removing dir failed", slog_attr.DirNameKey, stgMod.DirName, slog_attr.IDKey, id, slog_attr.ErrorKey, e)
+				logger.Error("removing dir failed", slog_attr.DirNameKey, stgMod.DirName, slog_attr.IdKey, id, slog_attr.ErrorKey, e)
 			}
 		}
 	}()
@@ -168,7 +168,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				logger.Error("removing images failed", slog_attr.IDKey, id, slog_attr.ErrorKey, e)
+				logger.Error("removing images failed", slog_attr.IdKey, id, slog_attr.ErrorKey, e)
 			}
 		}
 	}()
@@ -207,7 +207,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("removing dir failed", slog_attr.DirNameKey, stgModNew.DirName, slog_attr.IDKey, id, slog_attr.ErrorKey, e)
+				logger.Error("removing dir failed", slog_attr.DirNameKey, stgModNew.DirName, slog_attr.IdKey, id, slog_attr.ErrorKey, e)
 			}
 		}
 	}()
@@ -226,7 +226,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				logger.Error("removing new images failed", slog_attr.IDKey, id, slog_attr.ErrorKey, e)
+				logger.Error("removing new images failed", slog_attr.IdKey, id, slog_attr.ErrorKey, e)
 			}
 		}
 	}()
@@ -235,10 +235,10 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	}
 	h.cacheSet(id, newMod)
 	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, stgModOld.DirName)); e != nil {
-		logger.Error("removing dir failed", slog_attr.DirNameKey, stgModOld.DirName, slog_attr.IDKey, id, slog_attr.ErrorKey, e)
+		logger.Error("removing dir failed", slog_attr.DirNameKey, stgModOld.DirName, slog_attr.IdKey, id, slog_attr.ErrorKey, e)
 	}
 	if e := h.removeOldImages(ctx, imagesAsSet(oldMod.Services), imagesAsSet(newMod.Services)); e != nil {
-		logger.Error("removing images failed", slog_attr.IDKey, id, slog_attr.ErrorKey, e)
+		logger.Error("removing images failed", slog_attr.IdKey, id, slog_attr.ErrorKey, e)
 	}
 	return nil
 }
@@ -303,11 +303,11 @@ func (h *Handler) pullImages(ctx context.Context, images map[string]struct{}) (m
 		} else {
 			continue
 		}
-		jID, err := h.cewClient.AddImage(ctx, image)
+		jobId, err := h.cewClient.AddImage(ctx, image)
 		if err != nil {
 			return newImages, err
 		}
-		job, err := helper_job.Await(ctx, h.cewClient, jID, h.config.JobPollInterval)
+		job, err := helper_job.Await(ctx, h.cewClient, jobId, h.config.JobPollInterval)
 		if err != nil {
 			return newImages, err
 		}
@@ -361,7 +361,7 @@ func newStgMod(id, source, channel string) (models_storage.Module, error) {
 		return models_storage.Module{}, err
 	}
 	return models_storage.Module{
-		ID:      id,
+		Id:      id,
 		DirName: newUUID.String(),
 		Source:  source,
 		Channel: channel,

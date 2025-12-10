@@ -41,7 +41,7 @@ func TestHandler_Modules(t *testing.T) {
 	timestamp := time.Now().UTC()
 	stgHdlMock := &storageHandlerMock{Mods: map[string]models_storage.Module{
 		"github.com/org/repo": {
-			ID:      "github.com/org/repo",
+			Id:      "github.com/org/repo",
 			DirName: "test_mod",
 			Source:  "test_source",
 			Channel: "test_channel",
@@ -99,7 +99,7 @@ func TestHandler_Module(t *testing.T) {
 	timestamp := time.Now().UTC()
 	stgHdlMock := &storageHandlerMock{Mods: map[string]models_storage.Module{
 		"github.com/org/repo": {
-			ID:      "github.com/org/repo",
+			Id:      "github.com/org/repo",
 			DirName: "test_mod",
 			Source:  "test_source",
 			Channel: "test_channel",
@@ -231,7 +231,7 @@ func TestHandler_Add(t *testing.T) {
 			timestamp := time.Now().UTC()
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
-					ID:      "github.com/org/repo",
+					Id:      "github.com/org/repo",
 					DirName: "test_mod",
 					Source:  "test_source",
 					Channel: "test_channel",
@@ -293,7 +293,7 @@ func TestHandler_Update(t *testing.T) {
 	timestamp := time.Now().UTC()
 	stgHdlMock := &storageHandlerMock{Mods: map[string]models_storage.Module{
 		"github.com/org/repo": {
-			ID:      "github.com/org/repo",
+			Id:      "github.com/org/repo",
 			DirName: "test_dir",
 			Source:  "test_source",
 			Channel: "test_channel",
@@ -362,7 +362,7 @@ func TestHandler_Update(t *testing.T) {
 		t.Run("source err", func(t *testing.T) {
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
-					ID:      "github.com/org/repo",
+					Id:      "github.com/org/repo",
 					DirName: "test_dir",
 					Source:  "test_source",
 					Channel: "test_channel",
@@ -380,7 +380,7 @@ func TestHandler_Update(t *testing.T) {
 			stgHdlMock.Err = testErr
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
-					ID:      "github.com/org/repo",
+					Id:      "github.com/org/repo",
 					DirName: "test_dir",
 					Source:  "test_source",
 					Channel: "test_channel",
@@ -400,7 +400,7 @@ func TestHandler_Update(t *testing.T) {
 		t.Run("does not exist", func(t *testing.T) {
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
-					ID:      "github.com/org/repo",
+					Id:      "github.com/org/repo",
 					DirName: "test_dir",
 					Source:  "test_source",
 					Channel: "test_channel",
@@ -418,7 +418,7 @@ func TestHandler_Update(t *testing.T) {
 			cewCltMock.GetImageErr = testErr
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
-					ID:      "github.com/org/repo",
+					Id:      "github.com/org/repo",
 					DirName: "test_dir",
 					Source:  "test_source",
 					Channel: "test_channel",
@@ -441,7 +441,7 @@ func TestHandler_Update(t *testing.T) {
 			cewCltMock.Images = make(map[string]models_external.Image)
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
-					ID:      "github.com/org/repo",
+					Id:      "github.com/org/repo",
 					DirName: "test_dir",
 					Source:  "test_source",
 					Channel: "test_channel",
@@ -464,7 +464,7 @@ func TestHandler_Update(t *testing.T) {
 			cewCltMock.Images = make(map[string]models_external.Image)
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
-					ID:      "github.com/org/repo",
+					Id:      "github.com/org/repo",
 					DirName: "test_dir",
 					Source:  "test_source",
 					Channel: "test_channel",
@@ -503,7 +503,7 @@ func TestHandler_Delete(t *testing.T) {
 			populateTestDir(t, workDir)
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
-					ID:      "github.com/org/repo",
+					Id:      "github.com/org/repo",
 					DirName: "test_dir",
 				},
 			}
@@ -531,7 +531,7 @@ func TestHandler_Delete(t *testing.T) {
 			populateTestDir(t, workDir)
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
-					ID:      "github.com/org/repo",
+					Id:      "github.com/org/repo",
 					DirName: "test_dir",
 				},
 			}
@@ -564,7 +564,7 @@ func TestHandler_Delete(t *testing.T) {
 			populateTestDir(t, workDir)
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
-					ID:      "github.com/org/repo",
+					Id:      "github.com/org/repo",
 					DirName: "test_dir",
 				},
 			}
@@ -590,7 +590,7 @@ func TestHandler_Delete(t *testing.T) {
 			populateTestDir(t, workDir)
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
-					ID:      "github.com/org/repo",
+					Id:      "github.com/org/repo",
 					DirName: "test_dir",
 				},
 			}
@@ -610,7 +610,7 @@ func TestHandler_Delete(t *testing.T) {
 			populateTestDir(t, workDir)
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
-					ID:      "github.com/org/repo",
+					Id:      "github.com/org/repo",
 					DirName: "test_dir",
 				},
 			}
@@ -624,7 +624,7 @@ func TestHandler_Delete(t *testing.T) {
 			populateTestDir(t, workDir)
 			stgHdlMock.Mods = map[string]models_storage.Module{
 				"github.com/org/repo": {
-					ID:      "github.com/org/repo",
+					Id:      "github.com/org/repo",
 					DirName: "test_dir",
 				},
 			}
@@ -691,11 +691,11 @@ func (m *storageHandlerMock) CreateModule(_ context.Context, mod models_storage.
 	if m.Err != nil {
 		return m.Err
 	}
-	_, ok := m.Mods[mod.ID]
+	_, ok := m.Mods[mod.Id]
 	if ok {
 		return errors.New("already exists")
 	}
-	m.Mods[mod.ID] = mod
+	m.Mods[mod.Id] = mod
 	return nil
 }
 
@@ -703,11 +703,11 @@ func (m *storageHandlerMock) UpdateModule(_ context.Context, mod models_storage.
 	if m.Err != nil {
 		return m.Err
 	}
-	_, ok := m.Mods[mod.ID]
+	_, ok := m.Mods[mod.Id]
 	if !ok {
 		return models_error.NotFoundErr
 	}
-	m.Mods[mod.ID] = mod
+	m.Mods[mod.Id] = mod
 	return nil
 }
 

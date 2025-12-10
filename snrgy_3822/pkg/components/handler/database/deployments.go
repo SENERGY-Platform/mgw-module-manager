@@ -23,12 +23,13 @@ import (
 	"strings"
 	"time"
 
+	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 )
 
 func (h *Handler) Deployment(ctx context.Context, id string) (models_storage.Deployment, error) {
-	deployments, err := h.Deployments(ctx, models_storage.DeploymentsFilter{IDs: []string{id}})
+	deployments, err := h.Deployments(ctx, models_storage.DeploymentsFilter{Ids: []string{id}})
 	if err != nil {
 		return models_storage.Deployment{}, err
 	}
@@ -54,8 +55,8 @@ func (h *Handler) Deployments(ctx context.Context, filter models_storage.Deploym
 		var dep models_storage.Deployment
 		var ct, ut []uint8
 		err = rows.Scan(
-			&dep.ID,
-			&dep.Module.ID,
+			&dep.Id,
+			&dep.Module.Id,
 			&dep.Module.Source,
 			&dep.Module.Channel,
 			&dep.Module.Version,
@@ -74,7 +75,7 @@ func (h *Handler) Deployments(ctx context.Context, filter models_storage.Deploym
 		if dep.Updated, err = time.Parse(timeLayout, string(ut)); err != nil {
 			return nil, err
 		}
-		deps[dep.ID] = dep
+		deps[dep.Id] = dep
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err
@@ -82,19 +83,19 @@ func (h *Handler) Deployments(ctx context.Context, filter models_storage.Deploym
 	return deps, nil
 }
 
-func (h *Handler) DeploymentContainers(ctx context.Context, deploymentID string) (map[string]models_storage.DeploymentContainer, error) {
-	deploymentsContainers, err := h.DeploymentsContainers(ctx, []string{deploymentID})
+func (h *Handler) DeploymentContainers(ctx context.Context, deploymentId string) (map[string]models_storage.DeploymentContainer, error) {
+	deploymentsContainers, err := h.DeploymentsContainers(ctx, []string{deploymentId})
 	if err != nil {
 		return nil, err
 	}
 	if len(deploymentsContainers) == 0 {
 		return nil, nil
 	}
-	return deploymentsContainers[deploymentID], nil
+	return deploymentsContainers[deploymentId], nil
 }
 
-func (h *Handler) DeploymentsContainers(ctx context.Context, deploymentIDs []string) (map[string]map[string]models_storage.DeploymentContainer, error) {
-	fc, val := genDeploymentsContainersFilter(deploymentIDs)
+func (h *Handler) DeploymentsContainers(ctx context.Context, deploymentIds []string) (map[string]map[string]models_storage.DeploymentContainer, error) {
+	fc, val := genDeploymentsContainersFilter(deploymentIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
 		"SELECT dep_id, ctr_id, srv_ref, alias, 'order' FROM dep_containers"+fc+";",
@@ -107,24 +108,24 @@ func (h *Handler) DeploymentsContainers(ctx context.Context, deploymentIDs []str
 	depContainers := make(map[string]map[string]models_storage.DeploymentContainer)
 	for rows.Next() {
 		var container models_storage.DeploymentContainer
-		err = rows.Scan(&container.DeploymentID, &container.ID, &container.Reference, &container.Alias, &container.Order)
+		err = rows.Scan(&container.DeploymentId, &container.Id, &container.Reference, &container.Alias, &container.Order)
 		if err != nil {
 			return nil, err
 		}
-		containers, ok := depContainers[container.DeploymentID]
+		containers, ok := depContainers[container.DeploymentId]
 		if !ok {
 			containers = make(map[string]models_storage.DeploymentContainer)
-			depContainers[container.DeploymentID] = containers
+			depContainers[container.DeploymentId] = containers
 		}
 		containers[container.Reference] = container
 	}
 	return depContainers, nil
 }
 
-func (h *Handler) DeploymentHostResources(ctx context.Context, deploymentID string) (map[string]models_storage.DeploymentHostResource, error) {
+func (h *Handler) DeploymentHostResources(ctx context.Context, deploymentId string) (map[string]models_storage.DeploymentHostResource, error) {
 	deploymentsHostResources, err := h.DeploymentsHostResources(
 		ctx,
-		models_storage.DeploymentsHostResourcesFilter{DeploymentIDs: []string{deploymentID}},
+		models_storage.DeploymentsHostResourcesFilter{DeploymentIds: []string{deploymentId}},
 	)
 	if err != nil {
 		return nil, err
@@ -132,7 +133,7 @@ func (h *Handler) DeploymentHostResources(ctx context.Context, deploymentID stri
 	if len(deploymentsHostResources) == 0 {
 		return nil, nil
 	}
-	return deploymentsHostResources[deploymentID], nil
+	return deploymentsHostResources[deploymentId], nil
 }
 
 func (h *Handler) DeploymentsHostResources(ctx context.Context, filter models_storage.DeploymentsHostResourcesFilter) (map[string]map[string]models_storage.DeploymentHostResource, error) {
@@ -148,29 +149,29 @@ func (h *Handler) DeploymentsHostResources(ctx context.Context, filter models_st
 	depHostResources := make(map[string]map[string]models_storage.DeploymentHostResource)
 	for rows.Next() {
 		var hostResource models_storage.DeploymentHostResource
-		err = rows.Scan(&hostResource.DeploymentID, &hostResource.Reference, &hostResource.ID)
+		err = rows.Scan(&hostResource.DeploymentId, &hostResource.Reference, &hostResource.Id)
 		if err != nil {
 			return nil, err
 		}
-		hostResources, ok := depHostResources[hostResource.DeploymentID]
+		hostResources, ok := depHostResources[hostResource.DeploymentId]
 		if !ok {
 			hostResources = make(map[string]models_storage.DeploymentHostResource)
-			depHostResources[hostResource.DeploymentID] = hostResources
+			depHostResources[hostResource.DeploymentId] = hostResources
 		}
 		hostResources[hostResource.Reference] = hostResource
 	}
 	return depHostResources, nil
 }
 
-func (h *Handler) DeploymentSecrets(ctx context.Context, deploymentID string) (map[string]models_storage.DeploymentSecret, error) {
-	deploymentsSecrets, err := h.DeploymentsSecrets(ctx, models_storage.DeploymentsSecretsFilter{DeploymentIDs: []string{deploymentID}})
+func (h *Handler) DeploymentSecrets(ctx context.Context, deploymentId string) (map[string]models_storage.DeploymentSecret, error) {
+	deploymentsSecrets, err := h.DeploymentsSecrets(ctx, models_storage.DeploymentsSecretsFilter{DeploymentIds: []string{deploymentId}})
 	if err != nil {
 		return nil, err
 	}
 	if len(deploymentsSecrets) == 0 {
 		return nil, nil
 	}
-	return deploymentsSecrets[deploymentID], nil
+	return deploymentsSecrets[deploymentId], nil
 }
 
 func (h *Handler) DeploymentsSecrets(ctx context.Context, filter models_storage.DeploymentsSecretsFilter) (map[string]map[string]models_storage.DeploymentSecret, error) {
@@ -186,24 +187,24 @@ func (h *Handler) DeploymentsSecrets(ctx context.Context, filter models_storage.
 	defer rows.Close()
 	depSecrets := make(map[string]map[string]models_storage.DeploymentSecret)
 	for rows.Next() {
-		var depID string
+		var depId string
 		var ref string
-		var secID string
+		var secId string
 		var item models_storage.DeploymentSecretItem
-		err = rows.Scan(&depID, &ref, &secID, &item.Name, &item.AsMount, &item.AsEnv)
+		err = rows.Scan(&depId, &ref, &secId, &item.Name, &item.AsMount, &item.AsEnv)
 		if err != nil {
 			return nil, err
 		}
-		secrets, ok := depSecrets[depID]
+		secrets, ok := depSecrets[depId]
 		if !ok {
 			secrets = make(map[string]models_storage.DeploymentSecret)
-			depSecrets[depID] = secrets
+			depSecrets[depId] = secrets
 		}
 		secret, ok := secrets[ref]
 		if !ok {
-			secret.ID = secID
+			secret.Id = secId
 			secret.Reference = ref
-			secret.DeploymentID = depID
+			secret.DeploymentId = depId
 		}
 		secret.Items = append(secret.Items, item)
 		secrets[secret.Reference] = secret
@@ -211,19 +212,19 @@ func (h *Handler) DeploymentsSecrets(ctx context.Context, filter models_storage.
 	return depSecrets, nil
 }
 
-func (h *Handler) DeploymentConfigs(ctx context.Context, deploymentID string) (map[string]models_storage.DeploymentConfig, error) {
-	deploymentsConfigs, err := h.DeploymentsConfigs(ctx, []string{deploymentID})
+func (h *Handler) DeploymentConfigs(ctx context.Context, deploymentId string) (map[string]models_storage.DeploymentConfig, error) {
+	deploymentsConfigs, err := h.DeploymentsConfigs(ctx, []string{deploymentId})
 	if err != nil {
 		return nil, err
 	}
 	if len(deploymentsConfigs) == 0 {
 		return nil, nil
 	}
-	return deploymentsConfigs[deploymentID], nil
+	return deploymentsConfigs[deploymentId], nil
 }
 
-func (h *Handler) DeploymentsConfigs(ctx context.Context, deploymentIDs []string) (map[string]map[string]models_storage.DeploymentConfig, error) {
-	fc, val := genDeploymentsConfigsFilter(deploymentIDs)
+func (h *Handler) DeploymentsConfigs(ctx context.Context, deploymentIds []string) (map[string]map[string]models_storage.DeploymentConfig, error) {
+	fc, val := genDeploymentsConfigsFilter(deploymentIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
 		"SELECT dep_id, ref, v_string, v_int, v_float, v_bool FROM dep_configs"+fc+";",
@@ -235,13 +236,13 @@ func (h *Handler) DeploymentsConfigs(ctx context.Context, deploymentIDs []string
 	defer rows.Close()
 	depConfigs := make(map[string]map[string]models_storage.DeploymentConfig)
 	for rows.Next() {
-		var depID string
+		var depId string
 		var ref string
 		var vString sql.NullString
 		var vInt sql.NullInt64
 		var vFloat sql.NullFloat64
 		var vBool sql.NullBool
-		err = rows.Scan(&depID, &ref, &vString, &vInt, &vFloat, &vBool)
+		err = rows.Scan(&depId, &ref, &vString, &vInt, &vFloat, &vBool)
 		if err != nil {
 			return nil, err
 		}
@@ -260,10 +261,10 @@ func (h *Handler) DeploymentsConfigs(ctx context.Context, deploymentIDs []string
 			config.Bool = vBool.Bool
 			config.DataType = models_storage.BoolType
 		}
-		configs, ok := depConfigs[depID]
+		configs, ok := depConfigs[depId]
 		if !ok {
 			configs = make(map[string]models_storage.DeploymentConfig)
-			depConfigs[depID] = configs
+			depConfigs[depId] = configs
 		}
 		configs[ref] = config
 	}
@@ -277,21 +278,21 @@ func (h *Handler) DeploymentsConfigs(ctx context.Context, deploymentIDs []string
 	}
 	defer rows2.Close()
 	for rows2.Next() {
-		var depID string
+		var depId string
 		var ref string
 		var ord int
 		var vString sql.NullString
 		var vInt sql.NullInt64
 		var vFloat sql.NullFloat64
 		var vBool sql.NullBool
-		err = rows.Scan(&depID, &ref, &ord, &vString, &vInt, &vFloat, &vBool)
+		err = rows.Scan(&depId, &ref, &ord, &vString, &vInt, &vFloat, &vBool)
 		if err != nil {
 			return nil, err
 		}
-		configs, ok := depConfigs[depID]
+		configs, ok := depConfigs[depId]
 		if !ok {
 			configs = make(map[string]models_storage.DeploymentConfig)
-			depConfigs[depID] = configs
+			depConfigs[depId] = configs
 		}
 		config, ok := configs[ref]
 		var dt int
@@ -325,11 +326,11 @@ func (h *Handler) DeploymentsConfigs(ctx context.Context, deploymentIDs []string
 	return depConfigs, nil
 }
 
-func genDeploymentsConfigsFilter(IDs []string) (string, []any) {
+func genDeploymentsConfigsFilter(ids []string) (string, []any) {
 	var fc []string
 	var val []any
-	if len(IDs) > 0 {
-		ids := removeDuplicates(IDs)
+	if len(ids) > 0 {
+		ids = helper_slices.RemoveDuplicates(ids)
 		fc = append(fc, "id IN ("+genQuestionMarks(len(ids))+")")
 		for _, id := range ids {
 			val = append(val, id)
@@ -344,15 +345,15 @@ func genDeploymentsConfigsFilter(IDs []string) (string, []any) {
 func genDeploymentsSecretsFilter(filter models_storage.DeploymentsSecretsFilter) (string, []any) {
 	var fc []string
 	var val []any
-	if len(filter.IDs) > 0 {
-		ids := removeDuplicates(filter.IDs)
+	if len(filter.Ids) > 0 {
+		ids := helper_slices.RemoveDuplicates(filter.Ids)
 		fc = append(fc, "res_id IN ("+genQuestionMarks(len(ids))+")")
 		for _, id := range ids {
 			val = append(val, id)
 		}
 	}
-	if len(filter.DeploymentIDs) > 0 {
-		ids := removeDuplicates(filter.DeploymentIDs)
+	if len(filter.DeploymentIds) > 0 {
+		ids := helper_slices.RemoveDuplicates(filter.DeploymentIds)
 		fc = append(fc, "dep_id IN ("+genQuestionMarks(len(ids))+")")
 		for _, id := range ids {
 			val = append(val, id)
@@ -383,15 +384,15 @@ func genDeploymentsSecretsFilter(filter models_storage.DeploymentsSecretsFilter)
 func genDeploymentsHostResourcesFilter(filter models_storage.DeploymentsHostResourcesFilter) (string, []any) {
 	var fc []string
 	var val []any
-	if len(filter.IDs) > 0 {
-		ids := removeDuplicates(filter.IDs)
+	if len(filter.Ids) > 0 {
+		ids := helper_slices.RemoveDuplicates(filter.Ids)
 		fc = append(fc, "res_id IN ("+genQuestionMarks(len(ids))+")")
 		for _, id := range ids {
 			val = append(val, id)
 		}
 	}
-	if len(filter.DeploymentIDs) > 0 {
-		ids := removeDuplicates(filter.DeploymentIDs)
+	if len(filter.DeploymentIds) > 0 {
+		ids := helper_slices.RemoveDuplicates(filter.DeploymentIds)
 		fc = append(fc, "dep_id IN ("+genQuestionMarks(len(ids))+")")
 		for _, id := range ids {
 			val = append(val, id)
@@ -403,11 +404,11 @@ func genDeploymentsHostResourcesFilter(filter models_storage.DeploymentsHostReso
 	return "", nil
 }
 
-func genDeploymentsContainersFilter(IDs []string) (string, []any) {
+func genDeploymentsContainersFilter(ids []string) (string, []any) {
 	var fc []string
 	var val []any
-	if len(IDs) > 0 {
-		ids := removeDuplicates(IDs)
+	if len(ids) > 0 {
+		ids = helper_slices.RemoveDuplicates(ids)
 		fc = append(fc, "id IN ("+genQuestionMarks(len(ids))+")")
 		for _, id := range ids {
 			val = append(val, id)
@@ -422,8 +423,8 @@ func genDeploymentsContainersFilter(IDs []string) (string, []any) {
 func genDeploymentsFilter(filter models_storage.DeploymentsFilter) (string, []any) {
 	var fc []string
 	var val []any
-	if len(filter.IDs) > 0 {
-		ids := removeDuplicates(filter.IDs)
+	if len(filter.Ids) > 0 {
+		ids := helper_slices.RemoveDuplicates(filter.Ids)
 		fc = append(fc, "id IN ("+genQuestionMarks(len(ids))+")")
 		for _, id := range ids {
 			val = append(val, id)

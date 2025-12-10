@@ -35,6 +35,6 @@ type containerEngineWrapperClient interface {
 	GetImage(ctx context.Context, id string) (models_external.Image, error)
 	AddImage(ctx context.Context, img string) (jobId string, err error)
 	RemoveImage(ctx context.Context, id string) error
-	GetJob(ctx context.Context, jID string) (models_external.Job, error)
-	CancelJob(ctx context.Context, jID string) error
+	GetJob(ctx context.Context, id string) (models_external.Job, error)
+	CancelJob(ctx context.Context, id string) error
 }

@@ -19,7 +19,7 @@ package service
 import "time"
 
 type RepoModule struct {
-	ID           string                  `json:"id"`
+	Id           string                  `json:"id"`
 	Name         string                  `json:"name"`
 	Desc         string                  `json:"description"`
 	Version      string                  `json:"version"`
@@ -33,7 +33,7 @@ type InstalledModuleVariant struct {
 }
 
 type RepoModulesFilter struct {
-	IDs             []string           `json:"ids"`
+	Ids             []string           `json:"ids"`
 	Name            string             `json:"name"`
 	Repositories    []RepositoryFilter `json:"repositories"`
 	Installed       bool               `json:"installed"`
@@ -64,7 +64,7 @@ type ModuleVariant struct {
 }
 
 type ChangeRequestItem struct {
-	ID      string `json:"id"`
+	Id      string `json:"id"`
 	Source  string `json:"source"`
 	Channel string `json:"channel"`
 	Remove  bool   `json:"remove"`
@@ -79,7 +79,7 @@ type ModulesChangeRequest struct {
 }
 
 type ModuleAbbreviated struct {
-	ID   string `json:"id"`
+	Id   string `json:"id"`
 	Name string `json:"name"`
 	Desc string `json:"description"`
 	ModuleVariant
@@ -92,7 +92,7 @@ const (
 )
 
 type ChangeReportItem struct {
-	ID     string `json:"id"`
+	Id     string `json:"id"`
 	Action string `json:"action"`
 }
 

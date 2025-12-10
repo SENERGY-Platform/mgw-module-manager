@@ -72,7 +72,7 @@ func (s *Service) NewModulesChangeRequest(ctx context.Context, reqItems []models
 	var toRemoveMods []string
 	for _, item := range reqItems {
 		if item.Remove {
-			toRemoveMods = append(toRemoveMods, item.ID)
+			toRemoveMods = append(toRemoveMods, item.Id)
 		}
 	}
 	changeRequest := newModulesChangeRequest(selectedRepoMods, installedModsMap, toRemoveMods)
@@ -93,7 +93,7 @@ func (s *Service) ExecModulesChangeRequest(ctx context.Context) (models_service.
 	var failed []models_service.ChangeReportErrItem
 	for _, id := range s.changeReq.Remove {
 		cri := models_service.ChangeReportItem{
-			ID:     id,
+			Id:     id,
 			Action: models_service.ChangeActionRemove,
 		}
 		err := s.modsHdl.Remove(ctx, id)
@@ -108,7 +108,7 @@ func (s *Service) ExecModulesChangeRequest(ctx context.Context) (models_service.
 	}
 	for _, repoMod := range s.changeReq.Install {
 		cri := models_service.ChangeReportItem{
-			ID:     repoMod.Mod.ID,
+			Id:     repoMod.Mod.ID,
 			Action: models_service.ChangeActionInstall,
 		}
 		err := s.modsHdl.Add(ctx, repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.FS)
@@ -123,7 +123,7 @@ func (s *Service) ExecModulesChangeRequest(ctx context.Context) (models_service.
 	}
 	for _, item := range s.changeReq.Change {
 		cri := models_service.ChangeReportItem{
-			ID:     item.Next.Mod.ID,
+			Id:     item.Next.Mod.ID,
 			Action: models_service.ChangeActionChange,
 		}
 		err := s.modsHdl.Update(ctx, item.Next.Mod.ID, item.Next.Source, item.Next.Channel, item.Next.FS)
@@ -182,11 +182,11 @@ func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modules
 	if len(installedMods) == 0 {
 		return modulesChangeRequest{}, nil
 	}
-	installedModIDs := make([]string, len(installedMods))
+	installedModIds := make([]string, len(installedMods))
 	for i, mod := range installedMods {
-		installedModIDs[i] = mod.ID
+		installedModIds[i] = mod.ID
 	}
-	repoMods, err := s.reposHdl.Modules(ctx, models_repo.ModulesFilter{IDs: installedModIDs})
+	repoMods, err := s.reposHdl.Modules(ctx, models_repo.ModulesFilter{Ids: installedModIds})
 	if err != nil {
 		return modulesChangeRequest{}, err
 	}
@@ -198,13 +198,13 @@ func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modules
 	}))
 	var reqItems []models_service.ChangeRequestItem
 	for _, repoMod := range repoMods {
-		installedMod, ok := installedModsMap[repoMod.ID]
+		installedMod, ok := installedModsMap[repoMod.Id]
 		if !ok {
 			continue
 		}
 		if installedMod.Source == repoMod.Source && installedMod.Channel == repoMod.Channel && installedMod.Version != repoMod.Version {
 			reqItems = append(reqItems, models_service.ChangeRequestItem{
-				ID:      installedMod.ID,
+				Id:      installedMod.ID,
 				Source:  installedMod.Source,
 				Channel: installedMod.Channel,
 			})
@@ -222,15 +222,15 @@ func validateReqItems(reqItems []models_service.ChangeRequestItem) ([]models_ser
 	tmpMap := make(map[string]models_service.ChangeRequestItem)
 	for _, item := range reqItems {
 		if (item.Update && item.Remove) || (!(item.Update || item.Remove) && item.Source+item.Channel == "") {
-			return nil, fmt.Errorf("ivalid change request for '%s'", item.ID)
+			return nil, fmt.Errorf("ivalid change request for '%s'", item.Id)
 		}
-		if tmp, ok := tmpMap[item.ID]; ok {
+		if tmp, ok := tmpMap[item.Id]; ok {
 			if !reflect.DeepEqual(tmp, item) {
-				return nil, fmt.Errorf("duplicate entry for '%s'", item.ID)
+				return nil, fmt.Errorf("duplicate entry for '%s'", item.Id)
 			}
 			continue
 		}
-		tmpMap[item.ID] = item
+		tmpMap[item.Id] = item
 		validatedItems = append(validatedItems, item)
 	}
 	return validatedItems, nil
@@ -248,7 +248,7 @@ func newModulesChangeRequest(selectedRepoMods map[string]modWrapper, installedMo
 			}
 			change = append(change, changeItem{
 				Previous: models_service.ModuleAbbreviated{
-					ID:   installedMod.ID,
+					Id:   installedMod.ID,
 					Name: installedMod.Name,
 					Desc: installedMod.Description,
 					ModuleVariant: models_service.ModuleVariant{
@@ -301,7 +301,7 @@ func transformModulesChangeRequest(req modulesChangeRequest) models_service.Modu
 
 func modWrapperToServiceModuleAbbreviated(w modWrapper) models_service.ModuleAbbreviated {
 	return models_service.ModuleAbbreviated{
-		ID:   w.Mod.ID,
+		Id:   w.Mod.ID,
 		Name: w.Mod.Name,
 		Desc: w.Mod.Description,
 		ModuleVariant: models_service.ModuleVariant{

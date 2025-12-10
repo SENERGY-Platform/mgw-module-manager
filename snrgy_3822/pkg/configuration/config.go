@@ -62,8 +62,8 @@ type Config struct {
 	GitHubModulesRepoHandler GitHubModulesRepoHandlerConfig `json:"github_modules_repo_handler"`
 	Jobs                     JobsConfig                     `json:"jobs"`
 	Database                 DatabaseConfig                 `json:"database"`
-	ManagerIDPath            string                         `json:"manager_id_path" env_var:"MANAGER_ID_PATH"`
-	CoreID                   string                         `json:"core_id" env_var:"CORE_ID"`
+	ManagerIdPath            string                         `json:"manager_id_path" env_var:"MANAGER_ID_PATH"`
+	CoreId                   string                         `json:"core_id" env_var:"CORE_ID"`
 	HttpAccessLog            bool                           `json:"http_access_log" env_var:"HTTP_ACCESS_LOG"`
 	UseUTC                   bool                           `json:"use_utc" env_var:"USE_UTC"`
 }
@@ -113,7 +113,7 @@ func New(path string) (*Config, error) {
 				ConnMaxLifetime: time.Minute * 5,
 			},
 		},
-		ManagerIDPath: "/opt/module-manager/data/mid",
+		ManagerIdPath: "/opt/module-manager/data/mid",
 		UseUTC:        true,
 	}
 	err := sb_config_hdl.Load(&cfg, nil, envTypeParser, nil, path)

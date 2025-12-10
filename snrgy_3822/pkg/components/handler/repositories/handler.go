@@ -16,7 +16,7 @@ import (
 
 type Handler struct {
 	repositories map[string]Repository
-	variantsMap  map[string]map[string]map[string]moduleWrapper // {moduleID:{source:{channel:variant}}}
+	variantsMap  map[string]map[string]map[string]moduleWrapper // {moduleId:{source:{channel:variant}}}
 	mu           sync.RWMutex
 }
 
@@ -77,13 +77,13 @@ func (h *Handler) Repositories(_ context.Context) ([]models_repo.Repository, err
 func (h *Handler) Modules(_ context.Context, filter models_repo.ModulesFilter) ([]models_repo.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	filterByID := len(filter.IDs) > 0
+	filterById := len(filter.Ids) > 0
 	filterBySource := len(filter.Sources) > 0
 	filter.Name = strings.ToLower(filter.Name)
 	sourceFilterMap := newSourceFilterMap(filter.Sources)
 	var variants []models_repo.Module
-	for modID, sources := range h.variantsMap {
-		if filterByID && !slices.Contains(filter.IDs, modID) {
+	for modId, sources := range h.variantsMap {
+		if filterById && !slices.Contains(filter.Ids, modId) {
 			continue
 		}
 		for source, channels := range sources {
@@ -161,7 +161,7 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 				channels[channel.Name] = moduleWrapper{
 					Module: models_repo.Module{
 						ModuleBase: models_repo.ModuleBase{
-							ID:      mod.ID,
+							Id:      mod.ID,
 							Source:  source,
 							Channel: channel.Name,
 						},

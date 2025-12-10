@@ -21,7 +21,7 @@ import (
 )
 
 type Module struct {
-	ID      string
+	Id      string
 	DirName string
 	Source  string
 	Channel string
@@ -30,13 +30,13 @@ type Module struct {
 }
 
 type ModulesFilter struct {
-	IDs     []string
+	Ids     []string
 	Source  string
 	Channel string
 }
 
 type Deployment struct {
-	ID      string
+	Id      string
 	Module  DeploymentModule
 	Name    string
 	DirName string
@@ -46,29 +46,29 @@ type Deployment struct {
 }
 
 type DeploymentModule struct {
-	ID      string
+	Id      string
 	Source  string
 	Channel string
 	Version string
 }
 
 type DeploymentContainer struct {
-	ID           string
-	DeploymentID string
+	Id           string
+	DeploymentId string
 	Reference    string
 	Alias        string
 	Order        int
 }
 
 type DeploymentHostResource struct {
-	ID           string
-	DeploymentID string
+	Id           string
+	DeploymentId string
 	Reference    string
 }
 
 type DeploymentSecret struct {
-	ID           string
-	DeploymentID string
+	Id           string
+	DeploymentId string
 	Reference    string
 	Items        []DeploymentSecretItem
 }
@@ -100,19 +100,20 @@ const (
 )
 
 type DeploymentsFilter struct {
-	IDs     []string
-	Name    string
-	Enabled int
+	Ids       []string
+	ModuleIds []string
+	Name      string
+	Enabled   int
 }
 
 type DeploymentsHostResourcesFilter struct {
-	IDs           []string
-	DeploymentIDs []string
+	Ids           []string
+	DeploymentIds []string
 }
 
 type DeploymentsSecretsFilter struct {
-	IDs           []string
-	DeploymentIDs []string
+	Ids           []string
+	DeploymentIds []string
 	AsMount       int
 	AsEnv         int
 }

@@ -19,11 +19,11 @@ package configuration
 import "flag"
 
 var ConfPath string
-var ManagerID string
+var ManagerId string
 
 func ParseFlags() {
 	flag.StringVar(&ConfPath, "config", "", "path to config JSON file")
-	flag.StringVar(&ManagerID, "manager-id", "", "override manager id")
+	flag.StringVar(&ManagerId, "manager-id", "", "override manager id")
 	flag.Parse()
 	return
 }

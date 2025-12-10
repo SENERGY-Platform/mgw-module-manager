@@ -23,6 +23,6 @@ import (
 )
 
 type Client interface {
-	GetJob(ctx context.Context, jID string) (job_hdl_lib.Job, error)
-	CancelJob(ctx context.Context, jID string) error
+	GetJob(ctx context.Context, id string) (job_hdl_lib.Job, error)
+	CancelJob(ctx context.Context, id string) error
 }

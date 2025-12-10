@@ -21,12 +21,13 @@ import (
 	"strings"
 	"time"
 
+	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 )
 
 func (h *Handler) Module(ctx context.Context, id string) (models_storage.Module, error) {
-	modules, err := h.Modules(ctx, models_storage.ModulesFilter{IDs: []string{id}})
+	modules, err := h.Modules(ctx, models_storage.ModulesFilter{Ids: []string{id}})
 	if err != nil {
 		return models_storage.Module{}, err
 	}
@@ -51,7 +52,7 @@ func (h *Handler) Modules(ctx context.Context, filter models_storage.ModulesFilt
 	for rows.Next() {
 		var mod models_storage.Module
 		var at, ut []uint8
-		err = rows.Scan(&mod.ID, &mod.DirName, &mod.Source, &mod.Channel, &at, &ut)
+		err = rows.Scan(&mod.Id, &mod.DirName, &mod.Source, &mod.Channel, &at, &ut)
 		if err != nil {
 			return nil, err
 		}
@@ -61,7 +62,7 @@ func (h *Handler) Modules(ctx context.Context, filter models_storage.ModulesFilt
 		if mod.Updated, err = time.Parse(timeLayout, string(ut)); err != nil {
 			return nil, err
 		}
-		mods[mod.ID] = mod
+		mods[mod.Id] = mod
 	}
 	return mods, nil
 }
@@ -70,7 +71,7 @@ func (h *Handler) CreateModule(ctx context.Context, mod models_storage.Module) e
 	_, err := h.sqlDB.ExecContext(
 		ctx,
 		"INSERT INTO modules (id, dir, source, channel, added, updated) VALUES (?, ?, ?, ?, ?, ?);",
-		mod.ID,
+		mod.Id,
 		mod.DirName,
 		mod.Source,
 		mod.Channel,
@@ -84,7 +85,7 @@ func (h *Handler) CreateModule(ctx context.Context, mod models_storage.Module) e
 }
 
 func (h *Handler) UpdateModule(ctx context.Context, mod models_storage.Module) error {
-	res, err := h.sqlDB.ExecContext(ctx, "UPDATE modules SET dir = ?, source = ?, channel = ?, updated = ? WHERE id = ?;", mod.DirName, mod.Source, mod.Channel, mod.Updated, mod.ID)
+	res, err := h.sqlDB.ExecContext(ctx, "UPDATE modules SET dir = ?, source = ?, channel = ?, updated = ? WHERE id = ?;", mod.DirName, mod.Source, mod.Channel, mod.Updated, mod.Id)
 	if err != nil {
 		return err
 	}
@@ -116,8 +117,8 @@ func (h *Handler) DeleteModule(ctx context.Context, id string) error {
 func genModulesFilter(filter models_storage.ModulesFilter) (string, []any) {
 	var fc []string
 	var val []any
-	if len(filter.IDs) > 0 {
-		ids := removeDuplicates(filter.IDs)
+	if len(filter.Ids) > 0 {
+		ids := helper_slices.RemoveDuplicates(filter.Ids)
 		fc = append(fc, "id IN ("+genQuestionMarks(len(ids))+")")
 		for _, id := range ids {
 			val = append(val, id)
