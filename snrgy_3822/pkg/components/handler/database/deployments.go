@@ -357,7 +357,10 @@ func (h *Handler) DeploymentsConfigs(ctx context.Context, deploymentIds []string
 		if err != nil {
 			return nil, err
 		}
-		var config models_storage.DeploymentConfig
+		config := models_storage.DeploymentConfig{
+			DeploymentId: depId,
+			Reference:    ref,
+		}
 		switch {
 		case vString.Valid:
 			config.String = vString.String
@@ -422,6 +425,8 @@ func (h *Handler) DeploymentsConfigs(ctx context.Context, deploymentIds []string
 			dt = models_storage.BoolType
 		}
 		if !ok {
+			config.DeploymentId = depId
+			config.Reference = ref
 			config.DataType = dt
 			config.IsSlice = true
 		} else {

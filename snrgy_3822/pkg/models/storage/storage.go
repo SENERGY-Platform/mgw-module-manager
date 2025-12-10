@@ -80,6 +80,8 @@ type DeploymentSecretItem struct {
 }
 
 type DeploymentConfig struct {
+	DeploymentId string
+	Reference    string
 	String       string
 	StringSlice  []string
 	Int64        int64
