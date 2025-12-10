@@ -17,7 +17,7 @@
 package api
 
 const (
-	HeaderRequestID = "X-Request-ID"
+	HeaderRequestId = "X-Request-Id"
 	HeaderApiVer    = "X-Api-Version"
 	HeaderSrvName   = "X-Service-Name"
 	HeaderAuth      = "Authorization"
