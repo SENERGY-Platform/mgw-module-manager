@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package init
+package db_init
 
 import (
 	"bytes"
