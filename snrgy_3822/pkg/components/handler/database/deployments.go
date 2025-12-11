@@ -84,11 +84,40 @@ func (h *Handler) Deployments(ctx context.Context, filter models_storage.Deploym
 	return deps, nil
 }
 
-func (h *Handler) CreateDeployment(ctx context.Context, deployment models_storage.Deployment) error {
-	return h.CreateDeployments(ctx, []models_storage.Deployment{deployment})
+func (h *Handler) CreateDeployment(ctx context.Context, deployment models_storage.Deployment, hostResources []models_storage.DeploymentHostResource, secrets []models_storage.DeploymentSecret, configs []models_storage.DeploymentConfig) (err error) {
+	tx, err := h.sqlDB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = tx.Rollback()
+	}()
+	_, err = tx.ExecContext(
+		ctx,
+		"INSERT INTO deployments (id, mod_id, mod_source, mod_channel, mod_ver, name, dir, enabled, created, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		deployment.Id,
+		deployment.Module.Id,
+		deployment.Module.Source,
+		deployment.Module.Channel,
+		deployment.Module.Version,
+		deployment.Name,
+		deployment.DirName,
+		deployment.Enabled,
+		deployment.Created,
+		deployment.Updated,
+	)
+	if err != nil {
+		return
+	}
+	err = h.insertDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, configs)
+	if err != nil {
+		return
+	}
+	err = tx.Commit()
+	return
 }
 
-func (h *Handler) CreateDeployments(ctx context.Context, deployments []models_storage.Deployment) (err error) {
+func (h *Handler) UpdateDeploymentsEnabledState(ctx context.Context, deployments map[string]bool, timestamp time.Time) (err error) {
 	var db sqlDatabase = h.sqlDB
 	var tx *sql.Tx
 	if len(deployments) > 0 {
@@ -101,20 +130,13 @@ func (h *Handler) CreateDeployments(ctx context.Context, deployments []models_st
 		}()
 		db = tx
 	}
-	for _, deployment := range deployments {
+	for id, enabled := range deployments {
 		_, err = db.ExecContext(
 			ctx,
-			"INSERT INTO deployments (id, mod_id, mod_source, mod_channel, mod_ver, name, dir, enabled, created, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-			deployment.Id,
-			deployment.Module.Id,
-			deployment.Module.Source,
-			deployment.Module.Channel,
-			deployment.Module.Version,
-			deployment.Name,
-			deployment.DirName,
-			deployment.Enabled,
-			deployment.Created,
-			deployment.Updated,
+			"UPDATE deployments SET enabled = ?, updated = ? WHERE id = ?",
+			enabled,
+			timestamp,
+			id,
 		)
 		if err != nil {
 			return
@@ -126,43 +148,76 @@ func (h *Handler) CreateDeployments(ctx context.Context, deployments []models_st
 	return
 }
 
-func (h *Handler) UpdateDeployment(ctx context.Context, deployment models_storage.Deployment) error {
-	return h.UpdateDeployments(ctx, []models_storage.Deployment{deployment})
+func (h *Handler) UpdateDeploymentEnabledState(ctx context.Context, id string, enabled bool, timestamp time.Time) error {
+	return h.UpdateDeploymentsEnabledState(ctx, map[string]bool{id: enabled}, timestamp)
 }
 
-func (h *Handler) UpdateDeployments(ctx context.Context, deployments []models_storage.Deployment) (err error) {
-	var db sqlDatabase = h.sqlDB
-	var tx *sql.Tx
-	if len(deployments) > 0 {
-		tx, err = h.sqlDB.BeginTx(ctx, nil)
-		if err != nil {
-			return err
-		}
-		defer func() {
-			err = tx.Rollback()
-		}()
-		db = tx
+func (h *Handler) UpdateDeploymentName(ctx context.Context, id, name string, timestamp time.Time) error {
+	_, err := h.sqlDB.ExecContext(
+		ctx,
+		"UPDATE deployments SET name = ?, updated = ? WHERE id = ?",
+		name,
+		timestamp,
+		id,
+	)
+	if err != nil {
+		return err
 	}
-	for _, deployment := range deployments {
-		_, err = db.ExecContext(
-			ctx,
-			"UPDATE deployments SET mod_source = ?, mod_channel = ?, mod_ver = ?, name = ?, dir = ?, enabled = ?, updated = ? WHERE id = ?",
-			deployment.Module.Source,
-			deployment.Module.Channel,
-			deployment.Module.Version,
-			deployment.Name,
-			deployment.DirName,
-			deployment.Enabled,
-			deployment.Updated,
-			deployment.Id,
-		)
-		if err != nil {
-			return
-		}
+	return nil
+}
+
+func (h *Handler) UpdateDeploymentResourcesAndConfigs(ctx context.Context, deploymentId string, hostResources []models_storage.DeploymentHostResource, secrets []models_storage.DeploymentSecret, configs []models_storage.DeploymentConfig) (err error) {
+	tx, err := h.sqlDB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
 	}
-	if tx != nil {
-		err = tx.Commit()
+	defer func() {
+		err = tx.Rollback()
+	}()
+	err = h.deleteDeploymentResourcesAndConfigs(ctx, tx, deploymentId)
+	if err != nil {
+		return
 	}
+	err = h.insertDeploymentResourcesAndConfigs(ctx, tx, deploymentId, hostResources, secrets, configs)
+	if err != nil {
+		return
+	}
+	err = tx.Commit()
+	return
+}
+
+func (h *Handler) UpdateDeployment(ctx context.Context, deployment models_storage.Deployment, hostResources []models_storage.DeploymentHostResource, secrets []models_storage.DeploymentSecret, configs []models_storage.DeploymentConfig) (err error) {
+	tx, err := h.sqlDB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = tx.Rollback()
+	}()
+	_, err = tx.ExecContext(
+		ctx,
+		"UPDATE deployments SET mod_source = ?, mod_channel = ?, mod_ver = ?, name = ?, dir = ?, enabled = ?, updated = ? WHERE id = ?",
+		deployment.Module.Source,
+		deployment.Module.Channel,
+		deployment.Module.Version,
+		deployment.Name,
+		deployment.DirName,
+		deployment.Enabled,
+		deployment.Updated,
+		deployment.Id,
+	)
+	if err != nil {
+		return
+	}
+	err = h.deleteDeploymentResourcesAndConfigs(ctx, tx, deployment.Id)
+	if err != nil {
+		return
+	}
+	err = h.insertDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, configs)
+	if err != nil {
+		return
+	}
+	err = tx.Commit()
 	return
 }
 
