@@ -21,7 +21,7 @@ import (
 	"database/sql"
 	"time"
 
-	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
+	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
 func (h *Handler) UpdateDeploymentsEnabledState(ctx context.Context, deployments map[string]bool, timestamp time.Time) (err error) {
@@ -73,7 +73,7 @@ func (h *Handler) UpdateDeploymentName(ctx context.Context, id, name string, tim
 	return nil
 }
 
-func (h *Handler) UpdateDeploymentResourcesAndConfigs(ctx context.Context, deploymentId string, hostResources []models_storage.DeploymentHostResource, secrets []models_storage.DeploymentSecret, configs []models_storage.DeploymentConfig) (err error) {
+func (h *Handler) UpdateDeploymentResourcesAndConfigs(ctx context.Context, deploymentId string, hostResources []models_handler_storage.DeploymentHostResource, secrets []models_handler_storage.DeploymentSecret, configs []models_handler_storage.DeploymentConfig) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -93,7 +93,7 @@ func (h *Handler) UpdateDeploymentResourcesAndConfigs(ctx context.Context, deplo
 	return
 }
 
-func (h *Handler) UpdateDeployment(ctx context.Context, deployment models_storage.Deployment, hostResources []models_storage.DeploymentHostResource, secrets []models_storage.DeploymentSecret, configs []models_storage.DeploymentConfig) (err error) {
+func (h *Handler) UpdateDeployment(ctx context.Context, deployment models_handler_storage.Deployment, hostResources []models_handler_storage.DeploymentHostResource, secrets []models_handler_storage.DeploymentSecret, configs []models_handler_storage.DeploymentConfig) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err

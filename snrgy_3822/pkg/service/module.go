@@ -21,26 +21,14 @@ import (
 	"fmt"
 	"maps"
 	"reflect"
+	"slices"
 
-	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
-	models_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repository"
+	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
+	models_handler_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repository"
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
-
-func (s *Service) Modules(ctx context.Context, filter models_module.ModuleFilter) ([]models_module.Module, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.modsHdl.Modules(ctx, filter)
-}
-
-func (s *Service) Module(ctx context.Context, id string) (models_module.Module, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.modsHdl.Module(ctx, id)
-}
 
 func (s *Service) ModulesChangeRequest(_ context.Context) (models_service.ModulesChangeRequest, error) {
 	s.mu.RLock()
@@ -58,14 +46,11 @@ func (s *Service) NewModulesChangeRequest(ctx context.Context, reqItems []models
 	if err != nil {
 		return models_service.ModulesChangeRequest{}, err
 	}
-	installedMods, err := s.modsHdl.Modules(ctx, models_module.ModuleFilter{})
+	installedMods, err := s.modsHdl.Modules(ctx, models_handler_module.ModuleFilter{})
 	if err != nil {
 		return models_service.ModulesChangeRequest{}, err
 	}
-	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.Module) string {
-		return item.ID
-	}))
-	selectedRepoMods, err := s.selectRepoModules(ctx, reqItems, installedModsMap)
+	selectedRepoMods, err := s.selectRepoModules(ctx, reqItems, installedMods)
 	if err != nil {
 		return models_service.ModulesChangeRequest{}, err
 	}
@@ -75,7 +60,7 @@ func (s *Service) NewModulesChangeRequest(ctx context.Context, reqItems []models
 			toRemoveMods = append(toRemoveMods, item.Id)
 		}
 	}
-	changeRequest := newModulesChangeRequest(selectedRepoMods, installedModsMap, toRemoveMods)
+	changeRequest := newModulesChangeRequest(selectedRepoMods, installedMods, toRemoveMods)
 	s.changeReq = &changeRequest
 	return transformModulesChangeRequest(changeRequest), nil
 }
@@ -175,30 +160,23 @@ func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (models_
 }
 
 func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modulesChangeRequest, error) {
-	installedMods, err := s.modsHdl.Modules(ctx, models_module.ModuleFilter{})
+	installedMods, err := s.modsHdl.Modules(ctx, models_handler_module.ModuleFilter{})
 	if err != nil {
 		return modulesChangeRequest{}, err
 	}
 	if len(installedMods) == 0 {
 		return modulesChangeRequest{}, nil
 	}
-	installedModIds := make([]string, len(installedMods))
-	for i, mod := range installedMods {
-		installedModIds[i] = mod.ID
-	}
-	repoMods, err := s.reposHdl.Modules(ctx, models_repo.ModulesFilter{Ids: installedModIds})
+	repoMods, err := s.reposHdl.Modules(ctx, models_handler_repo.ModulesFilter{Ids: slices.Collect(maps.Keys(installedMods))})
 	if err != nil {
 		return modulesChangeRequest{}, err
 	}
 	if len(repoMods) == 0 {
 		return modulesChangeRequest{}, nil
 	}
-	installedModsMap := maps.Collect(helper_slices.AllFunc(installedMods, func(item models_module.Module) string {
-		return item.ID
-	}))
 	var reqItems []models_service.ChangeRequestItem
 	for _, repoMod := range repoMods {
-		installedMod, ok := installedModsMap[repoMod.Id]
+		installedMod, ok := installedMods[repoMod.Id]
 		if !ok {
 			continue
 		}
@@ -210,11 +188,11 @@ func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modules
 			})
 		}
 	}
-	selectedRepoMods, err := s.selectRepoModules(ctx, reqItems, installedModsMap)
+	selectedRepoMods, err := s.selectRepoModules(ctx, reqItems, installedMods)
 	if err != nil {
 		return modulesChangeRequest{}, err
 	}
-	return newModulesChangeRequest(selectedRepoMods, installedModsMap, nil), nil
+	return newModulesChangeRequest(selectedRepoMods, installedMods, nil), nil
 }
 
 func validateReqItems(reqItems []models_service.ChangeRequestItem) ([]models_service.ChangeRequestItem, error) {
@@ -236,7 +214,7 @@ func validateReqItems(reqItems []models_service.ChangeRequestItem) ([]models_ser
 	return validatedItems, nil
 }
 
-func newModulesChangeRequest(selectedRepoMods map[string]modWrapper, installedModsMap map[string]models_module.Module, toRemoveMods []string) modulesChangeRequest {
+func newModulesChangeRequest(selectedRepoMods map[string]modWrapper, installedModsMap map[string]models_handler_module.Module, toRemoveMods []string) modulesChangeRequest {
 	var install []modWrapper
 	var change []changeItem
 	var remove []string

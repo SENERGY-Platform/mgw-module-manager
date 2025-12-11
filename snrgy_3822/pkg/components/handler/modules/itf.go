@@ -20,14 +20,14 @@ import (
 	"context"
 
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
+	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
 type storageHandler interface {
-	Modules(ctx context.Context, filter models_storage.ModulesFilter) (map[string]models_storage.Module, error)
-	Module(ctx context.Context, id string) (models_storage.Module, error)
-	CreateModule(ctx context.Context, mod models_storage.Module) error
-	UpdateModule(ctx context.Context, mod models_storage.Module) error
+	Modules(ctx context.Context, filter models_handler_storage.ModulesFilter) (map[string]models_handler_storage.Module, error)
+	Module(ctx context.Context, id string) (models_handler_storage.Module, error)
+	CreateModule(ctx context.Context, mod models_handler_storage.Module) error
+	UpdateModule(ctx context.Context, mod models_handler_storage.Module) error
 	DeleteModule(ctx context.Context, id string) error
 }
 

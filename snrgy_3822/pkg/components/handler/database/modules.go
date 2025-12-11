@@ -23,21 +23,21 @@ import (
 
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
+	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func (h *Handler) Module(ctx context.Context, id string) (models_storage.Module, error) {
-	modules, err := h.Modules(ctx, models_storage.ModulesFilter{Ids: []string{id}})
+func (h *Handler) Module(ctx context.Context, id string) (models_handler_storage.Module, error) {
+	modules, err := h.Modules(ctx, models_handler_storage.ModulesFilter{Ids: []string{id}})
 	if err != nil {
-		return models_storage.Module{}, err
+		return models_handler_storage.Module{}, err
 	}
 	if len(modules) == 0 {
-		return models_storage.Module{}, models_error.NotFoundErr
+		return models_handler_storage.Module{}, models_error.NotFoundErr
 	}
 	return modules[id], nil
 }
 
-func (h *Handler) Modules(ctx context.Context, filter models_storage.ModulesFilter) (map[string]models_storage.Module, error) {
+func (h *Handler) Modules(ctx context.Context, filter models_handler_storage.ModulesFilter) (map[string]models_handler_storage.Module, error) {
 	fc, val := genModulesFilter(filter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -48,9 +48,9 @@ func (h *Handler) Modules(ctx context.Context, filter models_storage.ModulesFilt
 		return nil, err
 	}
 	defer rows.Close()
-	mods := make(map[string]models_storage.Module)
+	mods := make(map[string]models_handler_storage.Module)
 	for rows.Next() {
-		var mod models_storage.Module
+		var mod models_handler_storage.Module
 		var at, ut []uint8
 		err = rows.Scan(&mod.Id, &mod.DirName, &mod.Source, &mod.Channel, &at, &ut)
 		if err != nil {
@@ -67,7 +67,7 @@ func (h *Handler) Modules(ctx context.Context, filter models_storage.ModulesFilt
 	return mods, nil
 }
 
-func (h *Handler) CreateModule(ctx context.Context, mod models_storage.Module) error {
+func (h *Handler) CreateModule(ctx context.Context, mod models_handler_storage.Module) error {
 	_, err := h.sqlDB.ExecContext(
 		ctx,
 		"INSERT INTO modules (id, dir, source, channel, added, updated) VALUES (?, ?, ?, ?, ?, ?);",
@@ -84,7 +84,7 @@ func (h *Handler) CreateModule(ctx context.Context, mod models_storage.Module) e
 	return nil
 }
 
-func (h *Handler) UpdateModule(ctx context.Context, mod models_storage.Module) error {
+func (h *Handler) UpdateModule(ctx context.Context, mod models_handler_storage.Module) error {
 	res, err := h.sqlDB.ExecContext(ctx, "UPDATE modules SET dir = ?, source = ?, channel = ?, updated = ? WHERE id = ?;", mod.DirName, mod.Source, mod.Channel, mod.Updated, mod.Id)
 	if err != nil {
 		return err
@@ -114,7 +114,7 @@ func (h *Handler) DeleteModule(ctx context.Context, id string) error {
 	return nil
 }
 
-func genModulesFilter(filter models_storage.ModulesFilter) (string, []any) {
+func genModulesFilter(filter models_handler_storage.ModulesFilter) (string, []any) {
 	var fc []string
 	var val []any
 	if len(filter.Ids) > 0 {

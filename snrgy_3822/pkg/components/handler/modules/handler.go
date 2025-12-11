@@ -17,9 +17,9 @@ import (
 	helper_url "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/module"
+	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
+	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
-	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 	"github.com/google/uuid"
 )
 
@@ -45,10 +45,10 @@ func (h *Handler) Init() error {
 	return os.MkdirAll(h.config.WorkDirPath, 0775)
 }
 
-func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter) ([]models_module.Module, error) {
+func (h *Handler) Modules(ctx context.Context, filter models_handler_module.ModuleFilter) (map[string]models_handler_module.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	stgMods, err := h.storageHdl.Modules(ctx, models_storage.ModulesFilter{
+	stgMods, err := h.storageHdl.Modules(ctx, models_handler_storage.ModulesFilter{
 		Ids:     filter.Ids,
 		Source:  filter.Source,
 		Channel: filter.Channel,
@@ -57,7 +57,7 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 		return nil, err
 	}
 	filter.Name = strings.ToLower(filter.Name)
-	var modules []models_module.Module
+	modules := make(map[string]models_handler_module.Module)
 	var errs []error
 	for _, stgMod := range stgMods {
 		mod, ok := h.cacheGet(stgMod.Id)
@@ -74,13 +74,13 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 		if !strings.Contains(strings.ToLower(mod.Name), filter.Name) { // empty string = true
 			continue
 		}
-		modules = append(modules, models_module.Module{
+		modules[mod.ID] = models_handler_module.Module{
 			Module:  mod,
 			Source:  stgMod.Source,
 			Channel: stgMod.Channel,
 			Added:   stgMod.Added,
 			Updated: stgMod.Updated,
-		})
+		}
 	}
 	lenErrs := len(errs)
 	if lenErrs > 0 && lenErrs == len(stgMods) {
@@ -89,23 +89,23 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 	return modules, nil
 }
 
-func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, error) {
+func (h *Handler) Module(ctx context.Context, id string) (models_handler_module.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	stgMod, err := h.storageHdl.Module(ctx, id)
 	if err != nil {
-		return models_module.Module{}, err
+		return models_handler_module.Module{}, err
 	}
 	mod, ok := h.cacheGet(id)
 	if !ok {
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 		mod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
-			return models_module.Module{}, err
+			return models_handler_module.Module{}, err
 		}
 		h.cacheSet(id, mod)
 	}
-	return models_module.Module{
+	return models_handler_module.Module{
 		Module:  mod,
 		Source:  stgMod.Source,
 		Channel: stgMod.Channel,
@@ -355,12 +355,12 @@ func imagesAsSet(services map[string]*models_external.ModuleService) map[string]
 	return images
 }
 
-func newStgMod(id, source, channel string) (models_storage.Module, error) {
+func newStgMod(id, source, channel string) (models_handler_storage.Module, error) {
 	newUUID, err := uuid.NewUUID()
 	if err != nil {
-		return models_storage.Module{}, err
+		return models_handler_storage.Module{}, err
 	}
-	return models_storage.Module{
+	return models_handler_storage.Module{
 		Id:      id,
 		DirName: newUUID.String(),
 		Source:  source,

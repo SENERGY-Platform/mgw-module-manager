@@ -22,10 +22,10 @@ import (
 	"fmt"
 
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
+	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func (h *Handler) CreateDeployment(ctx context.Context, deployment models_storage.Deployment, hostResources []models_storage.DeploymentHostResource, secrets []models_storage.DeploymentSecret, configs []models_storage.DeploymentConfig) (err error) {
+func (h *Handler) CreateDeployment(ctx context.Context, deployment models_handler_storage.Deployment, hostResources []models_handler_storage.DeploymentHostResource, secrets []models_handler_storage.DeploymentSecret, configs []models_handler_storage.DeploymentConfig) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func (h *Handler) CreateDeployment(ctx context.Context, deployment models_storag
 	return
 }
 
-func (h *Handler) createDeploymentResourcesAndConfigs(ctx context.Context, tx *sql.Tx, deploymentId string, hostResources []models_storage.DeploymentHostResource, secrets []models_storage.DeploymentSecret, configs []models_storage.DeploymentConfig) error {
+func (h *Handler) createDeploymentResourcesAndConfigs(ctx context.Context, tx *sql.Tx, deploymentId string, hostResources []models_handler_storage.DeploymentHostResource, secrets []models_handler_storage.DeploymentSecret, configs []models_handler_storage.DeploymentConfig) error {
 	var err error
 	for _, hostResource := range hostResources {
 		_, err = tx.ExecContext(
@@ -94,16 +94,16 @@ func (h *Handler) createDeploymentResourcesAndConfigs(ctx context.Context, tx *s
 			var colName string
 			var value any
 			switch config.DataType {
-			case models_storage.StringType:
+			case models_handler_storage.StringType:
 				colName = "v_string"
 				value = config.String
-			case models_storage.Int64Type:
+			case models_handler_storage.Int64Type:
 				colName = "v_int"
 				value = config.Int64
-			case models_storage.Float64Type:
+			case models_handler_storage.Float64Type:
 				colName = "v_float"
 				value = config.Float64
-			case models_storage.BoolType:
+			case models_handler_storage.BoolType:
 				colName = "v_bool"
 				value = config.Bool
 			}
@@ -115,16 +115,16 @@ func (h *Handler) createDeploymentResourcesAndConfigs(ctx context.Context, tx *s
 			var colName string
 			var values []any
 			switch config.DataType {
-			case models_storage.StringType:
+			case models_handler_storage.StringType:
 				colName = "v_string"
 				values = helper_slices.ToAny(config.StringSlice)
-			case models_storage.Int64Type:
+			case models_handler_storage.Int64Type:
 				colName = "v_int"
 				values = helper_slices.ToAny(config.Int64Slice)
-			case models_storage.Float64Type:
+			case models_handler_storage.Float64Type:
 				colName = "v_float"
 				values = helper_slices.ToAny(config.Float64Slice)
-			case models_storage.BoolType:
+			case models_handler_storage.BoolType:
 				colName = "v_bool"
 				values = helper_slices.ToAny(config.BoolSlice)
 			}
