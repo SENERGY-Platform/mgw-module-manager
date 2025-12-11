@@ -20,21 +20,6 @@ import (
 	"time"
 )
 
-type Module struct {
-	Id      string
-	DirName string
-	Source  string
-	Channel string
-	Added   time.Time
-	Updated time.Time
-}
-
-type ModulesFilter struct {
-	Ids     []string
-	Source  string
-	Channel string
-}
-
 type Deployment struct {
 	Id      string
 	Module  DeploymentModule
