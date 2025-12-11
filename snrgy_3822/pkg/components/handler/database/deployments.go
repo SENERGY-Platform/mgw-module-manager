@@ -169,29 +169,17 @@ func (h *Handler) DeleteDeployment(ctx context.Context, id string) error {
 	return h.DeleteDeployments(ctx, []string{id})
 }
 
-func (h *Handler) DeleteDeployments(ctx context.Context, ids []string) (err error) {
-	var db sqlDatabase = h.sqlDB
-	var tx *sql.Tx
-	if len(ids) > 0 {
-		tx, err = h.sqlDB.BeginTx(ctx, nil)
-		if err != nil {
-			return err
-		}
-		defer func() {
-			err = tx.Rollback()
-		}()
-		db = tx
+func (h *Handler) DeleteDeployments(ctx context.Context, ids []string) error {
+	ids = helper_slices.RemoveDuplicates(ids)
+	_, err := h.sqlDB.ExecContext(
+		ctx,
+		"DELETE FROM deployments WHERE id IN ("+genQuestionMarks(len(ids))+")",
+		helper_slices.ToAny(ids)...,
+	)
+	if err != nil {
+		return err
 	}
-	for _, id := range ids {
-		_, err = db.ExecContext(ctx, "DELETE FROM deployments WHERE id = ?", id)
-		if err != nil {
-			return
-		}
-	}
-	if tx != nil {
-		err = tx.Commit()
-	}
-	return
+	return nil
 }
 
 func (h *Handler) DeploymentContainers(ctx context.Context, deploymentId string) (map[string]models_storage.DeploymentContainer, error) {
