@@ -30,6 +30,14 @@ func AllFunc[S ~[]E, E any, K comparable](sl S, keyF func(item E) K) iter.Seq2[K
 	}
 }
 
+func ToAny[S ~[]E, E any](sl S) []any {
+	anySl := make([]any, len(sl))
+	for i, v := range sl {
+		anySl[i] = v
+	}
+	return anySl
+}
+
 func RemoveDuplicates[S ~[]E, E comparable](sl S) []E {
 	if len(sl) < 2 {
 		return sl
