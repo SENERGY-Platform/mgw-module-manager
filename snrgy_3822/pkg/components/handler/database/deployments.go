@@ -430,6 +430,108 @@ func (h *Handler) DeploymentsConfigs(ctx context.Context, deploymentIds []string
 	return depConfigs, nil
 }
 
+func (h *Handler) deleteDeploymentResourcesAndConfigs(ctx context.Context, tx *sql.Tx, deploymentId string) error {
+	_, err := tx.ExecContext(ctx, "DELETE FROM dep_host_resources WHERE dep_id = ?", deploymentId)
+	if err != nil {
+		return err
+	}
+	_, err = tx.ExecContext(ctx, "DELETE FROM dep_secrets WHERE dep_id = ?", deploymentId)
+	if err != nil {
+		return err
+	}
+	_, err = tx.ExecContext(ctx, "DELETE FROM dep_configs WHERE dep_id = ?", deploymentId)
+	if err != nil {
+		return err
+	}
+	_, err = tx.ExecContext(ctx, "DELETE FROM dep_list_configs WHERE dep_id = ?", deploymentId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Handler) insertDeploymentResourcesAndConfigs(ctx context.Context, tx *sql.Tx, deploymentId string, hostResources []models_storage.DeploymentHostResource, secrets []models_storage.DeploymentSecret, configs []models_storage.DeploymentConfig) error {
+	var err error
+	for _, hostResource := range hostResources {
+		_, err = tx.ExecContext(
+			ctx,
+			"INSERT INTO dep_host_resources (dep_id, ref, res_id) VALUES (?, ?, ?)",
+			deploymentId,
+			hostResource.Reference,
+			hostResource.Id,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	for _, secret := range secrets {
+		for _, item := range secret.Items {
+			_, err = tx.ExecContext(
+				ctx,
+				"INSERT INTO dep_secrets (dep_id, ref, sec_id, item, as_mount, as_env) VALUES (?, ?, ?, ?, ?, ?)",
+				deploymentId,
+				secret.Reference,
+				secret.Id,
+				item.Name,
+				item.AsMount,
+				item.AsEnv,
+			)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	for _, config := range configs {
+		if config.IsSlice {
+			var colName string
+			var value any
+			switch config.DataType {
+			case models_storage.StringType:
+				colName = "v_string"
+				value = config.String
+			case models_storage.Int64Type:
+				colName = "v_int"
+				value = config.Int64
+			case models_storage.Float64Type:
+				colName = "v_float"
+				value = config.Float64
+			case models_storage.BoolType:
+				colName = "v_bool"
+				value = config.Bool
+			}
+			_, err = tx.ExecContext(ctx, fmt.Sprintf("INSERT INTO dep_configs (dep_id, ref, %s) VALUES (?, ?, ?)", colName), deploymentId, config.Reference, value)
+			if err != nil {
+				return err
+			}
+		} else {
+			var colName string
+			var values []any
+			switch config.DataType {
+			case models_storage.StringType:
+				colName = "v_string"
+				values = helper_slices.ToAny(config.StringSlice)
+			case models_storage.Int64Type:
+				colName = "v_int"
+				values = helper_slices.ToAny(config.Int64Slice)
+			case models_storage.Float64Type:
+				colName = "v_float"
+				values = helper_slices.ToAny(config.Float64Slice)
+			case models_storage.BoolType:
+				colName = "v_bool"
+				values = helper_slices.ToAny(config.BoolSlice)
+			}
+			stmt := fmt.Sprintf("INSERT INTO dep_list_configs (dep_id, ref, ord, %s) VALUES (?, ?, ?, ?)", colName)
+			for i, value := range values {
+				_, err = tx.ExecContext(ctx, stmt, deploymentId, config.Reference, i, value)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func genDeploymentsConfigsFilter(ids []string) (string, []any) {
 	var fc []string
 	var val []any
