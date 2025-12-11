@@ -25,7 +25,12 @@ import (
 type Module = module_lib.Module
 type ModuleService = module_lib.Service
 
+type Container = cew_model.Container
+type ContainersFilter = cew_model.ContainerFilter
+type Volume = cew_model.Volume
+type VolumesFilter = cew_model.VolumeFilter
 type Image = cew_model.Image
+type ImagesFilter = cew_model.ImageFilter
 type CEWNotFoundErr = cew_model.NotFoundError
 
 type Job = job_hdl_lib.Job
