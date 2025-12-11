@@ -29,8 +29,8 @@ import (
 	models_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/storage"
 )
 
-func (h *Handler) Deployment(ctx context.Context, id string) (models_storage.Deployment, error) {
-	deployments, err := h.Deployments(ctx, models_storage.DeploymentsFilter{Ids: []string{id}})
+func (h *Handler) ReadDeployment(ctx context.Context, id string) (models_storage.Deployment, error) {
+	deployments, err := h.ReadDeployments(ctx, models_storage.DeploymentsFilter{Ids: []string{id}})
 	if err != nil {
 		return models_storage.Deployment{}, err
 	}
@@ -40,7 +40,7 @@ func (h *Handler) Deployment(ctx context.Context, id string) (models_storage.Dep
 	return deployments[id], nil
 }
 
-func (h *Handler) Deployments(ctx context.Context, filter models_storage.DeploymentsFilter) (map[string]models_storage.Deployment, error) {
+func (h *Handler) ReadDeployments(ctx context.Context, filter models_storage.DeploymentsFilter) (map[string]models_storage.Deployment, error) {
 	fc, val := genDeploymentsFilter(filter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -109,7 +109,7 @@ func (h *Handler) CreateDeployment(ctx context.Context, deployment models_storag
 	if err != nil {
 		return
 	}
-	err = h.insertDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, configs)
+	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, configs)
 	if err != nil {
 		return
 	}
@@ -178,7 +178,7 @@ func (h *Handler) UpdateDeploymentResourcesAndConfigs(ctx context.Context, deplo
 	if err != nil {
 		return
 	}
-	err = h.insertDeploymentResourcesAndConfigs(ctx, tx, deploymentId, hostResources, secrets, configs)
+	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deploymentId, hostResources, secrets, configs)
 	if err != nil {
 		return
 	}
@@ -213,7 +213,7 @@ func (h *Handler) UpdateDeployment(ctx context.Context, deployment models_storag
 	if err != nil {
 		return
 	}
-	err = h.insertDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, configs)
+	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, configs)
 	if err != nil {
 		return
 	}
@@ -238,8 +238,8 @@ func (h *Handler) DeleteDeployments(ctx context.Context, ids []string) error {
 	return nil
 }
 
-func (h *Handler) DeploymentContainers(ctx context.Context, deploymentId string) (map[string]models_storage.DeploymentContainer, error) {
-	deploymentsContainers, err := h.DeploymentsContainers(ctx, []string{deploymentId})
+func (h *Handler) ReadDeploymentContainers(ctx context.Context, deploymentId string) (map[string]models_storage.DeploymentContainer, error) {
+	deploymentsContainers, err := h.ReadDeploymentsContainers(ctx, []string{deploymentId})
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func (h *Handler) DeploymentContainers(ctx context.Context, deploymentId string)
 	return deploymentsContainers[deploymentId], nil
 }
 
-func (h *Handler) DeploymentsContainers(ctx context.Context, deploymentIds []string) (map[string]map[string]models_storage.DeploymentContainer, error) {
+func (h *Handler) ReadDeploymentsContainers(ctx context.Context, deploymentIds []string) (map[string]map[string]models_storage.DeploymentContainer, error) {
 	fc, val := genDeploymentsContainersFilter(deploymentIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -277,8 +277,8 @@ func (h *Handler) DeploymentsContainers(ctx context.Context, deploymentIds []str
 	return depContainers, nil
 }
 
-func (h *Handler) DeploymentHostResources(ctx context.Context, deploymentId string) (map[string]models_storage.DeploymentHostResource, error) {
-	deploymentsHostResources, err := h.DeploymentsHostResources(
+func (h *Handler) ReadDeploymentHostResources(ctx context.Context, deploymentId string) (map[string]models_storage.DeploymentHostResource, error) {
+	deploymentsHostResources, err := h.ReadDeploymentsHostResources(
 		ctx,
 		models_storage.DeploymentsHostResourcesFilter{DeploymentIds: []string{deploymentId}},
 	)
@@ -291,7 +291,7 @@ func (h *Handler) DeploymentHostResources(ctx context.Context, deploymentId stri
 	return deploymentsHostResources[deploymentId], nil
 }
 
-func (h *Handler) DeploymentsHostResources(ctx context.Context, filter models_storage.DeploymentsHostResourcesFilter) (map[string]map[string]models_storage.DeploymentHostResource, error) {
+func (h *Handler) ReadDeploymentsHostResources(ctx context.Context, filter models_storage.DeploymentsHostResourcesFilter) (map[string]map[string]models_storage.DeploymentHostResource, error) {
 	fc, val := genDeploymentsHostResourcesFilter(filter)
 	rows, err := h.sqlDB.QueryContext(ctx,
 		"SELECT dep_id, ref, res_id FROM dep_host_resources"+fc+";",
@@ -318,8 +318,8 @@ func (h *Handler) DeploymentsHostResources(ctx context.Context, filter models_st
 	return depHostResources, nil
 }
 
-func (h *Handler) DeploymentSecrets(ctx context.Context, deploymentId string) (map[string]models_storage.DeploymentSecret, error) {
-	deploymentsSecrets, err := h.DeploymentsSecrets(ctx, models_storage.DeploymentsSecretsFilter{DeploymentIds: []string{deploymentId}})
+func (h *Handler) ReadDeploymentSecrets(ctx context.Context, deploymentId string) (map[string]models_storage.DeploymentSecret, error) {
+	deploymentsSecrets, err := h.ReadDeploymentsSecrets(ctx, models_storage.DeploymentsSecretsFilter{DeploymentIds: []string{deploymentId}})
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +329,7 @@ func (h *Handler) DeploymentSecrets(ctx context.Context, deploymentId string) (m
 	return deploymentsSecrets[deploymentId], nil
 }
 
-func (h *Handler) DeploymentsSecrets(ctx context.Context, filter models_storage.DeploymentsSecretsFilter) (map[string]map[string]models_storage.DeploymentSecret, error) {
+func (h *Handler) ReadDeploymentsSecrets(ctx context.Context, filter models_storage.DeploymentsSecretsFilter) (map[string]map[string]models_storage.DeploymentSecret, error) {
 	fc, val := genDeploymentsSecretsFilter(filter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -367,8 +367,8 @@ func (h *Handler) DeploymentsSecrets(ctx context.Context, filter models_storage.
 	return depSecrets, nil
 }
 
-func (h *Handler) DeploymentConfigs(ctx context.Context, deploymentId string) (map[string]models_storage.DeploymentConfig, error) {
-	deploymentsConfigs, err := h.DeploymentsConfigs(ctx, []string{deploymentId})
+func (h *Handler) ReadDeploymentConfigs(ctx context.Context, deploymentId string) (map[string]models_storage.DeploymentConfig, error) {
+	deploymentsConfigs, err := h.ReadDeploymentsConfigs(ctx, []string{deploymentId})
 	if err != nil {
 		return nil, err
 	}
@@ -378,7 +378,7 @@ func (h *Handler) DeploymentConfigs(ctx context.Context, deploymentId string) (m
 	return deploymentsConfigs[deploymentId], nil
 }
 
-func (h *Handler) DeploymentsConfigs(ctx context.Context, deploymentIds []string) (map[string]map[string]models_storage.DeploymentConfig, error) {
+func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []string) (map[string]map[string]models_storage.DeploymentConfig, error) {
 	fc, val := genDeploymentsConfigsFilter(deploymentIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -506,7 +506,7 @@ func (h *Handler) deleteDeploymentResourcesAndConfigs(ctx context.Context, tx *s
 	return nil
 }
 
-func (h *Handler) insertDeploymentResourcesAndConfigs(ctx context.Context, tx *sql.Tx, deploymentId string, hostResources []models_storage.DeploymentHostResource, secrets []models_storage.DeploymentSecret, configs []models_storage.DeploymentConfig) error {
+func (h *Handler) createDeploymentResourcesAndConfigs(ctx context.Context, tx *sql.Tx, deploymentId string, hostResources []models_storage.DeploymentHostResource, secrets []models_storage.DeploymentSecret, configs []models_storage.DeploymentConfig) error {
 	var err error
 	for _, hostResource := range hostResources {
 		_, err = tx.ExecContext(
