@@ -48,80 +48,28 @@ func (h *Handler) Init() error {
 func (h *Handler) Modules(ctx context.Context, filter models_handler_module.ModuleFilter) (map[string]models_handler_module.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	stgMods, err := h.storageHdl.Modules(ctx, models_handler_storage.ModulesFilter{
-		Ids:     filter.Ids,
-		Source:  filter.Source,
-		Channel: filter.Channel,
-	})
-	if err != nil {
-		return nil, err
-	}
-	filter.Name = strings.ToLower(filter.Name)
-	modules := make(map[string]models_handler_module.Module)
-	var errs []error
-	for _, stgMod := range stgMods {
-		mod, ok := h.cacheGet(stgMod.Id)
-		if !ok {
-			modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
-			mod, err = helper_modfile.GetModule(modFS)
-			if err != nil {
-				errs = append(errs, err)
-				logger.Error("getting module failed", slog_attr.IdKey, stgMod.Id, slog_attr.ErrorKey, err)
-				continue
-			}
-			h.cacheSet(stgMod.Id, mod)
+	if filter.Dependencies {
+		requiredModules := make(map[string]models_handler_module.Module)
+		err := h.modulesWithDependencies(ctx, filter.Ids, requiredModules)
+		if err != nil {
+			return nil, err
 		}
-		if !strings.Contains(strings.ToLower(mod.Name), filter.Name) { // empty string = true
-			continue
-		}
-		modules[mod.ID] = models_handler_module.Module{
-			Module:  mod,
-			Source:  stgMod.Source,
-			Channel: stgMod.Channel,
-			Added:   stgMod.Added,
-			Updated: stgMod.Updated,
-		}
+		return requiredModules, nil
 	}
-	lenErrs := len(errs)
-	if lenErrs > 0 && lenErrs == len(stgMods) {
-		return nil, models_error.NewMultiError(errs)
-	}
-	return modules, nil
+	return h.modules(ctx, filter)
 }
 
 func (h *Handler) Module(ctx context.Context, id string) (models_handler_module.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	stgMod, err := h.storageHdl.Module(ctx, id)
+	modules, err := h.modules(ctx, models_handler_module.ModuleFilter{Ids: []string{id}})
 	if err != nil {
 		return models_handler_module.Module{}, err
 	}
-	mod, ok := h.cacheGet(id)
-	if !ok {
-		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
-		mod, err = helper_modfile.GetModule(modFS)
-		if err != nil {
-			return models_handler_module.Module{}, err
-		}
-		h.cacheSet(id, mod)
+	if len(modules) == 0 {
+		return models_handler_module.Module{}, models_error.NotFoundErr
 	}
-	return models_handler_module.Module{
-		Module:  mod,
-		Source:  stgMod.Source,
-		Channel: stgMod.Channel,
-		Added:   stgMod.Added,
-		Updated: stgMod.Updated,
-	}, nil
-}
-
-func (h *Handler) ModuleFS(ctx context.Context, id string) (fs.FS, error) {
-	h.mu.RLock()
-	defer h.mu.RUnlock()
-	storedMod, err := h.storageHdl.Module(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return os.DirFS(path.Join(h.config.WorkDirPath, storedMod.DirName)), nil
+	return modules[id], nil
 }
 
 func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.FS) error {
@@ -270,6 +218,78 @@ func (h *Handler) Remove(ctx context.Context, id string) error {
 	}
 	h.cacheDel(id)
 	return nil
+}
+
+func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, requiredModules map[string]models_handler_module.Module) error {
+	modules, err := h.modules(ctx, models_handler_module.ModuleFilter{Ids: ids})
+	if err != nil {
+		return err
+	}
+	for _, id := range ids {
+		module, ok := modules[id]
+		if !ok {
+			return fmt.Errorf("module %s not found", id) // TODO
+		}
+		if _, ok := requiredModules[id]; !ok {
+			requiredModules[id] = module
+		}
+		if len(module.Dependencies) > 0 {
+			var dependencyIds []string
+			for dependencyId := range module.Dependencies {
+				if _, ok := requiredModules[dependencyId]; !ok {
+					dependencyIds = append(dependencyIds, dependencyId)
+				}
+			}
+			err = h.modulesWithDependencies(ctx, dependencyIds, requiredModules)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (h *Handler) modules(ctx context.Context, filter models_handler_module.ModuleFilter) (map[string]models_handler_module.Module, error) {
+	stgMods, err := h.storageHdl.Modules(ctx, models_handler_storage.ModulesFilter{
+		Ids:     filter.Ids,
+		Source:  filter.Source,
+		Channel: filter.Channel,
+	})
+	if err != nil {
+		return nil, err
+	}
+	filter.Name = strings.ToLower(filter.Name)
+	modules := make(map[string]models_handler_module.Module)
+	var errs []error
+	for _, stgMod := range stgMods {
+		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
+		mod, ok := h.cacheGet(stgMod.Id)
+		if !ok {
+			mod, err = helper_modfile.GetModule(modFS)
+			if err != nil {
+				errs = append(errs, err)
+				logger.Error("getting module failed", slog_attr.IdKey, stgMod.Id, slog_attr.ErrorKey, err)
+				continue
+			}
+			h.cacheSet(stgMod.Id, mod)
+		}
+		if !strings.Contains(strings.ToLower(mod.Name), filter.Name) { // empty string = true
+			continue
+		}
+		modules[mod.ID] = models_handler_module.Module{
+			Module:     mod,
+			Source:     stgMod.Source,
+			Channel:    stgMod.Channel,
+			Added:      stgMod.Added,
+			Updated:    stgMod.Updated,
+			FileSystem: modFS,
+		}
+	}
+	lenErrs := len(errs)
+	if lenErrs > 0 && lenErrs == len(stgMods) {
+		return nil, models_error.NewMultiError(errs)
+	}
+	return modules, nil
 }
 
 func (h *Handler) cacheGet(id string) (models_external.Module, bool) {
