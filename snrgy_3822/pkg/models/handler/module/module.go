@@ -17,6 +17,7 @@
 package module
 
 import (
+	"io/fs"
 	"time"
 
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
@@ -24,10 +25,11 @@ import (
 
 type Module struct {
 	models_external.Module
-	Source  string    `json:"source"`
-	Channel string    `json:"channel"`
-	Added   time.Time `json:"added"`
-	Updated time.Time `json:"updated"`
+	Source     string
+	Channel    string
+	Added      time.Time
+	Updated    time.Time
+	FileSystem fs.FS
 }
 
 type ModuleFilter struct {
