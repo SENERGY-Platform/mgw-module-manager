@@ -19,7 +19,6 @@ type RepositoriesHandler interface {
 type ModulesHandler interface {
 	Modules(ctx context.Context, filter models_handler_module.ModuleFilter) (map[string]models_handler_module.Module, error)
 	Module(ctx context.Context, id string) (models_handler_module.Module, error)
-	ModuleFS(ctx context.Context, id string) (fs.FS, error)
 	Add(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Update(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Remove(ctx context.Context, id string) error
