@@ -33,8 +33,9 @@ type Module struct {
 }
 
 type ModuleFilter struct {
-	Ids     []string
-	Name    string
-	Source  string
-	Channel string
+	Ids          []string
+	Name         string
+	Source       string
+	Channel      string
+	Dependencies bool
 }
