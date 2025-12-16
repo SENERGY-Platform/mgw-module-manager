@@ -21,20 +21,16 @@ import (
 )
 
 type Deployment struct {
-	Id      string
-	Module  DeploymentModule
-	Name    string
-	DirName string
-	Enabled bool
-	Created time.Time
-	Updated time.Time
-}
-
-type DeploymentModule struct {
-	Id      string
-	Source  string
-	Channel string
-	Version string
+	Id            string
+	ModuleId      string
+	ModuleSource  string
+	ModuleChannel string
+	ModuleVersion string
+	Name          string
+	DirName       string
+	Enabled       bool
+	Created       time.Time
+	Updated       time.Time
 }
 
 type DeploymentContainer struct {
