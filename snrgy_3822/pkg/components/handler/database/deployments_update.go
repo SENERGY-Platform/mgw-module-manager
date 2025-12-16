@@ -104,9 +104,9 @@ func (h *Handler) UpdateDeployment(ctx context.Context, deployment models_handle
 	_, err = tx.ExecContext(
 		ctx,
 		"UPDATE deployments SET mod_source = ?, mod_channel = ?, mod_ver = ?, name = ?, dir = ?, enabled = ?, updated = ? WHERE id = ?",
-		deployment.Module.Source,
-		deployment.Module.Channel,
-		deployment.Module.Version,
+		deployment.ModuleSource,
+		deployment.ModuleChannel,
+		deployment.ModuleVersion,
 		deployment.Name,
 		deployment.DirName,
 		deployment.Enabled,
