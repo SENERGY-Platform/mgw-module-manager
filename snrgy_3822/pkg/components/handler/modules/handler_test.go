@@ -56,10 +56,11 @@ func TestHandler_Modules(t *testing.T) {
 			Description: "Module for tests.",
 			Version:     "v1.0.0",
 		},
-		Source:  "test_source",
-		Channel: "test_channel",
-		Added:   timestamp,
-		Updated: timestamp,
+		Source:     "test_source",
+		Channel:    "test_channel",
+		Added:      timestamp,
+		Updated:    timestamp,
+		FileSystem: os.DirFS("test/test_mod"),
 	}
 	h := New(stgHdlMock, nil, Config{WorkDirPath: "./test"})
 	err := h.Init()
@@ -107,10 +108,11 @@ func TestHandler_Module(t *testing.T) {
 			Description: "Module for tests.",
 			Version:     "v1.0.0",
 		},
-		Source:  "test_source",
-		Channel: "test_channel",
-		Added:   timestamp,
-		Updated: timestamp,
+		Source:     "test_source",
+		Channel:    "test_channel",
+		Added:      timestamp,
+		Updated:    timestamp,
+		FileSystem: os.DirFS("test/test_mod"),
 	}
 	h := New(stgHdlMock, nil, Config{WorkDirPath: "./test"})
 	err := h.Init()
@@ -662,9 +664,19 @@ type storageHandlerMock struct {
 	Mods map[string]models_handler_storage.Module
 }
 
-func (m *storageHandlerMock) Modules(_ context.Context, _ models_handler_storage.ModulesFilter) (map[string]models_handler_storage.Module, error) {
+func (m *storageHandlerMock) Modules(_ context.Context, filter models_handler_storage.ModulesFilter) (map[string]models_handler_storage.Module, error) {
 	if m.Err != nil {
 		return nil, m.Err
+	}
+	if len(filter.Ids) > 0 {
+		mods := make(map[string]models_handler_storage.Module)
+		for _, id := range filter.Ids {
+			mod, ok := m.Mods[id]
+			if ok {
+				mods[id] = mod
+			}
+		}
+		return mods, nil
 	}
 	return m.Mods, nil
 }
