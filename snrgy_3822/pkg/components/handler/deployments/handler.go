@@ -33,14 +33,16 @@ import (
 type Handler struct {
 	storageHdl storageHandler
 	cewClient  containerEngineWrapperClient
+	hmClient   hostManagerClient
 	config     Config
 	mu         sync.RWMutex
 }
 
-func New(storageHdl storageHandler, cewClient containerEngineWrapperClient, config Config) *Handler {
+func New(storageHdl storageHandler, cewClient containerEngineWrapperClient, hmClient hostManagerClient, config Config) *Handler {
 	return &Handler{
 		storageHdl: storageHdl,
 		cewClient:  cewClient,
+		hmClient:   hmClient,
 		config:     config,
 	}
 }

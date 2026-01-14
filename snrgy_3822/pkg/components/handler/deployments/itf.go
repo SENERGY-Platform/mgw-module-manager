@@ -63,3 +63,7 @@ type containerEngineWrapperClient interface {
 	GetJob(ctx context.Context, id string) (models_external.Job, error)
 	CancelJob(ctx context.Context, id string) error
 }
+
+type hostManagerClient interface {
+	GetHostResource(ctx context.Context, id string) (models_external.HostResource, error)
+}
