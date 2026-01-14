@@ -48,7 +48,7 @@ func (h *Handler) Init() error {
 func (h *Handler) Modules(ctx context.Context, filter models_handler_module.ModuleFilter) (map[string]models_handler_module.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	if filter.Dependencies {
+	if filter.Dependencies && len(filter.Ids) > 0 {
 		requiredModules := make(map[string]models_handler_module.Module)
 		err := h.modulesWithDependencies(ctx, filter.Ids, requiredModules)
 		if err != nil {
