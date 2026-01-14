@@ -72,3 +72,12 @@ CREATE TABLE IF NOT EXISTS dep_list_configs
     INDEX i_dep_id (dep_id),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
+CREATE TABLE IF NOT EXISTS dep_global_configs
+(
+    dep_id CHAR(36)     NOT NULL,
+    ref    VARCHAR(128) NOT NULL,
+    c_id VARCHAR(256) NOT NULL,
+    UNIQUE KEY uk_dep_id_ref (dep_id, ref),
+    INDEX i_dep_id (dep_id),
+    FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
+);
