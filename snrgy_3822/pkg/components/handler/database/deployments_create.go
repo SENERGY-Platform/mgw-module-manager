@@ -21,7 +21,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
@@ -91,49 +90,19 @@ func (h *Handler) createDeploymentResourcesAndConfigs(ctx context.Context, tx *s
 	}
 	for _, config := range configs {
 		if config.IsSlice {
-			var colName string
-			var value any
-			switch config.DataType {
-			case models_handler_storage.StringType:
-				colName = "v_string"
-				value = config.String
-			case models_handler_storage.Int64Type:
-				colName = "v_int"
-				value = config.Int64
-			case models_handler_storage.Float64Type:
-				colName = "v_float"
-				value = config.Float64
-			case models_handler_storage.BoolType:
-				colName = "v_bool"
-				value = config.Bool
-			}
-			_, err = tx.ExecContext(ctx, fmt.Sprintf("INSERT INTO dep_configs (dep_id, ref, %s) VALUES (?, ?, ?)", colName), deploymentId, config.Reference, value)
-			if err != nil {
-				return err
-			}
-		} else {
-			var colName string
-			var values []any
-			switch config.DataType {
-			case models_handler_storage.StringType:
-				colName = "v_string"
-				values = helper_slices.ToAny(config.StringSlice)
-			case models_handler_storage.Int64Type:
-				colName = "v_int"
-				values = helper_slices.ToAny(config.Int64Slice)
-			case models_handler_storage.Float64Type:
-				colName = "v_float"
-				values = helper_slices.ToAny(config.Float64Slice)
-			case models_handler_storage.BoolType:
-				colName = "v_bool"
-				values = helper_slices.ToAny(config.BoolSlice)
-			}
+			colName, values := getListConfigValsAndCol(config.ConfigValue)
 			stmt := fmt.Sprintf("INSERT INTO dep_list_configs (dep_id, ref, ord, %s) VALUES (?, ?, ?, ?)", colName)
 			for i, value := range values {
 				_, err = tx.ExecContext(ctx, stmt, deploymentId, config.Reference, i, value)
 				if err != nil {
 					return err
 				}
+			}
+		} else {
+			colName, value := getConfigValAndCol(config.ConfigValue)
+			_, err = tx.ExecContext(ctx, fmt.Sprintf("INSERT INTO dep_configs (dep_id, ref, %s) VALUES (?, ?, ?)", colName), deploymentId, config.Reference, value)
+			if err != nil {
+				return err
 			}
 		}
 	}
