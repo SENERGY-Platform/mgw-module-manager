@@ -7,11 +7,12 @@ require (
 	github.com/SENERGY-Platform/go-service-base/config-hdl v1.2.0
 	github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.2.0
 	github.com/SENERGY-Platform/go-service-base/struct-logger v0.4.1
-	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.16.2
-	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.17.1
+	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.17.0
+	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.18.0
 	github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib v0.1.1
-	github.com/SENERGY-Platform/mgw-modfile-lib v0.21.0
-	github.com/SENERGY-Platform/mgw-module-lib v0.24.0
+	github.com/SENERGY-Platform/mgw-host-manager/lib v1.3.1
+	github.com/SENERGY-Platform/mgw-modfile-lib v0.21.4
+	github.com/SENERGY-Platform/mgw-module-lib v0.25.3
 	github.com/SENERGY-Platform/mgw-module-manager/lib v0.0.0-00000000000000-000000000000
 	github.com/gin-contrib/requestid v1.0.5
 	github.com/gin-gonic/gin v1.11.0
