@@ -63,24 +63,14 @@ type DeploymentSecretItem struct {
 type DeploymentConfig struct {
 	DeploymentId string
 	Reference    string
-	String       string
-	StringSlice  []string
-	Int64        int64
-	Int64Slice   []int64
-	Float64      float64
-	Float64Slice []float64
-	Bool         bool
-	BoolSlice    []bool
-	DataType     int
-	IsSlice      bool
+	ConfigValue
 }
 
-const (
-	StringType = iota
-	Int64Type
-	Float64Type
-	BoolType
-)
+type DeploymentGlobalConfig struct {
+	Id           string
+	DeploymentId string
+	Reference    string
+}
 
 type DeploymentsFilter struct {
 	Ids       []string
