@@ -41,6 +41,9 @@ func (h *Handler) CreateGlobalConfig(ctx context.Context, config models_handler_
 		config.DataType,
 		config.IsSlice,
 	)
+	if err != nil {
+		return
+	}
 	err = createConfigValues(ctx, tx, "global_config_values", config)
 	if err != nil {
 		return
