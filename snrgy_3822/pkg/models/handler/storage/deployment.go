@@ -61,9 +61,9 @@ type DeploymentSecretItem struct {
 }
 
 type DeploymentConfig struct {
+	Config
 	DeploymentId string
 	Reference    string
-	ConfigValue
 }
 
 type DeploymentGlobalConfig struct {

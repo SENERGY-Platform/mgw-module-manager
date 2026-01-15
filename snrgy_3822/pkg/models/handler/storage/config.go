@@ -17,12 +17,14 @@
 package storage
 
 type GlobalConfig struct {
-	Id   string
+	Config
 	Name string
-	ConfigValue
 }
 
-type ConfigValue struct {
+type Config struct {
+	Id           string
+	DataType     int
+	IsSlice      bool
 	String       string
 	StringSlice  []string
 	Int64        int64
@@ -31,8 +33,6 @@ type ConfigValue struct {
 	Float64Slice []float64
 	Bool         bool
 	BoolSlice    []bool
-	DataType     int
-	IsSlice      bool
 }
 
 const (
