@@ -19,8 +19,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"strings"
 
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
@@ -63,18 +61,7 @@ func (h *Handler) ReadGlobalConfig(ctx context.Context, id string) (models_handl
 }
 
 func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_storage.GlobalConfig, error) {
-	var rows *sql.Rows
-	var err error
-	if len(ids) > 0 {
-		ids = helper_slices.RemoveDuplicates(ids)
-		rows, err = h.sqlDB.QueryContext(
-			ctx,
-			"SELECT * FROM ("+genSelectConfigsStmt("global_configs", "global_config_values", "name")+") AS SUB WHERE SUB.id IN ("+genQuestionMarks(len(ids))+");",
-			helper_slices.ToAny(ids)...,
-		)
-	} else {
-		rows, err = h.sqlDB.QueryContext(ctx, genSelectConfigsStmt("global_configs", "global_config_values", "name")+";")
-	}
+	rows, err := h.queryConfigs(ctx, ids, "global_configs", "global_config_values", "name")
 	if err != nil {
 		return nil, err
 	}
@@ -174,83 +161,4 @@ func (h *Handler) DeleteGlobalConfigs(ctx context.Context, ids []string) error {
 		return err
 	}
 	return nil
-}
-
-const selectConfigsStmt = `SELECT _t1_.id, _t1_.data_type, _t1_.is_list, _t2_.v_string, _t2_.v_int, _t2_.v_float, _t2_.v_bool, _t2_.ord%s
-FROM _t1_
-LEFT JOIN _t2_
-ON _t1_.id = _t2_.c_id ORDER BY is_list, _t1_.id, ord`
-
-func genSelectConfigsStmt(t1, t2 string, t1Cols ...string) string {
-	stmt := strings.ReplaceAll(strings.ReplaceAll(selectConfigsStmt, "_t1_", t1), "_t2_", t2)
-	if len(t1Cols) > 0 {
-		var cols []string
-		for _, col := range t1Cols {
-			cols = append(cols, t1+"."+col)
-		}
-		return fmt.Sprintf(stmt, ", "+strings.Join(cols, ", "))
-	}
-	return fmt.Sprintf(stmt, "")
-}
-
-func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, config models_handler_storage.GlobalConfig) error {
-	if config.IsSlice {
-		colName, values := getListConfigValsAndCol(config.Config)
-		stmt := fmt.Sprintf("INSERT INTO %s (c_id, %s, ord) VALUES (?, ?, ?)", tableName, colName)
-		for i, value := range values {
-			_, err := tx.ExecContext(ctx, stmt, config.Id, value, i)
-			if err != nil {
-				return err
-			}
-		}
-	} else {
-		colName, value := getConfigValAndCol(config.Config)
-		_, err := tx.ExecContext(
-			ctx,
-			fmt.Sprintf("INSERT INTO %s (c_id, %s, ord) VALUES (?, ?, ?)", tableName, colName),
-			config.Id,
-			value,
-			0,
-		)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func getConfigValAndCol(config models_handler_storage.Config) (colName string, value any) {
-	switch config.DataType {
-	case models_handler_storage.StringType:
-		colName = "v_string"
-		value = config.String
-	case models_handler_storage.Int64Type:
-		colName = "v_int"
-		value = config.Int64
-	case models_handler_storage.Float64Type:
-		colName = "v_float"
-		value = config.Float64
-	case models_handler_storage.BoolType:
-		colName = "v_bool"
-		value = config.Bool
-	}
-	return
-}
-
-func getListConfigValsAndCol(config models_handler_storage.Config) (colName string, values []any) {
-	switch config.DataType {
-	case models_handler_storage.StringType:
-		colName = "v_string"
-		values = helper_slices.ToAny(config.StringSlice)
-	case models_handler_storage.Int64Type:
-		colName = "v_int"
-		values = helper_slices.ToAny(config.Int64Slice)
-	case models_handler_storage.Float64Type:
-		colName = "v_float"
-		values = helper_slices.ToAny(config.Float64Slice)
-	case models_handler_storage.BoolType:
-		colName = "v_bool"
-		values = helper_slices.ToAny(config.BoolSlice)
-	}
-	return
 }
