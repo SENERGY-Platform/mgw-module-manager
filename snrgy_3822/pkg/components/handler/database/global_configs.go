@@ -43,7 +43,7 @@ func (h *Handler) CreateGlobalConfig(ctx context.Context, config models_handler_
 		config.DataType,
 		config.IsSlice,
 	)
-	err = createConfigValues(ctx, tx, config)
+	err = createConfigValues(ctx, tx, "global_config_values", config)
 	if err != nil {
 		return
 	}
@@ -151,7 +151,7 @@ func (h *Handler) UpdateGlobalConfig(ctx context.Context, config models_handler_
 	if err != nil {
 		return
 	}
-	err = createConfigValues(ctx, tx, config)
+	err = createConfigValues(ctx, tx, "global_config_values", config)
 	if err != nil {
 		return
 	}
@@ -193,10 +193,10 @@ func genSelectConfigsStmt(t1, t2 string, t1Cols ...string) string {
 	return fmt.Sprintf(stmt, "")
 }
 
-func createConfigValues(ctx context.Context, tx *sql.Tx, config models_handler_storage.GlobalConfig) error {
+func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, config models_handler_storage.GlobalConfig) error {
 	if config.IsSlice {
 		colName, values := getListConfigValsAndCol(config.Config)
-		stmt := fmt.Sprintf("INSERT INTO global_config_values (c_id, %s, ord) VALUES (?, ?, ?)", colName)
+		stmt := fmt.Sprintf("INSERT INTO %s (c_id, %s, ord) VALUES (?, ?, ?)", tableName, colName)
 		for i, value := range values {
 			_, err := tx.ExecContext(ctx, stmt, config.Id, value, i)
 			if err != nil {
@@ -207,7 +207,7 @@ func createConfigValues(ctx context.Context, tx *sql.Tx, config models_handler_s
 		colName, value := getConfigValAndCol(config.Config)
 		_, err := tx.ExecContext(
 			ctx,
-			fmt.Sprintf("INSERT INTO global_config_values (c_id, %s, ord) VALUES (?, ?, ?)", colName),
+			fmt.Sprintf("INSERT INTO %s (c_id, %s, ord) VALUES (?, ?, ?)", tableName, colName),
 			config.Id,
 			value,
 			0,
