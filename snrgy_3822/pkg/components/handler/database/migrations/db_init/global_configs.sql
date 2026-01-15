@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS global_config_values
     v_float  DOUBLE,
     v_bool   BOOLEAN,
     ord      SMALLINT NOT NULL,
-    UNIQUE KEY uk_id_ord (c_id, ord),
+    UNIQUE KEY uk_c_id_ord (c_id, ord),
     INDEX i_id (c_id),
     FOREIGN KEY (c_id) REFERENCES global_configs (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
