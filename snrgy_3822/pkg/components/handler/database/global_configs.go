@@ -19,7 +19,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -28,24 +27,28 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func (h *Handler) CreateGlobalConfig(ctx context.Context, config models_handler_storage.GlobalConfig) error {
-	if config.IsSlice {
-		colName, values := getListConfigValsAndCol(config.ConfigValue)
-		stmt := fmt.Sprintf("INSERT INTO global_configs (id, name, ord, is_list, %s) VALUES (?, ?, ?, ?, ?)", colName)
-		for i, value := range values {
-			_, err := h.sqlDB.ExecContext(ctx, stmt, config.Id, config.Name, i, true, value)
-			if err != nil {
-				return err
-			}
-		}
-	} else {
-		colName, value := getConfigValAndCol(config.ConfigValue)
-		_, err := h.sqlDB.ExecContext(ctx, fmt.Sprintf("INSERT INTO global_configs (id, name, ord, is_list, %s) VALUES (?, ?, ?, ?, ?)", colName), config.Id, config.Name, 0, false, value)
-		if err != nil {
-			return err
-		}
+func (h *Handler) CreateGlobalConfig(ctx context.Context, config models_handler_storage.GlobalConfig) (err error) {
+	tx, err := h.sqlDB.BeginTx(ctx, nil)
+	if err != nil {
+		return
 	}
-	return nil
+	defer func() {
+		err = tx.Rollback()
+	}()
+	_, err = tx.ExecContext(
+		ctx,
+		"INSERT INTO global_configs (id, name, data_type, is_list) VALUES (?, ?, ?, ?)",
+		config.Id,
+		config.Name,
+		config.DataType,
+		config.IsSlice,
+	)
+	err = createConfigValues(ctx, tx, config)
+	if err != nil {
+		return
+	}
+	err = tx.Commit()
+	return
 }
 
 func (h *Handler) ReadGlobalConfig(ctx context.Context, id string) (models_handler_storage.GlobalConfig, error) {
@@ -60,12 +63,18 @@ func (h *Handler) ReadGlobalConfig(ctx context.Context, id string) (models_handl
 }
 
 func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_storage.GlobalConfig, error) {
-	fc, val := genGlobalConfigsFilter(ids)
-	rows, err := h.sqlDB.QueryContext(
-		ctx,
-		"SELECT id, name, is_list, v_string, v_int, v_float, v_bool, ord FROM global_configs"+fc+" ORDER BY is_list, id, ord;",
-		val...,
-	)
+	var rows *sql.Rows
+	var err error
+	if len(ids) > 0 {
+		ids = helper_slices.RemoveDuplicates(ids)
+		rows, err = h.sqlDB.QueryContext(
+			ctx,
+			"SELECT * FROM ("+genSelectConfigsStmt("global_configs", "global_config_values", "name")+") AS SUB WHERE SUB.id IN ("+genQuestionMarks(len(ids))+");",
+			helper_slices.ToAny(ids)...,
+		)
+	} else {
+		rows, err = h.sqlDB.QueryContext(ctx, genSelectConfigsStmt("global_configs", "global_config_values", "name")+";")
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -73,61 +82,46 @@ func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[stri
 	globalConfigs := make(map[string]models_handler_storage.GlobalConfig)
 	for rows.Next() {
 		var id string
-		var name string
 		var isList bool
+		var dataType int
 		var vString sql.NullString
 		var vInt sql.NullInt64
 		var vFloat sql.NullFloat64
 		var vBool sql.NullBool
 		var ord int
-		err = rows.Scan(&id, &name, &isList, &vString, &vInt, &vFloat, &vBool, &ord)
+		var name string
+		err = rows.Scan(&id, &dataType, &isList, &vString, &vInt, &vFloat, &vBool, &ord, &name)
 		if err != nil {
 			return nil, err
 		}
 		config, ok := globalConfigs[id]
-		var dataType int
-		if isList {
-			switch {
-			case vString.Valid:
-				config.StringSlice = append(config.StringSlice, vString.String)
-				dataType = models_handler_storage.StringType
-			case vInt.Valid:
-				config.Int64Slice = append(config.Int64Slice, vInt.Int64)
-				dataType = models_handler_storage.Int64Type
-			case vFloat.Valid:
-				config.Float64Slice = append(config.Float64Slice, vFloat.Float64)
-				dataType = models_handler_storage.Float64Type
-			case vBool.Valid:
-				config.BoolSlice = append(config.BoolSlice, vBool.Bool)
-				dataType = models_handler_storage.BoolType
-			}
-		} else {
-			switch {
-			case vString.Valid:
-				config.String = vString.String
-				dataType = models_handler_storage.StringType
-			case vInt.Valid:
-				config.Int64 = vInt.Int64
-				dataType = models_handler_storage.Int64Type
-			case vFloat.Valid:
-				config.Float64 = vFloat.Float64
-				dataType = models_handler_storage.Float64Type
-			case vBool.Valid:
-				config.Bool = vBool.Bool
-				dataType = models_handler_storage.BoolType
-			}
-		}
 		if !ok {
 			config.Id = id
 			config.Name = name
 			config.IsSlice = isList
 			config.DataType = dataType
-		} else {
-			if !config.IsSlice {
-				return nil, errors.New("config type mismatch")
+		}
+		if isList {
+			switch dataType {
+			case models_handler_storage.StringType:
+				config.StringSlice = append(config.StringSlice, vString.String)
+			case models_handler_storage.Int64Type:
+				config.Int64Slice = append(config.Int64Slice, vInt.Int64)
+			case models_handler_storage.Float64Type:
+				config.Float64Slice = append(config.Float64Slice, vFloat.Float64)
+			case models_handler_storage.BoolType:
+				config.BoolSlice = append(config.BoolSlice, vBool.Bool)
 			}
-			if dataType != config.DataType {
-				return nil, errors.New("data type mismatch")
+		} else {
+			switch dataType {
+			case models_handler_storage.StringType:
+				config.String = vString.String
+			case models_handler_storage.Int64Type:
+				config.Int64 = vInt.Int64
+			case models_handler_storage.Float64Type:
+				config.Float64 = vFloat.Float64
+			case models_handler_storage.BoolType:
+				config.Bool = vBool.Bool
 			}
 		}
 		globalConfigs[id] = config
@@ -135,38 +129,34 @@ func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[stri
 	return globalConfigs, nil
 }
 
-func (h *Handler) UpdateGlobalConfig(ctx context.Context, config models_handler_storage.GlobalConfig) error {
+func (h *Handler) UpdateGlobalConfig(ctx context.Context, config models_handler_storage.GlobalConfig) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return
 	}
 	defer func() {
 		err = tx.Rollback()
 	}()
-	_, err = tx.ExecContext(ctx, "DELETE FROM global_configs WHERE id = ?", config.Id)
+	_, err = tx.ExecContext(
+		ctx,
+		"UPDATE global_configs SET name = ?, data_type = ?, is_list = ? WHERE id = ?",
+		config.Name,
+		config.DataType,
+		config.IsSlice,
+	)
 	if err != nil {
-		return err
+		return
 	}
-	if config.IsSlice {
-		colName, values := getListConfigValsAndCol(config.ConfigValue)
-		stmt := fmt.Sprintf("INSERT INTO global_configs (id, name, ord, is_list, %s) VALUES (?, ?, ?, ?, ?)", colName)
-		for i, value := range values {
-			_, err = tx.ExecContext(ctx, stmt, config.Id, config.Name, i, true, value)
-			if err != nil {
-				return err
-			}
-		}
-	} else {
-		colName, value := getConfigValAndCol(config.ConfigValue)
-		_, err = tx.ExecContext(ctx, fmt.Sprintf("INSERT INTO global_configs (id, name, ord, is_list, %s) VALUES (?, ?, ?, ?, ?)", colName), config.Id, config.Name, 0, false, value)
-		if err != nil {
-			return err
-		}
+	_, err = tx.ExecContext(ctx, "DELETE FROM global_config_values WHERE c_id = ?", config.Id)
+	if err != nil {
+		return
 	}
-	if err = tx.Commit(); err != nil {
-		return err
+	err = createConfigValues(ctx, tx, config)
+	if err != nil {
+		return
 	}
-	return nil
+	err = tx.Commit()
+	return
 }
 
 func (h *Handler) DeleteGlobalConfig(ctx context.Context, id string) error {
@@ -186,23 +176,50 @@ func (h *Handler) DeleteGlobalConfigs(ctx context.Context, ids []string) error {
 	return nil
 }
 
-func genGlobalConfigsFilter(ids []string) (string, []any) {
-	var fc []string
-	var val []any
-	if len(ids) > 0 {
-		ids = helper_slices.RemoveDuplicates(ids)
-		fc = append(fc, "id IN ("+genQuestionMarks(len(ids))+")")
-		for _, id := range ids {
-			val = append(val, id)
+const selectConfigsStmt = `SELECT _t1_.id, _t1_.data_type, _t1_.is_list, _t2_.v_string, _t2_.v_int, _t2_.v_float, _t2_.v_bool, _t2_.ord%s
+FROM _t1_
+LEFT JOIN _t2_
+ON _t1_.id = _t2_.c_id ORDER BY is_list, _t1_.id, ord`
+
+func genSelectConfigsStmt(t1, t2 string, t1Cols ...string) string {
+	stmt := strings.ReplaceAll(strings.ReplaceAll(selectConfigsStmt, "_t1_", t1), "_t2_", t2)
+	if len(t1Cols) > 0 {
+		var cols []string
+		for _, col := range t1Cols {
+			cols = append(cols, t1+"."+col)
 		}
+		return fmt.Sprintf(stmt, ", "+strings.Join(cols, ", "))
 	}
-	if len(fc) > 0 {
-		return " WHERE " + strings.Join(fc, " AND "), val
-	}
-	return "", nil
+	return fmt.Sprintf(stmt, "")
 }
 
-func getConfigValAndCol(config models_handler_storage.ConfigValue) (colName string, value any) {
+func createConfigValues(ctx context.Context, tx *sql.Tx, config models_handler_storage.GlobalConfig) error {
+	if config.IsSlice {
+		colName, values := getListConfigValsAndCol(config.Config)
+		stmt := fmt.Sprintf("INSERT INTO global_config_values (c_id, %s, ord) VALUES (?, ?, ?)", colName)
+		for i, value := range values {
+			_, err := tx.ExecContext(ctx, stmt, config.Id, value, i)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		colName, value := getConfigValAndCol(config.Config)
+		_, err := tx.ExecContext(
+			ctx,
+			fmt.Sprintf("INSERT INTO global_config_values (c_id, %s, ord) VALUES (?, ?, ?)", colName),
+			config.Id,
+			value,
+			0,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func getConfigValAndCol(config models_handler_storage.Config) (colName string, value any) {
 	switch config.DataType {
 	case models_handler_storage.StringType:
 		colName = "v_string"
@@ -220,7 +237,7 @@ func getConfigValAndCol(config models_handler_storage.ConfigValue) (colName stri
 	return
 }
 
-func getListConfigValsAndCol(config models_handler_storage.ConfigValue) (colName string, values []any) {
+func getListConfigValsAndCol(config models_handler_storage.Config) (colName string, values []any) {
 	switch config.DataType {
 	case models_handler_storage.StringType:
 		colName = "v_string"
