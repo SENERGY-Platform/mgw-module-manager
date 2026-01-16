@@ -24,6 +24,9 @@ import (
 func migrateModulesTab(ctx context.Context, db *sql.DB) error {
 	tableName := "modules"
 	ok, err := tableExists(ctx, db, tableName)
+	if err != nil {
+		return err
+	}
 	if !ok {
 		return nil
 	}

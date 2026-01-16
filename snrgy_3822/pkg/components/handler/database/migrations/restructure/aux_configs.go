@@ -25,6 +25,9 @@ import (
 func migrateAuxConfigsTab(ctx context.Context, db *sql.DB) error {
 	tableName := "aux_configs"
 	ok, err := tableExists(ctx, db, tableName)
+	if err != nil {
+		return err
+	}
 	if !ok {
 		return nil
 	}

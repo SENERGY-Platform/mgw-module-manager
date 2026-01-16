@@ -25,6 +25,9 @@ import (
 func migrateSecretsTab(ctx context.Context, db *sql.DB) error {
 	tableName := "secrets"
 	ok, err := tableExists(ctx, db, tableName)
+	if err != nil {
+		return err
+	}
 	if !ok {
 		return nil
 	}

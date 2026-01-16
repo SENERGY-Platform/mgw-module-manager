@@ -25,6 +25,9 @@ import (
 func migrateAuxVolumesTab(ctx context.Context, db *sql.DB) error {
 	tableName := "aux_volumes"
 	ok, err := tableExists(ctx, db, tableName)
+	if err != nil {
+		return err
+	}
 	if !ok {
 		return nil
 	}
