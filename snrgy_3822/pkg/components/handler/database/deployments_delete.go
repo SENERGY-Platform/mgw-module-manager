@@ -40,22 +40,19 @@ func (h *Handler) DeleteDeployments(ctx context.Context, ids []string) error {
 	return nil
 }
 
-func (h *Handler) deleteDeploymentResourcesAndConfigs(ctx context.Context, tx *sql.Tx, deploymentId string) error {
-	_, err := tx.ExecContext(ctx, "DELETE FROM dep_host_resources WHERE dep_id = ?", deploymentId)
+func (h *Handler) deleteDeploymentResourcesAndConfigs(ctx context.Context, tx *sql.Tx, deploymentId string) (err error) {
+	_, err = tx.ExecContext(ctx, "DELETE FROM dep_host_resources WHERE dep_id = ?", deploymentId)
 	if err != nil {
-		return err
+		return
 	}
 	_, err = tx.ExecContext(ctx, "DELETE FROM dep_secrets WHERE dep_id = ?", deploymentId)
 	if err != nil {
-		return err
+		return
 	}
 	_, err = tx.ExecContext(ctx, "DELETE FROM dep_configs WHERE dep_id = ?", deploymentId)
 	if err != nil {
-		return err
+		return
 	}
-	_, err = tx.ExecContext(ctx, "DELETE FROM dep_list_configs WHERE dep_id = ?", deploymentId)
-	if err != nil {
-		return err
-	}
-	return nil
+	_, err = tx.ExecContext(ctx, "DELETE FROM dep_global_configs WHERE dep_id = ?", deploymentId)
+	return
 }

@@ -49,35 +49,35 @@ CREATE TABLE IF NOT EXISTS dep_secrets
 );
 CREATE TABLE IF NOT EXISTS dep_configs
 (
-    dep_id   CHAR(36)     NOT NULL,
-    ref      VARCHAR(128) NOT NULL,
-    v_string VARCHAR(512),
-    v_int    BIGINT,
-    v_float  DOUBLE,
-    v_bool   BOOLEAN,
+    id        VARCHAR(256) NOT NULL,
+    dep_id    CHAR(36)     NOT NULL,
+    ref       VARCHAR(128) NOT NULL,
+    data_type SMALLINT     NOT NULL,
+    is_list   BOOLEAN      NOT NULL,
+    PRIMARY KEY (id),
     UNIQUE KEY uk_dep_id_ref (dep_id, ref),
     INDEX i_dep_id (dep_id),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
-CREATE TABLE IF NOT EXISTS dep_list_configs
+CREATE TABLE IF NOT EXISTS dep_config_values
 (
-    dep_id   CHAR(36)     NOT NULL,
-    ref      VARCHAR(128) NOT NULL,
-    ord      SMALLINT     NOT NULL,
+    c_id     VARCHAR(256) NOT NULL,
     v_string VARCHAR(512),
     v_int    BIGINT,
     v_float  DOUBLE,
     v_bool   BOOLEAN,
-    UNIQUE KEY uk_dep_id_ref_ord (dep_id, ref, ord),
-    INDEX i_dep_id (dep_id),
-    FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
+    ord      SMALLINT     NOT NULL,
+    UNIQUE KEY uk_c_id_ord (c_id, ord),
+    INDEX i_id (c_id),
+    FOREIGN KEY (c_id) REFERENCES dep_configs (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS dep_global_configs
 (
     dep_id CHAR(36)     NOT NULL,
     ref    VARCHAR(128) NOT NULL,
-    c_id VARCHAR(256) NOT NULL,
+    c_id   VARCHAR(256) NOT NULL,
     UNIQUE KEY uk_dep_id_ref (dep_id, ref),
     INDEX i_dep_id (dep_id),
-    FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
+    FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT,
+    FOREIGN KEY (c_id) REFERENCES global_configs (id) ON DELETE RESTRICT ON UPDATE RESTRICT
 );

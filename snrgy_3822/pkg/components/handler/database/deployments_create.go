@@ -19,7 +19,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
@@ -57,8 +56,7 @@ func (h *Handler) CreateDeployment(ctx context.Context, deployment models_handle
 	return
 }
 
-func (h *Handler) createDeploymentResourcesAndConfigs(ctx context.Context, tx *sql.Tx, deploymentId string, hostResources []models_handler_storage.DeploymentHostResource, secrets []models_handler_storage.DeploymentSecret, configs []models_handler_storage.DeploymentConfig) error {
-	var err error
+func (h *Handler) createDeploymentResourcesAndConfigs(ctx context.Context, tx *sql.Tx, deploymentId string, hostResources []models_handler_storage.DeploymentHostResource, secrets []models_handler_storage.DeploymentSecret, configs []models_handler_storage.DeploymentConfig) (err error) {
 	for _, hostResource := range hostResources {
 		_, err = tx.ExecContext(
 			ctx,
@@ -68,7 +66,7 @@ func (h *Handler) createDeploymentResourcesAndConfigs(ctx context.Context, tx *s
 			hostResource.Id,
 		)
 		if err != nil {
-			return err
+			return
 		}
 	}
 	for _, secret := range secrets {
@@ -84,27 +82,27 @@ func (h *Handler) createDeploymentResourcesAndConfigs(ctx context.Context, tx *s
 				item.AsEnv,
 			)
 			if err != nil {
-				return err
+				return
 			}
 		}
 	}
 	for _, config := range configs {
-		if config.IsSlice {
-			colName, values := getListConfigValsAndCol(config.ConfigValue)
-			stmt := fmt.Sprintf("INSERT INTO dep_list_configs (dep_id, ref, ord, %s) VALUES (?, ?, ?, ?)", colName)
-			for i, value := range values {
-				_, err = tx.ExecContext(ctx, stmt, deploymentId, config.Reference, i, value)
-				if err != nil {
-					return err
-				}
-			}
-		} else {
-			colName, value := getConfigValAndCol(config.ConfigValue)
-			_, err = tx.ExecContext(ctx, fmt.Sprintf("INSERT INTO dep_configs (dep_id, ref, %s) VALUES (?, ?, ?)", colName), deploymentId, config.Reference, value)
-			if err != nil {
-				return err
-			}
+		_, err = tx.ExecContext(
+			ctx,
+			"INSERT INTO dep_configs (id, dep_id, ref, data_type, is_list) VALUES (?, ?, ?, ?, ?)",
+			config.Id,
+			config.DeploymentId,
+			config.Reference,
+			config.DataType,
+			config.IsSlice,
+		)
+		if err != nil {
+			return
+		}
+		err = createConfigValues(ctx, tx, "dep_config_values", config.Config)
+		if err != nil {
+			return
 		}
 	}
-	return nil
+	return
 }

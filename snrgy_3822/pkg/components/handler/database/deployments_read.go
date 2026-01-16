@@ -19,7 +19,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"maps"
 	"slices"
 	"strings"
@@ -220,71 +219,25 @@ func (h *Handler) ReadDeploymentConfigs(ctx context.Context, deploymentId string
 }
 
 func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentConfig, error) {
-	fc, val := genDeploymentsConfigsFilter(deploymentIds)
-	rows, err := h.sqlDB.QueryContext(
-		ctx,
-		"SELECT dep_id, ref, v_string, v_int, v_float, v_bool FROM dep_configs"+fc+";",
-		val...,
-	)
+	rows, err := h.queryConfigs(ctx, deploymentIds, "dep_configs", "dep_config_values", "dep_id", "dep_id", "ref")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	tmp := make(map[string]map[string]models_handler_storage.DeploymentConfig)
+
+	tmp := make(map[string]map[string]models_handler_storage.DeploymentConfig) // {depID:{reference:config}}
 	for rows.Next() {
-		var depId string
-		var ref string
+		var id string
+		var isList bool
+		var dataType int
 		var vString sql.NullString
 		var vInt sql.NullInt64
 		var vFloat sql.NullFloat64
 		var vBool sql.NullBool
-		err = rows.Scan(&depId, &ref, &vString, &vInt, &vFloat, &vBool)
-		if err != nil {
-			return nil, err
-		}
-		config := models_handler_storage.DeploymentConfig{
-			DeploymentId: depId,
-			Reference:    ref,
-		}
-		switch {
-		case vString.Valid:
-			config.String = vString.String
-			config.DataType = models_handler_storage.StringType
-		case vInt.Valid:
-			config.Int64 = vInt.Int64
-			config.DataType = models_handler_storage.Int64Type
-		case vFloat.Valid:
-			config.Float64 = vFloat.Float64
-			config.DataType = models_handler_storage.Float64Type
-		case vBool.Valid:
-			config.Bool = vBool.Bool
-			config.DataType = models_handler_storage.BoolType
-		}
-		configs, ok := tmp[depId]
-		if !ok {
-			configs = make(map[string]models_handler_storage.DeploymentConfig)
-			tmp[depId] = configs
-		}
-		configs[ref] = config
-	}
-	rows2, err := h.sqlDB.QueryContext(
-		ctx,
-		"SELECT dep_id, ref, ord, v_string, v_int, v_float, v_bool FROM dep_list_configs"+fc+" ORDER BY dep_id, ref, ord;",
-		val...,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows2.Close()
-	for rows2.Next() {
-		var depId string
-		var ref string
 		var ord int
-		var vString sql.NullString
-		var vInt sql.NullInt64
-		var vFloat sql.NullFloat64
-		var vBool sql.NullBool
-		err = rows.Scan(&depId, &ref, &ord, &vString, &vInt, &vFloat, &vBool)
+		var depId string
+		var ref string
+		err = rows.Scan(&id, &dataType, &isList, &vString, &vInt, &vFloat, &vBool, &ord, &depId, &ref)
 		if err != nil {
 			return nil, err
 		}
@@ -294,32 +247,34 @@ func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []st
 			tmp[depId] = configs
 		}
 		config, ok := configs[ref]
-		var dt int
-		switch {
-		case vString.Valid:
-			config.StringSlice = append(config.StringSlice, vString.String)
-			dt = models_handler_storage.StringType
-		case vInt.Valid:
-			config.Int64Slice = append(config.Int64Slice, vInt.Int64)
-			dt = models_handler_storage.Int64Type
-		case vFloat.Valid:
-			config.Float64Slice = append(config.Float64Slice, vFloat.Float64)
-			dt = models_handler_storage.Float64Type
-		case vBool.Valid:
-			config.BoolSlice = append(config.BoolSlice, vBool.Bool)
-			dt = models_handler_storage.BoolType
-		}
 		if !ok {
+			config.Id = id
+			config.IsSlice = isList
+			config.DataType = dataType
 			config.DeploymentId = depId
 			config.Reference = ref
-			config.DataType = dt
-			config.IsSlice = true
-		} else {
-			if !config.IsSlice {
-				return nil, errors.New("invalid config type")
+		}
+		if isList {
+			switch dataType {
+			case models_handler_storage.StringType:
+				config.StringSlice = append(config.StringSlice, vString.String)
+			case models_handler_storage.Int64Type:
+				config.Int64Slice = append(config.Int64Slice, vInt.Int64)
+			case models_handler_storage.Float64Type:
+				config.Float64Slice = append(config.Float64Slice, vFloat.Float64)
+			case models_handler_storage.BoolType:
+				config.BoolSlice = append(config.BoolSlice, vBool.Bool)
 			}
-			if config.DataType != dt {
-				return nil, errors.New("invalid data type")
+		} else {
+			switch dataType {
+			case models_handler_storage.StringType:
+				config.String = vString.String
+			case models_handler_storage.Int64Type:
+				config.Int64 = vInt.Int64
+			case models_handler_storage.Float64Type:
+				config.Float64 = vFloat.Float64
+			case models_handler_storage.BoolType:
+				config.Bool = vBool.Bool
 			}
 		}
 		configs[ref] = config
@@ -329,22 +284,6 @@ func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []st
 		depConfigs[id] = slices.Collect(maps.Values(configsMap))
 	}
 	return depConfigs, nil
-}
-
-func genDeploymentsConfigsFilter(ids []string) (string, []any) {
-	var fc []string
-	var val []any
-	if len(ids) > 0 {
-		ids = helper_slices.RemoveDuplicates(ids)
-		fc = append(fc, "id IN ("+genQuestionMarks(len(ids))+")")
-		for _, id := range ids {
-			val = append(val, id)
-		}
-	}
-	if len(fc) > 0 {
-		return " WHERE " + strings.Join(fc, " AND "), val
-	}
-	return "", nil
 }
 
 func genDeploymentsSecretsFilter(filter models_handler_storage.DeploymentsSecretsFilter) (string, []any) {
