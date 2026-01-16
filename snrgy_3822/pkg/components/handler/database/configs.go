@@ -26,14 +26,14 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func (h *Handler) queryConfigs(ctx context.Context, ids []string, t1, t2 string, t1Cols ...string) (*sql.Rows, error) {
+func (h *Handler) queryConfigs(ctx context.Context, ids []string, t1, t2 string, filterIdCol string, t1Cols ...string) (*sql.Rows, error) {
 	var rows *sql.Rows
 	var err error
 	if len(ids) > 0 {
 		ids = helper_slices.RemoveDuplicates(ids)
 		rows, err = h.sqlDB.QueryContext(
 			ctx,
-			genSelectConfigsFilterIdsStmt(t1, t2, len(ids), t1Cols...)+";",
+			genSelectConfigsFilterIdsStmt(t1, t2, len(ids), filterIdCol, t1Cols...)+";",
 			helper_slices.ToAny(ids)...,
 		)
 	} else {
@@ -62,13 +62,13 @@ func genSelectConfigsStmt(t1, t2 string, t1Cols ...string) string {
 	return fmt.Sprintf(stmt, "")
 }
 
-func genSelectConfigsFilterIdsStmt(t1, t2 string, lenIds int, t1Cols ...string) string {
-	return "SELECT * FROM (" + genSelectConfigsStmt(t1, t2, t1Cols...) + ") AS SUB WHERE SUB.id IN (" + genQuestionMarks(lenIds) + ");"
+func genSelectConfigsFilterIdsStmt(t1, t2 string, lenIds int, filterIdCol string, t1Cols ...string) string {
+	return "SELECT * FROM (" + genSelectConfigsStmt(t1, t2, t1Cols...) + fmt.Sprintf(") AS SUB WHERE SUB.%s IN (", filterIdCol) + genQuestionMarks(lenIds) + ");"
 }
 
-func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, config models_handler_storage.GlobalConfig) error {
+func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, config models_handler_storage.Config) error {
 	if config.IsSlice {
-		colName, values := getListConfigValsAndCol(config.Config)
+		colName, values := getListConfigValsAndCol(config)
 		stmt := fmt.Sprintf("INSERT INTO %s (c_id, %s, ord) VALUES (?, ?, ?)", tableName, colName)
 		for i, value := range values {
 			_, err := tx.ExecContext(ctx, stmt, config.Id, value, i)
@@ -77,7 +77,7 @@ func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, confi
 			}
 		}
 	} else {
-		colName, value := getConfigValAndCol(config.Config)
+		colName, value := getConfigValAndCol(config)
 		_, err := tx.ExecContext(
 			ctx,
 			fmt.Sprintf("INSERT INTO %s (c_id, %s, ord) VALUES (?, ?, ?)", tableName, colName),

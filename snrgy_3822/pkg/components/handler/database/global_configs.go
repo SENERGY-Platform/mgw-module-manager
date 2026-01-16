@@ -44,7 +44,7 @@ func (h *Handler) CreateGlobalConfig(ctx context.Context, config models_handler_
 	if err != nil {
 		return
 	}
-	err = createConfigValues(ctx, tx, "global_config_values", config)
+	err = createConfigValues(ctx, tx, "global_config_values", config.Config)
 	if err != nil {
 		return
 	}
@@ -64,7 +64,7 @@ func (h *Handler) ReadGlobalConfig(ctx context.Context, id string) (models_handl
 }
 
 func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_storage.GlobalConfig, error) {
-	rows, err := h.queryConfigs(ctx, ids, "global_configs", "global_config_values", "name")
+	rows, err := h.queryConfigs(ctx, ids, "global_configs", "global_config_values", "id", "name")
 	if err != nil {
 		return nil, err
 	}
@@ -87,9 +87,9 @@ func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[stri
 		config, ok := globalConfigs[id]
 		if !ok {
 			config.Id = id
-			config.Name = name
 			config.IsSlice = isList
 			config.DataType = dataType
+			config.Name = name
 		}
 		if isList {
 			switch dataType {
@@ -141,7 +141,7 @@ func (h *Handler) UpdateGlobalConfig(ctx context.Context, config models_handler_
 	if err != nil {
 		return
 	}
-	err = createConfigValues(ctx, tx, "global_config_values", config)
+	err = createConfigValues(ctx, tx, "global_config_values", config.Config)
 	if err != nil {
 		return
 	}
