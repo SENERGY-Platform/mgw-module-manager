@@ -90,3 +90,8 @@ type DeploymentsSecretsFilter struct {
 	AsMount       int
 	AsEnv         int
 }
+
+type DeploymentGlobalConfigsFilter struct {
+	Ids           []string
+	DeploymentIds []string
+}

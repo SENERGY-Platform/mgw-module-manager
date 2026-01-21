@@ -224,7 +224,6 @@ func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []st
 		return nil, err
 	}
 	defer rows.Close()
-
 	tmp := make(map[string]map[string]models_handler_storage.DeploymentConfig) // {depID:{reference:config}}
 	for rows.Next() {
 		var id string
@@ -284,6 +283,65 @@ func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []st
 		depConfigs[id] = slices.Collect(maps.Values(configsMap))
 	}
 	return depConfigs, nil
+}
+
+func (h *Handler) ReadDeploymentGlobalConfigs(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentGlobalConfig, error) {
+	deploymentsGlobalConfigs, err := h.ReadDeploymentsGlobalConfigs(
+		ctx,
+		models_handler_storage.DeploymentGlobalConfigsFilter{DeploymentIds: []string{deploymentId}},
+	)
+	if err != nil {
+		return nil, err
+	}
+	if len(deploymentsGlobalConfigs) == 0 {
+		return nil, nil
+	}
+	return deploymentsGlobalConfigs[deploymentId], nil
+}
+
+func (h *Handler) ReadDeploymentsGlobalConfigs(ctx context.Context, filter models_handler_storage.DeploymentGlobalConfigsFilter) (map[string][]models_handler_storage.DeploymentGlobalConfig, error) {
+	fc, val := genDeploymentGlobalConfigsFilter(filter)
+	rows, err := h.sqlDB.QueryContext(ctx,
+		"SELECT dep_id, ref, c_id FROM dep_global_configs"+fc+";",
+		val...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	depGlobalConfigs := make(map[string][]models_handler_storage.DeploymentGlobalConfig)
+	for rows.Next() {
+		var globalConfig models_handler_storage.DeploymentGlobalConfig
+		err = rows.Scan(&globalConfig.DeploymentId, &globalConfig.Reference, &globalConfig.Id)
+		if err != nil {
+			return nil, err
+		}
+		depGlobalConfigs[globalConfig.DeploymentId] = append(depGlobalConfigs[globalConfig.DeploymentId], globalConfig)
+	}
+	return depGlobalConfigs, nil
+}
+
+func genDeploymentGlobalConfigsFilter(filter models_handler_storage.DeploymentGlobalConfigsFilter) (string, []any) {
+	var fc []string
+	var val []any
+	if len(filter.Ids) > 0 {
+		ids := helper_slices.RemoveDuplicates(filter.Ids)
+		fc = append(fc, "c_id IN ("+genQuestionMarks(len(ids))+")")
+		for _, id := range ids {
+			val = append(val, id)
+		}
+	}
+	if len(filter.DeploymentIds) > 0 {
+		ids := helper_slices.RemoveDuplicates(filter.DeploymentIds)
+		fc = append(fc, "dep_id IN ("+genQuestionMarks(len(ids))+")")
+		for _, id := range ids {
+			val = append(val, id)
+		}
+	}
+	if len(fc) > 0 {
+		return " WHERE " + strings.Join(fc, " AND "), val
+	}
+	return "", nil
 }
 
 func genDeploymentsSecretsFilter(filter models_handler_storage.DeploymentsSecretsFilter) (string, []any) {
