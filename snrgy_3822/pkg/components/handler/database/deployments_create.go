@@ -23,7 +23,14 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func (h *Handler) CreateDeployment(ctx context.Context, deployment models_handler_storage.Deployment, hostResources []models_handler_storage.DeploymentHostResource, secrets []models_handler_storage.DeploymentSecret, configs []models_handler_storage.DeploymentConfig) (err error) {
+func (h *Handler) CreateDeployment(
+	ctx context.Context,
+	deployment models_handler_storage.Deployment,
+	hostResources []models_handler_storage.DeploymentHostResource,
+	secrets []models_handler_storage.DeploymentSecret,
+	configs []models_handler_storage.DeploymentConfig,
+	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
+) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -48,7 +55,7 @@ func (h *Handler) CreateDeployment(ctx context.Context, deployment models_handle
 	if err != nil {
 		return
 	}
-	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, configs)
+	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, configs, globalConfigs)
 	if err != nil {
 		return
 	}
@@ -56,7 +63,15 @@ func (h *Handler) CreateDeployment(ctx context.Context, deployment models_handle
 	return
 }
 
-func (h *Handler) createDeploymentResourcesAndConfigs(ctx context.Context, tx *sql.Tx, deploymentId string, hostResources []models_handler_storage.DeploymentHostResource, secrets []models_handler_storage.DeploymentSecret, configs []models_handler_storage.DeploymentConfig) (err error) {
+func (h *Handler) createDeploymentResourcesAndConfigs(
+	ctx context.Context,
+	tx *sql.Tx,
+	deploymentId string,
+	hostResources []models_handler_storage.DeploymentHostResource,
+	secrets []models_handler_storage.DeploymentSecret,
+	configs []models_handler_storage.DeploymentConfig,
+	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
+) (err error) {
 	for _, hostResource := range hostResources {
 		_, err = tx.ExecContext(
 			ctx,
@@ -100,6 +115,18 @@ func (h *Handler) createDeploymentResourcesAndConfigs(ctx context.Context, tx *s
 			return
 		}
 		err = createConfigValues(ctx, tx, "dep_config_values", config.Config)
+		if err != nil {
+			return
+		}
+	}
+	for _, globalConfig := range globalConfigs {
+		_, err = tx.ExecContext(
+			ctx,
+			"INSERT INTO dep_global_configs (dep_id, ref, c_id) VALUES (?, ?, ?)",
+			deploymentId,
+			globalConfig.Reference,
+			globalConfig.Id,
+		)
 		if err != nil {
 			return
 		}
