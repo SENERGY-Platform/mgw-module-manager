@@ -73,7 +73,14 @@ func (h *Handler) UpdateDeploymentName(ctx context.Context, id, name string, tim
 	return nil
 }
 
-func (h *Handler) UpdateDeploymentResourcesAndConfigs(ctx context.Context, deploymentId string, hostResources []models_handler_storage.DeploymentHostResource, secrets []models_handler_storage.DeploymentSecret, configs []models_handler_storage.DeploymentConfig) (err error) {
+func (h *Handler) UpdateDeploymentResourcesAndConfigs(
+	ctx context.Context,
+	deploymentId string,
+	hostResources []models_handler_storage.DeploymentHostResource,
+	secrets []models_handler_storage.DeploymentSecret,
+	configs []models_handler_storage.DeploymentConfig,
+	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
+) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -85,7 +92,7 @@ func (h *Handler) UpdateDeploymentResourcesAndConfigs(ctx context.Context, deplo
 	if err != nil {
 		return
 	}
-	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deploymentId, hostResources, secrets, configs)
+	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deploymentId, hostResources, secrets, configs, globalConfigs)
 	if err != nil {
 		return
 	}
@@ -93,7 +100,14 @@ func (h *Handler) UpdateDeploymentResourcesAndConfigs(ctx context.Context, deplo
 	return
 }
 
-func (h *Handler) UpdateDeployment(ctx context.Context, deployment models_handler_storage.Deployment, hostResources []models_handler_storage.DeploymentHostResource, secrets []models_handler_storage.DeploymentSecret, configs []models_handler_storage.DeploymentConfig) (err error) {
+func (h *Handler) UpdateDeployment(
+	ctx context.Context,
+	deployment models_handler_storage.Deployment,
+	hostResources []models_handler_storage.DeploymentHostResource,
+	secrets []models_handler_storage.DeploymentSecret,
+	configs []models_handler_storage.DeploymentConfig,
+	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
+) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -120,7 +134,7 @@ func (h *Handler) UpdateDeployment(ctx context.Context, deployment models_handle
 	if err != nil {
 		return
 	}
-	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, configs)
+	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, configs, globalConfigs)
 	if err != nil {
 		return
 	}
