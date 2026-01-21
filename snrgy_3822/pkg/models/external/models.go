@@ -19,11 +19,24 @@ package external
 import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
+	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 )
 
 type Module = module_lib.Module
 type ModuleService = module_lib.Service
+type ModuleConfigs = module_lib.Configs
+type ModuleConfig = module_lib.ConfigValue
+type ModuleConfigTypeOptions = module_lib.ConfigTypeOptions
+type ModuleHostResource = module_lib.HostResource
+type ModuleSecret = module_lib.Secret
+
+const (
+	ModuleConfigBoolType    = module_lib.BoolType
+	ModuleConfigInt64Type   = module_lib.Int64Type
+	ModuleConfigFloat64Type = module_lib.Float64Type
+	ModuleConfigStringType  = module_lib.StringType
+)
 
 type Container = cew_model.Container
 type ContainersFilter = cew_model.ContainerFilter
@@ -33,4 +46,8 @@ type Image = cew_model.Image
 type ImagesFilter = cew_model.ImageFilter
 type CEWNotFoundErr = cew_model.NotFoundError
 
+const CewRunningState = cew_model.RunningState
+
 type Job = job_hdl_lib.Job
+
+type HostResource = hm_model.HostResource
