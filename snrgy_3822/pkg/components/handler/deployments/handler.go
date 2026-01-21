@@ -129,9 +129,9 @@ func (h *Handler) getDeployments(ctx context.Context, filter models_handler_depl
 func (h *Handler) getCewContainers(ctx context.Context, stgDepsContainers map[string][]models_handler_storage.DeploymentContainer) (map[string]models_external.Container, error) {
 	var ctrIds []string
 	for _, stgDepContainers := range stgDepsContainers {
-		ctrIds = append(helper_slices.CollectSliceFunc(stgDepContainers, func(item models_handler_storage.DeploymentContainer) string {
+		ctrIds = append(ctrIds, helper_slices.CollectSliceFunc(stgDepContainers, func(item models_handler_storage.DeploymentContainer) string {
 			return item.Id
-		}))
+		})...)
 	}
 	cewContainers, err := h.cewClient.GetContainers(ctx, models_external.ContainersFilter{Ids: ctrIds})
 	if err != nil {
