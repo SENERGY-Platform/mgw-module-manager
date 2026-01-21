@@ -25,7 +25,14 @@ import (
 )
 
 type storageHandler interface {
-	CreateDeployment(ctx context.Context, deployment models_handler_storage.Deployment, hostResources []models_handler_storage.DeploymentHostResource, secrets []models_handler_storage.DeploymentSecret, configs []models_handler_storage.DeploymentConfig) (err error)
+	CreateDeployment(
+		ctx context.Context,
+		deployment models_handler_storage.Deployment,
+		hostResources []models_handler_storage.DeploymentHostResource,
+		secrets []models_handler_storage.DeploymentSecret,
+		configs []models_handler_storage.DeploymentConfig,
+		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
+	) (err error)
 	ReadDeployment(ctx context.Context, id string) (models_handler_storage.Deployment, error)
 	ReadDeployments(ctx context.Context, filter models_handler_storage.DeploymentsFilter) (map[string]models_handler_storage.Deployment, error)
 	ReadDeploymentContainers(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentContainer, error)
@@ -36,13 +43,30 @@ type storageHandler interface {
 	ReadDeploymentsSecrets(ctx context.Context, filter models_handler_storage.DeploymentsSecretsFilter) (map[string][]models_handler_storage.DeploymentSecret, error)
 	ReadDeploymentConfigs(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentConfig, error)
 	ReadDeploymentsConfigs(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentConfig, error)
+	ReadDeploymentGlobalConfigs(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentGlobalConfig, error)
+	ReadDeploymentsGlobalConfigs(ctx context.Context, filter models_handler_storage.DeploymentGlobalConfigsFilter) (map[string][]models_handler_storage.DeploymentGlobalConfig, error)
 	UpdateDeploymentsEnabledState(ctx context.Context, deployments map[string]bool, timestamp time.Time) (err error)
 	UpdateDeploymentEnabledState(ctx context.Context, id string, enabled bool, timestamp time.Time) error
 	UpdateDeploymentName(ctx context.Context, id, name string, timestamp time.Time) error
-	UpdateDeploymentResourcesAndConfigs(ctx context.Context, deploymentId string, hostResources []models_handler_storage.DeploymentHostResource, secrets []models_handler_storage.DeploymentSecret, configs []models_handler_storage.DeploymentConfig) (err error)
-	UpdateDeployment(ctx context.Context, deployment models_handler_storage.Deployment, hostResources []models_handler_storage.DeploymentHostResource, secrets []models_handler_storage.DeploymentSecret, configs []models_handler_storage.DeploymentConfig) (err error)
+	UpdateDeploymentResourcesAndConfigs(
+		ctx context.Context,
+		deploymentId string,
+		hostResources []models_handler_storage.DeploymentHostResource,
+		secrets []models_handler_storage.DeploymentSecret,
+		configs []models_handler_storage.DeploymentConfig,
+		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
+	) (err error)
+	UpdateDeployment(
+		ctx context.Context,
+		deployment models_handler_storage.Deployment,
+		hostResources []models_handler_storage.DeploymentHostResource,
+		secrets []models_handler_storage.DeploymentSecret,
+		configs []models_handler_storage.DeploymentConfig,
+		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
+	) (err error)
 	DeleteDeployment(ctx context.Context, id string) error
 	DeleteDeployments(ctx context.Context, ids []string) error
+	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_storage.GlobalConfig, error)
 }
 
 type containerEngineWrapperClient interface {
