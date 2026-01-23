@@ -17,6 +17,7 @@
 package deployments
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"maps"
@@ -24,6 +25,7 @@ import (
 	"slices"
 
 	module_lib_validation_configs "github.com/SENERGY-Platform/mgw-module-lib/validation/configs"
+	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
@@ -32,42 +34,173 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func newDeploymentStorage(module models_handler_module.Module, userInput models_handler_deployment.UserInput) (deploymentWrapper, error) {
-	id, err := helper_uuid.New()
+func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]models_handler_module.Module, userInputs map[string]models_handler_deployment.UserInput) (map[string]models_handler_deployment.Deployment, error) {
+	deployments := newDeploymentWrappers(modules, userInputs)
+	dependenciesCache := make(map[string]models_handler_storage.Deployment)
+	hostResourcesCache := make(map[string]models_external.HostResource)
+	globalConfigsCache := make(map[string]models_handler_storage.GlobalConfig)
+	for _, deployment := range deployments {
+		if deployment.Error != nil {
+			continue
+		}
+		userInput := userInputs[deployment.Module.ID]
+		configsStorage, err := newConfigsStorage(deployment.Module.Configs, userInput.Configs, deployment.Id)
+		if err != nil {
+			deployment.Error = err
+			continue
+		}
+		globalConfigsStorage := newGlobalConfigsStorage(deployment.Module.Configs, userInput.GlobalConfigs, deployment.Id)
+		hostResourcesStorage := newHostResourcesStorage(deployment.Module.HostResources, userInput.HostResources, deployment.Id)
+		secretsStorage := newSecretsStorage(deployment.Module.Secrets, deployment.Module.Services, userInput.Secrets, deployment.Id)
+		deployment.Error = h.storageHdl.CreateDeployment(
+			ctx,
+			deployment.Deployment,
+			hostResourcesStorage,
+			secretsStorage,
+			slices.Collect(maps.Values(configsStorage)),
+			globalConfigsStorage,
+		)
+		if deployment.Error != nil {
+			continue
+		}
+		deployment.Error = h.getDeploymentDependencies(
+			ctx,
+			dependenciesCache,
+			slices.Collect(maps.Keys(deployment.Module.Dependencies)),
+		)
+		if deployment.Error != nil {
+			continue
+		}
+		deployment.Error = h.getHostResources(
+			ctx,
+			hostResourcesCache,
+			helper_slices.CollectSliceFunc(hostResourcesStorage, func(item models_handler_storage.DeploymentHostResource) string {
+				return item.Id
+			}),
+		)
+		if deployment.Error != nil {
+			continue
+		}
+		deployment.Error = h.getGlobalConfigs(
+			ctx,
+			globalConfigsCache,
+			helper_slices.CollectSliceFunc(globalConfigsStorage, func(item models_handler_storage.DeploymentGlobalConfig) string {
+				return item.Id
+			}),
+		)
+		if deployment.Error != nil {
+			continue
+		}
+	}
+	return nil, nil
+}
+
+func (h *Handler) getGlobalConfigs(ctx context.Context, globalConfigsCache map[string]models_handler_storage.GlobalConfig, globalConfigIds []string) error {
+	var idsNotInCache []string
+	for _, globalConfigId := range globalConfigIds {
+		if _, ok := globalConfigsCache[globalConfigId]; ok {
+			idsNotInCache = append(idsNotInCache, globalConfigId)
+		}
+	}
+	if len(idsNotInCache) == 0 {
+		return nil
+	}
+	globalConfigs, err := h.storageHdl.ReadGlobalConfigs(ctx, idsNotInCache)
 	if err != nil {
-		return deploymentWrapper{}, err
+		return err
 	}
-	dirName, err := helper_uuid.New()
+	for _, globalConfig := range globalConfigs {
+		globalConfigsCache[globalConfig.Id] = globalConfig
+	}
+	var idsNotFound []string
+	for _, globalConfigId := range idsNotInCache {
+		if _, ok := globalConfigsCache[globalConfigId]; !ok {
+			idsNotFound = append(idsNotFound, globalConfigId)
+		}
+	}
+	if len(idsNotFound) > 0 {
+		return errors.New(fmt.Sprintf("global confgis %v not found", idsNotFound)) // TODO
+	}
+	return nil
+}
+
+func (h *Handler) getHostResources(ctx context.Context, hostResourcesCache map[string]models_external.HostResource, hostResourceIds []string) error {
+	var idsNotInCache []string
+	for _, hostResourceId := range hostResourceIds {
+		if _, ok := hostResourcesCache[hostResourceId]; ok {
+			idsNotInCache = append(idsNotInCache, hostResourceId)
+		}
+	}
+	if len(idsNotInCache) == 0 {
+		return nil
+	}
+	var idsNotFound [][2]string
+	for _, id := range idsNotInCache {
+		hostResource, err := h.hmClient.GetHostResource(ctx, id)
+		if err != nil {
+			idsNotFound = append(idsNotFound, [2]string{id, err.Error()})
+			continue
+		}
+		hostResourcesCache[hostResource.ID] = hostResource
+	}
+	if len(idsNotFound) > 0 {
+		return errors.New(fmt.Sprintf("host resources %v not found", idsNotFound)) // TODO
+	}
+	return nil
+}
+
+func (h *Handler) getDeploymentDependencies(ctx context.Context, dependenciesCache map[string]models_handler_storage.Deployment, moduleIds []string) error {
+	var idsNotInCache []string
+	for _, moduleId := range moduleIds {
+		if _, ok := dependenciesCache[moduleId]; !ok {
+			idsNotInCache = append(idsNotInCache, moduleId)
+		}
+	}
+	if len(idsNotInCache) == 0 {
+		return nil
+	}
+	deployments, err := h.storageHdl.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{ModuleIds: idsNotInCache})
 	if err != nil {
-		return deploymentWrapper{}, err
+		return err
 	}
-	name := userInput.Name
-	if name == "" {
-		name = module.Name
+	for _, deployment := range deployments {
+		dependenciesCache[deployment.ModuleId] = deployment
 	}
-	configs, err := newConfigsStorage(module.Configs, userInput.Configs, id)
-	if err != nil {
-		return deploymentWrapper{}, err
+	var idsNotFound []string
+	for _, moduleId := range idsNotInCache {
+		if _, ok := dependenciesCache[moduleId]; !ok {
+			idsNotFound = append(idsNotFound, moduleId)
+		}
 	}
-	return deploymentWrapper{
-		Deployment: models_handler_storage.Deployment{
-			Id:            id,
-			ModuleId:      module.ID,
-			ModuleSource:  module.Source,
-			ModuleChannel: module.Channel,
-			ModuleVersion: module.Version,
-			Name:          name,
-			DirName:       dirName,
-			Enabled:       false,
-			Created:       helper_time.Now(),
-		},
-		HostResources:    newHostResourcesStorage(module.HostResources, userInput.HostResources, id),
-		Secrets:          newSecretsStorage(module.Secrets, module.Services, userInput.Secrets, id),
-		Configs:          configs,
-		GlobalConfigs:    newGlobalConfigsStorage(module.Configs, userInput.GlobalConfigs, id),
-		Module:           module.Module,
-		ModuleFileSystem: module.FileSystem,
-	}, nil
+	if len(idsNotFound) > 0 {
+		return errors.New(fmt.Sprintf("dependencies %v not found", idsNotFound)) // TODO
+	}
+	return nil
+}
+
+func newDeploymentWrappers(modules map[string]models_handler_module.Module, userInputs map[string]models_handler_deployment.UserInput) map[string]*deploymentWrapper {
+	deployments := make(map[string]*deploymentWrapper)
+	for _, module := range modules {
+		name := userInputs[module.ID].Name
+		if name == "" {
+			name = module.Name
+		}
+		deployment := &deploymentWrapper{
+			Deployment: models_handler_storage.Deployment{
+				ModuleId:      module.ID,
+				ModuleSource:  module.Source,
+				ModuleChannel: module.Channel,
+				ModuleVersion: module.Version,
+				Name:          name,
+				Created:       helper_time.Now(),
+			},
+			Module:           module.Module,
+			ModuleFileSystem: module.FileSystem,
+		}
+		deployment.Id, deployment.Error = helper_uuid.New()
+		deployments[module.ID] = deployment
+	}
+	return deployments
 }
 
 func newSecretsStorage(moduleSecrets map[string]models_external.ModuleSecret, moduleServices map[string]*models_external.ModuleService, userInputs map[string]string, deploymentID string) []models_handler_storage.DeploymentSecret {

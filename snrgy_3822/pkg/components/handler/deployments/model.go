@@ -25,10 +25,7 @@ import (
 
 type deploymentWrapper struct {
 	models_handler_storage.Deployment
-	HostResources    []models_handler_storage.DeploymentHostResource
-	Secrets          []models_handler_storage.DeploymentSecret
-	Configs          map[string]models_handler_storage.DeploymentConfig
-	GlobalConfigs    []models_handler_storage.DeploymentGlobalConfig
 	Module           models_external.Module
 	ModuleFileSystem fs.FS
+	Error            error
 }
