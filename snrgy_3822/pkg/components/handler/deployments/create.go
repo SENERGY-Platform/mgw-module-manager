@@ -71,16 +71,6 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 		if deployment.Error != nil {
 			continue
 		}
-		deployment.Error = h.getHostResources(
-			ctx,
-			hostResourcesCache,
-			helper_slices.CollectFunc(slices.Values(deploymentHostResources), func(item models_handler_storage.DeploymentHostResource) string {
-				return item.Id
-			}),
-		)
-		if deployment.Error != nil {
-			continue
-		}
 		deployment.Error = h.getGlobalConfigs(
 			ctx,
 			globalConfigsCache,
@@ -94,6 +84,16 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 		configs, err := getConfigs(deployment.Module.Configs, deploymentUserConfigs, deploymentGlobalConfigs, globalConfigsCache)
 		if err != nil {
 			deployment.Error = err
+			continue
+		}
+		deployment.Error = h.getHostResources(
+			ctx,
+			hostResourcesCache,
+			helper_slices.CollectFunc(slices.Values(deploymentHostResources), func(item models_handler_storage.DeploymentHostResource) string {
+				return item.Id
+			}),
+		)
+		if deployment.Error != nil {
 			continue
 		}
 
