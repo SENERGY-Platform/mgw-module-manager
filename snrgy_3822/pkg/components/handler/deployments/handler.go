@@ -34,6 +34,7 @@ type Handler struct {
 	storageHdl storageHandler
 	cewClient  containerEngineWrapperClient
 	hmClient   hostManagerClient
+	smClient   secretManagerClient
 	config     Config
 	mu         sync.RWMutex
 }
@@ -43,6 +44,7 @@ func New(storageHdl storageHandler, cewClient containerEngineWrapperClient, hmCl
 		storageHdl: storageHdl,
 		cewClient:  cewClient,
 		hmClient:   hmClient,
+		smClient:   smClient,
 		config:     config,
 	}
 }

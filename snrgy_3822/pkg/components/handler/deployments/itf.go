@@ -91,3 +91,11 @@ type containerEngineWrapperClient interface {
 type hostManagerClient interface {
 	GetHostResource(ctx context.Context, id string) (models_external.HostResource, error)
 }
+
+type secretManagerClient interface {
+	InitPathVariant(ctx context.Context, secretRequest models_external.SecretVariantRequest) (variant models_external.SecretPathVariant, err error, errCode int)
+	LoadPathVariant(ctx context.Context, secretRequest models_external.SecretVariantRequest) (err error, errCode int)
+	UnloadPathVariant(ctx context.Context, secretRequest models_external.SecretVariantRequest) (err error, errCode int)
+	CleanPathVariants(ctx context.Context, ref string) (err error, errCode int)
+	GetValueVariant(ctx context.Context, secretRequest models_external.SecretVariantRequest) (variant models_external.SecretValueVariant, err error, errCode int)
+}

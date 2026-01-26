@@ -14,6 +14,7 @@ require (
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.21.4
 	github.com/SENERGY-Platform/mgw-module-lib v0.25.3
 	github.com/SENERGY-Platform/mgw-module-manager/lib v0.0.0-00000000000000-000000000000
+	github.com/SENERGY-Platform/mgw-secret-manager/pkg v0.2.0
 	github.com/gin-contrib/requestid v1.0.5
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-sql-driver/mysql v1.9.3

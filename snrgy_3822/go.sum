@@ -38,6 +38,8 @@ github.com/SENERGY-Platform/mgw-modfile-lib v0.21.4 h1:Wl+uyUfHU1TXAoHhVYcpL2oaJ
 github.com/SENERGY-Platform/mgw-modfile-lib v0.21.4/go.mod h1:VC6a/wrL6XrU8h4X1sa5+aAzsFxHBcDprD9o94ncD2s=
 github.com/SENERGY-Platform/mgw-module-lib v0.25.3 h1:WTZUJh5wbNNV+o+GGjIBsK/z/U0UW+BaCdvRzND8+Dk=
 github.com/SENERGY-Platform/mgw-module-lib v0.25.3/go.mod h1:Md++IxARoVsyZzfEUf4u7EIG79Cng0/1HVY/x4y5GyU=
+github.com/SENERGY-Platform/mgw-secret-manager/pkg v0.2.0 h1:att8BkfkxrmEtFzZnlHPunUGwKAKn1i7qjCEuWbcpy0=
+github.com/SENERGY-Platform/mgw-secret-manager/pkg v0.2.0/go.mod h1:3mRzTzGgSgO5iZb6JaCYREUMq68L1K/6HKMLAmKcAH8=
 github.com/SENERGY-Platform/service-commons v0.0.0-20250903071414-1b34f1965afa h1:M2zfxq28OMVM8CbVNYYfpjiFant7GeucJ8Kdb1FE5Oo=
 github.com/SENERGY-Platform/service-commons v0.0.0-20250903071414-1b34f1965afa/go.mod h1:1p2CQPNtler5leXqNgaOfr7DlgZUydrQlQYA97ycm4k=
 github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874 h1:N7oVaKyGp8bttX0bfZGmcGkjz7DLQXhAn3DNd3T0ous=

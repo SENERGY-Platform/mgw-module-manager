@@ -21,6 +21,7 @@ import (
 	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
 	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
+	sm_model "github.com/SENERGY-Platform/mgw-secret-manager/pkg/api_model"
 )
 
 type Module = module_lib.Module
@@ -51,3 +52,7 @@ const CewRunningState = cew_model.RunningState
 type Job = job_hdl_lib.Job
 
 type HostResource = hm_model.HostResource
+
+type SecretVariantRequest = sm_model.SecretVariantRequest
+type SecretPathVariant = sm_model.SecretPathVariant
+type SecretValueVariant = sm_model.SecretValueVariant
