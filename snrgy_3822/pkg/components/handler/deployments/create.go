@@ -254,14 +254,14 @@ func newDeploymentSecrets(moduleSecrets map[string]models_external.ModuleSecret,
 				Id:           id,
 				DeploymentId: deploymentID,
 				Reference:    reference,
-				Items:        newSecretItemsStorage(reference, moduleServices),
+				Items:        newDeploymentSecretItems(reference, moduleServices),
 			})
 		}
 	}
 	return secrets
 }
 
-func newSecretItemsStorage(reference string, moduleServices map[string]*models_external.ModuleService) []models_handler_storage.DeploymentSecretItem {
+func newDeploymentSecretItems(reference string, moduleServices map[string]*models_external.ModuleService) []models_handler_storage.DeploymentSecretItem {
 	items := make(map[string]models_handler_storage.DeploymentSecretItem)
 	for _, moduleService := range moduleServices {
 		for _, target := range moduleService.SecretVars {
