@@ -39,7 +39,7 @@ type Handler struct {
 	mu         sync.RWMutex
 }
 
-func New(storageHdl storageHandler, cewClient containerEngineWrapperClient, hmClient hostManagerClient, config Config) *Handler {
+func New(storageHdl storageHandler, cewClient containerEngineWrapperClient, hmClient hostManagerClient, smClient secretManagerClient, config Config) *Handler {
 	return &Handler{
 		storageHdl: storageHdl,
 		cewClient:  cewClient,
