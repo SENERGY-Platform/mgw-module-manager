@@ -39,6 +39,7 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 	deploymentDependenciesCache := make(map[string]models_handler_storage.Deployment)
 	hostResourcesCache := make(map[string]models_external.HostResource)
 	globalConfigsCache := make(map[string]models_handler_storage.GlobalConfig)
+	secretValuesCache := make(map[string]models_external.SecretValueVariant)
 	for _, deployment := range deployments {
 		if deployment.Error != nil {
 			continue
@@ -94,6 +95,11 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 			}),
 		)
 		if deployment.Error != nil {
+			continue
+		}
+		secretMounts, err := h.getSecrets(ctx, secretValuesCache, deploymentSecrets, deployment.Id) // mount secrets müssen "unloaded" werden
+		if err != nil {
+			deployment.Error = err
 			continue
 		}
 
@@ -182,6 +188,52 @@ func (h *Handler) getDeploymentDependencies(ctx context.Context, dependenciesCac
 		return errors.New(fmt.Sprintf("dependencies %v not found", idsNotFound)) // TODO
 	}
 	return nil
+}
+
+func (h *Handler) getSecrets(
+	ctx context.Context,
+	secretValuesCache map[string]models_external.SecretValueVariant,
+	deploymentSecrets []models_handler_storage.DeploymentSecret,
+	deploymentId string,
+) (map[string]models_external.SecretPathVariant, error) {
+	secretMounts := make(map[string]models_external.SecretPathVariant)
+	for _, deploymentSecret := range deploymentSecrets {
+		for _, item := range deploymentSecret.Items {
+			key := deploymentSecret.Id + item.Name
+			var reqItem *string
+			if item.Name != "" {
+				reqItem = &item.Name
+			}
+			if item.AsEnv {
+				_, ok := secretValuesCache[key]
+				if !ok {
+					valueVariant, err, _ := h.smClient.GetValueVariant(ctx, models_external.SecretVariantRequest{
+						ID:   deploymentSecret.Id,
+						Item: reqItem,
+					})
+					if err != nil {
+						return nil, err
+					}
+					secretValuesCache[key] = valueVariant
+				}
+			}
+			if item.AsMount {
+				_, ok := secretMounts[key]
+				if !ok {
+					pathVariant, err, _ := h.smClient.InitPathVariant(ctx, models_external.SecretVariantRequest{
+						ID:        deploymentSecret.Id,
+						Item:      reqItem,
+						Reference: deploymentId,
+					})
+					if err != nil {
+						return nil, err
+					}
+					secretMounts[key] = pathVariant
+				}
+			}
+		}
+	}
+	return secretMounts, nil
 }
 
 func getConfigs(
