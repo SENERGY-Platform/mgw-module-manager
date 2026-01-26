@@ -28,7 +28,7 @@ func (h *Handler) CreateDeployment(
 	deployment models_handler_storage.Deployment,
 	hostResources []models_handler_storage.DeploymentHostResource,
 	secrets []models_handler_storage.DeploymentSecret,
-	configs []models_handler_storage.DeploymentConfig,
+	userConfigs []models_handler_storage.DeploymentUserConfig,
 	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 ) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
@@ -55,7 +55,7 @@ func (h *Handler) CreateDeployment(
 	if err != nil {
 		return
 	}
-	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, configs, globalConfigs)
+	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, userConfigs, globalConfigs)
 	if err != nil {
 		return
 	}
@@ -69,7 +69,7 @@ func (h *Handler) createDeploymentResourcesAndConfigs(
 	deploymentId string,
 	hostResources []models_handler_storage.DeploymentHostResource,
 	secrets []models_handler_storage.DeploymentSecret,
-	configs []models_handler_storage.DeploymentConfig,
+	userConfigs []models_handler_storage.DeploymentUserConfig,
 	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 ) (err error) {
 	for _, hostResource := range hostResources {
@@ -101,7 +101,7 @@ func (h *Handler) createDeploymentResourcesAndConfigs(
 			}
 		}
 	}
-	for _, config := range configs {
+	for _, config := range userConfigs {
 		_, err = tx.ExecContext(
 			ctx,
 			"INSERT INTO dep_configs (id, dep_id, ref, data_type, is_list) VALUES (?, ?, ?, ?, ?)",

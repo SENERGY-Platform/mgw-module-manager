@@ -30,7 +30,7 @@ type storageHandler interface {
 		deployment models_handler_storage.Deployment,
 		hostResources []models_handler_storage.DeploymentHostResource,
 		secrets []models_handler_storage.DeploymentSecret,
-		configs []models_handler_storage.DeploymentConfig,
+		userConfigs []models_handler_storage.DeploymentUserConfig,
 		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 	) (err error)
 	ReadDeployment(ctx context.Context, id string) (models_handler_storage.Deployment, error)
@@ -41,8 +41,8 @@ type storageHandler interface {
 	ReadDeploymentsHostResources(ctx context.Context, filter models_handler_storage.DeploymentsHostResourcesFilter) (map[string][]models_handler_storage.DeploymentHostResource, error)
 	ReadDeploymentSecrets(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentSecret, error)
 	ReadDeploymentsSecrets(ctx context.Context, filter models_handler_storage.DeploymentsSecretsFilter) (map[string][]models_handler_storage.DeploymentSecret, error)
-	ReadDeploymentConfigs(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentConfig, error)
-	ReadDeploymentsConfigs(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentConfig, error)
+	ReadDeploymentUserConfigs(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentUserConfig, error)
+	ReadDeploymentsUserConfigs(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentUserConfig, error)
 	ReadDeploymentGlobalConfigs(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentGlobalConfig, error)
 	ReadDeploymentsGlobalConfigs(ctx context.Context, filter models_handler_storage.DeploymentGlobalConfigsFilter) (map[string][]models_handler_storage.DeploymentGlobalConfig, error)
 	UpdateDeploymentsEnabledState(ctx context.Context, deployments map[string]bool, timestamp time.Time) (err error)
@@ -53,7 +53,7 @@ type storageHandler interface {
 		deploymentId string,
 		hostResources []models_handler_storage.DeploymentHostResource,
 		secrets []models_handler_storage.DeploymentSecret,
-		configs []models_handler_storage.DeploymentConfig,
+		userConfigs []models_handler_storage.DeploymentUserConfig,
 		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 	) (err error)
 	UpdateDeployment(
@@ -61,7 +61,7 @@ type storageHandler interface {
 		deployment models_handler_storage.Deployment,
 		hostResources []models_handler_storage.DeploymentHostResource,
 		secrets []models_handler_storage.DeploymentSecret,
-		configs []models_handler_storage.DeploymentConfig,
+		userConfigs []models_handler_storage.DeploymentUserConfig,
 		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 	) (err error)
 	DeleteDeployment(ctx context.Context, id string) error

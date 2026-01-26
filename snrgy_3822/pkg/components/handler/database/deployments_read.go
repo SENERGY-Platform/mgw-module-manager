@@ -207,8 +207,8 @@ func (h *Handler) ReadDeploymentsSecrets(ctx context.Context, filter models_hand
 	return depSecrets, nil
 }
 
-func (h *Handler) ReadDeploymentConfigs(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentConfig, error) {
-	deploymentsConfigs, err := h.ReadDeploymentsConfigs(ctx, []string{deploymentId})
+func (h *Handler) ReadDeploymentUserConfigs(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentUserConfig, error) {
+	deploymentsConfigs, err := h.ReadDeploymentsUserConfigs(ctx, []string{deploymentId})
 	if err != nil {
 		return nil, err
 	}
@@ -218,13 +218,13 @@ func (h *Handler) ReadDeploymentConfigs(ctx context.Context, deploymentId string
 	return deploymentsConfigs[deploymentId], nil
 }
 
-func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentConfig, error) {
+func (h *Handler) ReadDeploymentsUserConfigs(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentUserConfig, error) {
 	rows, err := h.queryConfigs(ctx, deploymentIds, "dep_configs", "dep_config_values", "dep_id", "dep_id", "ref")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	tmp := make(map[string]map[string]models_handler_storage.DeploymentConfig) // {depID:{reference:config}}
+	tmp := make(map[string]map[string]models_handler_storage.DeploymentUserConfig) // {depID:{reference:config}}
 	for rows.Next() {
 		var id string
 		var isList bool
@@ -242,7 +242,7 @@ func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []st
 		}
 		configs, ok := tmp[depId]
 		if !ok {
-			configs = make(map[string]models_handler_storage.DeploymentConfig)
+			configs = make(map[string]models_handler_storage.DeploymentUserConfig)
 			tmp[depId] = configs
 		}
 		config, ok := configs[ref]
@@ -278,11 +278,11 @@ func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []st
 		}
 		configs[ref] = config
 	}
-	depConfigs := make(map[string][]models_handler_storage.DeploymentConfig)
+	userConfigs := make(map[string][]models_handler_storage.DeploymentUserConfig)
 	for id, configsMap := range tmp {
-		depConfigs[id] = slices.Collect(maps.Values(configsMap))
+		userConfigs[id] = slices.Collect(maps.Values(configsMap))
 	}
-	return depConfigs, nil
+	return userConfigs, nil
 }
 
 func (h *Handler) ReadDeploymentGlobalConfigs(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentGlobalConfig, error) {

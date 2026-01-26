@@ -78,7 +78,7 @@ func (h *Handler) UpdateDeploymentResourcesAndConfigs(
 	deploymentId string,
 	hostResources []models_handler_storage.DeploymentHostResource,
 	secrets []models_handler_storage.DeploymentSecret,
-	configs []models_handler_storage.DeploymentConfig,
+	userConfigs []models_handler_storage.DeploymentUserConfig,
 	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 ) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
@@ -92,7 +92,7 @@ func (h *Handler) UpdateDeploymentResourcesAndConfigs(
 	if err != nil {
 		return
 	}
-	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deploymentId, hostResources, secrets, configs, globalConfigs)
+	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deploymentId, hostResources, secrets, userConfigs, globalConfigs)
 	if err != nil {
 		return
 	}
@@ -105,7 +105,7 @@ func (h *Handler) UpdateDeployment(
 	deployment models_handler_storage.Deployment,
 	hostResources []models_handler_storage.DeploymentHostResource,
 	secrets []models_handler_storage.DeploymentSecret,
-	configs []models_handler_storage.DeploymentConfig,
+	userConfigs []models_handler_storage.DeploymentUserConfig,
 	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 ) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
@@ -134,7 +134,7 @@ func (h *Handler) UpdateDeployment(
 	if err != nil {
 		return
 	}
-	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, configs, globalConfigs)
+	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, userConfigs, globalConfigs)
 	if err != nil {
 		return
 	}

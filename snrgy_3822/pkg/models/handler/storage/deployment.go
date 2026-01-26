@@ -60,7 +60,7 @@ type DeploymentSecretItem struct {
 	AsEnv   bool
 }
 
-type DeploymentConfig struct {
+type DeploymentUserConfig struct {
 	Config
 	DeploymentId string
 	Reference    string

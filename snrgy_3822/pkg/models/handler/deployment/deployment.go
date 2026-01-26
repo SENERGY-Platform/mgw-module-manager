@@ -31,7 +31,7 @@ type Deployment struct {
 	Containers    []Container
 	HostResources []models_handler_storage.DeploymentHostResource
 	Secrets       []models_handler_storage.DeploymentSecret
-	Configs       []models_handler_storage.DeploymentConfig
+	Configs       []models_handler_storage.DeploymentUserConfig
 	State         string // health state determined by container states
 }
 
