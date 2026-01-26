@@ -36,7 +36,7 @@ import (
 
 func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]models_handler_module.Module, userInputs map[string]models_handler_deployment.UserInput) (map[string]models_handler_deployment.Deployment, error) {
 	deployments := newDeploymentWrappers(modules, userInputs)
-	dependenciesCache := make(map[string]models_handler_storage.Deployment)
+	deploymentDependenciesCache := make(map[string]models_handler_storage.Deployment)
 	hostResourcesCache := make(map[string]models_external.HostResource)
 	globalConfigsCache := make(map[string]models_handler_storage.GlobalConfig)
 	for _, deployment := range deployments {
@@ -44,28 +44,28 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 			continue
 		}
 		userInput := userInputs[deployment.Module.ID]
-		configsStorage, err := newConfigsStorage(deployment.Module.Configs, userInput.Configs, deployment.Id)
+		deploymentUserConfigs, err := getDeploymentUserConfigs(deployment.Module.Configs, userInput.Configs, deployment.Id)
 		if err != nil {
 			deployment.Error = err
 			continue
 		}
-		globalConfigsStorage := newGlobalConfigsStorage(deployment.Module.Configs, userInput.GlobalConfigs, deployment.Id)
-		hostResourcesStorage := newHostResourcesStorage(deployment.Module.HostResources, userInput.HostResources, deployment.Id)
-		secretsStorage := newSecretsStorage(deployment.Module.Secrets, deployment.Module.Services, userInput.Secrets, deployment.Id)
+		deploymentGlobalConfigs := newDeploymentGlobalConfigs(deployment.Module.Configs, userInput.GlobalConfigs, deployment.Id)
+		deploymentHostResources := newDeploymentHostResources(deployment.Module.HostResources, userInput.HostResources, deployment.Id)
+		deploymentSecrets := newDeploymentSecrets(deployment.Module.Secrets, deployment.Module.Services, userInput.Secrets, deployment.Id)
 		deployment.Error = h.storageHdl.CreateDeployment(
 			ctx,
 			deployment.Deployment,
-			hostResourcesStorage,
-			secretsStorage,
-			slices.Collect(maps.Values(configsStorage)),
-			globalConfigsStorage,
+			deploymentHostResources,
+			deploymentSecrets,
+			slices.Collect(maps.Values(deploymentUserConfigs)),
+			slices.Collect(maps.Values(deploymentGlobalConfigs)),
 		)
 		if deployment.Error != nil {
 			continue
 		}
 		deployment.Error = h.getDeploymentDependencies(
 			ctx,
-			dependenciesCache,
+			deploymentDependenciesCache,
 			slices.Collect(maps.Keys(deployment.Module.Dependencies)),
 		)
 		if deployment.Error != nil {
@@ -74,7 +74,7 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 		deployment.Error = h.getHostResources(
 			ctx,
 			hostResourcesCache,
-			helper_slices.CollectSliceFunc(hostResourcesStorage, func(item models_handler_storage.DeploymentHostResource) string {
+			helper_slices.CollectFunc(slices.Values(deploymentHostResources), func(item models_handler_storage.DeploymentHostResource) string {
 				return item.Id
 			}),
 		)
@@ -84,13 +84,19 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 		deployment.Error = h.getGlobalConfigs(
 			ctx,
 			globalConfigsCache,
-			helper_slices.CollectSliceFunc(globalConfigsStorage, func(item models_handler_storage.DeploymentGlobalConfig) string {
+			helper_slices.CollectFunc(maps.Values(deploymentGlobalConfigs), func(item models_handler_storage.DeploymentGlobalConfig) string {
 				return item.Id
 			}),
 		)
 		if deployment.Error != nil {
 			continue
 		}
+		configs, err := getConfigs(deployment.Module.Configs, deploymentUserConfigs, deploymentGlobalConfigs, globalConfigsCache)
+		if err != nil {
+			deployment.Error = err
+			continue
+		}
+
 	}
 	return nil, nil
 }
@@ -178,6 +184,42 @@ func (h *Handler) getDeploymentDependencies(ctx context.Context, dependenciesCac
 	return nil
 }
 
+func getConfigs(
+	moduleConfigs models_external.ModuleConfigs,
+	deploymentUserConfigs map[string]models_handler_storage.DeploymentUserConfig,
+	deploymentGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
+	globalConfigsCache map[string]models_handler_storage.GlobalConfig,
+) (map[string]models_handler_storage.Config, error) {
+	configs := make(map[string]models_handler_storage.Config)
+	for reference, moduleConfig := range moduleConfigs {
+		deploymentUserConfig, ok := deploymentUserConfigs[reference]
+		if ok {
+			configs[reference] = deploymentUserConfig.Config
+			continue
+		}
+		deploymentGlobalConfig, ok := deploymentGlobalConfigs[reference]
+		if ok {
+			globalConfig, ok := globalConfigsCache[deploymentGlobalConfig.Id]
+			if ok {
+				configs[reference] = globalConfig.Config
+				continue
+			}
+		}
+		if moduleConfig.Default != nil {
+			defaultConfig, err := moduleConfigValueToConfig(moduleConfig.Default, moduleConfig)
+			if err != nil {
+				return nil, err
+			}
+			configs[reference] = defaultConfig
+			continue
+		}
+		if moduleConfig.Required {
+			return nil, errors.New("required module config is missing") // TODO
+		}
+	}
+	return configs, nil
+}
+
 func newDeploymentWrappers(modules map[string]models_handler_module.Module, userInputs map[string]models_handler_deployment.UserInput) map[string]*deploymentWrapper {
 	deployments := make(map[string]*deploymentWrapper)
 	for _, module := range modules {
@@ -203,7 +245,7 @@ func newDeploymentWrappers(modules map[string]models_handler_module.Module, user
 	return deployments
 }
 
-func newSecretsStorage(moduleSecrets map[string]models_external.ModuleSecret, moduleServices map[string]*models_external.ModuleService, userInputs map[string]string, deploymentID string) []models_handler_storage.DeploymentSecret {
+func newDeploymentSecrets(moduleSecrets map[string]models_external.ModuleSecret, moduleServices map[string]*models_external.ModuleService, userInputs map[string]string, deploymentID string) []models_handler_storage.DeploymentSecret {
 	var secrets []models_handler_storage.DeploymentSecret
 	for reference := range moduleSecrets {
 		id, ok := userInputs[reference]
@@ -254,7 +296,7 @@ func newSecretItemsStorage(reference string, moduleServices map[string]*models_e
 	return slices.Collect(maps.Values(items))
 }
 
-func newHostResourcesStorage(moduleHostResources map[string]models_external.ModuleHostResource, userInputs map[string]string, deploymentID string) []models_handler_storage.DeploymentHostResource {
+func newDeploymentHostResources(moduleHostResources map[string]models_external.ModuleHostResource, userInputs map[string]string, deploymentID string) []models_handler_storage.DeploymentHostResource {
 	var hostResources []models_handler_storage.DeploymentHostResource
 	for reference := range moduleHostResources {
 		id, ok := userInputs[reference]
@@ -269,61 +311,61 @@ func newHostResourcesStorage(moduleHostResources map[string]models_external.Modu
 	return hostResources
 }
 
-func newGlobalConfigsStorage(moduleConfigs models_external.ModuleConfigs, userInputs map[string]string, deploymentId string) []models_handler_storage.DeploymentGlobalConfig {
-	var configs []models_handler_storage.DeploymentGlobalConfig
+func newDeploymentGlobalConfigs(moduleConfigs models_external.ModuleConfigs, userInputs map[string]string, deploymentId string) map[string]models_handler_storage.DeploymentGlobalConfig {
+	configs := make(map[string]models_handler_storage.DeploymentGlobalConfig)
 	for reference := range moduleConfigs {
 		id, ok := userInputs[reference]
 		if ok {
-			configs = append(configs, models_handler_storage.DeploymentGlobalConfig{
+			configs[reference] = models_handler_storage.DeploymentGlobalConfig{
 				Id:           id,
 				DeploymentId: deploymentId,
 				Reference:    reference,
-			})
+			}
 		}
 	}
 	return configs
 }
 
-func newConfigsStorage(moduleConfigs models_external.ModuleConfigs, userInputs map[string]any, deploymentId string) (map[string]models_handler_storage.DeploymentConfig, error) {
-	configs := make(map[string]models_handler_storage.DeploymentConfig)
+func getDeploymentUserConfigs(moduleConfigs models_external.ModuleConfigs, userInputs map[string]any, deploymentId string) (map[string]models_handler_storage.DeploymentUserConfig, error) {
+	configs := make(map[string]models_handler_storage.DeploymentUserConfig)
 	for reference, moduleConfig := range moduleConfigs {
 		val, ok := userInputs[reference]
 		if ok && val != nil {
-			config, err := newConfigStorage(val, reference, moduleConfig, deploymentId)
+			config, err := moduleConfigValueToConfig(val, moduleConfig)
 			if err != nil {
 				return nil, err
 			}
-			configs[reference] = config
+			config.Id = deploymentId + "_" + reference
+			configs[reference] = models_handler_storage.DeploymentUserConfig{
+				DeploymentId: deploymentId,
+				Reference:    reference,
+				Config:       config,
+			}
 		}
 	}
 	return configs, nil
 }
 
-func newConfigStorage(val any, reference string, moduleConfigValue models_external.ModuleConfig, deploymentId string) (models_handler_storage.DeploymentConfig, error) {
-	config := models_handler_storage.DeploymentConfig{
-		DeploymentId: deploymentId,
-		Reference:    reference,
-		Config: models_handler_storage.Config{
-			Id:      deploymentId + "_" + reference,
-			IsSlice: moduleConfigValue.IsSlice,
-		},
+func moduleConfigValueToConfig(val any, moduleConfig models_external.ModuleConfig) (models_handler_storage.Config, error) {
+	config := models_handler_storage.Config{
+		IsSlice: moduleConfig.IsSlice,
 	}
-	if moduleConfigValue.IsSlice {
+	if moduleConfig.IsSlice {
 		anySlice, ok := val.([]any)
 		if !ok {
-			return models_handler_storage.DeploymentConfig{}, fmt.Errorf("invalid data type '%T'", val) // TODO
+			return models_handler_storage.Config{}, fmt.Errorf("invalid data type '%T'", val) // TODO
 		}
-		switch moduleConfigValue.DataType {
+		switch moduleConfig.DataType {
 		case models_external.ModuleConfigStringType:
 			config.DataType = models_handler_storage.StringType
 			for _, item := range anySlice {
 				v, err := toString(item)
 				if err != nil {
-					return models_handler_storage.DeploymentConfig{}, err
+					return models_handler_storage.Config{}, err
 				}
-				err = validateValue(v, moduleConfigValue)
+				err = validateValue(v, moduleConfig)
 				if err != nil {
-					return models_handler_storage.DeploymentConfig{}, err
+					return models_handler_storage.Config{}, err
 				}
 				config.StringSlice = append(config.StringSlice, v)
 			}
@@ -332,11 +374,11 @@ func newConfigStorage(val any, reference string, moduleConfigValue models_extern
 			for _, item := range anySlice {
 				v, err := toBool(item)
 				if err != nil {
-					return models_handler_storage.DeploymentConfig{}, err
+					return models_handler_storage.Config{}, err
 				}
-				err = validateValue(v, moduleConfigValue)
+				err = validateValue(v, moduleConfig)
 				if err != nil {
-					return models_handler_storage.DeploymentConfig{}, err
+					return models_handler_storage.Config{}, err
 				}
 				config.BoolSlice = append(config.BoolSlice, v)
 			}
@@ -345,11 +387,11 @@ func newConfigStorage(val any, reference string, moduleConfigValue models_extern
 			for _, item := range anySlice {
 				v, err := toInt64(item)
 				if err != nil {
-					return models_handler_storage.DeploymentConfig{}, err
+					return models_handler_storage.Config{}, err
 				}
-				err = validateValue(v, moduleConfigValue)
+				err = validateValue(v, moduleConfig)
 				if err != nil {
-					return models_handler_storage.DeploymentConfig{}, err
+					return models_handler_storage.Config{}, err
 				}
 				config.Int64Slice = append(config.Int64Slice, v)
 			}
@@ -358,65 +400,65 @@ func newConfigStorage(val any, reference string, moduleConfigValue models_extern
 			for _, item := range anySlice {
 				v, err := toFloat64(item)
 				if err != nil {
-					return models_handler_storage.DeploymentConfig{}, err
+					return models_handler_storage.Config{}, err
 				}
-				err = validateValue(v, moduleConfigValue)
+				err = validateValue(v, moduleConfig)
 				if err != nil {
-					return models_handler_storage.DeploymentConfig{}, err
+					return models_handler_storage.Config{}, err
 				}
 				config.Float64Slice = append(config.Float64Slice, v)
 			}
 		default:
-			return models_handler_storage.DeploymentConfig{}, fmt.Errorf("unknown data type '%s'", moduleConfigValue.DataType) // TODO
+			return models_handler_storage.Config{}, fmt.Errorf("unknown data type '%s'", moduleConfig.DataType) // TODO
 		}
 	} else {
-		switch moduleConfigValue.DataType {
+		switch moduleConfig.DataType {
 		case models_external.ModuleConfigStringType:
 			config.DataType = models_handler_storage.StringType
 			v, err := toString(val)
 			if err != nil {
-				return models_handler_storage.DeploymentConfig{}, err
+				return models_handler_storage.Config{}, err
 			}
 			config.String = v
-			err = validateValue(v, moduleConfigValue)
+			err = validateValue(v, moduleConfig)
 			if err != nil {
-				return models_handler_storage.DeploymentConfig{}, err
+				return models_handler_storage.Config{}, err
 			}
 		case models_external.ModuleConfigBoolType:
 			config.DataType = models_handler_storage.BoolType
 			v, err := toBool(val)
 			if err != nil {
-				return models_handler_storage.DeploymentConfig{}, err
+				return models_handler_storage.Config{}, err
 			}
 			config.Bool = v
-			err = validateValue(v, moduleConfigValue)
+			err = validateValue(v, moduleConfig)
 			if err != nil {
-				return models_handler_storage.DeploymentConfig{}, err
+				return models_handler_storage.Config{}, err
 			}
 		case models_external.ModuleConfigInt64Type:
 			config.DataType = models_handler_storage.Int64Type
 			v, err := toInt64(val)
 			if err != nil {
-				return models_handler_storage.DeploymentConfig{}, err
+				return models_handler_storage.Config{}, err
 			}
 			config.Int64 = v
-			err = validateValue(v, moduleConfigValue)
+			err = validateValue(v, moduleConfig)
 			if err != nil {
-				return models_handler_storage.DeploymentConfig{}, err
+				return models_handler_storage.Config{}, err
 			}
 		case models_external.ModuleConfigFloat64Type:
 			config.DataType = models_handler_storage.Float64Type
 			v, err := toFloat64(val)
 			if err != nil {
-				return models_handler_storage.DeploymentConfig{}, err
+				return models_handler_storage.Config{}, err
 			}
 			config.Float64 = v
-			err = validateValue(v, moduleConfigValue)
+			err = validateValue(v, moduleConfig)
 			if err != nil {
-				return models_handler_storage.DeploymentConfig{}, err
+				return models_handler_storage.Config{}, err
 			}
 		default:
-			return models_handler_storage.DeploymentConfig{}, fmt.Errorf("unknown data type '%s'", moduleConfigValue.DataType) // TODO
+			return models_handler_storage.Config{}, fmt.Errorf("unknown data type '%s'", moduleConfig.DataType) // TODO
 		}
 	}
 	return config, nil
