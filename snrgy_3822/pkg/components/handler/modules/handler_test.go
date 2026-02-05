@@ -531,7 +531,7 @@ func TestHandler_Delete(t *testing.T) {
 				},
 			}
 			cewCltMock.Images["ghcr.io/org/repo:test"] = models_external.Image{}
-			h.cache["github.com/org/repo"] = module_lib.Module{Services: map[string]*module_lib.Service{"test": {Image: "ghcr.io/org/repo:test"}}}
+			h.cache["github.com/org/repo"] = module_lib.Module{Services: map[string]module_lib.Service{"test": {Image: "ghcr.io/org/repo:test"}}}
 			err = h.Remove(context.Background(), "github.com/org/repo")
 			if err != nil {
 				t.Error(err)

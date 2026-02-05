@@ -367,7 +367,7 @@ func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages map[
 	return nil
 }
 
-func imagesAsSet(services map[string]*models_external.ModuleService) map[string]struct{} {
+func imagesAsSet(services map[string]models_external.ModuleService) map[string]struct{} {
 	images := make(map[string]struct{})
 	for _, service := range services {
 		images[service.Image] = struct{}{}
