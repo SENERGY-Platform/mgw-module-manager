@@ -81,3 +81,32 @@ CREATE TABLE IF NOT EXISTS dep_global_configs
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT,
     FOREIGN KEY (c_id) REFERENCES global_configs (id) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
+CREATE TABLE IF NOT EXISTS dep_files
+(
+    dep_id CHAR(36)     NOT NULL,
+    ref    VARCHAR(128) NOT NULL,
+    data   LONGBLOB,
+    UNIQUE KEY uk_dep_id_ref (dep_id, ref),
+    INDEX i_dep_id (dep_id),
+    FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
+);
+CREATE TABLE IF NOT EXISTS dep_file_groups
+(
+    id     VARCHAR(256) NOT NULL,
+    dep_id CHAR(36)     NOT NULL,
+    ref    VARCHAR(128) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_dep_id_ref (dep_id, ref),
+    INDEX i_dep_id (dep_id),
+    FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
+);
+CREATE TABLE IF NOT EXISTS dep_file_group_files
+(
+    g_id   VARCHAR(256) NOT NULL,
+    path   VARCHAR(512) NOT NULL,
+    data   LONGBLOB,
+    format SMALLINT     NOT NULL,
+    UNIQUE KEY uk_g_id_path (g_id, path),
+    INDEX i_g_id (g_id),
+    FOREIGN KEY (g_id) REFERENCES dep_file_groups (id) ON DELETE CASCADE ON UPDATE RESTRICT
+);
