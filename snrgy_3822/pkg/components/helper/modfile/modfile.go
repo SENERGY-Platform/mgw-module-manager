@@ -5,7 +5,7 @@ import (
 	"io/fs"
 	"regexp"
 
-	modfile_lib "github.com/SENERGY-Platform/mgw-modfile-lib"
+	"github.com/SENERGY-Platform/mgw-modfile-lib"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	helper_file_sys "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
 )
