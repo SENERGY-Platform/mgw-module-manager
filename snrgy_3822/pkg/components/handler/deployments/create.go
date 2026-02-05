@@ -297,7 +297,7 @@ func newDeploymentWrappers(modules map[string]models_handler_module.Module, user
 	return deployments
 }
 
-func newDeploymentSecrets(moduleSecrets map[string]models_external.ModuleSecret, moduleServices map[string]*models_external.ModuleService, userInputs map[string]string, deploymentID string) []models_handler_storage.DeploymentSecret {
+func newDeploymentSecrets(moduleSecrets map[string]models_external.ModuleSecret, moduleServices map[string]models_external.ModuleService, userInputs map[string]string, deploymentID string) []models_handler_storage.DeploymentSecret {
 	var secrets []models_handler_storage.DeploymentSecret
 	for reference := range moduleSecrets {
 		id, ok := userInputs[reference]
@@ -313,35 +313,27 @@ func newDeploymentSecrets(moduleSecrets map[string]models_external.ModuleSecret,
 	return secrets
 }
 
-func newDeploymentSecretItems(reference string, moduleServices map[string]*models_external.ModuleService) []models_handler_storage.DeploymentSecretItem {
+func newDeploymentSecretItems(reference string, moduleServices map[string]models_external.ModuleService) []models_handler_storage.DeploymentSecretItem {
 	items := make(map[string]models_handler_storage.DeploymentSecretItem)
 	for _, moduleService := range moduleServices {
 		for _, target := range moduleService.SecretVars {
 			if target.Ref == reference {
-				var name string
-				if target.Item != nil {
-					name = *target.Item
-				}
-				item, ok := items[name]
+				item, ok := items[target.Item]
 				if !ok {
-					item.Name = name
+					item.Name = target.Item
 				}
 				item.AsEnv = true
-				items[name] = item
+				items[target.Item] = item
 			}
 		}
 		for _, target := range moduleService.SecretMounts {
 			if target.Ref == reference {
-				var name string
-				if target.Item != nil {
-					name = *target.Item
-				}
-				item, ok := items[name]
+				item, ok := items[target.Item]
 				if !ok {
-					item.Name = name
+					item.Name = target.Item
 				}
 				item.AsMount = true
-				items[name] = item
+				items[target.Item] = item
 			}
 		}
 	}
