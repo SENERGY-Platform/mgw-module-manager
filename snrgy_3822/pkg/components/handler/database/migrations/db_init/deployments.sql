@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS dep_config_values
     v_bool   BOOLEAN,
     ord      SMALLINT     NOT NULL,
     UNIQUE KEY uk_c_id_ord (c_id, ord),
-    INDEX i_id (c_id),
+    INDEX i_c_id (c_id),
     FOREIGN KEY (c_id) REFERENCES dep_configs (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS dep_global_configs
