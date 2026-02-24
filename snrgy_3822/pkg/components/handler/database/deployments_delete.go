@@ -54,5 +54,13 @@ func (h *Handler) deleteDeploymentResourcesAndConfigs(ctx context.Context, tx *s
 		return
 	}
 	_, err = tx.ExecContext(ctx, "DELETE FROM dep_global_configs WHERE dep_id = ?", deploymentId)
+	if err != nil {
+		return
+	}
+	_, err = tx.ExecContext(ctx, "DELETE FROM dep_files WHERE dep_id = ?", deploymentId)
+	if err != nil {
+		return
+	}
+	_, err = tx.ExecContext(ctx, "DELETE FROM dep_file_groups WHERE dep_id = ?", deploymentId)
 	return
 }

@@ -30,6 +30,8 @@ func (h *Handler) CreateDeployment(
 	secrets []models_handler_storage.DeploymentSecret,
 	userConfigs []models_handler_storage.DeploymentUserConfig,
 	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
+	files []models_handler_storage.DeploymentFile,
+	fileGroups []models_handler_storage.DeploymentFileGroup,
 ) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
@@ -55,7 +57,17 @@ func (h *Handler) CreateDeployment(
 	if err != nil {
 		return
 	}
-	err = h.createDeploymentResourcesAndConfigs(ctx, tx, deployment.Id, hostResources, secrets, userConfigs, globalConfigs)
+	err = h.createDeploymentResourcesAndConfigs(
+		ctx,
+		tx,
+		deployment.Id,
+		hostResources,
+		secrets,
+		userConfigs,
+		globalConfigs,
+		files,
+		fileGroups,
+	)
 	if err != nil {
 		return
 	}
@@ -71,6 +83,8 @@ func (h *Handler) createDeploymentResourcesAndConfigs(
 	secrets []models_handler_storage.DeploymentSecret,
 	userConfigs []models_handler_storage.DeploymentUserConfig,
 	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
+	files []models_handler_storage.DeploymentFile,
+	fileGroups []models_handler_storage.DeploymentFileGroup,
 ) (err error) {
 	for _, hostResource := range hostResources {
 		_, err = tx.ExecContext(
@@ -126,6 +140,51 @@ func (h *Handler) createDeploymentResourcesAndConfigs(
 			deploymentId,
 			globalConfig.Reference,
 			globalConfig.Id,
+		)
+		if err != nil {
+			return
+		}
+	}
+	for _, file := range files {
+		_, err = tx.ExecContext(
+			ctx,
+			"INSERT INTO dep_files (dep_id, ref, data) VALUES (?, ?, ?)",
+			deploymentId,
+			file.Reference,
+			file.Data,
+		)
+		if err != nil {
+			return
+		}
+	}
+	for _, fileGroup := range fileGroups {
+		_, err = tx.ExecContext(
+			ctx,
+			"INSERT INTO dep_file_groups (id, dep_id, ref) VALUES (?, ?, ?)",
+			fileGroup.Id,
+			deploymentId,
+			fileGroup.Reference,
+		)
+		if err != nil {
+			return
+		}
+		err = createFileGroupFiles(ctx, tx, fileGroup.Id, fileGroup.Files)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+func createFileGroupFiles(ctx context.Context, tx *sql.Tx, groupId string, files []models_handler_storage.DeploymentFileGroupFile) (err error) {
+	for _, file := range files {
+		_, err = tx.ExecContext(
+			ctx,
+			"INSERT INTO dep_file_group_files (g_id, path, format, data) VALUES (?, ?, ?, ?)",
+			groupId,
+			file.Path,
+			file.Format,
+			file.Data,
 		)
 		if err != nil {
 			return

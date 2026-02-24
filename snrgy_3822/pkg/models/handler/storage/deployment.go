@@ -72,6 +72,25 @@ type DeploymentGlobalConfig struct {
 	Reference    string
 }
 
+type DeploymentFile struct {
+	DeploymentId string
+	Reference    string
+	Data         []byte
+}
+
+type DeploymentFileGroup struct {
+	Id           string
+	DeploymentId string
+	Reference    string
+	Files        []DeploymentFileGroupFile
+}
+
+type DeploymentFileGroupFile struct {
+	Path   string
+	Format int
+	Data   []byte
+}
+
 type DeploymentsFilter struct {
 	Ids       []string
 	ModuleIds []string

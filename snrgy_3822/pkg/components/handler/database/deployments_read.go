@@ -321,6 +321,110 @@ func (h *Handler) ReadDeploymentsGlobalConfigs(ctx context.Context, filter model
 	return depGlobalConfigs, nil
 }
 
+func (h *Handler) ReadDeploymentFiles(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentFile, error) {
+	depFiles, err := h.ReadDeploymentsFiles(ctx, []string{deploymentId})
+	if err != nil {
+		return nil, err
+	}
+	if len(depFiles) == 0 {
+		return nil, nil
+	}
+	return depFiles[deploymentId], nil
+}
+
+func (h *Handler) ReadDeploymentsFiles(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentFile, error) {
+	fc, val := genDeploymentsFilesFilter(deploymentIds)
+	rows, err := h.sqlDB.QueryContext(
+		ctx,
+		"SELECT dep_id, ref, data FROM dep_files"+fc+";",
+		val...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	depFiles := make(map[string][]models_handler_storage.DeploymentFile)
+	for rows.Next() {
+		var depFile models_handler_storage.DeploymentFile
+		err = rows.Scan(&depFile.DeploymentId, &depFile.Reference, &depFile.Data)
+		if err != nil {
+			return nil, err
+		}
+		depFiles[depFile.DeploymentId] = append(depFiles[depFile.DeploymentId], depFile)
+	}
+	return depFiles, nil
+}
+
+func (h *Handler) ReadDeploymentFileGroups(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentFileGroup, error) {
+	depFileGroups, err := h.ReadDeploymentsFileGroups(ctx, []string{deploymentId})
+	if err != nil {
+		return nil, err
+	}
+	if len(depFileGroups) == 0 {
+		return nil, nil
+	}
+	return depFileGroups[deploymentId], nil
+}
+
+const selectFileGroupsStmt = `SELECT dep_file_groups.id, dep_file_groups.dep_id, dep_file_groups.ref, dep_file_group_files.path, dep_file_group_files.format, dep_file_group_files.data
+FROM dep_file_groups
+LEFT JOIN dep_file_group_files
+ON dep_file_groups.id = dep_file_group_files.g_id ORDER BY dep_id, path`
+
+func (h *Handler) ReadDeploymentsFileGroups(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentFileGroup, error) {
+	var rows *sql.Rows
+	var err error
+	if len(deploymentIds) > 0 {
+		deploymentIds = helper_slices.RemoveDuplicates(deploymentIds)
+		rows, err = h.sqlDB.QueryContext(
+			ctx,
+			"SELECT * FROM ("+selectFileGroupsStmt+") AS SUB WHERE SUB.dep_id IN ("+genQuestionMarks(len(deploymentIds))+");",
+			helper_slices.ToAny(deploymentIds)...,
+		)
+	} else {
+		rows, err = h.sqlDB.QueryContext(ctx, selectFileGroupsStmt+";")
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	tmp := make(map[string]map[string]models_handler_storage.DeploymentFileGroup) // {depID:{reference:DeploymentFileGroup}}
+	for rows.Next() {
+		var id string
+		var depId string
+		var ref string
+		var path string
+		var format int
+		var data []byte
+		err = rows.Scan(&id, &depId, &ref, &path, &format, &data)
+		if err != nil {
+			return nil, err
+		}
+		fileGroups, ok := tmp[depId]
+		if !ok {
+			fileGroups = make(map[string]models_handler_storage.DeploymentFileGroup)
+			tmp[depId] = fileGroups
+		}
+		fileGroup, ok := fileGroups[ref]
+		if !ok {
+			fileGroup.Id = id
+			fileGroup.DeploymentId = depId
+			fileGroup.Reference = ref
+		}
+		fileGroup.Files = append(fileGroup.Files, models_handler_storage.DeploymentFileGroupFile{
+			Path:   path,
+			Format: format,
+			Data:   data,
+		})
+		fileGroups[ref] = fileGroup
+	}
+	depFileGroups := make(map[string][]models_handler_storage.DeploymentFileGroup)
+	for id, fileGroupsMap := range tmp {
+		depFileGroups[id] = slices.Collect(maps.Values(fileGroupsMap))
+	}
+	return depFileGroups, nil
+}
+
 func genDeploymentGlobalConfigsFilter(filter models_handler_storage.DeploymentGlobalConfigsFilter) (string, []any) {
 	var fc []string
 	var val []any
@@ -412,6 +516,22 @@ func genDeploymentsContainersFilter(ids []string) (string, []any) {
 	if len(ids) > 0 {
 		ids = helper_slices.RemoveDuplicates(ids)
 		fc = append(fc, "id IN ("+genQuestionMarks(len(ids))+")")
+		for _, id := range ids {
+			val = append(val, id)
+		}
+	}
+	if len(fc) > 0 {
+		return " WHERE " + strings.Join(fc, " AND "), val
+	}
+	return "", nil
+}
+
+func genDeploymentsFilesFilter(ids []string) (string, []any) {
+	var fc []string
+	var val []any
+	if len(ids) > 0 {
+		ids = helper_slices.RemoveDuplicates(ids)
+		fc = append(fc, "dep_id IN ("+genQuestionMarks(len(ids))+")")
 		for _, id := range ids {
 			val = append(val, id)
 		}

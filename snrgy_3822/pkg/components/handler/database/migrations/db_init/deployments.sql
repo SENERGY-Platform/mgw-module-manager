@@ -104,8 +104,8 @@ CREATE TABLE IF NOT EXISTS dep_file_group_files
 (
     g_id   VARCHAR(256) NOT NULL,
     path   VARCHAR(512) NOT NULL,
-    data   LONGBLOB,
     format SMALLINT     NOT NULL,
+    data   LONGBLOB,
     UNIQUE KEY uk_g_id_path (g_id, path),
     INDEX i_g_id (g_id),
     FOREIGN KEY (g_id) REFERENCES dep_file_groups (id) ON DELETE CASCADE ON UPDATE RESTRICT
