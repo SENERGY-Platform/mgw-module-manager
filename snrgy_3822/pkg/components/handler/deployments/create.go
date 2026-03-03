@@ -28,6 +28,7 @@ import (
 	"slices"
 
 	module_lib_validation_configs "github.com/SENERGY-Platform/mgw-module-lib/validation/configs"
+	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
@@ -38,7 +39,10 @@ import (
 )
 
 func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]models_handler_module.Module, userInputs map[string]models_handler_deployment.UserInput) (map[string]models_handler_deployment.Deployment, error) {
-	deployments := newDeploymentWrappers(modules, userInputs)
+	deployments, err := newDeploymentWrappers(modules, userInputs)
+	if err != nil {
+		return nil, err
+	}
 	deploymentDependenciesCache := make(map[string]models_handler_storage.Deployment)
 	hostResourcesCache := make(map[string]models_external.HostResource)
 	globalConfigsCache := make(map[string]models_handler_storage.GlobalConfig)
@@ -77,6 +81,9 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 			slices.Collect(maps.Values(deploymentGlobalConfigs)),
 			slices.Collect(maps.Values(deploymentFiles)),
 			slices.Collect(maps.Values(deploymentFileGroups)),
+			helper_slices.CollectFunc(maps.Values(deployment.Containers), func(item containerWrapper) models_handler_storage.DeploymentContainer {
+				return item.DeploymentContainer
+			}),
 		)
 		if deployment.Error != nil {
 			continue
@@ -325,29 +332,54 @@ func getDefaultFiles(moduleFiles map[string]models_external.ModuleFile, moduleFS
 	return files, nil
 }
 
-func newDeploymentWrappers(modules map[string]models_handler_module.Module, userInputs map[string]models_handler_deployment.UserInput) map[string]*deploymentWrapper {
+func newDeploymentWrappers(modules map[string]models_handler_module.Module, userInputs map[string]models_handler_deployment.UserInput) (map[string]*deploymentWrapper, error) {
 	deployments := make(map[string]*deploymentWrapper)
 	for _, module := range modules {
+		id, err := helper_uuid.New()
+		if err != nil {
+			return nil, err
+		}
+		dirName, err := helper_uuid.New()
+		if err != nil {
+			return nil, err
+		}
 		name := userInputs[module.ID].Name
 		if name == "" {
 			name = module.Name
 		}
+		containerWrappers := make(map[string]containerWrapper)
+		for ref := range module.Services {
+			containerName, err := helper_naming.NewContainerName("dep")
+			if err != nil {
+				return nil, err
+			}
+			containerWrappers[ref] = containerWrapper{
+				DeploymentContainer: models_handler_storage.DeploymentContainer{
+					DeploymentId: id,
+					Reference:    ref,
+					Alias:        helper_naming.NewContainerAlias(id, ref),
+				},
+				Name: containerName,
+			}
+		}
 		deployment := &deploymentWrapper{
 			Deployment: models_handler_storage.Deployment{
+				Id:            id,
 				ModuleId:      module.ID,
 				ModuleSource:  module.Source,
 				ModuleChannel: module.Channel,
 				ModuleVersion: module.Version,
 				Name:          name,
+				DirName:       dirName,
 				Created:       helper_time.Now(),
 			},
+			Containers:       containerWrappers,
 			Module:           module.Module,
 			ModuleFileSystem: module.FileSystem,
 		}
-		deployment.Id, deployment.Error = helper_uuid.New()
 		deployments[module.ID] = deployment
 	}
-	return deployments
+	return deployments, nil
 }
 
 func newDeploymentSecrets(moduleSecrets map[string]models_external.ModuleSecret, moduleServices map[string]models_external.ModuleService, userInputs map[string]string, deploymentID string) []models_handler_storage.DeploymentSecret {

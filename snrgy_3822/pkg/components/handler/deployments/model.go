@@ -25,7 +25,13 @@ import (
 
 type deploymentWrapper struct {
 	models_handler_storage.Deployment
+	Containers       map[string]containerWrapper // {ref:containerWrapper}
 	Module           models_external.Module
 	ModuleFileSystem fs.FS
 	Error            error
+}
+
+type containerWrapper struct {
+	models_handler_storage.DeploymentContainer
+	Name string
 }
