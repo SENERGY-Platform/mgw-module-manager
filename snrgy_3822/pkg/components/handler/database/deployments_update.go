@@ -82,6 +82,7 @@ func (h *Handler) UpdateDeploymentResourcesAndConfigs(
 	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 	files []models_handler_storage.DeploymentFile,
 	fileGroups []models_handler_storage.DeploymentFileGroup,
+	containers []models_handler_storage.DeploymentContainer,
 ) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
@@ -104,6 +105,7 @@ func (h *Handler) UpdateDeploymentResourcesAndConfigs(
 		globalConfigs,
 		files,
 		fileGroups,
+		containers,
 	)
 	if err != nil {
 		return
@@ -121,6 +123,7 @@ func (h *Handler) UpdateDeployment(
 	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 	files []models_handler_storage.DeploymentFile,
 	fileGroups []models_handler_storage.DeploymentFileGroup,
+	containers []models_handler_storage.DeploymentContainer,
 ) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
@@ -158,6 +161,7 @@ func (h *Handler) UpdateDeployment(
 		globalConfigs,
 		files,
 		fileGroups,
+		containers,
 	)
 	if err != nil {
 		return

@@ -34,6 +34,7 @@ type storageHandler interface {
 		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 		files []models_handler_storage.DeploymentFile,
 		fileGroups []models_handler_storage.DeploymentFileGroup,
+		containers []models_handler_storage.DeploymentContainer,
 	) (err error)
 	ReadDeployment(ctx context.Context, id string) (models_handler_storage.Deployment, error)
 	ReadDeployments(ctx context.Context, filter models_handler_storage.DeploymentsFilter) (map[string]models_handler_storage.Deployment, error)
@@ -63,6 +64,7 @@ type storageHandler interface {
 		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 		files []models_handler_storage.DeploymentFile,
 		fileGroups []models_handler_storage.DeploymentFileGroup,
+		containers []models_handler_storage.DeploymentContainer,
 	) (err error)
 	UpdateDeployment(
 		ctx context.Context,
@@ -73,6 +75,7 @@ type storageHandler interface {
 		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 		files []models_handler_storage.DeploymentFile,
 		fileGroups []models_handler_storage.DeploymentFileGroup,
+		containers []models_handler_storage.DeploymentContainer,
 	) (err error)
 	DeleteDeployment(ctx context.Context, id string) error
 	DeleteDeployments(ctx context.Context, ids []string) error
