@@ -47,10 +47,17 @@ type DeploymentsFilter struct {
 }
 
 type UserInput struct {
-	ModuleId      string            `json:"module_id"`
-	Name          string            `json:"name"`           // defaults to module name if empty
-	HostResources map[string]string `json:"host_resources"` // {ref:resourceID}
-	Secrets       map[string]string `json:"secrets"`        // {ref:secretID}
-	Configs       map[string]any    `json:"configs"`        // {ref:value}
-	GlobalConfigs map[string]string `json:"global_configs"` // {ref:configID}
+	ModuleId      string
+	Name          string                                   // defaults to module name if empty
+	HostResources map[string]string                        // {ref:resourceID}
+	Secrets       map[string]string                        // {ref:secretID}
+	Configs       map[string]any                           // {ref:value}
+	GlobalConfigs map[string]string                        // {ref:configID}
+	Files         map[string][]byte                        // {ref:data}
+	FileGroups    map[string]map[string]FileGroupUserInput // {ref:{path:FileGroupUserInput}}
+}
+
+type FileGroupUserInput struct {
+	Format int
+	Data   []byte
 }

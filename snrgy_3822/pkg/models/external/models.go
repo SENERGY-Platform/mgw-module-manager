@@ -31,6 +31,7 @@ type ModuleConfig = module_lib.ConfigValue
 type ModuleConfigTypeOptions = module_lib.ConfigTypeOptions
 type ModuleHostResource = module_lib.HostResource
 type ModuleSecret = module_lib.Secret
+type ModuleFile = module_lib.File
 
 const (
 	ModuleConfigBoolType    = module_lib.BoolType
