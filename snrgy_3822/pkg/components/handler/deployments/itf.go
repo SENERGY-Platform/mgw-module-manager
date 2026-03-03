@@ -32,6 +32,8 @@ type storageHandler interface {
 		secrets []models_handler_storage.DeploymentSecret,
 		userConfigs []models_handler_storage.DeploymentUserConfig,
 		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
+		files []models_handler_storage.DeploymentFile,
+		fileGroups []models_handler_storage.DeploymentFileGroup,
 	) (err error)
 	ReadDeployment(ctx context.Context, id string) (models_handler_storage.Deployment, error)
 	ReadDeployments(ctx context.Context, filter models_handler_storage.DeploymentsFilter) (map[string]models_handler_storage.Deployment, error)
@@ -45,6 +47,10 @@ type storageHandler interface {
 	ReadDeploymentsUserConfigs(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentUserConfig, error)
 	ReadDeploymentGlobalConfigs(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentGlobalConfig, error)
 	ReadDeploymentsGlobalConfigs(ctx context.Context, filter models_handler_storage.DeploymentGlobalConfigsFilter) (map[string][]models_handler_storage.DeploymentGlobalConfig, error)
+	ReadDeploymentFiles(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentFile, error)
+	ReadDeploymentsFiles(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentFile, error)
+	ReadDeploymentFileGroups(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentFileGroup, error)
+	ReadDeploymentsFileGroups(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentFileGroup, error)
 	UpdateDeploymentsEnabledState(ctx context.Context, deployments map[string]bool, timestamp time.Time) (err error)
 	UpdateDeploymentEnabledState(ctx context.Context, id string, enabled bool, timestamp time.Time) error
 	UpdateDeploymentName(ctx context.Context, id, name string, timestamp time.Time) error
@@ -55,6 +61,8 @@ type storageHandler interface {
 		secrets []models_handler_storage.DeploymentSecret,
 		userConfigs []models_handler_storage.DeploymentUserConfig,
 		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
+		files []models_handler_storage.DeploymentFile,
+		fileGroups []models_handler_storage.DeploymentFileGroup,
 	) (err error)
 	UpdateDeployment(
 		ctx context.Context,
@@ -63,6 +71,8 @@ type storageHandler interface {
 		secrets []models_handler_storage.DeploymentSecret,
 		userConfigs []models_handler_storage.DeploymentUserConfig,
 		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
+		files []models_handler_storage.DeploymentFile,
+		fileGroups []models_handler_storage.DeploymentFileGroup,
 	) (err error)
 	DeleteDeployment(ctx context.Context, id string) error
 	DeleteDeployments(ctx context.Context, ids []string) error
