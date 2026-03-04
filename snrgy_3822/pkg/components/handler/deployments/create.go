@@ -53,12 +53,12 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 		if deployment.Error != nil {
 			continue
 		}
-		defaultConfigs, err := getDefaultConfigs(deployment.Module.Configs)
+		defaultFiles, err := getDefaultFiles(deployment.Module.Files, deployment.ModuleFileSystem)
 		if err != nil {
 			deployment.Error = err
 			continue
 		}
-		defaultFiles, err := getDefaultFiles(deployment.Module.Files, deployment.ModuleFileSystem)
+		defaultConfigs, err := getDefaultConfigs(deployment.Module.Configs)
 		if err != nil {
 			deployment.Error = err
 			continue
