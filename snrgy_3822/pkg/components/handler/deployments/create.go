@@ -157,7 +157,7 @@ func (h *Handler) getGlobalConfigs(ctx context.Context, globalConfigsCache map[s
 		}
 	}
 	if len(idsNotFound) > 0 {
-		return errors.New(fmt.Sprintf("global confgis %v not found", idsNotFound)) // TODO
+		return fmt.Errorf("global confgis %v not found", idsNotFound) // TODO
 	}
 	return nil
 }
@@ -172,17 +172,17 @@ func (h *Handler) getHostResources(ctx context.Context, hostResourcesCache map[s
 	if len(idsNotInCache) == 0 {
 		return nil
 	}
-	var idsNotFound [][2]string
+	var errs []string
 	for _, id := range idsNotInCache {
 		hostResource, err := h.hmClient.GetHostResource(ctx, id)
 		if err != nil {
-			idsNotFound = append(idsNotFound, [2]string{id, err.Error()})
+			errs = append(errs, err.Error())
 			continue
 		}
 		hostResourcesCache[hostResource.ID] = hostResource
 	}
-	if len(idsNotFound) > 0 {
-		return errors.New(fmt.Sprintf("host resources %v not found", idsNotFound)) // TODO
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "\n")) // TODO
 	}
 	return nil
 }
@@ -211,7 +211,7 @@ func (h *Handler) getDeploymentDependencies(ctx context.Context, dependenciesCac
 		}
 	}
 	if len(idsNotFound) > 0 {
-		return errors.New(fmt.Sprintf("dependencies %v not found", idsNotFound)) // TODO
+		return fmt.Errorf("dependencies %v not found", idsNotFound) // TODO
 	}
 	return nil
 }
@@ -224,11 +224,13 @@ func (h *Handler) getSecrets(
 	deploymentId string,
 ) (map[string]models_external.SecretPathVariant, error) {
 	secretMounts := make(map[string]models_external.SecretPathVariant)
+	var errs []string
 	for reference, moduleSecret := range moduleSecrets {
 		deploymentSecret, ok := deploymentSecrets[reference]
 		if !ok {
 			if moduleSecret.Required {
-				return nil, errors.New(fmt.Sprintf("secret %s required", reference)) // TODO
+				errs = append(errs, fmt.Sprintf("missing required secret '%s'", reference))
+				continue
 			}
 			continue
 		}
@@ -246,7 +248,8 @@ func (h *Handler) getSecrets(
 						Item: reqItem,
 					})
 					if err != nil {
-						return nil, err
+						errs = append(errs, err.Error())
+						continue
 					}
 					secretValuesCache[key] = valueVariant
 				}
@@ -260,12 +263,16 @@ func (h *Handler) getSecrets(
 						Reference: deploymentId,
 					})
 					if err != nil {
-						return nil, err
+						errs = append(errs, err.Error())
+						continue
 					}
 					secretMounts[key] = pathVariant
 				}
 			}
 		}
+	}
+	if len(errs) > 0 {
+		return nil, errors.New(strings.Join(errs, "\n"))
 	}
 	return secretMounts, nil
 }
@@ -313,6 +320,7 @@ func getConfigs(
 	globalConfigsCache map[string]models_handler_storage.GlobalConfig,
 ) (map[string]string, error) {
 	configs := make(map[string]string)
+	var errs []string
 	for reference, moduleConfig := range moduleConfigs {
 		deploymentUserConfig, ok := deploymentUserConfigs[reference]
 		if ok {
@@ -333,23 +341,32 @@ func getConfigs(
 			continue
 		}
 		if moduleConfig.Required {
-			return nil, errors.New("required module config is missing") // TODO
+			errs = append(errs, fmt.Sprintf("config %s required", reference))
+			continue
 		}
+	}
+	if len(errs) > 0 {
+		return nil, errors.New(strings.Join(errs, "\n")) // TODO
 	}
 	return configs, nil
 }
 
 func getDefaultConfigs(moduleConfigs models_external.ModuleConfigs) (map[string]models_handler_storage.Config, error) {
 	configs := make(map[string]models_handler_storage.Config)
+	var errs []string
 	for reference, moduleConfig := range moduleConfigs {
 		if moduleConfig.Default == nil {
 			continue
 		}
 		config, err := moduleConfigValueToConfig(moduleConfig.Default, moduleConfig)
 		if err != nil {
-			return nil, err
+			errs = append(errs, err.Error())
+			continue
 		}
 		configs[reference] = config
+	}
+	if len(errs) > 0 {
+		return nil, errors.New(strings.Join(errs, "\n")) // TODO
 	}
 	return configs, nil
 }
@@ -365,14 +382,19 @@ func fileToBytes(fSys fs.FS, path string) ([]byte, error) {
 
 func getDefaultFiles(moduleFiles map[string]models_external.ModuleFile, moduleFS fs.FS) (map[string][]byte, error) {
 	files := make(map[string][]byte)
+	var errs []string
 	for reference, file := range moduleFiles {
 		if file.Source != "" {
 			b, err := fileToBytes(moduleFS, file.Source)
 			if err != nil {
-				return nil, err
+				errs = append(errs, err.Error())
+				continue
 			}
 			files[reference] = b
 		}
+	}
+	if len(errs) > 0 {
+		return nil, errors.New(strings.Join(errs, "\n")) // TODO
 	}
 	return files, nil
 }
@@ -588,6 +610,7 @@ func configIsEqual(a, b models_handler_storage.Config) bool {
 
 func getDeploymentUserConfigs(moduleConfigs models_external.ModuleConfigs, defaultConfigs map[string]models_handler_storage.Config, userInputs map[string]any, deploymentId string) (map[string]models_handler_storage.DeploymentUserConfig, error) {
 	configs := make(map[string]models_handler_storage.DeploymentUserConfig)
+	var errs []string
 	for reference, moduleConfig := range moduleConfigs {
 		val, ok := userInputs[reference]
 		if !ok || val == nil {
@@ -595,7 +618,8 @@ func getDeploymentUserConfigs(moduleConfigs models_external.ModuleConfigs, defau
 		}
 		config, err := moduleConfigValueToConfig(val, moduleConfig)
 		if err != nil {
-			return nil, err
+			errs = append(errs, err.Error())
+			continue
 		}
 		defaultConfig, ok := defaultConfigs[reference]
 		if ok && configIsEqual(config, defaultConfig) {
@@ -607,6 +631,9 @@ func getDeploymentUserConfigs(moduleConfigs models_external.ModuleConfigs, defau
 			Reference:    reference,
 			Config:       config,
 		}
+	}
+	if len(errs) > 0 {
+		return nil, errors.New(strings.Join(errs, "\n")) // TODO
 	}
 	return configs, nil
 }
