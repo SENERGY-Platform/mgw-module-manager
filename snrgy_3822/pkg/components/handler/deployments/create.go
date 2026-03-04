@@ -69,11 +69,27 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 			deployment.Error = err
 			continue
 		}
-		deploymentGlobalConfigs := newDeploymentGlobalConfigs(deployment.Module.Configs, userInput.GlobalConfigs, deployment.Id)
-		deploymentHostResources := newDeploymentHostResources(deployment.Module.HostResources, userInput.HostResources, deployment.Id)
-		deploymentSecrets := newDeploymentSecrets(deployment.Module.Secrets, deployment.Module.Services, userInput.Secrets, deployment.Id)
-		deploymentFiles := newDeploymentFiles(deployment.Module.Files, defaultFiles, userInput.Files, deployment.Id)
-		deploymentFileGroups := newDeploymentFileGroups(deployment.Module.FileGroups, userInput.FileGroups, deployment.Id)
+		deploymentGlobalConfigs := getDeploymentGlobalConfigs(deployment.Module.Configs, userInput.GlobalConfigs, deployment.Id)
+		deployment.Error = checkConfigs(deployment.Module.Configs, defaultConfigs, deploymentUserConfigs, deploymentGlobalConfigs)
+		if deployment.Error != nil {
+			continue
+		}
+		deploymentHostResources, err := getDeploymentHostResources(deployment.Module.HostResources, userInput.HostResources, deployment.Id)
+		if err != nil {
+			deployment.Error = err
+			continue
+		}
+		deploymentSecrets, err := getDeploymentSecrets(deployment.Module.Secrets, deployment.Module.Services, userInput.Secrets, deployment.Id)
+		if err != nil {
+			deployment.Error = err
+			continue
+		}
+		deploymentFiles, err := getDeploymentFiles(deployment.Module.Files, defaultFiles, userInput.Files, deployment.Id)
+		if err != nil {
+			deployment.Error = err
+			continue
+		}
+		deploymentFileGroups := getDeploymentFileGroups(deployment.Module.FileGroups, userInput.FileGroups, deployment.Id)
 		deployment.Error = h.storageHdl.CreateDeployment(
 			ctx,
 			deployment.Deployment,
@@ -108,11 +124,6 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 		if deployment.Error != nil {
 			continue
 		}
-		configs, err := getConfigs(deployment.Module.Configs, defaultConfigs, deploymentUserConfigs, deploymentGlobalConfigs, globalConfigsCache)
-		if err != nil {
-			deployment.Error = err
-			continue
-		}
 		deployment.Error = h.getHostResources(
 			ctx,
 			hostResourcesCache,
@@ -128,6 +139,7 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 			deployment.Error = err
 			continue
 		}
+		configStrings := configsToStrings(deployment.Module.Configs, defaultConfigs, deploymentUserConfigs, deploymentGlobalConfigs, globalConfigsCache)
 
 	}
 	return nil, nil
@@ -230,7 +242,6 @@ func (h *Handler) getSecrets(
 		if !ok {
 			if moduleSecret.Required {
 				errs = append(errs, fmt.Sprintf("missing required secret '%s'", reference))
-				continue
 			}
 			continue
 		}
@@ -272,7 +283,7 @@ func (h *Handler) getSecrets(
 		}
 	}
 	if len(errs) > 0 {
-		return nil, errors.New(strings.Join(errs, "\n"))
+		return nil, errors.New(strings.Join(errs, "\n")) // TODO
 	}
 	return secretMounts, nil
 }
@@ -312,15 +323,45 @@ func configToString(config models_handler_storage.Config, delimiter string) stri
 	return ""
 }
 
-func getConfigs(
+func checkConfigs(
+	moduleConfigs models_external.ModuleConfigs,
+	defaultConfigs map[string]models_handler_storage.Config,
+	deploymentUserConfigs map[string]models_handler_storage.DeploymentUserConfig,
+	deploymentGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
+) error {
+	var errs []string
+	for reference, moduleConfig := range moduleConfigs {
+		_, ok := deploymentUserConfigs[reference]
+		if ok {
+			continue
+		}
+		_, ok = deploymentGlobalConfigs[reference]
+		if ok {
+			continue
+		}
+		_, ok = defaultConfigs[reference]
+		if ok {
+			continue
+		}
+		if moduleConfig.Required {
+			errs = append(errs, fmt.Sprintf("config %s required", reference))
+			continue
+		}
+	}
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "\n")) // TODO
+	}
+	return nil
+}
+
+func configsToStrings(
 	moduleConfigs models_external.ModuleConfigs,
 	defaultConfigs map[string]models_handler_storage.Config,
 	deploymentUserConfigs map[string]models_handler_storage.DeploymentUserConfig,
 	deploymentGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
 	globalConfigsCache map[string]models_handler_storage.GlobalConfig,
-) (map[string]string, error) {
+) map[string]string {
 	configs := make(map[string]string)
-	var errs []string
 	for reference, moduleConfig := range moduleConfigs {
 		deploymentUserConfig, ok := deploymentUserConfigs[reference]
 		if ok {
@@ -338,17 +379,9 @@ func getConfigs(
 		defaultConfig, ok := defaultConfigs[reference]
 		if ok {
 			configs[reference] = configToString(defaultConfig, moduleConfig.Delimiter)
-			continue
-		}
-		if moduleConfig.Required {
-			errs = append(errs, fmt.Sprintf("config %s required", reference))
-			continue
 		}
 	}
-	if len(errs) > 0 {
-		return nil, errors.New(strings.Join(errs, "\n")) // TODO
-	}
-	return configs, nil
+	return configs
 }
 
 func getDefaultConfigs(moduleConfigs models_external.ModuleConfigs) (map[string]models_handler_storage.Config, error) {
@@ -449,16 +482,20 @@ func newDeploymentWrappers(modules map[string]models_handler_module.Module, user
 	return deployments, nil
 }
 
-func newDeploymentSecrets(
+func getDeploymentSecrets(
 	moduleSecrets map[string]models_external.ModuleSecret,
 	moduleServices map[string]models_external.ModuleService,
 	userInputs map[string]string,
 	deploymentID string,
-) map[string]models_handler_storage.DeploymentSecret {
+) (map[string]models_handler_storage.DeploymentSecret, error) {
 	secrets := make(map[string]models_handler_storage.DeploymentSecret)
-	for reference := range moduleSecrets {
+	var errs []string
+	for reference, secret := range moduleSecrets {
 		id, ok := userInputs[reference]
 		if !ok {
+			if secret.Required {
+				errs = append(errs, fmt.Sprintf("secret %s required", reference))
+			}
 			continue
 		}
 		secrets[reference] = models_handler_storage.DeploymentSecret{
@@ -468,7 +505,10 @@ func newDeploymentSecrets(
 			Items:        newDeploymentSecretItems(reference, moduleServices),
 		}
 	}
-	return secrets
+	if len(errs) > 0 {
+		return nil, errors.New(strings.Join(errs, "\n")) // TODO
+	}
+	return secrets, nil
 }
 
 func newDeploymentSecretItems(reference string, moduleServices map[string]models_external.ModuleService) []models_handler_storage.DeploymentSecretItem {
@@ -498,11 +538,15 @@ func newDeploymentSecretItems(reference string, moduleServices map[string]models
 	return slices.Collect(maps.Values(items))
 }
 
-func newDeploymentHostResources(moduleHostResources map[string]models_external.ModuleHostResource, userInputs map[string]string, deploymentID string) []models_handler_storage.DeploymentHostResource {
+func getDeploymentHostResources(moduleHostResources map[string]models_external.ModuleHostResource, userInputs map[string]string, deploymentID string) ([]models_handler_storage.DeploymentHostResource, error) {
 	var hostResources []models_handler_storage.DeploymentHostResource
-	for reference := range moduleHostResources {
+	var errs []string
+	for reference, hostResource := range moduleHostResources {
 		id, ok := userInputs[reference]
 		if !ok {
+			if hostResource.Required {
+				errs = append(errs, fmt.Sprintf("missing required host resource '%s'", reference))
+			}
 			continue
 		}
 		hostResources = append(hostResources, models_handler_storage.DeploymentHostResource{
@@ -511,10 +555,10 @@ func newDeploymentHostResources(moduleHostResources map[string]models_external.M
 			Reference:    reference,
 		})
 	}
-	return hostResources
+	return hostResources, nil
 }
 
-func newDeploymentGlobalConfigs(moduleConfigs models_external.ModuleConfigs, userInputs map[string]string, deploymentId string) map[string]models_handler_storage.DeploymentGlobalConfig {
+func getDeploymentGlobalConfigs(moduleConfigs models_external.ModuleConfigs, userInputs map[string]string, deploymentId string) map[string]models_handler_storage.DeploymentGlobalConfig {
 	configs := make(map[string]models_handler_storage.DeploymentGlobalConfig)
 	for reference := range moduleConfigs {
 		id, ok := userInputs[reference]
@@ -530,15 +574,23 @@ func newDeploymentGlobalConfigs(moduleConfigs models_external.ModuleConfigs, use
 	return configs
 }
 
-func newDeploymentFiles(moduleFiles map[string]models_external.ModuleFile, defaultFiles map[string][]byte, userInputs map[string][]byte, deploymentId string) map[string]models_handler_storage.DeploymentFile {
+func getDeploymentFiles(
+	moduleFiles map[string]models_external.ModuleFile,
+	defaultFiles map[string][]byte, userInputs map[string][]byte,
+	deploymentId string,
+) (map[string]models_handler_storage.DeploymentFile, error) {
 	files := make(map[string]models_handler_storage.DeploymentFile)
-	for reference := range moduleFiles {
+	var errs []string
+	for reference, file := range moduleFiles {
+		defaultData, defaultOK := defaultFiles[reference]
 		data, ok := userInputs[reference]
 		if !ok {
+			if file.Required && !defaultOK {
+				errs = append(errs, fmt.Sprintf("missing required file '%s'", reference))
+			}
 			continue
 		}
-		defaultData, ok := defaultFiles[reference]
-		if ok && bytes.Equal(data, defaultData) {
+		if defaultOK && bytes.Equal(data, defaultData) {
 			continue
 		}
 		files[reference] = models_handler_storage.DeploymentFile{
@@ -547,10 +599,13 @@ func newDeploymentFiles(moduleFiles map[string]models_external.ModuleFile, defau
 			Data:         data,
 		}
 	}
-	return files
+	if len(errs) > 0 {
+		return nil, errors.New(strings.Join(errs, "\n")) // TODO
+	}
+	return files, nil
 }
 
-func newDeploymentFileGroups(moduleFileGroups map[string]struct{}, userInputs map[string]map[string]models_handler_deployment.FileGroupUserInput, deploymentId string) map[string]models_handler_storage.DeploymentFileGroup {
+func getDeploymentFileGroups(moduleFileGroups map[string]struct{}, userInputs map[string]map[string]models_handler_deployment.FileGroupUserInput, deploymentId string) map[string]models_handler_storage.DeploymentFileGroup {
 	fileGroups := make(map[string]models_handler_storage.DeploymentFileGroup)
 	for reference := range moduleFileGroups {
 		fg, ok := userInputs[reference]
