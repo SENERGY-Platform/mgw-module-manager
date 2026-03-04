@@ -427,17 +427,23 @@ func newDeploymentWrappers(modules map[string]models_handler_module.Module, user
 	return deployments, nil
 }
 
-func newDeploymentSecrets(moduleSecrets map[string]models_external.ModuleSecret, moduleServices map[string]models_external.ModuleService, userInputs map[string]string, deploymentID string) []models_handler_storage.DeploymentSecret {
-	var secrets []models_handler_storage.DeploymentSecret
+func newDeploymentSecrets(
+	moduleSecrets map[string]models_external.ModuleSecret,
+	moduleServices map[string]models_external.ModuleService,
+	userInputs map[string]string,
+	deploymentID string,
+) map[string]models_handler_storage.DeploymentSecret {
+	secrets := make(map[string]models_handler_storage.DeploymentSecret)
 	for reference := range moduleSecrets {
 		id, ok := userInputs[reference]
-		if ok {
-			secrets = append(secrets, models_handler_storage.DeploymentSecret{
-				Id:           id,
-				DeploymentId: deploymentID,
-				Reference:    reference,
-				Items:        newDeploymentSecretItems(reference, moduleServices),
-			})
+		if !ok {
+			continue
+		}
+		secrets[reference] = models_handler_storage.DeploymentSecret{
+			Id:           id,
+			DeploymentId: deploymentID,
+			Reference:    reference,
+			Items:        newDeploymentSecretItems(reference, moduleServices),
 		}
 	}
 	return secrets
@@ -474,13 +480,14 @@ func newDeploymentHostResources(moduleHostResources map[string]models_external.M
 	var hostResources []models_handler_storage.DeploymentHostResource
 	for reference := range moduleHostResources {
 		id, ok := userInputs[reference]
-		if ok {
-			hostResources = append(hostResources, models_handler_storage.DeploymentHostResource{
-				Id:           id,
-				DeploymentId: deploymentID,
-				Reference:    reference,
-			})
+		if !ok {
+			continue
 		}
+		hostResources = append(hostResources, models_handler_storage.DeploymentHostResource{
+			Id:           id,
+			DeploymentId: deploymentID,
+			Reference:    reference,
+		})
 	}
 	return hostResources
 }
@@ -489,12 +496,13 @@ func newDeploymentGlobalConfigs(moduleConfigs models_external.ModuleConfigs, use
 	configs := make(map[string]models_handler_storage.DeploymentGlobalConfig)
 	for reference := range moduleConfigs {
 		id, ok := userInputs[reference]
-		if ok {
-			configs[reference] = models_handler_storage.DeploymentGlobalConfig{
-				Id:           id,
-				DeploymentId: deploymentId,
-				Reference:    reference,
-			}
+		if !ok {
+			continue
+		}
+		configs[reference] = models_handler_storage.DeploymentGlobalConfig{
+			Id:           id,
+			DeploymentId: deploymentId,
+			Reference:    reference,
 		}
 	}
 	return configs
@@ -504,16 +512,17 @@ func newDeploymentFiles(moduleFiles map[string]models_external.ModuleFile, defau
 	files := make(map[string]models_handler_storage.DeploymentFile)
 	for reference := range moduleFiles {
 		data, ok := userInputs[reference]
-		if ok {
-			defaultData, ok := defaultFiles[reference]
-			if ok && bytes.Equal(data, defaultData) {
-				continue
-			}
-			files[reference] = models_handler_storage.DeploymentFile{
-				DeploymentId: deploymentId,
-				Reference:    reference,
-				Data:         data,
-			}
+		if !ok {
+			continue
+		}
+		defaultData, ok := defaultFiles[reference]
+		if ok && bytes.Equal(data, defaultData) {
+			continue
+		}
+		files[reference] = models_handler_storage.DeploymentFile{
+			DeploymentId: deploymentId,
+			Reference:    reference,
+			Data:         data,
 		}
 	}
 	return files
@@ -523,21 +532,22 @@ func newDeploymentFileGroups(moduleFileGroups map[string]struct{}, userInputs ma
 	fileGroups := make(map[string]models_handler_storage.DeploymentFileGroup)
 	for reference := range moduleFileGroups {
 		fg, ok := userInputs[reference]
-		if ok {
-			var files []models_handler_storage.DeploymentFileGroupFile
-			for path, input := range fg {
-				files = append(files, models_handler_storage.DeploymentFileGroupFile{
-					Path:   path,
-					Format: input.Format,
-					Data:   input.Data,
-				})
-			}
-			fileGroups[reference] = models_handler_storage.DeploymentFileGroup{
-				Id:           deploymentId + "_" + reference,
-				DeploymentId: deploymentId,
-				Reference:    reference,
-				Files:        files,
-			}
+		if !ok {
+			continue
+		}
+		var files []models_handler_storage.DeploymentFileGroupFile
+		for path, input := range fg {
+			files = append(files, models_handler_storage.DeploymentFileGroupFile{
+				Path:   path,
+				Format: input.Format,
+				Data:   input.Data,
+			})
+		}
+		fileGroups[reference] = models_handler_storage.DeploymentFileGroup{
+			Id:           deploymentId + "_" + reference,
+			DeploymentId: deploymentId,
+			Reference:    reference,
+			Files:        files,
 		}
 	}
 	return fileGroups
@@ -580,21 +590,22 @@ func getDeploymentUserConfigs(moduleConfigs models_external.ModuleConfigs, defau
 	configs := make(map[string]models_handler_storage.DeploymentUserConfig)
 	for reference, moduleConfig := range moduleConfigs {
 		val, ok := userInputs[reference]
-		if ok && val != nil {
-			config, err := moduleConfigValueToConfig(val, moduleConfig)
-			if err != nil {
-				return nil, err
-			}
-			defaultConfig, ok := defaultConfigs[reference]
-			if ok && configIsEqual(config, defaultConfig) {
-				continue
-			}
-			config.Id = deploymentId + "_" + reference
-			configs[reference] = models_handler_storage.DeploymentUserConfig{
-				DeploymentId: deploymentId,
-				Reference:    reference,
-				Config:       config,
-			}
+		if !ok || val == nil {
+			continue
+		}
+		config, err := moduleConfigValueToConfig(val, moduleConfig)
+		if err != nil {
+			return nil, err
+		}
+		defaultConfig, ok := defaultConfigs[reference]
+		if ok && configIsEqual(config, defaultConfig) {
+			continue
+		}
+		config.Id = deploymentId + "_" + reference
+		configs[reference] = models_handler_storage.DeploymentUserConfig{
+			DeploymentId: deploymentId,
+			Reference:    reference,
+			Config:       config,
 		}
 	}
 	return configs, nil
