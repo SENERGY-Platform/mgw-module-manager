@@ -270,31 +270,66 @@ func (h *Handler) getSecrets(
 	return secretMounts, nil
 }
 
+func configToString(config models_handler_storage.Config, delimiter string) string {
+	if config.IsSlice {
+		var values []string
+		switch config.DataType {
+		case models_handler_storage.StringType:
+			values = config.StringSlice
+		case models_handler_storage.Int64Type:
+			for _, i := range config.Int64Slice {
+				values = append(values, strconv.FormatInt(i, 10))
+			}
+		case models_handler_storage.Float64Type:
+			for _, f := range config.Float64Slice {
+				values = append(values, strconv.FormatFloat(f, 'f', -1, 64))
+			}
+		case models_handler_storage.BoolType:
+			for _, b := range config.BoolSlice {
+				values = append(values, strconv.FormatBool(b))
+			}
+		}
+		return strings.Join(values, delimiter)
+	} else {
+		switch config.DataType {
+		case models_handler_storage.StringType:
+			return config.String
+		case models_handler_storage.Int64Type:
+			return strconv.FormatInt(config.Int64, 10)
+		case models_handler_storage.Float64Type:
+			return strconv.FormatFloat(config.Float64, 'f', -1, 64)
+		case models_handler_storage.BoolType:
+			return strconv.FormatBool(config.Bool)
+		}
+	}
+	return ""
+}
+
 func getConfigs(
 	moduleConfigs models_external.ModuleConfigs,
 	defaultConfigs map[string]models_handler_storage.Config,
 	deploymentUserConfigs map[string]models_handler_storage.DeploymentUserConfig,
 	deploymentGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
 	globalConfigsCache map[string]models_handler_storage.GlobalConfig,
-) (map[string]models_handler_storage.Config, error) {
-	configs := make(map[string]models_handler_storage.Config)
+) (map[string]string, error) {
+	configs := make(map[string]string)
 	for reference, moduleConfig := range moduleConfigs {
 		deploymentUserConfig, ok := deploymentUserConfigs[reference]
 		if ok {
-			configs[reference] = deploymentUserConfig.Config
+			configs[reference] = configToString(deploymentUserConfig.Config, moduleConfig.Delimiter)
 			continue
 		}
 		deploymentGlobalConfig, ok := deploymentGlobalConfigs[reference]
 		if ok {
 			globalConfig, ok := globalConfigsCache[deploymentGlobalConfig.Id]
 			if ok {
-				configs[reference] = globalConfig.Config
+				configs[reference] = configToString(globalConfig.Config, moduleConfig.Delimiter)
 				continue
 			}
 		}
 		defaultConfig, ok := defaultConfigs[reference]
 		if ok {
-			configs[reference] = defaultConfig
+			configs[reference] = configToString(defaultConfig, moduleConfig.Delimiter)
 			continue
 		}
 		if moduleConfig.Required {
