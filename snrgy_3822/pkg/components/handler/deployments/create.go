@@ -26,6 +26,8 @@ import (
 	"maps"
 	"math"
 	"slices"
+	"strconv"
+	"strings"
 
 	module_lib_validation_configs "github.com/SENERGY-Platform/mgw-module-lib/validation/configs"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
@@ -76,7 +78,7 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 			ctx,
 			deployment.Deployment,
 			deploymentHostResources,
-			deploymentSecrets,
+			slices.Collect(maps.Values(deploymentSecrets)),
 			slices.Collect(maps.Values(deploymentUserConfigs)),
 			slices.Collect(maps.Values(deploymentGlobalConfigs)),
 			slices.Collect(maps.Values(deploymentFiles)),
@@ -121,7 +123,7 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 		if deployment.Error != nil {
 			continue
 		}
-		secretMounts, err := h.getSecrets(ctx, secretValuesCache, deploymentSecrets, deployment.Id) // mount secrets müssen "unloaded" werden
+		secretMounts, err := h.getSecrets(ctx, deployment.Module.Secrets, secretValuesCache, deploymentSecrets, deployment.Id) // mount secrets müssen "unloaded" werden
 		if err != nil {
 			deployment.Error = err
 			continue
@@ -216,12 +218,20 @@ func (h *Handler) getDeploymentDependencies(ctx context.Context, dependenciesCac
 
 func (h *Handler) getSecrets(
 	ctx context.Context,
+	moduleSecrets map[string]models_external.ModuleSecret,
 	secretValuesCache map[string]models_external.SecretValueVariant,
-	deploymentSecrets []models_handler_storage.DeploymentSecret,
+	deploymentSecrets map[string]models_handler_storage.DeploymentSecret,
 	deploymentId string,
 ) (map[string]models_external.SecretPathVariant, error) {
 	secretMounts := make(map[string]models_external.SecretPathVariant)
-	for _, deploymentSecret := range deploymentSecrets {
+	for reference, moduleSecret := range moduleSecrets {
+		deploymentSecret, ok := deploymentSecrets[reference]
+		if !ok {
+			if moduleSecret.Required {
+				return nil, errors.New(fmt.Sprintf("secret %s required", reference)) // TODO
+			}
+			continue
+		}
 		for _, item := range deploymentSecret.Items {
 			key := deploymentSecret.Id + item.Name
 			var reqItem *string
