@@ -45,7 +45,7 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 	if err != nil {
 		return nil, err
 	}
-	dependenciesCache := make(map[string]models_handler_storage.Deployment)
+	dependenciesCache := make(map[string]deploymentWrapper)
 	hostResourcesCache := make(map[string]models_external.HostResource)
 	globalConfigsCache := make(map[string]models_handler_storage.GlobalConfig)
 	secretValuesCache := make(map[string]models_external.SecretValueVariant)
@@ -209,7 +209,7 @@ func (h *Handler) updateHostResourcesCache(
 
 func (h *Handler) updateDependenciesCache(
 	ctx context.Context,
-	dependenciesCache map[string]models_handler_storage.Deployment,
+	dependenciesCache map[string]deploymentWrapper,
 	moduleDependencies map[string]string,
 ) error {
 	moduleIds := slices.Collect(maps.Keys(moduleDependencies))
@@ -226,8 +226,22 @@ func (h *Handler) updateDependenciesCache(
 	if err != nil {
 		return err
 	}
-	for _, deployment := range deployments {
-		dependenciesCache[deployment.ModuleId] = deployment
+	deploymentsContainers, err := h.storageHdl.ReadDeploymentsContainers(ctx, slices.Collect(maps.Keys(deployments)))
+	if err != nil {
+		return err
+	}
+	for id, deployment := range deployments {
+		containers := make(map[string]containerWrapper)
+		deploymentContainers := deploymentsContainers[id]
+		for _, container := range deploymentContainers {
+			containers[container.Reference] = containerWrapper{
+				DeploymentContainer: container,
+			}
+		}
+		dependenciesCache[deployment.ModuleId] = deploymentWrapper{
+			Deployment: deployment,
+			Containers: containers,
+		}
 	}
 	var errs []string
 	for _, id := range idsNotInCache {
