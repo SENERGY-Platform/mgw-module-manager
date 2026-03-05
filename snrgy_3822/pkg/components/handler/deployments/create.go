@@ -131,9 +131,10 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 			deployment.Error = err
 			continue
 		}
-		configs := mergeConfigs(defaultConfigs, providedConfigs, selectedGlobalConfigs, globalConfigsCache)
-		configStrings := configsToStrings(deployment.Module.Configs, configs)
-
+		configStrings := configsToStrings(
+			deployment.Module.Configs,
+			mergeConfigs(defaultConfigs, providedConfigs, selectedGlobalConfigs, globalConfigsCache),
+		)
 	}
 	return nil, nil
 }
