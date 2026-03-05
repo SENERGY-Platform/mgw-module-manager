@@ -133,38 +133,6 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 	return nil, nil
 }
 
-func (h *Handler) updateHostResourcesCache(
-	ctx context.Context,
-	hostResourcesCache map[string]models_external.HostResource,
-	selectedHostResources []models_handler_storage.DeploymentHostResource,
-) error {
-	selectedIds := helper_slices.CollectFunc(slices.Values(selectedHostResources), func(item models_handler_storage.DeploymentHostResource) string {
-		return item.Id
-	})
-	var idsNotInCache []string
-	for _, id := range selectedIds {
-		if _, ok := hostResourcesCache[id]; ok {
-			idsNotInCache = append(idsNotInCache, id)
-		}
-	}
-	if len(idsNotInCache) == 0 {
-		return nil
-	}
-	var errs []string
-	for _, id := range idsNotInCache {
-		hostResource, err := h.hmClient.GetHostResource(ctx, id)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		hostResourcesCache[hostResource.ID] = hostResource
-	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
-	}
-	return nil
-}
-
 func (h *Handler) updateDependenciesCache(
 	ctx context.Context,
 	dependenciesCache map[string]deploymentWrapper,
@@ -257,28 +225,4 @@ func getDeploymentWrappers(modules map[string]models_handler_module.Module) (map
 		deployments[module.ID] = deployment
 	}
 	return deployments, nil
-}
-
-func getSelectedHostResources(
-	moduleHostResources map[string]models_external.ModuleHostResource,
-	userInputs map[string]string,
-	deploymentID string,
-) ([]models_handler_storage.DeploymentHostResource, error) {
-	var hostResources []models_handler_storage.DeploymentHostResource
-	var errs []string
-	for reference, hostResource := range moduleHostResources {
-		id, ok := userInputs[reference]
-		if !ok {
-			if hostResource.Required {
-				errs = append(errs, fmt.Sprintf("missing required host resource '%s'", reference))
-			}
-			continue
-		}
-		hostResources = append(hostResources, models_handler_storage.DeploymentHostResource{
-			Id:           id,
-			DeploymentId: deploymentID,
-			Reference:    reference,
-		})
-	}
-	return hostResources, nil
 }
