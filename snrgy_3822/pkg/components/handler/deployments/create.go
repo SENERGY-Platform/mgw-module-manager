@@ -39,15 +39,15 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 	if err != nil {
 		return nil, err
 	}
-	dependenciesCache := make(map[string]deploymentWrapper)
-	hostResourcesCache := make(map[string]models_external.HostResource)
-	globalConfigsCache := make(map[string]models_handler_storage.GlobalConfig)
-	secretValuesCache := make(map[string]models_external.SecretValueVariant)
-	for _, deployment := range deploymentWrappers {
+	dependenciesCache := make(map[string]deploymentWrapper)                    // {moduleId:deploymentWrapper}
+	hostResourcesCache := make(map[string]models_external.HostResource)        // {hostResourceId:models_external.HostResource}
+	globalConfigsCache := make(map[string]models_handler_storage.GlobalConfig) // {globalConfigId:models_handler_storage.GlobalConfig}
+	secretValuesCache := make(map[string]models_external.SecretValueVariant)   // {secretId+itemName:models_external.SecretValueVariant}
+	for moduleId, deployment := range deploymentWrappers {
 		if deployment.Error != nil {
 			continue
 		}
-		userInput := userInputs[deployment.Module.ID]
+		userInput := userInputs[moduleId]
 		if userInput.Name != "" {
 			deployment.Name = userInput.Name
 		}
