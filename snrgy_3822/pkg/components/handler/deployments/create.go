@@ -131,7 +131,8 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 			deployment.Error = err
 			continue
 		}
-		configs := mergeConfigs(deployment.Module.Configs, defaultConfigs, providedConfigs, selectedGlobalConfigs, globalConfigsCache)
+		configs := mergeConfigs(defaultConfigs, providedConfigs, selectedGlobalConfigs, globalConfigsCache)
+		configStrings := configsToStrings(deployment.Module.Configs, configs)
 
 	}
 	return nil, nil
@@ -314,39 +315,52 @@ func (h *Handler) getSecretMounts(
 	return secretMounts, nil
 }
 
-func configToString(config models_handler_storage.Config, delimiter string) string {
-	if config.IsSlice {
-		var values []string
-		switch config.DataType {
-		case models_handler_storage.StringType:
-			values = config.StringSlice
-		case models_handler_storage.Int64Type:
-			for _, i := range config.Int64Slice {
-				values = append(values, strconv.FormatInt(i, 10))
-			}
-		case models_handler_storage.Float64Type:
-			for _, f := range config.Float64Slice {
-				values = append(values, strconv.FormatFloat(f, 'f', -1, 64))
-			}
-		case models_handler_storage.BoolType:
-			for _, b := range config.BoolSlice {
-				values = append(values, strconv.FormatBool(b))
-			}
-		}
-		return strings.Join(values, delimiter)
-	} else {
-		switch config.DataType {
-		case models_handler_storage.StringType:
-			return config.String
-		case models_handler_storage.Int64Type:
-			return strconv.FormatInt(config.Int64, 10)
-		case models_handler_storage.Float64Type:
-			return strconv.FormatFloat(config.Float64, 'f', -1, 64)
-		case models_handler_storage.BoolType:
-			return strconv.FormatBool(config.Bool)
+func configsToStrings(moduleConfigs models_external.ModuleConfigs, configs map[string]models_handler_storage.Config) map[string]string {
+	configValues := make(map[string]string)
+	for reference, config := range configs {
+		if config.IsSlice {
+			moduleConfig := moduleConfigs[reference]
+			configValues[reference] = sliceConfigToString(config, moduleConfig.Delimiter)
+		} else {
+			configValues[reference] = configToString(config)
 		}
 	}
+	return configValues
+}
+
+func configToString(config models_handler_storage.Config) string {
+	switch config.DataType {
+	case models_handler_storage.StringType:
+		return config.String
+	case models_handler_storage.Int64Type:
+		return strconv.FormatInt(config.Int64, 10)
+	case models_handler_storage.Float64Type:
+		return strconv.FormatFloat(config.Float64, 'f', -1, 64)
+	case models_handler_storage.BoolType:
+		return strconv.FormatBool(config.Bool)
+	}
 	return ""
+}
+
+func sliceConfigToString(config models_handler_storage.Config, delimiter string) string {
+	var values []string
+	switch config.DataType {
+	case models_handler_storage.StringType:
+		values = config.StringSlice
+	case models_handler_storage.Int64Type:
+		for _, i := range config.Int64Slice {
+			values = append(values, strconv.FormatInt(i, 10))
+		}
+	case models_handler_storage.Float64Type:
+		for _, f := range config.Float64Slice {
+			values = append(values, strconv.FormatFloat(f, 'f', -1, 64))
+		}
+	case models_handler_storage.BoolType:
+		for _, b := range config.BoolSlice {
+			values = append(values, strconv.FormatBool(b))
+		}
+	}
+	return strings.Join(values, delimiter)
 }
 
 func checkConfigs(
@@ -381,30 +395,20 @@ func checkConfigs(
 }
 
 func mergeConfigs(
-	moduleConfigs models_external.ModuleConfigs,
 	defaultConfigs map[string]models_handler_storage.Config,
 	providedConfigs map[string]models_handler_storage.DeploymentUserConfig,
 	selectedGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
 	globalConfigsCache map[string]models_handler_storage.GlobalConfig,
-) map[string]string {
-	configs := make(map[string]string)
-	for reference, moduleConfig := range moduleConfigs {
-		providedConfig, ok := providedConfigs[reference]
+) map[string]models_handler_storage.Config {
+	configs := make(map[string]models_handler_storage.Config)
+	maps.Copy(configs, defaultConfigs)
+	for reference, providedConfig := range providedConfigs {
+		configs[reference] = providedConfig.Config
+	}
+	for reference, selectedGlobalConfig := range selectedGlobalConfigs {
+		globalConfig, ok := globalConfigsCache[selectedGlobalConfig.Id]
 		if ok {
-			configs[reference] = configToString(providedConfig.Config, moduleConfig.Delimiter)
-			continue
-		}
-		selectedGlobalConfig, ok := selectedGlobalConfigs[reference]
-		if ok {
-			globalConfig, ok := globalConfigsCache[selectedGlobalConfig.Id]
-			if ok {
-				configs[reference] = configToString(globalConfig.Config, moduleConfig.Delimiter)
-				continue
-			}
-		}
-		defaultConfig, ok := defaultConfigs[reference]
-		if ok {
-			configs[reference] = configToString(defaultConfig, moduleConfig.Delimiter)
+			configs[reference] = globalConfig.Config
 		}
 	}
 	return configs
