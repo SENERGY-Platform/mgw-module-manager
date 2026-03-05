@@ -18,11 +18,9 @@ package deployments
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"maps"
 	"slices"
-	"strings"
+	"time"
 
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
@@ -39,10 +37,10 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 	if err != nil {
 		return nil, err
 	}
-	dependenciesCache := make(map[string]deploymentWrapper)                    // {moduleId:deploymentWrapper}
-	hostResourcesCache := make(map[string]models_external.HostResource)        // {hostResourceId:models_external.HostResource}
-	globalConfigsCache := make(map[string]models_handler_storage.GlobalConfig) // {globalConfigId:models_handler_storage.GlobalConfig}
-	secretValuesCache := make(map[string]models_external.SecretValueVariant)   // {secretId+itemName:models_external.SecretValueVariant}
+	externalDependenciesCache := newExternalDependenciesCache(deploymentWrappers) // {moduleId:{reference:DeploymentContainer}}
+	hostResourcesCache := make(map[string]models_external.HostResource)           // {hostResourceId:HostResource}
+	globalConfigsCache := make(map[string]models_handler_storage.GlobalConfig)    // {globalConfigId:GlobalConfig}
+	secretValuesCache := make(map[string]models_external.SecretValueVariant)      // {secretId+itemName:SecretValueVariant}
 	for moduleId, deployment := range deploymentWrappers {
 		if deployment.Error != nil {
 			continue
@@ -104,7 +102,7 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 			continue
 		}
 		// --------------------------------------------------------------------------
-		deployment.Error = h.updateDependenciesCache(ctx, dependenciesCache, deployment.Module.Dependencies)
+		deployment.Error = h.updateExternalDependenciesCache(ctx, externalDependenciesCache, deployment.Module.Dependencies)
 		if deployment.Error != nil {
 			continue
 		}
