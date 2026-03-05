@@ -31,6 +31,9 @@ type ModuleConfig = module_lib.ConfigValue
 type ModuleConfigTypeOptions = module_lib.ConfigTypeOptions
 type ModuleHostResource = module_lib.HostResource
 type ModuleSecret = module_lib.Secret
+type ModuleSecretTarget = module_lib.SecretTarget
+type ModuleInternalDependencyTarget = module_lib.SrvRefTarget
+type ModuleExternalDependencyTarget = module_lib.ExtDependencyTarget
 type ModuleFile = module_lib.File
 
 const (
