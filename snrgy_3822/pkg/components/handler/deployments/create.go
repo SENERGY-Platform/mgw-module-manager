@@ -40,8 +40,8 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]models_handler_module.Module, userInputs map[string]models_handler_deployment.UserInput) (map[string]models_handler_deployment.Deployment, error) {
-	deployments, err := newDeploymentWrappers(modules, userInputs)
+func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[string]models_handler_module.Module, userInputs map[string]models_handler_deployment.UserInput) (map[string]models_handler_deployment.Deployment, error) {
+	deploymentWrappers, err := getDeploymentWrappers(selectedModules)
 	if err != nil {
 		return nil, err
 	}
@@ -49,9 +49,13 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 	hostResourcesCache := make(map[string]models_external.HostResource)
 	globalConfigsCache := make(map[string]models_handler_storage.GlobalConfig)
 	secretValuesCache := make(map[string]models_external.SecretValueVariant)
-	for _, deployment := range deployments {
+	for _, deployment := range deploymentWrappers {
 		if deployment.Error != nil {
 			continue
+		}
+		userInput := userInputs[deployment.Module.ID]
+		if userInput.Name != "" {
+			deployment.Name = userInput.Name
 		}
 		defaultFiles, err := getDefaultFiles(deployment.Module.Files, deployment.ModuleFileSystem)
 		if err != nil {
@@ -63,33 +67,32 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 			deployment.Error = err
 			continue
 		}
-		userInput := userInputs[deployment.Module.ID]
-		providedConfigs, err := extractUserConfigs(deployment.Module.Configs, defaultConfigs, userInput.Configs, deployment.Id)
+		providedConfigs, err := getProvidedConfigs(deployment.Module.Configs, defaultConfigs, userInput.Configs, deployment.Id)
 		if err != nil {
 			deployment.Error = err
 			continue
 		}
-		selectedGlobalConfigs := extractGlobalConfigs(deployment.Module.Configs, userInput.GlobalConfigs, deployment.Id)
+		selectedGlobalConfigs := getSelectedGlobalConfigs(deployment.Module.Configs, userInput.GlobalConfigs, deployment.Id)
 		deployment.Error = checkConfigs(deployment.Module.Configs, defaultConfigs, providedConfigs, selectedGlobalConfigs)
 		if deployment.Error != nil {
 			continue
 		}
-		selectedHostResources, err := extractHostResources(deployment.Module.HostResources, userInput.HostResources, deployment.Id)
+		selectedHostResources, err := getSelectedHostResources(deployment.Module.HostResources, userInput.HostResources, deployment.Id)
 		if err != nil {
 			deployment.Error = err
 			continue
 		}
-		selectedSecrets, err := extractSecrets(deployment.Module.Secrets, deployment.Module.Services, userInput.Secrets, deployment.Id)
+		selectedSecrets, err := getSelectedSecrets(deployment.Module.Secrets, deployment.Module.Services, userInput.Secrets, deployment.Id)
 		if err != nil {
 			deployment.Error = err
 			continue
 		}
-		providedFiles, err := extractFiles(deployment.Module.Files, defaultFiles, userInput.Files, deployment.Id)
+		providedFiles, err := getProvidedFiles(deployment.Module.Files, defaultFiles, userInput.Files, deployment.Id)
 		if err != nil {
 			deployment.Error = err
 			continue
 		}
-		providedFileGroups := extractFileGroups(deployment.Module.FileGroups, userInput.FileGroups, deployment.Id)
+		providedFileGroups := getProvidedFileGroups(deployment.Module.FileGroups, userInput.FileGroups, deployment.Id)
 		deployment.Error = h.storageHdl.CreateDeployment(
 			ctx,
 			deployment.Deployment,
@@ -107,39 +110,19 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 			continue
 		}
 		// --------------------------------------------------------------------------
-		deployment.Error = h.updateDependenciesCache(
-			ctx,
-			dependenciesCache,
-			slices.Collect(maps.Keys(deployment.Module.Dependencies)),
-		)
+		deployment.Error = h.updateDependenciesCache(ctx, dependenciesCache, deployment.Module.Dependencies)
 		if deployment.Error != nil {
 			continue
 		}
-		deployment.Error = h.updateGlobalConfigsCache(
-			ctx,
-			globalConfigsCache,
-			helper_slices.CollectFunc(maps.Values(selectedGlobalConfigs), func(item models_handler_storage.DeploymentGlobalConfig) string {
-				return item.Id
-			}),
-		)
+		deployment.Error = h.updateGlobalConfigsCache(ctx, globalConfigsCache, selectedGlobalConfigs)
 		if deployment.Error != nil {
 			continue
 		}
-		deployment.Error = h.updateHostResourcesCache(
-			ctx,
-			hostResourcesCache,
-			helper_slices.CollectFunc(slices.Values(selectedHostResources), func(item models_handler_storage.DeploymentHostResource) string {
-				return item.Id
-			}),
-		)
+		deployment.Error = h.updateHostResourcesCache(ctx, hostResourcesCache, selectedHostResources)
 		if deployment.Error != nil {
 			continue
 		}
-		deployment.Error = h.updateSecretValuesCache(
-			ctx,
-			secretValuesCache,
-			selectedSecrets,
-		)
+		deployment.Error = h.updateSecretValuesCache(ctx, secretValuesCache, selectedSecrets)
 		if deployment.Error != nil {
 			continue
 		}
@@ -148,18 +131,24 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 			deployment.Error = err
 			continue
 		}
-
-		configStrings := configsToStrings(deployment.Module.Configs, defaultConfigs, providedConfigs, selectedGlobalConfigs, globalConfigsCache)
+		configs := mergeConfigs(deployment.Module.Configs, defaultConfigs, providedConfigs, selectedGlobalConfigs, globalConfigsCache)
 
 	}
 	return nil, nil
 }
 
-func (h *Handler) updateGlobalConfigsCache(ctx context.Context, globalConfigsCache map[string]models_handler_storage.GlobalConfig, globalConfigIds []string) error {
+func (h *Handler) updateGlobalConfigsCache(
+	ctx context.Context,
+	globalConfigsCache map[string]models_handler_storage.GlobalConfig,
+	selectedGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
+) error {
+	selectedIds := helper_slices.CollectFunc(maps.Values(selectedGlobalConfigs), func(item models_handler_storage.DeploymentGlobalConfig) string {
+		return item.Id
+	})
 	var idsNotInCache []string
-	for _, globalConfigId := range globalConfigIds {
-		if _, ok := globalConfigsCache[globalConfigId]; ok {
-			idsNotInCache = append(idsNotInCache, globalConfigId)
+	for _, id := range selectedIds {
+		if _, ok := globalConfigsCache[id]; ok {
+			idsNotInCache = append(idsNotInCache, id)
 		}
 	}
 	if len(idsNotInCache) == 0 {
@@ -172,23 +161,30 @@ func (h *Handler) updateGlobalConfigsCache(ctx context.Context, globalConfigsCac
 	for _, globalConfig := range globalConfigs {
 		globalConfigsCache[globalConfig.Id] = globalConfig
 	}
-	var idsNotFound []string
-	for _, globalConfigId := range idsNotInCache {
-		if _, ok := globalConfigsCache[globalConfigId]; !ok {
-			idsNotFound = append(idsNotFound, globalConfigId)
+	var errs []string
+	for _, id := range idsNotInCache {
+		if _, ok := globalConfigsCache[id]; !ok {
+			errs = append(errs, fmt.Sprintf("global config %s not found", id))
 		}
 	}
-	if len(idsNotFound) > 0 {
-		return fmt.Errorf("global confgis %v not found", idsNotFound) // TODO
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "\n")) // TODO
 	}
 	return nil
 }
 
-func (h *Handler) updateHostResourcesCache(ctx context.Context, hostResourcesCache map[string]models_external.HostResource, hostResourceIds []string) error {
+func (h *Handler) updateHostResourcesCache(
+	ctx context.Context,
+	hostResourcesCache map[string]models_external.HostResource,
+	selectedHostResources []models_handler_storage.DeploymentHostResource,
+) error {
+	selectedIds := helper_slices.CollectFunc(slices.Values(selectedHostResources), func(item models_handler_storage.DeploymentHostResource) string {
+		return item.Id
+	})
 	var idsNotInCache []string
-	for _, hostResourceId := range hostResourceIds {
-		if _, ok := hostResourcesCache[hostResourceId]; ok {
-			idsNotInCache = append(idsNotInCache, hostResourceId)
+	for _, id := range selectedIds {
+		if _, ok := hostResourcesCache[id]; ok {
+			idsNotInCache = append(idsNotInCache, id)
 		}
 	}
 	if len(idsNotInCache) == 0 {
@@ -209,11 +205,16 @@ func (h *Handler) updateHostResourcesCache(ctx context.Context, hostResourcesCac
 	return nil
 }
 
-func (h *Handler) updateDependenciesCache(ctx context.Context, dependenciesCache map[string]models_handler_storage.Deployment, moduleIds []string) error {
+func (h *Handler) updateDependenciesCache(
+	ctx context.Context,
+	dependenciesCache map[string]models_handler_storage.Deployment,
+	moduleDependencies map[string]string,
+) error {
+	moduleIds := slices.Collect(maps.Keys(moduleDependencies))
 	var idsNotInCache []string
-	for _, moduleId := range moduleIds {
-		if _, ok := dependenciesCache[moduleId]; !ok {
-			idsNotInCache = append(idsNotInCache, moduleId)
+	for _, id := range moduleIds {
+		if _, ok := dependenciesCache[id]; !ok {
+			idsNotInCache = append(idsNotInCache, id)
 		}
 	}
 	if len(idsNotInCache) == 0 {
@@ -226,14 +227,14 @@ func (h *Handler) updateDependenciesCache(ctx context.Context, dependenciesCache
 	for _, deployment := range deployments {
 		dependenciesCache[deployment.ModuleId] = deployment
 	}
-	var idsNotFound []string
-	for _, moduleId := range idsNotInCache {
-		if _, ok := dependenciesCache[moduleId]; !ok {
-			idsNotFound = append(idsNotFound, moduleId)
+	var errs []string
+	for _, id := range idsNotInCache {
+		if _, ok := dependenciesCache[id]; !ok {
+			errs = append(errs, fmt.Sprintf("dependency %v not found", id))
 		}
 	}
-	if len(idsNotFound) > 0 {
-		return fmt.Errorf("dependencies %v not found", idsNotFound) // TODO
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "\n")) // TODO
 	}
 	return nil
 }
@@ -287,12 +288,12 @@ func (h *Handler) getSecretMounts(
 			if secretItem.AsEnv {
 				continue
 			}
-			cacheKey := secret.Id + secretItem.Name
+			key := secret.Id + secretItem.Name
 			var reqItem *string
 			if secretItem.Name != "" {
 				reqItem = &secretItem.Name
 			}
-			_, ok := secretMounts[cacheKey]
+			_, ok := secretMounts[key]
 			if !ok {
 				pathVariant, err, _ := h.smClient.InitPathVariant(ctx, models_external.SecretVariantRequest{
 					ID:        secret.Id,
@@ -303,7 +304,7 @@ func (h *Handler) getSecretMounts(
 					errs = append(errs, err.Error())
 					continue
 				}
-				secretMounts[cacheKey] = pathVariant
+				secretMounts[key] = pathVariant
 			}
 		}
 	}
@@ -379,23 +380,23 @@ func checkConfigs(
 	return nil
 }
 
-func configsToStrings(
+func mergeConfigs(
 	moduleConfigs models_external.ModuleConfigs,
 	defaultConfigs map[string]models_handler_storage.Config,
-	deploymentUserConfigs map[string]models_handler_storage.DeploymentUserConfig,
-	deploymentGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
+	providedConfigs map[string]models_handler_storage.DeploymentUserConfig,
+	selectedGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
 	globalConfigsCache map[string]models_handler_storage.GlobalConfig,
 ) map[string]string {
 	configs := make(map[string]string)
 	for reference, moduleConfig := range moduleConfigs {
-		deploymentUserConfig, ok := deploymentUserConfigs[reference]
+		providedConfig, ok := providedConfigs[reference]
 		if ok {
-			configs[reference] = configToString(deploymentUserConfig.Config, moduleConfig.Delimiter)
+			configs[reference] = configToString(providedConfig.Config, moduleConfig.Delimiter)
 			continue
 		}
-		deploymentGlobalConfig, ok := deploymentGlobalConfigs[reference]
+		selectedGlobalConfig, ok := selectedGlobalConfigs[reference]
 		if ok {
-			globalConfig, ok := globalConfigsCache[deploymentGlobalConfig.Id]
+			globalConfig, ok := globalConfigsCache[selectedGlobalConfig.Id]
 			if ok {
 				configs[reference] = configToString(globalConfig.Config, moduleConfig.Delimiter)
 				continue
@@ -416,7 +417,7 @@ func getDefaultConfigs(moduleConfigs models_external.ModuleConfigs) (map[string]
 		if moduleConfig.Default == nil {
 			continue
 		}
-		config, err := moduleConfigValueToConfig(moduleConfig.Default, moduleConfig)
+		config, err := getConfig(moduleConfig.Default, moduleConfig)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
@@ -457,7 +458,7 @@ func getDefaultFiles(moduleFiles map[string]models_external.ModuleFile, moduleFS
 	return files, nil
 }
 
-func newDeploymentWrappers(modules map[string]models_handler_module.Module, userInputs map[string]models_handler_deployment.UserInput) (map[string]*deploymentWrapper, error) {
+func getDeploymentWrappers(modules map[string]models_handler_module.Module) (map[string]*deploymentWrapper, error) {
 	deployments := make(map[string]*deploymentWrapper)
 	for _, module := range modules {
 		id, err := helper_uuid.New()
@@ -467,10 +468,6 @@ func newDeploymentWrappers(modules map[string]models_handler_module.Module, user
 		dirName, err := helper_uuid.New()
 		if err != nil {
 			return nil, err
-		}
-		name := userInputs[module.ID].Name
-		if name == "" {
-			name = module.Name
 		}
 		containerWrappers := make(map[string]containerWrapper)
 		for ref := range module.Services {
@@ -494,7 +491,7 @@ func newDeploymentWrappers(modules map[string]models_handler_module.Module, user
 				ModuleSource:  module.Source,
 				ModuleChannel: module.Channel,
 				ModuleVersion: module.Version,
-				Name:          name,
+				Name:          module.Name,
 				DirName:       dirName,
 				Created:       helper_time.Now(),
 			},
@@ -507,7 +504,7 @@ func newDeploymentWrappers(modules map[string]models_handler_module.Module, user
 	return deployments, nil
 }
 
-func extractSecrets(
+func getSelectedSecrets(
 	moduleSecrets map[string]models_external.ModuleSecret,
 	moduleServices map[string]models_external.ModuleService,
 	userInputs map[string]string,
@@ -527,7 +524,7 @@ func extractSecrets(
 			Id:           id,
 			DeploymentId: deploymentID,
 			Reference:    reference,
-			Items:        newDeploymentSecretItems(reference, moduleServices),
+			Items:        getSecretItems(reference, moduleServices),
 		}
 	}
 	if len(errs) > 0 {
@@ -536,7 +533,7 @@ func extractSecrets(
 	return secrets, nil
 }
 
-func newDeploymentSecretItems(reference string, moduleServices map[string]models_external.ModuleService) []models_handler_storage.DeploymentSecretItem {
+func getSecretItems(reference string, moduleServices map[string]models_external.ModuleService) []models_handler_storage.DeploymentSecretItem {
 	items := make(map[string]models_handler_storage.DeploymentSecretItem)
 	for _, moduleService := range moduleServices {
 		for _, target := range moduleService.SecretVars {
@@ -563,7 +560,11 @@ func newDeploymentSecretItems(reference string, moduleServices map[string]models
 	return slices.Collect(maps.Values(items))
 }
 
-func extractHostResources(moduleHostResources map[string]models_external.ModuleHostResource, userInputs map[string]string, deploymentID string) ([]models_handler_storage.DeploymentHostResource, error) {
+func getSelectedHostResources(
+	moduleHostResources map[string]models_external.ModuleHostResource,
+	userInputs map[string]string,
+	deploymentID string,
+) ([]models_handler_storage.DeploymentHostResource, error) {
 	var hostResources []models_handler_storage.DeploymentHostResource
 	var errs []string
 	for reference, hostResource := range moduleHostResources {
@@ -583,7 +584,11 @@ func extractHostResources(moduleHostResources map[string]models_external.ModuleH
 	return hostResources, nil
 }
 
-func extractGlobalConfigs(moduleConfigs models_external.ModuleConfigs, userInputs map[string]string, deploymentId string) map[string]models_handler_storage.DeploymentGlobalConfig {
+func getSelectedGlobalConfigs(
+	moduleConfigs models_external.ModuleConfigs,
+	userInputs map[string]string,
+	deploymentId string,
+) map[string]models_handler_storage.DeploymentGlobalConfig {
 	configs := make(map[string]models_handler_storage.DeploymentGlobalConfig)
 	for reference := range moduleConfigs {
 		id, ok := userInputs[reference]
@@ -599,7 +604,7 @@ func extractGlobalConfigs(moduleConfigs models_external.ModuleConfigs, userInput
 	return configs
 }
 
-func extractFiles(
+func getProvidedFiles(
 	moduleFiles map[string]models_external.ModuleFile,
 	defaultFiles map[string][]byte, userInputs map[string][]byte,
 	deploymentId string,
@@ -630,7 +635,7 @@ func extractFiles(
 	return files, nil
 }
 
-func extractFileGroups(moduleFileGroups map[string]struct{}, userInputs map[string]map[string]models_handler_deployment.FileGroupUserInput, deploymentId string) map[string]models_handler_storage.DeploymentFileGroup {
+func getProvidedFileGroups(moduleFileGroups map[string]struct{}, userInputs map[string]map[string]models_handler_deployment.FileGroupUserInput, deploymentId string) map[string]models_handler_storage.DeploymentFileGroup {
 	fileGroups := make(map[string]models_handler_storage.DeploymentFileGroup)
 	for reference := range moduleFileGroups {
 		fg, ok := userInputs[reference]
@@ -688,7 +693,12 @@ func configIsEqual(a, b models_handler_storage.Config) bool {
 	return false
 }
 
-func extractUserConfigs(moduleConfigs models_external.ModuleConfigs, defaultConfigs map[string]models_handler_storage.Config, userInputs map[string]any, deploymentId string) (map[string]models_handler_storage.DeploymentUserConfig, error) {
+func getProvidedConfigs(
+	moduleConfigs models_external.ModuleConfigs,
+	defaultConfigs map[string]models_handler_storage.Config,
+	userInputs map[string]any,
+	deploymentId string,
+) (map[string]models_handler_storage.DeploymentUserConfig, error) {
 	configs := make(map[string]models_handler_storage.DeploymentUserConfig)
 	var errs []string
 	for reference, moduleConfig := range moduleConfigs {
@@ -696,7 +706,7 @@ func extractUserConfigs(moduleConfigs models_external.ModuleConfigs, defaultConf
 		if !ok || val == nil {
 			continue
 		}
-		config, err := moduleConfigValueToConfig(val, moduleConfig)
+		config, err := getConfig(val, moduleConfig)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
@@ -718,7 +728,7 @@ func extractUserConfigs(moduleConfigs models_external.ModuleConfigs, defaultConf
 	return configs, nil
 }
 
-func moduleConfigValueToConfig(val any, moduleConfig models_external.ModuleConfig) (models_handler_storage.Config, error) {
+func getConfig(val any, moduleConfig models_external.ModuleConfig) (models_handler_storage.Config, error) {
 	config := models_handler_storage.Config{
 		IsSlice: moduleConfig.IsSlice,
 	}
