@@ -45,7 +45,7 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 	if err != nil {
 		return nil, err
 	}
-	deploymentDependenciesCache := make(map[string]models_handler_storage.Deployment)
+	dependenciesCache := make(map[string]models_handler_storage.Deployment)
 	hostResourcesCache := make(map[string]models_external.HostResource)
 	globalConfigsCache := make(map[string]models_handler_storage.GlobalConfig)
 	secretValuesCache := make(map[string]models_external.SecretValueVariant)
@@ -64,41 +64,41 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 			continue
 		}
 		userInput := userInputs[deployment.Module.ID]
-		deploymentUserConfigs, err := getDeploymentUserConfigs(deployment.Module.Configs, defaultConfigs, userInput.Configs, deployment.Id)
+		providedConfigs, err := extractUserConfigs(deployment.Module.Configs, defaultConfigs, userInput.Configs, deployment.Id)
 		if err != nil {
 			deployment.Error = err
 			continue
 		}
-		deploymentGlobalConfigs := getDeploymentGlobalConfigs(deployment.Module.Configs, userInput.GlobalConfigs, deployment.Id)
-		deployment.Error = checkConfigs(deployment.Module.Configs, defaultConfigs, deploymentUserConfigs, deploymentGlobalConfigs)
+		selectedGlobalConfigs := extractGlobalConfigs(deployment.Module.Configs, userInput.GlobalConfigs, deployment.Id)
+		deployment.Error = checkConfigs(deployment.Module.Configs, defaultConfigs, providedConfigs, selectedGlobalConfigs)
 		if deployment.Error != nil {
 			continue
 		}
-		deploymentHostResources, err := getDeploymentHostResources(deployment.Module.HostResources, userInput.HostResources, deployment.Id)
+		selectedHostResources, err := extractHostResources(deployment.Module.HostResources, userInput.HostResources, deployment.Id)
 		if err != nil {
 			deployment.Error = err
 			continue
 		}
-		deploymentSecrets, err := getDeploymentSecrets(deployment.Module.Secrets, deployment.Module.Services, userInput.Secrets, deployment.Id)
+		selectedSecrets, err := extractSecrets(deployment.Module.Secrets, deployment.Module.Services, userInput.Secrets, deployment.Id)
 		if err != nil {
 			deployment.Error = err
 			continue
 		}
-		deploymentFiles, err := getDeploymentFiles(deployment.Module.Files, defaultFiles, userInput.Files, deployment.Id)
+		providedFiles, err := extractFiles(deployment.Module.Files, defaultFiles, userInput.Files, deployment.Id)
 		if err != nil {
 			deployment.Error = err
 			continue
 		}
-		deploymentFileGroups := getDeploymentFileGroups(deployment.Module.FileGroups, userInput.FileGroups, deployment.Id)
+		providedFileGroups := extractFileGroups(deployment.Module.FileGroups, userInput.FileGroups, deployment.Id)
 		deployment.Error = h.storageHdl.CreateDeployment(
 			ctx,
 			deployment.Deployment,
-			deploymentHostResources,
-			slices.Collect(maps.Values(deploymentSecrets)),
-			slices.Collect(maps.Values(deploymentUserConfigs)),
-			slices.Collect(maps.Values(deploymentGlobalConfigs)),
-			slices.Collect(maps.Values(deploymentFiles)),
-			slices.Collect(maps.Values(deploymentFileGroups)),
+			selectedHostResources,
+			slices.Collect(maps.Values(selectedSecrets)),
+			slices.Collect(maps.Values(providedConfigs)),
+			slices.Collect(maps.Values(selectedGlobalConfigs)),
+			slices.Collect(maps.Values(providedFiles)),
+			slices.Collect(maps.Values(providedFileGroups)),
 			helper_slices.CollectFunc(maps.Values(deployment.Containers), func(item containerWrapper) models_handler_storage.DeploymentContainer {
 				return item.DeploymentContainer
 			}),
@@ -106,40 +106,41 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 		if deployment.Error != nil {
 			continue
 		}
-		deployment.Error = h.getDeploymentDependencies(
+		// --------------------------------------------------------------------------
+		deployment.Error = h.updateDependenciesCache(
 			ctx,
-			deploymentDependenciesCache,
+			dependenciesCache,
 			slices.Collect(maps.Keys(deployment.Module.Dependencies)),
 		)
 		if deployment.Error != nil {
 			continue
 		}
-		deployment.Error = h.getGlobalConfigs(
+		deployment.Error = h.updateGlobalConfigsCache(
 			ctx,
 			globalConfigsCache,
-			helper_slices.CollectFunc(maps.Values(deploymentGlobalConfigs), func(item models_handler_storage.DeploymentGlobalConfig) string {
+			helper_slices.CollectFunc(maps.Values(selectedGlobalConfigs), func(item models_handler_storage.DeploymentGlobalConfig) string {
 				return item.Id
 			}),
 		)
 		if deployment.Error != nil {
 			continue
 		}
-		deployment.Error = h.getHostResources(
+		deployment.Error = h.updateHostResourcesCache(
 			ctx,
 			hostResourcesCache,
-			helper_slices.CollectFunc(slices.Values(deploymentHostResources), func(item models_handler_storage.DeploymentHostResource) string {
+			helper_slices.CollectFunc(slices.Values(selectedHostResources), func(item models_handler_storage.DeploymentHostResource) string {
 				return item.Id
 			}),
 		)
 		if deployment.Error != nil {
 			continue
 		}
-		secretMounts, err := h.getSecrets(ctx, deployment.Module.Secrets, secretValuesCache, deploymentSecrets, deployment.Id) // mount secrets müssen "unloaded" werden
+		secrets, err := h.getSecrets(ctx, deployment.Module.Secrets, secretValuesCache, selectedSecrets, deployment.Id) // mount secrets müssen "unloaded" werden
 		if err != nil {
 			deployment.Error = err
 			continue
 		}
-		configStrings := configsToStrings(deployment.Module.Configs, defaultConfigs, deploymentUserConfigs, deploymentGlobalConfigs, globalConfigsCache)
+		configStrings := configsToStrings(deployment.Module.Configs, defaultConfigs, providedConfigs, selectedGlobalConfigs, globalConfigsCache)
 
 	}
 	return nil, nil
