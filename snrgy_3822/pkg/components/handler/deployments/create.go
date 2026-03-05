@@ -42,7 +42,7 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 	globalConfigsCache := make(map[string]models_handler_storage.GlobalConfig)    // {globalConfigId:GlobalConfig}
 	secretValuesCache := make(map[string]models_external.SecretValueVariant)      // {secretId+itemName:SecretValueVariant}
 	for moduleId, deployment := range deploymentWrappers {
-		if deployment.Error != nil {
+		if deployment == nil || deployment.Error != nil {
 			continue
 		}
 		userInput := userInputs[moduleId]
