@@ -158,3 +158,22 @@ func getSecretItems(reference string, moduleServices map[string]models_external.
 	}
 	return slices.Collect(maps.Values(items))
 }
+
+func setSecretValueEnvVariables(
+	envVariables map[string]string,
+	serviceSecretTargets map[string]models_external.ModuleSecretTarget,
+	selectedSecrets map[string]models_handler_storage.DeploymentSecret,
+	secretValuesCache map[string]models_external.SecretValueVariant,
+) {
+	for envVarName, target := range serviceSecretTargets {
+		selectedSecret, ok := selectedSecrets[target.Ref]
+		if !ok {
+			continue
+		}
+		valueVariant, ok := secretValuesCache[selectedSecret.Id+target.Item]
+		if !ok {
+			continue
+		}
+		envVariables[envVarName] = valueVariant.Value
+	}
+}
