@@ -17,12 +17,9 @@
 package deployments
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"io"
-	"io/fs"
 	"maps"
 	"slices"
 	"strings"
@@ -216,34 +213,6 @@ func (h *Handler) updateDependenciesCache(
 	return nil
 }
 
-func fileToBytes(fSys fs.FS, path string) ([]byte, error) {
-	f, err := fSys.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	return io.ReadAll(f)
-}
-
-func getDefaultFiles(moduleFiles map[string]models_external.ModuleFile, moduleFS fs.FS) (map[string][]byte, error) {
-	files := make(map[string][]byte)
-	var errs []string
-	for reference, file := range moduleFiles {
-		if file.Source != "" {
-			b, err := fileToBytes(moduleFS, file.Source)
-			if err != nil {
-				errs = append(errs, err.Error())
-				continue
-			}
-			files[reference] = b
-		}
-	}
-	if len(errs) > 0 {
-		return nil, errors.New(strings.Join(errs, "\n")) // TODO
-	}
-	return files, nil
-}
-
 func getDeploymentWrappers(modules map[string]models_handler_module.Module) (map[string]*deploymentWrapper, error) {
 	deployments := make(map[string]*deploymentWrapper)
 	for _, module := range modules {
@@ -312,60 +281,4 @@ func getSelectedHostResources(
 		})
 	}
 	return hostResources, nil
-}
-
-func getProvidedFiles(
-	moduleFiles map[string]models_external.ModuleFile,
-	defaultFiles map[string][]byte, userInputs map[string][]byte,
-	deploymentId string,
-) (map[string]models_handler_storage.DeploymentFile, error) {
-	files := make(map[string]models_handler_storage.DeploymentFile)
-	var errs []string
-	for reference, file := range moduleFiles {
-		defaultData, defaultOK := defaultFiles[reference]
-		data, ok := userInputs[reference]
-		if !ok {
-			if file.Required && !defaultOK {
-				errs = append(errs, fmt.Sprintf("missing required file '%s'", reference))
-			}
-			continue
-		}
-		if defaultOK && bytes.Equal(data, defaultData) {
-			continue
-		}
-		files[reference] = models_handler_storage.DeploymentFile{
-			DeploymentId: deploymentId,
-			Reference:    reference,
-			Data:         data,
-		}
-	}
-	if len(errs) > 0 {
-		return nil, errors.New(strings.Join(errs, "\n")) // TODO
-	}
-	return files, nil
-}
-
-func getProvidedFileGroups(moduleFileGroups map[string]struct{}, userInputs map[string]map[string]models_handler_deployment.FileGroupUserInput, deploymentId string) map[string]models_handler_storage.DeploymentFileGroup {
-	fileGroups := make(map[string]models_handler_storage.DeploymentFileGroup)
-	for reference := range moduleFileGroups {
-		fg, ok := userInputs[reference]
-		if !ok {
-			continue
-		}
-		var files []models_handler_storage.DeploymentFileGroupFile
-		for path, input := range fg {
-			files = append(files, models_handler_storage.DeploymentFileGroupFile{
-				Path:   path,
-				Format: input.Format,
-				Data:   input.Data,
-			})
-		}
-		fileGroups[reference] = models_handler_storage.DeploymentFileGroup{
-			Id:           deploymentId + "_" + reference,
-			DeploymentId: deploymentId,
-			Reference:    reference,
-			Files:        files,
-		}
-	}
-	return fileGroups
 }
