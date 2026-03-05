@@ -146,7 +146,7 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 	return nil, nil
 }
 
-func (h *Handler) getGlobalConfigs(ctx context.Context, globalConfigsCache map[string]models_handler_storage.GlobalConfig, globalConfigIds []string) error {
+func (h *Handler) updateGlobalConfigsCache(ctx context.Context, globalConfigsCache map[string]models_handler_storage.GlobalConfig, globalConfigIds []string) error {
 	var idsNotInCache []string
 	for _, globalConfigId := range globalConfigIds {
 		if _, ok := globalConfigsCache[globalConfigId]; ok {
@@ -175,7 +175,7 @@ func (h *Handler) getGlobalConfigs(ctx context.Context, globalConfigsCache map[s
 	return nil
 }
 
-func (h *Handler) getHostResources(ctx context.Context, hostResourcesCache map[string]models_external.HostResource, hostResourceIds []string) error {
+func (h *Handler) updateHostResourcesCache(ctx context.Context, hostResourcesCache map[string]models_external.HostResource, hostResourceIds []string) error {
 	var idsNotInCache []string
 	for _, hostResourceId := range hostResourceIds {
 		if _, ok := hostResourcesCache[hostResourceId]; ok {
@@ -200,7 +200,7 @@ func (h *Handler) getHostResources(ctx context.Context, hostResourcesCache map[s
 	return nil
 }
 
-func (h *Handler) getDeploymentDependencies(ctx context.Context, dependenciesCache map[string]models_handler_storage.Deployment, moduleIds []string) error {
+func (h *Handler) updateDependenciesCache(ctx context.Context, dependenciesCache map[string]models_handler_storage.Deployment, moduleIds []string) error {
 	var idsNotInCache []string
 	for _, moduleId := range moduleIds {
 		if _, ok := dependenciesCache[moduleId]; !ok {
@@ -483,7 +483,7 @@ func newDeploymentWrappers(modules map[string]models_handler_module.Module, user
 	return deployments, nil
 }
 
-func getDeploymentSecrets(
+func extractSecrets(
 	moduleSecrets map[string]models_external.ModuleSecret,
 	moduleServices map[string]models_external.ModuleService,
 	userInputs map[string]string,
@@ -539,7 +539,7 @@ func newDeploymentSecretItems(reference string, moduleServices map[string]models
 	return slices.Collect(maps.Values(items))
 }
 
-func getDeploymentHostResources(moduleHostResources map[string]models_external.ModuleHostResource, userInputs map[string]string, deploymentID string) ([]models_handler_storage.DeploymentHostResource, error) {
+func extractHostResources(moduleHostResources map[string]models_external.ModuleHostResource, userInputs map[string]string, deploymentID string) ([]models_handler_storage.DeploymentHostResource, error) {
 	var hostResources []models_handler_storage.DeploymentHostResource
 	var errs []string
 	for reference, hostResource := range moduleHostResources {
@@ -559,7 +559,7 @@ func getDeploymentHostResources(moduleHostResources map[string]models_external.M
 	return hostResources, nil
 }
 
-func getDeploymentGlobalConfigs(moduleConfigs models_external.ModuleConfigs, userInputs map[string]string, deploymentId string) map[string]models_handler_storage.DeploymentGlobalConfig {
+func extractGlobalConfigs(moduleConfigs models_external.ModuleConfigs, userInputs map[string]string, deploymentId string) map[string]models_handler_storage.DeploymentGlobalConfig {
 	configs := make(map[string]models_handler_storage.DeploymentGlobalConfig)
 	for reference := range moduleConfigs {
 		id, ok := userInputs[reference]
@@ -575,7 +575,7 @@ func getDeploymentGlobalConfigs(moduleConfigs models_external.ModuleConfigs, use
 	return configs
 }
 
-func getDeploymentFiles(
+func extractFiles(
 	moduleFiles map[string]models_external.ModuleFile,
 	defaultFiles map[string][]byte, userInputs map[string][]byte,
 	deploymentId string,
@@ -606,7 +606,7 @@ func getDeploymentFiles(
 	return files, nil
 }
 
-func getDeploymentFileGroups(moduleFileGroups map[string]struct{}, userInputs map[string]map[string]models_handler_deployment.FileGroupUserInput, deploymentId string) map[string]models_handler_storage.DeploymentFileGroup {
+func extractFileGroups(moduleFileGroups map[string]struct{}, userInputs map[string]map[string]models_handler_deployment.FileGroupUserInput, deploymentId string) map[string]models_handler_storage.DeploymentFileGroup {
 	fileGroups := make(map[string]models_handler_storage.DeploymentFileGroup)
 	for reference := range moduleFileGroups {
 		fg, ok := userInputs[reference]
@@ -664,7 +664,7 @@ func configIsEqual(a, b models_handler_storage.Config) bool {
 	return false
 }
 
-func getDeploymentUserConfigs(moduleConfigs models_external.ModuleConfigs, defaultConfigs map[string]models_handler_storage.Config, userInputs map[string]any, deploymentId string) (map[string]models_handler_storage.DeploymentUserConfig, error) {
+func extractUserConfigs(moduleConfigs models_external.ModuleConfigs, defaultConfigs map[string]models_handler_storage.Config, userInputs map[string]any, deploymentId string) (map[string]models_handler_storage.DeploymentUserConfig, error) {
 	configs := make(map[string]models_handler_storage.DeploymentUserConfig)
 	var errs []string
 	for reference, moduleConfig := range moduleConfigs {
