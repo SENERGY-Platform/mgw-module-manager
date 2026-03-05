@@ -53,8 +53,8 @@ func (h *Handler) updateGlobalConfigsCache(
 	if err != nil {
 		return err
 	}
-	for _, globalConfig := range globalConfigs {
-		globalConfigsCache[globalConfig.Id] = globalConfig
+	for id, globalConfig := range globalConfigs {
+		globalConfigsCache[id] = globalConfig
 	}
 	var errs []string
 	for _, id := range idsNotInCache {
