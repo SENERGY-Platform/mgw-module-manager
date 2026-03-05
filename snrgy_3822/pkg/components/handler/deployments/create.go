@@ -135,11 +135,20 @@ func (h *Handler) CreateDeployments(ctx context.Context, modules map[string]mode
 		if deployment.Error != nil {
 			continue
 		}
-		secrets, err := h.getSecrets(ctx, deployment.Module.Secrets, secretValuesCache, selectedSecrets, deployment.Id) // mount secrets müssen "unloaded" werden
+		deployment.Error = h.updateSecretValuesCache(
+			ctx,
+			secretValuesCache,
+			selectedSecrets,
+		)
+		if deployment.Error != nil {
+			continue
+		}
+		secretMounts, err := h.getSecretMounts(ctx, selectedSecrets, deployment.Id)
 		if err != nil {
 			deployment.Error = err
 			continue
 		}
+
 		configStrings := configsToStrings(deployment.Module.Configs, defaultConfigs, providedConfigs, selectedGlobalConfigs, globalConfigsCache)
 
 	}
@@ -229,57 +238,72 @@ func (h *Handler) updateDependenciesCache(ctx context.Context, dependenciesCache
 	return nil
 }
 
-func (h *Handler) getSecrets(
+func (h *Handler) updateSecretValuesCache(
 	ctx context.Context,
-	moduleSecrets map[string]models_external.ModuleSecret,
 	secretValuesCache map[string]models_external.SecretValueVariant,
-	deploymentSecrets map[string]models_handler_storage.DeploymentSecret,
+	selectedSecrets map[string]models_handler_storage.DeploymentSecret,
+) error {
+	var errs []string
+	for _, secret := range selectedSecrets {
+		for _, secretItem := range secret.Items {
+			if secretItem.AsMount {
+				continue
+			}
+			cacheKey := secret.Id + secretItem.Name
+			var reqItem *string
+			if secretItem.Name != "" {
+				reqItem = &secretItem.Name
+			}
+			_, ok := secretValuesCache[cacheKey]
+			if !ok {
+				var err error
+				valueVariant, err, _ := h.smClient.GetValueVariant(ctx, models_external.SecretVariantRequest{
+					ID:   secret.Id,
+					Item: reqItem,
+				})
+				if err != nil {
+					errs = append(errs, err.Error())
+					continue
+				}
+				secretValuesCache[cacheKey] = valueVariant
+			}
+		}
+	}
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "\n")) // TODO
+	}
+	return nil
+}
+
+func (h *Handler) getSecretMounts(
+	ctx context.Context,
+	selectedSecrets map[string]models_handler_storage.DeploymentSecret,
 	deploymentId string,
 ) (map[string]models_external.SecretPathVariant, error) {
 	secretMounts := make(map[string]models_external.SecretPathVariant)
 	var errs []string
-	for reference, moduleSecret := range moduleSecrets {
-		deploymentSecret, ok := deploymentSecrets[reference]
-		if !ok {
-			if moduleSecret.Required {
-				errs = append(errs, fmt.Sprintf("missing required secret '%s'", reference))
+	for _, secret := range selectedSecrets {
+		for _, secretItem := range secret.Items {
+			if secretItem.AsEnv {
+				continue
 			}
-			continue
-		}
-		for _, item := range deploymentSecret.Items {
-			key := deploymentSecret.Id + item.Name
+			cacheKey := secret.Id + secretItem.Name
 			var reqItem *string
-			if item.Name != "" {
-				reqItem = &item.Name
+			if secretItem.Name != "" {
+				reqItem = &secretItem.Name
 			}
-			if item.AsEnv {
-				_, ok := secretValuesCache[key]
-				if !ok {
-					valueVariant, err, _ := h.smClient.GetValueVariant(ctx, models_external.SecretVariantRequest{
-						ID:   deploymentSecret.Id,
-						Item: reqItem,
-					})
-					if err != nil {
-						errs = append(errs, err.Error())
-						continue
-					}
-					secretValuesCache[key] = valueVariant
+			_, ok := secretMounts[cacheKey]
+			if !ok {
+				pathVariant, err, _ := h.smClient.InitPathVariant(ctx, models_external.SecretVariantRequest{
+					ID:        secret.Id,
+					Item:      reqItem,
+					Reference: deploymentId,
+				})
+				if err != nil {
+					errs = append(errs, err.Error())
+					continue
 				}
-			}
-			if item.AsMount {
-				_, ok := secretMounts[key]
-				if !ok {
-					pathVariant, err, _ := h.smClient.InitPathVariant(ctx, models_external.SecretVariantRequest{
-						ID:        deploymentSecret.Id,
-						Item:      reqItem,
-						Reference: deploymentId,
-					})
-					if err != nil {
-						errs = append(errs, err.Error())
-						continue
-					}
-					secretMounts[key] = pathVariant
-				}
+				secretMounts[cacheKey] = pathVariant
 			}
 		}
 	}
