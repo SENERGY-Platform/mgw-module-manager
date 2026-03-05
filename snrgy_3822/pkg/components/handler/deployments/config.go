@@ -15,7 +15,3 @@
  */
 
 package deployments
-
-type Config struct {
-	WorkDirPath string `json:"work_dir_path" env_var:"DEPLOYMENTS_HANDLER_WORK_DIR_PATH"`
-}
