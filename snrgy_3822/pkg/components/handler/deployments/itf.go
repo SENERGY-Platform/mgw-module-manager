@@ -34,6 +34,7 @@ type storageHandler interface {
 		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 		files []models_handler_storage.DeploymentFile,
 		fileGroups []models_handler_storage.DeploymentFileGroup,
+		volumes []models_handler_storage.DeploymentVolume,
 		containers []models_handler_storage.DeploymentContainer,
 	) (err error)
 	ReadDeployment(ctx context.Context, id string) (models_handler_storage.Deployment, error)
