@@ -42,3 +42,10 @@ type containerWrapper struct {
 	models_handler_storage.DeploymentContainer
 	Name string
 }
+
+type cacheWrapper struct {
+	ExternalDependencies map[string]map[string]models_handler_storage.DeploymentContainer // {moduleId:{reference:DeploymentContainer}}
+	HostResources        map[string]models_external.HostResource                          // {hostResourceId:HostResource}
+	GlobalConfigs        map[string]models_handler_storage.GlobalConfig                   // {globalConfigId:GlobalConfig}
+	SecretValues         map[string]models_external.SecretValueVariant                    // {secretId+itemName:SecretValueVariant}
+}

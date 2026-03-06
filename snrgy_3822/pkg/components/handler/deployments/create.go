@@ -37,10 +37,7 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 	if err != nil {
 		return nil, err
 	}
-	externalDependenciesCache := newExternalDependenciesCache(deploymentWrappers) // {moduleId:{reference:DeploymentContainer}}
-	hostResourcesCache := make(map[string]models_external.HostResource)           // {hostResourceId:HostResource}
-	globalConfigsCache := make(map[string]models_handler_storage.GlobalConfig)    // {globalConfigId:GlobalConfig}
-	secretValuesCache := make(map[string]models_external.SecretValueVariant)      // {secretId+itemName:SecretValueVariant}
+	cache := newCache(deploymentWrappers)
 	for moduleId, deployment := range deploymentWrappers {
 		if deployment == nil || deployment.Error != nil {
 			continue
@@ -64,7 +61,7 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 			continue
 		}
 		deployment.GlobalConfigs = getSelectedGlobalConfigs(deployment.Module.Configs, userInput.GlobalConfigs, deployment.Id)
-		configs := mergeConfigs(defaultConfigs, deployment.Configs, deployment.GlobalConfigs, globalConfigsCache)
+		configs := mergeConfigs(defaultConfigs, deployment.Configs, deployment.GlobalConfigs, cache.GlobalConfigs)
 		deployment.Error = checkConfigs(deployment.Module.Configs, configs)
 		if deployment.Error != nil {
 			continue
@@ -100,19 +97,19 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 			continue
 		}
 		// --------------------------------------------------------------------------
-		deployment.Error = h.updateExternalDependenciesCache(ctx, externalDependenciesCache, deployment.Module.Dependencies)
+		deployment.Error = h.updateExternalDependenciesCache(ctx, cache.ExternalDependencies, deployment.Module.Dependencies)
 		if deployment.Error != nil {
 			continue
 		}
-		deployment.Error = h.updateGlobalConfigsCache(ctx, globalConfigsCache, deployment.GlobalConfigs)
+		deployment.Error = h.updateGlobalConfigsCache(ctx, cache.GlobalConfigs, deployment.GlobalConfigs)
 		if deployment.Error != nil {
 			continue
 		}
-		deployment.Error = h.updateHostResourcesCache(ctx, hostResourcesCache, deployment.HostResources)
+		deployment.Error = h.updateHostResourcesCache(ctx, cache.HostResources, deployment.HostResources)
 		if deployment.Error != nil {
 			continue
 		}
-		deployment.Error = h.updateSecretValuesCache(ctx, secretValuesCache, deployment.Secrets)
+		deployment.Error = h.updateSecretValuesCache(ctx, cache.SecretValues, deployment.Secrets)
 		if deployment.Error != nil {
 			continue
 		}
@@ -194,4 +191,13 @@ func getVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[stri
 		}
 	}
 	return volumes
+}
+
+func newCache(deployments map[string]*deploymentWrapper) *cacheWrapper {
+	return &cacheWrapper{
+		ExternalDependencies: newExternalDependenciesCache(deployments),
+		HostResources:        make(map[string]models_external.HostResource),
+		GlobalConfigs:        make(map[string]models_handler_storage.GlobalConfig),
+		SecretValues:         make(map[string]models_external.SecretValueVariant),
+	}
 }
