@@ -23,8 +23,6 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-const EnvVariableDeploymentId = "MGW_DID"
-
 type deploymentWrapper struct {
 	models_handler_storage.Deployment
 	Containers       map[string]containerWrapper // {ref:containerWrapper}
