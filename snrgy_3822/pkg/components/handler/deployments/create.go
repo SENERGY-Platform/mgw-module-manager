@@ -126,7 +126,7 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 	return nil, nil
 }
 
-func getDeploymentWrappers(modules map[string]models_handler_module.Module) (map[string]*deploymentWrapper, error) {
+func newDeploymentWrappers(modules map[string]models_handler_module.Module) (map[string]*deploymentWrapper, error) {
 	deployments := make(map[string]*deploymentWrapper)
 	for _, module := range modules {
 		id, err := helper_uuid.New()
@@ -137,7 +137,7 @@ func getDeploymentWrappers(modules map[string]models_handler_module.Module) (map
 		if err != nil {
 			return nil, err
 		}
-		containerWrappers, err := getContainerWrappers(module.Services, id)
+		containerWrappers, err := newContainerWrappers(module.Services, id)
 		if err != nil {
 			return nil, err
 		}
@@ -153,7 +153,7 @@ func getDeploymentWrappers(modules map[string]models_handler_module.Module) (map
 				Created:       helper_time.Now(),
 			},
 			Containers:       containerWrappers,
-			Volumes:          getVolumes(module.Volumes, id),
+			Volumes:          newVolumes(module.Volumes, id),
 			Module:           module.Module,
 			ModuleFileSystem: module.FileSystem,
 		}
@@ -162,7 +162,7 @@ func getDeploymentWrappers(modules map[string]models_handler_module.Module) (map
 	return deployments, nil
 }
 
-func getContainerWrappers(moduleServices map[string]models_external.ModuleService, deploymentId string) (map[string]containerWrapper, error) {
+func newContainerWrappers(moduleServices map[string]models_external.ModuleService, deploymentId string) (map[string]containerWrapper, error) {
 	containerWrappers := make(map[string]containerWrapper)
 	for ref := range moduleServices {
 		containerName, err := helper_naming.NewContainerName("dep")
@@ -181,7 +181,7 @@ func getContainerWrappers(moduleServices map[string]models_external.ModuleServic
 	return containerWrappers, nil
 }
 
-func getVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[string]models_handler_storage.DeploymentVolume {
+func newVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[string]models_handler_storage.DeploymentVolume {
 	volumes := make(map[string]models_handler_storage.DeploymentVolume)
 	for reference := range moduleVolumes {
 		volumes[reference] = models_handler_storage.DeploymentVolume{
