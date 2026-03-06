@@ -88,7 +88,11 @@ func getProvidedFiles(
 	return files, nil
 }
 
-func getProvidedFileGroups(moduleFileGroups map[string]struct{}, userInputs map[string]map[string]models_handler_deployment.FileGroupUserInput, deploymentId string) map[string]models_handler_storage.DeploymentFileGroup {
+func getProvidedFileGroups(
+	moduleFileGroups map[string]struct{},
+	userInputs map[string]map[string]models_handler_deployment.FileGroupUserInput,
+	deploymentId string,
+) map[string]models_handler_storage.DeploymentFileGroup {
 	fileGroups := make(map[string]models_handler_storage.DeploymentFileGroup)
 	for reference := range moduleFileGroups {
 		fg, ok := userInputs[reference]

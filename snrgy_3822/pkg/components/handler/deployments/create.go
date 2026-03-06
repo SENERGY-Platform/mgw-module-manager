@@ -59,41 +59,39 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 			deployment.Error = err
 			continue
 		}
-		providedConfigs, err := getProvidedConfigs(deployment.Module.Configs, defaultConfigs, userInput.Configs, deployment.Id)
-		if err != nil {
-			deployment.Error = err
-			continue
-		}
-		selectedGlobalConfigs := getSelectedGlobalConfigs(deployment.Module.Configs, userInput.GlobalConfigs, deployment.Id)
-		deployment.Error = checkConfigs(deployment.Module.Configs, defaultConfigs, providedConfigs, selectedGlobalConfigs)
+		deployment.Configs, deployment.Error = getProvidedConfigs(deployment.Module.Configs, defaultConfigs, userInput.Configs, deployment.Id)
 		if deployment.Error != nil {
 			continue
 		}
-		selectedHostResources, err := getSelectedHostResources(deployment.Module.HostResources, userInput.HostResources, deployment.Id)
-		if err != nil {
-			deployment.Error = err
+		deployment.GlobalConfigs = getSelectedGlobalConfigs(deployment.Module.Configs, userInput.GlobalConfigs, deployment.Id)
+		configs := mergeConfigs(defaultConfigs, deployment.Configs, deployment.GlobalConfigs, globalConfigsCache)
+		deployment.Error = checkConfigs(deployment.Module.Configs, configs)
+		if deployment.Error != nil {
 			continue
 		}
-		selectedSecrets, err := getSelectedSecrets(deployment.Module.Secrets, deployment.Module.Services, userInput.Secrets, deployment.Id)
-		if err != nil {
-			deployment.Error = err
+		deployment.HostResources, deployment.Error = getSelectedHostResources(deployment.Module.HostResources, userInput.HostResources, deployment.Id)
+		if deployment.Error != nil {
 			continue
 		}
-		providedFiles, err := getProvidedFiles(deployment.Module.Files, defaultFiles, userInput.Files, deployment.Id)
-		if err != nil {
-			deployment.Error = err
+		deployment.Secrets, deployment.Error = getSelectedSecrets(deployment.Module.Secrets, deployment.Module.Services, userInput.Secrets, deployment.Id)
+		if deployment.Error != nil {
 			continue
 		}
-		providedFileGroups := getProvidedFileGroups(deployment.Module.FileGroups, userInput.FileGroups, deployment.Id)
+		deployment.Files, deployment.Error = getProvidedFiles(deployment.Module.Files, defaultFiles, userInput.Files, deployment.Id)
+		if deployment.Error != nil {
+			continue
+		}
+		deployment.FileGroups = getProvidedFileGroups(deployment.Module.FileGroups, userInput.FileGroups, deployment.Id)
 		deployment.Error = h.storageHdl.CreateDeployment(
 			ctx,
 			deployment.Deployment,
-			selectedHostResources,
-			slices.Collect(maps.Values(selectedSecrets)),
-			slices.Collect(maps.Values(providedConfigs)),
-			slices.Collect(maps.Values(selectedGlobalConfigs)),
-			slices.Collect(maps.Values(providedFiles)),
-			slices.Collect(maps.Values(providedFileGroups)),
+			slices.Collect(maps.Values(deployment.HostResources)),
+			slices.Collect(maps.Values(deployment.Secrets)),
+			slices.Collect(maps.Values(deployment.Configs)),
+			slices.Collect(maps.Values(deployment.GlobalConfigs)),
+			slices.Collect(maps.Values(deployment.Files)),
+			slices.Collect(maps.Values(deployment.FileGroups)),
+			slices.Collect(maps.Values(deployment.Volumes)),
 			helper_slices.CollectFunc(maps.Values(deployment.Containers), func(item containerWrapper) models_handler_storage.DeploymentContainer {
 				return item.DeploymentContainer
 			}),
@@ -106,26 +104,26 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 		if deployment.Error != nil {
 			continue
 		}
-		deployment.Error = h.updateGlobalConfigsCache(ctx, globalConfigsCache, selectedGlobalConfigs)
+		deployment.Error = h.updateGlobalConfigsCache(ctx, globalConfigsCache, deployment.GlobalConfigs)
 		if deployment.Error != nil {
 			continue
 		}
-		deployment.Error = h.updateHostResourcesCache(ctx, hostResourcesCache, selectedHostResources)
+		deployment.Error = h.updateHostResourcesCache(ctx, hostResourcesCache, deployment.HostResources)
 		if deployment.Error != nil {
 			continue
 		}
-		deployment.Error = h.updateSecretValuesCache(ctx, secretValuesCache, selectedSecrets)
+		deployment.Error = h.updateSecretValuesCache(ctx, secretValuesCache, deployment.Secrets)
 		if deployment.Error != nil {
 			continue
 		}
-		secretMounts, err := h.getSecretMounts(ctx, selectedSecrets, deployment.Id)
+		secretMounts, err := h.getSecretMounts(ctx, deployment.Secrets, deployment.Id) // add unload secrets if error
 		if err != nil {
 			deployment.Error = err
 			continue
 		}
 		configStrings := configsToStrings(
 			deployment.Module.Configs,
-			mergeConfigs(defaultConfigs, providedConfigs, selectedGlobalConfigs, globalConfigsCache),
+			configs,
 		)
 	}
 	return nil, nil
@@ -142,20 +140,9 @@ func getDeploymentWrappers(modules map[string]models_handler_module.Module) (map
 		if err != nil {
 			return nil, err
 		}
-		containerWrappers := make(map[string]containerWrapper)
-		for ref := range module.Services {
-			containerName, err := helper_naming.NewContainerName("dep")
-			if err != nil {
-				return nil, err
-			}
-			containerWrappers[ref] = containerWrapper{
-				DeploymentContainer: models_handler_storage.DeploymentContainer{
-					DeploymentId: id,
-					Reference:    ref,
-					Alias:        helper_naming.NewContainerAlias(id, ref),
-				},
-				Name: containerName,
-			}
+		containerWrappers, err := getContainerWrappers(module.Services, id)
+		if err != nil {
+			return nil, err
 		}
 		deployment := &deploymentWrapper{
 			Deployment: models_handler_storage.Deployment{
@@ -169,10 +156,42 @@ func getDeploymentWrappers(modules map[string]models_handler_module.Module) (map
 				Created:       helper_time.Now(),
 			},
 			Containers:       containerWrappers,
+			Volumes:          getVolumes(module.Volumes, id),
 			Module:           module.Module,
 			ModuleFileSystem: module.FileSystem,
 		}
 		deployments[module.ID] = deployment
 	}
 	return deployments, nil
+}
+
+func getContainerWrappers(moduleServices map[string]models_external.ModuleService, deploymentId string) (map[string]containerWrapper, error) {
+	containerWrappers := make(map[string]containerWrapper)
+	for ref := range moduleServices {
+		containerName, err := helper_naming.NewContainerName("dep")
+		if err != nil {
+			return nil, err
+		}
+		containerWrappers[ref] = containerWrapper{
+			DeploymentContainer: models_handler_storage.DeploymentContainer{
+				DeploymentId: deploymentId,
+				Reference:    ref,
+				Alias:        helper_naming.NewContainerAlias(deploymentId, ref),
+			},
+			Name: containerName,
+		}
+	}
+	return containerWrappers, nil
+}
+
+func getVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[string]models_handler_storage.DeploymentVolume {
+	volumes := make(map[string]models_handler_storage.DeploymentVolume)
+	for reference := range moduleVolumes {
+		volumes[reference] = models_handler_storage.DeploymentVolume{
+			DeploymentId: deploymentId,
+			Reference:    reference,
+			Name:         helper_naming.NewVolumeName(deploymentId, reference),
+		}
+	}
+	return volumes
 }

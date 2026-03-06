@@ -118,27 +118,13 @@ func sliceConfigToString(config models_handler_storage.Config, delimiter string)
 
 func checkConfigs(
 	moduleConfigs models_external.ModuleConfigs,
-	defaultConfigs map[string]models_handler_storage.Config,
-	deploymentUserConfigs map[string]models_handler_storage.DeploymentUserConfig,
-	deploymentGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
+	configs map[string]models_handler_storage.Config,
 ) error {
 	var errs []string
 	for reference, moduleConfig := range moduleConfigs {
-		_, ok := deploymentUserConfigs[reference]
-		if ok {
-			continue
-		}
-		_, ok = deploymentGlobalConfigs[reference]
-		if ok {
-			continue
-		}
-		_, ok = defaultConfigs[reference]
-		if ok {
-			continue
-		}
-		if moduleConfig.Required {
+		_, ok := configs[reference]
+		if !ok && moduleConfig.Required {
 			errs = append(errs, fmt.Sprintf("config %s required", reference))
-			continue
 		}
 	}
 	if len(errs) > 0 {
