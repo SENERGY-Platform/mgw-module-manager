@@ -33,7 +33,7 @@ import (
 )
 
 func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[string]models_handler_module.Module, userInputs map[string]models_handler_deployment.UserInput) (map[string]models_handler_deployment.Deployment, error) {
-	deploymentWrappers, err := getDeploymentWrappers(selectedModules)
+	deploymentWrappers, err := newDeploymentWrappers(selectedModules)
 	if err != nil {
 		return nil, err
 	}
