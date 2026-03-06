@@ -26,6 +26,15 @@ CREATE TABLE IF NOT EXISTS dep_containers
     INDEX i_ctr_id (ctr_id),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
+CREATE TABLE IF NOT EXISTS dep_volumes
+(
+    dep_id CHAR(36)     NOT NULL,
+    ref    VARCHAR(128) NOT NULL,
+    name   VARCHAR(256) NOT NULL,
+    UNIQUE KEY uk_dep_id_ref (dep_id, ref),
+    INDEX i_dep_id (dep_id),
+    FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
+);
 CREATE TABLE IF NOT EXISTS dep_host_resources
 (
     dep_id CHAR(36)     NOT NULL,

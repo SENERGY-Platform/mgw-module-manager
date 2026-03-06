@@ -32,6 +32,7 @@ func (h *Handler) CreateDeployment(
 	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 	files []models_handler_storage.DeploymentFile,
 	fileGroups []models_handler_storage.DeploymentFileGroup,
+	volumes []models_handler_storage.DeploymentVolume,
 	containers []models_handler_storage.DeploymentContainer,
 ) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
@@ -68,6 +69,7 @@ func (h *Handler) CreateDeployment(
 		globalConfigs,
 		files,
 		fileGroups,
+		volumes,
 		containers,
 	)
 	if err != nil {
@@ -87,6 +89,7 @@ func (h *Handler) createDeploymentResourcesAndConfigs(
 	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 	files []models_handler_storage.DeploymentFile,
 	fileGroups []models_handler_storage.DeploymentFileGroup,
+	volumes []models_handler_storage.DeploymentVolume,
 	containers []models_handler_storage.DeploymentContainer,
 ) (err error) {
 	for _, hostResource := range hostResources {
@@ -172,6 +175,18 @@ func (h *Handler) createDeploymentResourcesAndConfigs(
 			return
 		}
 		err = createFileGroupFiles(ctx, tx, fileGroup.Id, fileGroup.Files)
+		if err != nil {
+			return
+		}
+	}
+	for _, volume := range volumes {
+		_, err = tx.ExecContext(
+			ctx,
+			"INSERT INTO dep_volumes (dep_id, ref, name) VALUES (?, ?, ?)",
+			deploymentId,
+			volume.Reference,
+			volume.Name,
+		)
 		if err != nil {
 			return
 		}

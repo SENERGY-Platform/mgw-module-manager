@@ -41,6 +41,12 @@ type DeploymentContainer struct {
 	Order        int
 }
 
+type DeploymentVolume struct {
+	DeploymentId string
+	Reference    string
+	Name         string
+}
+
 type DeploymentHostResource struct {
 	Id           string
 	DeploymentId string
