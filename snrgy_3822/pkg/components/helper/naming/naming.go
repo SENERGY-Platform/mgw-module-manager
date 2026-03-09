@@ -29,7 +29,7 @@ var Prefix string
 var ManagerId string
 
 func NewContainerName(subPrefix string) (string, error) {
-	newUUID, err := uuid.NewUUID()
+	newUUID, err := uuid.NewV7()
 	if err != nil {
 		return "", err
 	}
