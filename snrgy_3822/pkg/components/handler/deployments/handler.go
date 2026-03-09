@@ -22,6 +22,7 @@ import (
 	"os"
 	"slices"
 	"sync"
+	"time"
 
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
@@ -31,7 +32,9 @@ import (
 )
 
 type Config struct {
-	WorkDirPath string `json:"work_dir_path" env_var:"DEPLOYMENTS_HANDLER_WORK_DIR_PATH"`
+	WorkDirPath     string        `json:"work_dir_path" env_var:"DEPLOYMENTS_HANDLER_WORK_DIR_PATH"`
+	PathEscapeDepth int           `json:"path_escape_depth" env_var:"PATH_ESCAPE_DEPTH"`
+	JobPollInterval time.Duration `json:"job_poll_interval" env_var:"DEPLOYMENTS_HANDLER_JOB_POLL_INTERVAL"`
 }
 
 type Handler struct {
