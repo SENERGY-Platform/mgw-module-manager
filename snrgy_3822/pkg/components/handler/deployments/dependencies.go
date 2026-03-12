@@ -24,7 +24,6 @@ import (
 	"slices"
 	"strings"
 
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
@@ -84,34 +83,4 @@ func (h *Handler) updateExternalDependenciesCache(
 		return errors.New(strings.Join(errs, "\n")) // TODO
 	}
 	return nil
-}
-
-func setInternalDependencyEnvVariables(
-	envVariables map[string]string,
-	internalDependencyTargets map[string]models_external.ModuleInternalDependencyTarget,
-	containers map[string]containerWrapper,
-) {
-	for envVarName, target := range internalDependencyTargets {
-		container, ok := containers[target.Ref]
-		if ok {
-			envVariables[envVarName] = target.FillTemplate(container.Alias)
-		}
-	}
-}
-
-func setExternalDependencyEnvVariables(
-	envVariables map[string]string,
-	externalDependencyTargets map[string]models_external.ModuleExternalDependencyTarget,
-	externalDependenciesCache map[string]map[string]models_handler_storage.DeploymentContainer,
-) {
-	for envVarName, target := range externalDependencyTargets {
-		containers, ok := externalDependenciesCache[target.ID]
-		if !ok {
-			continue
-		}
-		container, ok := containers[target.Service]
-		if ok {
-			envVariables[envVarName] = target.FillTemplate(container.Alias)
-		}
-	}
 }

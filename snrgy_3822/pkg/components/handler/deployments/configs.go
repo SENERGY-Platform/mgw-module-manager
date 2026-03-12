@@ -456,12 +456,3 @@ func toFloat64(val any) (float64, error) {
 	}
 	return f, nil
 }
-
-func setConfigEnvVariables(envVariables map[string]string, serviceConfigs map[string]string, configs map[string]string) {
-	for envVarName, reference := range serviceConfigs {
-		value, ok := configs[reference]
-		if ok {
-			envVariables[envVarName] = value
-		}
-	}
-}
