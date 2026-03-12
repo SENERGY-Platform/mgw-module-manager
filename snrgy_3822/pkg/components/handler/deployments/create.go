@@ -152,6 +152,7 @@ func newDeploymentWrappers(modules map[string]models_handler_module.Module) (map
 				ModuleVersion: module.Version,
 				Name:          module.Name,
 				DirName:       dirName,
+				FilesDirName:  dirName + "_files",
 				Created:       helper_time.Now(),
 			},
 			Containers:       serviceWrappers,
