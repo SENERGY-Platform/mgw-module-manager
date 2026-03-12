@@ -44,7 +44,7 @@ func (h *Handler) CreateDeployment(
 	}()
 	_, err = tx.ExecContext(
 		ctx,
-		"INSERT INTO deployments (id, mod_id, mod_source, mod_channel, mod_ver, name, dir, enabled, created, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO deployments (id, mod_id, mod_source, mod_channel, mod_ver, name, dir, files_dir, enabled, created, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		deployment.Id,
 		deployment.ModuleId,
 		deployment.ModuleSource,
@@ -52,6 +52,7 @@ func (h *Handler) CreateDeployment(
 		deployment.ModuleVersion,
 		deployment.Name,
 		deployment.DirName,
+		deployment.FilesDirName,
 		deployment.Enabled,
 		deployment.Created,
 		deployment.Updated,

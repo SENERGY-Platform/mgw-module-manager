@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS deployments
     mod_ver     VARCHAR(256) NOT NULL,
     name        VARCHAR(256) NOT NULL,
     dir         VARCHAR(256) NOT NULL,
+    files_dir   VARCHAR(256) NOT NULL,
     enabled     BOOLEAN      NOT NULL,
     created     TIMESTAMP(6) NOT NULL,
     updated     TIMESTAMP(6) NOT NULL,

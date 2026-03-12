@@ -74,6 +74,17 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
+	ok, err = columnExists(ctx, db, tableName, "files_dir")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.Info("adding column", attrColumn, "files_dir", attrTable, tableName)
+		err = addColumn(ctx, db, tableName, "files_dir", "VARCHAR(256)", "NOT NULL", "AFTER dir")
+		if err != nil {
+			return err
+		}
+	}
 	ok, err = indexExists(ctx, db, tableName, "PRIMARY")
 	if err != nil {
 		return err

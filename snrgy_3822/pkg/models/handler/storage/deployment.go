@@ -28,6 +28,7 @@ type Deployment struct {
 	ModuleVersion string
 	Name          string
 	DirName       string
+	FilesDirName  string
 	Enabled       bool
 	Created       time.Time
 	Updated       time.Time
