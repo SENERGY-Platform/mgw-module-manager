@@ -127,6 +127,42 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 			deployment.Module.Configs,
 			configs,
 		)
+		deployment.Error = h.addDeploymentContainerImages(ctx, deployment.Module.Services) // ensure that container images are available
+		if deployment.Error != nil {
+			continue
+		}
+		deployment.Error = h.createDeploymentContainerVolumes(ctx, deployment.Volumes)
+		if deployment.Error != nil {
+			continue
+		}
+		deployment.Error = createDeploymentDir(h.config.WorkDirPath, deployment.DirName, deployment.ModuleFileSystem)
+		if deployment.Error != nil {
+			continue
+		}
+		deployment.Error = createFilesDir(h.config.WorkDirPath, deployment.FilesDirName)
+		if deployment.Error != nil {
+			continue
+		}
+		fileMounts, err := createFiles(h.config.WorkDirPath, deployment.FilesDirName, files, deployment.Id)
+		if err != nil {
+			deployment.Error = err
+			continue
+		}
+		fileGroupMounts, err := createFileGroups(h.config.WorkDirPath, deployment.FilesDirName, deployment.ProvidedFileGroups)
+		if err != nil {
+			deployment.Error = err
+			continue
+		}
+		containers := newCewContainers(
+			deployment,
+			cache,
+			configStrings,
+			secretMounts,
+			fileMounts,
+			fileGroupMounts,
+			h.config.HostWorkDirPath,
+			h.config.HostSecretsPath,
+		)
 	}
 	return nil, nil
 }
