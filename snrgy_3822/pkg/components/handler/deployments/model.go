@@ -40,6 +40,11 @@ type deploymentWrapper struct {
 	Error            error
 }
 
+type fileGroupMount struct {
+	FileName string
+	Path     string
+}
+
 type containerWrapper struct {
 	models_handler_storage.DeploymentContainer
 	Name string
