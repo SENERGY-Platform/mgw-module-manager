@@ -27,6 +27,7 @@ import (
 var CoreId string
 var Prefix string
 var ManagerId string
+var ModuleContainerNetwork string
 
 func NewContainerName(subPrefix string) (string, error) {
 	newUUID, err := uuid.NewV7()
