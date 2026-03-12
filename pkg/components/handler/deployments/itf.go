@@ -78,6 +78,7 @@ type storageHandler interface {
 		fileGroups []models_handler_storage.DeploymentFileGroup,
 		containers []models_handler_storage.DeploymentContainer,
 	) (err error)
+	UpdateDeploymentContainerIds(ctx context.Context, containers []models_handler_storage.DeploymentContainer) error
 	DeleteDeployment(ctx context.Context, id string) error
 	DeleteDeployments(ctx context.Context, ids []string) error
 	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_storage.GlobalConfig, error)
