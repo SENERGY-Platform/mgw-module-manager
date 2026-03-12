@@ -37,7 +37,8 @@ func (h *Handler) createContainers(
 	secretMounts map[string]models_external.SecretPathVariant,
 	fileMounts map[string]string,
 	fileGroupMounts map[string][]fileGroupMount,
-) error {
+) ([]models_handler_storage.DeploymentContainer, error) {
+	var createdContainers []models_handler_storage.DeploymentContainer
 	var errs []string
 	for _, container := range deployment.Containers {
 		cewContainer := newCewContainer(
@@ -55,16 +56,18 @@ func (h *Handler) createContainers(
 			),
 			getContainerDevices(deployment.SelectedHostResources, container.Service.HostResources, cache.HostResources),
 		)
-		_, err := h.cewClient.CreateContainer(ctx, cewContainer)
+		id, err := h.cewClient.CreateContainer(ctx, cewContainer)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
+		container.Id = id
+		createdContainers = append(createdContainers, container.DeploymentContainer)
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
+		return createdContainers, errors.New(strings.Join(errs, "\n"))
 	}
-	return nil
+	return createdContainers, nil
 }
 
 func newCewContainer(
