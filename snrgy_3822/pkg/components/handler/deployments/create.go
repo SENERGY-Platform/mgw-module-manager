@@ -177,7 +177,8 @@ func newServiceWrappers(moduleServices map[string]models_external.ModuleService,
 				Reference:    reference,
 				Alias:        helper_naming.NewContainerAlias(deploymentId, reference),
 			},
-			Name: containerName,
+			Name:    containerName,
+			Service: service,
 		}
 	}
 	return containerWrappers, nil
