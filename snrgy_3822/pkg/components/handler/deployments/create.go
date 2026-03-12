@@ -185,6 +185,15 @@ func newServiceWrappers(moduleServices map[string]models_external.ModuleService,
 	return containerWrappers, nil
 }
 
+func newCache(deployments map[string]*deploymentWrapper) *cacheWrapper {
+	return &cacheWrapper{
+		ExternalDependencies: newExternalDependenciesCache(deployments),
+		HostResources:        make(map[string]models_external.HostResource),
+		GlobalConfigs:        make(map[string]models_handler_storage.GlobalConfig),
+		SecretValues:         make(map[string]models_external.SecretValueVariant),
+	}
+}
+
 func newVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[string]models_handler_storage.DeploymentVolume {
 	volumes := make(map[string]models_handler_storage.DeploymentVolume)
 	for reference := range moduleVolumes {
@@ -197,11 +206,11 @@ func newVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[stri
 	return volumes
 }
 
-func newCache(deployments map[string]*deploymentWrapper) *cacheWrapper {
-	return &cacheWrapper{
-		ExternalDependencies: newExternalDependenciesCache(deployments),
-		HostResources:        make(map[string]models_external.HostResource),
-		GlobalConfigs:        make(map[string]models_handler_storage.GlobalConfig),
-		SecretValues:         make(map[string]models_external.SecretValueVariant),
+func createDeploymentDir(basePath string, dirName string, moduleFS fs.FS) error {
+	dirPath := path.Join(basePath, dirName)
+	err := os.Mkdir(dirPath, dirPerm)
+	if err != nil {
+		return err
 	}
+	return helper_file_sys.CopyAll(moduleFS, dirPath)
 }
