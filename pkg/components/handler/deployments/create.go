@@ -153,16 +153,18 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 			deployment.Error = err
 			continue
 		}
-		containers := newCewContainers(
+		deployment.Error = h.createContainers(
+			ctx,
 			deployment,
 			cache,
 			configStrings,
 			secretMounts,
 			fileMounts,
 			fileGroupMounts,
-			h.config.HostWorkDirPath,
-			h.config.HostSecretsPath,
 		)
+		if deployment.Error != nil {
+			continue
+		}
 	}
 	return nil, nil
 }
