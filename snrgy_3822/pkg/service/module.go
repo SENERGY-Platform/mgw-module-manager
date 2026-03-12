@@ -30,6 +30,28 @@ import (
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
+// TODO include deployments
+func (s *Service) Modules(ctx context.Context, filter models_handler_module.ModuleFilter) ([]models_handler_module.Module, error) {
+	//s.mu.RLock()
+	//defer s.mu.RUnlock()
+	//installedMods, err := s.modsHdl.Modules(ctx, filter)
+	//if err != nil {
+	//	return nil, err
+	//}
+	panic("implement me")
+}
+
+// TODO include deployment
+func (s *Service) Module(ctx context.Context, id string) (models_handler_module.Module, error) {
+	//s.mu.RLock()
+	//defer s.mu.RUnlock()
+	//installedMod, err := s.modsHdl.Module(ctx, id)
+	//if err != nil {
+	//	return models_module.Module{}, err
+	//}
+	panic("implement me")
+}
+
 func (s *Service) ModulesChangeRequest(_ context.Context) (models_service.ModulesChangeRequest, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
