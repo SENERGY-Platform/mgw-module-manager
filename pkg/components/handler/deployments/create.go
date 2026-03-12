@@ -18,6 +18,7 @@ package deployments
 
 import (
 	"context"
+	"errors"
 	"io/fs"
 	"maps"
 	"os"
@@ -153,7 +154,7 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 			deployment.Error = err
 			continue
 		}
-		deployment.Error = h.createContainers(
+		createdContainers, errA := h.createContainers(
 			ctx,
 			deployment,
 			cache,
@@ -162,7 +163,9 @@ func (h *Handler) CreateDeployments(ctx context.Context, selectedModules map[str
 			fileMounts,
 			fileGroupMounts,
 		)
-		if deployment.Error != nil {
+		errB := h.storageHdl.UpdateDeploymentContainerIds(ctx, createdContainers)
+		if errA != nil || errB != nil {
+			deployment.Error = errors.Join(errA, errB)
 			continue
 		}
 	}
