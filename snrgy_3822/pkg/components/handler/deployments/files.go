@@ -144,3 +144,51 @@ func getProvidedFileGroups(
 	}
 	return fileGroups
 }
+
+func createFilesDir(basePath string, dirName string) error {
+	return os.Mkdir(path.Join(basePath, dirName), dirPerm)
+}
+
+func createFileGroups(basePath string, dirName string, fileGroups map[string]models_handler_storage.DeploymentFileGroup) (map[string][]fileGroupMount, error) {
+	fileNames := make(map[string][]fileGroupMount)
+	for reference, fileGroup := range fileGroups {
+		for _, file := range fileGroup.Files {
+			fileName := helper_naming.GenHash(fileGroup.Id, file.Path)
+			err := writeToFile(file.Data, path.Join(basePath, dirName, fileName))
+			if err != nil {
+				return nil, err
+			}
+			fileNames[reference] = append(fileNames[reference], fileGroupMount{
+				FileName: fileName,
+				Path:     file.Path,
+			})
+		}
+	}
+	return fileNames, nil
+}
+
+func createFiles(basePath string, dirName string, files map[string][]byte, deploymentId string) (map[string]string, error) {
+	mounts := make(map[string]string)
+	for reference, data := range files {
+		fileName := helper_naming.GenHash(deploymentId, reference)
+		err := writeToFile(data, path.Join(basePath, dirName, fileName))
+		if err != nil {
+			return nil, err
+		}
+		mounts[reference] = fileName
+	}
+	return mounts, nil
+}
+
+func writeToFile(data []byte, filePath string) error {
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	_, err = file.Write(data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
