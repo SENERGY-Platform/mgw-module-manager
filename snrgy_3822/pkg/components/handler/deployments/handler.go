@@ -35,6 +35,8 @@ type Config struct {
 	WorkDirPath     string        `json:"work_dir_path" env_var:"DEPLOYMENTS_HANDLER_WORK_DIR_PATH"`
 	PathEscapeDepth int           `json:"path_escape_depth" env_var:"PATH_ESCAPE_DEPTH"`
 	JobPollInterval time.Duration `json:"job_poll_interval" env_var:"DEPLOYMENTS_HANDLER_JOB_POLL_INTERVAL"`
+	HostWorkDirPath string
+	HostSecretsPath string
 }
 
 type Handler struct {
