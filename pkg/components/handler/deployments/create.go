@@ -233,18 +233,6 @@ func newCache(deployments map[string]*deploymentWrapper) *cacheWrapper {
 	}
 }
 
-func newVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[string]models_handler_storage.DeploymentVolume {
-	volumes := make(map[string]models_handler_storage.DeploymentVolume)
-	for reference := range moduleVolumes {
-		volumes[reference] = models_handler_storage.DeploymentVolume{
-			DeploymentId: deploymentId,
-			Reference:    reference,
-			Name:         helper_naming.NewVolumeName(deploymentId, reference),
-		}
-	}
-	return volumes
-}
-
 func createDeploymentDir(basePath string, dirName string, moduleFS fs.FS) error {
 	dirPath := path.Join(basePath, dirName)
 	err := os.Mkdir(dirPath, dirPerm)
