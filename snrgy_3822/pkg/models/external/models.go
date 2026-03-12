@@ -35,6 +35,11 @@ type ModuleSecretTarget = module_lib.SecretTarget
 type ModuleInternalDependencyTarget = module_lib.SrvRefTarget
 type ModuleExternalDependencyTarget = module_lib.ExtDependencyTarget
 type ModuleFile = module_lib.File
+type ModuleServiceRunConfig = module_lib.RunConfig
+type ModuleServicePort = module_lib.Port
+type ModuleServiceIncludeMount = module_lib.BindMount
+type ModuleServiceTmpfsMount = module_lib.TmpfsMount
+type ModuleServiceHostResourceTarget = module_lib.HostResTarget
 
 const (
 	ModuleConfigBoolType    = module_lib.BoolType
@@ -50,12 +55,29 @@ type VolumesFilter = cew_model.VolumeFilter
 type Image = cew_model.Image
 type ImagesFilter = cew_model.ImageFilter
 type CEWNotFoundErr = cew_model.NotFoundError
+type CewRunConfig = cew_model.RunConfig
+type CewContainerNetwork = cew_model.ContainerNet
+type CewPort = cew_model.Port
+type CewPortBinding = cew_model.PortBinding
+type CewMount = cew_model.Mount
+type CewDevice = cew_model.Device
 
-const CewRunningState = cew_model.RunningState
+const (
+	CewRunningState         = cew_model.RunningState
+	CewRestartStrategyNever = cew_model.RestartNever
+	CewMountTypeVolume      = cew_model.VolumeMount
+	CewMountTypeBind        = cew_model.BindMount
+	CewMountTypeTmpfs       = cew_model.TmpfsMount
+)
 
 type Job = job_hdl_lib.Job
 
 type HostResource = hm_model.HostResource
+
+const (
+	HostResourceTypeApp    = hm_model.Application
+	HostResourceTypeDevice = hm_model.SerialDevice
+)
 
 type SecretVariantRequest = sm_model.SecretVariantRequest
 type SecretPathVariant = sm_model.SecretPathVariant
