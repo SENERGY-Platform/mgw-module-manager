@@ -47,7 +47,8 @@ type fileGroupMount struct {
 
 type containerWrapper struct {
 	models_handler_storage.DeploymentContainer
-	Name string
+	Name    string
+	Service models_external.ModuleService
 }
 
 type cacheWrapper struct {
