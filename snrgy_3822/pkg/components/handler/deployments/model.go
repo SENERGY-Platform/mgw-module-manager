@@ -23,6 +23,8 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
+const dirPerm = 0770
+
 type deploymentWrapper struct {
 	models_handler_storage.Deployment
 	Configs          map[string]models_handler_storage.DeploymentUserConfig
