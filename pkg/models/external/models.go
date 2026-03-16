@@ -18,6 +18,7 @@ package external
 
 import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	cm_model "github.com/SENERGY-Platform/mgw-core-manager/lib/model"
 	job_hdl_lib "github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib"
 	hm_model "github.com/SENERGY-Platform/mgw-host-manager/lib/model"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
@@ -26,20 +27,8 @@ import (
 
 type Module = module_lib.Module
 type ModuleService = module_lib.Service
-type ModuleConfigs = module_lib.Configs
 type ModuleConfig = module_lib.ConfigValue
-type ModuleConfigTypeOptions = module_lib.ConfigTypeOptions
-type ModuleHostResource = module_lib.HostResource
-type ModuleSecret = module_lib.Secret
-type ModuleSecretTarget = module_lib.SecretTarget
-type ModuleInternalDependencyTarget = module_lib.SrvRefTarget
-type ModuleExternalDependencyTarget = module_lib.ExtDependencyTarget
-type ModuleFile = module_lib.File
-type ModuleServiceRunConfig = module_lib.RunConfig
-type ModuleServicePort = module_lib.Port
-type ModuleServiceIncludeMount = module_lib.BindMount
-type ModuleServiceTmpfsMount = module_lib.TmpfsMount
-type ModuleServiceHostResourceTarget = module_lib.HostResTarget
+type ModuleServiceHttpEndpoint = module_lib.HttpEndpoint
 
 const (
 	ModuleConfigBoolType    = module_lib.BoolType
@@ -82,3 +71,7 @@ const (
 type SecretVariantRequest = sm_model.SecretVariantRequest
 type SecretPathVariant = sm_model.SecretPathVariant
 type SecretValueVariant = sm_model.SecretValueVariant
+
+type CmEndpointBase = cm_model.EndpointBase
+type CmProxyConfig = cm_model.ProxyConfig
+type CmStringSub = cm_model.StringSub
