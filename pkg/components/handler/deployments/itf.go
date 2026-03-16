@@ -114,3 +114,9 @@ type secretManagerClient interface {
 	CleanPathVariants(ctx context.Context, ref string) (err error, errCode int)
 	GetValueVariant(ctx context.Context, secretRequest models_external.SecretVariantRequest) (variant models_external.SecretValueVariant, err error, errCode int)
 }
+
+type coreManagerClient interface {
+	SetEndpoints(ctx context.Context, endpoints []models_external.CmEndpointBase) (string, error)
+	GetJob(ctx context.Context, id string) (models_external.Job, error)
+	CancelJob(ctx context.Context, id string) error
+}
