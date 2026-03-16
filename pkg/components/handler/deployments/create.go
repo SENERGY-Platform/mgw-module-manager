@@ -129,7 +129,7 @@ func (h *Handler) initContainerEnvironment(
 ) (containerDataCollection, error) {
 	var data containerDataCollection
 	var err error
-	data.SecretMounts, err = h.getSecretMounts(ctx, deployment, userData) // secrets must be "unloaded" if error
+	data.SecretMounts, err = h.getSecretMounts(ctx, deployment, userData) // TODO secrets must be "unloaded" if error
 	if err != nil {
 		return containerDataCollection{}, err
 	}
