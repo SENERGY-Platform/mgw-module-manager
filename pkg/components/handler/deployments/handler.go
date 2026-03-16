@@ -68,7 +68,7 @@ func New(
 }
 
 func (h *Handler) Init() error {
-	return os.MkdirAll(h.config.WorkDirPath, 0775)
+	return os.MkdirAll(h.config.WorkDirPath, dirPerm)
 }
 
 func (h *Handler) GetDeployment(ctx context.Context, id string) (models_handler_deployment.Deployment, error) {
