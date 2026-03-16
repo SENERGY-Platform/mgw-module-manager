@@ -24,34 +24,19 @@ import (
 	"slices"
 	"strings"
 
+	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func newExternalDependenciesCache(deploymentWrappers map[string]*deploymentWrapper) map[string]map[string]models_handler_storage.DeploymentContainer {
-	externalDependenciesCache := make(map[string]map[string]models_handler_storage.DeploymentContainer)
-	for moduleId, deployment := range deploymentWrappers {
-		if deployment == nil {
-			continue
-		}
-		tmp := make(map[string]models_handler_storage.DeploymentContainer)
-		for reference, container := range deployment.Containers {
-			tmp[reference] = container.DeploymentContainer
-		}
-		externalDependenciesCache[moduleId] = tmp
-	}
-	return externalDependenciesCache
-}
-
-func (h *Handler) updateExternalDependenciesCache(
+func (h *Handler) updateContainerAliasesCache(
 	ctx context.Context,
-	externalDependenciesCache map[string]map[string]models_handler_storage.DeploymentContainer,
-	moduleDependencies map[string]string,
+	module models_handler_module.Module,
+	cache cacheCollection,
 ) error {
-	moduleIds := slices.Collect(maps.Keys(moduleDependencies))
 	var idsNotInCache []string
-	for _, id := range moduleIds {
-		if _, ok := externalDependenciesCache[id]; !ok {
-			idsNotInCache = append(idsNotInCache, id)
+	for moduleId := range module.Dependencies {
+		if _, ok := cache.ContainerAliases[moduleId]; !ok {
+			idsNotInCache = append(idsNotInCache, moduleId)
 		}
 	}
 	if len(idsNotInCache) == 0 {
@@ -66,16 +51,15 @@ func (h *Handler) updateExternalDependenciesCache(
 		return err
 	}
 	for id, deployment := range deployments {
-		tmp := make(map[string]models_handler_storage.DeploymentContainer)
-		containers := deploymentsContainers[id]
-		for _, container := range containers {
-			tmp[container.Reference] = container
+		aliases := make(map[string]string)
+		for _, container := range deploymentsContainers[id] {
+			aliases[container.Reference] = container.Alias
 		}
-		externalDependenciesCache[deployment.ModuleId] = tmp
+		cache.ContainerAliases[deployment.ModuleId] = aliases
 	}
 	var errs []string
 	for _, id := range idsNotInCache {
-		if _, ok := externalDependenciesCache[id]; !ok {
+		if _, ok := cache.ContainerAliases[id]; !ok {
 			errs = append(errs, fmt.Sprintf("dependency %v not found", id))
 		}
 	}

@@ -17,27 +17,36 @@
 package deployments
 
 import (
-	"io/fs"
-
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
 const dirPerm = 0770
 
-type deploymentWrapper struct {
+type extendedDeployment struct {
 	models_handler_storage.Deployment
-	ProvidedConfigs       map[string]models_handler_storage.DeploymentUserConfig
-	SelectedGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig
-	SelectedHostResources map[string]models_handler_storage.DeploymentHostResource
-	SelectedSecrets       map[string]models_handler_storage.DeploymentSecret
-	ProvidedFiles         map[string]models_handler_storage.DeploymentFile
-	ProvidedFileGroups    map[string]models_handler_storage.DeploymentFileGroup
-	Containers            map[string]containerWrapper
-	Volumes               map[string]models_handler_storage.DeploymentVolume
-	Module                models_external.Module
-	ModuleFileSystem      fs.FS
-	Error                 error
+	Containers map[string]models_handler_storage.DeploymentContainer
+	Volumes    map[string]models_handler_storage.DeploymentVolume
+}
+
+type defaultDataCollection struct {
+	Configs map[string]models_handler_storage.Config
+	Files   map[string][]byte
+}
+type userDataCollection struct {
+	GlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig
+	HostResources map[string]models_handler_storage.DeploymentHostResource
+	Secrets       map[string]models_handler_storage.DeploymentSecret
+	Configs       map[string]models_handler_storage.DeploymentUserConfig
+	Files         map[string]models_handler_storage.DeploymentFile
+	FileGroups    map[string]models_handler_storage.DeploymentFileGroup
+}
+
+type containerDataCollection struct {
+	SecretMounts    map[string]models_external.SecretPathVariant
+	FileMounts      map[string]string
+	FileGroupMounts map[string][]fileGroupMount
+	Configs         map[string]string
 }
 
 type fileGroupMount struct {
@@ -45,15 +54,10 @@ type fileGroupMount struct {
 	Path     string
 }
 
-type containerWrapper struct {
-	models_handler_storage.DeploymentContainer
-	Name    string
-	Service models_external.ModuleService
-}
-
-type cacheWrapper struct {
-	ExternalDependencies map[string]map[string]models_handler_storage.DeploymentContainer // {moduleId:{reference:DeploymentContainer}}
-	HostResources        map[string]models_external.HostResource                          // {hostResourceId:HostResource}
-	GlobalConfigs        map[string]models_handler_storage.GlobalConfig                   // {globalConfigId:GlobalConfig}
-	SecretValues         map[string]models_external.SecretValueVariant                    // {secretId+itemName:SecretValueVariant}
+type cacheCollection struct {
+	HostResources    map[string]models_external.HostResource        // {hostResourceId:HostResource}
+	GlobalConfigs    map[string]models_handler_storage.GlobalConfig // {globalConfigId:GlobalConfig}
+	SecretValues     map[string]models_external.SecretValueVariant  // {secretId+itemName:SecretValueVariant}
+	DeploymentIds    map[string]string                              // {moduleId:deploymentId}
+	ContainerAliases map[string]map[string]string                   // {moduleId:{serviceReference:containerAlias}}
 }

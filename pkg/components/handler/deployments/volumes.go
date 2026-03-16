@@ -27,9 +27,9 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func (h *Handler) createDeploymentContainerVolumes(ctx context.Context, volumes map[string]models_handler_storage.DeploymentVolume) error {
+func (h *Handler) createDeploymentContainerVolumes(ctx context.Context, deployment extendedDeployment) error {
 	var errs []string
-	for _, volume := range volumes {
+	for _, volume := range deployment.Volumes {
 		err := h.createContainerVolume(ctx, volume)
 		if err != nil {
 			errs = append(errs, err.Error())

@@ -24,21 +24,22 @@ import (
 	"strings"
 
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"
+	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
 func (h *Handler) updateHostResourcesCache(
 	ctx context.Context,
-	hostResourcesCache map[string]models_external.HostResource,
-	selectedHostResources map[string]models_handler_storage.DeploymentHostResource,
+	userData userDataCollection,
+	cache cacheCollection,
 ) error {
-	selectedIds := helper_slices.CollectFunc(maps.Values(selectedHostResources), func(item models_handler_storage.DeploymentHostResource) string {
+	selectedIds := helper_slices.CollectFunc(maps.Values(userData.HostResources), func(item models_handler_storage.DeploymentHostResource) string {
 		return item.Id
 	})
 	var idsNotInCache []string
 	for _, id := range selectedIds {
-		if _, ok := hostResourcesCache[id]; ok {
+		if _, ok := cache.HostResources[id]; ok {
 			idsNotInCache = append(idsNotInCache, id)
 		}
 	}
@@ -52,7 +53,7 @@ func (h *Handler) updateHostResourcesCache(
 			errs = append(errs, err.Error())
 			continue
 		}
-		hostResourcesCache[hostResource.ID] = hostResource
+		cache.HostResources[hostResource.ID] = hostResource
 	}
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n")) // TODO
@@ -61,14 +62,14 @@ func (h *Handler) updateHostResourcesCache(
 }
 
 func getSelectedHostResources(
-	moduleHostResources map[string]models_external.ModuleHostResource,
-	userInputs map[string]string,
+	module models_handler_module.Module,
+	userInputs models_handler_deployment.UserInput,
 	deploymentID string,
 ) (map[string]models_handler_storage.DeploymentHostResource, error) {
 	hostResources := make(map[string]models_handler_storage.DeploymentHostResource)
 	var errs []string
-	for reference, hostResource := range moduleHostResources {
-		id, ok := userInputs[reference]
+	for reference, hostResource := range module.HostResources {
+		id, ok := userInputs.HostResources[reference]
 		if !ok {
 			if hostResource.Required {
 				errs = append(errs, fmt.Sprintf("missing required host resource '%s'", reference))

@@ -25,16 +25,18 @@ import (
 	"strings"
 
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"
+	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
 func (h *Handler) updateSecretValuesCache(
 	ctx context.Context,
-	secretValuesCache map[string]models_external.SecretValueVariant,
-	selectedSecrets map[string]models_handler_storage.DeploymentSecret,
+	userData userDataCollection,
+	cache cacheCollection,
 ) error {
 	var errs []string
-	for _, secret := range selectedSecrets {
+	for _, secret := range userData.Secrets {
 		for _, secretItem := range secret.Items {
 			if secretItem.AsMount {
 				continue
@@ -44,7 +46,7 @@ func (h *Handler) updateSecretValuesCache(
 			if secretItem.Name != "" {
 				reqItem = &secretItem.Name
 			}
-			_, ok := secretValuesCache[cacheKey]
+			_, ok := cache.SecretValues[cacheKey]
 			if !ok {
 				var err error
 				valueVariant, err, _ := h.smClient.GetValueVariant(ctx, models_external.SecretVariantRequest{
@@ -55,7 +57,7 @@ func (h *Handler) updateSecretValuesCache(
 					errs = append(errs, err.Error())
 					continue
 				}
-				secretValuesCache[cacheKey] = valueVariant
+				cache.SecretValues[cacheKey] = valueVariant
 			}
 		}
 	}
@@ -67,12 +69,12 @@ func (h *Handler) updateSecretValuesCache(
 
 func (h *Handler) getSecretMounts(
 	ctx context.Context,
-	selectedSecrets map[string]models_handler_storage.DeploymentSecret,
-	deploymentId string,
+	deployment extendedDeployment,
+	userData userDataCollection,
 ) (map[string]models_external.SecretPathVariant, error) {
 	secretMounts := make(map[string]models_external.SecretPathVariant)
 	var errs []string
-	for _, secret := range selectedSecrets {
+	for _, secret := range userData.Secrets {
 		for _, secretItem := range secret.Items {
 			if secretItem.AsEnv {
 				continue
@@ -87,7 +89,7 @@ func (h *Handler) getSecretMounts(
 				pathVariant, err, _ := h.smClient.InitPathVariant(ctx, models_external.SecretVariantRequest{
 					ID:        secret.Id,
 					Item:      reqItem,
-					Reference: deploymentId,
+					Reference: deployment.Id,
 				})
 				if err != nil {
 					errs = append(errs, err.Error())
@@ -104,15 +106,14 @@ func (h *Handler) getSecretMounts(
 }
 
 func getSelectedSecrets(
-	moduleSecrets map[string]models_external.ModuleSecret,
-	moduleServices map[string]models_external.ModuleService,
-	userInputs map[string]string,
+	module models_handler_module.Module,
+	userInputs models_handler_deployment.UserInput,
 	deploymentID string,
 ) (map[string]models_handler_storage.DeploymentSecret, error) {
 	secrets := make(map[string]models_handler_storage.DeploymentSecret)
 	var errs []string
-	for reference, secret := range moduleSecrets {
-		id, ok := userInputs[reference]
+	for reference, secret := range module.Secrets {
+		id, ok := userInputs.Secrets[reference]
 		if !ok {
 			if secret.Required {
 				errs = append(errs, fmt.Sprintf("secret %s required", reference))
@@ -123,7 +124,7 @@ func getSelectedSecrets(
 			Id:           id,
 			DeploymentId: deploymentID,
 			Reference:    reference,
-			Items:        getSecretItems(reference, moduleServices),
+			Items:        getSecretItems(reference, module.Services),
 		}
 	}
 	if len(errs) > 0 {

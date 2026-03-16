@@ -29,20 +29,22 @@ import (
 	module_lib_validation_configs "github.com/SENERGY-Platform/mgw-module-lib/validation/configs"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"
+	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
 func (h *Handler) updateGlobalConfigsCache(
 	ctx context.Context,
-	globalConfigsCache map[string]models_handler_storage.GlobalConfig,
-	selectedGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
+	userData userDataCollection,
+	cache cacheCollection,
 ) error {
-	selectedIds := helper_slices.CollectFunc(maps.Values(selectedGlobalConfigs), func(item models_handler_storage.DeploymentGlobalConfig) string {
+	selectedIds := helper_slices.CollectFunc(maps.Values(userData.GlobalConfigs), func(item models_handler_storage.DeploymentGlobalConfig) string {
 		return item.Id
 	})
 	var idsNotInCache []string
 	for _, id := range selectedIds {
-		if _, ok := globalConfigsCache[id]; ok {
+		if _, ok := cache.GlobalConfigs[id]; ok {
 			idsNotInCache = append(idsNotInCache, id)
 		}
 	}
@@ -54,11 +56,11 @@ func (h *Handler) updateGlobalConfigsCache(
 		return err
 	}
 	for id, globalConfig := range globalConfigs {
-		globalConfigsCache[id] = globalConfig
+		cache.GlobalConfigs[id] = globalConfig
 	}
 	var errs []string
 	for _, id := range idsNotInCache {
-		if _, ok := globalConfigsCache[id]; !ok {
+		if _, ok := cache.GlobalConfigs[id]; !ok {
 			errs = append(errs, fmt.Sprintf("global config %s not found", id))
 		}
 	}
@@ -68,11 +70,11 @@ func (h *Handler) updateGlobalConfigsCache(
 	return nil
 }
 
-func configsToStrings(moduleConfigs models_external.ModuleConfigs, configs map[string]models_handler_storage.Config) map[string]string {
+func configsToStrings(module models_handler_module.Module, configs map[string]models_handler_storage.Config) map[string]string {
 	configValues := make(map[string]string)
 	for reference, config := range configs {
 		if config.IsSlice {
-			moduleConfig := moduleConfigs[reference]
+			moduleConfig := module.Configs[reference]
 			configValues[reference] = sliceConfigToString(config, moduleConfig.Delimiter)
 		} else {
 			configValues[reference] = configToString(config)
@@ -117,11 +119,11 @@ func sliceConfigToString(config models_handler_storage.Config, delimiter string)
 }
 
 func checkConfigs(
-	moduleConfigs models_external.ModuleConfigs,
+	module models_handler_module.Module,
 	configs map[string]models_handler_storage.Config,
 ) error {
 	var errs []string
-	for reference, moduleConfig := range moduleConfigs {
+	for reference, moduleConfig := range module.Configs {
 		_, ok := configs[reference]
 		if !ok && moduleConfig.Required {
 			errs = append(errs, fmt.Sprintf("config %s required", reference))
@@ -134,18 +136,17 @@ func checkConfigs(
 }
 
 func mergeConfigs(
-	defaultConfigs map[string]models_handler_storage.Config,
-	providedConfigs map[string]models_handler_storage.DeploymentUserConfig,
-	selectedGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
-	globalConfigsCache map[string]models_handler_storage.GlobalConfig,
+	defaultData defaultDataCollection,
+	userData userDataCollection,
+	cache cacheCollection,
 ) map[string]models_handler_storage.Config {
 	configs := make(map[string]models_handler_storage.Config)
-	maps.Copy(configs, defaultConfigs)
-	for reference, providedConfig := range providedConfigs {
+	maps.Copy(configs, defaultData.Configs)
+	for reference, providedConfig := range userData.Configs {
 		configs[reference] = providedConfig.Config
 	}
-	for reference, selectedGlobalConfig := range selectedGlobalConfigs {
-		globalConfig, ok := globalConfigsCache[selectedGlobalConfig.Id]
+	for reference, selectedGlobalConfig := range userData.GlobalConfigs {
+		globalConfig, ok := cache.GlobalConfigs[selectedGlobalConfig.Id]
 		if ok {
 			configs[reference] = globalConfig.Config
 		}
@@ -153,10 +154,10 @@ func mergeConfigs(
 	return configs
 }
 
-func getDefaultConfigs(moduleConfigs models_external.ModuleConfigs) (map[string]models_handler_storage.Config, error) {
+func getDefaultConfigs(module models_handler_module.Module) (map[string]models_handler_storage.Config, error) {
 	configs := make(map[string]models_handler_storage.Config)
 	var errs []string
-	for reference, moduleConfig := range moduleConfigs {
+	for reference, moduleConfig := range module.Configs {
 		if moduleConfig.Default == nil {
 			continue
 		}
@@ -174,13 +175,13 @@ func getDefaultConfigs(moduleConfigs models_external.ModuleConfigs) (map[string]
 }
 
 func getSelectedGlobalConfigs(
-	moduleConfigs models_external.ModuleConfigs,
-	userInputs map[string]string,
+	module models_handler_module.Module,
+	userInputs models_handler_deployment.UserInput,
 	deploymentId string,
 ) map[string]models_handler_storage.DeploymentGlobalConfig {
 	configs := make(map[string]models_handler_storage.DeploymentGlobalConfig)
-	for reference := range moduleConfigs {
-		id, ok := userInputs[reference]
+	for reference := range module.Configs {
+		id, ok := userInputs.GlobalConfigs[reference]
 		if !ok {
 			continue
 		}
@@ -194,15 +195,15 @@ func getSelectedGlobalConfigs(
 }
 
 func getProvidedConfigs(
-	moduleConfigs models_external.ModuleConfigs,
-	defaultConfigs map[string]models_handler_storage.Config,
-	userInputs map[string]any,
+	module models_handler_module.Module,
+	defaultConfigs defaultDataCollection,
+	userInputs models_handler_deployment.UserInput,
 	deploymentId string,
 ) (map[string]models_handler_storage.DeploymentUserConfig, error) {
 	configs := make(map[string]models_handler_storage.DeploymentUserConfig)
 	var errs []string
-	for reference, moduleConfig := range moduleConfigs {
-		val, ok := userInputs[reference]
+	for reference, moduleConfig := range module.Configs {
+		val, ok := userInputs.Configs[reference]
 		if !ok || val == nil {
 			continue
 		}
@@ -211,7 +212,7 @@ func getProvidedConfigs(
 			errs = append(errs, err.Error())
 			continue
 		}
-		defaultConfig, ok := defaultConfigs[reference]
+		defaultConfig, ok := defaultConfigs.Configs[reference]
 		if ok && configIsEqual(config, defaultConfig) {
 			continue
 		}
