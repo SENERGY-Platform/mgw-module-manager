@@ -21,9 +21,11 @@ const (
 )
 
 const (
-	LabelCoreId           = "mgw_cid"
-	LabelManagerId        = "mgw_mid"
-	LabelDeploymentId     = "mgw_did"
-	LabelVolumeReference  = "mgw_vref"
-	LabelServiceReference = "mgw_sref"
+	LabelCoreId                       = "mgw_cid"
+	LabelManagerId                    = "mgw_mid"
+	LabelDeploymentId                 = "mgw_did"
+	LabelVolumeReference              = "mgw_vref"
+	LabelServiceReference             = "mgw_sref"
+	LabelHttpEndpointServiceReference = "srv_ref"
+	LabelHttpEndpointModuleId         = "mod_id"
 )
