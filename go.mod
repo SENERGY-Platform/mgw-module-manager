@@ -26,6 +26,7 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/SENERGY-Platform/go-base-http-client v0.1.0 // indirect
 	github.com/SENERGY-Platform/go-env-loader v0.5.3 // indirect
+	github.com/SENERGY-Platform/mgw-core-manager/lib v0.10.1 // indirect
 	github.com/SENERGY-Platform/mgw-go-service-base/srv-info-hdl/lib v0.0.3 // indirect
 	github.com/SENERGY-Platform/service-commons v0.0.0-20250903071414-1b34f1965afa // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
