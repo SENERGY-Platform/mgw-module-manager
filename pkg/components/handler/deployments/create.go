@@ -52,24 +52,7 @@ func (h *Handler) CreateDeployments(
 			errs = append(errs, err.Error())
 			continue
 		}
-		defaultData, err := getDefaultData(module)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		userData, err := getUserData(module, deployment, defaultData, userInput)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		mergedConfigs := mergeConfigs(defaultData, userData, cache)
-		err = checkConfigs(module, mergedConfigs)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		mergedFiles := mergeFiles(defaultData, userData)
-		err = checkFiles(module, mergedFiles)
+		userData, mergedConfigs, mergedFiles, err := getDeploymentData(module, deployment, userInput, cache)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
@@ -159,6 +142,33 @@ func (h *Handler) initContainerEnvironment(
 		return containerDataCollection{}, err
 	}
 	return data, nil
+}
+
+func getDeploymentData(
+	module models_handler_module.Module,
+	deployment extendedDeployment,
+	userInput models_handler_deployment.UserInput,
+	cache cacheCollection,
+) (userDataCollection, map[string]models_handler_storage.Config, map[string][]byte, error) {
+	defaultData, err := getDefaultData(module)
+	if err != nil {
+		return userDataCollection{}, nil, nil, err
+	}
+	userData, err := getUserData(module, deployment, defaultData, userInput)
+	if err != nil {
+		return userDataCollection{}, nil, nil, err
+	}
+	mergedConfigs := mergeConfigs(defaultData, userData, cache)
+	err = checkConfigs(module, mergedConfigs)
+	if err != nil {
+		return userDataCollection{}, nil, nil, err
+	}
+	mergedFiles := mergeFiles(defaultData, userData)
+	err = checkFiles(module, mergedFiles)
+	if err != nil {
+		return userDataCollection{}, nil, nil, err
+	}
+	return userData, mergedConfigs, mergedFiles, nil
 }
 
 func getDefaultData(module models_handler_module.Module) (defaultDataCollection, error) {
