@@ -65,6 +65,7 @@ type storageHandler interface {
 		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
 		files []models_handler_storage.DeploymentFile,
 		fileGroups []models_handler_storage.DeploymentFileGroup,
+		volumes []models_handler_storage.DeploymentVolume,
 		containers []models_handler_storage.DeploymentContainer,
 	) (err error)
 	UpdateDeploymentContainerIds(ctx context.Context, containers []models_handler_storage.DeploymentContainer) error
