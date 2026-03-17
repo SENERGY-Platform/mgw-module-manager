@@ -129,12 +129,12 @@ func (h *Handler) initContainerEnvironment(
 ) (containerDataCollection, error) {
 	var data containerDataCollection
 	var err error
-	data.SecretMounts, err = h.getSecretMounts(ctx, deployment, userData) // TODO secrets must be "unloaded" if error
+	data.SecretMounts, err = h.ensureSecretMounts(ctx, deployment, userData)
 	if err != nil {
 		return containerDataCollection{}, err
 	}
 	data.Configs = configsToStrings(module, mergedConfigs)
-	err = h.addDeploymentContainerImages(ctx, module) // ensure that container images are available
+	err = h.ensureContainerImages(ctx, module)
 	if err != nil {
 		return containerDataCollection{}, err
 	}
