@@ -56,17 +56,6 @@ type storageHandler interface {
 	UpdateDeploymentsEnabledState(ctx context.Context, deployments map[string]bool, timestamp time.Time) (err error)
 	UpdateDeploymentEnabledState(ctx context.Context, id string, enabled bool, timestamp time.Time) error
 	UpdateDeploymentName(ctx context.Context, id, name string, timestamp time.Time) error
-	UpdateDeploymentResourcesAndConfigs(
-		ctx context.Context,
-		deploymentId string,
-		hostResources []models_handler_storage.DeploymentHostResource,
-		secrets []models_handler_storage.DeploymentSecret,
-		userConfigs []models_handler_storage.DeploymentUserConfig,
-		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
-		files []models_handler_storage.DeploymentFile,
-		fileGroups []models_handler_storage.DeploymentFileGroup,
-		containers []models_handler_storage.DeploymentContainer,
-	) (err error)
 	UpdateDeployment(
 		ctx context.Context,
 		deployment models_handler_storage.Deployment,
