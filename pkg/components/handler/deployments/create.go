@@ -83,6 +83,7 @@ func (h *Handler) CreateDeployments(
 			errs = append(errs, err.Error())
 			continue
 		}
+		// TODO "mount secrets" must be "unloaded" if one of the following steps fails
 		err = h.createHttpEndpoints(ctx, module, deployment)
 		if err != nil {
 			errs = append(errs, err.Error())
@@ -93,6 +94,7 @@ func (h *Handler) CreateDeployments(
 		}
 		err = h.storageHdl.UpdateDeploymentContainerIds(ctx, createdContainers)
 		if err != nil {
+			// TODO how to handle already created containers?
 			errs = append(errs, err.Error())
 		}
 	}
