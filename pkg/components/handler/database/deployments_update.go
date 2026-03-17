@@ -152,6 +152,7 @@ func (h *Handler) UpdateDeployment(
 		globalConfigs,
 		files,
 		fileGroups,
+		volumes,
 		containers,
 	)
 	if err != nil {
