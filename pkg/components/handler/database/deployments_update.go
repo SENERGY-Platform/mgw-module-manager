@@ -104,47 +104,6 @@ func (h *Handler) UpdateDeploymentContainerIds(ctx context.Context, containers [
 	return
 }
 
-func (h *Handler) UpdateDeploymentResourcesAndConfigs(
-	ctx context.Context,
-	deploymentId string,
-	hostResources []models_handler_storage.DeploymentHostResource,
-	secrets []models_handler_storage.DeploymentSecret,
-	userConfigs []models_handler_storage.DeploymentUserConfig,
-	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
-	files []models_handler_storage.DeploymentFile,
-	fileGroups []models_handler_storage.DeploymentFileGroup,
-	containers []models_handler_storage.DeploymentContainer,
-) (err error) {
-	tx, err := h.sqlDB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		err = tx.Rollback()
-	}()
-	err = h.deleteDeploymentResourcesAndConfigs(ctx, tx, deploymentId)
-	if err != nil {
-		return
-	}
-	err = h.createDeploymentResourcesAndConfigs(
-		ctx,
-		tx,
-		deploymentId,
-		hostResources,
-		secrets,
-		userConfigs,
-		globalConfigs,
-		files,
-		fileGroups,
-		containers,
-	)
-	if err != nil {
-		return
-	}
-	err = tx.Commit()
-	return
-}
-
 func (h *Handler) UpdateDeployment(
 	ctx context.Context,
 	deployment models_handler_storage.Deployment,
