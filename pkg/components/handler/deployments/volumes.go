@@ -19,20 +19,38 @@ package deployments
 import (
 	"context"
 	"errors"
+	"maps"
 	"strings"
 
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
+	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func (h *Handler) createDeploymentContainerVolumes(ctx context.Context, deployment extendedDeployment) error {
+func (h *Handler) ensureContainerVolumes(ctx context.Context, deployment extendedDeployment) error {
+	existingVolumes, err := h.getContainerVolumes(ctx, deployment)
+	if err != nil {
+		return err
+	}
 	var errs []string
+	for name := range existingVolumes {
+		_, ok := deployment.Volumes[name]
+		if !ok {
+			err = h.removeContainerVolume(ctx, name)
+			if err != nil {
+				errs = append(errs, err.Error())
+			}
+		}
+	}
 	for _, volume := range deployment.Volumes {
-		err := h.createContainerVolume(ctx, volume)
-		if err != nil {
-			errs = append(errs, err.Error())
+		_, ok := existingVolumes[volume.Name]
+		if !ok {
+			err = h.createContainerVolume(ctx, volume)
+			if err != nil {
+				errs = append(errs, err.Error())
+			}
 		}
 	}
 	if len(errs) > 0 {
@@ -42,16 +60,7 @@ func (h *Handler) createDeploymentContainerVolumes(ctx context.Context, deployme
 }
 
 func (h *Handler) createContainerVolume(ctx context.Context, volume models_handler_storage.DeploymentVolume) error {
-	_, err := h.cewClient.GetVolume(ctx, volume.Name)
-	if err != nil {
-		var notFoundErr *models_external.CEWNotFoundErr
-		if !errors.As(err, &notFoundErr) {
-			return err
-		}
-	} else {
-		return nil
-	}
-	_, err = h.cewClient.CreateVolume(ctx, models_external.Volume{
+	_, err := h.cewClient.CreateVolume(ctx, models_external.Volume{
 		Name: volume.Name,
 		Labels: map[string]string{
 			constants.LabelCoreId:          helper_naming.CoreId,
@@ -64,4 +73,32 @@ func (h *Handler) createContainerVolume(ctx context.Context, volume models_handl
 		return err
 	}
 	return nil
+}
+
+func (h *Handler) removeContainerVolume(ctx context.Context, name string) error {
+	err := h.cewClient.RemoveVolume(ctx, name, false)
+	if err != nil {
+		var notFoundErr *models_external.CEWNotFoundErr
+		if !errors.As(err, &notFoundErr) {
+			return err
+		}
+	}
+	return nil
+}
+
+func (h *Handler) getContainerVolumes(ctx context.Context, deployment extendedDeployment) (map[string]models_external.Volume, error) {
+	volumes, err := h.cewClient.GetVolumes(ctx, models_external.VolumesFilter{
+		Labels: map[string]string{
+			constants.LabelCoreId:       helper_naming.CoreId,
+			constants.LabelManagerId:    helper_naming.ManagerId,
+			constants.LabelDeploymentId: deployment.Id,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	volumesMap := maps.Collect(helper_slices.AllFunc(volumes, func(item models_external.Volume) string {
+		return item.Name
+	}))
+	return volumesMap, nil
 }

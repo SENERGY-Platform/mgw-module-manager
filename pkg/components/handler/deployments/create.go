@@ -138,7 +138,7 @@ func (h *Handler) initContainerEnvironment(
 	if err != nil {
 		return containerDataCollection{}, err
 	}
-	err = h.createDeploymentContainerVolumes(ctx, deployment)
+	err = h.ensureContainerVolumes(ctx, deployment)
 	if err != nil {
 		return containerDataCollection{}, err
 	}
