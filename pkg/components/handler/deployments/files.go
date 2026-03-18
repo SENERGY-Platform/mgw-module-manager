@@ -149,6 +149,10 @@ func (h *Handler) createFilesDir(deployment extendedDeployment) error {
 	return os.Mkdir(path.Join(h.config.WorkDirPath, deployment.FilesDirName), dirPerm)
 }
 
+func (h *Handler) removeFilesDir(deployment extendedDeployment) error {
+	return os.RemoveAll(path.Join(h.config.WorkDirPath, deployment.FilesDirName))
+}
+
 func (h *Handler) createFileGroups(deployment extendedDeployment, userData userDataCollection) (map[string][]fileGroupMount, error) {
 	fileNames := make(map[string][]fileGroupMount)
 	for reference, fileGroup := range userData.FileGroups {
