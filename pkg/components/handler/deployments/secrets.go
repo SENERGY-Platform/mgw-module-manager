@@ -67,7 +67,7 @@ func (h *Handler) updateSecretValuesCache(
 	return nil
 }
 
-func (h *Handler) ensureSecretMounts(
+func (h *Handler) createSecretMounts(
 	ctx context.Context,
 	deployment extendedDeployment,
 	userData userDataCollection,

@@ -78,7 +78,7 @@ func (h *Handler) CreateDeployments(
 			errs = append(errs, err.Error())
 			continue
 		}
-		containerData, err := h.initContainerEnvironment(ctx, module, deployment, userData, mergedConfigs, mergedFiles)
+		containerData, err := h.ensureContainerEnvironment(ctx, module, deployment, userData, mergedConfigs, mergedFiles)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
@@ -104,7 +104,7 @@ func (h *Handler) CreateDeployments(
 	return nil
 }
 
-func (h *Handler) initContainerEnvironment(
+func (h *Handler) ensureContainerEnvironment(
 	ctx context.Context,
 	module models_handler_module.Module,
 	deployment extendedDeployment,
@@ -138,7 +138,7 @@ func (h *Handler) initContainerEnvironment(
 	if err != nil {
 		return containerDataCollection{}, err
 	}
-	data.SecretMounts, err = h.ensureSecretMounts(ctx, deployment, userData)
+	data.SecretMounts, err = h.createSecretMounts(ctx, deployment, userData)
 	if err != nil {
 		return containerDataCollection{}, err
 	}
