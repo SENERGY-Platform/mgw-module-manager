@@ -114,11 +114,6 @@ func (h *Handler) initContainerEnvironment(
 ) (containerDataCollection, error) {
 	var data containerDataCollection
 	var err error
-	data.SecretMounts, err = h.ensureSecretMounts(ctx, deployment, userData)
-	if err != nil {
-		return containerDataCollection{}, err
-	}
-	data.Configs = configsToStrings(module, mergedConfigs)
 	err = h.ensureContainerImages(ctx, module)
 	if err != nil {
 		return containerDataCollection{}, err
@@ -143,6 +138,11 @@ func (h *Handler) initContainerEnvironment(
 	if err != nil {
 		return containerDataCollection{}, err
 	}
+	data.SecretMounts, err = h.ensureSecretMounts(ctx, deployment, userData)
+	if err != nil {
+		return containerDataCollection{}, err
+	}
+	data.Configs = configsToStrings(module, mergedConfigs)
 	return data, nil
 }
 
