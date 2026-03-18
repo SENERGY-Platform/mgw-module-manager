@@ -64,6 +64,31 @@ func (h *Handler) createContainers(
 	return createdContainers, nil
 }
 
+func (h *Handler) removeContainers(ctx context.Context, deployment extendedDeployment) error {
+	var errs []string
+	for _, container := range deployment.Containers {
+		err := h.removeContainer(ctx, container.Id)
+		if err != nil {
+			errs = append(errs, err.Error())
+		}
+	}
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "\n")) // TODO
+	}
+	return nil
+}
+
+func (h *Handler) removeContainer(ctx context.Context, containerId string) error {
+	err := h.cewClient.RemoveContainer(ctx, containerId, true)
+	if err != nil {
+		var notFoundErr *models_external.CEWNotFoundErr
+		if !errors.As(err, &notFoundErr) {
+			return err
+		}
+	}
+	return nil
+}
+
 func getCewContainer(
 	service models_external.ModuleService,
 	container models_handler_storage.DeploymentContainer,
