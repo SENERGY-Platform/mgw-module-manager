@@ -74,10 +74,6 @@ func (h *Handler) createSecretMounts(
 ) (map[string]models_external.SecretPathVariant, error) {
 	secretMounts := make(map[string]models_external.SecretPathVariant)
 	var errs []string
-	err, _ := h.smClient.CleanPathVariants(ctx, deployment.Id)
-	if err != nil {
-		errs = append(errs, err.Error()) // TODO log instead?
-	}
 	for _, secret := range userData.Secrets {
 		for _, secretItem := range secret.Items {
 			if secretItem.AsEnv {
