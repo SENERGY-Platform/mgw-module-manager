@@ -104,13 +104,21 @@ func (h *Handler) createSecretMounts(
 		}
 	}
 	if len(errs) > 0 {
-		err, _ := h.smClient.CleanPathVariants(ctx, deployment.Id)
+		err := h.removeSecretMounts(ctx, deployment)
 		if err != nil {
 			errs = append(errs, err.Error())
 		}
 		return nil, errors.New(strings.Join(errs, "\n")) // TODO
 	}
 	return secretMounts, nil
+}
+
+func (h *Handler) removeSecretMounts(ctx context.Context, deployment extendedDeployment) error {
+	err, _ := h.smClient.CleanPathVariants(ctx, deployment.Id)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func getSelectedSecrets(
