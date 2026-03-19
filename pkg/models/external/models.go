@@ -25,16 +25,27 @@ import (
 	sm_model "github.com/SENERGY-Platform/mgw-secret-manager/pkg/api_model"
 )
 
-type Module = module_lib.Module
-type ModuleService = module_lib.Service
-type ModuleConfig = module_lib.ConfigValue
-type ModuleServiceHttpEndpoint = module_lib.HttpEndpoint
+type ModuleLibModule = module_lib.Module
+type ModuleLibService = module_lib.Service
+type ModuleLibConfigs = module_lib.Configs
+type ModuleLibConfigValue = module_lib.ConfigValue
+type ModuleLibHttpEndpoint = module_lib.HttpEndpoint
+type ModuleLibSrvRefTarget = module_lib.SrvRefTarget
+type ModuleLibRunConfig = module_lib.RunConfig
+type ModuleLibPort = module_lib.Port
+type ModuleLibHostResTarget = module_lib.HostResTarget
+type ModuleLibSecretTarget = module_lib.SecretTarget
+type ModuleLibTmpfsMount = module_lib.TmpfsMount
+type ModuleLibBindMount = module_lib.BindMount
+type ModuleLibExtDependencyTarget = module_lib.ExtDependencyTarget
+type ModuleLibHostResource = module_lib.HostResource
+type ModuleLibFile = module_lib.File
 
 const (
-	ModuleConfigBoolType    = module_lib.BoolType
-	ModuleConfigInt64Type   = module_lib.Int64Type
-	ModuleConfigFloat64Type = module_lib.Float64Type
-	ModuleConfigStringType  = module_lib.StringType
+	ModuleLibBoolType    = module_lib.BoolType
+	ModuleLibInt64Type   = module_lib.Int64Type
+	ModuleLibFloat64Type = module_lib.Float64Type
+	ModuleLibStringType  = module_lib.StringType
 )
 
 type Container = cew_model.Container

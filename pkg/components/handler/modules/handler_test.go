@@ -50,7 +50,7 @@ func TestHandler_Modules(t *testing.T) {
 		},
 	}}
 	a := models_handler_module.Module{
-		Module: models_external.Module{
+		ModuleLibModule: models_external.ModuleLibModule{
 			ID:          "github.com/org/repo",
 			Name:        "Test Module",
 			Description: "Module for tests.",
@@ -81,8 +81,8 @@ func TestHandler_Modules(t *testing.T) {
 	if a.Version != b.Version {
 		t.Errorf("expected %v, got %v", a.Version, b.Version)
 	}
-	a.Module = models_external.Module{}
-	b.Module = models_external.Module{}
+	a.ModuleLibModule = models_external.ModuleLibModule{}
+	b.ModuleLibModule = models_external.ModuleLibModule{}
 	if !reflect.DeepEqual(a, b) {
 		t.Errorf("expected %v, got %v", a, b)
 	}
@@ -102,7 +102,7 @@ func TestHandler_Module(t *testing.T) {
 		},
 	}}
 	a := models_handler_module.Module{
-		Module: models_external.Module{
+		ModuleLibModule: models_external.ModuleLibModule{
 			ID:          "github.com/org/repo",
 			Name:        "Test Module",
 			Description: "Module for tests.",
@@ -126,8 +126,8 @@ func TestHandler_Module(t *testing.T) {
 	if a.Version != mod.Version {
 		t.Errorf("expected %v, got %v", a.Version, mod.Version)
 	}
-	a.Module = models_external.Module{}
-	mod.Module = models_external.Module{}
+	a.ModuleLibModule = models_external.ModuleLibModule{}
+	mod.ModuleLibModule = models_external.ModuleLibModule{}
 	if !reflect.DeepEqual(a, mod) {
 		t.Errorf("expected: %v, got: %v", a, mod)
 	}

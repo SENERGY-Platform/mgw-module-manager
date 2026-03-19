@@ -27,7 +27,7 @@ type Handler struct {
 	storageHdl storageHandler
 	cewClient  containerEngineWrapperClient
 	config     Config
-	cache      map[string]models_external.Module
+	cache      map[string]models_external.ModuleLibModule
 	cacheMU    sync.RWMutex
 	mu         sync.RWMutex
 }
@@ -36,7 +36,7 @@ func New(storageHdl storageHandler, cewClient containerEngineWrapperClient, conf
 	return &Handler{
 		storageHdl: storageHdl,
 		cewClient:  cewClient,
-		cache:      make(map[string]models_external.Module),
+		cache:      make(map[string]models_external.ModuleLibModule),
 		config:     config,
 	}
 }
@@ -277,12 +277,12 @@ func (h *Handler) modules(ctx context.Context, filter models_handler_module.Modu
 			continue
 		}
 		modules[mod.ID] = models_handler_module.Module{
-			Module:     mod,
-			Source:     stgMod.Source,
-			Channel:    stgMod.Channel,
-			Added:      stgMod.Added,
-			Updated:    stgMod.Updated,
-			FileSystem: modFS,
+			ModuleLibModule: mod,
+			Source:          stgMod.Source,
+			Channel:         stgMod.Channel,
+			Added:           stgMod.Added,
+			Updated:         stgMod.Updated,
+			FileSystem:      modFS,
 		}
 	}
 	lenErrs := len(errs)
@@ -292,14 +292,14 @@ func (h *Handler) modules(ctx context.Context, filter models_handler_module.Modu
 	return modules, nil
 }
 
-func (h *Handler) cacheGet(id string) (models_external.Module, bool) {
+func (h *Handler) cacheGet(id string) (models_external.ModuleLibModule, bool) {
 	h.cacheMU.RLock()
 	defer h.cacheMU.RUnlock()
 	mod, ok := h.cache[id]
 	return mod, ok
 }
 
-func (h *Handler) cacheSet(id string, mod models_external.Module) {
+func (h *Handler) cacheSet(id string, mod models_external.ModuleLibModule) {
 	h.cacheMU.Lock()
 	defer h.cacheMU.Unlock()
 	h.cache[id] = mod
@@ -367,7 +367,7 @@ func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages map[
 	return nil
 }
 
-func imagesAsSet(services map[string]models_external.ModuleService) map[string]struct{} {
+func imagesAsSet(services map[string]models_external.ModuleLibService) map[string]struct{} {
 	images := make(map[string]struct{})
 	for _, service := range services {
 		images[service.Image] = struct{}{}

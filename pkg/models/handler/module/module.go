@@ -24,7 +24,7 @@ import (
 )
 
 type Module struct {
-	models_external.Module
+	models_external.ModuleLibModule
 	Source     string
 	Channel    string
 	Added      time.Time
