@@ -36,7 +36,7 @@ func (h *Handler) createHttpEndpoints(
 	for reference, service := range moduleServices {
 		container := deploymentContainers[reference]
 		for externalPath, endpoint := range service.HttpEndpoints {
-			endpoints = append(endpoints, newCmEndpointBase(container, endpoint, moduleId, externalPath))
+			endpoints = append(endpoints, newCmEndpointBase(container.Reference, container.Alias, endpoint, moduleId, externalPath))
 		}
 	}
 	jobId, err := h.cmClient.SetEndpoints(ctx, endpoints)
@@ -54,14 +54,15 @@ func (h *Handler) createHttpEndpoints(
 }
 
 func newCmEndpointBase(
-	container models_handler_storage.DeploymentContainer,
+	containerReference string,
+	containerAlias string,
 	serviceEndpoint models_external.ModuleLibHttpEndpoint,
 	moduleId,
 	externalPath string,
 ) models_external.CmEndpointBase {
 	return models_external.CmEndpointBase{
-		Ref:     container.Reference,
-		Host:    container.Alias,
+		Ref:     containerReference,
+		Host:    containerAlias,
 		Port:    &serviceEndpoint.Port, // TODO unnecessary pointer
 		IntPath: serviceEndpoint.Path,
 		ExtPath: externalPath,
@@ -77,7 +78,7 @@ func newCmEndpointBase(
 		},
 		Labels: map[string]string{
 			constants.LabelHttpEndpointModuleId:         moduleId,
-			constants.LabelHttpEndpointServiceReference: container.Reference,
+			constants.LabelHttpEndpointServiceReference: containerReference,
 		},
 	}
 }

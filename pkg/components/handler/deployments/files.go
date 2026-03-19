@@ -145,12 +145,12 @@ func getProvidedFileGroups(
 	return fileGroups
 }
 
-func (h *Handler) createFilesDir(deploymentFilesDirName string) error {
-	return os.Mkdir(path.Join(h.config.WorkDirPath, deploymentFilesDirName), dirPerm)
+func createFilesDir(workDirPath, deploymentFilesDirName string) error {
+	return os.Mkdir(path.Join(workDirPath, deploymentFilesDirName), dirPerm)
 }
 
-func (h *Handler) removeFilesDir(deploymentFilesDirName string) error {
-	return os.RemoveAll(path.Join(h.config.WorkDirPath, deploymentFilesDirName))
+func removeFilesDir(workDirPath, deploymentFilesDirName string) error {
+	return os.RemoveAll(path.Join(workDirPath, deploymentFilesDirName))
 }
 
 func createFileGroups(

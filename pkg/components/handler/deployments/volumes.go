@@ -29,14 +29,17 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func (h *Handler) ensureContainerVolumes(ctx context.Context, deployment extendedDeployment) error {
-	existingVolumes, err := h.getContainerVolumes(ctx, deployment.Id)
+func (h *Handler) ensureContainerVolumes(ctx context.Context,
+	volumes map[string]models_handler_storage.DeploymentVolume,
+	deploymentId string,
+) error {
+	existingVolumes, err := h.getContainerVolumes(ctx, deploymentId)
 	if err != nil {
 		return err
 	}
 	var errs []string
 	for name := range existingVolumes {
-		_, ok := deployment.Volumes[name]
+		_, ok := volumes[name]
 		if !ok {
 			err = h.removeContainerVolume(ctx, name)
 			if err != nil {
@@ -44,7 +47,7 @@ func (h *Handler) ensureContainerVolumes(ctx context.Context, deployment extende
 			}
 		}
 	}
-	for _, volume := range deployment.Volumes {
+	for _, volume := range volumes {
 		_, ok := existingVolumes[volume.Name]
 		if !ok {
 			err = h.createContainerVolume(ctx, volume)

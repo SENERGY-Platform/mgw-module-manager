@@ -29,31 +29,70 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
+type extendedDeployment struct {
+	models_handler_storage.Deployment
+	Containers      map[string]models_handler_storage.DeploymentContainer
+	Volumes         map[string]models_handler_storage.DeploymentVolume
+	Configs         map[string]models_handler_storage.Config
+	SecretMounts    map[string]models_external.SecretPathVariant
+	FileMounts      map[string]string
+	FileGroupMounts map[string][]fileGroupMount
+}
+
 func (h *Handler) createContainers(
 	ctx context.Context,
+	moduleConfigs models_external.ModuleLibConfigs,
 	moduleServices map[string]models_external.ModuleLibService,
-	deployment extendedDeployment,
-	containerEnvironmentData containerEnvironmentDataCollection,
-	cache cacheCollection,
+	deploymentId string,
+	deploymentDirName string,
+	deploymentFilesDirName string,
+	userDataSecrets map[string]models_handler_storage.DeploymentSecret,
+	userDataHostResources map[string]models_handler_storage.DeploymentHostResource,
+	containers map[string]models_handler_storage.DeploymentContainer,
+	volumes map[string]models_handler_storage.DeploymentVolume,
+	configs map[string]models_handler_storage.Config,
+	bindMounts bindMountDataCollection,
+	cacheSecretValues map[string]models_external.SecretValueVariant,
+	cacheContainerAliases map[string]map[string]string,
+	cacheHostResources map[string]models_external.HostResource,
 ) ([]models_handler_storage.DeploymentContainer, error) {
 	var createdContainers []models_handler_storage.DeploymentContainer
 	var errs []string
 	for reference, service := range moduleServices {
-		depContainer := deployment.Containers[reference]
+		envVariables := make(map[string]string)
+		setConfigEnvVariables(envVariables, service.Configs, configsToStrings(moduleConfigs, configs))
+		setSecretValueEnvVariables(envVariables, service.SecretVars, userDataSecrets, cacheSecretValues)
+		setInternalDependencyEnvVariables(envVariables, service.SrvReferences, containers)
+		setExternalDependencyEnvVariables(envVariables, service.ExtDependencies, cacheContainerAliases)
+		envVariables[constants.EnvVariableDeploymentId] = deploymentId
+		var mounts []models_external.CewMount
+		mounts = appendIncludeMounts(mounts, service.BindMounts, deploymentDirName, h.config.WorkDirPath)
+		mounts = appendTmpfsMounts(mounts, service.Tmpfs)
+		mounts = appendVolumeMounts(mounts, service.Volumes, volumes)
+		mounts = appendApplicationMounts(mounts, service.HostResources, userDataHostResources, cacheHostResources)
+		mounts = appendSecretMounts(mounts, service.SecretMounts, userDataSecrets, bindMounts.Secrets, h.config.HostSecretsPath)
+		mounts = appendFileMounts(mounts, service.Files, deploymentFilesDirName, bindMounts.Files, h.config.WorkDirPath)
+		mounts = appendFileGroupMounts(mounts, service.FileGroups, deploymentFilesDirName, bindMounts.FileGroups, h.config.WorkDirPath)
+		storageContainer := containers[reference]
 		cewContainer, err := getCewContainer(
-			service,
-			depContainer,
-			getContainerEnvVariables(service, deployment, containerEnvironmentData.Configs, cache),
-			h.getContainerMounts(service, deployment, containerEnvironmentData, cache.HostResources),
-			getContainerDevices(service.HostResources, deployment.UserData.HostResources, cache.HostResources),
+			service.Image,
+			service.DeviceCGroupRules,
+			service.Ports,
+			service.RunConfig,
+			reference,
+			deploymentId,
+			storageContainer.Alias,
+			envVariables,
+			mounts,
+			getContainerDevices(service.HostResources, userDataHostResources, cacheHostResources),
 		)
 		id, err := h.cewClient.CreateContainer(ctx, cewContainer)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		depContainer.Id = id
-		createdContainers = append(createdContainers, depContainer)
+		storageContainer.Id = id
+		createdContainers = append(createdContainers, storageContainer)
 	}
 
 	if len(errs) > 0 {
@@ -91,8 +130,13 @@ func (h *Handler) removeContainer(ctx context.Context, containerId string) error
 }
 
 func getCewContainer(
-	service models_external.ModuleLibService,
-	container models_handler_storage.DeploymentContainer,
+	serviceImage string,
+	serviceDeviceCGroupRules []string,
+	servicePorts []models_external.ModuleLibPort,
+	serviceRunConfig models_external.ModuleLibRunConfig,
+	serviceReference string,
+	deploymentId string,
+	containerAlias string,
 	envVariables map[string]string,
 	mounts []models_external.CewMount,
 	devices []models_external.CewDevice,
@@ -103,58 +147,26 @@ func getCewContainer(
 	}
 	return models_external.Container{
 		Name:    name,
-		Image:   service.Image,
+		Image:   serviceImage,
 		EnvVars: envVariables,
 		Labels: map[string]string{
 			constants.LabelCoreId:           helper_naming.CoreId,
 			constants.LabelManagerId:        helper_naming.ManagerId,
-			constants.LabelDeploymentId:     container.DeploymentId,
-			constants.LabelServiceReference: container.Reference,
+			constants.LabelDeploymentId:     deploymentId,
+			constants.LabelServiceReference: serviceReference,
 		},
 		Mounts:            mounts,
 		Devices:           devices,
-		DeviceCGroupRules: service.DeviceCGroupRules,
-		Ports:             newCewPorts(service.Ports),
+		DeviceCGroupRules: serviceDeviceCGroupRules,
+		Ports:             newCewPorts(servicePorts),
 		Networks: []models_external.CewContainerNetwork{
 			{
 				Name:        helper_naming.ModuleContainerNetwork,
-				DomainNames: []string{container.Alias, name},
+				DomainNames: []string{containerAlias, name},
 			},
 		},
-		RunConfig: newCewRunConfig(service.RunConfig),
+		RunConfig: newCewRunConfig(serviceRunConfig),
 	}, nil
-}
-
-func getContainerEnvVariables(
-	service models_external.ModuleLibService,
-	deployment extendedDeployment,
-	configs map[string]string,
-	cache cacheCollection,
-) map[string]string {
-	envVariables := make(map[string]string)
-	setConfigEnvVariables(envVariables, service.Configs, configs)
-	setSecretValueEnvVariables(envVariables, service.SecretVars, deployment.UserData.Secrets, cache.SecretValues)
-	setInternalDependencyEnvVariables(envVariables, service.SrvReferences, deployment.Containers)
-	setExternalDependencyEnvVariables(envVariables, service.ExtDependencies, cache.ContainerAliases)
-	envVariables[constants.EnvVariableDeploymentId] = deployment.Id
-	return envVariables
-}
-
-func (h *Handler) getContainerMounts(
-	service models_external.ModuleLibService,
-	deployment extendedDeployment,
-	containerEnvironmentData containerEnvironmentDataCollection,
-	cacheHostResources map[string]models_external.HostResource,
-) []models_external.CewMount {
-	var mounts []models_external.CewMount
-	mounts = appendIncludeMounts(mounts, service.BindMounts, deployment.DirName, h.config.WorkDirPath)
-	mounts = appendTmpfsMounts(mounts, service.Tmpfs)
-	mounts = appendVolumeMounts(mounts, service.Volumes, deployment.Volumes)
-	mounts = appendApplicationMounts(mounts, service.HostResources, deployment.UserData.HostResources, cacheHostResources)
-	mounts = appendSecretMounts(mounts, service.SecretMounts, deployment.UserData.Secrets, containerEnvironmentData.SecretMounts, h.config.HostSecretsPath)
-	mounts = appendFileMounts(mounts, service.Files, deployment.FilesDirName, containerEnvironmentData.FileMounts, h.config.WorkDirPath)
-	mounts = appendFileGroupMounts(mounts, service.FileGroups, deployment.FilesDirName, containerEnvironmentData.FileGroupMounts, h.config.WorkDirPath)
-	return mounts
 }
 
 func setConfigEnvVariables(

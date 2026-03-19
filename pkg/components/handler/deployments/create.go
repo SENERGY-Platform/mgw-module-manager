@@ -41,50 +41,134 @@ func (h *Handler) CreateDeployments(
 	selectedModules map[string]models_handler_module.Module,
 	userInputs map[string]models_handler_deployment.UserInput,
 ) error {
-	cache, err := initCache(selectedModules)
+	cacheHostResources := make(map[string]models_external.HostResource)
+	cacheGlobalConfigs := make(map[string]models_handler_storage.GlobalConfig)
+	cacheSecretValues := make(map[string]models_external.SecretValueVariant)
+	cacheDeploymentIds, err := initDeploymentIdsCache(selectedModules)
+	if err != nil {
+		return err
+	}
+	cacheContainerAliases, err := initContainerAliasesCache(selectedModules, cacheDeploymentIds)
 	if err != nil {
 		return err
 	}
 	var errs []string
 	for moduleId, module := range selectedModules {
 		userInput := userInputs[moduleId]
-		deployment, err := getExtendedDeployment(module, userInput, cache)
+		deployment, err := getDeployment(module, userInput.Name, cacheDeploymentIds[moduleId])
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
+		defaultData, err := getDefaultData(module)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+		userData, err := getUserData(module, defaultData, userInput, deployment.Id)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+		err = h.updateGlobalConfigsCache(ctx, userData.GlobalConfigs, cacheGlobalConfigs)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+		mergedConfigs := mergeConfigs(defaultData.Configs, userData.Configs, userData.GlobalConfigs, cacheGlobalConfigs)
+		err = checkConfigs(module.Configs, mergedConfigs)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+		mergedFiles := mergeFiles(defaultData.Files, userData.Files)
+		err = checkFiles(module.Files, mergedFiles)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+		containers, err := newContainers2(module.Services, cacheContainerAliases[module.ID], deployment.Id)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+		volumes := newVolumes(module.Volumes, deployment.Id)
 		err = h.storageHdl.CreateDeployment(
 			ctx,
-			deployment.Deployment,
-			slices.Collect(maps.Values(deployment.UserData.HostResources)),
-			slices.Collect(maps.Values(deployment.UserData.Secrets)),
-			slices.Collect(maps.Values(deployment.UserData.Configs)),
-			slices.Collect(maps.Values(deployment.UserData.GlobalConfigs)),
-			slices.Collect(maps.Values(deployment.UserData.Files)),
-			slices.Collect(maps.Values(deployment.UserData.FileGroups)),
-			slices.Collect(maps.Values(deployment.Volumes)),
-			slices.Collect(maps.Values(deployment.Containers)),
+			deployment,
+			slices.Collect(maps.Values(userData.HostResources)),
+			slices.Collect(maps.Values(userData.Secrets)),
+			slices.Collect(maps.Values(userData.Configs)),
+			slices.Collect(maps.Values(userData.GlobalConfigs)),
+			slices.Collect(maps.Values(userData.Files)),
+			slices.Collect(maps.Values(userData.FileGroups)),
+			slices.Collect(maps.Values(volumes)),
+			slices.Collect(maps.Values(containers)),
 		)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		err = h.updateCaches(ctx, module.Dependencies, deployment.UserData, cache)
+		err = h.updateContainerAliasesCache(ctx, module.Dependencies, cacheContainerAliases)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		containerEnvironmentData, err := h.ensureContainerEnvironment(ctx, module, deployment)
+		err = h.updateHostResourcesCache(ctx, userData.HostResources, cacheHostResources)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		// TODO "mount secrets" must be "unloaded" if one of the following steps fails
-		err = h.createHttpEndpoints(ctx, module.Services, moduleId, deployment.Containers)
+		err = h.updateSecretValuesCache(ctx, userData.Secrets, cacheSecretValues)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+		err = h.ensureContainerImages(ctx, module.Services)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+		err = h.ensureContainerVolumes(ctx, volumes, deployment.Id)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+		err = h.createDeploymentDirs(module.FileSystem, deployment.DirName, deployment.FilesDirName)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+		bindMounts, err := h.getBindMounts(
+			ctx,
+			deployment.Id,
+			deployment.FilesDirName,
+			userData.FileGroups,
+			userData.Secrets,
+			mergedFiles,
+		)
+		// TODO "mount secrets" must be "unloaded" if one of the following steps fail
+		err = h.createHttpEndpoints(ctx, module.Services, moduleId, containers)
 		if err != nil {
 			errs = append(errs, err.Error())
 		}
-		createdContainers, err := h.createContainers(ctx, module.Services, deployment, containerEnvironmentData, cache)
+		createdContainers, err := h.createContainers(
+			ctx,
+			module.Configs,
+			module.Services,
+			deployment.Id,
+			deployment.DirName,
+			deployment.FilesDirName,
+			userData.Secrets,
+			userData.HostResources,
+			containers,
+			volumes,
+			mergedConfigs,
+			bindMounts,
+			cacheSecretValues,
+			cacheContainerAliases,
+			cacheHostResources,
+		)
 		if err != nil {
 			errs = append(errs, err.Error())
 		}
@@ -100,43 +184,50 @@ func (h *Handler) CreateDeployments(
 	return nil
 }
 
-func (h *Handler) ensureContainerEnvironment(
+func (h *Handler) getBindMounts(
 	ctx context.Context,
-	module models_handler_module.Module,
-	deployment extendedDeployment,
-) (containerEnvironmentDataCollection, error) {
-	var data containerEnvironmentDataCollection
+	deploymentId,
+	deploymentFilesDirName string,
+	userDataFileGroups map[string]models_handler_storage.DeploymentFileGroup,
+	userDataSecrets map[string]models_handler_storage.DeploymentSecret,
+	mergedFiles map[string][]byte,
+) (bindMountDataCollection, error) {
+	var bindMounts bindMountDataCollection
 	var err error
-	err = h.ensureContainerImages(ctx, module.Services)
+	bindMounts.Files, err = createFiles(deploymentId, deploymentFilesDirName, mergedFiles, h.config.WorkDirPath)
 	if err != nil {
-		return containerEnvironmentDataCollection{}, err
+		return bindMountDataCollection{}, err
 	}
-	err = h.ensureContainerVolumes(ctx, deployment)
+	bindMounts.FileGroups, err = createFileGroups(deploymentFilesDirName, userDataFileGroups, h.config.WorkDirPath)
 	if err != nil {
-		return containerEnvironmentDataCollection{}, err
+		return bindMountDataCollection{}, err
 	}
-	err = h.createDeploymentDir(module.FileSystem, deployment.DirName)
+	bindMounts.Secrets, err = h.createSecretMounts(ctx, deploymentId, userDataSecrets)
 	if err != nil {
-		return containerEnvironmentDataCollection{}, err
+		return bindMountDataCollection{}, err
 	}
-	err = h.createFilesDir(deployment.FilesDirName)
+	return bindMounts, nil
+}
+
+func (h *Handler) createDeploymentDirs(moduleFileSystem fs.FS, deploymentDirName, deploymentFilesDirName string) error {
+	err := createDeploymentDir(moduleFileSystem, h.config.WorkDirPath, deploymentDirName)
 	if err != nil {
-		return containerEnvironmentDataCollection{}, err
+		return err
 	}
-	data.FileMounts, err = createFiles(deployment.Id, deployment.FilesDirName, deployment.MergedFiles, h.config.WorkDirPath)
+	err = createFilesDir(h.config.WorkDirPath, deploymentFilesDirName)
 	if err != nil {
-		return containerEnvironmentDataCollection{}, err
+		return err
 	}
-	data.FileGroupMounts, err = createFileGroups(deployment.FilesDirName, deployment.UserData.FileGroups, h.config.WorkDirPath)
+	return err
+}
+
+func createDeploymentDir(moduleFileSystem fs.FS, workDirPath, deploymentDirName string) error {
+	dirPath := path.Join(workDirPath, deploymentDirName)
+	err := os.Mkdir(dirPath, dirPerm)
 	if err != nil {
-		return containerEnvironmentDataCollection{}, err
+		return err
 	}
-	data.SecretMounts, err = h.createSecretMounts(ctx, deployment.Id, deployment.UserData.Secrets)
-	if err != nil {
-		return containerEnvironmentDataCollection{}, err
-	}
-	data.Configs = configsToStrings(module.Configs, deployment.MergedConfigs)
-	return data, nil
+	return helper_file_sys.CopyAll(moduleFileSystem, dirPath)
 }
 
 func getDefaultData(module models_handler_module.Module) (defaultDataCollection, error) {
@@ -179,118 +270,61 @@ func getUserData(
 	return data, nil
 }
 
-func (h *Handler) updateCaches(ctx context.Context, moduleDependencies map[string]string, userData userDataCollection, cache cacheCollection) error {
-	err := h.updateContainerAliasesCache(ctx, moduleDependencies, cache.ContainerAliases)
-	if err != nil {
-		return err
-	}
-	err = h.updateGlobalConfigsCache(ctx, userData.GlobalConfigs, cache.GlobalConfigs)
-	if err != nil {
-		return err
-	}
-	err = h.updateHostResourcesCache(ctx, userData.HostResources, cache.HostResources)
-	if err != nil {
-		return err
-	}
-	return h.updateSecretValuesCache(ctx, userData.Secrets, cache.SecretValues)
-}
-
-func getExtendedDeployment(
+func getDeployment(
 	module models_handler_module.Module,
-	userInput models_handler_deployment.UserInput,
-	cache cacheCollection,
-) (extendedDeployment, error) {
-	id := cache.DeploymentIds[module.ID]
+	userInputName string,
+	deploymentId string,
+) (models_handler_storage.Deployment, error) {
+	if deploymentId == "" {
+		return models_handler_storage.Deployment{}, errors.New("empty deployment id")
+	}
 	name := module.Name
-	if userInput.Name != "" {
-		name = userInput.Name
+	if userInputName != "" {
+		name = userInputName
 	}
 	dirName, err := helper_uuid.New()
 	if err != nil {
-		return extendedDeployment{}, err
+		return models_handler_storage.Deployment{}, err
 	}
-	userData, mergedConfigs, mergedFiles, err := getDeploymentData(module, userInput, cache, id)
-	if err != nil {
-		return extendedDeployment{}, err
-	}
-	return extendedDeployment{
-		Deployment: models_handler_storage.Deployment{
-			Id:            id,
-			ModuleId:      module.ID,
-			ModuleSource:  module.Source,
-			ModuleChannel: module.Channel,
-			ModuleVersion: module.Version,
-			Name:          name,
-			DirName:       dirName,
-			FilesDirName:  dirName + "_files",
-			Created:       helper_time.Now(),
-		},
-		UserData:      userData,
-		Containers:    newContainers2(module.Services, cache.ContainerAliases[module.ID], id),
-		Volumes:       newVolumes(module.Volumes, id),
-		MergedConfigs: mergedConfigs,
-		MergedFiles:   mergedFiles,
+	return models_handler_storage.Deployment{
+		Id:            deploymentId,
+		ModuleId:      module.ID,
+		ModuleSource:  module.Source,
+		ModuleChannel: module.Channel,
+		ModuleVersion: module.Version,
+		Name:          name,
+		DirName:       dirName,
+		FilesDirName:  dirName + "_files",
+		Created:       helper_time.Now(),
 	}, nil
 }
 
-func getDeploymentData(
-	module models_handler_module.Module,
-	userInput models_handler_deployment.UserInput,
-	cache cacheCollection,
-	deploymentId string,
-) (userDataCollection, map[string]models_handler_storage.Config, map[string][]byte, error) {
-	defaultData, err := getDefaultData(module)
-	if err != nil {
-		return userDataCollection{}, nil, nil, err
-	}
-	userData, err := getUserData(module, defaultData, userInput, deploymentId)
-	if err != nil {
-		return userDataCollection{}, nil, nil, err
-	}
-	mergedConfigs := mergeConfigs(defaultData.Configs, userData.Configs, userData.GlobalConfigs, cache.GlobalConfigs)
-	err = checkConfigs(module.Configs, mergedConfigs)
-	if err != nil {
-		return userDataCollection{}, nil, nil, err
-	}
-	mergedFiles := mergeFiles(defaultData.Files, userData.Files)
-	err = checkFiles(module.Files, mergedFiles)
-	if err != nil {
-		return userDataCollection{}, nil, nil, err
-	}
-	return userData, mergedConfigs, mergedFiles, nil
-}
-
-func initCache(modules map[string]models_handler_module.Module) (cacheCollection, error) {
+func initDeploymentIdsCache(modules map[string]models_handler_module.Module) (map[string]string, error) {
 	deploymentIds := make(map[string]string)
-	containerAliases := make(map[string]map[string]string)
-	for moduleId, module := range modules {
+	for moduleId := range modules {
 		id, err := helper_uuid.New()
 		if err != nil {
-			return cacheCollection{}, err
+			return nil, err
 		}
 		deploymentIds[moduleId] = id
+	}
+	return deploymentIds, nil
+}
+
+func initContainerAliasesCache(modules map[string]models_handler_module.Module, deploymentIds map[string]string) (map[string]map[string]string, error) {
+	containerAliases := make(map[string]map[string]string)
+	for moduleId, module := range modules {
+		id, ok := deploymentIds[moduleId]
+		if !ok {
+			return nil, errors.New("missing deployment id") // TODO
+		}
 		aliases := make(map[string]string)
 		for reference := range module.Services {
 			aliases[reference] = helper_naming.NewContainerAlias(id, reference)
 		}
 		containerAliases[moduleId] = aliases
 	}
-	return cacheCollection{
-		HostResources:    make(map[string]models_external.HostResource),
-		GlobalConfigs:    make(map[string]models_handler_storage.GlobalConfig),
-		SecretValues:     make(map[string]models_external.SecretValueVariant),
-		DeploymentIds:    deploymentIds,
-		ContainerAliases: containerAliases,
-	}, nil
-}
-
-func (h *Handler) createDeploymentDir(moduleFileSystem fs.FS, deploymentDirName string) error {
-	dirPath := path.Join(h.config.WorkDirPath, deploymentDirName)
-	err := os.Mkdir(dirPath, dirPerm)
-	if err != nil {
-		return err
-	}
-	return helper_file_sys.CopyAll(moduleFileSystem, dirPath)
+	return containerAliases, nil
 }
 
 func newVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[string]models_handler_storage.DeploymentVolume {
@@ -309,14 +343,18 @@ func newContainers2(
 	moduleServices map[string]models_external.ModuleLibService,
 	containerAliases map[string]string,
 	deploymentId string,
-) map[string]models_handler_storage.DeploymentContainer {
+) (map[string]models_handler_storage.DeploymentContainer, error) {
 	containers := make(map[string]models_handler_storage.DeploymentContainer)
 	for reference := range moduleServices {
+		alias, ok := containerAliases[reference]
+		if !ok {
+			return nil, errors.New("missing container alias")
+		}
 		containers[reference] = models_handler_storage.DeploymentContainer{
 			DeploymentId: deploymentId,
 			Reference:    reference,
-			Alias:        containerAliases[reference],
+			Alias:        alias,
 		}
 	}
-	return containers
+	return containers, nil
 }

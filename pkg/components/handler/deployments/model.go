@@ -23,15 +23,6 @@ import (
 
 const dirPerm = 0770
 
-type extendedDeployment struct {
-	models_handler_storage.Deployment
-	UserData      userDataCollection
-	Containers    map[string]models_handler_storage.DeploymentContainer
-	Volumes       map[string]models_handler_storage.DeploymentVolume
-	MergedConfigs map[string]models_handler_storage.Config
-	MergedFiles   map[string][]byte
-}
-
 type defaultDataCollection struct {
 	Configs map[string]models_handler_storage.Config
 	Files   map[string][]byte
@@ -45,22 +36,13 @@ type userDataCollection struct {
 	FileGroups    map[string]models_handler_storage.DeploymentFileGroup
 }
 
-type containerEnvironmentDataCollection struct {
-	SecretMounts    map[string]models_external.SecretPathVariant
-	FileMounts      map[string]string
-	FileGroupMounts map[string][]fileGroupMount
-	Configs         map[string]string
+type bindMountDataCollection struct {
+	Secrets    map[string]models_external.SecretPathVariant
+	Files      map[string]string
+	FileGroups map[string][]fileGroupMount
 }
 
 type fileGroupMount struct {
 	FileName string
 	Path     string
-}
-
-type cacheCollection struct {
-	HostResources    map[string]models_external.HostResource        // {hostResourceId:HostResource}
-	GlobalConfigs    map[string]models_handler_storage.GlobalConfig // {globalConfigId:GlobalConfig}
-	SecretValues     map[string]models_external.SecretValueVariant  // {secretId+itemName:SecretValueVariant}
-	DeploymentIds    map[string]string                              // {moduleId:deploymentId}
-	ContainerAliases map[string]map[string]string                   // {moduleId:{serviceReference:containerAlias}}
 }
