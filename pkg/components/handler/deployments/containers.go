@@ -29,16 +29,6 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-type extendedDeployment struct {
-	models_handler_storage.Deployment
-	Containers      map[string]models_handler_storage.DeploymentContainer
-	Volumes         map[string]models_handler_storage.DeploymentVolume
-	Configs         map[string]models_handler_storage.Config
-	SecretMounts    map[string]models_external.SecretPathVariant
-	FileMounts      map[string]string
-	FileGroupMounts map[string][]fileGroupMount
-}
-
 func (h *Handler) createContainers(
 	ctx context.Context,
 	moduleConfigs models_external.ModuleLibConfigs,
@@ -53,7 +43,7 @@ func (h *Handler) createContainers(
 	configs map[string]models_handler_storage.Config,
 	bindMounts bindMountDataCollection,
 	cacheSecretValues map[string]models_external.SecretValueVariant,
-	cacheContainerAliases map[string]map[string]string,
+	cacheDeployments map[string]deploymentsCacheItem,
 	cacheHostResources map[string]models_external.HostResource,
 ) ([]models_handler_storage.DeploymentContainer, error) {
 	var createdContainers []models_handler_storage.DeploymentContainer
@@ -63,7 +53,7 @@ func (h *Handler) createContainers(
 		setConfigEnvVariables(envVariables, service.Configs, configsToStrings(moduleConfigs, configs))
 		setSecretValueEnvVariables(envVariables, service.SecretVars, userDataSecrets, cacheSecretValues)
 		setInternalDependencyEnvVariables(envVariables, service.SrvReferences, containers)
-		setExternalDependencyEnvVariables(envVariables, service.ExtDependencies, cacheContainerAliases)
+		setExternalDependencyEnvVariables(envVariables, service.ExtDependencies, cacheDeployments)
 		envVariables[constants.EnvVariableDeploymentId] = deploymentId
 		var mounts []models_external.CewMount
 		mounts = appendIncludeMounts(mounts, service.BindMounts, deploymentDirName, h.config.WorkDirPath)
@@ -217,14 +207,14 @@ func setInternalDependencyEnvVariables(
 func setExternalDependencyEnvVariables(
 	envVariables map[string]string,
 	serviceExtDependencies map[string]models_external.ModuleLibExtDependencyTarget,
-	cacheContainerAliases map[string]map[string]string,
+	cacheDeployments map[string]deploymentsCacheItem,
 ) {
 	for envVarName, target := range serviceExtDependencies {
-		containers, ok := cacheContainerAliases[target.ID]
+		item, ok := cacheDeployments[target.ID]
 		if !ok {
 			continue
 		}
-		alias, ok := containers[target.Service]
+		alias, ok := item.ContainerAliases[target.Service]
 		if ok {
 			envVariables[envVarName] = target.FillTemplate(alias)
 		}

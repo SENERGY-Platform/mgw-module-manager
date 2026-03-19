@@ -46,3 +46,8 @@ type fileGroupMount struct {
 	FileName string
 	Path     string
 }
+
+type deploymentsCacheItem struct {
+	DeploymentId     string
+	ContainerAliases map[string]string
+}

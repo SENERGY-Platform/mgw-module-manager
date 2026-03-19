@@ -27,14 +27,14 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func (h *Handler) updateContainerAliasesCache(
+func (h *Handler) updateDeploymentsCache(
 	ctx context.Context,
 	moduleDependencies map[string]string,
-	cacheContainerAliases map[string]map[string]string,
+	cacheDeployments map[string]deploymentsCacheItem,
 ) error {
 	var idsNotInCache []string
 	for moduleId := range moduleDependencies {
-		if _, ok := cacheContainerAliases[moduleId]; !ok {
+		if _, ok := cacheDeployments[moduleId]; !ok {
 			idsNotInCache = append(idsNotInCache, moduleId)
 		}
 	}
@@ -54,11 +54,14 @@ func (h *Handler) updateContainerAliasesCache(
 		for _, container := range deploymentsContainers[id] {
 			aliases[container.Reference] = container.Alias
 		}
-		cacheContainerAliases[deployment.ModuleId] = aliases
+		cacheDeployments[deployment.ModuleId] = deploymentsCacheItem{
+			DeploymentId:     id,
+			ContainerAliases: aliases,
+		}
 	}
 	var errs []string
 	for _, id := range idsNotInCache {
-		if _, ok := cacheContainerAliases[id]; !ok {
+		if _, ok := cacheDeployments[id]; !ok {
 			errs = append(errs, fmt.Sprintf("dependency %v not found", id))
 		}
 	}

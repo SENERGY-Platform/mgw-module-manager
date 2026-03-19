@@ -44,18 +44,15 @@ func (h *Handler) CreateDeployments(
 	cacheHostResources := make(map[string]models_external.HostResource)
 	cacheGlobalConfigs := make(map[string]models_handler_storage.GlobalConfig)
 	cacheSecretValues := make(map[string]models_external.SecretValueVariant)
-	cacheDeploymentIds, err := initDeploymentIdsCache(selectedModules)
-	if err != nil {
-		return err
-	}
-	cacheContainerAliases, err := initContainerAliasesCache(selectedModules, cacheDeploymentIds)
+	cacheDeployments, err := initDeploymentsCacheFromModules(selectedModules)
 	if err != nil {
 		return err
 	}
 	var errs []string
 	for moduleId, module := range selectedModules {
 		userInput := userInputs[moduleId]
-		deployment, err := getDeployment(module, userInput.Name, cacheDeploymentIds[moduleId])
+		cacheItem := cacheDeployments[moduleId]
+		deployment, err := getDeployment(module, userInput.Name, cacheItem.DeploymentId)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
@@ -87,7 +84,7 @@ func (h *Handler) CreateDeployments(
 			errs = append(errs, err.Error())
 			continue
 		}
-		containers, err := newContainers2(module.Services, cacheContainerAliases[module.ID], deployment.Id)
+		containers, err := newContainers2(module.Services, cacheItem.ContainerAliases, deployment.Id)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
@@ -109,7 +106,7 @@ func (h *Handler) CreateDeployments(
 			errs = append(errs, err.Error())
 			continue
 		}
-		err = h.updateContainerAliasesCache(ctx, module.Dependencies, cacheContainerAliases)
+		err = h.updateDeploymentsCache(ctx, module.Dependencies, cacheDeployments)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
@@ -166,7 +163,7 @@ func (h *Handler) CreateDeployments(
 			mergedConfigs,
 			bindMounts,
 			cacheSecretValues,
-			cacheContainerAliases,
+			cacheDeployments,
 			cacheHostResources,
 		)
 		if err != nil {
@@ -299,32 +296,23 @@ func getDeployment(
 	}, nil
 }
 
-func initDeploymentIdsCache(modules map[string]models_handler_module.Module) (map[string]string, error) {
-	deploymentIds := make(map[string]string)
-	for moduleId := range modules {
+func initDeploymentsCacheFromModules(modules map[string]models_handler_module.Module) (map[string]deploymentsCacheItem, error) {
+	cache := make(map[string]deploymentsCacheItem)
+	for moduleId, module := range modules {
 		id, err := helper_uuid.New()
 		if err != nil {
 			return nil, err
-		}
-		deploymentIds[moduleId] = id
-	}
-	return deploymentIds, nil
-}
-
-func initContainerAliasesCache(modules map[string]models_handler_module.Module, deploymentIds map[string]string) (map[string]map[string]string, error) {
-	containerAliases := make(map[string]map[string]string)
-	for moduleId, module := range modules {
-		id, ok := deploymentIds[moduleId]
-		if !ok {
-			return nil, errors.New("missing deployment id") // TODO
 		}
 		aliases := make(map[string]string)
 		for reference := range module.Services {
 			aliases[reference] = helper_naming.NewContainerAlias(id, reference)
 		}
-		containerAliases[moduleId] = aliases
+		cache[moduleId] = deploymentsCacheItem{
+			DeploymentId:     id,
+			ContainerAliases: aliases,
+		}
 	}
-	return containerAliases, nil
+	return cache, nil
 }
 
 func newVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[string]models_handler_storage.DeploymentVolume {
