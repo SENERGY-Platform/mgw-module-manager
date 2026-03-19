@@ -26,28 +26,26 @@ import (
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
 func (h *Handler) createContainers(
 	ctx context.Context,
-	module models_handler_module.Module,
+	moduleServices map[string]models_external.ModuleLibService,
 	deployment extendedDeployment,
-	userData userDataCollection,
-	containerData containerDataCollection,
+	containerEnvironmentData containerEnvironmentDataCollection,
 	cache cacheCollection,
 ) ([]models_handler_storage.DeploymentContainer, error) {
 	var createdContainers []models_handler_storage.DeploymentContainer
 	var errs []string
-	for reference, service := range module.Services {
+	for reference, service := range moduleServices {
 		depContainer := deployment.Containers[reference]
 		cewContainer, err := getCewContainer(
 			service,
 			depContainer,
-			getContainerEnvVariables(service, deployment, userData, containerData, cache),
-			h.getContainerMounts(service, deployment, userData, containerData, cache),
-			getContainerDevices(service, userData, cache),
+			getContainerEnvVariables(service, deployment, containerEnvironmentData.Configs, cache),
+			h.getContainerMounts(service, deployment, containerEnvironmentData, cache.HostResources),
+			getContainerDevices(service.HostResources, deployment.UserData.HostResources, cache.HostResources),
 		)
 		id, err := h.cewClient.CreateContainer(ctx, cewContainer)
 		if err != nil {
@@ -64,9 +62,12 @@ func (h *Handler) createContainers(
 	return createdContainers, nil
 }
 
-func (h *Handler) removeContainers(ctx context.Context, deployment extendedDeployment) error {
+func (h *Handler) removeContainers(
+	ctx context.Context,
+	deploymentContainers map[string]models_handler_storage.DeploymentContainer,
+) error {
 	var errs []string
-	for _, container := range deployment.Containers {
+	for _, container := range deploymentContainers {
 		err := h.removeContainer(ctx, container.Id)
 		if err != nil {
 			errs = append(errs, err.Error())
@@ -90,7 +91,7 @@ func (h *Handler) removeContainer(ctx context.Context, containerId string) error
 }
 
 func getCewContainer(
-	service models_external.ModuleService,
+	service models_external.ModuleLibService,
 	container models_handler_storage.DeploymentContainer,
 	envVariables map[string]string,
 	mounts []models_external.CewMount,
@@ -113,58 +114,56 @@ func getCewContainer(
 		Mounts:            mounts,
 		Devices:           devices,
 		DeviceCGroupRules: service.DeviceCGroupRules,
-		Ports:             newCewPorts(service),
+		Ports:             newCewPorts(service.Ports),
 		Networks: []models_external.CewContainerNetwork{
 			{
 				Name:        helper_naming.ModuleContainerNetwork,
 				DomainNames: []string{container.Alias, name},
 			},
 		},
-		RunConfig: newCewRunConfig(service),
+		RunConfig: newCewRunConfig(service.RunConfig),
 	}, nil
 }
 
 func getContainerEnvVariables(
-	service models_external.ModuleService,
+	service models_external.ModuleLibService,
 	deployment extendedDeployment,
-	userData userDataCollection,
-	containerData containerDataCollection,
+	configs map[string]string,
 	cache cacheCollection,
 ) map[string]string {
 	envVariables := make(map[string]string)
-	setConfigEnvVariables(envVariables, service, containerData)
-	setSecretValueEnvVariables(envVariables, service, userData, cache)
-	setInternalDependencyEnvVariables(envVariables, service, deployment)
-	setExternalDependencyEnvVariables(envVariables, service, cache)
+	setConfigEnvVariables(envVariables, service.Configs, configs)
+	setSecretValueEnvVariables(envVariables, service.SecretVars, deployment.UserData.Secrets, cache.SecretValues)
+	setInternalDependencyEnvVariables(envVariables, service.SrvReferences, deployment.Containers)
+	setExternalDependencyEnvVariables(envVariables, service.ExtDependencies, cache.ContainerAliases)
 	envVariables[constants.EnvVariableDeploymentId] = deployment.Id
 	return envVariables
 }
 
 func (h *Handler) getContainerMounts(
-	service models_external.ModuleService,
+	service models_external.ModuleLibService,
 	deployment extendedDeployment,
-	userData userDataCollection,
-	containerData containerDataCollection,
-	cache cacheCollection,
+	containerEnvironmentData containerEnvironmentDataCollection,
+	cacheHostResources map[string]models_external.HostResource,
 ) []models_external.CewMount {
 	var mounts []models_external.CewMount
-	mounts = appendIncludeMounts(mounts, service, deployment, h.config.WorkDirPath)
-	mounts = appendTmpfsMounts(mounts, service)
-	mounts = appendVolumeMounts(mounts, service, deployment)
-	mounts = appendApplicationMounts(mounts, service, userData, cache)
-	mounts = appendSecretMounts(mounts, service, userData, containerData, h.config.HostSecretsPath)
-	mounts = appendFileMounts(mounts, service, deployment, containerData, h.config.WorkDirPath)
-	mounts = appendFileGroupMounts(mounts, service, deployment, containerData, h.config.WorkDirPath)
+	mounts = appendIncludeMounts(mounts, service.BindMounts, deployment.DirName, h.config.WorkDirPath)
+	mounts = appendTmpfsMounts(mounts, service.Tmpfs)
+	mounts = appendVolumeMounts(mounts, service.Volumes, deployment.Volumes)
+	mounts = appendApplicationMounts(mounts, service.HostResources, deployment.UserData.HostResources, cacheHostResources)
+	mounts = appendSecretMounts(mounts, service.SecretMounts, deployment.UserData.Secrets, containerEnvironmentData.SecretMounts, h.config.HostSecretsPath)
+	mounts = appendFileMounts(mounts, service.Files, deployment.FilesDirName, containerEnvironmentData.FileMounts, h.config.WorkDirPath)
+	mounts = appendFileGroupMounts(mounts, service.FileGroups, deployment.FilesDirName, containerEnvironmentData.FileGroupMounts, h.config.WorkDirPath)
 	return mounts
 }
 
 func setConfigEnvVariables(
 	envVariables map[string]string,
-	service models_external.ModuleService,
-	containerData containerDataCollection,
+	serviceConfigs map[string]string,
+	configs map[string]string,
 ) {
-	for envVarName, reference := range service.Configs {
-		value, ok := containerData.Configs[reference]
+	for envVarName, reference := range serviceConfigs {
+		value, ok := configs[reference]
 		if ok {
 			envVariables[envVarName] = value
 		}
@@ -173,16 +172,16 @@ func setConfigEnvVariables(
 
 func setSecretValueEnvVariables(
 	envVariables map[string]string,
-	service models_external.ModuleService,
-	userData userDataCollection,
-	cache cacheCollection,
+	serviceSecretVars map[string]models_external.ModuleLibSecretTarget,
+	userDataSecrets map[string]models_handler_storage.DeploymentSecret,
+	cacheSecretValues map[string]models_external.SecretValueVariant,
 ) {
-	for envVarName, target := range service.SecretVars {
-		selectedSecret, ok := userData.Secrets[target.Ref]
+	for envVarName, target := range serviceSecretVars {
+		selectedSecret, ok := userDataSecrets[target.Ref]
 		if !ok {
 			continue
 		}
-		valueVariant, ok := cache.SecretValues[selectedSecret.Id+target.Item]
+		valueVariant, ok := cacheSecretValues[selectedSecret.Id+target.Item]
 		if !ok {
 			continue
 		}
@@ -192,11 +191,11 @@ func setSecretValueEnvVariables(
 
 func setInternalDependencyEnvVariables(
 	envVariables map[string]string,
-	service models_external.ModuleService,
-	deployment extendedDeployment,
+	serviceReferences map[string]models_external.ModuleLibSrvRefTarget,
+	deploymentContainers map[string]models_handler_storage.DeploymentContainer,
 ) {
-	for envVarName, target := range service.SrvReferences {
-		container, ok := deployment.Containers[target.Ref]
+	for envVarName, target := range serviceReferences {
+		container, ok := deploymentContainers[target.Ref]
 		if ok {
 			envVariables[envVarName] = target.FillTemplate(container.Alias)
 		}
@@ -205,11 +204,11 @@ func setInternalDependencyEnvVariables(
 
 func setExternalDependencyEnvVariables(
 	envVariables map[string]string,
-	service models_external.ModuleService,
-	cache cacheCollection,
+	serviceExtDependencies map[string]models_external.ModuleLibExtDependencyTarget,
+	cacheContainerAliases map[string]map[string]string,
 ) {
-	for envVarName, target := range service.ExtDependencies {
-		containers, ok := cache.ContainerAliases[target.ID]
+	for envVarName, target := range serviceExtDependencies {
+		containers, ok := cacheContainerAliases[target.ID]
 		if !ok {
 			continue
 		}
@@ -222,14 +221,14 @@ func setExternalDependencyEnvVariables(
 
 func appendIncludeMounts(
 	mounts []models_external.CewMount,
-	service models_external.ModuleService,
-	deployment extendedDeployment,
+	serviceBindMounts map[string]models_external.ModuleLibBindMount,
+	deploymentDirName string,
 	hostPath string,
 ) []models_external.CewMount {
-	for mountPath, include := range service.BindMounts {
+	for mountPath, include := range serviceBindMounts {
 		mounts = append(mounts, cew_model.Mount{
 			Type:     models_external.CewMountTypeBind,
-			Source:   path.Join(hostPath, deployment.DirName, include.Source),
+			Source:   path.Join(hostPath, deploymentDirName, include.Source),
 			Target:   mountPath,
 			ReadOnly: include.ReadOnly,
 		})
@@ -239,9 +238,9 @@ func appendIncludeMounts(
 
 func appendTmpfsMounts(
 	mounts []models_external.CewMount,
-	service models_external.ModuleService,
+	serviceTmpfs map[string]models_external.ModuleLibTmpfsMount,
 ) []models_external.CewMount {
-	for mountPath, tmpfs := range service.Tmpfs {
+	for mountPath, tmpfs := range serviceTmpfs {
 		mounts = append(mounts, models_external.CewMount{
 			Type:   models_external.CewMountTypeTmpfs,
 			Target: mountPath,
@@ -254,11 +253,11 @@ func appendTmpfsMounts(
 
 func appendVolumeMounts(
 	mounts []models_external.CewMount,
-	service models_external.ModuleService,
-	deployment extendedDeployment,
+	serviceVolumes map[string]string,
+	deploymentVolumes map[string]models_handler_storage.DeploymentVolume,
 ) []models_external.CewMount {
-	for mountPath, name := range service.Volumes {
-		volume, ok := deployment.Volumes[name]
+	for mountPath, name := range serviceVolumes {
+		volume, ok := deploymentVolumes[name]
 		if ok {
 			mounts = append(mounts, models_external.CewMount{
 				Type:   models_external.CewMountTypeVolume,
@@ -272,16 +271,16 @@ func appendVolumeMounts(
 
 func appendApplicationMounts(
 	mounts []models_external.CewMount,
-	service models_external.ModuleService,
-	userData userDataCollection,
-	cache cacheCollection,
+	serviceHostResources map[string]models_external.ModuleLibHostResTarget,
+	userDataHostResources map[string]models_handler_storage.DeploymentHostResource,
+	cacheHostResources map[string]models_external.HostResource,
 ) []models_external.CewMount {
-	for mountPath, srvHostResource := range service.HostResources {
-		tmp, ok := userData.HostResources[srvHostResource.Ref]
+	for mountPath, srvHostResource := range serviceHostResources {
+		tmp, ok := userDataHostResources[srvHostResource.Ref]
 		if !ok {
 			continue
 		}
-		hostResource, ok := cache.HostResources[tmp.Id]
+		hostResource, ok := cacheHostResources[tmp.Id]
 		if !ok || hostResource.Type == models_external.HostResourceTypeDevice {
 			continue
 		}
@@ -297,17 +296,17 @@ func appendApplicationMounts(
 
 func appendSecretMounts(
 	mounts []models_external.CewMount,
-	service models_external.ModuleService,
-	userData userDataCollection,
-	containerData containerDataCollection,
+	serviceSecretMounts map[string]models_external.ModuleLibSecretTarget,
+	userDataSecrets map[string]models_handler_storage.DeploymentSecret,
+	secretMounts map[string]models_external.SecretPathVariant,
 	hostPath string,
 ) []models_external.CewMount {
-	for mountPath, target := range service.SecretMounts {
-		selectedSecret, ok := userData.Secrets[target.Ref]
+	for mountPath, target := range serviceSecretMounts {
+		selectedSecret, ok := userDataSecrets[target.Ref]
 		if !ok {
 			continue
 		}
-		pathVariant, ok := containerData.SecretMounts[selectedSecret.Id+target.Item]
+		pathVariant, ok := secretMounts[selectedSecret.Id+target.Item]
 		if !ok {
 			continue
 		}
@@ -323,17 +322,17 @@ func appendSecretMounts(
 
 func appendFileMounts(
 	mounts []models_external.CewMount,
-	service models_external.ModuleService,
-	deployment extendedDeployment,
-	containerData containerDataCollection,
+	serviceFiles map[string]string,
+	deploymentFilesDirName string,
+	fileMounts map[string]string,
 	hostPath string,
 ) []models_external.CewMount {
-	for mountPoint, reference := range service.Files {
-		fileName, ok := containerData.FileMounts[reference]
+	for mountPoint, reference := range serviceFiles {
+		fileName, ok := fileMounts[reference]
 		if ok {
 			mounts = append(mounts, models_external.CewMount{
 				Type:     models_external.CewMountTypeBind,
-				Source:   path.Join(hostPath, deployment.FilesDirName, fileName),
+				Source:   path.Join(hostPath, deploymentFilesDirName, fileName),
 				Target:   mountPoint,
 				ReadOnly: true,
 			})
@@ -344,20 +343,20 @@ func appendFileMounts(
 
 func appendFileGroupMounts(
 	mounts []models_external.CewMount,
-	service models_external.ModuleService,
-	deployment extendedDeployment,
-	containerData containerDataCollection,
+	serviceFileGroups map[string]string,
+	deploymentFilesDirName string,
+	fileGroupMounts map[string][]fileGroupMount,
 	hostPath string,
 ) []models_external.CewMount {
-	for basePath, reference := range service.FileGroups {
-		fileMounts, ok := containerData.FileGroupMounts[reference]
+	for basePath, reference := range serviceFileGroups {
+		fileMounts, ok := fileGroupMounts[reference]
 		if !ok {
 			continue
 		}
 		for _, fileMount := range fileMounts {
 			mounts = append(mounts, models_external.CewMount{
 				Type:     models_external.CewMountTypeBind,
-				Source:   path.Join(hostPath, deployment.FilesDirName, fileMount.FileName),
+				Source:   path.Join(hostPath, deploymentFilesDirName, fileMount.FileName),
 				Target:   path.Join(basePath, fileMount.Path),
 				ReadOnly: true,
 			})
@@ -367,17 +366,17 @@ func appendFileGroupMounts(
 }
 
 func getContainerDevices(
-	service models_external.ModuleService,
-	userData userDataCollection,
-	cache cacheCollection,
+	serviceHostResources map[string]models_external.ModuleLibHostResTarget,
+	userDataHostResources map[string]models_handler_storage.DeploymentHostResource,
+	cacheHostResources map[string]models_external.HostResource,
 ) []models_external.CewDevice {
 	var devices []models_external.CewDevice
-	for mountPath, srvHostResource := range service.HostResources {
-		tmp, ok := userData.HostResources[srvHostResource.Ref]
+	for mountPath, srvHostResource := range serviceHostResources {
+		tmp, ok := userDataHostResources[srvHostResource.Ref]
 		if !ok {
 			continue
 		}
-		hostResource, ok := cache.HostResources[tmp.Id]
+		hostResource, ok := cacheHostResources[tmp.Id]
 		if !ok || hostResource.Type == models_external.HostResourceTypeApp {
 			continue
 		}
@@ -390,8 +389,8 @@ func getContainerDevices(
 	return devices
 }
 
-func newCewPorts(service models_external.ModuleService) (ports []models_external.CewPort) {
-	for _, port := range service.Ports {
+func newCewPorts(servicePorts []models_external.ModuleLibPort) (ports []models_external.CewPort) {
+	for _, port := range servicePorts {
 		p := models_external.CewPort{
 			Number:   port.Number,
 			Protocol: port.Protocol,
@@ -408,19 +407,19 @@ func newCewPorts(service models_external.ModuleService) (ports []models_external
 	return ports
 }
 
-func newCewRunConfig(service models_external.ModuleService) models_external.CewRunConfig {
+func newCewRunConfig(serviceRunConfig models_external.ModuleLibRunConfig) models_external.CewRunConfig {
 	rc := models_external.CewRunConfig{
 		RestartStrategy: models_external.CewRestartStrategyNever, // restarts should be handled by module-manager
 		Retries:         nil,                                     // sollte von health handler verwendet werden?
 		RemoveAfterRun:  false,                                   // wird das benutzt?
-		PseudoTTY:       service.RunConfig.PseudoTTY,
-		Command:         service.RunConfig.Command,
+		PseudoTTY:       serviceRunConfig.PseudoTTY,
+		Command:         serviceRunConfig.Command,
 	}
-	if service.RunConfig.StopTimeout > 0 {
-		rc.StopTimeout = &service.RunConfig.StopTimeout // pointer unnötig, cew anpassen
+	if serviceRunConfig.StopTimeout > 0 {
+		rc.StopTimeout = &serviceRunConfig.StopTimeout // pointer unnötig, cew anpassen
 	}
-	if service.RunConfig.StopSignal != "" {
-		rc.StopSignal = &service.RunConfig.StopSignal // pointer unnötig, cew anpassen
+	if serviceRunConfig.StopSignal != "" {
+		rc.StopSignal = &serviceRunConfig.StopSignal // pointer unnötig, cew anpassen
 	}
 	return rc
 }

@@ -24,12 +24,11 @@ import (
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	helper_url "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
 )
 
-func (h *Handler) ensureContainerImages(ctx context.Context, module models_handler_module.Module) error {
+func (h *Handler) ensureContainerImages(ctx context.Context, moduleServices map[string]models_external.ModuleLibService) error {
 	imageNames := make(map[string]struct{})
-	for _, service := range module.Services {
+	for _, service := range moduleServices {
 		imageNames[service.Image] = struct{}{}
 	}
 	var errs []string

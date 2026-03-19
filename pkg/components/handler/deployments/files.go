@@ -28,17 +28,17 @@ import (
 	"strings"
 
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"
-	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func getDefaultFiles(module models_handler_module.Module) (map[string][]byte, error) {
+func getDefaultFiles(moduleFiles map[string]models_external.ModuleLibFile, moduleFileSystem fs.FS) (map[string][]byte, error) {
 	files := make(map[string][]byte)
 	var errs []string
-	for reference, file := range module.Files {
+	for reference, file := range moduleFiles {
 		if file.Source != "" {
-			b, err := fileToBytes(module.FileSystem, file.Source)
+			b, err := fileToBytes(moduleFileSystem, file.Source)
 			if err != nil {
 				errs = append(errs, err.Error())
 				continue
@@ -62,18 +62,18 @@ func fileToBytes(fSys fs.FS, path string) ([]byte, error) {
 }
 
 func getProvidedFiles(
-	module models_handler_module.Module,
-	defaultData defaultDataCollection,
-	userInputs models_handler_deployment.UserInput,
+	moduleFiles map[string]models_external.ModuleLibFile,
+	defaultDataFiles map[string][]byte,
+	userInputsFiles map[string][]byte,
 	deploymentId string,
 ) map[string]models_handler_storage.DeploymentFile {
 	files := make(map[string]models_handler_storage.DeploymentFile)
-	for reference := range module.Files {
-		data, ok := userInputs.Files[reference]
+	for reference := range moduleFiles {
+		data, ok := userInputsFiles[reference]
 		if !ok || len(data) == 0 {
 			continue
 		}
-		defaultData, ok := defaultData.Files[reference]
+		defaultData, ok := defaultDataFiles[reference]
 		if ok && bytes.Equal(data, defaultData) {
 			continue
 		}
@@ -87,23 +87,23 @@ func getProvidedFiles(
 }
 
 func mergeFiles(
-	defaultData defaultDataCollection,
-	userData userDataCollection,
+	defaultDataFiles map[string][]byte,
+	userDataFiles map[string]models_handler_storage.DeploymentFile,
 ) map[string][]byte {
 	files := make(map[string][]byte)
-	maps.Copy(files, defaultData.Files)
-	for reference, file := range userData.Files {
+	maps.Copy(files, defaultDataFiles)
+	for reference, file := range userDataFiles {
 		files[reference] = file.Data
 	}
 	return files
 }
 
 func checkFiles(
-	module models_handler_module.Module,
+	moduleFiles map[string]models_external.ModuleLibFile,
 	files map[string][]byte,
 ) error {
 	var errs []string
-	for reference, moduleFile := range module.Files {
+	for reference, moduleFile := range moduleFiles {
 		_, ok := files[reference]
 		if !ok && moduleFile.Required {
 			errs = append(errs, fmt.Sprintf("file %s required", reference))
@@ -116,21 +116,21 @@ func checkFiles(
 }
 
 func getProvidedFileGroups(
-	module models_handler_module.Module,
-	userInputs models_handler_deployment.UserInput,
+	moduleFileGroups map[string]struct{},
+	userInputFileGroups map[string]map[string]models_handler_deployment.FileGroupUserInput,
 	deploymentId string,
 ) map[string]models_handler_storage.DeploymentFileGroup {
 	fileGroups := make(map[string]models_handler_storage.DeploymentFileGroup)
-	for reference := range module.FileGroups {
-		fg, ok := userInputs.FileGroups[reference]
+	for reference := range moduleFileGroups {
+		fg, ok := userInputFileGroups[reference]
 		if !ok {
 			continue
 		}
 		id := helper_naming.GenHash(deploymentId, reference)
 		var files []models_handler_storage.DeploymentFileGroupFile
-		for path, input := range fg {
+		for pth, input := range fg {
 			files = append(files, models_handler_storage.DeploymentFileGroupFile{
-				Path:   path,
+				Path:   pth,
 				Format: input.Format,
 				Data:   input.Data,
 			})
@@ -145,20 +145,24 @@ func getProvidedFileGroups(
 	return fileGroups
 }
 
-func (h *Handler) createFilesDir(deployment extendedDeployment) error {
-	return os.Mkdir(path.Join(h.config.WorkDirPath, deployment.FilesDirName), dirPerm)
+func (h *Handler) createFilesDir(deploymentFilesDirName string) error {
+	return os.Mkdir(path.Join(h.config.WorkDirPath, deploymentFilesDirName), dirPerm)
 }
 
-func (h *Handler) removeFilesDir(deployment extendedDeployment) error {
-	return os.RemoveAll(path.Join(h.config.WorkDirPath, deployment.FilesDirName))
+func (h *Handler) removeFilesDir(deploymentFilesDirName string) error {
+	return os.RemoveAll(path.Join(h.config.WorkDirPath, deploymentFilesDirName))
 }
 
-func (h *Handler) createFileGroups(deployment extendedDeployment, userData userDataCollection) (map[string][]fileGroupMount, error) {
+func createFileGroups(
+	deploymentFilesDirName string,
+	userDataFileGroups map[string]models_handler_storage.DeploymentFileGroup,
+	workDirPath string,
+) (map[string][]fileGroupMount, error) {
 	fileNames := make(map[string][]fileGroupMount)
-	for reference, fileGroup := range userData.FileGroups {
+	for reference, fileGroup := range userDataFileGroups {
 		for _, file := range fileGroup.Files {
 			fileName := helper_naming.GenHash(fileGroup.Id, file.Path)
-			err := writeToFile(file.Data, path.Join(h.config.WorkDirPath, deployment.FilesDirName, fileName))
+			err := writeToFile(file.Data, path.Join(workDirPath, deploymentFilesDirName, fileName))
 			if err != nil {
 				return nil, err
 			}
@@ -171,11 +175,16 @@ func (h *Handler) createFileGroups(deployment extendedDeployment, userData userD
 	return fileNames, nil
 }
 
-func (h *Handler) createFiles(deployment extendedDeployment, files map[string][]byte) (map[string]string, error) {
+func createFiles(
+	deploymentId string,
+	deploymentFilesDirName string,
+	files map[string][]byte,
+	workDirPath string,
+) (map[string]string, error) {
 	mounts := make(map[string]string)
 	for reference, data := range files {
-		fileName := helper_naming.GenHash(deployment.Id, reference)
-		err := writeToFile(data, path.Join(h.config.WorkDirPath, deployment.FilesDirName, fileName))
+		fileName := helper_naming.GenHash(deploymentId, reference)
+		err := writeToFile(data, path.Join(workDirPath, deploymentFilesDirName, fileName))
 		if err != nil {
 			return nil, err
 		}

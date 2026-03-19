@@ -29,22 +29,20 @@ import (
 	module_lib_validation_configs "github.com/SENERGY-Platform/mgw-module-lib/validation/configs"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"
-	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
 func (h *Handler) updateGlobalConfigsCache(
 	ctx context.Context,
-	userData userDataCollection,
-	cache cacheCollection,
+	userDataGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
+	cacheGlobalConfigs map[string]models_handler_storage.GlobalConfig,
 ) error {
-	selectedIds := helper_slices.CollectFunc(maps.Values(userData.GlobalConfigs), func(item models_handler_storage.DeploymentGlobalConfig) string {
+	selectedIds := helper_slices.CollectFunc(maps.Values(userDataGlobalConfigs), func(item models_handler_storage.DeploymentGlobalConfig) string {
 		return item.Id
 	})
 	var idsNotInCache []string
 	for _, id := range selectedIds {
-		if _, ok := cache.GlobalConfigs[id]; ok {
+		if _, ok := cacheGlobalConfigs[id]; ok {
 			idsNotInCache = append(idsNotInCache, id)
 		}
 	}
@@ -56,11 +54,11 @@ func (h *Handler) updateGlobalConfigsCache(
 		return err
 	}
 	for id, globalConfig := range globalConfigs {
-		cache.GlobalConfigs[id] = globalConfig
+		cacheGlobalConfigs[id] = globalConfig
 	}
 	var errs []string
 	for _, id := range idsNotInCache {
-		if _, ok := cache.GlobalConfigs[id]; !ok {
+		if _, ok := cacheGlobalConfigs[id]; !ok {
 			errs = append(errs, fmt.Sprintf("global config %s not found", id))
 		}
 	}
@@ -70,11 +68,14 @@ func (h *Handler) updateGlobalConfigsCache(
 	return nil
 }
 
-func configsToStrings(module models_handler_module.Module, configs map[string]models_handler_storage.Config) map[string]string {
+func configsToStrings(
+	moduleConfigs models_external.ModuleLibConfigs,
+	configs map[string]models_handler_storage.Config,
+) map[string]string {
 	configValues := make(map[string]string)
 	for reference, config := range configs {
 		if config.IsSlice {
-			moduleConfig := module.Configs[reference]
+			moduleConfig := moduleConfigs[reference]
 			configValues[reference] = sliceConfigToString(config, moduleConfig.Delimiter)
 		} else {
 			configValues[reference] = configToString(config)
@@ -119,11 +120,11 @@ func sliceConfigToString(config models_handler_storage.Config, delimiter string)
 }
 
 func checkConfigs(
-	module models_handler_module.Module,
+	moduleConfigs models_external.ModuleLibConfigs,
 	configs map[string]models_handler_storage.Config,
 ) error {
 	var errs []string
-	for reference, moduleConfig := range module.Configs {
+	for reference, moduleConfig := range moduleConfigs {
 		_, ok := configs[reference]
 		if !ok && moduleConfig.Required {
 			errs = append(errs, fmt.Sprintf("config %s required", reference))
@@ -136,17 +137,18 @@ func checkConfigs(
 }
 
 func mergeConfigs(
-	defaultData defaultDataCollection,
-	userData userDataCollection,
-	cache cacheCollection,
+	defaultConfigs map[string]models_handler_storage.Config,
+	userDataConfigs map[string]models_handler_storage.DeploymentUserConfig,
+	userDataGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
+	cacheGlobalConfigs map[string]models_handler_storage.GlobalConfig,
 ) map[string]models_handler_storage.Config {
 	configs := make(map[string]models_handler_storage.Config)
-	maps.Copy(configs, defaultData.Configs)
-	for reference, providedConfig := range userData.Configs {
+	maps.Copy(configs, defaultConfigs)
+	for reference, providedConfig := range userDataConfigs {
 		configs[reference] = providedConfig.Config
 	}
-	for reference, selectedGlobalConfig := range userData.GlobalConfigs {
-		globalConfig, ok := cache.GlobalConfigs[selectedGlobalConfig.Id]
+	for reference, selectedGlobalConfig := range userDataGlobalConfigs {
+		globalConfig, ok := cacheGlobalConfigs[selectedGlobalConfig.Id]
 		if ok {
 			configs[reference] = globalConfig.Config
 		}
@@ -154,10 +156,10 @@ func mergeConfigs(
 	return configs
 }
 
-func getDefaultConfigs(module models_handler_module.Module) (map[string]models_handler_storage.Config, error) {
+func getDefaultConfigs(moduleConfigs models_external.ModuleLibConfigs) (map[string]models_handler_storage.Config, error) {
 	configs := make(map[string]models_handler_storage.Config)
 	var errs []string
-	for reference, moduleConfig := range module.Configs {
+	for reference, moduleConfig := range moduleConfigs {
 		if moduleConfig.Default == nil {
 			continue
 		}
@@ -175,13 +177,13 @@ func getDefaultConfigs(module models_handler_module.Module) (map[string]models_h
 }
 
 func getSelectedGlobalConfigs(
-	module models_handler_module.Module,
-	userInputs models_handler_deployment.UserInput,
+	moduleConfigs models_external.ModuleLibConfigs,
+	userInputGlobalConfigs map[string]string,
 	deploymentId string,
 ) map[string]models_handler_storage.DeploymentGlobalConfig {
 	configs := make(map[string]models_handler_storage.DeploymentGlobalConfig)
-	for reference := range module.Configs {
-		id, ok := userInputs.GlobalConfigs[reference]
+	for reference := range moduleConfigs {
+		id, ok := userInputGlobalConfigs[reference]
 		if !ok {
 			continue
 		}
@@ -195,15 +197,15 @@ func getSelectedGlobalConfigs(
 }
 
 func getProvidedConfigs(
-	module models_handler_module.Module,
-	defaultConfigs defaultDataCollection,
-	userInputs models_handler_deployment.UserInput,
+	moduleConfigs models_external.ModuleLibConfigs,
+	defaultConfigs map[string]models_handler_storage.Config,
+	userInputConfigs map[string]any,
 	deploymentId string,
 ) (map[string]models_handler_storage.DeploymentUserConfig, error) {
 	configs := make(map[string]models_handler_storage.DeploymentUserConfig)
 	var errs []string
-	for reference, moduleConfig := range module.Configs {
-		val, ok := userInputs.Configs[reference]
+	for reference, moduleConfig := range moduleConfigs {
+		val, ok := userInputConfigs[reference]
 		if !ok || val == nil {
 			continue
 		}
@@ -212,7 +214,7 @@ func getProvidedConfigs(
 			errs = append(errs, err.Error())
 			continue
 		}
-		defaultConfig, ok := defaultConfigs.Configs[reference]
+		defaultConfig, ok := defaultConfigs[reference]
 		if ok && configIsEqual(config, defaultConfig) {
 			continue
 		}
@@ -262,7 +264,7 @@ func configIsEqual(a, b models_handler_storage.Config) bool {
 	return false
 }
 
-func getConfig(val any, moduleConfig models_external.ModuleConfig) (models_handler_storage.Config, error) {
+func getConfig(val any, moduleConfig models_external.ModuleLibConfigValue) (models_handler_storage.Config, error) {
 	config := models_handler_storage.Config{
 		IsSlice: moduleConfig.IsSlice,
 	}
@@ -272,7 +274,7 @@ func getConfig(val any, moduleConfig models_external.ModuleConfig) (models_handl
 			return models_handler_storage.Config{}, fmt.Errorf("invalid data type '%T'", val) // TODO
 		}
 		switch moduleConfig.DataType {
-		case models_external.ModuleConfigStringType:
+		case models_external.ModuleLibStringType:
 			config.DataType = models_handler_storage.StringType
 			for _, item := range anySlice {
 				v, err := toString(item)
@@ -285,7 +287,7 @@ func getConfig(val any, moduleConfig models_external.ModuleConfig) (models_handl
 				}
 				config.StringSlice = append(config.StringSlice, v)
 			}
-		case models_external.ModuleConfigBoolType:
+		case models_external.ModuleLibBoolType:
 			config.DataType = models_handler_storage.BoolType
 			for _, item := range anySlice {
 				v, err := toBool(item)
@@ -298,7 +300,7 @@ func getConfig(val any, moduleConfig models_external.ModuleConfig) (models_handl
 				}
 				config.BoolSlice = append(config.BoolSlice, v)
 			}
-		case models_external.ModuleConfigInt64Type:
+		case models_external.ModuleLibInt64Type:
 			config.DataType = models_handler_storage.Int64Type
 			for _, item := range anySlice {
 				v, err := toInt64(item)
@@ -311,7 +313,7 @@ func getConfig(val any, moduleConfig models_external.ModuleConfig) (models_handl
 				}
 				config.Int64Slice = append(config.Int64Slice, v)
 			}
-		case models_external.ModuleConfigFloat64Type:
+		case models_external.ModuleLibFloat64Type:
 			config.DataType = models_handler_storage.Float64Type
 			for _, item := range anySlice {
 				v, err := toFloat64(item)
@@ -329,7 +331,7 @@ func getConfig(val any, moduleConfig models_external.ModuleConfig) (models_handl
 		}
 	} else {
 		switch moduleConfig.DataType {
-		case models_external.ModuleConfigStringType:
+		case models_external.ModuleLibStringType:
 			config.DataType = models_handler_storage.StringType
 			v, err := toString(val)
 			if err != nil {
@@ -340,7 +342,7 @@ func getConfig(val any, moduleConfig models_external.ModuleConfig) (models_handl
 			if err != nil {
 				return models_handler_storage.Config{}, err
 			}
-		case models_external.ModuleConfigBoolType:
+		case models_external.ModuleLibBoolType:
 			config.DataType = models_handler_storage.BoolType
 			v, err := toBool(val)
 			if err != nil {
@@ -351,7 +353,7 @@ func getConfig(val any, moduleConfig models_external.ModuleConfig) (models_handl
 			if err != nil {
 				return models_handler_storage.Config{}, err
 			}
-		case models_external.ModuleConfigInt64Type:
+		case models_external.ModuleLibInt64Type:
 			config.DataType = models_handler_storage.Int64Type
 			v, err := toInt64(val)
 			if err != nil {
@@ -362,7 +364,7 @@ func getConfig(val any, moduleConfig models_external.ModuleConfig) (models_handl
 			if err != nil {
 				return models_handler_storage.Config{}, err
 			}
-		case models_external.ModuleConfigFloat64Type:
+		case models_external.ModuleLibFloat64Type:
 			config.DataType = models_handler_storage.Float64Type
 			v, err := toFloat64(val)
 			if err != nil {
@@ -380,7 +382,7 @@ func getConfig(val any, moduleConfig models_external.ModuleConfig) (models_handl
 	return config, nil
 }
 
-func validateValue[T comparable](val T, moduleConfig models_external.ModuleConfig) error {
+func validateValue[T comparable](val T, moduleConfig models_external.ModuleLibConfigValue) error {
 	err := module_lib_validation_configs.ValidateValue(moduleConfig.Type, moduleConfig.TypeOpt, val)
 	if err != nil {
 		return err

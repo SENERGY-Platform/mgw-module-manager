@@ -30,7 +30,7 @@ import (
 )
 
 func (h *Handler) ensureContainerVolumes(ctx context.Context, deployment extendedDeployment) error {
-	existingVolumes, err := h.getContainerVolumes(ctx, deployment)
+	existingVolumes, err := h.getContainerVolumes(ctx, deployment.Id)
 	if err != nil {
 		return err
 	}
@@ -86,12 +86,12 @@ func (h *Handler) removeContainerVolume(ctx context.Context, name string) error 
 	return nil
 }
 
-func (h *Handler) getContainerVolumes(ctx context.Context, deployment extendedDeployment) (map[string]models_external.Volume, error) {
+func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) (map[string]models_external.Volume, error) {
 	volumes, err := h.cewClient.GetVolumes(ctx, models_external.VolumesFilter{
 		Labels: map[string]string{
 			constants.LabelCoreId:       helper_naming.CoreId,
 			constants.LabelManagerId:    helper_naming.ManagerId,
-			constants.LabelDeploymentId: deployment.Id,
+			constants.LabelDeploymentId: deploymentId,
 		},
 	})
 	if err != nil {

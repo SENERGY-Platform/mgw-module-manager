@@ -25,8 +25,11 @@ const dirPerm = 0770
 
 type extendedDeployment struct {
 	models_handler_storage.Deployment
-	Containers map[string]models_handler_storage.DeploymentContainer
-	Volumes    map[string]models_handler_storage.DeploymentVolume
+	UserData      userDataCollection
+	Containers    map[string]models_handler_storage.DeploymentContainer
+	Volumes       map[string]models_handler_storage.DeploymentVolume
+	MergedConfigs map[string]models_handler_storage.Config
+	MergedFiles   map[string][]byte
 }
 
 type defaultDataCollection struct {
@@ -42,7 +45,7 @@ type userDataCollection struct {
 	FileGroups    map[string]models_handler_storage.DeploymentFileGroup
 }
 
-type containerDataCollection struct {
+type containerEnvironmentDataCollection struct {
 	SecretMounts    map[string]models_external.SecretPathVariant
 	FileMounts      map[string]string
 	FileGroupMounts map[string][]fileGroupMount

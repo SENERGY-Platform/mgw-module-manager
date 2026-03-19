@@ -23,16 +23,20 @@ import (
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func (h *Handler) createHttpEndpoints(ctx context.Context, module models_handler_module.Module, deployment extendedDeployment) error {
+func (h *Handler) createHttpEndpoints(
+	ctx context.Context,
+	moduleServices map[string]models_external.ModuleLibService,
+	moduleId string,
+	deploymentContainers map[string]models_handler_storage.DeploymentContainer,
+) error {
 	var endpoints []models_external.CmEndpointBase
-	for reference, service := range module.Services {
-		container := deployment.Containers[reference]
+	for reference, service := range moduleServices {
+		container := deploymentContainers[reference]
 		for externalPath, endpoint := range service.HttpEndpoints {
-			endpoints = append(endpoints, newCmEndpointBase(container, endpoint, module.ID, externalPath))
+			endpoints = append(endpoints, newCmEndpointBase(container, endpoint, moduleId, externalPath))
 		}
 	}
 	jobId, err := h.cmClient.SetEndpoints(ctx, endpoints)
@@ -51,7 +55,7 @@ func (h *Handler) createHttpEndpoints(ctx context.Context, module models_handler
 
 func newCmEndpointBase(
 	container models_handler_storage.DeploymentContainer,
-	serviceEndpoint models_external.ModuleServiceHttpEndpoint,
+	serviceEndpoint models_external.ModuleLibHttpEndpoint,
 	moduleId,
 	externalPath string,
 ) models_external.CmEndpointBase {
