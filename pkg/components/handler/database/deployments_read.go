@@ -124,6 +124,34 @@ func (h *Handler) ReadDeploymentsContainers(ctx context.Context, deploymentIds [
 	return depContainers, nil
 }
 
+func (h *Handler) ReadDeploymentsVolumes(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_storage.DeploymentVolume, error) {
+	fc, val := genDeploymentsVolumesFilter(deploymentIds)
+	rows, err := h.sqlDB.QueryContext(
+		ctx,
+		"SELECT dep_id, ref, name FROM dep_volumes"+fc+";",
+		val...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	depVolumes := make(map[string]map[string]models_handler_storage.DeploymentVolume)
+	for rows.Next() {
+		var volume models_handler_storage.DeploymentVolume
+		err = rows.Scan(&volume.DeploymentId, &volume.Reference, &volume.Name)
+		if err != nil {
+			return nil, err
+		}
+		volumes, ok := depVolumes[volume.DeploymentId]
+		if !ok {
+			volumes = make(map[string]models_handler_storage.DeploymentVolume)
+			depVolumes[volume.DeploymentId] = volumes
+		}
+		volumes[volume.Reference] = volume
+	}
+	return depVolumes, nil
+}
+
 func (h *Handler) ReadDeploymentHostResources(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentHostResource, error) {
 	deploymentsHostResources, err := h.ReadDeploymentsHostResources(
 		ctx,
@@ -522,6 +550,22 @@ func genDeploymentsContainersFilter(ids []string) (string, []any) {
 	if len(ids) > 0 {
 		ids = helper_slices.RemoveDuplicates(ids)
 		fc = append(fc, "id IN ("+genQuestionMarks(len(ids))+")")
+		for _, id := range ids {
+			val = append(val, id)
+		}
+	}
+	if len(fc) > 0 {
+		return " WHERE " + strings.Join(fc, " AND "), val
+	}
+	return "", nil
+}
+
+func genDeploymentsVolumesFilter(ids []string) (string, []any) {
+	var fc []string
+	var val []any
+	if len(ids) > 0 {
+		ids = helper_slices.RemoveDuplicates(ids)
+		fc = append(fc, "dep_id IN ("+genQuestionMarks(len(ids))+")")
 		for _, id := range ids {
 			val = append(val, id)
 		}
