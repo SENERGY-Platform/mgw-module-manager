@@ -146,10 +146,10 @@ func (h *Handler) getDeployments(ctx context.Context, filter models_handler_depl
 	return deployments, nil
 }
 
-func (h *Handler) getCewContainers(ctx context.Context, stgDepsContainers map[string][]models_handler_storage.DeploymentContainer) (map[string]models_external.Container, error) {
+func (h *Handler) getCewContainers(ctx context.Context, stgDepsContainers map[string]map[string]models_handler_storage.DeploymentContainer) (map[string]models_external.Container, error) {
 	var ctrIds []string
 	for _, stgDepContainers := range stgDepsContainers {
-		ctrIds = append(ctrIds, helper_slices.CollectSliceFunc(stgDepContainers, func(item models_handler_storage.DeploymentContainer) string {
+		ctrIds = append(ctrIds, helper_slices.CollectFunc(maps.Values(stgDepContainers), func(item models_handler_storage.DeploymentContainer) string {
 			return item.Id
 		})...)
 	}
@@ -163,7 +163,7 @@ func (h *Handler) getCewContainers(ctx context.Context, stgDepsContainers map[st
 	return cewContainersMap, nil
 }
 
-func newContainers(stgDepContainers []models_handler_storage.DeploymentContainer, cewContainers map[string]models_external.Container) []models_handler_deployment.Container {
+func newContainers(stgDepContainers map[string]models_handler_storage.DeploymentContainer, cewContainers map[string]models_external.Container) []models_handler_deployment.Container {
 	var containers []models_handler_deployment.Container
 	for _, stgDepContainer := range stgDepContainers {
 		container := models_handler_deployment.Container{DeploymentContainer: stgDepContainer}
