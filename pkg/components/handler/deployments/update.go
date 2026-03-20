@@ -25,6 +25,9 @@ import (
 	"slices"
 	"strings"
 
+	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
+	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
+	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"
 	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
@@ -36,27 +39,38 @@ func (h *Handler) UpdateDeployments(
 	selectedModules map[string]models_handler_module.Module,
 	userInputs map[string]models_handler_deployment.UserInput,
 ) error {
-	currentDeployments, err := h.getDeploymentsByModuleIds(ctx, slices.Collect(maps.Keys(selectedModules)))
+	currentDeployments, err := h.storageHdl.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{
+		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
+	})
+	if err != nil {
+		return err
+	}
+	// map deployments to module IDs
+	currentDeployments = helper_maps.CollectFunc(maps.Values(currentDeployments), func(value models_handler_storage.Deployment) string {
+		return value.ModuleId
+	})
+	currentDeploymentIds := slices.Collect(maps.Keys(currentDeployments))
+	currentDeploymentsContainers, err := h.storageHdl.ReadDeploymentsContainers(ctx, currentDeploymentIds)
+	if err != nil {
+		return err
+	}
+	currentDeploymentsVolumes, err := h.storageHdl.ReadDeploymentsVolumes(ctx, currentDeploymentIds)
 	if err != nil {
 		return err
 	}
 	cacheHostResources := make(map[string]models_external.HostResource)
 	cacheGlobalConfigs := make(map[string]models_handler_storage.GlobalConfig)
 	cacheSecretValues := make(map[string]models_external.SecretValueVariant)
-	cacheDeploymentIds, err := initDeploymentIdsCache(selectedModules)
-	if err != nil {
-		return err
-	}
-	cacheContainerAliases, err := initContainerAliasesCache(selectedModules, cacheDeploymentIds)
+	cacheDeployments, err := initDeploymentsCacheFromModulesAndDeployments(selectedModules, currentDeployments, currentDeploymentsContainers)
 	if err != nil {
 		return err
 	}
 	var errs []string
 	for moduleId, module := range selectedModules {
+		cacheItem := cacheDeployments[moduleId]
+		// prepare new deployment with user input
 		userInput := userInputs[moduleId]
-		currentDeployment := currentDeployments[moduleId]
-		// prepare new deployment
-		newDeployment, err := getDeployment(module, userInput.Name, cacheDeploymentIds[moduleId])
+		newDeployment, err := getDeployment(module, userInput.Name, cacheItem.DeploymentId)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
@@ -88,14 +102,17 @@ func (h *Handler) UpdateDeployments(
 			errs = append(errs, err.Error())
 			continue
 		}
-		containers, err := newContainers2(module.Services, cacheContainerAliases[module.ID], newDeployment.Id)
+		containers, err := newContainers2(module.Services, cacheItem.ContainerAliases, newDeployment.Id)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		volumes := newVolumes(module.Volumes, newDeployment.Id)
-		// remove current assets
-		err = h.removeContainers(ctx, currentDeployment.Containers)
+		currentDeployment := currentDeployments[moduleId]
+		currentVolumes := currentDeploymentsVolumes[currentDeployment.Id]
+		volumes := updateVolumes(module.Volumes, currentVolumes, newDeployment.Id)
+		// remove containers, unmount secrets and remove deployment dirs
+		currentContainers := currentDeploymentsContainers[currentDeployment.Id]
+		err = h.removeContainers(ctx, currentContainers)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
@@ -110,7 +127,7 @@ func (h *Handler) UpdateDeployments(
 			errs = append(errs, err.Error())
 			continue
 		}
-		// update deployment
+		// update deployment in db
 		err = h.storageHdl.UpdateDeployment(
 			ctx,
 			newDeployment,
@@ -127,7 +144,8 @@ func (h *Handler) UpdateDeployments(
 			errs = append(errs, err.Error())
 			continue
 		}
-		err = h.updateContainerAliasesCache(ctx, module.Dependencies, cacheContainerAliases)
+		// update caches
+		err = h.updateDeploymentsCache(ctx, module.Dependencies, cacheDeployments)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
@@ -184,7 +202,7 @@ func (h *Handler) UpdateDeployments(
 			mergedConfigs,
 			bindMounts,
 			cacheSecretValues,
-			cacheContainerAliases,
+			cacheDeployments,
 			cacheHostResources,
 		)
 		if err != nil {
@@ -202,32 +220,38 @@ func (h *Handler) UpdateDeployments(
 	return nil
 }
 
-func (h *Handler) getDeploymentsByModuleIds(
-	ctx context.Context,
-	moduleIds []string,
-) (map[string]extendedDeployment, error) {
-	deployments, err := h.storageHdl.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{
-		ModuleIds: moduleIds,
-	})
-	if err != nil {
-		return nil, err
-	}
-	deploymentsContainers, err := h.storageHdl.ReadDeploymentsContainers(ctx, slices.Collect(maps.Keys(deployments)))
-	if err != nil {
-		return nil, err
-	}
-	deploymentsMap := make(map[string]extendedDeployment)
-	for id, deployment := range deployments {
-		containers := make(map[string]models_handler_storage.DeploymentContainer)
-		for _, container := range deploymentsContainers[id] {
-			containers[container.Reference] = container
+// provided deployment map must use module IDs as keys
+func initDeploymentsCacheFromModulesAndDeployments(
+	modules map[string]models_handler_module.Module,
+	deployments map[string]models_handler_storage.Deployment,
+	deploymentsContainers map[string]map[string]models_handler_storage.DeploymentContainer,
+) (map[string]deploymentsCacheItem, error) {
+	cache := make(map[string]deploymentsCacheItem)
+	for moduleId, module := range modules {
+		deployment := deployments[moduleId]
+		id := deployment.Id
+		if id == "" {
+			var err error
+			id, err = helper_uuid.New()
+			if err != nil {
+				return nil, err
+			}
 		}
-		deploymentsMap[deployment.ModuleId] = extendedDeployment{
-			Deployment: deployment,
-			Containers: containers,
+		aliases := make(map[string]string)
+		for reference := range module.Services {
+			existingContainer := deploymentsContainers[deployment.Id][reference]
+			alias := existingContainer.Alias
+			if alias == "" {
+				alias = helper_naming.NewContainerAlias(id, reference)
+			}
+			aliases[reference] = alias
+		}
+		cache[moduleId] = deploymentsCacheItem{
+			DeploymentId:     id,
+			ContainerAliases: aliases,
 		}
 	}
-	return deploymentsMap, nil
+	return cache, nil
 }
 
 func (h *Handler) removeDeploymentDirs(deploymentDirName, deploymentFilesDirName string) error {
@@ -240,4 +264,25 @@ func (h *Handler) removeDeploymentDirs(deploymentDirName, deploymentFilesDirName
 
 func removeDeploymentDir(workDirPath, deploymentDirName string) error {
 	return os.RemoveAll(path.Join(workDirPath, deploymentDirName))
+}
+
+func updateVolumes(
+	moduleVolumes map[string]struct{},
+	deploymentVolumes map[string]models_handler_storage.DeploymentVolume,
+	deploymentId string,
+) map[string]models_handler_storage.DeploymentVolume {
+	volumes := make(map[string]models_handler_storage.DeploymentVolume)
+	for reference := range moduleVolumes {
+		volume := deploymentVolumes[reference]
+		name := volume.Name
+		if name == "" {
+			name = helper_naming.NewVolumeName(deploymentId, reference)
+		}
+		volumes[reference] = models_handler_storage.DeploymentVolume{
+			DeploymentId: deploymentId,
+			Reference:    reference,
+			Name:         name,
+		}
+	}
+	return volumes
 }
