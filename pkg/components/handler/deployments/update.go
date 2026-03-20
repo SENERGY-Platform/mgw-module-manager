@@ -44,10 +44,6 @@ func (h *Handler) UpdateDeployments(
 	if err != nil {
 		return err
 	}
-	// map deployments to module IDs
-	currentDeployments = helper_maps.CollectFunc(maps.Values(currentDeployments), func(value models_handler_storage.Deployment) string {
-		return value.ModuleId
-	})
 	currentDeploymentIds := slices.Collect(maps.Keys(currentDeployments))
 	currentDeploymentsContainers, err := h.storageHdl.ReadDeploymentsContainers(ctx, currentDeploymentIds)
 	if err != nil {
@@ -57,6 +53,10 @@ func (h *Handler) UpdateDeployments(
 	if err != nil {
 		return err
 	}
+	// map deployments to module IDs
+	currentDeployments = helper_maps.CollectFunc(maps.Values(currentDeployments), func(value models_handler_storage.Deployment) string {
+		return value.ModuleId
+	})
 	cacheHostResources := make(map[string]models_external.HostResource)
 	cacheGlobalConfigs := make(map[string]models_handler_storage.GlobalConfig)
 	cacheSecretValues := make(map[string]models_external.SecretValueVariant)
