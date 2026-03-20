@@ -61,13 +61,14 @@ func (h *Handler) UpdateDeployments(
 	cacheHostResources := make(map[string]models_external.HostResource)
 	cacheGlobalConfigs := make(map[string]models_handler_storage.GlobalConfig)
 	cacheSecretValues := make(map[string]models_external.SecretValueVariant)
-	cacheDeployments, err := initDeploymentsCacheFromModulesAndDeployments(selectedModules, currentDeployments, currentDeploymentsContainers)
-	if err != nil {
-		return err
-	}
+	cacheDeployments := initDeploymentsCacheFromModulesAndDeployments(selectedModules, currentDeployments, currentDeploymentsContainers)
 	var errs []string
 	for moduleId, module := range selectedModules {
-		cacheItem := cacheDeployments[moduleId]
+		cacheItem, ok := cacheDeployments[moduleId]
+		if !ok {
+			errs = append(errs, "module "+moduleId+" not deployed") // TODO
+			continue
+		}
 		// prepare new deployment with user input
 		userInput := userInputs[moduleId]
 		newDeployment, err := getDeployment(module, userInput.Name, cacheItem.DeploymentId)
@@ -225,33 +226,28 @@ func initDeploymentsCacheFromModulesAndDeployments(
 	modules map[string]models_handler_module.Module,
 	deployments map[string]models_handler_storage.Deployment,
 	deploymentsContainers map[string]map[string]models_handler_storage.DeploymentContainer,
-) (map[string]deploymentsCacheItem, error) {
+) map[string]deploymentsCacheItem {
 	cache := make(map[string]deploymentsCacheItem)
 	for moduleId, module := range modules {
-		deployment := deployments[moduleId]
-		id := deployment.Id
-		if id == "" {
-			var err error
-			id, err = helper_uuid.New()
-			if err != nil {
-				return nil, err
-			}
+		deployment, ok := deployments[moduleId]
+		if !ok {
+			continue
 		}
 		aliases := make(map[string]string)
 		for reference := range module.Services {
 			existingContainer := deploymentsContainers[deployment.Id][reference]
 			alias := existingContainer.Alias
 			if alias == "" {
-				alias = helper_naming.NewContainerAlias(id, reference)
+				alias = helper_naming.NewContainerAlias(deployment.Id, reference)
 			}
 			aliases[reference] = alias
 		}
 		cache[moduleId] = deploymentsCacheItem{
-			DeploymentId:     id,
+			DeploymentId:     deployment.Id,
 			ContainerAliases: aliases,
 		}
 	}
-	return cache, nil
+	return cache
 }
 
 func (h *Handler) removeDeploymentDirs(deploymentDirName, deploymentFilesDirName string) error {
