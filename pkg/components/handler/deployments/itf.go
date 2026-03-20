@@ -37,24 +37,16 @@ type storageHandler interface {
 		volumes []models_handler_storage.DeploymentVolume,
 		containers []models_handler_storage.DeploymentContainer,
 	) (err error)
-	ReadDeployment(ctx context.Context, id string) (models_handler_storage.Deployment, error)
 	ReadDeployments(ctx context.Context, filter models_handler_storage.DeploymentsFilter) (map[string]models_handler_storage.Deployment, error)
-	ReadDeploymentContainers(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentContainer, error)
-	ReadDeploymentsContainers(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentContainer, error)
-	ReadDeploymentHostResources(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentHostResource, error)
+	ReadDeploymentsContainers(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_storage.DeploymentContainer, error)
+	ReadDeploymentsVolumes(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_storage.DeploymentVolume, error)
 	ReadDeploymentsHostResources(ctx context.Context, filter models_handler_storage.DeploymentsHostResourcesFilter) (map[string][]models_handler_storage.DeploymentHostResource, error)
-	ReadDeploymentSecrets(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentSecret, error)
 	ReadDeploymentsSecrets(ctx context.Context, filter models_handler_storage.DeploymentsSecretsFilter) (map[string][]models_handler_storage.DeploymentSecret, error)
-	ReadDeploymentUserConfigs(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentUserConfig, error)
 	ReadDeploymentsUserConfigs(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentUserConfig, error)
-	ReadDeploymentGlobalConfigs(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentGlobalConfig, error)
 	ReadDeploymentsGlobalConfigs(ctx context.Context, filter models_handler_storage.DeploymentGlobalConfigsFilter) (map[string][]models_handler_storage.DeploymentGlobalConfig, error)
-	ReadDeploymentFiles(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentFile, error)
 	ReadDeploymentsFiles(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentFile, error)
-	ReadDeploymentFileGroups(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentFileGroup, error)
 	ReadDeploymentsFileGroups(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentFileGroup, error)
 	UpdateDeploymentsEnabledState(ctx context.Context, deployments map[string]bool, timestamp time.Time) (err error)
-	UpdateDeploymentEnabledState(ctx context.Context, id string, enabled bool, timestamp time.Time) error
 	UpdateDeploymentName(ctx context.Context, id, name string, timestamp time.Time) error
 	UpdateDeployment(
 		ctx context.Context,
@@ -69,7 +61,6 @@ type storageHandler interface {
 		containers []models_handler_storage.DeploymentContainer,
 	) (err error)
 	UpdateDeploymentContainerIds(ctx context.Context, containers []models_handler_storage.DeploymentContainer) error
-	DeleteDeployment(ctx context.Context, id string) error
 	DeleteDeployments(ctx context.Context, ids []string) error
 	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_storage.GlobalConfig, error)
 }
