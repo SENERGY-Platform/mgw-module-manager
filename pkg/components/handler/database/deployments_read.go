@@ -242,7 +242,7 @@ func (h *Handler) ReadDeploymentsSecrets(ctx context.Context, filter models_hand
 }
 
 func (h *Handler) ReadDeploymentUserConfigs(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentUserConfig, error) {
-	deploymentsConfigs, err := h.ReadDeploymentsUserConfigs(ctx, []string{deploymentId})
+	deploymentsConfigs, err := h.ReadDeploymentsConfigs(ctx, []string{deploymentId})
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +252,7 @@ func (h *Handler) ReadDeploymentUserConfigs(ctx context.Context, deploymentId st
 	return deploymentsConfigs[deploymentId], nil
 }
 
-func (h *Handler) ReadDeploymentsUserConfigs(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentUserConfig, error) {
+func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentUserConfig, error) {
 	rows, err := h.queryConfigs(ctx, deploymentIds, "dep_configs", "dep_config_values", "dep_id", "dep_id", "ref")
 	if err != nil {
 		return nil, err

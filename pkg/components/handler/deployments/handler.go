@@ -115,7 +115,7 @@ func (h *Handler) getDeployments(ctx context.Context, filter models_handler_depl
 	if err != nil {
 		return nil, err
 	}
-	stgDepsConfigs, err := h.storageHdl.ReadDeploymentsUserConfigs(ctx, depIds)
+	stgDepsConfigs, err := h.storageHdl.ReadDeploymentsConfigs(ctx, depIds)
 	if err != nil {
 		return nil, err
 	}
