@@ -50,8 +50,9 @@ func (h *Handler) CreateDeployments(
 	}
 	var errs []string
 	for moduleId, module := range selectedModules {
-		userInput := userInputs[moduleId]
 		cacheItem := cacheDeployments[moduleId]
+		// prepare new deployment with user input
+		userInput := userInputs[moduleId]
 		deployment, err := getDeployment(module, userInput.Name, cacheItem.DeploymentId)
 		if err != nil {
 			errs = append(errs, err.Error())
@@ -90,6 +91,7 @@ func (h *Handler) CreateDeployments(
 			continue
 		}
 		volumes := newVolumes(module.Volumes, deployment.Id)
+		// create deployment in DB
 		err = h.storageHdl.CreateDeployment(
 			ctx,
 			deployment,
@@ -106,6 +108,7 @@ func (h *Handler) CreateDeployments(
 			errs = append(errs, err.Error())
 			continue
 		}
+		// update caches
 		err = h.updateDeploymentsCache(ctx, module.Dependencies, cacheDeployments)
 		if err != nil {
 			errs = append(errs, err.Error())
