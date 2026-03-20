@@ -85,7 +85,7 @@ func (h *Handler) ReadDeployments(ctx context.Context, filter models_handler_sto
 	return deps, nil
 }
 
-func (h *Handler) ReadDeploymentContainers(ctx context.Context, deploymentId string) ([]models_handler_storage.DeploymentContainer, error) {
+func (h *Handler) ReadDeploymentContainers(ctx context.Context, deploymentId string) (map[string]models_handler_storage.DeploymentContainer, error) {
 	deploymentsContainers, err := h.ReadDeploymentsContainers(ctx, []string{deploymentId})
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (h *Handler) ReadDeploymentContainers(ctx context.Context, deploymentId str
 	return deploymentsContainers[deploymentId], nil
 }
 
-func (h *Handler) ReadDeploymentsContainers(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentContainer, error) {
+func (h *Handler) ReadDeploymentsContainers(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_storage.DeploymentContainer, error) {
 	fc, val := genDeploymentsContainersFilter(deploymentIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -107,14 +107,19 @@ func (h *Handler) ReadDeploymentsContainers(ctx context.Context, deploymentIds [
 		return nil, err
 	}
 	defer rows.Close()
-	depContainers := make(map[string][]models_handler_storage.DeploymentContainer)
+	depContainers := make(map[string]map[string]models_handler_storage.DeploymentContainer)
 	for rows.Next() {
 		var container models_handler_storage.DeploymentContainer
 		err = rows.Scan(&container.DeploymentId, &container.Id, &container.Reference, &container.Alias, &container.Order)
 		if err != nil {
 			return nil, err
 		}
-		depContainers[container.DeploymentId] = append(depContainers[container.DeploymentId], container)
+		containers, ok := depContainers[container.DeploymentId]
+		if !ok {
+			containers = make(map[string]models_handler_storage.DeploymentContainer)
+			depContainers[container.DeploymentId] = containers
+		}
+		containers[container.Reference] = container
 	}
 	return depContainers, nil
 }
