@@ -23,7 +23,6 @@ import (
 	"slices"
 	"strings"
 
-	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
@@ -75,10 +74,6 @@ func (h *Handler) RecreateDeployments(ctx context.Context, selectedModules map[s
 	if err != nil {
 		return err
 	}
-	// map deployments to module IDs
-	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_handler_storage.Deployment) string {
-		return value.ModuleId
-	})
 	cacheHostResources := make(map[string]models_external.HostResource)
 	cacheGlobalConfigs := make(map[string]models_handler_storage.GlobalConfig)
 	cacheSecretValues := make(map[string]models_external.SecretValueVariant)
@@ -90,134 +85,149 @@ func (h *Handler) RecreateDeployments(ctx context.Context, selectedModules map[s
 			errs = append(errs, "module "+moduleId+" not deployed") // TODO
 			continue
 		}
-		deployment := deployments[moduleId]
-		if deployment.ModuleSource+deployment.ModuleChannel+deployment.ModuleVersion != module.Source+module.Channel+module.Version {
-			errs = append(errs, "module "+moduleId+" has changed and must be updated first")
-			continue
-		}
-		defaultData, err := getDefaultData(module)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		userDataGlobalConfigs := deploymentsGlobalConfigs[deployment.Id]
-		userDataHostResources := deploymentsHostResources[deployment.Id]
-		userDataSecrets := deploymentsSecrets[deployment.Id]
-		userDataConfigs := deploymentsConfigs[deployment.Id]
-		userDataFiles := deploymentsFiles[deployment.Id]
-		userDataFileGroups := deploymentsFileGroups[deployment.Id]
-		err = h.updateGlobalConfigsCache(ctx, userDataGlobalConfigs, cacheGlobalConfigs)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		mergedConfigs := mergeConfigs(defaultData.Configs, userDataConfigs, userDataGlobalConfigs, cacheGlobalConfigs)
-		err = checkConfigs(module.Configs, mergedConfigs)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		mergedFiles := mergeFiles(defaultData.Files, userDataFiles)
-		err = checkFiles(module.Files, mergedFiles)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		containers, err := newContainers2(module.Services, cacheItem.ContainerAliases, deployment.Id)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		volumes := deploymentsVolumes[deployment.Id]
-		currentContainers := deploymentsContainers[deployment.Id]
-		err = h.removeContainers(ctx, currentContainers)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		err = h.removeSecretMounts(ctx, deployment.Id)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		err = h.removeDeploymentDirs(deployment.DirName, deployment.FilesDirName)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-
-		// update caches
-		err = h.updateDeploymentsCache(ctx, module.Dependencies, cacheDeployments)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		err = h.updateHostResourcesCache(ctx, userDataHostResources, cacheHostResources)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		err = h.updateSecretValuesCache(ctx, userDataSecrets, cacheSecretValues)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		err = h.ensureContainerImages(ctx, module.Services)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		err = h.ensureContainerVolumes(ctx, volumes, deployment.Id)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		err = h.createDeploymentDirs(module.FileSystem, deployment.DirName, deployment.FilesDirName)
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		bindMounts, err := h.getBindMounts(
+		err = h.recreateDeployment(
 			ctx,
-			deployment.Id,
-			deployment.FilesDirName,
-			userDataFileGroups,
-			userDataSecrets,
-			mergedFiles,
-		)
-		// TODO "mount secrets" must be "unloaded" if one of the following steps fail
-		err = h.createHttpEndpoints(ctx, module.Services, moduleId, containers)
-		if err != nil {
-			errs = append(errs, err.Error())
-		}
-		createdContainers, err := h.createContainers(
-			ctx,
-			module.Configs,
-			module.Services,
-			deployment.Id,
-			deployment.DirName,
-			deployment.FilesDirName,
-			userDataSecrets,
-			userDataHostResources,
-			containers,
-			volumes,
-			mergedConfigs,
-			bindMounts,
+			module,
+			userDataCollection{
+				GlobalConfigs: deploymentsGlobalConfigs[cacheItem.DeploymentId],
+				HostResources: deploymentsHostResources[cacheItem.DeploymentId],
+				Secrets:       deploymentsSecrets[cacheItem.DeploymentId],
+				Configs:       deploymentsConfigs[cacheItem.DeploymentId],
+				Files:         deploymentsFiles[cacheItem.DeploymentId],
+				FileGroups:    deploymentsFileGroups[cacheItem.DeploymentId],
+			},
+			cacheItem.DeploymentId,
+			cacheItem.ContainerAliases,
+			deployments[cacheItem.DeploymentId],
+			deploymentsContainers[cacheItem.DeploymentId],
+			deploymentsVolumes[cacheItem.DeploymentId],
+			cacheHostResources,
+			cacheGlobalConfigs,
 			cacheSecretValues,
 			cacheDeployments,
-			cacheHostResources,
 		)
 		if err != nil {
-			errs = append(errs, err.Error())
-		}
-		err = h.storageHdl.UpdateDeploymentContainerIds(ctx, createdContainers)
-		if err != nil {
-			// TODO how to handle already created containers?
 			errs = append(errs, err.Error())
 		}
 	}
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n"))
+	}
+	return nil
+}
+
+func (h *Handler) recreateDeployment(
+	ctx context.Context,
+	module models_handler_module.Module,
+	userData userDataCollection,
+	deploymentId string,
+	containerAliases map[string]string,
+	currentDeployment models_handler_storage.Deployment,
+	currentDeploymentContainers map[string]models_handler_storage.DeploymentContainer,
+	currentDeploymentVolumes map[string]models_handler_storage.DeploymentVolume,
+	cacheHostResources map[string]models_external.HostResource,
+	cacheGlobalConfigs map[string]models_handler_storage.GlobalConfig,
+	cacheSecretValues map[string]models_external.SecretValueVariant,
+	cacheDeployments map[string]deploymentsCacheItem,
+) error {
+	if currentDeployment.ModuleSource+currentDeployment.ModuleChannel+currentDeployment.ModuleVersion != module.Source+module.Channel+module.Version {
+		return errors.New("module " + module.ID + " has changed and must be updated first")
+	}
+	defaultData, err := getDefaultData(module)
+	if err != nil {
+		return err
+	}
+	err = h.updateGlobalConfigsCache(ctx, userData.GlobalConfigs, cacheGlobalConfigs)
+	if err != nil {
+		return err
+	}
+	mergedConfigs := mergeConfigs(defaultData.Configs, userData.Configs, userData.GlobalConfigs, cacheGlobalConfigs)
+	err = checkConfigs(module.Configs, mergedConfigs)
+	if err != nil {
+		return err
+	}
+	mergedFiles := mergeFiles(defaultData.Files, userData.Files)
+	err = checkFiles(module.Files, mergedFiles)
+	if err != nil {
+		return err
+	}
+	containers, err := newContainers2(module.Services, containerAliases, deploymentId)
+	if err != nil {
+		return err
+	}
+	err = h.removeContainers(ctx, currentDeploymentContainers)
+	if err != nil {
+		return err
+	}
+	err = h.removeSecretMounts(ctx, deploymentId)
+	if err != nil {
+		return err
+	}
+	err = h.removeDeploymentDirs(currentDeployment.DirName, currentDeployment.FilesDirName)
+	if err != nil {
+		return err
+	}
+	err = h.updateDeploymentsCache(ctx, module.Dependencies, cacheDeployments)
+	if err != nil {
+		return err
+	}
+	err = h.updateHostResourcesCache(ctx, userData.HostResources, cacheHostResources)
+	if err != nil {
+		return err
+	}
+	err = h.updateSecretValuesCache(ctx, userData.Secrets, cacheSecretValues)
+	if err != nil {
+		return err
+	}
+	err = h.ensureContainerImages(ctx, module.Services)
+	if err != nil {
+		return err
+	}
+	err = h.ensureContainerVolumes(ctx, currentDeploymentVolumes, deploymentId)
+	if err != nil {
+		return err
+	}
+	err = h.createDeploymentDirs(module.FileSystem, currentDeployment.DirName, currentDeployment.FilesDirName)
+	if err != nil {
+		return err
+	}
+	bindMounts, err := h.getBindMounts(
+		ctx,
+		deploymentId,
+		currentDeployment.FilesDirName,
+		userData.FileGroups,
+		userData.Secrets,
+		mergedFiles,
+	)
+	// TODO "mount secrets" must be "unloaded" if one of the following steps fail
+	err = h.createHttpEndpoints(ctx, module.Services, module.ID, containers)
+	if err != nil {
+		// TODO log error?
+	}
+	createdContainers, err := h.createContainers(
+		ctx,
+		module.Configs,
+		module.Services,
+		deploymentId,
+		currentDeployment.DirName,
+		currentDeployment.FilesDirName,
+		userData.Secrets,
+		userData.HostResources,
+		containers,
+		currentDeploymentVolumes,
+		mergedConfigs,
+		bindMounts,
+		cacheSecretValues,
+		cacheDeployments,
+		cacheHostResources,
+	)
+	if err != nil {
+		// TODO log error?
+	}
+	err = h.storageHdl.UpdateDeploymentContainerIds(ctx, createdContainers)
+	if err != nil {
+		// TODO how to handle already created containers?
+		// TODO log error?
 	}
 	return nil
 }
