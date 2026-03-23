@@ -38,6 +38,8 @@ func (h *Handler) UpdateDeployments(
 	selectedModules map[string]models_handler_module.Module,
 	userInputs map[string]models_handler_deployment.UserInput,
 ) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	deployments, err := h.storageHdl.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{
 		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
 	})

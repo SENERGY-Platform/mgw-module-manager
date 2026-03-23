@@ -41,6 +41,8 @@ func (h *Handler) CreateDeployments(
 	selectedModules map[string]models_handler_module.Module,
 	userInputs map[string]models_handler_deployment.UserInput,
 ) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	cacheHostResources := make(map[string]models_external.HostResource)
 	cacheGlobalConfigs := make(map[string]models_handler_storage.GlobalConfig)
 	cacheSecretValues := make(map[string]models_external.SecretValueVariant)
