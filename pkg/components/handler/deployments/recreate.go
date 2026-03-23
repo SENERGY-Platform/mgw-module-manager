@@ -42,11 +42,7 @@ func (h *Handler) RecreateDeployments(ctx context.Context, selectedModules map[s
 	if err != nil {
 		return err
 	}
-	deploymentsVolumes, err := h.storageHdl.ReadDeploymentsVolumes(ctx, deploymentIds)
-	if err != nil {
-		return err
-	}
-	deploymentsContainers, err := h.storageHdl.ReadDeploymentsContainers(ctx, deploymentIds)
+	deploymentsVolumes, deploymentsContainers, err := h.getDeploymentsVolumesAndContainersFromDB(ctx, deploymentIds)
 	if err != nil {
 		return err
 	}
@@ -236,6 +232,22 @@ func (h *Handler) getDeploymentsUserDataFromDB(ctx context.Context, deploymentId
 		}
 	}
 	return deploymentsData, nil
+}
+
+func (h *Handler) getDeploymentsVolumesAndContainersFromDB(ctx context.Context, deploymentIds []string) (
+	map[string]map[string]models_handler_storage.DeploymentVolume,
+	map[string]map[string]models_handler_storage.DeploymentContainer,
+	error,
+) {
+	deploymentsVolumes, err := h.storageHdl.ReadDeploymentsVolumes(ctx, deploymentIds)
+	if err != nil {
+		return nil, nil, err
+	}
+	deploymentsContainers, err := h.storageHdl.ReadDeploymentsContainers(ctx, deploymentIds)
+	if err != nil {
+		return nil, nil, err
+	}
+	return deploymentsVolumes, deploymentsContainers, nil
 }
 
 func (h *Handler) updateCaches(

@@ -47,11 +47,7 @@ func (h *Handler) UpdateDeployments(
 		return err
 	}
 	deploymentIds := slices.Collect(maps.Keys(deployments))
-	deploymentsContainers, err := h.storageHdl.ReadDeploymentsContainers(ctx, deploymentIds)
-	if err != nil {
-		return err
-	}
-	deploymentsVolumes, err := h.storageHdl.ReadDeploymentsVolumes(ctx, deploymentIds)
+	deploymentsVolumes, deploymentsContainers, err := h.getDeploymentsVolumesAndContainersFromDB(ctx, deploymentIds)
 	if err != nil {
 		return err
 	}
