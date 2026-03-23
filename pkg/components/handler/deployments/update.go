@@ -134,19 +134,14 @@ func (h *Handler) updateDeployment(
 	if err != nil {
 		return err
 	}
+	err = h.removeDeploymentEnvironment(
+		ctx,
+		deploymentId,
+		currentDeployment.DirName,
+		currentDeployment.FilesDirName,
+		currentDeploymentContainers,
+	)
 	volumes := updateVolumes(module.Volumes, currentDeploymentVolumes, deploymentId)
-	err = h.removeContainers(ctx, currentDeploymentContainers)
-	if err != nil {
-		return err
-	}
-	err = h.removeSecretMounts(ctx, deploymentId)
-	if err != nil {
-		return err
-	}
-	err = h.removeDeploymentDirs(currentDeployment.DirName, currentDeployment.FilesDirName)
-	if err != nil {
-		return err
-	}
 	err = h.storageHdl.UpdateDeployment(
 		ctx,
 		newDeployment,
@@ -162,18 +157,15 @@ func (h *Handler) updateDeployment(
 	if err != nil {
 		return err
 	}
-	err = h.ensureContainerImages(ctx, module.Services)
-	if err != nil {
-		return err
-	}
-	err = h.ensureContainerVolumes(ctx, volumes, deploymentId)
-	if err != nil {
-		return err
-	}
-	err = h.createDeploymentDirs(module.FileSystem, newDeployment.DirName, newDeployment.FilesDirName)
-	if err != nil {
-		return err
-	}
+	err = h.ensureDeploymentEnvironment(
+		ctx,
+		module.Services,
+		module.FileSystem,
+		deploymentId,
+		newDeployment.DirName,
+		newDeployment.FilesDirName,
+		volumes,
+	)
 	bindMounts, err := h.getBindMounts(
 		ctx,
 		deploymentId,

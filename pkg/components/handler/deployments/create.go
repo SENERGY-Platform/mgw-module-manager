@@ -94,7 +94,7 @@ func (h *Handler) createDeployment(
 	if err != nil {
 		return err
 	}
-	userData, err := getUserData(module, defaultData, userInput, deployment.Id)
+	userData, err := getUserData(module, defaultData, userInput, deploymentId)
 	if err != nil {
 		return err
 	}
@@ -120,11 +120,11 @@ func (h *Handler) createDeployment(
 	if err != nil {
 		return err
 	}
-	containers, err := newContainers2(module.Services, containerAliases, deployment.Id)
+	containers, err := newContainers2(module.Services, containerAliases, deploymentId)
 	if err != nil {
 		return err
 	}
-	volumes := newVolumes(module.Volumes, deployment.Id)
+	volumes := newVolumes(module.Volumes, deploymentId)
 	err = h.storageHdl.CreateDeployment(
 		ctx,
 		deployment,
@@ -140,21 +140,18 @@ func (h *Handler) createDeployment(
 	if err != nil {
 		return err
 	}
-	err = h.ensureContainerImages(ctx, module.Services)
-	if err != nil {
-		return err
-	}
-	err = h.ensureContainerVolumes(ctx, volumes, deployment.Id)
-	if err != nil {
-		return err
-	}
-	err = h.createDeploymentDirs(module.FileSystem, deployment.DirName, deployment.FilesDirName)
-	if err != nil {
-		return err
-	}
+	err = h.ensureDeploymentEnvironment(
+		ctx,
+		module.Services,
+		module.FileSystem,
+		deploymentId,
+		deployment.DirName,
+		deployment.FilesDirName,
+		volumes,
+	)
 	bindMounts, err := h.getBindMounts(
 		ctx,
-		deployment.Id,
+		deploymentId,
 		deployment.FilesDirName,
 		userData.FileGroups,
 		userData.Secrets,
@@ -169,7 +166,7 @@ func (h *Handler) createDeployment(
 		ctx,
 		module.Configs,
 		module.Services,
-		deployment.Id,
+		deploymentId,
 		deployment.DirName,
 		deployment.FilesDirName,
 		userData.Secrets,

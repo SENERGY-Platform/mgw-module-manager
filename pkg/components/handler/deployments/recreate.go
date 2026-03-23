@@ -19,6 +19,7 @@ package deployments
 import (
 	"context"
 	"errors"
+	"io/fs"
 	"maps"
 	"slices"
 	"strings"
@@ -124,30 +125,22 @@ func (h *Handler) recreateDeployment(
 	if err != nil {
 		return err
 	}
-	err = h.removeContainers(ctx, currentDeploymentContainers)
-	if err != nil {
-		return err
-	}
-	err = h.removeSecretMounts(ctx, deploymentId)
-	if err != nil {
-		return err
-	}
-	err = h.removeDeploymentDirs(currentDeployment.DirName, currentDeployment.FilesDirName)
-	if err != nil {
-		return err
-	}
-	err = h.ensureContainerImages(ctx, module.Services)
-	if err != nil {
-		return err
-	}
-	err = h.ensureContainerVolumes(ctx, currentDeploymentVolumes, deploymentId)
-	if err != nil {
-		return err
-	}
-	err = h.createDeploymentDirs(module.FileSystem, currentDeployment.DirName, currentDeployment.FilesDirName)
-	if err != nil {
-		return err
-	}
+	err = h.removeDeploymentEnvironment(
+		ctx,
+		deploymentId,
+		currentDeployment.DirName,
+		currentDeployment.FilesDirName,
+		currentDeploymentContainers,
+	)
+	err = h.ensureDeploymentEnvironment(
+		ctx,
+		module.Services,
+		module.FileSystem,
+		deploymentId,
+		currentDeployment.DirName,
+		currentDeployment.FilesDirName,
+		currentDeploymentVolumes,
+	)
 	bindMounts, err := h.getBindMounts(
 		ctx,
 		deploymentId,
@@ -275,6 +268,44 @@ func (h *Handler) updateCaches(
 		return err
 	}
 	return nil
+}
+
+func (h *Handler) ensureDeploymentEnvironment(
+	ctx context.Context,
+	moduleServices map[string]models_external.ModuleLibService,
+	moduleFileSystem fs.FS,
+	deploymentId string,
+	deploymentDirName string,
+	deploymentFilesDirName string,
+	volumes map[string]models_handler_storage.DeploymentVolume,
+) error {
+	err := h.ensureContainerImages(ctx, moduleServices)
+	if err != nil {
+		return err
+	}
+	err = h.ensureContainerVolumes(ctx, volumes, deploymentId)
+	if err != nil {
+		return err
+	}
+	return h.createDeploymentDirs(moduleFileSystem, deploymentDirName, deploymentFilesDirName)
+}
+
+func (h *Handler) removeDeploymentEnvironment(
+	ctx context.Context,
+	deploymentId string,
+	deploymentDirName string,
+	deploymentFilesDirName string,
+	deploymentContainers map[string]models_handler_storage.DeploymentContainer,
+) error {
+	err := h.removeContainers(ctx, deploymentContainers)
+	if err != nil {
+		return err
+	}
+	err = h.removeSecretMounts(ctx, deploymentId)
+	if err != nil {
+		return err
+	}
+	return h.removeDeploymentDirs(deploymentDirName, deploymentFilesDirName)
 }
 
 func mergeDefaultAndUserData(
