@@ -86,7 +86,7 @@ func (h *Handler) createDeployment(
 	containerAliases map[string]string,
 	cache cacheCollection,
 ) error {
-	deployment, err := getDeployment(module, userInput.Name, deploymentId)
+	newDeployment, err := getDeployment(module, userInput.Name, deploymentId)
 	if err != nil {
 		return err
 	}
@@ -120,22 +120,22 @@ func (h *Handler) createDeployment(
 	if err != nil {
 		return err
 	}
-	containers, err := newContainers2(module.Services, containerAliases, deploymentId)
+	newContainers, err := getNewContainers(module.Services, containerAliases, deploymentId)
 	if err != nil {
 		return err
 	}
-	volumes := newVolumes(module.Volumes, deploymentId)
+	newVolumes := getNewVolumes(module.Volumes, deploymentId)
 	err = h.storageHdl.CreateDeployment(
 		ctx,
-		deployment,
+		newDeployment,
 		slices.Collect(maps.Values(userData.HostResources)),
 		slices.Collect(maps.Values(userData.Secrets)),
 		slices.Collect(maps.Values(userData.Configs)),
 		slices.Collect(maps.Values(userData.GlobalConfigs)),
 		slices.Collect(maps.Values(userData.Files)),
 		slices.Collect(maps.Values(userData.FileGroups)),
-		slices.Collect(maps.Values(volumes)),
-		slices.Collect(maps.Values(containers)),
+		slices.Collect(maps.Values(newVolumes)),
+		slices.Collect(maps.Values(newContainers)),
 	)
 	if err != nil {
 		return err
@@ -145,20 +145,20 @@ func (h *Handler) createDeployment(
 		module.Services,
 		module.FileSystem,
 		deploymentId,
-		deployment.DirName,
-		deployment.FilesDirName,
-		volumes,
+		newDeployment.DirName,
+		newDeployment.FilesDirName,
+		newVolumes,
 	)
 	bindMounts, err := h.getBindMounts(
 		ctx,
 		deploymentId,
-		deployment.FilesDirName,
+		newDeployment.FilesDirName,
 		userData.FileGroups,
 		userData.Secrets,
 		mergedFiles,
 	)
 	// TODO "mount secrets" must be "unloaded" if one of the following steps fail
-	err = h.createHttpEndpoints(ctx, module.Services, module.ID, containers)
+	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
 	if err != nil {
 		// TODO log error?
 	}
@@ -167,12 +167,12 @@ func (h *Handler) createDeployment(
 		module.Configs,
 		module.Services,
 		deploymentId,
-		deployment.DirName,
-		deployment.FilesDirName,
+		newDeployment.DirName,
+		newDeployment.FilesDirName,
 		userData.Secrets,
 		userData.HostResources,
-		containers,
-		volumes,
+		newContainers,
+		newVolumes,
 		mergedConfigs,
 		bindMounts,
 		cache.SecretValues,
@@ -324,7 +324,7 @@ func initDeploymentsCacheFromModules(modules map[string]models_handler_module.Mo
 	return cache, nil
 }
 
-func newVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[string]models_handler_storage.DeploymentVolume {
+func getNewVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[string]models_handler_storage.DeploymentVolume {
 	volumes := make(map[string]models_handler_storage.DeploymentVolume)
 	for reference := range moduleVolumes {
 		volumes[reference] = models_handler_storage.DeploymentVolume{
@@ -336,7 +336,7 @@ func newVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[stri
 	return volumes
 }
 
-func newContainers2(
+func getNewContainers(
 	moduleServices map[string]models_external.ModuleLibService,
 	containerAliases map[string]string,
 	deploymentId string,

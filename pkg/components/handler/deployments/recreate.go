@@ -88,8 +88,8 @@ func (h *Handler) recreateDeployment(
 	deploymentId string,
 	containerAliases map[string]string,
 	currentDeployment models_handler_storage.Deployment,
-	currentDeploymentContainers map[string]models_handler_storage.DeploymentContainer,
-	currentDeploymentVolumes map[string]models_handler_storage.DeploymentVolume,
+	currentContainers map[string]models_handler_storage.DeploymentContainer,
+	currentVolumes map[string]models_handler_storage.DeploymentVolume,
 	cache cacheCollection,
 ) error {
 	if currentDeployment.ModuleSource+currentDeployment.ModuleChannel+currentDeployment.ModuleVersion != module.Source+module.Channel+module.Version {
@@ -121,7 +121,7 @@ func (h *Handler) recreateDeployment(
 	if err != nil {
 		return err
 	}
-	containers, err := newContainers2(module.Services, containerAliases, deploymentId)
+	newContainers, err := getNewContainers(module.Services, containerAliases, deploymentId)
 	if err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func (h *Handler) recreateDeployment(
 		deploymentId,
 		currentDeployment.DirName,
 		currentDeployment.FilesDirName,
-		currentDeploymentContainers,
+		currentContainers,
 	)
 	err = h.ensureDeploymentEnvironment(
 		ctx,
@@ -139,7 +139,7 @@ func (h *Handler) recreateDeployment(
 		deploymentId,
 		currentDeployment.DirName,
 		currentDeployment.FilesDirName,
-		currentDeploymentVolumes,
+		currentVolumes,
 	)
 	bindMounts, err := h.getBindMounts(
 		ctx,
@@ -150,7 +150,7 @@ func (h *Handler) recreateDeployment(
 		mergedFiles,
 	)
 	// TODO "mount secrets" must be "unloaded" if one of the following steps fail
-	err = h.createHttpEndpoints(ctx, module.Services, module.ID, containers)
+	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
 	if err != nil {
 		// TODO log error?
 	}
@@ -163,8 +163,8 @@ func (h *Handler) recreateDeployment(
 		currentDeployment.FilesDirName,
 		userData.Secrets,
 		userData.HostResources,
-		containers,
-		currentDeploymentVolumes,
+		newContainers,
+		currentVolumes,
 		mergedConfigs,
 		bindMounts,
 		cache.SecretValues,

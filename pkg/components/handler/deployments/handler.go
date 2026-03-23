@@ -131,10 +131,10 @@ func (h *Handler) getDeployments(ctx context.Context, filter models_handler_depl
 	for _, stgDep := range stgDeps {
 		deployment := models_handler_deployment.Deployment{
 			Deployment:    stgDep,
-			Containers:    newContainers(stgDepsContainers[stgDep.Id], cewContainersMap),
-			HostResources: stgDepsHostResources[stgDep.Id],
-			Secrets:       stgDepsSecrets[stgDep.Id],
-			Configs:       stgDepsConfigs[stgDep.Id],
+			Containers:    getContainers(stgDepsContainers[stgDep.Id], cewContainersMap),
+			HostResources: slices.Collect(maps.Values(stgDepsHostResources[stgDep.Id])),
+			Secrets:       slices.Collect(maps.Values(stgDepsSecrets[stgDep.Id])),
+			Configs:       slices.Collect(maps.Values(stgDepsConfigs[stgDep.Id])),
 		}
 		if cewErr != nil {
 			deployment.State = models_handler_deployment.StateNotAvailable
@@ -163,7 +163,7 @@ func (h *Handler) getCewContainers(ctx context.Context, stgDepsContainers map[st
 	return cewContainersMap, nil
 }
 
-func newContainers(stgDepContainers map[string]models_handler_storage.DeploymentContainer, cewContainers map[string]models_external.Container) []models_handler_deployment.Container {
+func getContainers(stgDepContainers map[string]models_handler_storage.DeploymentContainer, cewContainers map[string]models_external.Container) []models_handler_deployment.Container {
 	var containers []models_handler_deployment.Container
 	for _, stgDepContainer := range stgDepContainers {
 		container := models_handler_deployment.Container{DeploymentContainer: stgDepContainer}

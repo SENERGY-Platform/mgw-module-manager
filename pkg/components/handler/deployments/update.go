@@ -92,8 +92,8 @@ func (h *Handler) updateDeployment(
 	deploymentId string,
 	containerAliases map[string]string,
 	currentDeployment models_handler_storage.Deployment,
-	currentDeploymentContainers map[string]models_handler_storage.DeploymentContainer,
-	currentDeploymentVolumes map[string]models_handler_storage.DeploymentVolume,
+	currentContainers map[string]models_handler_storage.DeploymentContainer,
+	currentVolumes map[string]models_handler_storage.DeploymentVolume,
 	cache cacheCollection,
 ) error {
 	newDeployment, err := getDeployment(module, userInput.Name, deploymentId)
@@ -130,7 +130,7 @@ func (h *Handler) updateDeployment(
 	if err != nil {
 		return err
 	}
-	containers, err := newContainers2(module.Services, containerAliases, deploymentId)
+	newContainers, err := getNewContainers(module.Services, containerAliases, deploymentId)
 	if err != nil {
 		return err
 	}
@@ -139,9 +139,9 @@ func (h *Handler) updateDeployment(
 		deploymentId,
 		currentDeployment.DirName,
 		currentDeployment.FilesDirName,
-		currentDeploymentContainers,
+		currentContainers,
 	)
-	volumes := updateVolumes(module.Volumes, currentDeploymentVolumes, deploymentId)
+	updatedVolumes := updateVolumes(module.Volumes, currentVolumes, deploymentId)
 	err = h.storageHdl.UpdateDeployment(
 		ctx,
 		newDeployment,
@@ -151,8 +151,8 @@ func (h *Handler) updateDeployment(
 		slices.Collect(maps.Values(userData.GlobalConfigs)),
 		slices.Collect(maps.Values(userData.Files)),
 		slices.Collect(maps.Values(userData.FileGroups)),
-		slices.Collect(maps.Values(volumes)),
-		slices.Collect(maps.Values(containers)),
+		slices.Collect(maps.Values(updatedVolumes)),
+		slices.Collect(maps.Values(newContainers)),
 	)
 	if err != nil {
 		return err
@@ -164,7 +164,7 @@ func (h *Handler) updateDeployment(
 		deploymentId,
 		newDeployment.DirName,
 		newDeployment.FilesDirName,
-		volumes,
+		updatedVolumes,
 	)
 	bindMounts, err := h.getBindMounts(
 		ctx,
@@ -175,7 +175,7 @@ func (h *Handler) updateDeployment(
 		mergedFiles,
 	)
 	// TODO "mount secrets" must be "unloaded" if one of the following steps fail
-	err = h.createHttpEndpoints(ctx, module.Services, module.ID, containers)
+	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
 	if err != nil {
 		// TODO log error?
 	}
@@ -188,8 +188,8 @@ func (h *Handler) updateDeployment(
 		newDeployment.FilesDirName,
 		userData.Secrets,
 		userData.HostResources,
-		containers,
-		volumes,
+		newContainers,
+		updatedVolumes,
 		mergedConfigs,
 		bindMounts,
 		cache.SecretValues,
