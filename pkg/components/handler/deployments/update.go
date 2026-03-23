@@ -134,6 +134,7 @@ func (h *Handler) updateDeployment(
 	if err != nil {
 		return err
 	}
+	updatedVolumes := updateVolumes(module.Volumes, currentVolumes, deploymentId)
 	err = h.removeDeploymentEnvironment(
 		ctx,
 		deploymentId,
@@ -141,7 +142,6 @@ func (h *Handler) updateDeployment(
 		currentDeployment.FilesDirName,
 		currentContainers,
 	)
-	updatedVolumes := updateVolumes(module.Volumes, currentVolumes, deploymentId)
 	err = h.storageHdl.UpdateDeployment(
 		ctx,
 		newDeployment,
