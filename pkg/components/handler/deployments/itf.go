@@ -37,15 +37,42 @@ type storageHandler interface {
 		volumes []models_handler_storage.DeploymentVolume,
 		containers []models_handler_storage.DeploymentContainer,
 	) (err error)
-	ReadDeployments(ctx context.Context, filter models_handler_storage.DeploymentsFilter) (map[string]models_handler_storage.Deployment, error)
-	ReadDeploymentsContainers(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_storage.DeploymentContainer, error)
-	ReadDeploymentsVolumes(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_storage.DeploymentVolume, error)
-	ReadDeploymentsHostResources(ctx context.Context, filter models_handler_storage.DeploymentsHostResourcesFilter) (map[string][]models_handler_storage.DeploymentHostResource, error)
-	ReadDeploymentsSecrets(ctx context.Context, filter models_handler_storage.DeploymentsSecretsFilter) (map[string][]models_handler_storage.DeploymentSecret, error)
-	ReadDeploymentsConfigs(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentUserConfig, error)
-	ReadDeploymentsGlobalConfigs(ctx context.Context, filter models_handler_storage.DeploymentGlobalConfigsFilter) (map[string][]models_handler_storage.DeploymentGlobalConfig, error)
-	ReadDeploymentsFiles(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentFile, error)
-	ReadDeploymentsFileGroups(ctx context.Context, deploymentIds []string) (map[string][]models_handler_storage.DeploymentFileGroup, error)
+	ReadDeployments(
+		ctx context.Context,
+		filter models_handler_storage.DeploymentsFilter,
+	) (map[string]models_handler_storage.Deployment, error)
+	ReadDeploymentsContainers(
+		ctx context.Context,
+		deploymentIds []string,
+	) (map[string]map[string]models_handler_storage.DeploymentContainer, error)
+	ReadDeploymentsVolumes(
+		ctx context.Context,
+		deploymentIds []string,
+	) (map[string]map[string]models_handler_storage.DeploymentVolume, error)
+	ReadDeploymentsHostResources(
+		ctx context.Context,
+		filter models_handler_storage.DeploymentsHostResourcesFilter,
+	) (map[string]map[string]models_handler_storage.DeploymentHostResource, error)
+	ReadDeploymentsSecrets(
+		ctx context.Context,
+		filter models_handler_storage.DeploymentsSecretsFilter,
+	) (map[string]map[string]models_handler_storage.DeploymentSecret, error)
+	ReadDeploymentsConfigs(
+		ctx context.Context,
+		deploymentIds []string,
+	) (map[string]map[string]models_handler_storage.DeploymentUserConfig, error)
+	ReadDeploymentsGlobalConfigs(
+		ctx context.Context,
+		filter models_handler_storage.DeploymentGlobalConfigsFilter,
+	) (map[string]map[string]models_handler_storage.DeploymentGlobalConfig, error)
+	ReadDeploymentsFiles(
+		ctx context.Context,
+		deploymentIds []string,
+	) (map[string]map[string]models_handler_storage.DeploymentFile, error)
+	ReadDeploymentsFileGroups(
+		ctx context.Context,
+		deploymentIds []string,
+	) (map[string]map[string]models_handler_storage.DeploymentFileGroup, error)
 	UpdateDeploymentsEnabledState(ctx context.Context, deployments map[string]bool, timestamp time.Time) (err error)
 	UpdateDeploymentName(ctx context.Context, id, name string, timestamp time.Time) error
 	UpdateDeployment(
