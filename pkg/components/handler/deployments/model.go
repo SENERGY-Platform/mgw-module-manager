@@ -47,6 +47,13 @@ type fileGroupMount struct {
 	Path     string
 }
 
+type cacheCollection struct {
+	HostResources map[string]models_external.HostResource
+	GlobalConfigs map[string]models_handler_storage.GlobalConfig
+	SecretValues  map[string]models_external.SecretValueVariant
+	Deployments   map[string]deploymentsCacheItem
+}
+
 type deploymentsCacheItem struct {
 	DeploymentId     string
 	ContainerAliases map[string]string

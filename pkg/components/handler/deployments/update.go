@@ -55,13 +55,15 @@ func (h *Handler) UpdateDeployments(
 	if err != nil {
 		return err
 	}
-	cacheHostResources := make(map[string]models_external.HostResource)
-	cacheGlobalConfigs := make(map[string]models_handler_storage.GlobalConfig)
-	cacheSecretValues := make(map[string]models_external.SecretValueVariant)
-	cacheDeployments := initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
+	cache := cacheCollection{
+		HostResources: make(map[string]models_external.HostResource),
+		GlobalConfigs: make(map[string]models_handler_storage.GlobalConfig),
+		SecretValues:  make(map[string]models_external.SecretValueVariant),
+		Deployments:   initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers),
+	}
 	var errs []string
 	for moduleId, module := range selectedModules {
-		cacheItem, ok := cacheDeployments[moduleId]
+		cacheItem, ok := cache.Deployments[moduleId]
 		if !ok {
 			errs = append(errs, "module "+moduleId+" not deployed")
 			continue
@@ -75,10 +77,7 @@ func (h *Handler) UpdateDeployments(
 			deployments[cacheItem.DeploymentId],
 			deploymentsContainers[cacheItem.DeploymentId],
 			deploymentsVolumes[cacheItem.DeploymentId],
-			cacheHostResources,
-			cacheGlobalConfigs,
-			cacheSecretValues,
-			cacheDeployments,
+			cache,
 		)
 		if err != nil {
 			errs = append(errs, err.Error())
@@ -99,10 +98,7 @@ func (h *Handler) updateDeployment(
 	currentDeployment models_handler_storage.Deployment,
 	currentDeploymentContainers map[string]models_handler_storage.DeploymentContainer,
 	currentDeploymentVolumes map[string]models_handler_storage.DeploymentVolume,
-	cacheHostResources map[string]models_external.HostResource,
-	cacheGlobalConfigs map[string]models_handler_storage.GlobalConfig,
-	cacheSecretValues map[string]models_external.SecretValueVariant,
-	cacheDeployments map[string]deploymentsCacheItem,
+	cache cacheCollection,
 ) error {
 	newDeployment, err := getDeployment(module, userInput.Name, deploymentId)
 	if err != nil {
@@ -122,10 +118,7 @@ func (h *Handler) updateDeployment(
 		userData.HostResources,
 		userData.Secrets,
 		userData.GlobalConfigs,
-		cacheHostResources,
-		cacheGlobalConfigs,
-		cacheSecretValues,
-		cacheDeployments,
+		cache,
 	)
 	if err != nil {
 		return err
@@ -136,7 +129,7 @@ func (h *Handler) updateDeployment(
 		userData.Configs,
 		userData.GlobalConfigs,
 		userData.Files,
-		cacheGlobalConfigs,
+		cache.GlobalConfigs,
 	)
 	if err != nil {
 		return err
@@ -211,9 +204,9 @@ func (h *Handler) updateDeployment(
 		volumes,
 		mergedConfigs,
 		bindMounts,
-		cacheSecretValues,
-		cacheDeployments,
-		cacheHostResources,
+		cache.SecretValues,
+		cache.Deployments,
+		cache.HostResources,
 	)
 	if err != nil {
 		// TODO log error?

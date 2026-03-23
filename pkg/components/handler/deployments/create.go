@@ -43,16 +43,19 @@ func (h *Handler) CreateDeployments(
 ) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	cacheHostResources := make(map[string]models_external.HostResource)
-	cacheGlobalConfigs := make(map[string]models_handler_storage.GlobalConfig)
-	cacheSecretValues := make(map[string]models_external.SecretValueVariant)
-	cacheDeployments, err := initDeploymentsCacheFromModules(selectedModules)
+	cache := cacheCollection{
+		HostResources: make(map[string]models_external.HostResource),
+		GlobalConfigs: make(map[string]models_handler_storage.GlobalConfig),
+		SecretValues:  make(map[string]models_external.SecretValueVariant),
+	}
+	var err error
+	cache.Deployments, err = initDeploymentsCacheFromModules(selectedModules)
 	if err != nil {
 		return err
 	}
 	var errs []string
 	for moduleId, module := range selectedModules {
-		cacheItem, ok := cacheDeployments[moduleId]
+		cacheItem, ok := cache.Deployments[moduleId]
 		if !ok {
 			errs = append(errs, "module "+moduleId+" not deployed")
 			continue
@@ -63,10 +66,7 @@ func (h *Handler) CreateDeployments(
 			userInputs[moduleId],
 			cacheItem.DeploymentId,
 			cacheItem.ContainerAliases,
-			cacheHostResources,
-			cacheGlobalConfigs,
-			cacheSecretValues,
-			cacheDeployments,
+			cache,
 		)
 		if err != nil {
 			errs = append(errs, err.Error())
@@ -84,10 +84,7 @@ func (h *Handler) createDeployment(
 	userInput models_handler_deployment.UserInput,
 	deploymentId string,
 	containerAliases map[string]string,
-	cacheHostResources map[string]models_external.HostResource,
-	cacheGlobalConfigs map[string]models_handler_storage.GlobalConfig,
-	cacheSecretValues map[string]models_external.SecretValueVariant,
-	cacheDeployments map[string]deploymentsCacheItem,
+	cache cacheCollection,
 ) error {
 	deployment, err := getDeployment(module, userInput.Name, deploymentId)
 	if err != nil {
@@ -107,10 +104,7 @@ func (h *Handler) createDeployment(
 		userData.HostResources,
 		userData.Secrets,
 		userData.GlobalConfigs,
-		cacheHostResources,
-		cacheGlobalConfigs,
-		cacheSecretValues,
-		cacheDeployments,
+		cache,
 	)
 	if err != nil {
 		return err
@@ -121,7 +115,7 @@ func (h *Handler) createDeployment(
 		userData.Configs,
 		userData.GlobalConfigs,
 		userData.Files,
-		cacheGlobalConfigs,
+		cache.GlobalConfigs,
 	)
 	if err != nil {
 		return err
@@ -184,9 +178,9 @@ func (h *Handler) createDeployment(
 		volumes,
 		mergedConfigs,
 		bindMounts,
-		cacheSecretValues,
-		cacheDeployments,
-		cacheHostResources,
+		cache.SecretValues,
+		cache.Deployments,
+		cache.HostResources,
 	)
 	if err != nil {
 		// TODO log error?

@@ -50,13 +50,15 @@ func (h *Handler) RecreateDeployments(ctx context.Context, selectedModules map[s
 	if err != nil {
 		return err
 	}
-	cacheHostResources := make(map[string]models_external.HostResource)
-	cacheGlobalConfigs := make(map[string]models_handler_storage.GlobalConfig)
-	cacheSecretValues := make(map[string]models_external.SecretValueVariant)
-	cacheDeployments := initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
+	cache := cacheCollection{
+		HostResources: make(map[string]models_external.HostResource),
+		GlobalConfigs: make(map[string]models_handler_storage.GlobalConfig),
+		SecretValues:  make(map[string]models_external.SecretValueVariant),
+		Deployments:   initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers),
+	}
 	var errs []string
 	for moduleId, module := range selectedModules {
-		cacheItem, ok := cacheDeployments[moduleId]
+		cacheItem, ok := cache.Deployments[moduleId]
 		if !ok {
 			errs = append(errs, "module "+moduleId+" not deployed") // TODO
 			continue
@@ -70,10 +72,7 @@ func (h *Handler) RecreateDeployments(ctx context.Context, selectedModules map[s
 			deployments[cacheItem.DeploymentId],
 			deploymentsContainers[cacheItem.DeploymentId],
 			deploymentsVolumes[cacheItem.DeploymentId],
-			cacheHostResources,
-			cacheGlobalConfigs,
-			cacheSecretValues,
-			cacheDeployments,
+			cache,
 		)
 		if err != nil {
 			errs = append(errs, err.Error())
@@ -94,10 +93,7 @@ func (h *Handler) recreateDeployment(
 	currentDeployment models_handler_storage.Deployment,
 	currentDeploymentContainers map[string]models_handler_storage.DeploymentContainer,
 	currentDeploymentVolumes map[string]models_handler_storage.DeploymentVolume,
-	cacheHostResources map[string]models_external.HostResource,
-	cacheGlobalConfigs map[string]models_handler_storage.GlobalConfig,
-	cacheSecretValues map[string]models_external.SecretValueVariant,
-	cacheDeployments map[string]deploymentsCacheItem,
+	cache cacheCollection,
 ) error {
 	if currentDeployment.ModuleSource+currentDeployment.ModuleChannel+currentDeployment.ModuleVersion != module.Source+module.Channel+module.Version {
 		return errors.New("module " + module.ID + " has changed and must be updated first")
@@ -112,10 +108,7 @@ func (h *Handler) recreateDeployment(
 		userData.HostResources,
 		userData.Secrets,
 		userData.GlobalConfigs,
-		cacheHostResources,
-		cacheGlobalConfigs,
-		cacheSecretValues,
-		cacheDeployments,
+		cache,
 	)
 	if err != nil {
 		return err
@@ -126,7 +119,7 @@ func (h *Handler) recreateDeployment(
 		userData.Configs,
 		userData.GlobalConfigs,
 		userData.Files,
-		cacheGlobalConfigs,
+		cache.GlobalConfigs,
 	)
 	if err != nil {
 		return err
@@ -185,9 +178,9 @@ func (h *Handler) recreateDeployment(
 		currentDeploymentVolumes,
 		mergedConfigs,
 		bindMounts,
-		cacheSecretValues,
-		cacheDeployments,
-		cacheHostResources,
+		cache.SecretValues,
+		cache.Deployments,
+		cache.HostResources,
 	)
 	if err != nil {
 		// TODO log error?
@@ -251,24 +244,21 @@ func (h *Handler) updateCaches(
 	userDataHostResources map[string]models_handler_storage.DeploymentHostResource,
 	userDataSecrets map[string]models_handler_storage.DeploymentSecret,
 	userDataGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
-	cacheHostResources map[string]models_external.HostResource,
-	cacheGlobalConfigs map[string]models_handler_storage.GlobalConfig,
-	cacheSecretValues map[string]models_external.SecretValueVariant,
-	cacheDeployments map[string]deploymentsCacheItem,
+	cache cacheCollection,
 ) error {
-	err := h.updateDeploymentsCache(ctx, moduleDependencies, cacheDeployments)
+	err := h.updateDeploymentsCache(ctx, moduleDependencies, cache.Deployments)
 	if err != nil {
 		return err
 	}
-	err = h.updateGlobalConfigsCache(ctx, userDataGlobalConfigs, cacheGlobalConfigs)
+	err = h.updateGlobalConfigsCache(ctx, userDataGlobalConfigs, cache.GlobalConfigs)
 	if err != nil {
 		return err
 	}
-	err = h.updateHostResourcesCache(ctx, userDataHostResources, cacheHostResources)
+	err = h.updateHostResourcesCache(ctx, userDataHostResources, cache.HostResources)
 	if err != nil {
 		return err
 	}
-	err = h.updateSecretValuesCache(ctx, userDataSecrets, cacheSecretValues)
+	err = h.updateSecretValuesCache(ctx, userDataSecrets, cache.SecretValues)
 	if err != nil {
 		return err
 	}
