@@ -38,33 +38,7 @@ func (h *Handler) RecreateDeployments(ctx context.Context, selectedModules map[s
 		return err
 	}
 	deploymentIds := slices.Collect(maps.Keys(deployments))
-	deploymentsHostResources, err := h.storageHdl.ReadDeploymentsHostResources(ctx, models_handler_storage.DeploymentsHostResourcesFilter{
-		DeploymentIds: deploymentIds,
-	})
-	if err != nil {
-		return err
-	}
-	deploymentsSecrets, err := h.storageHdl.ReadDeploymentsSecrets(ctx, models_handler_storage.DeploymentsSecretsFilter{
-		DeploymentIds: deploymentIds,
-	})
-	if err != nil {
-		return err
-	}
-	deploymentsConfigs, err := h.storageHdl.ReadDeploymentsConfigs(ctx, deploymentIds)
-	if err != nil {
-		return err
-	}
-	deploymentsGlobalConfigs, err := h.storageHdl.ReadDeploymentsGlobalConfigs(ctx, models_handler_storage.DeploymentGlobalConfigsFilter{
-		DeploymentIds: deploymentIds,
-	})
-	if err != nil {
-		return err
-	}
-	deploymentsFiles, err := h.storageHdl.ReadDeploymentsFiles(ctx, deploymentIds)
-	if err != nil {
-		return err
-	}
-	deploymentsFileGroups, err := h.storageHdl.ReadDeploymentsFileGroups(ctx, deploymentIds)
+	deploymentsUserData, err := h.getDeploymentsUserDataFromDB(ctx, deploymentIds)
 	if err != nil {
 		return err
 	}
@@ -90,14 +64,7 @@ func (h *Handler) RecreateDeployments(ctx context.Context, selectedModules map[s
 		err = h.recreateDeployment(
 			ctx,
 			module,
-			userDataCollection{
-				GlobalConfigs: deploymentsGlobalConfigs[cacheItem.DeploymentId],
-				HostResources: deploymentsHostResources[cacheItem.DeploymentId],
-				Secrets:       deploymentsSecrets[cacheItem.DeploymentId],
-				Configs:       deploymentsConfigs[cacheItem.DeploymentId],
-				Files:         deploymentsFiles[cacheItem.DeploymentId],
-				FileGroups:    deploymentsFileGroups[cacheItem.DeploymentId],
-			},
+			deploymentsUserData[cacheItem.DeploymentId],
 			cacheItem.DeploymentId,
 			cacheItem.ContainerAliases,
 			deployments[cacheItem.DeploymentId],
@@ -139,17 +106,28 @@ func (h *Handler) recreateDeployment(
 	if err != nil {
 		return err
 	}
-	err = h.updateGlobalConfigsCache(ctx, userData.GlobalConfigs, cacheGlobalConfigs)
+	err = h.updateCaches(
+		ctx,
+		module.Dependencies,
+		userData.HostResources,
+		userData.Secrets,
+		userData.GlobalConfigs,
+		cacheHostResources,
+		cacheGlobalConfigs,
+		cacheSecretValues,
+		cacheDeployments,
+	)
 	if err != nil {
 		return err
 	}
-	mergedConfigs := mergeConfigs(defaultData.Configs, userData.Configs, userData.GlobalConfigs, cacheGlobalConfigs)
-	err = checkConfigs(module.Configs, mergedConfigs)
-	if err != nil {
-		return err
-	}
-	mergedFiles := mergeFiles(defaultData.Files, userData.Files)
-	err = checkFiles(module.Files, mergedFiles)
+	mergedConfigs, mergedFiles, err := mergeDefaultAndUserData(
+		module,
+		defaultData,
+		userData.Configs,
+		userData.GlobalConfigs,
+		userData.Files,
+		cacheGlobalConfigs,
+	)
 	if err != nil {
 		return err
 	}
@@ -166,18 +144,6 @@ func (h *Handler) recreateDeployment(
 		return err
 	}
 	err = h.removeDeploymentDirs(currentDeployment.DirName, currentDeployment.FilesDirName)
-	if err != nil {
-		return err
-	}
-	err = h.updateDeploymentsCache(ctx, module.Dependencies, cacheDeployments)
-	if err != nil {
-		return err
-	}
-	err = h.updateHostResourcesCache(ctx, userData.HostResources, cacheHostResources)
-	if err != nil {
-		return err
-	}
-	err = h.updateSecretValuesCache(ctx, userData.Secrets, cacheSecretValues)
 	if err != nil {
 		return err
 	}
@@ -232,4 +198,100 @@ func (h *Handler) recreateDeployment(
 		// TODO log error?
 	}
 	return nil
+}
+
+func (h *Handler) getDeploymentsUserDataFromDB(ctx context.Context, deploymentIds []string) (map[string]userDataCollection, error) {
+	deploymentsHostResources, err := h.storageHdl.ReadDeploymentsHostResources(ctx, models_handler_storage.DeploymentsHostResourcesFilter{
+		DeploymentIds: deploymentIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+	deploymentsSecrets, err := h.storageHdl.ReadDeploymentsSecrets(ctx, models_handler_storage.DeploymentsSecretsFilter{
+		DeploymentIds: deploymentIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+	deploymentsConfigs, err := h.storageHdl.ReadDeploymentsConfigs(ctx, deploymentIds)
+	if err != nil {
+		return nil, err
+	}
+	deploymentsGlobalConfigs, err := h.storageHdl.ReadDeploymentsGlobalConfigs(ctx, models_handler_storage.DeploymentGlobalConfigsFilter{
+		DeploymentIds: deploymentIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+	deploymentsFiles, err := h.storageHdl.ReadDeploymentsFiles(ctx, deploymentIds)
+	if err != nil {
+		return nil, err
+	}
+	deploymentsFileGroups, err := h.storageHdl.ReadDeploymentsFileGroups(ctx, deploymentIds)
+	if err != nil {
+		return nil, err
+	}
+	deploymentsData := make(map[string]userDataCollection)
+	for _, deploymentId := range deploymentIds {
+		deploymentsData[deploymentId] = userDataCollection{
+			GlobalConfigs: deploymentsGlobalConfigs[deploymentId],
+			HostResources: deploymentsHostResources[deploymentId],
+			Secrets:       deploymentsSecrets[deploymentId],
+			Configs:       deploymentsConfigs[deploymentId],
+			Files:         deploymentsFiles[deploymentId],
+			FileGroups:    deploymentsFileGroups[deploymentId],
+		}
+	}
+	return deploymentsData, nil
+}
+
+func (h *Handler) updateCaches(
+	ctx context.Context,
+	moduleDependencies map[string]string,
+	userDataHostResources map[string]models_handler_storage.DeploymentHostResource,
+	userDataSecrets map[string]models_handler_storage.DeploymentSecret,
+	userDataGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
+	cacheHostResources map[string]models_external.HostResource,
+	cacheGlobalConfigs map[string]models_handler_storage.GlobalConfig,
+	cacheSecretValues map[string]models_external.SecretValueVariant,
+	cacheDeployments map[string]deploymentsCacheItem,
+) error {
+	err := h.updateDeploymentsCache(ctx, moduleDependencies, cacheDeployments)
+	if err != nil {
+		return err
+	}
+	err = h.updateGlobalConfigsCache(ctx, userDataGlobalConfigs, cacheGlobalConfigs)
+	if err != nil {
+		return err
+	}
+	err = h.updateHostResourcesCache(ctx, userDataHostResources, cacheHostResources)
+	if err != nil {
+		return err
+	}
+	err = h.updateSecretValuesCache(ctx, userDataSecrets, cacheSecretValues)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func mergeDefaultAndUserData(
+	module models_handler_module.Module,
+	defaultData defaultDataCollection,
+	userDataConfigs map[string]models_handler_storage.DeploymentUserConfig,
+	userDataGlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig,
+	userDataFiles map[string]models_handler_storage.DeploymentFile,
+	cacheGlobalConfigs map[string]models_handler_storage.GlobalConfig,
+) (map[string]models_handler_storage.Config, map[string][]byte, error) {
+	mergedConfigs := mergeConfigs(defaultData.Configs, userDataConfigs, userDataGlobalConfigs, cacheGlobalConfigs)
+	err := checkConfigs(module.Configs, mergedConfigs)
+	if err != nil {
+		return nil, nil, err
+	}
+	mergedFiles := mergeFiles(defaultData.Files, userDataFiles)
+	err = checkFiles(module.Files, mergedFiles)
+	if err != nil {
+		return nil, nil, err
+	}
+	return mergedConfigs, mergedFiles, nil
 }

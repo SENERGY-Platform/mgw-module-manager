@@ -116,17 +116,28 @@ func (h *Handler) updateDeployment(
 	if err != nil {
 		return err
 	}
-	err = h.updateGlobalConfigsCache(ctx, userData.GlobalConfigs, cacheGlobalConfigs)
+	err = h.updateCaches(
+		ctx,
+		module.Dependencies,
+		userData.HostResources,
+		userData.Secrets,
+		userData.GlobalConfigs,
+		cacheHostResources,
+		cacheGlobalConfigs,
+		cacheSecretValues,
+		cacheDeployments,
+	)
 	if err != nil {
 		return err
 	}
-	mergedConfigs := mergeConfigs(defaultData.Configs, userData.Configs, userData.GlobalConfigs, cacheGlobalConfigs)
-	err = checkConfigs(module.Configs, mergedConfigs)
-	if err != nil {
-		return err
-	}
-	mergedFiles := mergeFiles(defaultData.Files, userData.Files)
-	err = checkFiles(module.Files, mergedFiles)
+	mergedConfigs, mergedFiles, err := mergeDefaultAndUserData(
+		module,
+		defaultData,
+		userData.Configs,
+		userData.GlobalConfigs,
+		userData.Files,
+		cacheGlobalConfigs,
+	)
 	if err != nil {
 		return err
 	}
@@ -159,18 +170,6 @@ func (h *Handler) updateDeployment(
 		slices.Collect(maps.Values(volumes)),
 		slices.Collect(maps.Values(containers)),
 	)
-	if err != nil {
-		return err
-	}
-	err = h.updateDeploymentsCache(ctx, module.Dependencies, cacheDeployments)
-	if err != nil {
-		return err
-	}
-	err = h.updateHostResourcesCache(ctx, userData.HostResources, cacheHostResources)
-	if err != nil {
-		return err
-	}
-	err = h.updateSecretValuesCache(ctx, userData.Secrets, cacheSecretValues)
 	if err != nil {
 		return err
 	}
