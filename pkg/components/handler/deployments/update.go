@@ -35,6 +35,16 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
+func (h *Handler) UpdateDeploymentName(ctx context.Context, deploymentId, name string) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	_, err := h.storageHdl.ReadDeployment(ctx, deploymentId)
+	if err != nil {
+		return err
+	}
+	return h.storageHdl.UpdateDeploymentName(ctx, deploymentId, name, helper_time.Now())
+}
+
 func (h *Handler) UpdateDeployments(
 	ctx context.Context,
 	selectedModules map[string]models_handler_module.Module,

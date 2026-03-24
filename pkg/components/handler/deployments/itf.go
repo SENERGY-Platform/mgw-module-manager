@@ -37,6 +37,7 @@ type storageHandler interface {
 		volumes []models_handler_storage.DeploymentVolume,
 		containers []models_handler_storage.DeploymentContainer,
 	) (err error)
+	ReadDeployment(ctx context.Context, id string) (models_handler_storage.Deployment, error)
 	ReadDeployments(
 		ctx context.Context,
 		filter models_handler_storage.DeploymentsFilter,
@@ -73,6 +74,7 @@ type storageHandler interface {
 		ctx context.Context,
 		deploymentIds []string,
 	) (map[string]map[string]models_handler_storage.DeploymentFileGroup, error)
+	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_storage.GlobalConfig, error)
 	UpdateDeploymentsEnabledState(ctx context.Context, deployments map[string]bool, timestamp time.Time) (err error)
 	UpdateDeploymentName(ctx context.Context, id, name string, timestamp time.Time) error
 	UpdateDeployment(
@@ -89,7 +91,6 @@ type storageHandler interface {
 	) (err error)
 	UpdateDeploymentContainerIds(ctx context.Context, containers []models_handler_storage.DeploymentContainer) error
 	DeleteDeployment(ctx context.Context, id string) error
-	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_storage.GlobalConfig, error)
 }
 
 type containerEngineWrapperClient interface {
