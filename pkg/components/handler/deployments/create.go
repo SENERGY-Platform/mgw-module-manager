@@ -25,6 +25,7 @@ import (
 	"path"
 	"slices"
 	"strings"
+	"time"
 
 	helper_file_sys "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
@@ -53,6 +54,7 @@ func (h *Handler) CreateDeployments(
 	if err != nil {
 		return err
 	}
+	timestamp := helper_time.Now()
 	var errs []string
 	for moduleId, module := range selectedModules {
 		cacheItem, ok := cache.Deployments[moduleId]
@@ -66,6 +68,7 @@ func (h *Handler) CreateDeployments(
 			userInputs[moduleId],
 			cacheItem.DeploymentId,
 			cacheItem.ContainerAliases,
+			timestamp,
 			cache,
 		)
 		if err != nil {
@@ -84,12 +87,14 @@ func (h *Handler) createDeployment(
 	userInput models_handler_deployment.UserInput,
 	deploymentId string,
 	containerAliases map[string]string,
+	timestamp time.Time,
 	cache cacheCollection,
 ) error {
 	newDeployment, err := getDeployment(module, userInput.Name, deploymentId)
 	if err != nil {
 		return err
 	}
+	newDeployment.Created = timestamp
 	defaultData, err := getDefaultData(module)
 	if err != nil {
 		return err
@@ -301,7 +306,6 @@ func getDeployment(
 		Name:          name,
 		DirName:       dirName,
 		FilesDirName:  dirName + "_files",
-		Created:       helper_time.Now(),
 	}, nil
 }
 

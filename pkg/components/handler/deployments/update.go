@@ -24,9 +24,11 @@ import (
 	"path"
 	"slices"
 	"strings"
+	"time"
 
 	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
+	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"
 	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
@@ -57,6 +59,7 @@ func (h *Handler) UpdateDeployments(
 		SecretValues:  make(map[string]models_external.SecretValueVariant),
 		Deployments:   initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers),
 	}
+	timestamp := helper_time.Now()
 	var errs []string
 	for moduleId, module := range selectedModules {
 		cacheItem, ok := cache.Deployments[moduleId]
@@ -73,6 +76,7 @@ func (h *Handler) UpdateDeployments(
 			deployments[cacheItem.DeploymentId],
 			deploymentsContainers[cacheItem.DeploymentId],
 			deploymentsVolumes[cacheItem.DeploymentId],
+			timestamp,
 			cache,
 		)
 		if err != nil {
@@ -94,12 +98,15 @@ func (h *Handler) updateDeployment(
 	currentDeployment models_handler_storage.Deployment,
 	currentContainers map[string]models_handler_storage.DeploymentContainer,
 	currentVolumes map[string]models_handler_storage.DeploymentVolume,
+	timestamp time.Time,
 	cache cacheCollection,
 ) error {
 	newDeployment, err := getDeployment(module, userInput.Name, deploymentId)
 	if err != nil {
 		return err
 	}
+	newDeployment.Created = currentDeployment.Created
+	newDeployment.Updated = timestamp
 	defaultData, err := getDefaultData(module)
 	if err != nil {
 		return err
