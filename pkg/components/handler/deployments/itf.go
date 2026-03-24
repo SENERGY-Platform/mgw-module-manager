@@ -126,6 +126,7 @@ type secretManagerClient interface {
 
 type coreManagerClient interface {
 	SetEndpoints(ctx context.Context, endpoints []models_external.CmEndpointBase) (string, error)
+	RemoveEndpoints(ctx context.Context, filter models_external.CmEndpointFiler, restrictStd bool) (string, error)
 	GetJob(ctx context.Context, id string) (models_external.Job, error)
 	CancelJob(ctx context.Context, id string) error
 }

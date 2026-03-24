@@ -23,6 +23,8 @@ import (
 	"slices"
 	"strings"
 
+	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
@@ -74,5 +76,24 @@ func (h *Handler) deleteDeployment(
 	if err != nil {
 		return err
 	}
+	err = h.removeHttpEndpoints(ctx, deploymentId)
+	if err != nil {
+		return err
+	}
 	return h.storageHdl.DeleteDeployment(ctx, deploymentId)
+}
+
+func (h *Handler) removeHttpEndpoints(ctx context.Context, deploymentId string) error {
+	jobId, err := h.cmClient.RemoveEndpoints(ctx, models_external.CmEndpointFiler{Ref: deploymentId}, false)
+	if err != nil {
+		return err
+	}
+	job, err := helper_job.Await(ctx, h.cmClient, jobId, h.config.JobPollInterval)
+	if err != nil {
+		return err
+	}
+	if job.Error != nil {
+		return errors.New(job.Error.Message)
+	}
+	return nil
 }

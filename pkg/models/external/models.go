@@ -84,5 +84,6 @@ type SecretPathVariant = sm_model.SecretPathVariant
 type SecretValueVariant = sm_model.SecretValueVariant
 
 type CmEndpointBase = cm_model.EndpointBase
+type CmEndpointFiler = cm_model.EndpointFilter
 type CmProxyConfig = cm_model.ProxyConfig
 type CmStringSub = cm_model.StringSub
