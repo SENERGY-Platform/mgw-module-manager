@@ -131,6 +131,9 @@ func (h *Handler) getDeployments(ctx context.Context, filter models_handler_depl
 		} else {
 			deployment.State = getHealthState(deployment.Containers)
 		}
+		if filter.State != "" && deployment.State != filter.State {
+			continue
+		}
 		deployments[stgDep.Id] = deployment
 	}
 	return deployments, nil
