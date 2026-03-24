@@ -28,6 +28,44 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
+func (h *Handler) GetDeploymentsReduced(
+	ctx context.Context,
+	filter models_handler_deployment.DeploymentsFilter,
+) (map[string]models_handler_deployment.DeploymentReduced, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	stgDeps, err := h.storageHdl.ReadDeployments(ctx, filter.DeploymentsFilter)
+	if err != nil {
+		return nil, err
+	}
+	depIds := slices.Collect(maps.Keys(stgDeps))
+	deploymentsContainers, err := h.storageHdl.ReadDeploymentsContainers(ctx, depIds)
+	if err != nil {
+		return nil, err
+	}
+	cewContainersMap, cewErr := h.getCewContainers(ctx, deploymentsContainers)
+	if cewErr != nil {
+		logger.Error("error getting containers") // TODO
+	}
+	deployments := make(map[string]models_handler_deployment.DeploymentReduced)
+	for id, stgDep := range stgDeps {
+		deployment := models_handler_deployment.DeploymentReduced{
+			Deployment: stgDep,
+			Containers: getContainers(deploymentsContainers[id], cewContainersMap),
+		}
+		if cewErr != nil {
+			deployment.State = models_handler_deployment.StateNotAvailable
+		} else {
+			deployment.State = getHealthState(deployment.Containers)
+		}
+		if filter.State != "" && deployment.State != filter.State {
+			continue
+		}
+		deployments[id] = deployment
+	}
+	return deployments, nil
+}
+
 func (h *Handler) GetDeployment(ctx context.Context, id string) (models_handler_deployment.Deployment, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()

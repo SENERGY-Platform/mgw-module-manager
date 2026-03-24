@@ -39,6 +39,12 @@ type Deployment struct {
 	State         string // health state determined by container states
 }
 
+type DeploymentReduced struct {
+	models_handler_storage.Deployment
+	Containers map[string]Container
+	State      string // health state determined by container states
+}
+
 type Container struct {
 	models_handler_storage.DeploymentContainer
 	ImageId string // docker image id
