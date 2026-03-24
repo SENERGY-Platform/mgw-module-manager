@@ -101,29 +101,15 @@ func (h *Handler) getDeployments(ctx context.Context, filter models_handler_depl
 		return nil, err
 	}
 	depIds := slices.Collect(maps.Keys(stgDeps))
-	stgDepsHostResources, err := h.storageHdl.ReadDeploymentsHostResources(
-		ctx,
-		models_handler_storage.DeploymentsHostResourcesFilter{DeploymentIds: depIds},
-	)
+	deploymentsUserData, err := h.getDeploymentsUserDataFromDB(ctx, depIds)
 	if err != nil {
 		return nil, err
 	}
-	stgDepsSecrets, err := h.storageHdl.ReadDeploymentsSecrets(
-		ctx,
-		models_handler_storage.DeploymentsSecretsFilter{DeploymentIds: depIds},
-	)
+	deploymentsVolumes, deploymentsContainers, err := h.getDeploymentsVolumesAndContainersFromDB(ctx, depIds)
 	if err != nil {
 		return nil, err
 	}
-	stgDepsConfigs, err := h.storageHdl.ReadDeploymentsConfigs(ctx, depIds)
-	if err != nil {
-		return nil, err
-	}
-	stgDepsContainers, err := h.storageHdl.ReadDeploymentsContainers(ctx, depIds)
-	if err != nil {
-		return nil, err
-	}
-	cewContainersMap, cewErr := h.getCewContainers(ctx, stgDepsContainers)
+	cewContainersMap, cewErr := h.getCewContainers(ctx, deploymentsContainers)
 	if cewErr != nil {
 		logger.Error("error getting containers") // TODO
 	}
@@ -131,10 +117,14 @@ func (h *Handler) getDeployments(ctx context.Context, filter models_handler_depl
 	for _, stgDep := range stgDeps {
 		deployment := models_handler_deployment.Deployment{
 			Deployment:    stgDep,
-			Containers:    getContainers(stgDepsContainers[stgDep.Id], cewContainersMap),
-			HostResources: slices.Collect(maps.Values(stgDepsHostResources[stgDep.Id])),
-			Secrets:       slices.Collect(maps.Values(stgDepsSecrets[stgDep.Id])),
-			Configs:       slices.Collect(maps.Values(stgDepsConfigs[stgDep.Id])),
+			Containers:    getContainers(deploymentsContainers[stgDep.Id], cewContainersMap),
+			Volumes:       deploymentsVolumes[stgDep.Id],
+			HostResources: deploymentsUserData[stgDep.Id].HostResources,
+			Secrets:       deploymentsUserData[stgDep.Id].Secrets,
+			Configs:       deploymentsUserData[stgDep.Id].Configs,
+			GlobalConfigs: deploymentsUserData[stgDep.Id].GlobalConfigs,
+			Files:         deploymentsUserData[stgDep.Id].Files,
+			FileGroups:    deploymentsUserData[stgDep.Id].FileGroups,
 		}
 		if cewErr != nil {
 			deployment.State = models_handler_deployment.StateNotAvailable
@@ -163,9 +153,12 @@ func (h *Handler) getCewContainers(ctx context.Context, stgDepsContainers map[st
 	return cewContainersMap, nil
 }
 
-func getContainers(stgDepContainers map[string]models_handler_storage.DeploymentContainer, cewContainers map[string]models_external.Container) []models_handler_deployment.Container {
-	var containers []models_handler_deployment.Container
-	for _, stgDepContainer := range stgDepContainers {
+func getContainers(
+	stgDepContainers map[string]models_handler_storage.DeploymentContainer,
+	cewContainers map[string]models_external.Container,
+) map[string]models_handler_deployment.Container {
+	containers := make(map[string]models_handler_deployment.Container)
+	for reference, stgDepContainer := range stgDepContainers {
 		container := models_handler_deployment.Container{DeploymentContainer: stgDepContainer}
 		cewContainer, ok := cewContainers[stgDepContainer.Id]
 		if ok {
@@ -174,12 +167,12 @@ func getContainers(stgDepContainers map[string]models_handler_storage.Deployment
 		} else {
 			logger.Error("missing container") // TODO
 		}
-		containers = append(containers, container)
+		containers[reference] = container
 	}
 	return containers
 }
 
-func getHealthState(containers []models_handler_deployment.Container) string {
+func getHealthState(containers map[string]models_handler_deployment.Container) string {
 	for _, container := range containers {
 		if container.State != models_external.CewRunningState {
 			return models_handler_deployment.StateUnhealthy

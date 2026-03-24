@@ -28,10 +28,14 @@ const (
 
 type Deployment struct {
 	models_handler_storage.Deployment
-	Containers    []Container
-	HostResources []models_handler_storage.DeploymentHostResource
-	Secrets       []models_handler_storage.DeploymentSecret
-	Configs       []models_handler_storage.DeploymentUserConfig
+	Containers    map[string]Container
+	Volumes       map[string]models_handler_storage.DeploymentVolume
+	HostResources map[string]models_handler_storage.DeploymentHostResource
+	Secrets       map[string]models_handler_storage.DeploymentSecret
+	Configs       map[string]models_handler_storage.DeploymentUserConfig
+	GlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig
+	Files         map[string]models_handler_storage.DeploymentFile
+	FileGroups    map[string]models_handler_storage.DeploymentFileGroup
 	State         string // health state determined by container states
 }
 
