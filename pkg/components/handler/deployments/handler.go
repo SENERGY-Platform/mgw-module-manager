@@ -17,18 +17,9 @@
 package deployments
 
 import (
-	"context"
-	"maps"
 	"os"
-	"slices"
 	"sync"
 	"time"
-
-	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
 type Config struct {
@@ -69,126 +60,4 @@ func New(
 
 func (h *Handler) Init() error {
 	return os.MkdirAll(h.config.WorkDirPath, dirPerm)
-}
-
-func (h *Handler) GetDeployment(ctx context.Context, id string) (models_handler_deployment.Deployment, error) {
-	h.mu.RLock()
-	defer h.mu.RUnlock()
-	deployments, err := h.getDeployments(
-		ctx,
-		models_handler_deployment.DeploymentsFilter{
-			DeploymentsFilter: models_handler_storage.DeploymentsFilter{Ids: []string{id}},
-		},
-	)
-	if err != nil {
-		return models_handler_deployment.Deployment{}, err
-	}
-	if len(deployments) == 0 {
-		return models_handler_deployment.Deployment{}, models_error.NotFoundErr
-	}
-	return deployments[id], nil
-}
-
-func (h *Handler) GetDeployments(
-	ctx context.Context,
-	filter models_handler_deployment.DeploymentsFilter,
-) (map[string]models_handler_deployment.Deployment, error) {
-	h.mu.RLock()
-	defer h.mu.RUnlock()
-	return h.getDeployments(ctx, filter)
-}
-
-func (h *Handler) getDeployments(
-	ctx context.Context,
-	filter models_handler_deployment.DeploymentsFilter,
-) (map[string]models_handler_deployment.Deployment, error) {
-	stgDeps, err := h.storageHdl.ReadDeployments(ctx, filter.DeploymentsFilter)
-	if err != nil {
-		return nil, err
-	}
-	depIds := slices.Collect(maps.Keys(stgDeps))
-	deploymentsUserData, err := h.getDeploymentsUserDataFromDB(ctx, depIds)
-	if err != nil {
-		return nil, err
-	}
-	deploymentsVolumes, deploymentsContainers, err := h.getDeploymentsVolumesAndContainersFromDB(ctx, depIds)
-	if err != nil {
-		return nil, err
-	}
-	cewContainersMap, cewErr := h.getCewContainers(ctx, deploymentsContainers)
-	if cewErr != nil {
-		logger.Error("error getting containers") // TODO
-	}
-	deployments := make(map[string]models_handler_deployment.Deployment)
-	for id, stgDep := range stgDeps {
-		deployment := models_handler_deployment.Deployment{
-			Deployment:    stgDep,
-			Containers:    getContainers(deploymentsContainers[id], cewContainersMap),
-			Volumes:       deploymentsVolumes[id],
-			HostResources: deploymentsUserData[id].HostResources,
-			Secrets:       deploymentsUserData[id].Secrets,
-			Configs:       deploymentsUserData[id].Configs,
-			GlobalConfigs: deploymentsUserData[id].GlobalConfigs,
-			Files:         deploymentsUserData[id].Files,
-			FileGroups:    deploymentsUserData[id].FileGroups,
-		}
-		if cewErr != nil {
-			deployment.State = models_handler_deployment.StateNotAvailable
-		} else {
-			deployment.State = getHealthState(deployment.Containers)
-		}
-		if filter.State != "" && deployment.State != filter.State {
-			continue
-		}
-		deployments[id] = deployment
-	}
-	return deployments, nil
-}
-
-func (h *Handler) getCewContainers(
-	ctx context.Context,
-	stgDepsContainers map[string]map[string]models_handler_storage.DeploymentContainer,
-) (map[string]models_external.Container, error) {
-	var ctrIds []string
-	for _, stgDepContainers := range stgDepsContainers {
-		ctrIds = append(ctrIds, helper_slices.CollectFunc(maps.Values(stgDepContainers), func(item models_handler_storage.DeploymentContainer) string {
-			return item.Id
-		})...)
-	}
-	cewContainers, err := h.cewClient.GetContainers(ctx, models_external.ContainersFilter{Ids: ctrIds})
-	if err != nil {
-		return nil, err
-	}
-	cewContainersMap := maps.Collect(helper_slices.AllFunc(cewContainers, func(item models_external.Container) string {
-		return item.ID
-	}))
-	return cewContainersMap, nil
-}
-
-func getContainers(
-	stgDepContainers map[string]models_handler_storage.DeploymentContainer,
-	cewContainers map[string]models_external.Container,
-) map[string]models_handler_deployment.Container {
-	containers := make(map[string]models_handler_deployment.Container)
-	for reference, stgDepContainer := range stgDepContainers {
-		container := models_handler_deployment.Container{DeploymentContainer: stgDepContainer}
-		cewContainer, ok := cewContainers[stgDepContainer.Id]
-		if ok {
-			container.ImageId = cewContainer.ImageID
-			container.State = cewContainer.State
-		} else {
-			logger.Error("missing container") // TODO
-		}
-		containers[reference] = container
-	}
-	return containers
-}
-
-func getHealthState(containers map[string]models_handler_deployment.Container) string {
-	for _, container := range containers {
-		if container.State != models_external.CewRunningState {
-			return models_handler_deployment.StateUnhealthy
-		}
-	}
-	return models_handler_deployment.StateHealthy
 }
