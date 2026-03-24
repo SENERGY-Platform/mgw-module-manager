@@ -89,13 +89,19 @@ func (h *Handler) GetDeployment(ctx context.Context, id string) (models_handler_
 	return deployments[id], nil
 }
 
-func (h *Handler) GetDeployments(ctx context.Context, filter models_handler_deployment.DeploymentsFilter) (map[string]models_handler_deployment.Deployment, error) {
+func (h *Handler) GetDeployments(
+	ctx context.Context,
+	filter models_handler_deployment.DeploymentsFilter,
+) (map[string]models_handler_deployment.Deployment, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	return h.getDeployments(ctx, filter)
 }
 
-func (h *Handler) getDeployments(ctx context.Context, filter models_handler_deployment.DeploymentsFilter) (map[string]models_handler_deployment.Deployment, error) {
+func (h *Handler) getDeployments(
+	ctx context.Context,
+	filter models_handler_deployment.DeploymentsFilter,
+) (map[string]models_handler_deployment.Deployment, error) {
 	stgDeps, err := h.storageHdl.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
 		return nil, err
@@ -114,17 +120,17 @@ func (h *Handler) getDeployments(ctx context.Context, filter models_handler_depl
 		logger.Error("error getting containers") // TODO
 	}
 	deployments := make(map[string]models_handler_deployment.Deployment)
-	for _, stgDep := range stgDeps {
+	for id, stgDep := range stgDeps {
 		deployment := models_handler_deployment.Deployment{
 			Deployment:    stgDep,
-			Containers:    getContainers(deploymentsContainers[stgDep.Id], cewContainersMap),
-			Volumes:       deploymentsVolumes[stgDep.Id],
-			HostResources: deploymentsUserData[stgDep.Id].HostResources,
-			Secrets:       deploymentsUserData[stgDep.Id].Secrets,
-			Configs:       deploymentsUserData[stgDep.Id].Configs,
-			GlobalConfigs: deploymentsUserData[stgDep.Id].GlobalConfigs,
-			Files:         deploymentsUserData[stgDep.Id].Files,
-			FileGroups:    deploymentsUserData[stgDep.Id].FileGroups,
+			Containers:    getContainers(deploymentsContainers[id], cewContainersMap),
+			Volumes:       deploymentsVolumes[id],
+			HostResources: deploymentsUserData[id].HostResources,
+			Secrets:       deploymentsUserData[id].Secrets,
+			Configs:       deploymentsUserData[id].Configs,
+			GlobalConfigs: deploymentsUserData[id].GlobalConfigs,
+			Files:         deploymentsUserData[id].Files,
+			FileGroups:    deploymentsUserData[id].FileGroups,
 		}
 		if cewErr != nil {
 			deployment.State = models_handler_deployment.StateNotAvailable
@@ -134,12 +140,15 @@ func (h *Handler) getDeployments(ctx context.Context, filter models_handler_depl
 		if filter.State != "" && deployment.State != filter.State {
 			continue
 		}
-		deployments[stgDep.Id] = deployment
+		deployments[id] = deployment
 	}
 	return deployments, nil
 }
 
-func (h *Handler) getCewContainers(ctx context.Context, stgDepsContainers map[string]map[string]models_handler_storage.DeploymentContainer) (map[string]models_external.Container, error) {
+func (h *Handler) getCewContainers(
+	ctx context.Context,
+	stgDepsContainers map[string]map[string]models_handler_storage.DeploymentContainer,
+) (map[string]models_external.Container, error) {
 	var ctrIds []string
 	for _, stgDepContainers := range stgDepsContainers {
 		ctrIds = append(ctrIds, helper_slices.CollectFunc(maps.Values(stgDepContainers), func(item models_handler_storage.DeploymentContainer) string {
