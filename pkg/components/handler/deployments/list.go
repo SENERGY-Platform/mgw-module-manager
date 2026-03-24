@@ -53,7 +53,7 @@ func (h *Handler) GetDeploymentsReduced(
 			Deployment: stgDep,
 			Containers: getContainers(deploymentsContainers[id], cewContainersMap),
 		}
-		if cewErr != nil {
+		if cewErr != nil || !deployment.Enabled {
 			deployment.State = models_handler_deployment.StateNotAvailable
 		} else {
 			deployment.State = getHealthState(deployment.Containers)
@@ -127,7 +127,7 @@ func (h *Handler) getDeployments(
 			Files:         deploymentsUserData[id].Files,
 			FileGroups:    deploymentsUserData[id].FileGroups,
 		}
-		if cewErr != nil {
+		if cewErr != nil || !deployment.Enabled {
 			deployment.State = models_handler_deployment.StateNotAvailable
 		} else {
 			deployment.State = getHealthState(deployment.Containers)
