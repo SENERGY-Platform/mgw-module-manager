@@ -78,6 +78,23 @@ func (h *Handler) createContainerVolume(ctx context.Context, volume models_handl
 	return nil
 }
 
+func (h *Handler) removeContainerVolumes(
+	ctx context.Context,
+	deploymentVolumes map[string]models_handler_storage.DeploymentVolume,
+) error {
+	var errs []string
+	for _, volume := range deploymentVolumes {
+		err := h.removeContainerVolume(ctx, volume.Name)
+		if err != nil {
+			errs = append(errs, err.Error())
+		}
+	}
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "\n"))
+	}
+	return nil
+}
+
 func (h *Handler) removeContainerVolume(ctx context.Context, name string) error {
 	err := h.cewClient.RemoveVolume(ctx, name, false)
 	if err != nil {
