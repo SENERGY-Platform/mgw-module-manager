@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
@@ -115,6 +116,87 @@ func (h *Handler) removeContainer(ctx context.Context, containerId string) error
 		if !errors.As(err, &notFoundErr) {
 			return err
 		}
+	}
+	return nil
+}
+
+func (h *Handler) startContainers(
+	ctx context.Context,
+	deploymentContainers map[string]models_handler_storage.DeploymentContainer,
+) error {
+	var errs []string
+	for _, container := range deploymentContainers {
+		err := h.cewClient.StartContainer(ctx, container.Id)
+		if err != nil {
+			errs = append(errs, err.Error())
+		}
+	}
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "\n")) // TODO
+	}
+	return nil
+}
+
+func (h *Handler) stopContainers(
+	ctx context.Context,
+	deploymentContainers map[string]models_handler_storage.DeploymentContainer,
+) error {
+	var errs []string
+	for _, container := range deploymentContainers {
+		err := h.stopContainer(ctx, container.Id)
+		if err != nil {
+			errs = append(errs, err.Error())
+		}
+	}
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "\n")) // TODO
+	}
+	return nil
+}
+
+func (h *Handler) stopContainer(ctx context.Context, containerId string) error {
+	jobId, err := h.cewClient.StopContainer(ctx, containerId)
+	if err != nil {
+		return err
+	}
+	job, err := helper_job.Await(ctx, h.cewClient, jobId, h.config.JobPollInterval)
+	if err != nil {
+		return err
+	}
+	if job.Error != nil {
+		return errors.New(job.Error.Message)
+	}
+	return nil
+}
+
+func (h *Handler) restartContainers(
+	ctx context.Context,
+	deploymentContainers map[string]models_handler_storage.DeploymentContainer,
+) error {
+	var errs []string
+	for _, container := range deploymentContainers {
+		err := h.restartContainer(ctx, container.Id)
+		if err != nil {
+			errs = append(errs, err.Error())
+		}
+	}
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "\n")) // TODO
+	}
+	return nil
+}
+
+func (h *Handler) restartContainer(ctx context.Context, containerId string) error {
+	jobId, err := h.cewClient.RestartContainer(ctx, containerId)
+	if err != nil {
+		return err
+	}
+	job, err := helper_job.Await(ctx, h.cewClient, jobId, h.config.JobPollInterval)
+	if err != nil {
+		return err
+	}
+	if job.Error != nil {
+		return errors.New(job.Error.Message)
 	}
 	return nil
 }
