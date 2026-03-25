@@ -49,14 +49,15 @@ func (h *Handler) GetDeploymentsReduced(
 	}
 	deployments := make(map[string]models_handler_deployment.DeploymentReduced)
 	for id, stgDep := range stgDeps {
+		deploymentContainers := deploymentsContainers[id]
 		deployment := models_handler_deployment.DeploymentReduced{
 			Deployment: stgDep,
-			Containers: getContainers(deploymentsContainers[id], cewContainersMap),
+			Containers: getContainers(deploymentContainers, cewContainersMap),
 		}
 		if cewErr != nil || !deployment.Enabled {
 			deployment.State = models_handler_deployment.StateNotAvailable
 		} else {
-			deployment.State = getHealthState(deployment.Containers)
+			deployment.State = getDeploymentState(getContainersCombinedState(deploymentContainers, cewContainersMap))
 		}
 		if filter.State != "" && deployment.State != filter.State {
 			continue
@@ -116,9 +117,10 @@ func (h *Handler) getDeployments(
 	}
 	deployments := make(map[string]models_handler_deployment.Deployment)
 	for id, stgDep := range stgDeps {
+		deploymentContainers := deploymentsContainers[id]
 		deployment := models_handler_deployment.Deployment{
 			Deployment:    stgDep,
-			Containers:    getContainers(deploymentsContainers[id], cewContainersMap),
+			Containers:    getContainers(deploymentContainers, cewContainersMap),
 			Volumes:       deploymentsVolumes[id],
 			HostResources: deploymentsUserData[id].HostResources,
 			Secrets:       deploymentsUserData[id].Secrets,
@@ -130,7 +132,7 @@ func (h *Handler) getDeployments(
 		if cewErr != nil || !deployment.Enabled {
 			deployment.State = models_handler_deployment.StateNotAvailable
 		} else {
-			deployment.State = getHealthState(deployment.Containers)
+			deployment.State = getDeploymentState(getContainersCombinedState(deploymentContainers, cewContainersMap))
 		}
 		if filter.State != "" && deployment.State != filter.State {
 			continue
@@ -179,11 +181,32 @@ func getContainers(
 	return containers
 }
 
-func getHealthState(containers map[string]models_handler_deployment.Container) string {
-	for _, container := range containers {
-		if container.State != models_external.CewRunningState {
-			return models_handler_deployment.StateUnhealthy
+func getDeploymentState(containersState int) string {
+	if containersState == containersStateRunning {
+		return models_handler_deployment.StateHealthy
+	}
+	return models_handler_deployment.StateUnhealthy
+}
+
+func getContainersCombinedState(
+	deploymentContainers map[string]models_handler_storage.DeploymentContainer,
+	existingContainers map[string]models_external.Container,
+) int {
+	var runningCount int
+	for _, deploymentContainer := range deploymentContainers {
+		existingContainer, ok := existingContainers[deploymentContainer.Id]
+		if !ok {
+			return containersStateBroken
+		}
+		if existingContainer.State == models_external.CewRunningState {
+			runningCount++
 		}
 	}
-	return models_handler_deployment.StateHealthy
+	switch runningCount {
+	case 0:
+		return containersStateStopped
+	case len(deploymentContainers):
+		return containersStateRunning
+	}
+	return containersStatePartial
 }

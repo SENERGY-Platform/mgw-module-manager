@@ -21,6 +21,13 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
+const (
+	containersStateStopped = iota + 1 // no running containers
+	containersStateRunning            // all containers running
+	containersStatePartial            // one or more containers not running or restarting
+	containersStateBroken             // one or more containers missing
+)
+
 const dirPerm = 0770
 
 type defaultDataCollection struct {
