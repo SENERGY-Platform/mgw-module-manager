@@ -40,11 +40,11 @@ var depAdvertisements []byte
 var globalConfigs []byte
 
 var Migration = migration{
+	globalConfigs,
 	modules,
 	deployments,
 	auxDeployments,
 	depAdvertisements,
-	globalConfigs,
 }
 
 type migration [][]byte
