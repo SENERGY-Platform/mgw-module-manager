@@ -63,7 +63,7 @@ func (h *Handler) ensureContainerVolumes(ctx context.Context,
 }
 
 func (h *Handler) createContainerVolume(ctx context.Context, volume models_handler_storage.DeploymentVolume) error {
-	_, err := h.cewClient.CreateVolume(ctx, models_external.Volume{
+	_, err := h.containerEngineWrapperClient.CreateVolume(ctx, models_external.Volume{
 		Name: volume.Name,
 		Labels: map[string]string{
 			constants.LabelCoreId:          helper_naming.CoreId,
@@ -96,7 +96,7 @@ func (h *Handler) removeContainerVolumes(
 }
 
 func (h *Handler) removeContainerVolume(ctx context.Context, name string) error {
-	err := h.cewClient.RemoveVolume(ctx, name, false)
+	err := h.containerEngineWrapperClient.RemoveVolume(ctx, name, false)
 	if err != nil {
 		var notFoundErr *models_external.CEWNotFoundErr
 		if !errors.As(err, &notFoundErr) {
@@ -107,7 +107,7 @@ func (h *Handler) removeContainerVolume(ctx context.Context, name string) error 
 }
 
 func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) (map[string]models_external.Volume, error) {
-	volumes, err := h.cewClient.GetVolumes(ctx, models_external.VolumesFilter{
+	volumes, err := h.containerEngineWrapperClient.GetVolumes(ctx, models_external.VolumesFilter{
 		Labels: map[string]string{
 			constants.LabelCoreId:       helper_naming.CoreId,
 			constants.LabelManagerId:    helper_naming.ManagerId,

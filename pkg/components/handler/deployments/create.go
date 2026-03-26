@@ -130,7 +130,7 @@ func (h *Handler) createDeployment(
 		return err
 	}
 	newVolumes := getNewVolumes(module.Volumes, deploymentId)
-	err = h.storageHdl.CreateDeployment(
+	err = h.storageHandler.CreateDeployment(
 		ctx,
 		newDeployment,
 		slices.Collect(maps.Values(userData.HostResources)),
@@ -187,7 +187,7 @@ func (h *Handler) createDeployment(
 	if err != nil {
 		// TODO log error?
 	}
-	err = h.storageHdl.UpdateDeploymentContainerIds(ctx, createdContainers)
+	err = h.storageHandler.UpdateDeploymentContainerIds(ctx, createdContainers)
 	if err != nil {
 		// TODO how to handle already created containers?
 		// TODO log error?

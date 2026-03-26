@@ -47,7 +47,7 @@ func (h *Handler) updateHostResourcesCache(
 	}
 	var errs []string
 	for _, id := range idsNotInCache {
-		hostResource, err := h.hmClient.GetHostResource(ctx, id)
+		hostResource, err := h.hostManagerClient.GetHostResource(ctx, id)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue

@@ -45,7 +45,7 @@ func (h *Handler) ensureContainerImages(ctx context.Context, moduleServices map[
 }
 
 func (h *Handler) ensureContainerImage(ctx context.Context, imageName string) error {
-	_, err := h.cewClient.GetImage(ctx, helper_url.EscapePath(imageName, h.config.PathEscapeDepth))
+	_, err := h.containerEngineWrapperClient.GetImage(ctx, helper_url.EscapePath(imageName, h.config.PathEscapeDepth))
 	if err != nil {
 		var notFoundErr *models_external.CEWNotFoundErr
 		if !errors.As(err, &notFoundErr) {
@@ -54,11 +54,11 @@ func (h *Handler) ensureContainerImage(ctx context.Context, imageName string) er
 	} else {
 		return nil
 	}
-	jobId, err := h.cewClient.AddImage(ctx, imageName)
+	jobId, err := h.containerEngineWrapperClient.AddImage(ctx, imageName)
 	if err != nil {
 		return err
 	}
-	job, err := helper_job.Await(ctx, h.cewClient, jobId, h.config.JobPollInterval)
+	job, err := helper_job.Await(ctx, h.containerEngineWrapperClient, jobId, h.config.JobPollInterval)
 	if err != nil {
 		return err
 	}

@@ -77,7 +77,7 @@ func (h *Handler) createContainers(
 			mounts,
 			getContainerDevices(service.HostResources, userDataHostResources, cacheHostResources),
 		)
-		id, err := h.cewClient.CreateContainer(ctx, cewContainer)
+		id, err := h.containerEngineWrapperClient.CreateContainer(ctx, cewContainer)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
@@ -110,7 +110,7 @@ func (h *Handler) removeContainers(
 }
 
 func (h *Handler) removeContainer(ctx context.Context, containerId string) error {
-	err := h.cewClient.RemoveContainer(ctx, containerId, true)
+	err := h.containerEngineWrapperClient.RemoveContainer(ctx, containerId, true)
 	if err != nil {
 		var notFoundErr *models_external.CEWNotFoundErr
 		if !errors.As(err, &notFoundErr) {
@@ -126,7 +126,7 @@ func (h *Handler) startContainers(
 ) error {
 	var errs []string
 	for _, container := range deploymentContainers {
-		err := h.cewClient.StartContainer(ctx, container.Id)
+		err := h.containerEngineWrapperClient.StartContainer(ctx, container.Id)
 		if err != nil {
 			errs = append(errs, err.Error())
 		}
@@ -155,11 +155,11 @@ func (h *Handler) stopContainers(
 }
 
 func (h *Handler) stopContainer(ctx context.Context, containerId string) error {
-	jobId, err := h.cewClient.StopContainer(ctx, containerId)
+	jobId, err := h.containerEngineWrapperClient.StopContainer(ctx, containerId)
 	if err != nil {
 		return err
 	}
-	job, err := helper_job.Await(ctx, h.cewClient, jobId, h.config.JobPollInterval)
+	job, err := helper_job.Await(ctx, h.containerEngineWrapperClient, jobId, h.config.JobPollInterval)
 	if err != nil {
 		return err
 	}
@@ -187,11 +187,11 @@ func (h *Handler) restartContainers(
 }
 
 func (h *Handler) restartContainer(ctx context.Context, containerId string) error {
-	jobId, err := h.cewClient.RestartContainer(ctx, containerId)
+	jobId, err := h.containerEngineWrapperClient.RestartContainer(ctx, containerId)
 	if err != nil {
 		return err
 	}
-	job, err := helper_job.Await(ctx, h.cewClient, jobId, h.config.JobPollInterval)
+	job, err := helper_job.Await(ctx, h.containerEngineWrapperClient, jobId, h.config.JobPollInterval)
 	if err != nil {
 		return err
 	}

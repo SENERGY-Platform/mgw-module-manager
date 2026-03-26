@@ -34,12 +34,12 @@ func (h *Handler) GetDeploymentsReduced(
 ) (map[string]models_handler_deployment.DeploymentReduced, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	stgDeps, err := h.storageHdl.ReadDeployments(ctx, filter.DeploymentsFilter)
+	stgDeps, err := h.storageHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
 		return nil, err
 	}
 	depIds := slices.Collect(maps.Keys(stgDeps))
-	deploymentsContainers, err := h.storageHdl.ReadDeploymentsContainers(ctx, depIds)
+	deploymentsContainers, err := h.storageHandler.ReadDeploymentsContainers(ctx, depIds)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (h *Handler) getDeployments(
 	ctx context.Context,
 	filter models_handler_deployment.DeploymentsFilter,
 ) (map[string]models_handler_deployment.Deployment, error) {
-	stgDeps, err := h.storageHdl.ReadDeployments(ctx, filter.DeploymentsFilter)
+	stgDeps, err := h.storageHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +152,7 @@ func (h *Handler) getCewContainers(
 			return item.Id
 		})...)
 	}
-	cewContainers, err := h.cewClient.GetContainers(ctx, models_external.ContainersFilter{Ids: ctrIds})
+	cewContainers, err := h.containerEngineWrapperClient.GetContainers(ctx, models_external.ContainersFilter{Ids: ctrIds})
 	if err != nil {
 		return nil, err
 	}

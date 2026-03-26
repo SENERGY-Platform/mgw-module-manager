@@ -49,7 +49,7 @@ func (h *Handler) updateGlobalConfigsCache(
 	if len(idsNotInCache) == 0 {
 		return nil
 	}
-	globalConfigs, err := h.storageHdl.ReadGlobalConfigs(ctx, idsNotInCache)
+	globalConfigs, err := h.storageHandler.ReadGlobalConfigs(ctx, idsNotInCache)
 	if err != nil {
 		return err
 	}

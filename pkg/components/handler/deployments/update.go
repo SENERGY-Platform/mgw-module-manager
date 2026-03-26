@@ -38,11 +38,11 @@ import (
 func (h *Handler) UpdateDeploymentName(ctx context.Context, deploymentId, name string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	_, err := h.storageHdl.ReadDeployment(ctx, deploymentId)
+	_, err := h.storageHandler.ReadDeployment(ctx, deploymentId)
 	if err != nil {
 		return err
 	}
-	return h.storageHdl.UpdateDeploymentName(ctx, deploymentId, name, helper_time.Now())
+	return h.storageHandler.UpdateDeploymentName(ctx, deploymentId, name, helper_time.Now())
 }
 
 func (h *Handler) UpdateDeployments(
@@ -52,7 +52,7 @@ func (h *Handler) UpdateDeployments(
 ) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	deployments, err := h.storageHdl.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{
+	deployments, err := h.storageHandler.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{
 		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
 	})
 	if err != nil {
@@ -159,7 +159,7 @@ func (h *Handler) updateDeployment(
 		currentDeployment.FilesDirName,
 		currentContainers,
 	)
-	err = h.storageHdl.UpdateDeployment(
+	err = h.storageHandler.UpdateDeployment(
 		ctx,
 		newDeployment,
 		slices.Collect(maps.Values(userData.HostResources)),
@@ -216,7 +216,7 @@ func (h *Handler) updateDeployment(
 	if err != nil {
 		// TODO log error?
 	}
-	err = h.storageHdl.UpdateDeploymentContainerIds(ctx, createdContainers)
+	err = h.storageHandler.UpdateDeploymentContainerIds(ctx, createdContainers)
 	if err != nil {
 		// TODO how to handle already created containers?
 		// TODO log error?

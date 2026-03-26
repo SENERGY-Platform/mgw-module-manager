@@ -32,7 +32,7 @@ import (
 func (h *Handler) RecreateDeployments(ctx context.Context, selectedModules map[string]models_handler_module.Module) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	deployments, err := h.storageHdl.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{
+	deployments, err := h.storageHandler.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{
 		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
 	})
 	if err != nil {
@@ -174,7 +174,7 @@ func (h *Handler) recreateDeployment(
 	if err != nil {
 		// TODO log error?
 	}
-	err = h.storageHdl.UpdateDeploymentContainerIds(ctx, createdContainers)
+	err = h.storageHandler.UpdateDeploymentContainerIds(ctx, createdContainers)
 	if err != nil {
 		// TODO how to handle already created containers?
 		// TODO log error?
@@ -183,33 +183,33 @@ func (h *Handler) recreateDeployment(
 }
 
 func (h *Handler) getDeploymentsUserDataFromDB(ctx context.Context, deploymentIds []string) (map[string]userDataCollection, error) {
-	deploymentsHostResources, err := h.storageHdl.ReadDeploymentsHostResources(ctx, models_handler_storage.DeploymentsHostResourcesFilter{
+	deploymentsHostResources, err := h.storageHandler.ReadDeploymentsHostResources(ctx, models_handler_storage.DeploymentsHostResourcesFilter{
 		DeploymentIds: deploymentIds,
 	})
 	if err != nil {
 		return nil, err
 	}
-	deploymentsSecrets, err := h.storageHdl.ReadDeploymentsSecrets(ctx, models_handler_storage.DeploymentsSecretsFilter{
+	deploymentsSecrets, err := h.storageHandler.ReadDeploymentsSecrets(ctx, models_handler_storage.DeploymentsSecretsFilter{
 		DeploymentIds: deploymentIds,
 	})
 	if err != nil {
 		return nil, err
 	}
-	deploymentsConfigs, err := h.storageHdl.ReadDeploymentsConfigs(ctx, deploymentIds)
+	deploymentsConfigs, err := h.storageHandler.ReadDeploymentsConfigs(ctx, deploymentIds)
 	if err != nil {
 		return nil, err
 	}
-	deploymentsGlobalConfigs, err := h.storageHdl.ReadDeploymentsGlobalConfigs(ctx, models_handler_storage.DeploymentGlobalConfigsFilter{
+	deploymentsGlobalConfigs, err := h.storageHandler.ReadDeploymentsGlobalConfigs(ctx, models_handler_storage.DeploymentGlobalConfigsFilter{
 		DeploymentIds: deploymentIds,
 	})
 	if err != nil {
 		return nil, err
 	}
-	deploymentsFiles, err := h.storageHdl.ReadDeploymentsFiles(ctx, deploymentIds)
+	deploymentsFiles, err := h.storageHandler.ReadDeploymentsFiles(ctx, deploymentIds)
 	if err != nil {
 		return nil, err
 	}
-	deploymentsFileGroups, err := h.storageHdl.ReadDeploymentsFileGroups(ctx, deploymentIds)
+	deploymentsFileGroups, err := h.storageHandler.ReadDeploymentsFileGroups(ctx, deploymentIds)
 	if err != nil {
 		return nil, err
 	}
@@ -232,11 +232,11 @@ func (h *Handler) getDeploymentsVolumesAndContainersFromDB(ctx context.Context, 
 	map[string]map[string]models_handler_storage.DeploymentContainer,
 	error,
 ) {
-	deploymentsVolumes, err := h.storageHdl.ReadDeploymentsVolumes(ctx, deploymentIds)
+	deploymentsVolumes, err := h.storageHandler.ReadDeploymentsVolumes(ctx, deploymentIds)
 	if err != nil {
 		return nil, nil, err
 	}
-	deploymentsContainers, err := h.storageHdl.ReadDeploymentsContainers(ctx, deploymentIds)
+	deploymentsContainers, err := h.storageHandler.ReadDeploymentsContainers(ctx, deploymentIds)
 	if err != nil {
 		return nil, nil, err
 	}

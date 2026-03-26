@@ -32,7 +32,7 @@ import (
 func (h *Handler) DeleteDeployments(ctx context.Context, filter models_handler_deployment.DeploymentsFilter) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	deployments, err := h.storageHdl.ReadDeployments(ctx, filter.DeploymentsFilter)
+	deployments, err := h.storageHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
 		return err
 	}
@@ -80,15 +80,15 @@ func (h *Handler) deleteDeployment(
 	if err != nil {
 		return err
 	}
-	return h.storageHdl.DeleteDeployment(ctx, deploymentId)
+	return h.storageHandler.DeleteDeployment(ctx, deploymentId)
 }
 
 func (h *Handler) removeHttpEndpoints(ctx context.Context, deploymentId string) error {
-	jobId, err := h.cmClient.RemoveEndpoints(ctx, models_external.CmEndpointFiler{Ref: deploymentId}, false)
+	jobId, err := h.coreManagerClient.RemoveEndpoints(ctx, models_external.CmEndpointFiler{Ref: deploymentId}, false)
 	if err != nil {
 		return err
 	}
-	job, err := helper_job.Await(ctx, h.cmClient, jobId, h.config.JobPollInterval)
+	job, err := helper_job.Await(ctx, h.coreManagerClient, jobId, h.config.JobPollInterval)
 	if err != nil {
 		return err
 	}

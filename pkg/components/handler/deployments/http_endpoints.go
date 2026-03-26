@@ -39,11 +39,11 @@ func (h *Handler) createHttpEndpoints(
 			endpoints = append(endpoints, newCmEndpointBase(container.Reference, container.Alias, endpoint, moduleId, externalPath))
 		}
 	}
-	jobId, err := h.cmClient.SetEndpoints(ctx, endpoints)
+	jobId, err := h.coreManagerClient.SetEndpoints(ctx, endpoints)
 	if err != nil {
 		return err
 	}
-	job, err := helper_job.Await(ctx, h.cmClient, jobId, h.config.JobPollInterval)
+	job, err := helper_job.Await(ctx, h.coreManagerClient, jobId, h.config.JobPollInterval)
 	if err != nil {
 		return err
 	}

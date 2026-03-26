@@ -48,7 +48,7 @@ func (h *Handler) updateSecretValuesCache(
 			_, ok := cacheSecretValues[cacheKey]
 			if !ok {
 				var err error
-				valueVariant, err, _ := h.smClient.GetValueVariant(ctx, models_external.SecretVariantRequest{
+				valueVariant, err, _ := h.secretManagerClient.GetValueVariant(ctx, models_external.SecretVariantRequest{
 					ID:   secret.Id,
 					Item: reqItem,
 				})
@@ -85,7 +85,7 @@ func (h *Handler) createSecretMounts(
 			}
 			_, ok := secretMounts[key]
 			if !ok {
-				pathVariant, err, _ := h.smClient.InitPathVariant(ctx, models_external.SecretVariantRequest{
+				pathVariant, err, _ := h.secretManagerClient.InitPathVariant(ctx, models_external.SecretVariantRequest{
 					ID:        secret.Id,
 					Item:      reqItem,
 					Reference: deploymentId,
@@ -109,7 +109,7 @@ func (h *Handler) createSecretMounts(
 }
 
 func (h *Handler) removeSecretMounts(ctx context.Context, deploymentId string) error {
-	err, _ := h.smClient.CleanPathVariants(ctx, deploymentId)
+	err, _ := h.secretManagerClient.CleanPathVariants(ctx, deploymentId)
 	if err != nil {
 		return err
 	}

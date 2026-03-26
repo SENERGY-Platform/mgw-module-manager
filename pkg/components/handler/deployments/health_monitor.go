@@ -81,11 +81,11 @@ func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
 ) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	deployments, err := h.storageHdl.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{})
+	deployments, err := h.storageHandler.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{})
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
-	deploymentsContainers, err := h.storageHdl.ReadDeploymentsContainers(ctx, slices.Collect(maps.Keys(deployments)))
+	deploymentsContainers, err := h.storageHandler.ReadDeploymentsContainers(ctx, slices.Collect(maps.Keys(deployments)))
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -95,7 +95,7 @@ func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
 			enabledDeploymentIds = append(enabledDeploymentIds, id)
 		}
 	}
-	deploymentsMountSecrets, err := h.storageHdl.ReadDeploymentsSecrets(ctx, models_handler_storage.DeploymentsSecretsFilter{
+	deploymentsMountSecrets, err := h.storageHandler.ReadDeploymentsSecrets(ctx, models_handler_storage.DeploymentsSecretsFilter{
 		DeploymentIds: enabledDeploymentIds,
 		AsMount:       1,
 	})
@@ -118,7 +118,7 @@ func (h *Handler) startDeployment(
 	var err error
 	defer func() {
 		if err != nil && len(deploymentMountSecrets) > 0 {
-			e, _ := h.smClient.CleanPathVariants(context.Background(), deploymentId)
+			e, _ := h.secretManagerClient.CleanPathVariants(context.Background(), deploymentId)
 			if e != nil {
 				// TODO log?
 			}
@@ -155,7 +155,7 @@ func (h *Handler) loadDeploymentMountSecrets(
 			if item.Name != "" {
 				req.Item = &item.Name
 			}
-			err, _ := h.smClient.LoadPathVariant(ctx, req)
+			err, _ := h.secretManagerClient.LoadPathVariant(ctx, req)
 			if err != nil {
 				return err
 			}
@@ -170,7 +170,7 @@ func (h *Handler) stopDeployment(
 	deploymentContainers map[string]models_handler_storage.DeploymentContainer,
 ) {
 	defer h.healthMonitorJobsRemove(deploymentId)
-	err, _ := h.smClient.CleanPathVariants(ctx, deploymentId)
+	err, _ := h.secretManagerClient.CleanPathVariants(ctx, deploymentId)
 	if err != nil {
 		// TODO log?
 	}
