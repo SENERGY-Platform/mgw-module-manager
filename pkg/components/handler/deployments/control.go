@@ -27,7 +27,7 @@ import (
 func (h *Handler) EnableDeployments(ctx context.Context, moduleIds []string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	deployments, err := h.storageHandler.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
@@ -37,13 +37,13 @@ func (h *Handler) EnableDeployments(ctx context.Context, moduleIds []string) err
 	for _, deployment := range deployments {
 		states[deployment.Id] = true
 	}
-	return h.storageHandler.UpdateDeploymentsEnabledState(ctx, states, helper_time.Now())
+	return h.databaseHandler.UpdateDeploymentsEnabledState(ctx, states, helper_time.Now())
 }
 
 func (h *Handler) DisableDeployments(ctx context.Context, moduleIds []string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	deployments, err := h.storageHandler.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
@@ -53,5 +53,5 @@ func (h *Handler) DisableDeployments(ctx context.Context, moduleIds []string) er
 	for _, deployment := range deployments {
 		states[deployment.Id] = false
 	}
-	return h.storageHandler.UpdateDeploymentsEnabledState(ctx, states, helper_time.Now())
+	return h.databaseHandler.UpdateDeploymentsEnabledState(ctx, states, helper_time.Now())
 }

@@ -81,11 +81,11 @@ func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
 ) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	deployments, err := h.storageHandler.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{})
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{})
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
-	deploymentsContainers, err := h.storageHandler.ReadDeploymentsContainers(ctx, slices.Collect(maps.Keys(deployments)))
+	deploymentsContainers, err := h.databaseHandler.ReadDeploymentsContainers(ctx, slices.Collect(maps.Keys(deployments)))
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -95,7 +95,7 @@ func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
 			enabledDeploymentIds = append(enabledDeploymentIds, id)
 		}
 	}
-	deploymentsMountSecrets, err := h.storageHandler.ReadDeploymentsSecrets(ctx, models_handler_storage.DeploymentsSecretsFilter{
+	deploymentsMountSecrets, err := h.databaseHandler.ReadDeploymentsSecrets(ctx, models_handler_storage.DeploymentsSecretsFilter{
 		DeploymentIds: enabledDeploymentIds,
 		AsMount:       1,
 	})

@@ -41,11 +41,11 @@ func (h *Handler) updateDeploymentsCache(
 	if len(idsNotInCache) == 0 {
 		return nil
 	}
-	deployments, err := h.storageHandler.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{ModuleIds: idsNotInCache})
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{ModuleIds: idsNotInCache})
 	if err != nil {
 		return err
 	}
-	deploymentsContainers, err := h.storageHandler.ReadDeploymentsContainers(ctx, slices.Collect(maps.Keys(deployments)))
+	deploymentsContainers, err := h.databaseHandler.ReadDeploymentsContainers(ctx, slices.Collect(maps.Keys(deployments)))
 	if err != nil {
 		return err
 	}

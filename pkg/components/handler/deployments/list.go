@@ -34,12 +34,12 @@ func (h *Handler) GetDeploymentsReduced(
 ) (map[string]models_handler_deployment.DeploymentReduced, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	stgDeps, err := h.storageHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
+	stgDeps, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
 		return nil, err
 	}
 	depIds := slices.Collect(maps.Keys(stgDeps))
-	deploymentsContainers, err := h.storageHandler.ReadDeploymentsContainers(ctx, depIds)
+	deploymentsContainers, err := h.databaseHandler.ReadDeploymentsContainers(ctx, depIds)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (h *Handler) getDeployments(
 	ctx context.Context,
 	filter models_handler_deployment.DeploymentsFilter,
 ) (map[string]models_handler_deployment.Deployment, error) {
-	stgDeps, err := h.storageHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
+	stgDeps, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
 		return nil, err
 	}

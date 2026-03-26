@@ -33,7 +33,7 @@ type Config struct {
 }
 
 type Handler struct {
-	storageHandler               storageHandler
+	databaseHandler              storageHandler
 	containerEngineWrapperClient containerEngineWrapperClient
 	hostManagerClient            hostManagerClient
 	secretManagerClient          secretManagerClient
@@ -46,18 +46,18 @@ type Handler struct {
 
 func New(
 	storageHdl storageHandler,
-	cewClient containerEngineWrapperClient,
-	hmClient hostManagerClient,
-	smClient secretManagerClient,
-	cmClient coreManagerClient,
+	containerEngineWrapperClient containerEngineWrapperClient,
+	hostManagerClient hostManagerClient,
+	secretManagerClient secretManagerClient,
+	coreManagerClient coreManagerClient,
 	config Config,
 ) *Handler {
 	return &Handler{
-		storageHandler:               storageHdl,
-		containerEngineWrapperClient: cewClient,
-		hostManagerClient:            hmClient,
-		secretManagerClient:          smClient,
-		coreManagerClient:            cmClient,
+		databaseHandler:              storageHdl,
+		containerEngineWrapperClient: containerEngineWrapperClient,
+		hostManagerClient:            hostManagerClient,
+		secretManagerClient:          secretManagerClient,
+		coreManagerClient:            coreManagerClient,
 		config:                       config,
 		healthMonitorJobs:            make(map[string]struct{}),
 	}
