@@ -36,7 +36,7 @@ type storageHandler interface {
 		fileGroups []models_handler_storage.DeploymentFileGroup,
 		volumes []models_handler_storage.DeploymentVolume,
 		containers []models_handler_storage.DeploymentContainer,
-	) (err error)
+	) error
 	ReadDeployment(ctx context.Context, id string) (models_handler_storage.Deployment, error)
 	ReadDeployments(
 		ctx context.Context,
@@ -75,7 +75,7 @@ type storageHandler interface {
 		deploymentIds []string,
 	) (map[string]map[string]models_handler_storage.DeploymentFileGroup, error)
 	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_storage.GlobalConfig, error)
-	UpdateDeploymentsEnabledState(ctx context.Context, deploymentIds []string, state bool) (err error)
+	UpdateDeploymentsEnabledState(ctx context.Context, deploymentIds []string, state bool) error
 	UpdateDeploymentName(ctx context.Context, id, name string, timestamp time.Time) error
 	UpdateDeployment(
 		ctx context.Context,
