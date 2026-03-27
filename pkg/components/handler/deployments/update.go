@@ -118,6 +118,7 @@ func (h *Handler) updateDeployment(
 	if err != nil {
 		return err
 	}
+	newDeployment.Enabled = currentDeployment.Enabled
 	newDeployment.Created = currentDeployment.Created
 	newDeployment.Updated = timestamp
 	defaultData, err := getDefaultData(module)
