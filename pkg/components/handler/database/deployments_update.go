@@ -33,7 +33,10 @@ func (h *Handler) UpdateDeploymentsEnabledState(ctx context.Context, deployments
 			return err
 		}
 		defer func() {
-			err = tx.Rollback()
+			e := tx.Rollback()
+			if e != nil {
+				logger.Error(e.Error()) // TODO
+			}
 		}()
 		db = tx
 	}
@@ -82,7 +85,10 @@ func (h *Handler) UpdateDeploymentContainerIds(ctx context.Context, containers [
 			return err
 		}
 		defer func() {
-			err = tx.Rollback()
+			e := tx.Rollback()
+			if e != nil {
+				logger.Error(e.Error()) // TODO
+			}
 		}()
 		db = tx
 	}
@@ -121,7 +127,10 @@ func (h *Handler) UpdateDeployment(
 		return err
 	}
 	defer func() {
-		err = tx.Rollback()
+		e := tx.Rollback()
+		if e != nil {
+			logger.Error(e.Error()) // TODO
+		}
 	}()
 	_, err = tx.ExecContext(
 		ctx,

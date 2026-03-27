@@ -40,7 +40,10 @@ func (h *Handler) CreateDeployment(
 		return err
 	}
 	defer func() {
-		err = tx.Rollback()
+		e := tx.Rollback()
+		if e != nil {
+			logger.Error(e.Error()) // TODO
+		}
 	}()
 	_, err = tx.ExecContext(
 		ctx,

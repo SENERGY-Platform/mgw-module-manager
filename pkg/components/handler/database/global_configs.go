@@ -31,7 +31,10 @@ func (h *Handler) CreateGlobalConfig(ctx context.Context, config models_handler_
 		return
 	}
 	defer func() {
-		err = tx.Rollback()
+		e := tx.Rollback()
+		if e != nil {
+			logger.Error(e.Error()) // TODO
+		}
 	}()
 	_, err = tx.ExecContext(
 		ctx,
@@ -125,7 +128,10 @@ func (h *Handler) UpdateGlobalConfig(ctx context.Context, config models_handler_
 		return
 	}
 	defer func() {
-		err = tx.Rollback()
+		e := tx.Rollback()
+		if e != nil {
+			logger.Error(e.Error()) // TODO
+		}
 	}()
 	_, err = tx.ExecContext(
 		ctx,
