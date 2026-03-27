@@ -204,14 +204,3 @@ func (h *Handler) healthMonitorJobsRemove(id string) {
 	defer h.healthMonitorJobsMu.Unlock()
 	delete(h.healthMonitorJobs, id)
 }
-
-func sleepContext(ctx context.Context, d time.Duration) {
-	timer := time.NewTimer(d)
-	defer timer.Stop()
-	select {
-	case <-timer.C:
-		return
-	case <-ctx.Done():
-		return
-	}
-}
