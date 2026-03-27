@@ -43,7 +43,7 @@ func (h *Handler) DeploymentHealthMonitor(ctx context.Context) {
 func (h *Handler) checkDeployments(ctx context.Context) {
 	deployments, deploymentsContainers, deploymentsMountSecrets, cewContainersMap, err := h.getCurrentRuntimeData(ctx)
 	if err != nil {
-		// TODO log?
+		logger.Error(err.Error()) // TODO
 		return
 	}
 	filteredDeployments := h.healthMonitorJobsFilter(deployments)
@@ -117,19 +117,19 @@ func (h *Handler) startDeployment(
 		if err != nil && len(deploymentMountSecrets) > 0 {
 			e, _ := h.secretManagerClient.CleanPathVariants(context.Background(), deploymentId)
 			if e != nil {
-				// TODO log?
+				logger.Error(e.Error()) // TODO
 			}
 		}
 		h.healthMonitorJobsRemove(deploymentId)
 	}()
 	err = h.loadDeploymentMountSecrets(ctx, deploymentId, deploymentMountSecrets)
 	if err != nil {
-		// TODO log?
+		logger.Error(err.Error()) // TODO
 		return
 	}
 	err = h.startContainers(ctx, deploymentContainers)
 	if err != nil {
-		// TODO log?
+		logger.Error(err.Error()) // TODO
 		return
 	}
 }
@@ -171,12 +171,12 @@ func (h *Handler) stopDeployment(
 	if hasMountSecrets {
 		err, _ := h.secretManagerClient.CleanPathVariants(ctx, deploymentId)
 		if err != nil {
-			// TODO log?
+			logger.Error(err.Error()) // TODO
 		}
 	}
 	err := h.stopContainers(ctx, deploymentContainers)
 	if err != nil {
-		// TODO log?
+		logger.Error(err.Error()) // TODO
 	}
 }
 
