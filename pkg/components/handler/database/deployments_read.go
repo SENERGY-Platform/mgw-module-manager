@@ -42,7 +42,7 @@ func (h *Handler) ReadDeployments(ctx context.Context, filter models_handler_sto
 	fc, val := genDeploymentsFilter(filter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
-		"SELECT id, mod_id, mod_source, mod_channel, mod_ver, name, dir, files_dir, enabled, created, updated FROM deployments"+fc+";",
+		"SELECT id, mod_id, mod_source, mod_channel, mod_ver, dir, files_dir, enabled, created, updated FROM deployments"+fc+";",
 		val...,
 	)
 	if err != nil {
@@ -59,7 +59,6 @@ func (h *Handler) ReadDeployments(ctx context.Context, filter models_handler_sto
 			&dep.ModuleSource,
 			&dep.ModuleChannel,
 			&dep.ModuleVersion,
-			&dep.Name,
 			&dep.DirName,
 			&dep.FilesDirName,
 			&dep.Enabled,

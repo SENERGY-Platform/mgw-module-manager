@@ -41,6 +41,17 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
+	ok, err = columnExists(ctx, db, tableName, "name")
+	if err != nil {
+		return err
+	}
+	if ok {
+		logger.Info("dropping column", attrColumn, "name", attrTable, tableName)
+		err = dropColumn(ctx, db, tableName, "`name`")
+		if err != nil {
+			return err
+		}
+	}
 	ok, err = columnExists(ctx, db, tableName, "indirect")
 	if err != nil {
 		return err

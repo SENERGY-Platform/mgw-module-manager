@@ -58,7 +58,6 @@ type DeploymentsFilter struct {
 
 type UserInput struct {
 	ModuleId      string
-	Name          string                                   // defaults to module name if empty
 	HostResources map[string]string                        // {ref:resourceID}
 	Secrets       map[string]string                        // {ref:secretID}
 	Configs       map[string]any                           // {ref:value}

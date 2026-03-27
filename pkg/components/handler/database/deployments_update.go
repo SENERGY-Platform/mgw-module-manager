@@ -19,7 +19,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
@@ -56,20 +55,6 @@ func (h *Handler) UpdateDeploymentEnabledState(ctx context.Context, id string, s
 	return h.UpdateDeploymentsEnabledState(ctx, []string{id}, state)
 }
 
-func (h *Handler) UpdateDeploymentName(ctx context.Context, id, name string, timestamp time.Time) error {
-	_, err := h.sqlDB.ExecContext(
-		ctx,
-		"UPDATE deployments SET name = ?, updated = ? WHERE id = ?",
-		name,
-		timestamp,
-		id,
-	)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (h *Handler) UpdateDeployment(
 	ctx context.Context,
 	deployment models_handler_storage.Deployment,
@@ -89,11 +74,10 @@ func (h *Handler) UpdateDeployment(
 	defer tx.Rollback()
 	_, err = tx.ExecContext(
 		ctx,
-		"UPDATE deployments SET mod_source = ?, mod_channel = ?, mod_ver = ?, name = ?, dir = ?, enabled = ?, updated = ? WHERE id = ?",
+		"UPDATE deployments SET mod_source = ?, mod_channel = ?, mod_ver = ?, dir = ?, enabled = ?, updated = ? WHERE id = ?",
 		deployment.ModuleSource,
 		deployment.ModuleChannel,
 		deployment.ModuleVersion,
-		deployment.Name,
 		deployment.DirName,
 		deployment.Enabled,
 		deployment.Updated,

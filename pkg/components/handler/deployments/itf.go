@@ -18,7 +18,6 @@ package deployments
 
 import (
 	"context"
-	"time"
 
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
@@ -76,7 +75,6 @@ type storageHandler interface {
 	) (map[string]map[string]models_handler_storage.DeploymentFileGroup, error)
 	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_storage.GlobalConfig, error)
 	UpdateDeploymentsEnabledState(ctx context.Context, deploymentIds []string, state bool) error
-	UpdateDeploymentName(ctx context.Context, id, name string, timestamp time.Time) error
 	UpdateDeploymentContainerNames(ctx context.Context, containers []models_handler_storage.DeploymentContainer) error
 	UpdateDeployment(
 		ctx context.Context,

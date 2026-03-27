@@ -90,7 +90,7 @@ func (h *Handler) createDeployment(
 	timestamp time.Time,
 	cache cacheCollection,
 ) error {
-	newDeployment, err := getDeployment(module, userInput.Name, deploymentId)
+	newDeployment, err := getDeployment(module, deploymentId)
 	if err != nil {
 		return err
 	}
@@ -285,15 +285,10 @@ func getUserData(
 
 func getDeployment(
 	module models_handler_module.Module,
-	userInputName string,
 	deploymentId string,
 ) (models_handler_storage.Deployment, error) {
 	if deploymentId == "" {
 		return models_handler_storage.Deployment{}, errors.New("empty deployment id")
-	}
-	name := module.Name
-	if userInputName != "" {
-		name = userInputName
 	}
 	dirName, err := helper_uuid.New()
 	if err != nil {
@@ -305,7 +300,6 @@ func getDeployment(
 		ModuleSource:  module.Source,
 		ModuleChannel: module.Channel,
 		ModuleVersion: module.Version,
-		Name:          name,
 		DirName:       dirName,
 		FilesDirName:  dirName + "_files",
 	}, nil

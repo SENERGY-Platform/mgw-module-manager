@@ -42,13 +42,12 @@ func (h *Handler) CreateDeployment(
 	defer tx.Rollback()
 	_, err = tx.ExecContext(
 		ctx,
-		"INSERT INTO deployments (id, mod_id, mod_source, mod_channel, mod_ver, name, dir, files_dir, enabled, created, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO deployments (id, mod_id, mod_source, mod_channel, mod_ver, dir, files_dir, enabled, created, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		deployment.Id,
 		deployment.ModuleId,
 		deployment.ModuleSource,
 		deployment.ModuleChannel,
 		deployment.ModuleVersion,
-		deployment.Name,
 		deployment.DirName,
 		deployment.FilesDirName,
 		deployment.Enabled,

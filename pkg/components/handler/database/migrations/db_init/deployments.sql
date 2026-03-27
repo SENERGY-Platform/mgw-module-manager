@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS deployments
     mod_source  VARCHAR(512) NOT NULL,
     mod_channel VARCHAR(256) NOT NULL,
     mod_ver     VARCHAR(256) NOT NULL,
-    name        VARCHAR(256) NOT NULL,
     dir         VARCHAR(256) NOT NULL,
     files_dir   VARCHAR(256) NOT NULL,
     enabled     BOOLEAN      NOT NULL,

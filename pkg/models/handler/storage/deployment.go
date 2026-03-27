@@ -26,7 +26,6 @@ type Deployment struct {
 	ModuleSource  string
 	ModuleChannel string
 	ModuleVersion string
-	Name          string
 	DirName       string
 	FilesDirName  string
 	Enabled       bool
