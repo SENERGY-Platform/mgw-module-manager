@@ -24,10 +24,10 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func (h *Handler) UpdateDeploymentsEnabledState(ctx context.Context, deployments map[string]bool, timestamp time.Time) (err error) {
+func (h *Handler) UpdateDeploymentsEnabledState(ctx context.Context, deploymentIds []string, state bool) (err error) {
 	var db sqlDatabase = h.sqlDB
 	var tx *sql.Tx
-	if len(deployments) > 0 {
+	if len(deploymentIds) > 0 {
 		tx, err = h.sqlDB.BeginTx(ctx, nil)
 		if err != nil {
 			return err
@@ -35,12 +35,11 @@ func (h *Handler) UpdateDeploymentsEnabledState(ctx context.Context, deployments
 		defer tx.Rollback()
 		db = tx
 	}
-	for id, enabled := range deployments {
+	for _, id := range deploymentIds {
 		_, err = db.ExecContext(
 			ctx,
-			"UPDATE deployments SET enabled = ?, updated = ? WHERE id = ?",
-			enabled,
-			timestamp,
+			"UPDATE deployments SET enabled = ? WHERE id = ?",
+			state,
 			id,
 		)
 		if err != nil {
@@ -53,8 +52,8 @@ func (h *Handler) UpdateDeploymentsEnabledState(ctx context.Context, deployments
 	return
 }
 
-func (h *Handler) UpdateDeploymentEnabledState(ctx context.Context, id string, enabled bool, timestamp time.Time) error {
-	return h.UpdateDeploymentsEnabledState(ctx, map[string]bool{id: enabled}, timestamp)
+func (h *Handler) UpdateDeploymentEnabledState(ctx context.Context, id string, state bool) error {
+	return h.UpdateDeploymentsEnabledState(ctx, []string{id}, state)
 }
 
 func (h *Handler) UpdateDeploymentName(ctx context.Context, id, name string, timestamp time.Time) error {

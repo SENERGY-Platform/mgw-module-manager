@@ -18,8 +18,9 @@ package deployments
 
 import (
 	"context"
+	"maps"
+	"slices"
 
-	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
@@ -33,11 +34,7 @@ func (h *Handler) EnableDeployments(ctx context.Context, moduleIds []string) err
 	if err != nil {
 		return err
 	}
-	states := make(map[string]bool)
-	for _, deployment := range deployments {
-		states[deployment.Id] = true
-	}
-	return h.databaseHandler.UpdateDeploymentsEnabledState(ctx, states, helper_time.Now())
+	return h.databaseHandler.UpdateDeploymentsEnabledState(ctx, slices.Collect(maps.Keys(deployments)), true)
 }
 
 func (h *Handler) DisableDeployments(ctx context.Context, moduleIds []string) error {
@@ -49,9 +46,5 @@ func (h *Handler) DisableDeployments(ctx context.Context, moduleIds []string) er
 	if err != nil {
 		return err
 	}
-	states := make(map[string]bool)
-	for _, deployment := range deployments {
-		states[deployment.Id] = false
-	}
-	return h.databaseHandler.UpdateDeploymentsEnabledState(ctx, states, helper_time.Now())
+	return h.databaseHandler.UpdateDeploymentsEnabledState(ctx, slices.Collect(maps.Keys(deployments)), false)
 }
