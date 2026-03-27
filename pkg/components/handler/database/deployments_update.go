@@ -32,12 +32,7 @@ func (h *Handler) UpdateDeploymentsEnabledState(ctx context.Context, deployments
 		if err != nil {
 			return err
 		}
-		defer func() {
-			e := tx.Rollback()
-			if e != nil {
-				logger.Error(e.Error()) // TODO
-			}
-		}()
+		defer tx.Rollback()
 		db = tx
 	}
 	for id, enabled := range deployments {
@@ -84,12 +79,7 @@ func (h *Handler) UpdateDeploymentContainerIds(ctx context.Context, containers [
 		if err != nil {
 			return err
 		}
-		defer func() {
-			e := tx.Rollback()
-			if e != nil {
-				logger.Error(e.Error()) // TODO
-			}
-		}()
+		defer tx.Rollback()
 		db = tx
 	}
 	for _, container := range containers {
@@ -126,12 +116,7 @@ func (h *Handler) UpdateDeployment(
 	if err != nil {
 		return err
 	}
-	defer func() {
-		e := tx.Rollback()
-		if e != nil {
-			logger.Error(e.Error()) // TODO
-		}
-	}()
+	defer tx.Rollback()
 	_, err = tx.ExecContext(
 		ctx,
 		"UPDATE deployments SET mod_source = ?, mod_channel = ?, mod_ver = ?, name = ?, dir = ?, enabled = ?, updated = ? WHERE id = ?",

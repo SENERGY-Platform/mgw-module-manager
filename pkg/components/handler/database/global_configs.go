@@ -30,12 +30,7 @@ func (h *Handler) CreateGlobalConfig(ctx context.Context, config models_handler_
 	if err != nil {
 		return
 	}
-	defer func() {
-		e := tx.Rollback()
-		if e != nil {
-			logger.Error(e.Error()) // TODO
-		}
-	}()
+	defer tx.Rollback()
 	_, err = tx.ExecContext(
 		ctx,
 		"INSERT INTO global_configs (id, name, data_type, is_list) VALUES (?, ?, ?, ?)",
@@ -127,12 +122,7 @@ func (h *Handler) UpdateGlobalConfig(ctx context.Context, config models_handler_
 	if err != nil {
 		return
 	}
-	defer func() {
-		e := tx.Rollback()
-		if e != nil {
-			logger.Error(e.Error()) // TODO
-		}
-	}()
+	defer tx.Rollback()
 	_, err = tx.ExecContext(
 		ctx,
 		"UPDATE global_configs SET name = ?, data_type = ?, is_list = ? WHERE id = ?",
