@@ -21,7 +21,6 @@ CREATE TABLE IF NOT EXISTS dep_containers
     ctr_id  VARCHAR(256) NOT NULL,
     srv_ref VARCHAR(256) NOT NULL,
     alias   VARCHAR(256) NOT NULL,
-    `order` BIGINT       NOT NULL, # column still required?
     UNIQUE KEY uk_dep_id_ctr_id_srv_ref (dep_id, ctr_id, srv_ref),
     INDEX i_dep_id (dep_id),
     INDEX i_ctr_id (ctr_id),

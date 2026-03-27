@@ -52,6 +52,17 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
+	ok, err = columnExists(ctx, db, tableName, "`order`")
+	if err != nil {
+		return err
+	}
+	if ok {
+		logger.Info("dropping column", attrColumn, "order", attrTable, tableName)
+		err = dropColumn(ctx, db, tableName, "`order`")
+		if err != nil {
+			return err
+		}
+	}
 	ok, err = columnExists(ctx, db, tableName, "mod_source")
 	if err != nil {
 		return err

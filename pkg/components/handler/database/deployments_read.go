@@ -98,7 +98,7 @@ func (h *Handler) ReadDeploymentsContainers(ctx context.Context, deploymentIds [
 	fc, val := genDeploymentsContainersFilter(deploymentIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
-		"SELECT dep_id, ctr_id, srv_ref, alias, 'order' FROM dep_containers"+fc+";",
+		"SELECT dep_id, ctr_id, srv_ref, alias FROM dep_containers"+fc+";",
 		val...,
 	)
 	if err != nil {
@@ -108,7 +108,7 @@ func (h *Handler) ReadDeploymentsContainers(ctx context.Context, deploymentIds [
 	depContainers := make(map[string]map[string]models_handler_storage.DeploymentContainer)
 	for rows.Next() {
 		var container models_handler_storage.DeploymentContainer
-		err = rows.Scan(&container.DeploymentId, &container.Id, &container.Reference, &container.Alias, &container.Order)
+		err = rows.Scan(&container.DeploymentId, &container.Id, &container.Reference, &container.Alias)
 		if err != nil {
 			return nil, err
 		}
