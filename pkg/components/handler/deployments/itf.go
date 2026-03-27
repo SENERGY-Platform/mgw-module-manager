@@ -89,7 +89,6 @@ type storageHandler interface {
 		volumes []models_handler_storage.DeploymentVolume,
 		containers []models_handler_storage.DeploymentContainer,
 	) (err error)
-	UpdateDeploymentContainerIds(ctx context.Context, containers []models_handler_storage.DeploymentContainer) error
 	DeleteDeployment(ctx context.Context, id string) error
 }
 
