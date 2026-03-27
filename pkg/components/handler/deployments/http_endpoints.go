@@ -39,6 +39,9 @@ func (h *Handler) createHttpEndpoints(
 			endpoints = append(endpoints, newCmEndpointBase(container.Reference, container.Alias, endpoint, moduleId, externalPath))
 		}
 	}
+	if len(endpoints) == 0 {
+		return nil
+	}
 	jobId, err := h.coreManagerClient.SetEndpoints(ctx, endpoints)
 	if err != nil {
 		return err
