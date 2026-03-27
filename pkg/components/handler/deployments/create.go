@@ -172,7 +172,7 @@ func (h *Handler) createDeployment(
 	// TODO "mount secrets" must be "unloaded" if one of the following steps fail
 	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
 	if err != nil {
-		// TODO log error?
+		logger.Error(err.Error()) // TODO
 	}
 	err = h.createContainers(
 		ctx,
@@ -192,7 +192,7 @@ func (h *Handler) createDeployment(
 		cache.HostResources,
 	)
 	if err != nil {
-		// TODO log error?
+		logger.Error(err.Error()) // TODO
 	}
 	return nil
 }
