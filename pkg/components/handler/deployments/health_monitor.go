@@ -67,7 +67,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 				continue
 			}
 			h.healthMonitorJobsAdd(id)
-			go h.stopDeployment(ctx, id, deploymentContainers)
+			go h.stopDeployment(ctx, id, deploymentContainers, len(deploymentsMountSecrets[id]) > 0)
 		}
 	}
 }
@@ -168,13 +168,16 @@ func (h *Handler) stopDeployment(
 	ctx context.Context,
 	deploymentId string,
 	deploymentContainers map[string]models_handler_storage.DeploymentContainer,
+	hasMountSecrets bool,
 ) {
 	defer h.healthMonitorJobsRemove(deploymentId)
-	err, _ := h.secretManagerClient.CleanPathVariants(ctx, deploymentId)
-	if err != nil {
-		// TODO log?
+	if hasMountSecrets {
+		err, _ := h.secretManagerClient.CleanPathVariants(ctx, deploymentId)
+		if err != nil {
+			// TODO log?
+		}
 	}
-	err = h.stopContainers(ctx, deploymentContainers)
+	err := h.stopContainers(ctx, deploymentContainers)
 	if err != nil {
 		// TODO log?
 	}
