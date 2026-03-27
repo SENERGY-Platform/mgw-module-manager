@@ -27,10 +27,7 @@ import (
 )
 
 func (h *Handler) DeploymentHealthMonitor(ctx context.Context) {
-	if h.config.HealthMonitorStartupDelay > 0 {
-		sleepContext(ctx, h.config.HealthMonitorStartupDelay)
-	}
-	timer := time.NewTimer(h.config.HealthMonitorLoopDelay)
+	timer := time.NewTimer(h.config.HealthMonitorStartupDelay)
 	defer timer.Stop()
 	for {
 		select {
