@@ -108,7 +108,7 @@ func (h *Handler) ReadDeploymentsContainers(ctx context.Context, deploymentIds [
 	depContainers := make(map[string]map[string]models_handler_storage.DeploymentContainer)
 	for rows.Next() {
 		var container models_handler_storage.DeploymentContainer
-		err = rows.Scan(&container.DeploymentId, &container.Id, &container.Reference, &container.Alias)
+		err = rows.Scan(&container.DeploymentId, &container.Name, &container.Reference, &container.Alias)
 		if err != nil {
 			return nil, err
 		}

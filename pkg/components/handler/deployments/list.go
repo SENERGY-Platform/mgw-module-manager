@@ -149,7 +149,7 @@ func (h *Handler) getCewContainers(
 	var ctrIds []string
 	for _, stgDepContainers := range stgDepsContainers {
 		ctrIds = append(ctrIds, helper_slices.CollectFunc(maps.Values(stgDepContainers), func(item models_handler_storage.DeploymentContainer) string {
-			return item.Id
+			return item.Name
 		})...)
 	}
 	cewContainers, err := h.containerEngineWrapperClient.GetContainers(ctx, models_external.ContainersFilter{Ids: ctrIds})
@@ -169,7 +169,7 @@ func getContainers(
 	containers := make(map[string]models_handler_deployment.Container)
 	for reference, stgDepContainer := range stgDepContainers {
 		container := models_handler_deployment.Container{DeploymentContainer: stgDepContainer}
-		cewContainer, ok := cewContainers[stgDepContainer.Id]
+		cewContainer, ok := cewContainers[stgDepContainer.Name]
 		if ok {
 			container.ImageId = cewContainer.ImageID
 			container.State = cewContainer.State
@@ -194,7 +194,7 @@ func getContainersCombinedState(
 ) int {
 	var runningCount int
 	for _, deploymentContainer := range deploymentContainers {
-		existingContainer, ok := existingContainers[deploymentContainer.Id]
+		existingContainer, ok := existingContainers[deploymentContainer.Name]
 		if !ok {
 			return containersStateBroken
 		}

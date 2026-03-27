@@ -67,7 +67,10 @@ func (h *Handler) UpdateDeployments(
 		HostResources: make(map[string]models_external.HostResource),
 		GlobalConfigs: make(map[string]models_handler_storage.GlobalConfig),
 		SecretValues:  make(map[string]models_external.SecretValueVariant),
-		Deployments:   initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers),
+	}
+	cache.Deployments, err = initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
+	if err != nil {
+		return err
 	}
 	timestamp := helper_time.Now()
 	var errs []string
@@ -82,7 +85,7 @@ func (h *Handler) UpdateDeployments(
 			module,
 			userInputs[moduleId],
 			cacheItem.DeploymentId,
-			cacheItem.ContainerAliases,
+			cacheItem.Containers,
 			deployments[cacheItem.DeploymentId],
 			deploymentsContainers[cacheItem.DeploymentId],
 			deploymentsVolumes[cacheItem.DeploymentId],
@@ -104,7 +107,7 @@ func (h *Handler) updateDeployment(
 	module models_handler_module.Module,
 	userInput models_handler_deployment.UserInput,
 	deploymentId string,
-	containerAliases map[string]string,
+	cacheContainers map[string]containerCacheItem,
 	currentDeployment models_handler_storage.Deployment,
 	currentContainers map[string]models_handler_storage.DeploymentContainer,
 	currentVolumes map[string]models_handler_storage.DeploymentVolume,
@@ -147,7 +150,7 @@ func (h *Handler) updateDeployment(
 	if err != nil {
 		return err
 	}
-	newContainers, err := getNewContainers(module.Services, containerAliases, deploymentId)
+	newContainers, err := getNewContainers(module.Services, cacheContainers, deploymentId)
 	if err != nil {
 		return err
 	}
@@ -205,7 +208,7 @@ func (h *Handler) updateDeployment(
 	if err != nil {
 		// TODO log error?
 	}
-	createdContainers, err := h.createContainers(
+	err = h.createContainers(
 		ctx,
 		module.Configs,
 		module.Services,
@@ -225,11 +228,6 @@ func (h *Handler) updateDeployment(
 	if err != nil {
 		// TODO log error?
 	}
-	err = h.databaseHandler.UpdateDeploymentContainerIds(ctx, createdContainers)
-	if err != nil {
-		// TODO how to handle already created containers?
-		// TODO log error?
-	}
 	return nil
 }
 
@@ -237,7 +235,7 @@ func initDeploymentsCacheFromModulesAndDeployments(
 	modules map[string]models_handler_module.Module,
 	deployments map[string]models_handler_storage.Deployment,
 	deploymentsContainers map[string]map[string]models_handler_storage.DeploymentContainer,
-) map[string]deploymentsCacheItem {
+) (map[string]deploymentsCacheItem, error) {
 	cache := make(map[string]deploymentsCacheItem)
 	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_handler_storage.Deployment) string {
 		return value.ModuleId
@@ -247,21 +245,28 @@ func initDeploymentsCacheFromModulesAndDeployments(
 		if !ok {
 			continue
 		}
-		aliases := make(map[string]string)
+		containers := make(map[string]containerCacheItem)
 		for reference := range module.Services {
 			existingContainer := deploymentsContainers[deployment.Id][reference]
+			name, err := helper_naming.NewContainerName("dep")
+			if err != nil {
+				return nil, err
+			}
 			alias := existingContainer.Alias
 			if alias == "" {
 				alias = helper_naming.NewContainerAlias(deployment.Id, reference)
 			}
-			aliases[reference] = alias
+			containers[reference] = containerCacheItem{
+				Name:  name,
+				Alias: alias,
+			}
 		}
 		cache[moduleId] = deploymentsCacheItem{
-			DeploymentId:     deployment.Id,
-			ContainerAliases: aliases,
+			DeploymentId: deployment.Id,
+			Containers:   containers,
 		}
 	}
-	return cache
+	return cache, nil
 }
 
 func (h *Handler) removeDeploymentDirs(deploymentDirName, deploymentFilesDirName string) error {

@@ -62,6 +62,11 @@ type cacheCollection struct {
 }
 
 type deploymentsCacheItem struct {
-	DeploymentId     string
-	ContainerAliases map[string]string
+	DeploymentId string
+	Containers   map[string]containerCacheItem
+}
+
+type containerCacheItem struct {
+	Name  string
+	Alias string
 }

@@ -46,8 +46,7 @@ func (h *Handler) createContainers(
 	cacheSecretValues map[string]models_external.SecretValueVariant,
 	cacheDeployments map[string]deploymentsCacheItem,
 	cacheHostResources map[string]models_external.HostResource,
-) ([]models_handler_storage.DeploymentContainer, error) {
-	var createdContainers []models_handler_storage.DeploymentContainer
+) error {
 	var errs []string
 	for reference, service := range moduleServices {
 		envVariables := make(map[string]string)
@@ -73,23 +72,22 @@ func (h *Handler) createContainers(
 			reference,
 			deploymentId,
 			storageContainer.Alias,
+			storageContainer.Name,
 			envVariables,
 			mounts,
 			getContainerDevices(service.HostResources, userDataHostResources, cacheHostResources),
 		)
-		id, err := h.containerEngineWrapperClient.CreateContainer(ctx, cewContainer)
+		_, err = h.containerEngineWrapperClient.CreateContainer(ctx, cewContainer)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		storageContainer.Id = id
-		createdContainers = append(createdContainers, storageContainer)
 	}
 
 	if len(errs) > 0 {
-		return createdContainers, errors.New(strings.Join(errs, "\n"))
+		return errors.New(strings.Join(errs, "\n"))
 	}
-	return createdContainers, nil
+	return nil
 }
 
 func (h *Handler) removeContainers(
@@ -98,7 +96,7 @@ func (h *Handler) removeContainers(
 ) error {
 	var errs []string
 	for _, container := range deploymentContainers {
-		err := h.removeContainer(ctx, container.Id)
+		err := h.removeContainer(ctx, container.Name)
 		if err != nil {
 			errs = append(errs, err.Error())
 		}
@@ -126,7 +124,7 @@ func (h *Handler) startContainers(
 ) error {
 	var errs []string
 	for _, container := range deploymentContainers {
-		err := h.containerEngineWrapperClient.StartContainer(ctx, container.Id)
+		err := h.containerEngineWrapperClient.StartContainer(ctx, container.Name)
 		if err != nil {
 			errs = append(errs, err.Error())
 		}
@@ -143,7 +141,7 @@ func (h *Handler) stopContainers(
 ) error {
 	var errs []string
 	for _, container := range deploymentContainers {
-		err := h.stopContainer(ctx, container.Id)
+		err := h.stopContainer(ctx, container.Name)
 		if err != nil {
 			errs = append(errs, err.Error())
 		}
@@ -175,7 +173,7 @@ func (h *Handler) restartContainers(
 ) error {
 	var errs []string
 	for _, container := range deploymentContainers {
-		err := h.restartContainer(ctx, container.Id)
+		err := h.restartContainer(ctx, container.Name)
 		if err != nil {
 			errs = append(errs, err.Error())
 		}
@@ -209,16 +207,13 @@ func getCewContainer(
 	serviceReference string,
 	deploymentId string,
 	containerAlias string,
+	containerName string,
 	envVariables map[string]string,
 	mounts []models_external.CewMount,
 	devices []models_external.CewDevice,
 ) (models_external.Container, error) {
-	name, err := helper_naming.NewContainerName("dep")
-	if err != nil {
-		return models_external.Container{}, err
-	}
 	return models_external.Container{
-		Name:    name,
+		Name:    containerName,
 		Image:   serviceImage,
 		EnvVars: envVariables,
 		Labels: map[string]string{
@@ -234,7 +229,7 @@ func getCewContainer(
 		Networks: []models_external.CewContainerNetwork{
 			{
 				Name:        helper_naming.ModuleContainerNetwork,
-				DomainNames: []string{containerAlias, name},
+				DomainNames: []string{containerAlias, containerName},
 			},
 		},
 		RunConfig: newCewRunConfig(serviceRunConfig),
@@ -296,9 +291,9 @@ func setExternalDependencyEnvVariables(
 		if !ok {
 			continue
 		}
-		alias, ok := item.ContainerAliases[target.Service]
+		container, ok := item.Containers[target.Service]
 		if ok {
-			envVariables[envVarName] = target.FillTemplate(alias)
+			envVariables[envVarName] = target.FillTemplate(container.Alias)
 		}
 	}
 }

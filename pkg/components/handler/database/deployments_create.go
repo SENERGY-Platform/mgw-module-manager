@@ -195,7 +195,7 @@ func (h *Handler) createDeploymentResourcesAndConfigs(
 			ctx,
 			"INSERT INTO dep_containers (dep_id, name, srv_ref, alias) VALUES (?, ?, ?, ?)",
 			deploymentId,
-			container.Id,
+			container.Name,
 			container.Reference,
 			container.Alias,
 		)

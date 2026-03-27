@@ -50,13 +50,16 @@ func (h *Handler) updateDeploymentsCache(
 		return err
 	}
 	for id, deployment := range deployments {
-		aliases := make(map[string]string)
+		containers := make(map[string]containerCacheItem)
 		for _, container := range deploymentsContainers[id] {
-			aliases[container.Reference] = container.Alias
+			containers[container.Reference] = containerCacheItem{
+				Name:  container.Name,
+				Alias: container.Alias,
+			}
 		}
 		cacheDeployments[deployment.ModuleId] = deploymentsCacheItem{
-			DeploymentId:     id,
-			ContainerAliases: aliases,
+			DeploymentId: id,
+			Containers:   containers,
 		}
 	}
 	var errs []string

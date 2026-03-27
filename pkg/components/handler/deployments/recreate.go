@@ -51,7 +51,10 @@ func (h *Handler) RecreateDeployments(ctx context.Context, selectedModules map[s
 		HostResources: make(map[string]models_external.HostResource),
 		GlobalConfigs: make(map[string]models_handler_storage.GlobalConfig),
 		SecretValues:  make(map[string]models_external.SecretValueVariant),
-		Deployments:   initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers),
+	}
+	cache.Deployments, err = initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
+	if err != nil {
+		return err
 	}
 	var errs []string
 	for moduleId, module := range selectedModules {
@@ -65,7 +68,7 @@ func (h *Handler) RecreateDeployments(ctx context.Context, selectedModules map[s
 			module,
 			deploymentsUserData[cacheItem.DeploymentId],
 			cacheItem.DeploymentId,
-			cacheItem.ContainerAliases,
+			cacheItem.Containers,
 			deployments[cacheItem.DeploymentId],
 			deploymentsContainers[cacheItem.DeploymentId],
 			deploymentsVolumes[cacheItem.DeploymentId],
@@ -86,7 +89,7 @@ func (h *Handler) recreateDeployment(
 	module models_handler_module.Module,
 	userData userDataCollection,
 	deploymentId string,
-	containerAliases map[string]string,
+	cacheContainers map[string]containerCacheItem,
 	currentDeployment models_handler_storage.Deployment,
 	currentContainers map[string]models_handler_storage.DeploymentContainer,
 	currentVolumes map[string]models_handler_storage.DeploymentVolume,
@@ -121,7 +124,7 @@ func (h *Handler) recreateDeployment(
 	if err != nil {
 		return err
 	}
-	newContainers, err := getNewContainers(module.Services, containerAliases, deploymentId)
+	newContainers, err := getNewContainers(module.Services, cacheContainers, deploymentId)
 	if err != nil {
 		return err
 	}
@@ -160,7 +163,7 @@ func (h *Handler) recreateDeployment(
 	if err != nil {
 		// TODO log error?
 	}
-	createdContainers, err := h.createContainers(
+	err = h.createContainers(
 		ctx,
 		module.Configs,
 		module.Services,
@@ -178,11 +181,6 @@ func (h *Handler) recreateDeployment(
 		cache.HostResources,
 	)
 	if err != nil {
-		// TODO log error?
-	}
-	err = h.databaseHandler.UpdateDeploymentContainerIds(ctx, createdContainers)
-	if err != nil {
-		// TODO how to handle already created containers?
 		// TODO log error?
 	}
 	return nil

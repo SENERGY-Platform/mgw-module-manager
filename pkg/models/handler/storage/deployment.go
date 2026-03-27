@@ -35,7 +35,7 @@ type Deployment struct {
 }
 
 type DeploymentContainer struct {
-	Id           string
+	Name         string
 	DeploymentId string
 	Reference    string
 	Alias        string
