@@ -135,6 +135,10 @@ func (h *Handler) recreateDeployment(
 		currentDeployment.FilesDirName,
 		currentContainers,
 	)
+	err = h.databaseHandler.UpdateDeploymentContainerNames(ctx, slices.Collect(maps.Values(newContainers)))
+	if err != nil {
+		return err
+	}
 	err = h.ensureDeploymentEnvironment(
 		ctx,
 		module.Services,

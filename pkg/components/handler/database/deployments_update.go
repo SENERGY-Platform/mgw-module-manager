@@ -125,3 +125,32 @@ func (h *Handler) UpdateDeployment(
 	err = tx.Commit()
 	return
 }
+
+func (h *Handler) UpdateDeploymentContainerNames(ctx context.Context, containers []models_handler_storage.DeploymentContainer) (err error) {
+	var db sqlDatabase = h.sqlDB
+	var tx *sql.Tx
+	if len(containers) > 0 {
+		tx, err = h.sqlDB.BeginTx(ctx, nil)
+		if err != nil {
+			return err
+		}
+		defer tx.Rollback()
+		db = tx
+	}
+	for _, container := range containers {
+		_, err = db.ExecContext(
+			ctx,
+			"UPDATE dep_containers SET name = ? WHERE dep_id = ? AND srv_ref = ?",
+			container.Name,
+			container.DeploymentId,
+			container.Reference,
+		)
+		if err != nil {
+			return
+		}
+	}
+	if tx != nil {
+		err = tx.Commit()
+	}
+	return
+}

@@ -77,6 +77,7 @@ type storageHandler interface {
 	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_storage.GlobalConfig, error)
 	UpdateDeploymentsEnabledState(ctx context.Context, deploymentIds []string, state bool) error
 	UpdateDeploymentName(ctx context.Context, id, name string, timestamp time.Time) error
+	UpdateDeploymentContainerNames(ctx context.Context, containers []models_handler_storage.DeploymentContainer) error
 	UpdateDeployment(
 		ctx context.Context,
 		deployment models_handler_storage.Deployment,
