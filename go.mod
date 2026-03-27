@@ -7,8 +7,9 @@ require (
 	github.com/SENERGY-Platform/go-service-base/config-hdl v1.2.0
 	github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.2.0
 	github.com/SENERGY-Platform/go-service-base/struct-logger v0.4.1
-	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.17.0
-	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.18.0
+	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.18.0
+	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.19.0
+	github.com/SENERGY-Platform/mgw-core-manager/lib v0.10.1
 	github.com/SENERGY-Platform/mgw-go-service-base/job-hdl/lib v0.1.1
 	github.com/SENERGY-Platform/mgw-host-manager/lib v1.3.1
 	github.com/SENERGY-Platform/mgw-modfile-lib v0.33.0
@@ -26,7 +27,6 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/SENERGY-Platform/go-base-http-client v0.1.0 // indirect
 	github.com/SENERGY-Platform/go-env-loader v0.5.3 // indirect
-	github.com/SENERGY-Platform/mgw-core-manager/lib v0.10.1 // indirect
 	github.com/SENERGY-Platform/mgw-go-service-base/srv-info-hdl/lib v0.0.3 // indirect
 	github.com/SENERGY-Platform/service-commons v0.0.0-20250903071414-1b34f1965afa // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
