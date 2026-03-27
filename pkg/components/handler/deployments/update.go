@@ -159,6 +159,9 @@ func (h *Handler) updateDeployment(
 		currentDeployment.FilesDirName,
 		currentContainers,
 	)
+	if err != nil {
+		return err
+	}
 	err = h.databaseHandler.UpdateDeployment(
 		ctx,
 		newDeployment,
@@ -183,6 +186,9 @@ func (h *Handler) updateDeployment(
 		newDeployment.FilesDirName,
 		updatedVolumes,
 	)
+	if err != nil {
+		return err
+	}
 	bindMounts, err := h.getBindMounts(
 		ctx,
 		deploymentId,
@@ -191,6 +197,9 @@ func (h *Handler) updateDeployment(
 		userData.Secrets,
 		mergedFiles,
 	)
+	if err != nil {
+		return err
+	}
 	// TODO "mount secrets" must be "unloaded" if one of the following steps fail
 	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
 	if err != nil {
