@@ -553,7 +553,7 @@ func genDeploymentsContainersFilter(ids []string) (string, []any) {
 	var val []any
 	if len(ids) > 0 {
 		ids = helper_slices.RemoveDuplicates(ids)
-		fc = append(fc, "id IN ("+genQuestionMarks(len(ids))+")")
+		fc = append(fc, "dep_id IN ("+genQuestionMarks(len(ids))+")")
 		for _, id := range ids {
 			val = append(val, id)
 		}
