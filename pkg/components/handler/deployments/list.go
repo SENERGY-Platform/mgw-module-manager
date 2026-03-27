@@ -146,18 +146,18 @@ func (h *Handler) getCewContainers(
 	ctx context.Context,
 	stgDepsContainers map[string]map[string]models_handler_storage.DeploymentContainer,
 ) (map[string]models_external.Container, error) {
-	var ctrIds []string
+	var ctrNames []string
 	for _, stgDepContainers := range stgDepsContainers {
-		ctrIds = append(ctrIds, helper_slices.CollectFunc(maps.Values(stgDepContainers), func(item models_handler_storage.DeploymentContainer) string {
+		ctrNames = append(ctrNames, helper_slices.CollectFunc(maps.Values(stgDepContainers), func(item models_handler_storage.DeploymentContainer) string {
 			return item.Name
 		})...)
 	}
-	cewContainers, err := h.containerEngineWrapperClient.GetContainers(ctx, models_external.ContainersFilter{Ids: ctrIds})
+	cewContainers, err := h.containerEngineWrapperClient.GetContainers(ctx, models_external.ContainersFilter{Names: ctrNames})
 	if err != nil {
 		return nil, err
 	}
 	cewContainersMap := maps.Collect(helper_slices.AllFunc(cewContainers, func(item models_external.Container) string {
-		return item.ID
+		return item.Name
 	}))
 	return cewContainersMap, nil
 }
