@@ -39,7 +39,6 @@ type DeploymentContainer struct {
 	DeploymentId string
 	Reference    string
 	Alias        string
-	Order        int
 }
 
 type DeploymentVolume struct {
