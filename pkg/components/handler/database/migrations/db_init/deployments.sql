@@ -18,12 +18,12 @@ CREATE TABLE IF NOT EXISTS deployments
 CREATE TABLE IF NOT EXISTS dep_containers
 (
     dep_id  CHAR(36)     NOT NULL,
-    ctr_id  VARCHAR(256) NOT NULL,
+    name    VARCHAR(256) NOT NULL,
     srv_ref VARCHAR(256) NOT NULL,
     alias   VARCHAR(256) NOT NULL,
-    UNIQUE KEY uk_dep_id_ctr_id_srv_ref (dep_id, ctr_id, srv_ref),
+    UNIQUE KEY uk_dep_id_name_srv_ref (dep_id, name, srv_ref),
     INDEX i_dep_id (dep_id),
-    INDEX i_ctr_id (ctr_id),
+    INDEX i_name (name),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS dep_volumes

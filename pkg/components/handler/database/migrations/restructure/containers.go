@@ -42,13 +42,24 @@ func migrateContainersTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
-	ok, err = indexExists(ctx, db, tableName, "uk_dep_id_ctr_id_srv_ref")
+	ok, err = columnExists(ctx, db, tableName, "ctr_id")
+	if err != nil {
+		return err
+	}
+	if ok {
+		logger.Info("renaming column", attrColumn, "ctr_id", attrNewName, "name", attrTable, tableName)
+		err = changeColumn(ctx, db, tableName, "ctr_id", "name", "VARCHAR(256)", "NOT NULL", "AFTER dep_id")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = indexExists(ctx, db, tableName, "uk_dep_id_name_srv_ref")
 	if err != nil {
 		return err
 	}
 	if !ok {
-		logger.Info("adding unique index", attrIndex, "uk_dep_id_ctr_id_srv_ref", attrTable, tableName)
-		err = addUniqueIndex(ctx, db, tableName, "uk_dep_id_ctr_id_srv_ref", "dep_id", "ctr_id", "srv_ref")
+		logger.Info("adding unique index", attrIndex, "uk_dep_id_name_srv_ref", attrTable, tableName)
+		err = addUniqueIndex(ctx, db, tableName, "uk_dep_id_name_srv_ref", "dep_id", "name", "srv_ref")
 		if err != nil {
 			return err
 		}
@@ -64,13 +75,13 @@ func migrateContainersTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
-	ok, err = indexExists(ctx, db, tableName, "i_ctr_id")
+	ok, err = indexExists(ctx, db, tableName, "i_name")
 	if err != nil {
 		return err
 	}
 	if !ok {
-		logger.Info("adding index", attrIndex, "i_ctr_id", attrTable, tableName)
-		err = addIndex(ctx, db, tableName, "i_ctr_id", "ctr_id")
+		logger.Info("adding index", attrIndex, "i_name", attrTable, tableName)
+		err = addIndex(ctx, db, tableName, "i_name", "name")
 		if err != nil {
 			return err
 		}
@@ -79,7 +90,7 @@ func migrateContainersTab(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	newIndexKeys := []string{"uk_dep_id_ctr_id_srv_ref", "i_dep_id", "i_ctr_id"}
+	newIndexKeys := []string{"uk_dep_id_name_srv_ref", "i_dep_id", "i_name"}
 	for _, key := range currentIndexKeys {
 		if key == "PRIMARY" {
 			continue

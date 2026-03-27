@@ -98,7 +98,7 @@ func (h *Handler) ReadDeploymentsContainers(ctx context.Context, deploymentIds [
 	fc, val := genDeploymentsContainersFilter(deploymentIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
-		"SELECT dep_id, ctr_id, srv_ref, alias FROM dep_containers"+fc+";",
+		"SELECT dep_id, name, srv_ref, alias FROM dep_containers"+fc+";",
 		val...,
 	)
 	if err != nil {

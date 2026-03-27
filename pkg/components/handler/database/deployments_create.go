@@ -193,7 +193,7 @@ func (h *Handler) createDeploymentResourcesAndConfigs(
 	for _, container := range containers {
 		_, err = tx.ExecContext(
 			ctx,
-			"INSERT INTO dep_containers (dep_id, ctr_id, srv_ref, alias) VALUES (?, ?, ?, ?)",
+			"INSERT INTO dep_containers (dep_id, name, srv_ref, alias) VALUES (?, ?, ?, ?)",
 			deploymentId,
 			container.Id,
 			container.Reference,
