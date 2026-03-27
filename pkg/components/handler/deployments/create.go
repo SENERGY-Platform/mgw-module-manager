@@ -95,6 +95,7 @@ func (h *Handler) createDeployment(
 		return err
 	}
 	newDeployment.Created = timestamp
+	newDeployment.Updated = timestamp
 	defaultData, err := getDefaultData(module)
 	if err != nil {
 		return err
