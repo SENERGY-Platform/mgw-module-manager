@@ -8,7 +8,7 @@ import (
 	models_handler_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repository"
 )
 
-type RepositoriesHandler interface {
+type repositoriesHandler interface {
 	RefreshRepositories(ctx context.Context) error
 	Repositories(ctx context.Context) ([]models_handler_repo.Repository, error)
 	Module(ctx context.Context, id, source, channel string) (models_handler_repo.Module, error)
@@ -16,7 +16,7 @@ type RepositoriesHandler interface {
 	ModuleFS(ctx context.Context, id, source, channel string) (fs.FS, error)
 }
 
-type ModulesHandler interface {
+type modulesHandler interface {
 	Modules(ctx context.Context, filter models_handler_module.ModuleFilter) (map[string]models_handler_module.Module, error)
 	Module(ctx context.Context, id string) (models_handler_module.Module, error)
 	Add(ctx context.Context, id, source, channel string, fSys fs.FS) error

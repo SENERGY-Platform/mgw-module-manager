@@ -5,16 +5,22 @@ import (
 )
 
 type Service struct {
-	reposHdl  RepositoriesHandler
-	modsHdl   ModulesHandler
-	changeReq *modulesChangeRequest
-	mu        sync.RWMutex
+	repositoriesHandler repositoriesHandler
+	modulesHandler      modulesHandler
+	deploymentsHandler  deploymentsHandler
+	changeReq           *modulesChangeRequest
+	mu                  sync.RWMutex
 }
 
-func New(reposHdl RepositoriesHandler, modsHdl ModulesHandler) *Service {
+func New(
+	repositoriesHandler repositoriesHandler,
+	modulesHandler modulesHandler,
+	deploymentsHandler deploymentsHandler,
+) *Service {
 	return &Service{
-		reposHdl: reposHdl,
-		modsHdl:  modsHdl,
+		repositoriesHandler: repositoriesHandler,
+		modulesHandler:      modulesHandler,
+		deploymentsHandler:  deploymentsHandler,
 	}
 }
 
