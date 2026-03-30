@@ -68,7 +68,7 @@ func (s *Service) NewModulesChangeRequest(ctx context.Context, reqItems []models
 	if err != nil {
 		return models_service.ModulesChangeRequest{}, err
 	}
-	installedMods, err := s.modsHdl.Modules(ctx, models_handler_module.ModuleFilter{})
+	installedMods, err := s.modulesHandler.Modules(ctx, models_handler_module.ModuleFilter{})
 	if err != nil {
 		return models_service.ModulesChangeRequest{}, err
 	}
@@ -103,7 +103,7 @@ func (s *Service) ExecModulesChangeRequest(ctx context.Context) (models_service.
 			Id:     id,
 			Action: models_service.ChangeActionRemove,
 		}
-		err := s.modsHdl.Remove(ctx, id)
+		err := s.modulesHandler.Remove(ctx, id)
 		if err != nil {
 			failed = append(failed, models_service.ChangeReportErrItem{
 				ChangeReportItem: cri,
@@ -118,7 +118,7 @@ func (s *Service) ExecModulesChangeRequest(ctx context.Context) (models_service.
 			Id:     repoMod.Mod.ID,
 			Action: models_service.ChangeActionInstall,
 		}
-		err := s.modsHdl.Add(ctx, repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.FS)
+		err := s.modulesHandler.Add(ctx, repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.FS)
 		if err != nil {
 			failed = append(failed, models_service.ChangeReportErrItem{
 				ChangeReportItem: cri,
@@ -133,7 +133,7 @@ func (s *Service) ExecModulesChangeRequest(ctx context.Context) (models_service.
 			Id:     item.Next.Mod.ID,
 			Action: models_service.ChangeActionChange,
 		}
-		err := s.modsHdl.Update(ctx, item.Next.Mod.ID, item.Next.Source, item.Next.Channel, item.Next.FS)
+		err := s.modulesHandler.Update(ctx, item.Next.Mod.ID, item.Next.Source, item.Next.Channel, item.Next.FS)
 		if err != nil {
 			failed = append(failed, models_service.ChangeReportErrItem{
 				ChangeReportItem: cri,
@@ -182,14 +182,14 @@ func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (models_
 }
 
 func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modulesChangeRequest, error) {
-	installedMods, err := s.modsHdl.Modules(ctx, models_handler_module.ModuleFilter{})
+	installedMods, err := s.modulesHandler.Modules(ctx, models_handler_module.ModuleFilter{})
 	if err != nil {
 		return modulesChangeRequest{}, err
 	}
 	if len(installedMods) == 0 {
 		return modulesChangeRequest{}, nil
 	}
-	repoMods, err := s.reposHdl.Modules(ctx, models_handler_repo.ModulesFilter{Ids: slices.Collect(maps.Keys(installedMods))})
+	repoMods, err := s.repositoriesHandler.Modules(ctx, models_handler_repo.ModulesFilter{Ids: slices.Collect(maps.Keys(installedMods))})
 	if err != nil {
 		return modulesChangeRequest{}, err
 	}

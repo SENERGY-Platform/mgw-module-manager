@@ -20,17 +20,17 @@ func (s *Service) RefreshRepositories(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.changeReq = nil
-	return s.reposHdl.RefreshRepositories(ctx)
+	return s.repositoriesHandler.RefreshRepositories(ctx)
 }
 
 func (s *Service) RepoModules(ctx context.Context, filter models_service.RepoModulesFilter) ([]models_service.RepoModule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	repos, err := s.reposHdl.Repositories(ctx)
+	repos, err := s.repositoriesHandler.Repositories(ctx)
 	if err != nil {
 		return nil, err
 	}
-	repoMods, err := s.reposHdl.Modules(ctx, models_handler_repo.ModulesFilter{
+	repoMods, err := s.repositoriesHandler.Modules(ctx, models_handler_repo.ModulesFilter{
 		Ids:     filter.Ids,
 		Name:    filter.Name,
 		Sources: newSourceFilters(filter.Repositories),
@@ -42,7 +42,7 @@ func (s *Service) RepoModules(ctx context.Context, filter models_service.RepoMod
 	if err != nil {
 		return nil, err
 	}
-	installedMods, err := s.modsHdl.Modules(ctx, models_handler_module.ModuleFilter{})
+	installedMods, err := s.modulesHandler.Modules(ctx, models_handler_module.ModuleFilter{})
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_servi
 			item.Channel = installedMod.Channel
 			installedVer = installedMod.Version
 		}
-		modFS, err := s.reposHdl.ModuleFS(ctx, item.Id, item.Source, item.Channel)
+		modFS, err := s.repositoriesHandler.ModuleFS(ctx, item.Id, item.Source, item.Channel)
 		if err != nil {
 			return nil, err
 		}
@@ -143,7 +143,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_servi
 		}
 	}
 	// get repo with the highest priority
-	modRepos, err := s.reposHdl.Repositories(ctx)
+	modRepos, err := s.repositoriesHandler.Repositories(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_servi
 func (s *Service) addRepoModDepsToMap(ctx context.Context, mod module_lib.Module, source, channel string, deps map[string]modWrapper, skipNotFound bool) error {
 	for depId := range mod.Dependencies {
 		if _, ok := deps[depId]; !ok {
-			depFS, err := s.reposHdl.ModuleFS(ctx, depId, source, channel)
+			depFS, err := s.repositoriesHandler.ModuleFS(ctx, depId, source, channel)
 			if err != nil {
 				if errors.Is(err, models_error.NotFoundErr) && skipNotFound {
 					continue
