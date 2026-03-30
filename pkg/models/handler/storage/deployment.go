@@ -99,7 +99,6 @@ type DeploymentFileGroupFile struct {
 type DeploymentsFilter struct {
 	Ids       []string
 	ModuleIds []string
-	Name      string
 	Enabled   int
 }
 

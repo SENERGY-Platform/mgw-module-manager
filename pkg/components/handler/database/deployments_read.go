@@ -620,10 +620,6 @@ func genDeploymentsFilter(filter models_handler_storage.DeploymentsFilter) (stri
 		fc = append(fc, "enabled = ?")
 		val = append(val, true)
 	}
-	if filter.Name != "" {
-		fc = append(fc, "name LIKE '%?%'")
-		val = append(val, filter.Name)
-	}
 	if len(fc) > 0 {
 		return " WHERE " + strings.Join(fc, " AND "), val
 	}
