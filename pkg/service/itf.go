@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/fs"
 
+	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"
 	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
 	models_handler_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repository"
 )
@@ -22,4 +23,11 @@ type modulesHandler interface {
 	Add(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Update(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Remove(ctx context.Context, id string) error
+}
+
+type deploymentsHandler interface {
+	GetDeploymentsReduced(
+		ctx context.Context,
+		filter models_handler_deployment.DeploymentsFilter,
+	) (map[string]models_handler_deployment.DeploymentReduced, error)
 }
