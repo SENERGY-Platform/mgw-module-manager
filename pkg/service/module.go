@@ -23,22 +23,84 @@ import (
 	"reflect"
 	"slices"
 
+	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"
 	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
 	models_handler_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repository"
+	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
-// TODO include deployments
-func (s *Service) Modules(ctx context.Context, filter models_handler_module.ModuleFilter) ([]models_handler_module.Module, error) {
-	//s.mu.RLock()
-	//defer s.mu.RUnlock()
-	//installedMods, err := s.modsHdl.Modules(ctx, filter)
-	//if err != nil {
-	//	return nil, err
-	//}
-	panic("implement me")
+// TODO implement tags filter
+func (s *Service) Modules(ctx context.Context, filter models_service.ModulesFilter) ([]models_service.ModuleReduced, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	modules, err := s.modulesHandler.Modules(ctx, models_handler_module.ModuleFilter{
+		Ids:  filter.Ids,
+		Name: filter.Name,
+	})
+	if err != nil {
+		return nil, err
+	}
+	deployments, err := s.deploymentsHandler.GetDeploymentsReduced(ctx, models_handler_deployment.DeploymentsFilter{
+		DeploymentsFilter: models_handler_storage.DeploymentsFilter{
+			ModuleIds: slices.Collect(maps.Keys(modules)),
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_handler_deployment.DeploymentReduced) string {
+		return value.ModuleId
+	}) // TODO sollten deployments generell per module ID zurückgegeben werden
+	var result []models_service.ModuleReduced
+	for moduleId, module := range modules {
+		deployment, ok := deployments[moduleId]
+		if ok {
+			if filter.DeploymentEnabled < 0 && deployment.Enabled {
+				continue
+			}
+			if filter.DeploymentEnabled > 0 && !deployment.Enabled {
+				continue
+			}
+		}
+		if filter.IsDeployed < 0 && ok {
+			continue
+		}
+		if filter.IsDeployed > 0 && !ok {
+			continue
+		}
+		if filter.DeploymentState != "" && deployment.State != filter.DeploymentState {
+			continue
+		}
+		if filter.Author != "" && module.Author != filter.Author {
+			continue
+		}
+		result = append(result, models_service.ModuleReduced{
+			Id:          moduleId,
+			Source:      module.Source,
+			Channel:     module.Channel,
+			Version:     module.Version,
+			Name:        module.Name,
+			Description: module.Description,
+			Tags:        slices.Collect(maps.Keys(module.Tags)),
+			License:     module.License,
+			Author:      module.Author,
+			Deployment: models_service.DeploymentReduced{
+				Id:            deployment.Id,
+				ModuleSource:  deployment.ModuleSource,
+				ModuleChannel: deployment.ModuleChannel,
+				ModuleVersion: deployment.ModuleVersion,
+				Enabled:       deployment.Enabled,
+				Created:       deployment.Created,
+				Updated:       deployment.Updated,
+				State:         deployment.State,
+			},
+		})
+	}
+	return result, nil
 }
 
 // TODO include deployment

@@ -16,7 +16,43 @@
 
 package service
 
-import "time"
+import (
+	"time"
+)
+
+type ModuleReduced struct {
+	Id          string            `json:"id"`
+	Source      string            `json:"source"`
+	Channel     string            `json:"channel"`
+	Version     string            `json:"version"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Tags        []string          `json:"tags"`
+	License     string            `json:"license"`
+	Author      string            `json:"author"`
+	Deployment  DeploymentReduced `json:"deployment"`
+}
+
+type DeploymentReduced struct {
+	Id            string    `json:"id"`
+	ModuleSource  string    `json:"module_source"`
+	ModuleChannel string    `json:"module_channel"`
+	ModuleVersion string    `json:"module_version"`
+	Enabled       bool      `json:"enabled"`
+	Created       time.Time `json:"created"`
+	Updated       time.Time `json:"updated"`
+	State         string    `json:"state"`
+}
+
+type ModulesFilter struct {
+	Ids               []string
+	Name              string
+	Tags              []string
+	Author            string
+	IsDeployed        int
+	DeploymentEnabled int
+	DeploymentState   string
+}
 
 type RepoModule struct {
 	Id           string                  `json:"id"`
