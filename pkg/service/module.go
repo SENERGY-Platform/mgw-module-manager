@@ -18,13 +18,15 @@ package service
 
 import (
 	"context"
+	"encoding/base64"
+	"errors"
 	"fmt"
 	"maps"
 	"reflect"
 	"slices"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
@@ -74,6 +76,7 @@ func (s *Service) GetModules(ctx context.Context, filter models_service.ModulesF
 		if filter.Author != "" && module.Author != filter.Author {
 			continue
 		}
+		// TODO implement tags filter
 		result = append(result, models_service.ModuleReduced{
 			Id:          moduleId,
 			Source:      module.Source,
@@ -100,15 +103,102 @@ func (s *Service) GetModules(ctx context.Context, filter models_service.ModulesF
 	return result, nil
 }
 
-// TODO include deployment
-func (s *Service) Module(ctx context.Context, id string) (models_handler_module.Module, error) {
-	//s.mu.RLock()
-	//defer s.mu.RUnlock()
-	//installedMod, err := s.modsHdl.Module(ctx, id)
-	//if err != nil {
-	//	return models_module.Module{}, err
-	//}
-	panic("implement me")
+func (s *Service) GetModule(ctx context.Context, id string) (models_service.Module, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	module, err := s.modulesHandler.Module(ctx, id)
+	if err != nil {
+		return models_service.Module{}, err
+	}
+	ok := true
+	deployment, err := s.deploymentsHandler.GetDeploymentByModuleId(ctx, id)
+	if err != nil {
+		if !errors.Is(err, models_error.NotFoundErr) {
+			return models_service.Module{}, err
+		}
+		ok = false
+	}
+	containers := make(map[string]models_service.Container)
+	for reference, container := range deployment.Containers {
+		containers[reference] = models_service.Container{
+			Name:    container.Name,
+			Alias:   container.Alias,
+			ImageId: container.ImageId,
+			State:   container.State,
+		}
+	}
+	volumes := make(map[string]string)
+	for reference, volume := range deployment.Volumes {
+		volumes[reference] = volume.Name
+	}
+	hostResources := make(map[string]string)
+	for reference, resource := range deployment.HostResources {
+		hostResources[reference] = resource.Id
+	}
+	secrets := make(map[string]models_service.Secret)
+	for reference, secret := range deployment.Secrets {
+		secrets[reference] = models_service.Secret{
+			Id:    secret.Id,
+			Items: secret.Items,
+		}
+	}
+	configs := make(map[string]models_service.Config)
+	for reference, config := range deployment.Configs {
+		configs[reference] = models_service.Config{
+			DataType: config.DataType,
+			IsSlice:  config.IsSlice,
+			Value:    helper_configs.ConfigToAny(config.Config.Config),
+		}
+	}
+	globalConfigs := make(map[string]string)
+	for reference, globalConfig := range deployment.GlobalConfigs {
+		globalConfigs[reference] = globalConfig.Id
+	}
+	files := make(map[string]string)
+	for reference, file := range deployment.Files {
+		files[reference] = base64.StdEncoding.EncodeToString(file.Data)
+	}
+	fileGroups := make(map[string]models_service.FileGroup)
+	for reference, fileGroup := range deployment.FileGroups {
+		var fileGroupFiles []models_service.FileGroupFile
+		for _, file := range fileGroup.Files {
+			fileGroupFiles = append(fileGroupFiles, models_service.FileGroupFile{
+				Path:   file.Path,
+				Format: file.Format,
+				Data:   base64.StdEncoding.EncodeToString(file.Data),
+			})
+		}
+		fileGroups[reference] = models_service.FileGroup{
+			Id:    fileGroup.Id,
+			Files: fileGroupFiles,
+		}
+	}
+	return models_service.Module{
+		ModuleLibModule: module.ModuleLibModule,
+		Source:          module.Source,
+		Channel:         module.Channel,
+		Added:           module.Added,
+		Updated:         module.Updated,
+		IsDeployed:      ok,
+		Deployment: models_service.Deployment{
+			Id:            deployment.Id,
+			ModuleSource:  deployment.ModuleSource,
+			ModuleChannel: deployment.ModuleChannel,
+			ModuleVersion: deployment.ModuleVersion,
+			Enabled:       deployment.Enabled,
+			Created:       deployment.Created,
+			Updated:       deployment.Updated,
+			Containers:    containers,
+			Volumes:       volumes,
+			HostResources: hostResources,
+			Secrets:       secrets,
+			Configs:       configs,
+			GlobalConfigs: globalConfigs,
+			Files:         files,
+			FileGroups:    fileGroups,
+			State:         deployment.State,
+		},
+	}, nil
 }
 
 func (s *Service) ModulesChangeRequest(_ context.Context) (models_service.ModulesChangeRequest, error) {
