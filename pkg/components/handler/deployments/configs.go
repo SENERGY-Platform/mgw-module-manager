@@ -199,23 +199,18 @@ func getSelectedGlobalConfigs(
 func getProvidedConfigs(
 	moduleConfigs models_external.ModuleLibConfigs,
 	defaultConfigs map[string]models_handler_storage.Config,
-	userInputConfigs map[string]any,
+	userInputConfigs map[string]models_handler_storage.Config,
 	deploymentId string,
 ) (map[string]models_handler_storage.DeploymentUserConfig, error) {
 	configs := make(map[string]models_handler_storage.DeploymentUserConfig)
 	var errs []string
-	for reference, moduleConfig := range moduleConfigs {
-		val, ok := userInputConfigs[reference]
-		if !ok || val == nil {
-			continue
-		}
-		config, err := getConfig(val, moduleConfig)
-		if err != nil {
-			errs = append(errs, err.Error())
+	for reference := range moduleConfigs {
+		config, ok := userInputConfigs[reference]
+		if !ok {
 			continue
 		}
 		defaultConfig, ok := defaultConfigs[reference]
-		if ok && configIsEqual(config, defaultConfig) {
+		if ok && helper_configs.ConfigIsEqual(config, defaultConfig) {
 			continue
 		}
 		config.Id = deploymentId + "_" + reference
