@@ -35,7 +35,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
-func (s *Service) GetModules(ctx context.Context, filter models_service.ModulesFilter) ([]models_service.ModuleReduced, error) {
+func (s *Service) Modules(ctx context.Context, filter models_service.ModulesFilter) ([]models_service.ModuleReduced, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	modules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
@@ -56,7 +56,7 @@ func (s *Service) GetModules(ctx context.Context, filter models_service.ModulesF
 	return getModulesReduced(modules, deployments, filter), nil
 }
 
-func (s *Service) GetModule(ctx context.Context, id string) (models_service.Module, error) {
+func (s *Service) Module(ctx context.Context, id string) (models_service.Module, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	handlerModule, err := s.modulesHandler.Module(ctx, id)
