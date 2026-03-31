@@ -118,13 +118,13 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
-	ok, err = indexExists(ctx, db, tableName, "i_mod_id")
+	ok, err = indexExists(ctx, db, tableName, "uk_mod_id")
 	if err != nil {
 		return err
 	}
 	if !ok {
-		logger.Info("adding index", attrIndex, "i_mod_id", attrTable, tableName)
-		err = addIndex(ctx, db, tableName, "i_mod_id", "mod_id")
+		logger.Info("adding unique index", attrIndex, "uk_mod_id", attrTable, tableName)
+		err = addUniqueIndex(ctx, db, tableName, "uk_mod_id", "mod_id")
 		if err != nil {
 			return err
 		}
@@ -134,7 +134,7 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	for _, key := range currentIndexKeys {
-		if key == "PRIMARY" || key == "i_mod_id" {
+		if key == "PRIMARY" || key == "uk_mod_id" {
 			continue
 		}
 		logger.Info("dropping index", attrIndex, key, attrTable, tableName)
