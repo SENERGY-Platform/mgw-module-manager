@@ -24,7 +24,7 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 )
 
 func createDepConfigTables(ctx context.Context, db *sql.DB) error {
@@ -209,16 +209,16 @@ func queryConfigs(ctx context.Context, db *sql.DB) ([]config, error) {
 		}
 		if vString.Valid {
 			c.Val = vString.String
-			c.DT = models_handler_database.StringType
+			c.DT = models_config.StringType
 		} else if vInt.Valid {
 			c.Val = vInt.Int64
-			c.DT = models_handler_database.Int64Type
+			c.DT = models_config.Int64Type
 		} else if vFloat.Valid {
 			c.Val = vFloat.Float64
-			c.DT = models_handler_database.Float64Type
+			c.DT = models_config.Float64Type
 		} else if vBool.Valid {
 			c.Val = vBool.Bool
-			c.DT = models_handler_database.BoolType
+			c.DT = models_config.BoolType
 		}
 		configs = append(configs, c)
 	}
@@ -256,16 +256,16 @@ func queryListConfigs(ctx context.Context, db *sql.DB) ([]listConfig, error) {
 		var dt int
 		if vString.Valid {
 			lc.Vals = append(lc.Vals, vString.String)
-			dt = models_handler_database.StringType
+			dt = models_config.StringType
 		} else if vInt.Valid {
 			lc.Vals = append(lc.Vals, vInt.Int64)
-			dt = models_handler_database.Int64Type
+			dt = models_config.Int64Type
 		} else if vFloat.Valid {
 			lc.Vals = append(lc.Vals, vFloat.Float64)
-			dt = models_handler_database.Float64Type
+			dt = models_config.Float64Type
 		} else if vBool.Valid {
 			lc.Vals = append(lc.Vals, vBool.Bool)
-			dt = models_handler_database.BoolType
+			dt = models_config.BoolType
 		}
 		if !ok {
 			lc.DT = dt
@@ -285,13 +285,13 @@ func queryListConfigs(ctx context.Context, db *sql.DB) ([]listConfig, error) {
 
 func getColName(dt int) string {
 	switch dt {
-	case models_handler_database.StringType:
+	case models_config.StringType:
 		return "v_string"
-	case models_handler_database.Int64Type:
+	case models_config.Int64Type:
 		return "v_int"
-	case models_handler_database.Float64Type:
+	case models_config.Float64Type:
 		return "v_float"
-	case models_handler_database.BoolType:
+	case models_config.BoolType:
 		return "v_bool"
 	}
 	return ""
