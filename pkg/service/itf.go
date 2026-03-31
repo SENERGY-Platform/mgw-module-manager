@@ -35,4 +35,16 @@ type deploymentsHandler interface {
 		filter models_handler_deployments.DeploymentsFilter,
 	) (map[string]models_handler_deployments.Deployment, error)
 	GetDeploymentByModuleId(ctx context.Context, moduleId string) (models_handler_deployments.Deployment, error)
+	CreateDeployments(
+		ctx context.Context,
+		selectedModules map[string]models_handler_modules.Module,
+		userInputs map[string]models_handler_deployments.UserInput,
+	) error
+	UpdateDeployments(
+		ctx context.Context,
+		selectedModules map[string]models_handler_modules.Module,
+		userInputs map[string]models_handler_deployments.UserInput,
+	) error
+	RecreateDeployments(ctx context.Context, selectedModules map[string]models_handler_modules.Module) error
+	DeleteDeployments(ctx context.Context, filter models_handler_deployments.DeploymentsFilter) error
 }
