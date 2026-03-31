@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package naming
+package helper_naming
 
 import (
 	"crypto/sha1"

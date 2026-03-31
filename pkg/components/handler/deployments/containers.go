@@ -23,9 +23,9 @@ import (
 	"strings"
 
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
-	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
-	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
-	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"

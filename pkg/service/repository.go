@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
-	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
 	models_handler_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repository"

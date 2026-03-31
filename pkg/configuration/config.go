@@ -23,7 +23,7 @@ import (
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
-	helper_sql_db "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"
 )
 
 type MGWConfig struct {

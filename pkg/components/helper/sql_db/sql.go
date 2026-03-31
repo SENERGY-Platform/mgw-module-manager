@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package sql_db
+package helper_sql_db
 
 import (
 	"database/sql"

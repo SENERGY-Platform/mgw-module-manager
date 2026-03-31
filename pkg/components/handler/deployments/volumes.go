@@ -22,8 +22,8 @@ import (
 	"maps"
 	"strings"
 
-	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
-	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"

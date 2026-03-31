@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package file_sys
+package helper_file_sys
 
 import (
 	"os"

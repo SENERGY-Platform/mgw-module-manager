@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_handler_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repository"
 )

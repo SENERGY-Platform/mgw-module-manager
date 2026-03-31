@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"strings"
 
-	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 

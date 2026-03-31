@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package url
+package helper_url
 
 import "net/url"
 

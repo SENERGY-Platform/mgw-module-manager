@@ -21,8 +21,8 @@ import (
 	"errors"
 	"strings"
 
-	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
-	helper_url "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 

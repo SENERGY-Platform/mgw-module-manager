@@ -21,8 +21,8 @@ import (
 	"maps"
 	"slices"
 
-	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
-	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"

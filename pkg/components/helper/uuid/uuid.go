@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uuid
+package helper_uuid
 
 import "github.com/google/uuid"
 

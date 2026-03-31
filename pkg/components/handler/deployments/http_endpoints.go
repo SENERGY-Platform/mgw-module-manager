@@ -20,7 +20,7 @@ import (
 	"context"
 	"errors"
 
-	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
