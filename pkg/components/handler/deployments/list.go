@@ -234,6 +234,9 @@ func getContainers(
 		if ok {
 			container.ImageId = cewContainer.ImageID
 			container.State = cewContainer.State
+			if cewContainer.Health != nil {
+				container.Health = *cewContainer.Health
+			}
 		} else {
 			logger.Error("missing container") // TODO
 		}
@@ -254,6 +257,7 @@ func getContainersCombinedState(
 	existingContainers map[string]models_external.Container,
 ) int {
 	var runningCount int
+	var unhealthyCount int
 	for _, deploymentContainer := range deploymentContainers {
 		existingContainer, ok := existingContainers[deploymentContainer.Name]
 		if !ok {
@@ -262,11 +266,17 @@ func getContainersCombinedState(
 		if existingContainer.State == models_external.CewRunningState {
 			runningCount++
 		}
+		if existingContainer.Health != nil && *existingContainer.Health == models_external.CewUnhealthyState {
+			unhealthyCount++
+		}
 	}
 	switch runningCount {
 	case 0:
 		return containersStateStopped
 	case len(deploymentContainers):
+		if unhealthyCount > 0 {
+			return containersStateUnhealthy
+		}
 		return containersStateRunning
 	}
 	return containersStatePartial

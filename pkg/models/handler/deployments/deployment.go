@@ -50,6 +50,7 @@ type Container struct {
 	models_handler_database.DeploymentContainer
 	ImageId string // docker image id
 	State   string // docker container state
+	Health  string // docker container health
 }
 
 type DeploymentsFilter struct {

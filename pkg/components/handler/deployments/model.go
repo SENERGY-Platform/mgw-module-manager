@@ -23,10 +23,11 @@ import (
 )
 
 const (
-	containersStateStopped = iota + 1 // no running containers
-	containersStateRunning            // all containers running
-	containersStatePartial            // one or more containers not running or restarting
-	containersStateBroken             // one or more containers missing
+	containersStateStopped   = iota + 1 // no running containers
+	containersStateRunning              // all containers running
+	containersStatePartial              // one or more containers not running or restarting
+	containersStateUnhealthy            // all containers running but one or more is unhealthy
+	containersStateBroken               // one or more containers missing
 )
 
 const dirPerm = 0770

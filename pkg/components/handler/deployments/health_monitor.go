@@ -50,7 +50,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 	for id, deployment := range filteredDeployments {
 		deploymentContainers := deploymentsContainers[id]
 		state := getContainersCombinedState(deploymentContainers, cewContainersMap)
-		if state == containersStateBroken {
+		if state == containersStateBroken || state == containersStateUnhealthy {
 			continue
 		}
 		if deployment.Enabled {
