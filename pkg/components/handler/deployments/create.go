@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
@@ -50,6 +51,10 @@ func (h *Handler) CreateDeployments(
 		SecretValues:  make(map[string]models_external.SecretValueVariant),
 	}
 	var err error
+	selectedModules, err = h.filterSelectedModules(ctx, selectedModules)
+	if err != nil {
+		return err
+	}
 	cache.Deployments, err = initDeploymentsCacheFromModules(selectedModules)
 	if err != nil {
 		return err
@@ -232,6 +237,29 @@ func (h *Handler) createDeploymentDirs(moduleFileSystem fs.FS, deploymentDirName
 		return err
 	}
 	return err
+}
+
+func (h *Handler) filterSelectedModules(
+	ctx context.Context,
+	selectedModules map[string]models_handler_modules.Module,
+) (map[string]models_handler_modules.Module, error) {
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_database.DeploymentsFilter{
+		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
+	})
+	if err != nil {
+		return nil, err
+	}
+	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_handler_database.Deployment) string {
+		return value.ModuleId
+	})
+	filteredModules := make(map[string]models_handler_modules.Module)
+	for moduleId, module := range selectedModules {
+		_, ok := deployments[moduleId]
+		if !ok {
+			filteredModules[moduleId] = module
+		}
+	}
+	return filteredModules, nil
 }
 
 func createDeploymentDir(moduleFileSystem fs.FS, workDirPath, deploymentDirName string) error {
