@@ -20,7 +20,7 @@ import (
 	"errors"
 	"net/http"
 
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 )
 
 var errMap = map[error]int{
