@@ -59,7 +59,7 @@ func (h *Handler) GetDeploymentsReduced(
 		} else {
 			deployment.State = getDeploymentState(getContainersCombinedState(deploymentContainers, cewContainersMap))
 		}
-		if filter.State != "" && deployment.State != filter.State {
+		if filter.State > 0 && deployment.State != filter.State {
 			continue
 		}
 		deployments[id] = deployment
@@ -134,7 +134,7 @@ func (h *Handler) getDeployments(
 		} else {
 			deployment.State = getDeploymentState(getContainersCombinedState(deploymentContainers, cewContainersMap))
 		}
-		if filter.State != "" && deployment.State != filter.State {
+		if filter.State > 0 && deployment.State != filter.State {
 			continue
 		}
 		deployments[id] = deployment
@@ -181,7 +181,7 @@ func getContainers(
 	return containers
 }
 
-func getDeploymentState(containersState int) string {
+func getDeploymentState(containersState int) int {
 	if containersState == containersStateRunning {
 		return models_handler_deployment.StateHealthy
 	}

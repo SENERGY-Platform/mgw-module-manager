@@ -41,7 +41,7 @@ type DeploymentReduced struct {
 	Enabled       bool      `json:"enabled"`
 	Created       time.Time `json:"created"`
 	Updated       time.Time `json:"updated"`
-	State         string    `json:"state"`
+	State         int       `json:"state"`
 }
 
 type ModulesFilter struct {
@@ -51,7 +51,7 @@ type ModulesFilter struct {
 	Author            string
 	IsDeployed        int
 	DeploymentEnabled int
-	DeploymentState   string
+	DeploymentState   int
 }
 
 type RepoModule struct {

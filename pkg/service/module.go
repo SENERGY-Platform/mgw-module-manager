@@ -72,7 +72,7 @@ func (s *Service) Modules(ctx context.Context, filter models_service.ModulesFilt
 		if filter.IsDeployed > 0 && !ok {
 			continue
 		}
-		if filter.DeploymentState != "" && deployment.State != filter.DeploymentState {
+		if filter.DeploymentState > 0 && deployment.State != filter.DeploymentState {
 			continue
 		}
 		if filter.Author != "" && module.Author != filter.Author {

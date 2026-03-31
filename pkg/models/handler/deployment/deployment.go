@@ -21,9 +21,9 @@ import (
 )
 
 const (
-	StateHealthy      = "healthy"
-	StateUnhealthy    = "unhealthy"
-	StateNotAvailable = "not-available"
+	StateHealthy = iota + 1
+	StateUnhealthy
+	StateNotAvailable
 )
 
 type Deployment struct {
@@ -36,13 +36,13 @@ type Deployment struct {
 	GlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig
 	Files         map[string]models_handler_storage.DeploymentFile
 	FileGroups    map[string]models_handler_storage.DeploymentFileGroup
-	State         string // health state determined by container states
+	State         int // health state determined by container states
 }
 
 type DeploymentReduced struct {
 	models_handler_storage.Deployment
 	Containers map[string]Container
-	State      string // health state determined by container states
+	State      int // health state determined by container states
 }
 
 type Container struct {
@@ -53,7 +53,7 @@ type Container struct {
 
 type DeploymentsFilter struct {
 	models_handler_storage.DeploymentsFilter
-	State string
+	State int
 }
 
 type UserInput struct {
