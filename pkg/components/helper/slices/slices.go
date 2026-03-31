@@ -30,14 +30,6 @@ func AllFunc[S ~[]E, E any, K comparable](sl S, keyF func(item E) K) iter.Seq2[K
 	}
 }
 
-func CollectSliceFunc[S ~[]E, E any, K any](sl S, valF func(item E) K) []K {
-	s := make([]K, len(sl))
-	for i, v := range sl {
-		s[i] = valF(v)
-	}
-	return s
-}
-
 func CollectFunc[E any, K any](seq iter.Seq[E], valF func(item E) K) []K {
 	s := []K(nil)
 	for v := range seq {
