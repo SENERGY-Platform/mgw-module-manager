@@ -53,152 +53,27 @@ func (s *Service) GetModules(ctx context.Context, filter models_service.ModulesF
 	if err != nil {
 		return nil, err
 	}
-	var result []models_service.ModuleReduced
-	for moduleId, module := range modules {
-		deployment, ok := deployments[moduleId]
-		if ok {
-			if filter.DeploymentEnabled < 0 && deployment.Enabled {
-				continue
-			}
-			if filter.DeploymentEnabled > 0 && !deployment.Enabled {
-				continue
-			}
-		}
-		if filter.IsDeployed < 0 && ok {
-			continue
-		}
-		if filter.IsDeployed > 0 && !ok {
-			continue
-		}
-		if filter.DeploymentState > 0 && deployment.State != filter.DeploymentState {
-			continue
-		}
-		if filter.Author != "" && module.Author != filter.Author {
-			continue
-		}
-		// TODO implement tags filter
-		result = append(result, models_service.ModuleReduced{
-			Id:          moduleId,
-			Source:      module.Source,
-			Channel:     module.Channel,
-			Version:     module.Version,
-			Name:        module.Name,
-			Description: module.Description,
-			Tags:        slices.Collect(maps.Keys(module.Tags)),
-			License:     module.License,
-			Author:      module.Author,
-			IsDeployed:  ok,
-			Deployment: models_service.DeploymentReduced{
-				Id:            deployment.Id,
-				ModuleSource:  deployment.ModuleSource,
-				ModuleChannel: deployment.ModuleChannel,
-				ModuleVersion: deployment.ModuleVersion,
-				Enabled:       deployment.Enabled,
-				Created:       deployment.Created,
-				Updated:       deployment.Updated,
-				State:         deployment.State,
-			},
-		})
-	}
-	return result, nil
+	return getModulesReduced(modules, deployments, filter), nil
 }
 
 func (s *Service) GetModule(ctx context.Context, id string) (models_service.Module, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	module, err := s.modulesHandler.Module(ctx, id)
+	handlerModule, err := s.modulesHandler.Module(ctx, id)
 	if err != nil {
 		return models_service.Module{}, err
 	}
 	ok := true
-	deployment, err := s.deploymentsHandler.GetDeploymentByModuleId(ctx, id)
+	handlerDeployment, err := s.deploymentsHandler.GetDeploymentByModuleId(ctx, id)
 	if err != nil {
 		if !errors.Is(err, models_error.NotFoundErr) {
 			return models_service.Module{}, err
 		}
 		ok = false
 	}
-	containers := make(map[string]models_service.Container)
-	for reference, container := range deployment.Containers {
-		containers[reference] = models_service.Container{
-			Name:    container.Name,
-			Alias:   container.Alias,
-			ImageId: container.ImageId,
-			State:   container.State,
-		}
-	}
-	volumes := make(map[string]string)
-	for reference, volume := range deployment.Volumes {
-		volumes[reference] = volume.Name
-	}
-	hostResources := make(map[string]string)
-	for reference, resource := range deployment.HostResources {
-		hostResources[reference] = resource.Id
-	}
-	secrets := make(map[string]models_service.Secret)
-	for reference, secret := range deployment.Secrets {
-		secrets[reference] = models_service.Secret{
-			Id:    secret.Id,
-			Items: secret.Items,
-		}
-	}
-	configs := make(map[string]models_service.Config)
-	for reference, config := range deployment.Configs {
-		configs[reference] = models_service.Config{
-			DataType: config.DataType,
-			IsSlice:  config.IsSlice,
-			Value:    helper_configs.ConfigToAny(config.Config.Config),
-		}
-	}
-	globalConfigs := make(map[string]string)
-	for reference, globalConfig := range deployment.GlobalConfigs {
-		globalConfigs[reference] = globalConfig.Id
-	}
-	files := make(map[string]string)
-	for reference, file := range deployment.Files {
-		files[reference] = base64.StdEncoding.EncodeToString(file.Data)
-	}
-	fileGroups := make(map[string]models_service.FileGroup)
-	for reference, fileGroup := range deployment.FileGroups {
-		var fileGroupFiles []models_service.FileGroupFile
-		for _, file := range fileGroup.Files {
-			fileGroupFiles = append(fileGroupFiles, models_service.FileGroupFile{
-				Path:   file.Path,
-				Format: file.Format,
-				Data:   base64.StdEncoding.EncodeToString(file.Data),
-			})
-		}
-		fileGroups[reference] = models_service.FileGroup{
-			Id:    fileGroup.Id,
-			Files: fileGroupFiles,
-		}
-	}
-	return models_service.Module{
-		ModuleLibModule: module.ModuleLibModule,
-		Source:          module.Source,
-		Channel:         module.Channel,
-		Added:           module.Added,
-		Updated:         module.Updated,
-		IsDeployed:      ok,
-		Deployment: models_service.Deployment{
-			Id:            deployment.Id,
-			ModuleSource:  deployment.ModuleSource,
-			ModuleChannel: deployment.ModuleChannel,
-			ModuleVersion: deployment.ModuleVersion,
-			Enabled:       deployment.Enabled,
-			Created:       deployment.Created,
-			Updated:       deployment.Updated,
-			Containers:    containers,
-			Volumes:       volumes,
-			HostResources: hostResources,
-			Secrets:       secrets,
-			Configs:       configs,
-			GlobalConfigs: globalConfigs,
-			Files:         files,
-			FileGroups:    fileGroups,
-			State:         deployment.State,
-		},
-	}, nil
+	module := getModule(handlerModule, handlerDeployment)
+	module.IsDeployed = ok
+	return module, nil
 }
 
 func (s *Service) ModulesChangeRequest(_ context.Context) (models_service.ModulesChangeRequest, error) {
@@ -457,6 +332,143 @@ func modWrapperToServiceModuleAbbreviated(w modWrapper) models_service.ModuleAbb
 			Source:  w.Source,
 			Channel: w.Channel,
 			Version: w.Mod.Version,
+		},
+	}
+}
+
+func getModulesReduced(
+	handlerModules map[string]models_handler_modules.Module,
+	handlerDeployments map[string]models_handler_deployments.DeploymentReduced,
+	filter models_service.ModulesFilter) []models_service.ModuleReduced {
+	var modules []models_service.ModuleReduced
+	for moduleId, module := range handlerModules {
+		deployment, ok := handlerDeployments[moduleId]
+		if ok {
+			if filter.DeploymentEnabled < 0 && deployment.Enabled {
+				continue
+			}
+			if filter.DeploymentEnabled > 0 && !deployment.Enabled {
+				continue
+			}
+		}
+		if filter.IsDeployed < 0 && ok {
+			continue
+		}
+		if filter.IsDeployed > 0 && !ok {
+			continue
+		}
+		if filter.DeploymentState > 0 && deployment.State != filter.DeploymentState {
+			continue
+		}
+		if filter.Author != "" && module.Author != filter.Author {
+			continue
+		}
+		// TODO implement tags filter
+		modules = append(modules, models_service.ModuleReduced{
+			Id:          moduleId,
+			Source:      module.Source,
+			Channel:     module.Channel,
+			Version:     module.Version,
+			Name:        module.Name,
+			Description: module.Description,
+			Tags:        slices.Collect(maps.Keys(module.Tags)),
+			License:     module.License,
+			Author:      module.Author,
+			IsDeployed:  ok,
+			Deployment: models_service.DeploymentReduced{
+				Id:            deployment.Id,
+				ModuleSource:  deployment.ModuleSource,
+				ModuleChannel: deployment.ModuleChannel,
+				ModuleVersion: deployment.ModuleVersion,
+				Enabled:       deployment.Enabled,
+				Created:       deployment.Created,
+				Updated:       deployment.Updated,
+				State:         deployment.State,
+			},
+		})
+	}
+	return modules
+}
+
+func getModule(module models_handler_modules.Module, deployment models_handler_deployments.Deployment) models_service.Module {
+	containers := make(map[string]models_service.Container)
+	for reference, container := range deployment.Containers {
+		containers[reference] = models_service.Container{
+			Name:    container.Name,
+			Alias:   container.Alias,
+			ImageId: container.ImageId,
+			State:   container.State,
+		}
+	}
+	volumes := make(map[string]string)
+	for reference, volume := range deployment.Volumes {
+		volumes[reference] = volume.Name
+	}
+	hostResources := make(map[string]string)
+	for reference, resource := range deployment.HostResources {
+		hostResources[reference] = resource.Id
+	}
+	secrets := make(map[string]models_service.Secret)
+	for reference, secret := range deployment.Secrets {
+		secrets[reference] = models_service.Secret{
+			Id:    secret.Id,
+			Items: secret.Items,
+		}
+	}
+	configs := make(map[string]models_service.Config)
+	for reference, config := range deployment.Configs {
+		configs[reference] = models_service.Config{
+			DataType: config.DataType,
+			IsSlice:  config.IsSlice,
+			Value:    helper_configs.ConfigToAny(config.Config.Config),
+		}
+	}
+	globalConfigs := make(map[string]string)
+	for reference, globalConfig := range deployment.GlobalConfigs {
+		globalConfigs[reference] = globalConfig.Id
+	}
+	files := make(map[string]string)
+	for reference, file := range deployment.Files {
+		files[reference] = base64.StdEncoding.EncodeToString(file.Data)
+	}
+	fileGroups := make(map[string]models_service.FileGroup)
+	for reference, fileGroup := range deployment.FileGroups {
+		var fileGroupFiles []models_service.FileGroupFile
+		for _, file := range fileGroup.Files {
+			fileGroupFiles = append(fileGroupFiles, models_service.FileGroupFile{
+				Path:   file.Path,
+				Format: file.Format,
+				Data:   base64.StdEncoding.EncodeToString(file.Data),
+			})
+		}
+		fileGroups[reference] = models_service.FileGroup{
+			Id:    fileGroup.Id,
+			Files: fileGroupFiles,
+		}
+	}
+	return models_service.Module{
+		ModuleLibModule: module.ModuleLibModule,
+		Source:          module.Source,
+		Channel:         module.Channel,
+		Added:           module.Added,
+		Updated:         module.Updated,
+		Deployment: models_service.Deployment{
+			Id:            deployment.Id,
+			ModuleSource:  deployment.ModuleSource,
+			ModuleChannel: deployment.ModuleChannel,
+			ModuleVersion: deployment.ModuleVersion,
+			Enabled:       deployment.Enabled,
+			Created:       deployment.Created,
+			Updated:       deployment.Updated,
+			Containers:    containers,
+			Volumes:       volumes,
+			HostResources: hostResources,
+			Secrets:       secrets,
+			Configs:       configs,
+			GlobalConfigs: globalConfigs,
+			Files:         files,
+			FileGroups:    fileGroups,
+			State:         deployment.State,
 		},
 	}
 }
