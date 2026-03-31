@@ -52,7 +52,7 @@ func (h *Handler) createContainers(
 	var errs []string
 	for reference, service := range moduleServices {
 		envVariables := make(map[string]string)
-		setConfigEnvVariables(envVariables, service.Configs, helper_configs.ConfigsToStrings(moduleConfigs, configs))
+		setConfigEnvVariables(envVariables, service.Configs, configsToStrings(moduleConfigs, configs))
 		setSecretValueEnvVariables(envVariables, service.SecretVars, userDataSecrets, cacheSecretValues)
 		setInternalDependencyEnvVariables(envVariables, service.SrvReferences, containers)
 		setExternalDependencyEnvVariables(envVariables, service.ExtDependencies, cacheDeployments)
@@ -503,4 +503,20 @@ func newCewRunConfig(serviceRunConfig models_external.ModuleLibRunConfig) models
 		rc.StopSignal = &serviceRunConfig.StopSignal // pointer unnötig, cew anpassen
 	}
 	return rc
+}
+
+func configsToStrings(
+	moduleConfigs models_external.ModuleLibConfigs,
+	configs map[string]models_config.Config,
+) map[string]string {
+	configValues := make(map[string]string)
+	for reference, config := range configs {
+		if config.IsSlice {
+			moduleConfig := moduleConfigs[reference]
+			configValues[reference] = helper_configs.SliceConfigToString(config, moduleConfig.Delimiter)
+		} else {
+			configValues[reference] = helper_configs.ConfigToString(config)
+		}
+	}
+	return configValues
 }

@@ -29,57 +29,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
-func ConfigsToStrings(
-	moduleConfigs models_external.ModuleLibConfigs,
-	configs map[string]models_config.Config,
-) map[string]string {
-	configValues := make(map[string]string)
-	for reference, config := range configs {
-		if config.IsSlice {
-			moduleConfig := moduleConfigs[reference]
-			configValues[reference] = sliceConfigToString(config, moduleConfig.Delimiter)
-		} else {
-			configValues[reference] = configToString(config)
-		}
-	}
-	return configValues
-}
-
-func configToString(config models_config.Config) string {
-	switch config.DataType {
-	case models_config.StringType:
-		return config.String
-	case models_config.Int64Type:
-		return strconv.FormatInt(config.Int64, 10)
-	case models_config.Float64Type:
-		return strconv.FormatFloat(config.Float64, 'f', -1, 64)
-	case models_config.BoolType:
-		return strconv.FormatBool(config.Bool)
-	}
-	return ""
-}
-
-func sliceConfigToString(config models_config.Config, delimiter string) string {
-	var values []string
-	switch config.DataType {
-	case models_config.StringType:
-		values = config.StringSlice
-	case models_config.Int64Type:
-		for _, i := range config.Int64Slice {
-			values = append(values, strconv.FormatInt(i, 10))
-		}
-	case models_config.Float64Type:
-		for _, f := range config.Float64Slice {
-			values = append(values, strconv.FormatFloat(f, 'f', -1, 64))
-		}
-	case models_config.BoolType:
-		for _, b := range config.BoolSlice {
-			values = append(values, strconv.FormatBool(b))
-		}
-	}
-	return strings.Join(values, delimiter)
-}
-
 func ConfigIsEqual(a, b models_config.Config) bool {
 	if a.DataType != b.DataType {
 		return false
@@ -229,6 +178,41 @@ func GetConfig(val any, moduleConfig models_external.ModuleLibConfigValue) (mode
 		}
 	}
 	return config, nil
+}
+
+func ConfigToString(config models_config.Config) string {
+	switch config.DataType {
+	case models_config.StringType:
+		return config.String
+	case models_config.Int64Type:
+		return strconv.FormatInt(config.Int64, 10)
+	case models_config.Float64Type:
+		return strconv.FormatFloat(config.Float64, 'f', -1, 64)
+	case models_config.BoolType:
+		return strconv.FormatBool(config.Bool)
+	}
+	return ""
+}
+
+func SliceConfigToString(config models_config.Config, delimiter string) string {
+	var values []string
+	switch config.DataType {
+	case models_config.StringType:
+		values = config.StringSlice
+	case models_config.Int64Type:
+		for _, i := range config.Int64Slice {
+			values = append(values, strconv.FormatInt(i, 10))
+		}
+	case models_config.Float64Type:
+		for _, f := range config.Float64Slice {
+			values = append(values, strconv.FormatFloat(f, 'f', -1, 64))
+		}
+	case models_config.BoolType:
+		for _, b := range config.BoolSlice {
+			values = append(values, strconv.FormatBool(b))
+		}
+	}
+	return strings.Join(values, delimiter)
 }
 
 func validateValue[T comparable](val T, moduleConfig models_external.ModuleLibConfigValue) error {
