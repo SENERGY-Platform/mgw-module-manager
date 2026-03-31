@@ -83,6 +83,7 @@ func (s *Service) GetModules(ctx context.Context, filter models_service.ModulesF
 			Tags:        slices.Collect(maps.Keys(module.Tags)),
 			License:     module.License,
 			Author:      module.Author,
+			IsDeployed:  ok,
 			Deployment: models_service.DeploymentReduced{
 				Id:            deployment.Id,
 				ModuleSource:  deployment.ModuleSource,

@@ -30,6 +30,7 @@ type ModuleReduced struct {
 	Tags        []string          `json:"tags"`
 	License     string            `json:"license"`
 	Author      string            `json:"author"`
+	IsDeployed  bool              `json:"is_deployed"`
 	Deployment  DeploymentReduced `json:"deployment"`
 }
 
