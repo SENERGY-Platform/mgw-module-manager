@@ -33,8 +33,7 @@ import (
 	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
-// TODO implement tags filter
-func (s *Service) Modules(ctx context.Context, filter models_service.ModulesFilter) ([]models_service.ModuleReduced, error) {
+func (s *Service) GetModules(ctx context.Context, filter models_service.ModulesFilter) ([]models_service.ModuleReduced, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	modules, err := s.modulesHandler.Modules(ctx, models_handler_module.ModuleFilter{
