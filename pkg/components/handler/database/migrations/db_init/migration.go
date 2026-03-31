@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package db_init
+package migration_db_init
 
 import (
 	"bytes"

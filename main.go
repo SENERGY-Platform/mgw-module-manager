@@ -18,8 +18,8 @@ import (
 	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/api"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
-	handler_database_init "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/db_init"
-	handler_database_restructure "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/restructure"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/db_init"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/restructure"
 	handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
 	handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
 	handler_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github"
@@ -70,8 +70,8 @@ func main() {
 	defer sqlDB.Close()
 
 	databaseHdl := handler_database.New(sqlDB)
-	handler_database_restructure.InitLogger(logger)
-	err = databaseHdl.Migrate(ctx, handler_database_restructure.Migration, handler_database_init.Migration)
+	migration_db_restructure.InitLogger(logger)
+	err = databaseHdl.Migrate(ctx, migration_db_restructure.Migration, migration_db_init.Migration)
 	if err != nil {
 		logger.Error("database migration failed", slog_attr.ErrorKey, err)
 		ec = 1
