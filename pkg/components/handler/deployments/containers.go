@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
@@ -50,7 +51,7 @@ func (h *Handler) createContainers(
 	var errs []string
 	for reference, service := range moduleServices {
 		envVariables := make(map[string]string)
-		setConfigEnvVariables(envVariables, service.Configs, configsToStrings(moduleConfigs, configs))
+		setConfigEnvVariables(envVariables, service.Configs, helper_configs.ConfigsToStrings(moduleConfigs, configs))
 		setSecretValueEnvVariables(envVariables, service.SecretVars, userDataSecrets, cacheSecretValues)
 		setInternalDependencyEnvVariables(envVariables, service.SrvReferences, containers)
 		setExternalDependencyEnvVariables(envVariables, service.ExtDependencies, cacheDeployments)
