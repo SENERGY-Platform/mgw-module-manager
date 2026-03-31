@@ -24,7 +24,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
-// TODO dependencies sollten auf service ebene über module handler gefunden werden
 func (h *Handler) EnableDeployments(ctx context.Context, moduleIds []string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
