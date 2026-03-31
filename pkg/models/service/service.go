@@ -23,6 +23,21 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
+type UserInput struct {
+	ModuleId      string
+	HostResources map[string]string                        // {ref:resourceID}
+	Secrets       map[string]string                        // {ref:secretID}
+	Configs       map[string]any                           // {ref:value}
+	GlobalConfigs map[string]string                        // {ref:configID}
+	Files         map[string]string                        // {ref:data}
+	FileGroups    map[string]map[string]FileGroupUserInput // {ref:{path:FileGroupUserInput}}
+}
+
+type FileGroupUserInput struct {
+	Format int
+	Data   string
+}
+
 type Module struct {
 	models_external.ModuleLibModule
 	Source     string     `json:"source"`
