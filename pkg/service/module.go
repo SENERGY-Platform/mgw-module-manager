@@ -44,7 +44,7 @@ func (s *Service) Modules(ctx context.Context, filter models_service.ModulesFilt
 	if err != nil {
 		return nil, err
 	}
-	deployments, err := s.deploymentsHandler.GetDeploymentsReduced(ctx, models_handler_deployment.DeploymentsFilter{
+	deployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_handler_deployment.DeploymentsFilter{
 		DeploymentsFilter: models_handler_storage.DeploymentsFilter{
 			ModuleIds: slices.Collect(maps.Keys(modules)),
 		},
@@ -52,9 +52,6 @@ func (s *Service) Modules(ctx context.Context, filter models_service.ModulesFilt
 	if err != nil {
 		return nil, err
 	}
-	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_handler_deployment.DeploymentReduced) string {
-		return value.ModuleId
-	}) // TODO sollten deployments generell per module ID zurückgegeben werden
 	var result []models_service.ModuleReduced
 	for moduleId, module := range modules {
 		deployment, ok := deployments[moduleId]

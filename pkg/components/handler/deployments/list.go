@@ -21,6 +21,7 @@ import (
 	"maps"
 	"slices"
 
+	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
@@ -28,12 +29,99 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-func (h *Handler) GetDeploymentsReduced(
+func (h *Handler) GetReducedDeployments(
 	ctx context.Context,
 	filter models_handler_deployment.DeploymentsFilter,
 ) (map[string]models_handler_deployment.DeploymentReduced, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
+	return h.getDeploymentsReduced(ctx, filter)
+}
+
+func (h *Handler) GetReducedDeploymentsByModuleIds(
+	ctx context.Context,
+	filter models_handler_deployment.DeploymentsFilter,
+) (map[string]models_handler_deployment.DeploymentReduced, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	deployments, err := h.getDeploymentsReduced(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_handler_deployment.DeploymentReduced) string {
+		return value.ModuleId
+	})
+	return deployments, nil
+}
+
+func (h *Handler) GetDeployment(ctx context.Context, id string) (models_handler_deployment.Deployment, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	deployments, err := h.getDeployments(
+		ctx,
+		models_handler_deployment.DeploymentsFilter{
+			DeploymentsFilter: models_handler_storage.DeploymentsFilter{Ids: []string{id}},
+		},
+	)
+	if err != nil {
+		return models_handler_deployment.Deployment{}, err
+	}
+	if len(deployments) == 0 {
+		return models_handler_deployment.Deployment{}, models_error.NotFoundErr
+	}
+	return deployments[id], nil
+}
+
+func (h *Handler) GetDeploymentByModuleId(ctx context.Context, moduleId string) (models_handler_deployment.Deployment, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	deployments, err := h.getDeployments(
+		ctx,
+		models_handler_deployment.DeploymentsFilter{
+			DeploymentsFilter: models_handler_storage.DeploymentsFilter{ModuleIds: []string{moduleId}},
+		},
+	)
+	if err != nil {
+		return models_handler_deployment.Deployment{}, err
+	}
+	if len(deployments) == 0 {
+		return models_handler_deployment.Deployment{}, models_error.NotFoundErr
+	}
+	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_handler_deployment.Deployment) string {
+		return value.ModuleId
+	})
+	return deployments[moduleId], nil
+}
+
+func (h *Handler) GetDeployments(
+	ctx context.Context,
+	filter models_handler_deployment.DeploymentsFilter,
+) (map[string]models_handler_deployment.Deployment, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return h.getDeployments(ctx, filter)
+}
+
+func (h *Handler) GetDeploymentsByModuleIds(
+	ctx context.Context,
+	filter models_handler_deployment.DeploymentsFilter,
+) (map[string]models_handler_deployment.Deployment, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	deployments, err := h.getDeployments(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_handler_deployment.Deployment) string {
+		return value.ModuleId
+	})
+	return deployments, nil
+}
+
+func (h *Handler) getDeploymentsReduced(
+	ctx context.Context,
+	filter models_handler_deployment.DeploymentsFilter,
+) (map[string]models_handler_deployment.DeploymentReduced, error) {
 	stgDeps, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
 		return nil, err
@@ -65,33 +153,6 @@ func (h *Handler) GetDeploymentsReduced(
 		deployments[id] = deployment
 	}
 	return deployments, nil
-}
-
-func (h *Handler) GetDeployment(ctx context.Context, id string) (models_handler_deployment.Deployment, error) {
-	h.mu.RLock()
-	defer h.mu.RUnlock()
-	deployments, err := h.getDeployments(
-		ctx,
-		models_handler_deployment.DeploymentsFilter{
-			DeploymentsFilter: models_handler_storage.DeploymentsFilter{Ids: []string{id}},
-		},
-	)
-	if err != nil {
-		return models_handler_deployment.Deployment{}, err
-	}
-	if len(deployments) == 0 {
-		return models_handler_deployment.Deployment{}, models_error.NotFoundErr
-	}
-	return deployments[id], nil
-}
-
-func (h *Handler) GetDeployments(
-	ctx context.Context,
-	filter models_handler_deployment.DeploymentsFilter,
-) (map[string]models_handler_deployment.Deployment, error) {
-	h.mu.RLock()
-	defer h.mu.RUnlock()
-	return h.getDeployments(ctx, filter)
 }
 
 func (h *Handler) getDeployments(
