@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	helper_archive "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/archive"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/archive"
 	models_handler_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repository"
 )
 

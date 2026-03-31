@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package archive
+package helper_archive
 
 import (
 	"os"

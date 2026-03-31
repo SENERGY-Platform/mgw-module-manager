@@ -1,4 +1,4 @@
-package archive
+package helper_archive
 
 import (
 	"archive/tar"
