@@ -62,7 +62,7 @@ type UserInput struct {
 	ModuleId      string
 	HostResources map[string]string                        // {ref:resourceID}
 	Secrets       map[string]string                        // {ref:secretID}
-	Configs       map[string]models_config.Config          // {ref:value}
+	Configs       map[string]models_config.Config          // {ref:Config}
 	GlobalConfigs map[string]string                        // {ref:configID}
 	Files         map[string][]byte                        // {ref:data}
 	FileGroups    map[string]map[string]FileGroupUserInput // {ref:{path:FileGroupUserInput}}
