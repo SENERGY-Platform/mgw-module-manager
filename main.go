@@ -17,7 +17,7 @@ import (
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
 	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/api"
-	handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
 	handler_database_init "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/db_init"
 	handler_database_restructure "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/restructure"
 	handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
