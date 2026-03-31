@@ -180,6 +180,32 @@ func GetConfig(val any, moduleConfig models_external.ModuleLibConfigValue) (mode
 	return config, nil
 }
 
+func ConfigToAny(config models_config.Config) (v any) {
+	switch config.DataType {
+	case models_config.StringType:
+		if config.IsSlice {
+			return config.StringSlice
+		}
+		return config.String
+	case models_config.Int64Type:
+		if config.IsSlice {
+			return config.Int64Slice
+		}
+		return config.Int64
+	case models_config.Float64Type:
+		if config.IsSlice {
+			return config.Float64Slice
+		}
+		return config.Float64
+	case models_config.BoolType:
+		if config.IsSlice {
+			return config.BoolSlice
+		}
+		return config.Bool
+	}
+	return
+}
+
 func ConfigToString(config models_config.Config) string {
 	switch config.DataType {
 	case models_config.StringType:
