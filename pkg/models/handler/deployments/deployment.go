@@ -17,6 +17,7 @@
 package models_handler_deployments
 
 import (
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
@@ -58,12 +59,12 @@ type DeploymentsFilter struct {
 
 type UserInput struct {
 	ModuleId      string
-	HostResources map[string]string                         // {ref:resourceID}
-	Secrets       map[string]string                         // {ref:secretID}
-	Configs       map[string]models_handler_database.Config // {ref:value}
-	GlobalConfigs map[string]string                         // {ref:configID}
-	Files         map[string][]byte                         // {ref:data}
-	FileGroups    map[string]map[string]FileGroupUserInput  // {ref:{path:FileGroupUserInput}}
+	HostResources map[string]string                        // {ref:resourceID}
+	Secrets       map[string]string                        // {ref:secretID}
+	Configs       map[string]models_config.Config          // {ref:value}
+	GlobalConfigs map[string]string                        // {ref:configID}
+	Files         map[string][]byte                        // {ref:data}
+	FileGroups    map[string]map[string]FileGroupUserInput // {ref:{path:FileGroupUserInput}}
 }
 
 type FileGroupUserInput struct {

@@ -26,6 +26,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
@@ -42,7 +43,7 @@ func (h *Handler) createContainers(
 	userDataHostResources map[string]models_handler_database.DeploymentHostResource,
 	containers map[string]models_handler_database.DeploymentContainer,
 	volumes map[string]models_handler_database.DeploymentVolume,
-	configs map[string]models_handler_database.Config,
+	configs map[string]models_config.Config,
 	bindMounts bindMountDataCollection,
 	cacheSecretValues map[string]models_external.SecretValueVariant,
 	cacheDeployments map[string]deploymentsCacheItem,

@@ -16,28 +16,14 @@
 
 package models_handler_database
 
+import "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+
 type GlobalConfig struct {
 	Config
 	Name string
 }
 
 type Config struct {
-	Id           string
-	DataType     int
-	IsSlice      bool
-	String       string
-	StringSlice  []string
-	Int64        int64
-	Int64Slice   []int64
-	Float64      float64
-	Float64Slice []float64
-	Bool         bool
-	BoolSlice    []bool
+	Id string
+	models_config.Config
 }
-
-const (
-	StringType = iota
-	Int64Type
-	Float64Type
-	BoolType
-)

@@ -24,6 +24,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
@@ -323,7 +324,7 @@ func mergeDefaultAndUserData(
 	userDataGlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig,
 	userDataFiles map[string]models_handler_database.DeploymentFile,
 	cacheGlobalConfigs map[string]models_handler_database.GlobalConfig,
-) (map[string]models_handler_database.Config, map[string][]byte, error) {
+) (map[string]models_config.Config, map[string][]byte, error) {
 	mergedConfigs := mergeConfigs(defaultData.Configs, userDataConfigs, userDataGlobalConfigs, cacheGlobalConfigs)
 	err := checkConfigs(module.Configs, mergedConfigs)
 	if err != nil {

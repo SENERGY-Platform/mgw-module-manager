@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
@@ -94,16 +95,16 @@ func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, confi
 
 func getConfigValAndCol(config models_handler_database.Config) (colName string, value any) {
 	switch config.DataType {
-	case models_handler_database.StringType:
+	case models_config.StringType:
 		colName = "v_string"
 		value = config.String
-	case models_handler_database.Int64Type:
+	case models_config.Int64Type:
 		colName = "v_int"
 		value = config.Int64
-	case models_handler_database.Float64Type:
+	case models_config.Float64Type:
 		colName = "v_float"
 		value = config.Float64
-	case models_handler_database.BoolType:
+	case models_config.BoolType:
 		colName = "v_bool"
 		value = config.Bool
 	}
@@ -112,16 +113,16 @@ func getConfigValAndCol(config models_handler_database.Config) (colName string, 
 
 func getListConfigValsAndCol(config models_handler_database.Config) (colName string, values []any) {
 	switch config.DataType {
-	case models_handler_database.StringType:
+	case models_config.StringType:
 		colName = "v_string"
 		values = helper_slices.ToAny(config.StringSlice)
-	case models_handler_database.Int64Type:
+	case models_config.Int64Type:
 		colName = "v_int"
 		values = helper_slices.ToAny(config.Int64Slice)
-	case models_handler_database.Float64Type:
+	case models_config.Float64Type:
 		colName = "v_float"
 		values = helper_slices.ToAny(config.Float64Slice)
-	case models_handler_database.BoolType:
+	case models_config.BoolType:
 		colName = "v_bool"
 		values = helper_slices.ToAny(config.BoolSlice)
 	}

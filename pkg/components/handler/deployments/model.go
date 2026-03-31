@@ -17,6 +17,7 @@
 package handler_deployments
 
 import (
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
@@ -31,7 +32,7 @@ const (
 const dirPerm = 0770
 
 type defaultDataCollection struct {
-	Configs map[string]models_handler_database.Config
+	Configs map[string]models_config.Config
 	Files   map[string][]byte
 }
 type userDataCollection struct {
