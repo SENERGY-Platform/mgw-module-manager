@@ -19,74 +19,74 @@ package handler_deployments
 import (
 	"context"
 
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 type databaseHandler interface {
 	CreateDeployment(
 		ctx context.Context,
-		deployment models_handler_storage.Deployment,
-		hostResources []models_handler_storage.DeploymentHostResource,
-		secrets []models_handler_storage.DeploymentSecret,
-		userConfigs []models_handler_storage.DeploymentUserConfig,
-		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
-		files []models_handler_storage.DeploymentFile,
-		fileGroups []models_handler_storage.DeploymentFileGroup,
-		volumes []models_handler_storage.DeploymentVolume,
-		containers []models_handler_storage.DeploymentContainer,
+		deployment models_handler_database.Deployment,
+		hostResources []models_handler_database.DeploymentHostResource,
+		secrets []models_handler_database.DeploymentSecret,
+		userConfigs []models_handler_database.DeploymentUserConfig,
+		globalConfigs []models_handler_database.DeploymentGlobalConfig,
+		files []models_handler_database.DeploymentFile,
+		fileGroups []models_handler_database.DeploymentFileGroup,
+		volumes []models_handler_database.DeploymentVolume,
+		containers []models_handler_database.DeploymentContainer,
 	) error
-	ReadDeployment(ctx context.Context, id string) (models_handler_storage.Deployment, error)
+	ReadDeployment(ctx context.Context, id string) (models_handler_database.Deployment, error)
 	ReadDeployments(
 		ctx context.Context,
-		filter models_handler_storage.DeploymentsFilter,
-	) (map[string]models_handler_storage.Deployment, error)
+		filter models_handler_database.DeploymentsFilter,
+	) (map[string]models_handler_database.Deployment, error)
 	ReadDeploymentsContainers(
 		ctx context.Context,
 		deploymentIds []string,
-	) (map[string]map[string]models_handler_storage.DeploymentContainer, error)
+	) (map[string]map[string]models_handler_database.DeploymentContainer, error)
 	ReadDeploymentsVolumes(
 		ctx context.Context,
 		deploymentIds []string,
-	) (map[string]map[string]models_handler_storage.DeploymentVolume, error)
+	) (map[string]map[string]models_handler_database.DeploymentVolume, error)
 	ReadDeploymentsHostResources(
 		ctx context.Context,
-		filter models_handler_storage.DeploymentsHostResourcesFilter,
-	) (map[string]map[string]models_handler_storage.DeploymentHostResource, error)
+		filter models_handler_database.DeploymentsHostResourcesFilter,
+	) (map[string]map[string]models_handler_database.DeploymentHostResource, error)
 	ReadDeploymentsSecrets(
 		ctx context.Context,
-		filter models_handler_storage.DeploymentsSecretsFilter,
-	) (map[string]map[string]models_handler_storage.DeploymentSecret, error)
+		filter models_handler_database.DeploymentsSecretsFilter,
+	) (map[string]map[string]models_handler_database.DeploymentSecret, error)
 	ReadDeploymentsConfigs(
 		ctx context.Context,
 		deploymentIds []string,
-	) (map[string]map[string]models_handler_storage.DeploymentUserConfig, error)
+	) (map[string]map[string]models_handler_database.DeploymentUserConfig, error)
 	ReadDeploymentsGlobalConfigs(
 		ctx context.Context,
-		filter models_handler_storage.DeploymentGlobalConfigsFilter,
-	) (map[string]map[string]models_handler_storage.DeploymentGlobalConfig, error)
+		filter models_handler_database.DeploymentGlobalConfigsFilter,
+	) (map[string]map[string]models_handler_database.DeploymentGlobalConfig, error)
 	ReadDeploymentsFiles(
 		ctx context.Context,
 		deploymentIds []string,
-	) (map[string]map[string]models_handler_storage.DeploymentFile, error)
+	) (map[string]map[string]models_handler_database.DeploymentFile, error)
 	ReadDeploymentsFileGroups(
 		ctx context.Context,
 		deploymentIds []string,
-	) (map[string]map[string]models_handler_storage.DeploymentFileGroup, error)
-	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_storage.GlobalConfig, error)
+	) (map[string]map[string]models_handler_database.DeploymentFileGroup, error)
+	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_database.GlobalConfig, error)
 	UpdateDeploymentsEnabledState(ctx context.Context, deploymentIds []string, state bool) error
-	UpdateDeploymentContainerNames(ctx context.Context, containers []models_handler_storage.DeploymentContainer) error
+	UpdateDeploymentContainerNames(ctx context.Context, containers []models_handler_database.DeploymentContainer) error
 	UpdateDeployment(
 		ctx context.Context,
-		deployment models_handler_storage.Deployment,
-		hostResources []models_handler_storage.DeploymentHostResource,
-		secrets []models_handler_storage.DeploymentSecret,
-		userConfigs []models_handler_storage.DeploymentUserConfig,
-		globalConfigs []models_handler_storage.DeploymentGlobalConfig,
-		files []models_handler_storage.DeploymentFile,
-		fileGroups []models_handler_storage.DeploymentFileGroup,
-		volumes []models_handler_storage.DeploymentVolume,
-		containers []models_handler_storage.DeploymentContainer,
+		deployment models_handler_database.Deployment,
+		hostResources []models_handler_database.DeploymentHostResource,
+		secrets []models_handler_database.DeploymentSecret,
+		userConfigs []models_handler_database.DeploymentUserConfig,
+		globalConfigs []models_handler_database.DeploymentGlobalConfig,
+		files []models_handler_database.DeploymentFile,
+		fileGroups []models_handler_database.DeploymentFileGroup,
+		volumes []models_handler_database.DeploymentVolume,
+		containers []models_handler_database.DeploymentContainer,
 	) (err error)
 	DeleteDeployment(ctx context.Context, id string) error
 }

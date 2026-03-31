@@ -9,10 +9,10 @@ import (
 
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
-	models_handler_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repository"
-	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 )
 
@@ -30,7 +30,7 @@ func (s *Service) RepoModules(ctx context.Context, filter models_service.RepoMod
 	if err != nil {
 		return nil, err
 	}
-	repoMods, err := s.repositoriesHandler.Modules(ctx, models_handler_repo.ModulesFilter{
+	repoMods, err := s.repositoriesHandler.Modules(ctx, models_handler_repositories.ModulesFilter{
 		Ids:     filter.Ids,
 		Name:    filter.Name,
 		Sources: newSourceFilters(filter.Repositories),
@@ -42,14 +42,14 @@ func (s *Service) RepoModules(ctx context.Context, filter models_service.RepoMod
 	if err != nil {
 		return nil, err
 	}
-	installedMods, err := s.modulesHandler.Modules(ctx, models_handler_module.ModuleFilter{})
+	installedMods, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{})
 	if err != nil {
 		return nil, err
 	}
 	return handleInstalledMods(mods, installedMods, filter.Installed, filter.UpdateAvailable), nil
 }
 
-func (s *Service) repoModules(repos []models_handler_repo.Repository, repoMods []models_handler_repo.Module) ([]models_service.RepoModule, error) {
+func (s *Service) repoModules(repos []models_handler_repositories.Repository, repoMods []models_handler_repositories.Module) ([]models_service.RepoModule, error) {
 	reposTree := buildReposTree(repos)
 	var repoModules []models_service.RepoModule
 	for id, sources := range buildRepoModsTree(repoMods) {
@@ -105,7 +105,7 @@ func (s *Service) repoModules(repos []models_handler_repo.Repository, repoMods [
 	return repoModules, nil
 }
 
-func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_service.ChangeRequestItem, installedModsMap map[string]models_handler_module.Module) (map[string]modWrapper, error) {
+func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_service.ChangeRequestItem, installedModsMap map[string]models_handler_modules.Module) (map[string]modWrapper, error) {
 	// get module filesystem and modfile
 	mods := make(map[string]modWrapper)
 	for _, item := range reqItems {
@@ -147,10 +147,10 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_servi
 	if err != nil {
 		return nil, err
 	}
-	highestPrioRepo := selectByPriority(modRepos, func(item models_handler_repo.Repository, lastPrio int) (int, bool) {
+	highestPrioRepo := selectByPriority(modRepos, func(item models_handler_repositories.Repository, lastPrio int) (int, bool) {
 		return item.Priority, item.Priority >= lastPrio
 	})
-	highestPrioChannel := selectByPriority(highestPrioRepo.Channels, func(item models_handler_repo.Channel, lastPrio int) (int, bool) {
+	highestPrioChannel := selectByPriority(highestPrioRepo.Channels, func(item models_handler_repositories.Channel, lastPrio int) (int, bool) {
 		return item.Priority, item.Priority >= lastPrio
 	})
 	deps := make(map[string]modWrapper)
@@ -204,10 +204,10 @@ func (s *Service) addRepoModDepsToMap(ctx context.Context, mod module_lib.Module
 	return nil
 }
 
-func newSourceFilters(repoFilters []models_service.RepositoryFilter) []models_handler_repo.SourceFilter {
-	var sourcesFilter []models_handler_repo.SourceFilter
+func newSourceFilters(repoFilters []models_service.RepositoryFilter) []models_handler_repositories.SourceFilter {
+	var sourcesFilter []models_handler_repositories.SourceFilter
 	for _, repoFilter := range repoFilters {
-		sourcesFilter = append(sourcesFilter, models_handler_repo.SourceFilter{
+		sourcesFilter = append(sourcesFilter, models_handler_repositories.SourceFilter{
 			Name:     repoFilter.Source,
 			Channels: repoFilter.Channels,
 		})
@@ -215,7 +215,7 @@ func newSourceFilters(repoFilters []models_service.RepositoryFilter) []models_ha
 	return sourcesFilter
 }
 
-func buildRepoModsTree(repoMods []models_handler_repo.Module) map[string]map[string]map[string]repoModAbbreviated {
+func buildRepoModsTree(repoMods []models_handler_repositories.Module) map[string]map[string]map[string]repoModAbbreviated {
 	repoModsTree := make(map[string]map[string]map[string]repoModAbbreviated) // {id:{source:{channel:repoModAbbreviated}}}
 	for _, repoMod := range repoMods {
 		sources, ok := repoModsTree[repoMod.Id]
@@ -237,7 +237,7 @@ func buildRepoModsTree(repoMods []models_handler_repo.Module) map[string]map[str
 	return repoModsTree
 }
 
-func buildReposTree(repos []models_handler_repo.Repository) map[string]repoAbbreviated {
+func buildReposTree(repos []models_handler_repositories.Repository) map[string]repoAbbreviated {
 	reposTree := make(map[string]repoAbbreviated) // {source:repoAbbreviated}
 	for _, repo := range repos {
 		channels := make(map[string]int)
@@ -252,7 +252,7 @@ func buildReposTree(repos []models_handler_repo.Repository) map[string]repoAbbre
 	return reposTree
 }
 
-func handleInstalledMods(mods []models_service.RepoModule, installedMods map[string]models_handler_module.Module, filterInstalled, filterUpdateAvailable bool) []models_service.RepoModule {
+func handleInstalledMods(mods []models_service.RepoModule, installedMods map[string]models_handler_modules.Module, filterInstalled, filterUpdateAvailable bool) []models_service.RepoModule {
 	if len(installedMods) == 0 {
 		return mods
 	}
@@ -285,7 +285,7 @@ func handleInstalledMods(mods []models_service.RepoModule, installedMods map[str
 	return tmp
 }
 
-func getNextVersion(installed models_handler_module.Module, repos []models_service.Repository) string {
+func getNextVersion(installed models_handler_modules.Module, repos []models_service.Repository) string {
 	for _, repo := range repos {
 		if repo.Source == installed.Source {
 			for _, channel := range repo.Channels {

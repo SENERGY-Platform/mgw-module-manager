@@ -24,12 +24,12 @@ import (
 	"strings"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 )
 
-func (h *Handler) DeleteDeployments(ctx context.Context, filter models_handler_deployment.DeploymentsFilter) error {
+func (h *Handler) DeleteDeployments(ctx context.Context, filter models_handler_deployments.DeploymentsFilter) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	deployments, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
@@ -65,8 +65,8 @@ func (h *Handler) deleteDeployment(
 	deploymentId string,
 	deploymentDirName string,
 	deploymentFilesDirName string,
-	containers map[string]models_handler_storage.DeploymentContainer,
-	volumes map[string]models_handler_storage.DeploymentVolume,
+	containers map[string]models_handler_database.DeploymentContainer,
+	volumes map[string]models_handler_database.DeploymentVolume,
 ) error {
 	err := h.removeDeploymentEnvironment(ctx, deploymentId, deploymentDirName, deploymentFilesDirName, containers)
 	if err != nil {

@@ -22,15 +22,15 @@ import (
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) createHttpEndpoints(
 	ctx context.Context,
 	moduleServices map[string]models_external.ModuleLibService,
 	moduleId string,
-	deploymentContainers map[string]models_handler_storage.DeploymentContainer,
+	deploymentContainers map[string]models_handler_database.DeploymentContainer,
 ) error {
 	var endpoints []models_external.CmEndpointBase
 	for reference, service := range moduleServices {
@@ -80,8 +80,8 @@ func newCmEndpointBase(
 			Filters:     serviceEndpoint.StringSub.Filters,
 		},
 		Labels: map[string]string{
-			constants.LabelHttpEndpointModuleId:         moduleId,
-			constants.LabelHttpEndpointServiceReference: containerReference,
+			models_constants.LabelHttpEndpointModuleId:         moduleId,
+			models_constants.LabelHttpEndpointServiceReference: containerReference,
 		},
 	}
 }

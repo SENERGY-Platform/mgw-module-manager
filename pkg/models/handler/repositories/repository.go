@@ -14,28 +14,39 @@
  * limitations under the License.
  */
 
-package module
+package models_handler_repositories
 
-import (
-	"io/fs"
-	"time"
-
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-)
-
-type Module struct {
-	models_external.ModuleLibModule
-	Source     string
-	Channel    string
-	Added      time.Time
-	Updated    time.Time
-	FileSystem fs.FS
+type Repository struct {
+	Source   string
+	Priority int
+	Channels []Channel
 }
 
-type ModuleFilter struct {
-	Ids          []string
-	Name         string
-	Source       string
-	Channel      string
-	Dependencies bool
+type Channel struct {
+	Name     string
+	Priority int
+}
+
+type ModuleBase struct {
+	Id      string `json:"id"`
+	Source  string `json:"source"`
+	Channel string `json:"channel"`
+}
+
+type Module struct {
+	ModuleBase
+	Name    string `json:"name"`
+	Desc    string `json:"description"`
+	Version string `json:"version"`
+}
+
+type ModulesFilter struct {
+	Ids     []string
+	Name    string
+	Sources []SourceFilter
+}
+
+type SourceFilter struct {
+	Name     string
+	Channels []string
 }

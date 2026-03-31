@@ -21,14 +21,14 @@ import (
 	"maps"
 	"slices"
 
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 // TODO dependencies sollten auf service ebene über module handler gefunden werden
 func (h *Handler) EnableDeployments(ctx context.Context, moduleIds []string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_database.DeploymentsFilter{
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
@@ -40,7 +40,7 @@ func (h *Handler) EnableDeployments(ctx context.Context, moduleIds []string) err
 func (h *Handler) DisableDeployments(ctx context.Context, moduleIds []string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_database.DeploymentsFilter{
 		ModuleIds: moduleIds,
 	})
 	if err != nil {

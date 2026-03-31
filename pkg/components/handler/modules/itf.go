@@ -19,15 +19,15 @@ package handler_modules
 import (
 	"context"
 
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 type databaseHandler interface {
-	Modules(ctx context.Context, filter models_handler_storage.ModulesFilter) (map[string]models_handler_storage.Module, error)
-	Module(ctx context.Context, id string) (models_handler_storage.Module, error)
-	CreateModule(ctx context.Context, mod models_handler_storage.Module) error
-	UpdateModule(ctx context.Context, mod models_handler_storage.Module) error
+	Modules(ctx context.Context, filter models_handler_database.ModulesFilter) (map[string]models_handler_database.Module, error)
+	Module(ctx context.Context, id string) (models_handler_database.Module, error)
+	CreateModule(ctx context.Context, mod models_handler_database.Module) error
+	UpdateModule(ctx context.Context, mod models_handler_database.Module) error
 	DeleteModule(ctx context.Context, id string) error
 }
 

@@ -25,12 +25,12 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) ensureContainerVolumes(ctx context.Context,
-	volumes map[string]models_handler_storage.DeploymentVolume,
+	volumes map[string]models_handler_database.DeploymentVolume,
 	deploymentId string,
 ) error {
 	existingVolumes, err := h.getContainerVolumes(ctx, deploymentId)
@@ -62,14 +62,14 @@ func (h *Handler) ensureContainerVolumes(ctx context.Context,
 	return nil
 }
 
-func (h *Handler) createContainerVolume(ctx context.Context, volume models_handler_storage.DeploymentVolume) error {
+func (h *Handler) createContainerVolume(ctx context.Context, volume models_handler_database.DeploymentVolume) error {
 	_, err := h.containerEngineWrapperClient.CreateVolume(ctx, models_external.Volume{
 		Name: volume.Name,
 		Labels: map[string]string{
-			constants.LabelCoreId:          helper_naming.CoreId,
-			constants.LabelManagerId:       helper_naming.ManagerId,
-			constants.LabelDeploymentId:    volume.DeploymentId,
-			constants.LabelVolumeReference: volume.Reference,
+			models_constants.LabelCoreId:          helper_naming.CoreId,
+			models_constants.LabelManagerId:       helper_naming.ManagerId,
+			models_constants.LabelDeploymentId:    volume.DeploymentId,
+			models_constants.LabelVolumeReference: volume.Reference,
 		},
 	})
 	if err != nil {
@@ -80,7 +80,7 @@ func (h *Handler) createContainerVolume(ctx context.Context, volume models_handl
 
 func (h *Handler) removeContainerVolumes(
 	ctx context.Context,
-	deploymentVolumes map[string]models_handler_storage.DeploymentVolume,
+	deploymentVolumes map[string]models_handler_database.DeploymentVolume,
 ) error {
 	var errs []string
 	for _, volume := range deploymentVolumes {
@@ -109,9 +109,9 @@ func (h *Handler) removeContainerVolume(ctx context.Context, name string) error 
 func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) (map[string]models_external.Volume, error) {
 	volumes, err := h.containerEngineWrapperClient.GetVolumes(ctx, models_external.VolumesFilter{
 		Labels: map[string]string{
-			constants.LabelCoreId:       helper_naming.CoreId,
-			constants.LabelManagerId:    helper_naming.ManagerId,
-			constants.LabelDeploymentId: deploymentId,
+			models_constants.LabelCoreId:       helper_naming.CoreId,
+			models_constants.LabelManagerId:    helper_naming.ManagerId,
+			models_constants.LabelDeploymentId: deploymentId,
 		},
 	})
 	if err != nil {

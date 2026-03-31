@@ -14,23 +14,28 @@
  * limitations under the License.
  */
 
-package storage
+package models_handler_modules
 
 import (
+	"io/fs"
 	"time"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 type Module struct {
-	Id      string
-	DirName string
-	Source  string
-	Channel string
-	Added   time.Time
-	Updated time.Time
+	models_external.ModuleLibModule
+	Source     string
+	Channel    string
+	Added      time.Time
+	Updated    time.Time
+	FileSystem fs.FS
 }
 
-type ModulesFilter struct {
-	Ids     []string
-	Source  string
-	Channel string
+type ModuleFilter struct {
+	Ids          []string
+	Name         string
+	Source       string
+	Channel      string
+	Dependencies bool
 }

@@ -24,7 +24,7 @@ import (
 	"maps"
 	"slices"
 
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func createDepConfigTables(ctx context.Context, db *sql.DB) error {
@@ -209,16 +209,16 @@ func queryConfigs(ctx context.Context, db *sql.DB) ([]config, error) {
 		}
 		if vString.Valid {
 			c.Val = vString.String
-			c.DT = models_handler_storage.StringType
+			c.DT = models_handler_database.StringType
 		} else if vInt.Valid {
 			c.Val = vInt.Int64
-			c.DT = models_handler_storage.Int64Type
+			c.DT = models_handler_database.Int64Type
 		} else if vFloat.Valid {
 			c.Val = vFloat.Float64
-			c.DT = models_handler_storage.Float64Type
+			c.DT = models_handler_database.Float64Type
 		} else if vBool.Valid {
 			c.Val = vBool.Bool
-			c.DT = models_handler_storage.BoolType
+			c.DT = models_handler_database.BoolType
 		}
 		configs = append(configs, c)
 	}
@@ -256,16 +256,16 @@ func queryListConfigs(ctx context.Context, db *sql.DB) ([]listConfig, error) {
 		var dt int
 		if vString.Valid {
 			lc.Vals = append(lc.Vals, vString.String)
-			dt = models_handler_storage.StringType
+			dt = models_handler_database.StringType
 		} else if vInt.Valid {
 			lc.Vals = append(lc.Vals, vInt.Int64)
-			dt = models_handler_storage.Int64Type
+			dt = models_handler_database.Int64Type
 		} else if vFloat.Valid {
 			lc.Vals = append(lc.Vals, vFloat.Float64)
-			dt = models_handler_storage.Float64Type
+			dt = models_handler_database.Float64Type
 		} else if vBool.Valid {
 			lc.Vals = append(lc.Vals, vBool.Bool)
-			dt = models_handler_storage.BoolType
+			dt = models_handler_database.BoolType
 		}
 		if !ok {
 			lc.DT = dt
@@ -285,13 +285,13 @@ func queryListConfigs(ctx context.Context, db *sql.DB) ([]listConfig, error) {
 
 func getColName(dt int) string {
 	switch dt {
-	case models_handler_storage.StringType:
+	case models_handler_database.StringType:
 		return "v_string"
-	case models_handler_storage.Int64Type:
+	case models_handler_database.Int64Type:
 		return "v_int"
-	case models_handler_storage.Float64Type:
+	case models_handler_database.Float64Type:
 		return "v_float"
-	case models_handler_storage.BoolType:
+	case models_handler_database.BoolType:
 		return "v_bool"
 	}
 	return ""

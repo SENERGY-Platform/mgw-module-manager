@@ -24,14 +24,14 @@ import (
 	"slices"
 	"strings"
 
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
 func (h *Handler) updateSecretValuesCache(
 	ctx context.Context,
-	userDataSecrets map[string]models_handler_storage.DeploymentSecret,
+	userDataSecrets map[string]models_handler_database.DeploymentSecret,
 	cacheSecretValues map[string]models_external.SecretValueVariant,
 ) error {
 	var errs []string
@@ -69,7 +69,7 @@ func (h *Handler) updateSecretValuesCache(
 func (h *Handler) createSecretMounts(
 	ctx context.Context,
 	deploymentId string,
-	userDataSecrets map[string]models_handler_storage.DeploymentSecret,
+	userDataSecrets map[string]models_handler_database.DeploymentSecret,
 ) (map[string]models_external.SecretPathVariant, error) {
 	secretMounts := make(map[string]models_external.SecretPathVariant)
 	var errs []string
@@ -117,11 +117,11 @@ func (h *Handler) removeSecretMounts(ctx context.Context, deploymentId string) e
 }
 
 func getSelectedSecrets(
-	module models_handler_module.Module,
+	module models_handler_modules.Module,
 	userInputSecrets map[string]string,
 	deploymentID string,
-) (map[string]models_handler_storage.DeploymentSecret, error) {
-	secrets := make(map[string]models_handler_storage.DeploymentSecret)
+) (map[string]models_handler_database.DeploymentSecret, error) {
+	secrets := make(map[string]models_handler_database.DeploymentSecret)
 	var errs []string
 	for reference, secret := range module.Secrets {
 		id, ok := userInputSecrets[reference]
@@ -131,7 +131,7 @@ func getSelectedSecrets(
 			}
 			continue
 		}
-		secrets[reference] = models_handler_storage.DeploymentSecret{
+		secrets[reference] = models_handler_database.DeploymentSecret{
 			Id:           id,
 			DeploymentId: deploymentID,
 			Reference:    reference,
@@ -147,8 +147,8 @@ func getSelectedSecrets(
 func getSecretItems(
 	reference string,
 	moduleServices map[string]models_external.ModuleLibService,
-) []models_handler_storage.DeploymentSecretItem {
-	items := make(map[string]models_handler_storage.DeploymentSecretItem)
+) []models_handler_database.DeploymentSecretItem {
+	items := make(map[string]models_handler_database.DeploymentSecretItem)
 	for _, moduleService := range moduleServices {
 		for _, target := range moduleService.SecretVars {
 			if target.Ref == reference {

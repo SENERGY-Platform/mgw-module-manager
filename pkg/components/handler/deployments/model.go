@@ -17,8 +17,8 @@
 package handler_deployments
 
 import (
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 const (
@@ -31,16 +31,16 @@ const (
 const dirPerm = 0770
 
 type defaultDataCollection struct {
-	Configs map[string]models_handler_storage.Config
+	Configs map[string]models_handler_database.Config
 	Files   map[string][]byte
 }
 type userDataCollection struct {
-	GlobalConfigs map[string]models_handler_storage.DeploymentGlobalConfig
-	HostResources map[string]models_handler_storage.DeploymentHostResource
-	Secrets       map[string]models_handler_storage.DeploymentSecret
-	Configs       map[string]models_handler_storage.DeploymentUserConfig
-	Files         map[string]models_handler_storage.DeploymentFile
-	FileGroups    map[string]models_handler_storage.DeploymentFileGroup
+	GlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig
+	HostResources map[string]models_handler_database.DeploymentHostResource
+	Secrets       map[string]models_handler_database.DeploymentSecret
+	Configs       map[string]models_handler_database.DeploymentUserConfig
+	Files         map[string]models_handler_database.DeploymentFile
+	FileGroups    map[string]models_handler_database.DeploymentFileGroup
 }
 
 type bindMountDataCollection struct {
@@ -56,7 +56,7 @@ type fileGroupMount struct {
 
 type cacheCollection struct {
 	HostResources map[string]models_external.HostResource
-	GlobalConfigs map[string]models_handler_storage.GlobalConfig
+	GlobalConfigs map[string]models_handler_database.GlobalConfig
 	SecretValues  map[string]models_external.SecretValueVariant
 	Deployments   map[string]deploymentsCacheItem
 }

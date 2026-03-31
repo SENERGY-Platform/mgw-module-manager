@@ -10,8 +10,8 @@ import (
 	"sync"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_handler_repo "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repository"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 )
 
 type Handler struct {
@@ -60,12 +60,12 @@ func (h *Handler) RefreshRepositories(ctx context.Context) error {
 	return h.updateVariantsMap(ctx)
 }
 
-func (h *Handler) Repositories(_ context.Context) ([]models_handler_repo.Repository, error) {
+func (h *Handler) Repositories(_ context.Context) ([]models_handler_repositories.Repository, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	var repos []models_handler_repo.Repository
+	var repos []models_handler_repositories.Repository
 	for source, repo := range h.repositories {
-		repos = append(repos, models_handler_repo.Repository{
+		repos = append(repos, models_handler_repositories.Repository{
 			Source:   source,
 			Priority: repo.Priority,
 			Channels: repo.Handler.Channels(),
@@ -74,14 +74,14 @@ func (h *Handler) Repositories(_ context.Context) ([]models_handler_repo.Reposit
 	return repos, nil
 }
 
-func (h *Handler) Modules(_ context.Context, filter models_handler_repo.ModulesFilter) ([]models_handler_repo.Module, error) {
+func (h *Handler) Modules(_ context.Context, filter models_handler_repositories.ModulesFilter) ([]models_handler_repositories.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	filterById := len(filter.Ids) > 0
 	filterBySource := len(filter.Sources) > 0
 	filter.Name = strings.ToLower(filter.Name)
 	sourceFilterMap := newSourceFilterMap(filter.Sources)
-	var variants []models_handler_repo.Module
+	var variants []models_handler_repositories.Module
 	for modId, sources := range h.variantsMap {
 		if filterById && !slices.Contains(filter.Ids, modId) {
 			continue
@@ -101,12 +101,12 @@ func (h *Handler) Modules(_ context.Context, filter models_handler_repo.ModulesF
 	return variants, nil
 }
 
-func (h *Handler) Module(_ context.Context, id, source, channel string) (models_handler_repo.Module, error) {
+func (h *Handler) Module(_ context.Context, id, source, channel string) (models_handler_repositories.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	variant, err := h.getModuleVariant(id, source, channel)
 	if err != nil {
-		return models_handler_repo.Module{}, err
+		return models_handler_repositories.Module{}, err
 	}
 	return variant.Module, nil
 }
@@ -159,8 +159,8 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 					sources[source] = channels
 				}
 				channels[channel.Name] = moduleWrapper{
-					Module: models_handler_repo.Module{
-						ModuleBase: models_handler_repo.ModuleBase{
+					Module: models_handler_repositories.Module{
+						ModuleBase: models_handler_repositories.ModuleBase{
 							Id:      mod.ID,
 							Source:  source,
 							Channel: channel.Name,
@@ -197,7 +197,7 @@ func (h *Handler) getModuleVariant(id, source, channel string) (moduleWrapper, e
 	return variant, nil
 }
 
-func newSourceFilterMap(sourceFilters []models_handler_repo.SourceFilter) map[string]map[string]struct{} {
+func newSourceFilterMap(sourceFilters []models_handler_repositories.SourceFilter) map[string]map[string]struct{} {
 	sourceFilterMap := make(map[string]map[string]struct{})
 	for _, sourceFilter := range sourceFilters {
 		channels, ok := sourceFilterMap[sourceFilter.Name]

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package external
+package models_external
 
 import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"

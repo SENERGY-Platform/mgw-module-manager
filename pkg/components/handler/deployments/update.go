@@ -29,20 +29,20 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"
-	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
 func (h *Handler) UpdateDeployments(
 	ctx context.Context,
-	selectedModules map[string]models_handler_module.Module,
-	userInputs map[string]models_handler_deployment.UserInput,
+	selectedModules map[string]models_handler_modules.Module,
+	userInputs map[string]models_handler_deployments.UserInput,
 ) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_database.DeploymentsFilter{
 		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
 	})
 	if err != nil {
@@ -55,7 +55,7 @@ func (h *Handler) UpdateDeployments(
 	}
 	cache := cacheCollection{
 		HostResources: make(map[string]models_external.HostResource),
-		GlobalConfigs: make(map[string]models_handler_storage.GlobalConfig),
+		GlobalConfigs: make(map[string]models_handler_database.GlobalConfig),
 		SecretValues:  make(map[string]models_external.SecretValueVariant),
 	}
 	cache.Deployments, err = initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
@@ -94,13 +94,13 @@ func (h *Handler) UpdateDeployments(
 
 func (h *Handler) updateDeployment(
 	ctx context.Context,
-	module models_handler_module.Module,
-	userInput models_handler_deployment.UserInput,
+	module models_handler_modules.Module,
+	userInput models_handler_deployments.UserInput,
 	deploymentId string,
 	cacheContainers map[string]containerCacheItem,
-	currentDeployment models_handler_storage.Deployment,
-	currentContainers map[string]models_handler_storage.DeploymentContainer,
-	currentVolumes map[string]models_handler_storage.DeploymentVolume,
+	currentDeployment models_handler_database.Deployment,
+	currentContainers map[string]models_handler_database.DeploymentContainer,
+	currentVolumes map[string]models_handler_database.DeploymentVolume,
 	timestamp time.Time,
 	cache cacheCollection,
 ) error {
@@ -223,12 +223,12 @@ func (h *Handler) updateDeployment(
 }
 
 func initDeploymentsCacheFromModulesAndDeployments(
-	modules map[string]models_handler_module.Module,
-	deployments map[string]models_handler_storage.Deployment,
-	deploymentsContainers map[string]map[string]models_handler_storage.DeploymentContainer,
+	modules map[string]models_handler_modules.Module,
+	deployments map[string]models_handler_database.Deployment,
+	deploymentsContainers map[string]map[string]models_handler_database.DeploymentContainer,
 ) (map[string]deploymentsCacheItem, error) {
 	cache := make(map[string]deploymentsCacheItem)
-	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_handler_storage.Deployment) string {
+	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_handler_database.Deployment) string {
 		return value.ModuleId
 	})
 	for moduleId, module := range modules {
@@ -274,17 +274,17 @@ func removeDeploymentDir(workDirPath, deploymentDirName string) error {
 
 func updateVolumes(
 	moduleVolumes map[string]struct{},
-	deploymentVolumes map[string]models_handler_storage.DeploymentVolume,
+	deploymentVolumes map[string]models_handler_database.DeploymentVolume,
 	deploymentId string,
-) map[string]models_handler_storage.DeploymentVolume {
-	volumes := make(map[string]models_handler_storage.DeploymentVolume)
+) map[string]models_handler_database.DeploymentVolume {
+	volumes := make(map[string]models_handler_database.DeploymentVolume)
 	for reference := range moduleVolumes {
 		volume := deploymentVolumes[reference]
 		name := volume.Name
 		if name == "" {
 			name = helper_naming.NewVolumeName(deploymentId, reference)
 		}
-		volumes[reference] = models_handler_storage.DeploymentVolume{
+		volumes[reference] = models_handler_database.DeploymentVolume{
 			DeploymentId: deploymentId,
 			Reference:    reference,
 			Name:         name,

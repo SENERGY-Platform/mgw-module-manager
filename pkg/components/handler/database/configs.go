@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) queryConfigs(ctx context.Context, ids []string, t1, t2 string, filterIdCol string, t1Cols ...string) (*sql.Rows, error) {
@@ -66,7 +66,7 @@ func genSelectConfigsFilterIdsStmt(t1, t2 string, lenIds int, filterIdCol string
 	return "SELECT * FROM (" + genSelectConfigsStmt(t1, t2, t1Cols...) + fmt.Sprintf(") AS SUB WHERE SUB.%s IN (", filterIdCol) + genQuestionMarks(lenIds) + ");"
 }
 
-func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, config models_handler_storage.Config) error {
+func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, config models_handler_database.Config) error {
 	if config.IsSlice {
 		colName, values := getListConfigValsAndCol(config)
 		stmt := fmt.Sprintf("INSERT INTO %s (c_id, %s, ord) VALUES (?, ?, ?)", tableName, colName)
@@ -92,36 +92,36 @@ func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, confi
 	return nil
 }
 
-func getConfigValAndCol(config models_handler_storage.Config) (colName string, value any) {
+func getConfigValAndCol(config models_handler_database.Config) (colName string, value any) {
 	switch config.DataType {
-	case models_handler_storage.StringType:
+	case models_handler_database.StringType:
 		colName = "v_string"
 		value = config.String
-	case models_handler_storage.Int64Type:
+	case models_handler_database.Int64Type:
 		colName = "v_int"
 		value = config.Int64
-	case models_handler_storage.Float64Type:
+	case models_handler_database.Float64Type:
 		colName = "v_float"
 		value = config.Float64
-	case models_handler_storage.BoolType:
+	case models_handler_database.BoolType:
 		colName = "v_bool"
 		value = config.Bool
 	}
 	return
 }
 
-func getListConfigValsAndCol(config models_handler_storage.Config) (colName string, values []any) {
+func getListConfigValsAndCol(config models_handler_database.Config) (colName string, values []any) {
 	switch config.DataType {
-	case models_handler_storage.StringType:
+	case models_handler_database.StringType:
 		colName = "v_string"
 		values = helper_slices.ToAny(config.StringSlice)
-	case models_handler_storage.Int64Type:
+	case models_handler_database.Int64Type:
 		colName = "v_int"
 		values = helper_slices.ToAny(config.Int64Slice)
-	case models_handler_storage.Float64Type:
+	case models_handler_database.Float64Type:
 		colName = "v_float"
 		values = helper_slices.ToAny(config.Float64Slice)
-	case models_handler_storage.BoolType:
+	case models_handler_database.BoolType:
 		colName = "v_bool"
 		values = helper_slices.ToAny(config.BoolSlice)
 	}

@@ -24,16 +24,16 @@ import (
 	"strings"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) updateHostResourcesCache(
 	ctx context.Context,
-	userDataHostResources map[string]models_handler_storage.DeploymentHostResource,
+	userDataHostResources map[string]models_handler_database.DeploymentHostResource,
 	cacheHostResources map[string]models_external.HostResource,
 ) error {
-	selectedIds := helper_slices.CollectFunc(maps.Values(userDataHostResources), func(item models_handler_storage.DeploymentHostResource) string {
+	selectedIds := helper_slices.CollectFunc(maps.Values(userDataHostResources), func(item models_handler_database.DeploymentHostResource) string {
 		return item.Id
 	})
 	var idsNotInCache []string
@@ -64,8 +64,8 @@ func getSelectedHostResources(
 	moduleHostResources map[string]models_external.ModuleLibHostResource,
 	userInputHostResources map[string]string,
 	deploymentID string,
-) (map[string]models_handler_storage.DeploymentHostResource, error) {
-	hostResources := make(map[string]models_handler_storage.DeploymentHostResource)
+) (map[string]models_handler_database.DeploymentHostResource, error) {
+	hostResources := make(map[string]models_handler_database.DeploymentHostResource)
 	var errs []string
 	for reference, hostResource := range moduleHostResources {
 		id, ok := userInputHostResources[reference]
@@ -75,7 +75,7 @@ func getSelectedHostResources(
 			}
 			continue
 		}
-		hostResources[reference] = models_handler_storage.DeploymentHostResource{
+		hostResources[reference] = models_handler_database.DeploymentHostResource{
 			Id:           id,
 			DeploymentId: deploymentID,
 			Reference:    reference,

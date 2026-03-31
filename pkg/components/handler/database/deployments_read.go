@@ -23,22 +23,22 @@ import (
 	"time"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
-func (h *Handler) ReadDeployment(ctx context.Context, id string) (models_handler_storage.Deployment, error) {
-	deployments, err := h.ReadDeployments(ctx, models_handler_storage.DeploymentsFilter{Ids: []string{id}})
+func (h *Handler) ReadDeployment(ctx context.Context, id string) (models_handler_database.Deployment, error) {
+	deployments, err := h.ReadDeployments(ctx, models_handler_database.DeploymentsFilter{Ids: []string{id}})
 	if err != nil {
-		return models_handler_storage.Deployment{}, err
+		return models_handler_database.Deployment{}, err
 	}
 	if len(deployments) == 0 {
-		return models_handler_storage.Deployment{}, models_error.NotFoundErr
+		return models_handler_database.Deployment{}, models_error.NotFoundErr
 	}
 	return deployments[id], nil
 }
 
-func (h *Handler) ReadDeployments(ctx context.Context, filter models_handler_storage.DeploymentsFilter) (map[string]models_handler_storage.Deployment, error) {
+func (h *Handler) ReadDeployments(ctx context.Context, filter models_handler_database.DeploymentsFilter) (map[string]models_handler_database.Deployment, error) {
 	fc, val := genDeploymentsFilter(filter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -49,9 +49,9 @@ func (h *Handler) ReadDeployments(ctx context.Context, filter models_handler_sto
 		return nil, err
 	}
 	defer rows.Close()
-	deps := make(map[string]models_handler_storage.Deployment)
+	deps := make(map[string]models_handler_database.Deployment)
 	for rows.Next() {
-		var dep models_handler_storage.Deployment
+		var dep models_handler_database.Deployment
 		var ct, ut []uint8
 		err = rows.Scan(
 			&dep.Id,
@@ -82,7 +82,7 @@ func (h *Handler) ReadDeployments(ctx context.Context, filter models_handler_sto
 	return deps, nil
 }
 
-func (h *Handler) ReadDeploymentContainers(ctx context.Context, deploymentId string) (map[string]models_handler_storage.DeploymentContainer, error) {
+func (h *Handler) ReadDeploymentContainers(ctx context.Context, deploymentId string) (map[string]models_handler_database.DeploymentContainer, error) {
 	deploymentsContainers, err := h.ReadDeploymentsContainers(ctx, []string{deploymentId})
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (h *Handler) ReadDeploymentContainers(ctx context.Context, deploymentId str
 	return deploymentsContainers[deploymentId], nil
 }
 
-func (h *Handler) ReadDeploymentsContainers(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_storage.DeploymentContainer, error) {
+func (h *Handler) ReadDeploymentsContainers(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_database.DeploymentContainer, error) {
 	fc, val := genDeploymentsContainersFilter(deploymentIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -104,16 +104,16 @@ func (h *Handler) ReadDeploymentsContainers(ctx context.Context, deploymentIds [
 		return nil, err
 	}
 	defer rows.Close()
-	depContainers := make(map[string]map[string]models_handler_storage.DeploymentContainer)
+	depContainers := make(map[string]map[string]models_handler_database.DeploymentContainer)
 	for rows.Next() {
-		var container models_handler_storage.DeploymentContainer
+		var container models_handler_database.DeploymentContainer
 		err = rows.Scan(&container.DeploymentId, &container.Name, &container.Reference, &container.Alias)
 		if err != nil {
 			return nil, err
 		}
 		containers, ok := depContainers[container.DeploymentId]
 		if !ok {
-			containers = make(map[string]models_handler_storage.DeploymentContainer)
+			containers = make(map[string]models_handler_database.DeploymentContainer)
 			depContainers[container.DeploymentId] = containers
 		}
 		containers[container.Reference] = container
@@ -121,7 +121,7 @@ func (h *Handler) ReadDeploymentsContainers(ctx context.Context, deploymentIds [
 	return depContainers, nil
 }
 
-func (h *Handler) ReadDeploymentsVolumes(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_storage.DeploymentVolume, error) {
+func (h *Handler) ReadDeploymentsVolumes(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_database.DeploymentVolume, error) {
 	fc, val := genDeploymentsVolumesFilter(deploymentIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -132,16 +132,16 @@ func (h *Handler) ReadDeploymentsVolumes(ctx context.Context, deploymentIds []st
 		return nil, err
 	}
 	defer rows.Close()
-	depVolumes := make(map[string]map[string]models_handler_storage.DeploymentVolume)
+	depVolumes := make(map[string]map[string]models_handler_database.DeploymentVolume)
 	for rows.Next() {
-		var volume models_handler_storage.DeploymentVolume
+		var volume models_handler_database.DeploymentVolume
 		err = rows.Scan(&volume.DeploymentId, &volume.Reference, &volume.Name)
 		if err != nil {
 			return nil, err
 		}
 		volumes, ok := depVolumes[volume.DeploymentId]
 		if !ok {
-			volumes = make(map[string]models_handler_storage.DeploymentVolume)
+			volumes = make(map[string]models_handler_database.DeploymentVolume)
 			depVolumes[volume.DeploymentId] = volumes
 		}
 		volumes[volume.Reference] = volume
@@ -149,10 +149,10 @@ func (h *Handler) ReadDeploymentsVolumes(ctx context.Context, deploymentIds []st
 	return depVolumes, nil
 }
 
-func (h *Handler) ReadDeploymentHostResources(ctx context.Context, deploymentId string) (map[string]models_handler_storage.DeploymentHostResource, error) {
+func (h *Handler) ReadDeploymentHostResources(ctx context.Context, deploymentId string) (map[string]models_handler_database.DeploymentHostResource, error) {
 	deploymentsHostResources, err := h.ReadDeploymentsHostResources(
 		ctx,
-		models_handler_storage.DeploymentsHostResourcesFilter{DeploymentIds: []string{deploymentId}},
+		models_handler_database.DeploymentsHostResourcesFilter{DeploymentIds: []string{deploymentId}},
 	)
 	if err != nil {
 		return nil, err
@@ -165,8 +165,8 @@ func (h *Handler) ReadDeploymentHostResources(ctx context.Context, deploymentId 
 
 func (h *Handler) ReadDeploymentsHostResources(
 	ctx context.Context,
-	filter models_handler_storage.DeploymentsHostResourcesFilter,
-) (map[string]map[string]models_handler_storage.DeploymentHostResource, error) {
+	filter models_handler_database.DeploymentsHostResourcesFilter,
+) (map[string]map[string]models_handler_database.DeploymentHostResource, error) {
 	fc, val := genDeploymentsHostResourcesFilter(filter)
 	rows, err := h.sqlDB.QueryContext(ctx,
 		"SELECT dep_id, ref, res_id FROM dep_host_resources"+fc+";",
@@ -176,16 +176,16 @@ func (h *Handler) ReadDeploymentsHostResources(
 		return nil, err
 	}
 	defer rows.Close()
-	depHostResources := make(map[string]map[string]models_handler_storage.DeploymentHostResource)
+	depHostResources := make(map[string]map[string]models_handler_database.DeploymentHostResource)
 	for rows.Next() {
-		var hostResource models_handler_storage.DeploymentHostResource
+		var hostResource models_handler_database.DeploymentHostResource
 		err = rows.Scan(&hostResource.DeploymentId, &hostResource.Reference, &hostResource.Id)
 		if err != nil {
 			return nil, err
 		}
 		hostResources, ok := depHostResources[hostResource.DeploymentId]
 		if !ok {
-			hostResources = make(map[string]models_handler_storage.DeploymentHostResource)
+			hostResources = make(map[string]models_handler_database.DeploymentHostResource)
 			depHostResources[hostResource.DeploymentId] = hostResources
 		}
 		hostResources[hostResource.Reference] = hostResource
@@ -193,8 +193,8 @@ func (h *Handler) ReadDeploymentsHostResources(
 	return depHostResources, nil
 }
 
-func (h *Handler) ReadDeploymentSecrets(ctx context.Context, deploymentId string) (map[string]models_handler_storage.DeploymentSecret, error) {
-	deploymentsSecrets, err := h.ReadDeploymentsSecrets(ctx, models_handler_storage.DeploymentsSecretsFilter{DeploymentIds: []string{deploymentId}})
+func (h *Handler) ReadDeploymentSecrets(ctx context.Context, deploymentId string) (map[string]models_handler_database.DeploymentSecret, error) {
+	deploymentsSecrets, err := h.ReadDeploymentsSecrets(ctx, models_handler_database.DeploymentsSecretsFilter{DeploymentIds: []string{deploymentId}})
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func (h *Handler) ReadDeploymentSecrets(ctx context.Context, deploymentId string
 	return deploymentsSecrets[deploymentId], nil
 }
 
-func (h *Handler) ReadDeploymentsSecrets(ctx context.Context, filter models_handler_storage.DeploymentsSecretsFilter) (map[string]map[string]models_handler_storage.DeploymentSecret, error) {
+func (h *Handler) ReadDeploymentsSecrets(ctx context.Context, filter models_handler_database.DeploymentsSecretsFilter) (map[string]map[string]models_handler_database.DeploymentSecret, error) {
 	fc, val := genDeploymentsSecretsFilter(filter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -215,19 +215,19 @@ func (h *Handler) ReadDeploymentsSecrets(ctx context.Context, filter models_hand
 		return nil, err
 	}
 	defer rows.Close()
-	depSecrets := make(map[string]map[string]models_handler_storage.DeploymentSecret)
+	depSecrets := make(map[string]map[string]models_handler_database.DeploymentSecret)
 	for rows.Next() {
 		var depId string
 		var ref string
 		var secId string
-		var item models_handler_storage.DeploymentSecretItem
+		var item models_handler_database.DeploymentSecretItem
 		err = rows.Scan(&depId, &ref, &secId, &item.Name, &item.AsMount, &item.AsEnv)
 		if err != nil {
 			return nil, err
 		}
 		secrets, ok := depSecrets[depId]
 		if !ok {
-			secrets = make(map[string]models_handler_storage.DeploymentSecret)
+			secrets = make(map[string]models_handler_database.DeploymentSecret)
 			depSecrets[depId] = secrets
 		}
 		secret, ok := secrets[ref]
@@ -242,7 +242,7 @@ func (h *Handler) ReadDeploymentsSecrets(ctx context.Context, filter models_hand
 	return depSecrets, nil
 }
 
-func (h *Handler) ReadDeploymentUserConfigs(ctx context.Context, deploymentId string) (map[string]models_handler_storage.DeploymentUserConfig, error) {
+func (h *Handler) ReadDeploymentUserConfigs(ctx context.Context, deploymentId string) (map[string]models_handler_database.DeploymentUserConfig, error) {
 	deploymentsConfigs, err := h.ReadDeploymentsConfigs(ctx, []string{deploymentId})
 	if err != nil {
 		return nil, err
@@ -253,13 +253,13 @@ func (h *Handler) ReadDeploymentUserConfigs(ctx context.Context, deploymentId st
 	return deploymentsConfigs[deploymentId], nil
 }
 
-func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_storage.DeploymentUserConfig, error) {
+func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_database.DeploymentUserConfig, error) {
 	rows, err := h.queryConfigs(ctx, deploymentIds, "dep_configs", "dep_config_values", "dep_id", "dep_id", "ref")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	depConfigs := make(map[string]map[string]models_handler_storage.DeploymentUserConfig) // {depID:{reference:config}}
+	depConfigs := make(map[string]map[string]models_handler_database.DeploymentUserConfig) // {depID:{reference:config}}
 	for rows.Next() {
 		var id string
 		var isList bool
@@ -277,7 +277,7 @@ func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []st
 		}
 		configs, ok := depConfigs[depId]
 		if !ok {
-			configs = make(map[string]models_handler_storage.DeploymentUserConfig)
+			configs = make(map[string]models_handler_database.DeploymentUserConfig)
 			depConfigs[depId] = configs
 		}
 		config, ok := configs[ref]
@@ -290,24 +290,24 @@ func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []st
 		}
 		if isList {
 			switch dataType {
-			case models_handler_storage.StringType:
+			case models_handler_database.StringType:
 				config.StringSlice = append(config.StringSlice, vString.String)
-			case models_handler_storage.Int64Type:
+			case models_handler_database.Int64Type:
 				config.Int64Slice = append(config.Int64Slice, vInt.Int64)
-			case models_handler_storage.Float64Type:
+			case models_handler_database.Float64Type:
 				config.Float64Slice = append(config.Float64Slice, vFloat.Float64)
-			case models_handler_storage.BoolType:
+			case models_handler_database.BoolType:
 				config.BoolSlice = append(config.BoolSlice, vBool.Bool)
 			}
 		} else {
 			switch dataType {
-			case models_handler_storage.StringType:
+			case models_handler_database.StringType:
 				config.String = vString.String
-			case models_handler_storage.Int64Type:
+			case models_handler_database.Int64Type:
 				config.Int64 = vInt.Int64
-			case models_handler_storage.Float64Type:
+			case models_handler_database.Float64Type:
 				config.Float64 = vFloat.Float64
-			case models_handler_storage.BoolType:
+			case models_handler_database.BoolType:
 				config.Bool = vBool.Bool
 			}
 		}
@@ -316,10 +316,10 @@ func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []st
 	return depConfigs, nil
 }
 
-func (h *Handler) ReadDeploymentGlobalConfigs(ctx context.Context, deploymentId string) (map[string]models_handler_storage.DeploymentGlobalConfig, error) {
+func (h *Handler) ReadDeploymentGlobalConfigs(ctx context.Context, deploymentId string) (map[string]models_handler_database.DeploymentGlobalConfig, error) {
 	deploymentsGlobalConfigs, err := h.ReadDeploymentsGlobalConfigs(
 		ctx,
-		models_handler_storage.DeploymentGlobalConfigsFilter{DeploymentIds: []string{deploymentId}},
+		models_handler_database.DeploymentGlobalConfigsFilter{DeploymentIds: []string{deploymentId}},
 	)
 	if err != nil {
 		return nil, err
@@ -330,7 +330,7 @@ func (h *Handler) ReadDeploymentGlobalConfigs(ctx context.Context, deploymentId 
 	return deploymentsGlobalConfigs[deploymentId], nil
 }
 
-func (h *Handler) ReadDeploymentsGlobalConfigs(ctx context.Context, filter models_handler_storage.DeploymentGlobalConfigsFilter) (map[string]map[string]models_handler_storage.DeploymentGlobalConfig, error) {
+func (h *Handler) ReadDeploymentsGlobalConfigs(ctx context.Context, filter models_handler_database.DeploymentGlobalConfigsFilter) (map[string]map[string]models_handler_database.DeploymentGlobalConfig, error) {
 	fc, val := genDeploymentGlobalConfigsFilter(filter)
 	rows, err := h.sqlDB.QueryContext(ctx,
 		"SELECT dep_id, ref, c_id FROM dep_global_configs"+fc+";",
@@ -340,16 +340,16 @@ func (h *Handler) ReadDeploymentsGlobalConfigs(ctx context.Context, filter model
 		return nil, err
 	}
 	defer rows.Close()
-	depGlobalConfigs := make(map[string]map[string]models_handler_storage.DeploymentGlobalConfig)
+	depGlobalConfigs := make(map[string]map[string]models_handler_database.DeploymentGlobalConfig)
 	for rows.Next() {
-		var globalConfig models_handler_storage.DeploymentGlobalConfig
+		var globalConfig models_handler_database.DeploymentGlobalConfig
 		err = rows.Scan(&globalConfig.DeploymentId, &globalConfig.Reference, &globalConfig.Id)
 		if err != nil {
 			return nil, err
 		}
 		globalConfigs, ok := depGlobalConfigs[globalConfig.DeploymentId]
 		if !ok {
-			globalConfigs = make(map[string]models_handler_storage.DeploymentGlobalConfig)
+			globalConfigs = make(map[string]models_handler_database.DeploymentGlobalConfig)
 			depGlobalConfigs[globalConfig.DeploymentId] = globalConfigs
 		}
 		globalConfigs[globalConfig.Reference] = globalConfig
@@ -357,7 +357,7 @@ func (h *Handler) ReadDeploymentsGlobalConfigs(ctx context.Context, filter model
 	return depGlobalConfigs, nil
 }
 
-func (h *Handler) ReadDeploymentFiles(ctx context.Context, deploymentId string) (map[string]models_handler_storage.DeploymentFile, error) {
+func (h *Handler) ReadDeploymentFiles(ctx context.Context, deploymentId string) (map[string]models_handler_database.DeploymentFile, error) {
 	depFiles, err := h.ReadDeploymentsFiles(ctx, []string{deploymentId})
 	if err != nil {
 		return nil, err
@@ -368,7 +368,7 @@ func (h *Handler) ReadDeploymentFiles(ctx context.Context, deploymentId string) 
 	return depFiles[deploymentId], nil
 }
 
-func (h *Handler) ReadDeploymentsFiles(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_storage.DeploymentFile, error) {
+func (h *Handler) ReadDeploymentsFiles(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_database.DeploymentFile, error) {
 	fc, val := genDeploymentsFilesFilter(deploymentIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -379,16 +379,16 @@ func (h *Handler) ReadDeploymentsFiles(ctx context.Context, deploymentIds []stri
 		return nil, err
 	}
 	defer rows.Close()
-	depFiles := make(map[string]map[string]models_handler_storage.DeploymentFile)
+	depFiles := make(map[string]map[string]models_handler_database.DeploymentFile)
 	for rows.Next() {
-		var depFile models_handler_storage.DeploymentFile
+		var depFile models_handler_database.DeploymentFile
 		err = rows.Scan(&depFile.DeploymentId, &depFile.Reference, &depFile.Data)
 		if err != nil {
 			return nil, err
 		}
 		files, ok := depFiles[depFile.DeploymentId]
 		if !ok {
-			files = make(map[string]models_handler_storage.DeploymentFile)
+			files = make(map[string]models_handler_database.DeploymentFile)
 			depFiles[depFile.DeploymentId] = files
 		}
 		files[depFile.Reference] = depFile
@@ -396,7 +396,7 @@ func (h *Handler) ReadDeploymentsFiles(ctx context.Context, deploymentIds []stri
 	return depFiles, nil
 }
 
-func (h *Handler) ReadDeploymentFileGroups(ctx context.Context, deploymentId string) (map[string]models_handler_storage.DeploymentFileGroup, error) {
+func (h *Handler) ReadDeploymentFileGroups(ctx context.Context, deploymentId string) (map[string]models_handler_database.DeploymentFileGroup, error) {
 	depFileGroups, err := h.ReadDeploymentsFileGroups(ctx, []string{deploymentId})
 	if err != nil {
 		return nil, err
@@ -412,7 +412,7 @@ FROM dep_file_groups
 LEFT JOIN dep_file_group_files
 ON dep_file_groups.id = dep_file_group_files.g_id ORDER BY dep_id, path`
 
-func (h *Handler) ReadDeploymentsFileGroups(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_storage.DeploymentFileGroup, error) {
+func (h *Handler) ReadDeploymentsFileGroups(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_database.DeploymentFileGroup, error) {
 	var rows *sql.Rows
 	var err error
 	if len(deploymentIds) > 0 {
@@ -429,7 +429,7 @@ func (h *Handler) ReadDeploymentsFileGroups(ctx context.Context, deploymentIds [
 		return nil, err
 	}
 	defer rows.Close()
-	depFileGroups := make(map[string]map[string]models_handler_storage.DeploymentFileGroup) // {depID:{reference:DeploymentFileGroup}}
+	depFileGroups := make(map[string]map[string]models_handler_database.DeploymentFileGroup) // {depID:{reference:DeploymentFileGroup}}
 	for rows.Next() {
 		var id string
 		var depId string
@@ -443,7 +443,7 @@ func (h *Handler) ReadDeploymentsFileGroups(ctx context.Context, deploymentIds [
 		}
 		fileGroups, ok := depFileGroups[depId]
 		if !ok {
-			fileGroups = make(map[string]models_handler_storage.DeploymentFileGroup)
+			fileGroups = make(map[string]models_handler_database.DeploymentFileGroup)
 			depFileGroups[depId] = fileGroups
 		}
 		fileGroup, ok := fileGroups[ref]
@@ -452,7 +452,7 @@ func (h *Handler) ReadDeploymentsFileGroups(ctx context.Context, deploymentIds [
 			fileGroup.DeploymentId = depId
 			fileGroup.Reference = ref
 		}
-		fileGroup.Files = append(fileGroup.Files, models_handler_storage.DeploymentFileGroupFile{
+		fileGroup.Files = append(fileGroup.Files, models_handler_database.DeploymentFileGroupFile{
 			Path:   path,
 			Format: format,
 			Data:   data,
@@ -462,7 +462,7 @@ func (h *Handler) ReadDeploymentsFileGroups(ctx context.Context, deploymentIds [
 	return depFileGroups, nil
 }
 
-func genDeploymentGlobalConfigsFilter(filter models_handler_storage.DeploymentGlobalConfigsFilter) (string, []any) {
+func genDeploymentGlobalConfigsFilter(filter models_handler_database.DeploymentGlobalConfigsFilter) (string, []any) {
 	var fc []string
 	var val []any
 	if len(filter.Ids) > 0 {
@@ -485,7 +485,7 @@ func genDeploymentGlobalConfigsFilter(filter models_handler_storage.DeploymentGl
 	return "", nil
 }
 
-func genDeploymentsSecretsFilter(filter models_handler_storage.DeploymentsSecretsFilter) (string, []any) {
+func genDeploymentsSecretsFilter(filter models_handler_database.DeploymentsSecretsFilter) (string, []any) {
 	var fc []string
 	var val []any
 	if len(filter.Ids) > 0 {
@@ -524,7 +524,7 @@ func genDeploymentsSecretsFilter(filter models_handler_storage.DeploymentsSecret
 	return "", nil
 }
 
-func genDeploymentsHostResourcesFilter(filter models_handler_storage.DeploymentsHostResourcesFilter) (string, []any) {
+func genDeploymentsHostResourcesFilter(filter models_handler_database.DeploymentsHostResourcesFilter) (string, []any) {
 	var fc []string
 	var val []any
 	if len(filter.Ids) > 0 {
@@ -595,7 +595,7 @@ func genDeploymentsFilesFilter(ids []string) (string, []any) {
 	return "", nil
 }
 
-func genDeploymentsFilter(filter models_handler_storage.DeploymentsFilter) (string, []any) {
+func genDeploymentsFilter(filter models_handler_database.DeploymentsFilter) (string, []any) {
 	var fc []string
 	var val []any
 	if len(filter.Ids) > 0 {

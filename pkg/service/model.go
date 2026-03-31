@@ -5,7 +5,7 @@ import (
 	"time"
 
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
-	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
 type modWrapper struct {

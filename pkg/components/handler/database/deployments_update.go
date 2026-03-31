@@ -20,7 +20,7 @@ import (
 	"context"
 	"database/sql"
 
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) UpdateDeploymentsEnabledState(ctx context.Context, deploymentIds []string, state bool) (err error) {
@@ -57,15 +57,15 @@ func (h *Handler) UpdateDeploymentEnabledState(ctx context.Context, id string, s
 
 func (h *Handler) UpdateDeployment(
 	ctx context.Context,
-	deployment models_handler_storage.Deployment,
-	hostResources []models_handler_storage.DeploymentHostResource,
-	secrets []models_handler_storage.DeploymentSecret,
-	userConfigs []models_handler_storage.DeploymentUserConfig,
-	globalConfigs []models_handler_storage.DeploymentGlobalConfig,
-	files []models_handler_storage.DeploymentFile,
-	fileGroups []models_handler_storage.DeploymentFileGroup,
-	volumes []models_handler_storage.DeploymentVolume,
-	containers []models_handler_storage.DeploymentContainer,
+	deployment models_handler_database.Deployment,
+	hostResources []models_handler_database.DeploymentHostResource,
+	secrets []models_handler_database.DeploymentSecret,
+	userConfigs []models_handler_database.DeploymentUserConfig,
+	globalConfigs []models_handler_database.DeploymentGlobalConfig,
+	files []models_handler_database.DeploymentFile,
+	fileGroups []models_handler_database.DeploymentFileGroup,
+	volumes []models_handler_database.DeploymentVolume,
+	containers []models_handler_database.DeploymentContainer,
 ) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
@@ -110,7 +110,7 @@ func (h *Handler) UpdateDeployment(
 	return
 }
 
-func (h *Handler) UpdateDeploymentContainerNames(ctx context.Context, containers []models_handler_storage.DeploymentContainer) (err error) {
+func (h *Handler) UpdateDeploymentContainerNames(ctx context.Context, containers []models_handler_database.DeploymentContainer) (err error) {
 	var db sqlDatabase = h.sqlDB
 	var tx *sql.Tx
 	if len(containers) > 0 {

@@ -15,10 +15,10 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/module"
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	"github.com/google/uuid"
 )
@@ -45,11 +45,11 @@ func (h *Handler) Init() error {
 	return os.MkdirAll(h.config.WorkDirPath, 0775)
 }
 
-func (h *Handler) Modules(ctx context.Context, filter models_handler_module.ModuleFilter) (map[string]models_handler_module.Module, error) {
+func (h *Handler) Modules(ctx context.Context, filter models_handler_modules.ModuleFilter) (map[string]models_handler_modules.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	if filter.Dependencies && len(filter.Ids) > 0 {
-		requiredModules := make(map[string]models_handler_module.Module)
+		requiredModules := make(map[string]models_handler_modules.Module)
 		err := h.modulesWithDependencies(ctx, filter.Ids, requiredModules)
 		if err != nil {
 			return nil, err
@@ -59,15 +59,15 @@ func (h *Handler) Modules(ctx context.Context, filter models_handler_module.Modu
 	return h.modules(ctx, filter)
 }
 
-func (h *Handler) Module(ctx context.Context, id string) (models_handler_module.Module, error) {
+func (h *Handler) Module(ctx context.Context, id string) (models_handler_modules.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	modules, err := h.modules(ctx, models_handler_module.ModuleFilter{Ids: []string{id}})
+	modules, err := h.modules(ctx, models_handler_modules.ModuleFilter{Ids: []string{id}})
 	if err != nil {
-		return models_handler_module.Module{}, err
+		return models_handler_modules.Module{}, err
 	}
 	if len(modules) == 0 {
-		return models_handler_module.Module{}, models_error.NotFoundErr
+		return models_handler_modules.Module{}, models_error.NotFoundErr
 	}
 	return modules[id], nil
 }
@@ -220,8 +220,8 @@ func (h *Handler) Remove(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, requiredModules map[string]models_handler_module.Module) error {
-	modules, err := h.modules(ctx, models_handler_module.ModuleFilter{Ids: ids})
+func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, requiredModules map[string]models_handler_modules.Module) error {
+	modules, err := h.modules(ctx, models_handler_modules.ModuleFilter{Ids: ids})
 	if err != nil {
 		return err
 	}
@@ -249,8 +249,8 @@ func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, req
 	return nil
 }
 
-func (h *Handler) modules(ctx context.Context, filter models_handler_module.ModuleFilter) (map[string]models_handler_module.Module, error) {
-	stgMods, err := h.databaseHandler.Modules(ctx, models_handler_storage.ModulesFilter{
+func (h *Handler) modules(ctx context.Context, filter models_handler_modules.ModuleFilter) (map[string]models_handler_modules.Module, error) {
+	stgMods, err := h.databaseHandler.Modules(ctx, models_handler_database.ModulesFilter{
 		Ids:     filter.Ids,
 		Source:  filter.Source,
 		Channel: filter.Channel,
@@ -259,7 +259,7 @@ func (h *Handler) modules(ctx context.Context, filter models_handler_module.Modu
 		return nil, err
 	}
 	filter.Name = strings.ToLower(filter.Name)
-	modules := make(map[string]models_handler_module.Module)
+	modules := make(map[string]models_handler_modules.Module)
 	var errs []error
 	for _, stgMod := range stgMods {
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
@@ -276,7 +276,7 @@ func (h *Handler) modules(ctx context.Context, filter models_handler_module.Modu
 		if !strings.Contains(strings.ToLower(mod.Name), filter.Name) { // empty string = true
 			continue
 		}
-		modules[mod.ID] = models_handler_module.Module{
+		modules[mod.ID] = models_handler_modules.Module{
 			ModuleLibModule: mod,
 			Source:          stgMod.Source,
 			Channel:         stgMod.Channel,
@@ -375,12 +375,12 @@ func imagesAsSet(services map[string]models_external.ModuleLibService) map[strin
 	return images
 }
 
-func newStgMod(id, source, channel string) (models_handler_storage.Module, error) {
+func newStgMod(id, source, channel string) (models_handler_database.Module, error) {
 	newUUID, err := uuid.NewUUID()
 	if err != nil {
-		return models_handler_storage.Module{}, err
+		return models_handler_database.Module{}, err
 	}
-	return models_handler_storage.Module{
+	return models_handler_database.Module{
 		Id:      id,
 		DirName: newUUID.String(),
 		Source:  source,

@@ -28,9 +28,9 @@ import (
 	"strings"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_deployment "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployment"
-	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 )
 
 func getDefaultFiles(moduleFiles map[string]models_external.ModuleLibFile, moduleFileSystem fs.FS) (map[string][]byte, error) {
@@ -66,8 +66,8 @@ func getProvidedFiles(
 	defaultDataFiles map[string][]byte,
 	userInputsFiles map[string][]byte,
 	deploymentId string,
-) map[string]models_handler_storage.DeploymentFile {
-	files := make(map[string]models_handler_storage.DeploymentFile)
+) map[string]models_handler_database.DeploymentFile {
+	files := make(map[string]models_handler_database.DeploymentFile)
 	for reference := range moduleFiles {
 		data, ok := userInputsFiles[reference]
 		if !ok || len(data) == 0 {
@@ -77,7 +77,7 @@ func getProvidedFiles(
 		if ok && bytes.Equal(data, defaultData) {
 			continue
 		}
-		files[reference] = models_handler_storage.DeploymentFile{
+		files[reference] = models_handler_database.DeploymentFile{
 			DeploymentId: deploymentId,
 			Reference:    reference,
 			Data:         data,
@@ -88,7 +88,7 @@ func getProvidedFiles(
 
 func mergeFiles(
 	defaultDataFiles map[string][]byte,
-	userDataFiles map[string]models_handler_storage.DeploymentFile,
+	userDataFiles map[string]models_handler_database.DeploymentFile,
 ) map[string][]byte {
 	files := make(map[string][]byte)
 	maps.Copy(files, defaultDataFiles)
@@ -117,25 +117,25 @@ func checkFiles(
 
 func getProvidedFileGroups(
 	moduleFileGroups map[string]struct{},
-	userInputFileGroups map[string]map[string]models_handler_deployment.FileGroupUserInput,
+	userInputFileGroups map[string]map[string]models_handler_deployments.FileGroupUserInput,
 	deploymentId string,
-) map[string]models_handler_storage.DeploymentFileGroup {
-	fileGroups := make(map[string]models_handler_storage.DeploymentFileGroup)
+) map[string]models_handler_database.DeploymentFileGroup {
+	fileGroups := make(map[string]models_handler_database.DeploymentFileGroup)
 	for reference := range moduleFileGroups {
 		fg, ok := userInputFileGroups[reference]
 		if !ok {
 			continue
 		}
 		id := helper_naming.GenHash(deploymentId, reference)
-		var files []models_handler_storage.DeploymentFileGroupFile
+		var files []models_handler_database.DeploymentFileGroupFile
 		for pth, input := range fg {
-			files = append(files, models_handler_storage.DeploymentFileGroupFile{
+			files = append(files, models_handler_database.DeploymentFileGroupFile{
 				Path:   pth,
 				Format: input.Format,
 				Data:   input.Data,
 			})
 		}
-		fileGroups[reference] = models_handler_storage.DeploymentFileGroup{
+		fileGroups[reference] = models_handler_database.DeploymentFileGroup{
 			Id:           id,
 			DeploymentId: deploymentId,
 			Reference:    reference,
@@ -155,7 +155,7 @@ func removeFilesDir(workDirPath, deploymentFilesDirName string) error {
 
 func createFileGroups(
 	deploymentFilesDirName string,
-	userDataFileGroups map[string]models_handler_storage.DeploymentFileGroup,
+	userDataFileGroups map[string]models_handler_database.DeploymentFileGroup,
 	workDirPath string,
 ) (map[string][]fileGroupMount, error) {
 	fileNames := make(map[string][]fileGroupMount)

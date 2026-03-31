@@ -14,39 +14,23 @@
  * limitations under the License.
  */
 
-package repository
+package models_handler_database
 
-type Repository struct {
-	Source   string
-	Priority int
-	Channels []Channel
-}
-
-type Channel struct {
-	Name     string
-	Priority int
-}
-
-type ModuleBase struct {
-	Id      string `json:"id"`
-	Source  string `json:"source"`
-	Channel string `json:"channel"`
-}
+import (
+	"time"
+)
 
 type Module struct {
-	ModuleBase
-	Name    string `json:"name"`
-	Desc    string `json:"description"`
-	Version string `json:"version"`
+	Id      string
+	DirName string
+	Source  string
+	Channel string
+	Added   time.Time
+	Updated time.Time
 }
 
 type ModulesFilter struct {
 	Ids     []string
-	Name    string
-	Sources []SourceFilter
-}
-
-type SourceFilter struct {
-	Name     string
-	Channels []string
+	Source  string
+	Channel string
 }
