@@ -116,6 +116,25 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) err
 	})
 }
 
+func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	handlerModules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
+		Ids:          moduleIds,
+		Dependencies: true,
+	})
+	if err != nil {
+		return err
+	}
+	return s.deploymentsHandler.EnableDeployments(ctx, slices.Collect(maps.Keys(handlerModules)))
+}
+
+func (s *Service) DisableDeployments(ctx context.Context, moduleIds []string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.deploymentsHandler.DisableDeployments(ctx, moduleIds)
+}
+
 func getUserInputs(
 	userInputs []models_service.UserInput,
 	handlerModules map[string]models_handler_modules.Module,

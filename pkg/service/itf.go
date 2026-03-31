@@ -47,4 +47,6 @@ type deploymentsHandler interface {
 	) error
 	RecreateDeployments(ctx context.Context, selectedModules map[string]models_handler_modules.Module) error
 	DeleteDeployments(ctx context.Context, filter models_handler_deployments.DeploymentsFilter) error
+	EnableDeployments(ctx context.Context, moduleIds []string) error
+	DisableDeployments(ctx context.Context, moduleIds []string) error
 }
