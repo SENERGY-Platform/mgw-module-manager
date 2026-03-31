@@ -23,7 +23,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github"
-	client_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 	helper_http "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/http"
 	helper_os_signal "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/os_signal"
 	helper_sql_db "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"

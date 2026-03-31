@@ -28,7 +28,7 @@ import (
 
 func Test_readRepoFile(t *testing.T) {
 	a := repoFile{
-		GitCommit: client.GitCommit{
+		GitCommit: client_repositories_github.GitCommit{
 			Sha: "test_sha",
 		},
 		Path: "test_source",
@@ -58,7 +58,7 @@ func Test_readRepoFile(t *testing.T) {
 
 func Test_writeRepoFile(t *testing.T) {
 	a := repoFile{
-		GitCommit: client.GitCommit{
+		GitCommit: client_repositories_github.GitCommit{
 			Sha: "test_sha",
 		},
 		Path: "test_source",

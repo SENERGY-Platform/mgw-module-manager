@@ -1,4 +1,4 @@
-package client
+package client_repositories_github
 
 type ResponseError struct {
 	Code    int    `json:"code"`

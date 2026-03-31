@@ -1,4 +1,4 @@
-package client
+package client_repositories_github
 
 import "time"
 
