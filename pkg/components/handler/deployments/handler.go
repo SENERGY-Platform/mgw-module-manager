@@ -33,7 +33,7 @@ type Config struct {
 }
 
 type Handler struct {
-	databaseHandler              storageHandler
+	databaseHandler              databaseHandler
 	containerEngineWrapperClient containerEngineWrapperClient
 	hostManagerClient            hostManagerClient
 	secretManagerClient          secretManagerClient
@@ -45,7 +45,7 @@ type Handler struct {
 }
 
 func New(
-	storageHdl storageHandler,
+	databaseHandler databaseHandler,
 	containerEngineWrapperClient containerEngineWrapperClient,
 	hostManagerClient hostManagerClient,
 	secretManagerClient secretManagerClient,
@@ -53,7 +53,7 @@ func New(
 	config Config,
 ) *Handler {
 	return &Handler{
-		databaseHandler:              storageHdl,
+		databaseHandler:              databaseHandler,
 		containerEngineWrapperClient: containerEngineWrapperClient,
 		hostManagerClient:            hostManagerClient,
 		secretManagerClient:          secretManagerClient,

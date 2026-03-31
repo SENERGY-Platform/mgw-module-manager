@@ -24,20 +24,20 @@ import (
 )
 
 type Handler struct {
-	storageHdl storageHandler
-	cewClient  containerEngineWrapperClient
-	config     Config
-	cache      map[string]models_external.ModuleLibModule
-	cacheMU    sync.RWMutex
-	mu         sync.RWMutex
+	databaseHandler              databaseHandler
+	containerEngineWrapperClient containerEngineWrapperClient
+	config                       Config
+	cache                        map[string]models_external.ModuleLibModule
+	cacheMU                      sync.RWMutex
+	mu                           sync.RWMutex
 }
 
-func New(storageHdl storageHandler, cewClient containerEngineWrapperClient, config Config) *Handler {
+func New(databaseHandler databaseHandler, containerEngineWrapperClient containerEngineWrapperClient, config Config) *Handler {
 	return &Handler{
-		storageHdl: storageHdl,
-		cewClient:  cewClient,
-		cache:      make(map[string]models_external.ModuleLibModule),
-		config:     config,
+		databaseHandler:              databaseHandler,
+		containerEngineWrapperClient: containerEngineWrapperClient,
+		cache:                        make(map[string]models_external.ModuleLibModule),
+		config:                       config,
 	}
 }
 
@@ -75,7 +75,7 @@ func (h *Handler) Module(ctx context.Context, id string) (models_handler_module.
 func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.FS) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	_, err := h.storageHdl.Module(ctx, id)
+	_, err := h.databaseHandler.Module(ctx, id)
 	if err != nil {
 		if !errors.Is(err, models_error.NotFoundErr) {
 			return err
@@ -120,7 +120,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 			}
 		}
 	}()
-	if err = h.storageHdl.CreateModule(ctx, stgMod); err != nil {
+	if err = h.databaseHandler.CreateModule(ctx, stgMod); err != nil {
 		return err
 	}
 	h.cacheSet(id, mod)
@@ -130,7 +130,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys fs.FS) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	stgModOld, err := h.storageHdl.Module(ctx, id)
+	stgModOld, err := h.databaseHandler.Module(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -178,7 +178,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 			}
 		}
 	}()
-	if err = h.storageHdl.UpdateModule(ctx, stgModNew); err != nil {
+	if err = h.databaseHandler.UpdateModule(ctx, stgModNew); err != nil {
 		return err
 	}
 	h.cacheSet(id, newMod)
@@ -194,7 +194,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 func (h *Handler) Remove(ctx context.Context, id string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	stgMod, err := h.storageHdl.Module(ctx, id)
+	stgMod, err := h.databaseHandler.Module(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -213,7 +213,7 @@ func (h *Handler) Remove(ctx context.Context, id string) error {
 	if err = h.removeImages(ctx, imagesAsSet(mod.Services)); err != nil {
 		return err
 	}
-	if err = h.storageHdl.DeleteModule(ctx, id); err != nil {
+	if err = h.databaseHandler.DeleteModule(ctx, id); err != nil {
 		return err
 	}
 	h.cacheDel(id)
@@ -250,7 +250,7 @@ func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, req
 }
 
 func (h *Handler) modules(ctx context.Context, filter models_handler_module.ModuleFilter) (map[string]models_handler_module.Module, error) {
-	stgMods, err := h.storageHdl.Modules(ctx, models_handler_storage.ModulesFilter{
+	stgMods, err := h.databaseHandler.Modules(ctx, models_handler_storage.ModulesFilter{
 		Ids:     filter.Ids,
 		Source:  filter.Source,
 		Channel: filter.Channel,
@@ -314,7 +314,7 @@ func (h *Handler) cacheDel(id string) {
 func (h *Handler) pullImages(ctx context.Context, images map[string]struct{}) (map[string]struct{}, error) {
 	newImages := make(map[string]struct{})
 	for image := range images {
-		_, err := h.cewClient.GetImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
+		_, err := h.containerEngineWrapperClient.GetImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 		if err != nil {
 			var notFoundErr *models_external.CEWNotFoundErr
 			if !errors.As(err, &notFoundErr) {
@@ -323,11 +323,11 @@ func (h *Handler) pullImages(ctx context.Context, images map[string]struct{}) (m
 		} else {
 			continue
 		}
-		jobId, err := h.cewClient.AddImage(ctx, image)
+		jobId, err := h.containerEngineWrapperClient.AddImage(ctx, image)
 		if err != nil {
 			return newImages, err
 		}
-		job, err := helper_job.Await(ctx, h.cewClient, jobId, h.config.JobPollInterval)
+		job, err := helper_job.Await(ctx, h.containerEngineWrapperClient, jobId, h.config.JobPollInterval)
 		if err != nil {
 			return newImages, err
 		}
@@ -341,7 +341,7 @@ func (h *Handler) pullImages(ctx context.Context, images map[string]struct{}) (m
 
 func (h *Handler) removeImages(ctx context.Context, images map[string]struct{}) error {
 	for image := range images {
-		err := h.cewClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
+		err := h.containerEngineWrapperClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 		if err != nil {
 			var notFoundErr *models_external.CEWNotFoundErr
 			if !errors.As(err, &notFoundErr) {
@@ -355,7 +355,7 @@ func (h *Handler) removeImages(ctx context.Context, images map[string]struct{}) 
 func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages map[string]struct{}) error {
 	for image := range oldImages {
 		if _, ok := newImages[image]; !ok {
-			err := h.cewClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
+			err := h.containerEngineWrapperClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 			if err != nil {
 				var notFoundErr *models_external.CEWNotFoundErr
 				if !errors.As(err, &notFoundErr) {

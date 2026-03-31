@@ -23,7 +23,7 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-type storageHandler interface {
+type databaseHandler interface {
 	CreateDeployment(
 		ctx context.Context,
 		deployment models_handler_storage.Deployment,

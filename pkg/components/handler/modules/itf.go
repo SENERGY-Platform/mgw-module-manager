@@ -23,7 +23,7 @@ import (
 	models_handler_storage "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/storage"
 )
 
-type storageHandler interface {
+type databaseHandler interface {
 	Modules(ctx context.Context, filter models_handler_storage.ModulesFilter) (map[string]models_handler_storage.Module, error)
 	Module(ctx context.Context, id string) (models_handler_storage.Module, error)
 	CreateModule(ctx context.Context, mod models_handler_storage.Module) error
