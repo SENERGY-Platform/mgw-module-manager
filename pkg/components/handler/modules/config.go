@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package modules
+package handler_modules
 
 import "time"
 
