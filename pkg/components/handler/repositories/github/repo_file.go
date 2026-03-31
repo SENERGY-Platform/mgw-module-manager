@@ -1,4 +1,4 @@
-package github
+package handler_repositories_github
 
 import (
 	"encoding/json"

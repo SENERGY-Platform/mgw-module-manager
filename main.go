@@ -22,7 +22,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/restructure"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
-	handler_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github"
 	client_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 	helper_http "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/http"
 	helper_os_signal "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/os_signal"

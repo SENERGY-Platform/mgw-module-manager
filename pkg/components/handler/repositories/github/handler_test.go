@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package github
+package handler_repositories_github
 
 import (
 	"context"
