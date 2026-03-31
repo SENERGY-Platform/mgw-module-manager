@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package deployments
+package handler_deployments
 
 import (
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
