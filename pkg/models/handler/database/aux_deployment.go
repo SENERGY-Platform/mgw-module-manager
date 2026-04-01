@@ -35,30 +35,6 @@ type AuxiliaryDeploymentRunConfig struct {
 	PseudoTTY bool
 }
 
-type AuxiliaryDeploymentLabel struct {
-	AuxDeploymentId string
-	Name            string
-	Value           string
-}
-
-type AuxiliaryDeploymentConfig struct {
-	AuxDeploymentId string
-	Reference       string
-	Value           string
-}
-
-type AuxiliaryDeploymentContainer struct {
-	AuxDeploymentId string
-	Name            string
-	Alias           string
-}
-
-type AuxiliaryDeploymentVolume struct {
-	AuxDeploymentId string
-	Name            string
-	MountPath       string
-}
-
 type AuxiliaryDeploymentsFilter struct {
 	Ids     []string
 	Labels  map[string]string
