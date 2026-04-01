@@ -29,3 +29,10 @@ const (
 	LabelHttpEndpointServiceReference = "srv_ref"
 	LabelHttpEndpointModuleId         = "mod_id"
 )
+
+const (
+	HeaderRequestId = "X-Request-Id"
+	HeaderApiVer    = "X-Api-Version"
+	HeaderSrvName   = "X-Service-Name"
+	HeaderAuth      = "Authorization"
+)

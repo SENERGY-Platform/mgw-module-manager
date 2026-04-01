@@ -20,7 +20,7 @@ import (
 	"log/slog"
 
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
-	models_api "github.com/SENERGY-Platform/mgw-module-manager/lib/models/api"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
@@ -53,10 +53,10 @@ func New(service serviceItf, infoHdl infoHandler, logger *slog.Logger, accessLog
 	}
 	middleware = append(middleware,
 		gin_mw.StaticHeaderHandler(map[string]string{
-			models_api.HeaderApiVer:  infoHdl.Version(),
-			models_api.HeaderSrvName: infoHdl.Name(),
+			models_constants.HeaderApiVer:  infoHdl.Version(),
+			models_constants.HeaderSrvName: infoHdl.Name(),
 		}),
-		requestid.New(requestid.WithCustomHeaderStrKey(models_api.HeaderRequestId)),
+		requestid.New(requestid.WithCustomHeaderStrKey(models_constants.HeaderRequestId)),
 		gin_mw.ErrorHandler(getStatusCode, ", "),
 		gin_mw.StructRecoveryHandler(logger, gin_mw.DefaultRecoveryFunc),
 	)
