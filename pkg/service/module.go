@@ -85,7 +85,10 @@ func (s *Service) ModulesChangeRequest(_ context.Context) (models_service.Module
 	return transformModulesChangeRequest(*s.changeRequest), nil
 }
 
-func (s *Service) NewModulesChangeRequest(ctx context.Context, reqItems []models_service.ChangeRequestItem) (models_service.ModulesChangeRequest, error) {
+func (s *Service) NewModulesChangeRequest(
+	ctx context.Context,
+	reqItems []models_service.ChangeRequestItem,
+) (models_service.ModulesChangeRequest, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	reqItems, err := validateReqItems(reqItems)
@@ -260,7 +263,11 @@ func validateReqItems(reqItems []models_service.ChangeRequestItem) ([]models_ser
 	return validatedItems, nil
 }
 
-func newModulesChangeRequest(selectedRepoMods map[string]modWrapper, installedModsMap map[string]models_handler_modules.Module, toRemoveMods []string) modulesChangeRequest {
+func newModulesChangeRequest(
+	selectedRepoMods map[string]modWrapper,
+	installedModsMap map[string]models_handler_modules.Module,
+	toRemoveMods []string,
+) modulesChangeRequest {
 	var install []modWrapper
 	var change []changeItem
 	var remove []string
