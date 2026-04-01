@@ -22,6 +22,7 @@ import (
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"
 )
@@ -58,6 +59,7 @@ type Config struct {
 	ServerPort               uint                           `json:"server_port" env_var:"SERVER_PORT"`
 	MGW                      MGWConfig                      `json:"mgw"`
 	ModulesHandler           handler_modules.Config         `json:"modules_handler"`
+	DeploymentsHandler       handler_deployments.Config     `json:"deployments_handler"`
 	Logger                   struct_logger.Config           `json:"logger"`
 	GitHubModulesRepoHandler GitHubModulesRepoHandlerConfig `json:"github_modules_repo_handler"`
 	Jobs                     JobsConfig                     `json:"jobs"`
@@ -81,6 +83,12 @@ func New(path string) (*Config, error) {
 		ModulesHandler: handler_modules.Config{
 			WorkDirPath:     "/opt/module-manager/modules",
 			JobPollInterval: time.Millisecond * 500,
+		},
+		DeploymentsHandler: handler_deployments.Config{
+			WorkDirPath:               "/opt/module-manager/deployments",
+			JobPollInterval:           time.Millisecond * 500,
+			HealthMonitorStartupDelay: time.Second * 30,
+			HealthMonitorLoopDelay:    time.Second * 5,
 		},
 		Logger: struct_logger.Config{
 			Handler:    struct_logger.TextHandlerSelector,
