@@ -16,10 +16,13 @@ import (
 	"github.com/SENERGY-Platform/go-service-base/srv-info-hdl"
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
 	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
+	cm_client "github.com/SENERGY-Platform/mgw-core-manager/client"
+	hm_client "github.com/SENERGY-Platform/mgw-host-manager/client"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/api"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/db_init"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/restructure"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github"
@@ -31,6 +34,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/configuration"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
+	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
 )
 
 var version string
@@ -41,7 +45,7 @@ func main() {
 		os.Exit(ec)
 	}()
 
-	srvInfoHdl := srv_info_hdl.New("module-manager", version)
+	serviceInfoHandler := srv_info_hdl.New("module-manager", version)
 
 	configuration.ParseFlags()
 
@@ -54,9 +58,15 @@ func main() {
 
 	helper_time.UTC = config.UseUTC
 
-	logger := struct_logger.New(config.Logger, os.Stderr, "", srvInfoHdl.Name())
+	logger := struct_logger.New(config.Logger, os.Stderr, "", serviceInfoHandler.Name())
 
-	logger.Info("starting service", slog_attr.VersionKey, srvInfoHdl.Version(), slog_attr.ConfigValuesKey, sb_config_hdl.StructToMap(config, true))
+	logger.Info(
+		"starting service",
+		slog_attr.VersionKey,
+		serviceInfoHandler.Version(),
+		slog_attr.ConfigValuesKey,
+		sb_config_hdl.StructToMap(config, true),
+	)
 
 	ctx, cf := context.WithCancel(context.Background())
 
@@ -69,48 +79,75 @@ func main() {
 	sqlDB := helper_sql_db.NewSQLDatabase(mySQLConnector, config.Database.SQL)
 	defer sqlDB.Close()
 
-	databaseHdl := handler_database.New(sqlDB)
+	databaseHandler := handler_database.New(sqlDB)
 	migration_db_restructure.InitLogger(logger)
-	err = databaseHdl.Migrate(ctx, migration_db_restructure.Migration, migration_db_init.Migration)
+	err = databaseHandler.Migrate(ctx, migration_db_init.Migration, migration_db_restructure.Migration)
 	if err != nil {
 		logger.Error("database migration failed", slog_attr.ErrorKey, err)
 		ec = 1
 		return
 	}
 
-	gitHubClt := client_repositories_github.New(helper_http.NewClient(config.GitHubModulesRepoHandler.Timeout), config.GitHubModulesRepoHandler.BaseUrl)
+	gitHubClient := client_repositories_github.New(
+		helper_http.NewClient(config.GitHubModulesRepoHandler.Timeout),
+		config.GitHubModulesRepoHandler.BaseUrl,
+	)
 
-	repositoriesHdl := handler_repositories.New([]handler_repositories.Repository{
-		{
-			Handler: handler_repositories_github.New(gitHubClt, config.GitHubModulesRepoHandler.WorkDirPath, "SENERGY-Platform", "mgw-module-repository", "main-validated", []handler_repositories_github.Channel{
-				{
-					Name:     "main",
-					Priority: 2,
-				},
-				{
-					Name:     "testing",
-					Priority: 1,
-				},
-				{
-					Name:     "legacy",
-					Priority: 0,
-				},
-			}),
-			Priority: 1,
+	repositoriesHandler := handler_repositories.New(
+		[]handler_repositories.Repository{
+			{
+				Handler: handler_repositories_github.New(
+					gitHubClient,
+					config.GitHubModulesRepoHandler.WorkDirPath,
+					"SENERGY-Platform",
+					"mgw-module-repository",
+					"main-validated",
+					[]handler_repositories_github.Channel{
+						{
+							Name:     "main",
+							Priority: 2,
+						},
+						{
+							Name:     "testing",
+							Priority: 1,
+						},
+						{
+							Name:     "legacy",
+							Priority: 0,
+						},
+					}),
+				Priority: 1,
+			},
 		},
-	})
+	)
 
-	cewClient := cew_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CewBaseUrl)
+	containerEngineWrapperClient := cew_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CewBaseUrl)
 
 	handler_modules.InitLogger(logger)
-	modulesHdl := handler_modules.New(databaseHdl, cewClient, config.ModulesHandler)
+	modulesHdl := handler_modules.New(databaseHandler, containerEngineWrapperClient, config.ModulesHandler)
+
+	hostManagerClient := hm_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.HmBaseUrl)
+
+	secretManagerClient := sm_client.NewClient(config.MGW.SmBaseUrl, helper_http.NewClient(config.MGW.Timeout))
+
+	coreManagerClient := cm_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CmBaseUrl)
+
+	handler_deployments.InitLogger(logger)
+	deploymentsHandler := handler_deployments.New(
+		databaseHandler,
+		containerEngineWrapperClient,
+		hostManagerClient,
+		secretManagerClient,
+		coreManagerClient,
+		config.DeploymentsHandler,
+	)
 
 	service.InitLogger(logger)
-	srv := service.New(repositoriesHdl, modulesHdl)
+	srv := service.New(repositoriesHandler, modulesHdl, deploymentsHandler)
 
 	httpApi, err := api.New(
 		srv,
-		srvInfoHdl,
+		serviceInfoHandler,
 		logger,
 		config.HttpAccessLog,
 	)
@@ -128,7 +165,7 @@ func main() {
 		return
 	}
 
-	err = repositoriesHdl.InitRepositories(ctx)
+	err = repositoriesHandler.InitRepositories(ctx)
 	if err != nil {
 		logger.Error("initializing module repositories failed", slog_attr.ErrorKey, err)
 		ec = 1
@@ -142,12 +179,26 @@ func main() {
 		return
 	}
 
+	err = deploymentsHandler.Init()
+	if err != nil {
+		logger.Error("initializing deployments handler failed", slog_attr.ErrorKey, err)
+		ec = 1
+		return
+	}
+
 	go func() {
 		helper_os_signal.Wait(ctx, logger, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 		cf()
 	}()
 
 	wg := &sync.WaitGroup{}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		deploymentsHandler.DeploymentHealthMonitor(ctx)
+		cf()
+	}()
 
 	go func() {
 		logger.Info("starting http server")
