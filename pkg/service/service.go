@@ -23,7 +23,3 @@ func New(
 		deploymentsHandler:  deploymentsHandler,
 	}
 }
-
-func equalMods(idA, sourceA, channelA, versionA, idB, sourceB, channelB, versionB string) bool {
-	return idA == idB && sourceA == sourceB && channelA == channelB && versionA == versionB
-}

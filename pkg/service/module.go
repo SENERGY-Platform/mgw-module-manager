@@ -267,7 +267,7 @@ func newModulesChangeRequest(selectedRepoMods map[string]modWrapper, installedMo
 	for id, repoMod := range selectedRepoMods {
 		installedMod, ok := installedModsMap[id]
 		if ok {
-			if equalMods(repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.Mod.Version, installedMod.ID, installedMod.Source, installedMod.Channel, installedMod.Version) {
+			if equalMods(repoMod, installedMod) {
 				continue
 			}
 			change = append(change, changeItem{
@@ -302,6 +302,13 @@ func newModulesChangeRequest(selectedRepoMods map[string]modWrapper, installedMo
 		Remove:  remove,
 		Created: helper_time.Now(),
 	}
+}
+
+func equalMods(repoMod modWrapper, installedMod models_handler_modules.Module) bool {
+	return repoMod.Mod.ID == installedMod.ID &&
+		repoMod.Source == installedMod.Source &&
+		repoMod.Channel == installedMod.Channel &&
+		repoMod.Mod.Version == installedMod.Version
 }
 
 func transformModulesChangeRequest(req modulesChangeRequest) models_service.ModulesChangeRequest {
