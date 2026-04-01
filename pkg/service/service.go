@@ -8,7 +8,7 @@ type Service struct {
 	repositoriesHandler repositoriesHandler
 	modulesHandler      modulesHandler
 	deploymentsHandler  deploymentsHandler
-	changeReq           *modulesChangeRequest
+	changeRequest       *modulesChangeRequest
 	mu                  sync.RWMutex
 }
 

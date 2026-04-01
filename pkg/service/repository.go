@@ -19,7 +19,7 @@ import (
 func (s *Service) RefreshRepositories(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.changeReq = nil
+	s.changeRequest = nil
 	return s.repositoriesHandler.RefreshRepositories(ctx)
 }
 

@@ -79,10 +79,10 @@ func (s *Service) Module(ctx context.Context, id string) (models_service.Module,
 func (s *Service) ModulesChangeRequest(_ context.Context) (models_service.ModulesChangeRequest, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	if s.changeReq == nil {
+	if s.changeRequest == nil {
 		return models_service.ModulesChangeRequest{}, models_error.NotFoundErr
 	}
-	return transformModulesChangeRequest(*s.changeReq), nil
+	return transformModulesChangeRequest(*s.changeRequest), nil
 }
 
 func (s *Service) NewModulesChangeRequest(ctx context.Context, reqItems []models_service.ChangeRequestItem) (models_service.ModulesChangeRequest, error) {
@@ -107,22 +107,22 @@ func (s *Service) NewModulesChangeRequest(ctx context.Context, reqItems []models
 		}
 	}
 	changeRequest := newModulesChangeRequest(selectedRepoMods, installedMods, toRemoveMods)
-	s.changeReq = &changeRequest
+	s.changeRequest = &changeRequest
 	return transformModulesChangeRequest(changeRequest), nil
 }
 
 func (s *Service) ExecModulesChangeRequest(ctx context.Context) (models_service.ModulesChangeReport, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.changeReq == nil {
+	if s.changeRequest == nil {
 		return models_service.ModulesChangeReport{}, models_error.NotFoundErr
 	}
 	defer func() {
-		s.changeReq = nil
+		s.changeRequest = nil
 	}()
 	var success []models_service.ChangeReportItem
 	var failed []models_service.ChangeReportErrItem
-	for _, id := range s.changeReq.Remove {
+	for _, id := range s.changeRequest.Remove {
 		cri := models_service.ChangeReportItem{
 			Id:     id,
 			Action: models_service.ChangeActionRemove,
@@ -137,7 +137,7 @@ func (s *Service) ExecModulesChangeRequest(ctx context.Context) (models_service.
 		}
 		success = append(success, cri)
 	}
-	for _, repoMod := range s.changeReq.Install {
+	for _, repoMod := range s.changeRequest.Install {
 		cri := models_service.ChangeReportItem{
 			Id:     repoMod.Mod.ID,
 			Action: models_service.ChangeActionInstall,
@@ -152,7 +152,7 @@ func (s *Service) ExecModulesChangeRequest(ctx context.Context) (models_service.
 		}
 		success = append(success, cri)
 	}
-	for _, item := range s.changeReq.Change {
+	for _, item := range s.changeRequest.Change {
 		cri := models_service.ChangeReportItem{
 			Id:     item.Next.Mod.ID,
 			Action: models_service.ChangeActionChange,
@@ -177,10 +177,10 @@ func (s *Service) ExecModulesChangeRequest(ctx context.Context) (models_service.
 func (s *Service) CancelModulesChangeRequest(_ context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.changeReq == nil {
+	if s.changeRequest == nil {
 		return models_error.NotFoundErr
 	}
-	s.changeReq = nil
+	s.changeRequest = nil
 	return nil
 }
 
@@ -201,7 +201,7 @@ func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (models_
 	if err != nil {
 		return models_service.ModulesChangeRequest{}, err
 	}
-	s.changeReq = &changeRequest
+	s.changeRequest = &changeRequest
 	return transformModulesChangeRequest(changeRequest), nil
 }
 
