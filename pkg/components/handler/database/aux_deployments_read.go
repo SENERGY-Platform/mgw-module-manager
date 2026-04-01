@@ -79,6 +79,144 @@ func (h *Handler) ReadAuxiliaryDeployments(
 	return auxDeps, nil
 }
 
+func (h *Handler) ReadAuxiliaryDeploymentsLabels(
+	ctx context.Context,
+	auxiliaryDeploymentsIds []string,
+) (map[string]map[string]string, error) {
+	fc, val := genAuxiliaryDeploymentsIdsFilter(auxiliaryDeploymentsIds)
+	rows, err := h.sqlDB.QueryContext(
+		ctx,
+		"SELECT aux_dep_id, name, value FROM aux_dep_labels"+fc+";",
+		val...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	auxDepsLabels := make(map[string]map[string]string)
+	for rows.Next() {
+		var id, name string
+		var value sql.NullString
+		err = rows.Scan(&id, &name, &value)
+		if err != nil {
+			return nil, err
+		}
+		labels, ok := auxDepsLabels[id]
+		if !ok {
+			labels = make(map[string]string)
+			auxDepsLabels[id] = labels
+		}
+		labels[name] = value.String
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return auxDepsLabels, nil
+}
+
+func (h *Handler) ReadAuxiliaryDeploymentsConfigs(
+	ctx context.Context,
+	auxiliaryDeploymentsIds []string,
+) (map[string]map[string]string, error) {
+	fc, val := genAuxiliaryDeploymentsIdsFilter(auxiliaryDeploymentsIds)
+	rows, err := h.sqlDB.QueryContext(
+		ctx,
+		"SELECT aux_dep_id, ref, value FROM aux_dep_configs"+fc+";",
+		val...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	auxDepsConfigs := make(map[string]map[string]string)
+	for rows.Next() {
+		var id, reference string
+		var value sql.NullString
+		err = rows.Scan(&id, &reference, &value)
+		if err != nil {
+			return nil, err
+		}
+		configs, ok := auxDepsConfigs[id]
+		if !ok {
+			configs = make(map[string]string)
+			auxDepsConfigs[id] = configs
+		}
+		configs[reference] = value.String
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return auxDepsConfigs, nil
+}
+
+func (h *Handler) ReadAuxiliaryDeploymentsContainers(
+	ctx context.Context,
+	auxiliaryDeploymentsIds []string,
+) (map[string]map[string]string, error) {
+	fc, val := genAuxiliaryDeploymentsIdsFilter(auxiliaryDeploymentsIds)
+	rows, err := h.sqlDB.QueryContext(
+		ctx,
+		"SELECT aux_dep_id, name, alias FROM aux_dep_containers"+fc+";",
+		val...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	auxDepsContainers := make(map[string]map[string]string)
+	for rows.Next() {
+		var id, name, alias string
+		err = rows.Scan(&id, &name, &alias)
+		if err != nil {
+			return nil, err
+		}
+		containers, ok := auxDepsContainers[id]
+		if !ok {
+			containers = make(map[string]string)
+			auxDepsContainers[id] = containers
+		}
+		containers[name] = alias
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return auxDepsContainers, nil
+}
+
+func (h *Handler) ReadAuxiliaryDeploymentsVolumes(
+	ctx context.Context,
+	auxiliaryDeploymentsIds []string,
+) (map[string]map[string]string, error) {
+	fc, val := genAuxiliaryDeploymentsIdsFilter(auxiliaryDeploymentsIds)
+	rows, err := h.sqlDB.QueryContext(
+		ctx,
+		"SELECT aux_dep_id, name, mnt_point FROM aux_dep_volumes"+fc+";",
+		val...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	auxDepsVolumes := make(map[string]map[string]string)
+	for rows.Next() {
+		var id, name, mountPath string
+		err = rows.Scan(&id, &name, &mountPath)
+		if err != nil {
+			return nil, err
+		}
+		volumes, ok := auxDepsVolumes[id]
+		if !ok {
+			volumes = make(map[string]string)
+			auxDepsVolumes[id] = volumes
+		}
+		volumes[name] = mountPath
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return auxDepsVolumes, nil
+}
+
 func genAuxiliaryDeploymentsFilter(deploymentId string, filter models_handler_database.AuxiliaryDeploymentsFilter) (string, []any) {
 	fc := []string{"dep_id = ?"}
 	val := []any{deploymentId}
@@ -117,6 +255,14 @@ func genAuxiliaryDeploymentsFilter(deploymentId string, filter models_handler_da
 	}
 	if len(fc) > 0 {
 		return " WHERE " + strings.Join(fc, " AND "), val
+	}
+	return "", nil
+}
+
+func genAuxiliaryDeploymentsIdsFilter(ids []string) (string, []any) {
+	ids = helper_slices.RemoveDuplicates(ids)
+	if len(ids) > 0 {
+		return " WHERE aux_dep_id IN (" + genQuestionMarks(len(ids)) + ")", helper_slices.ToAny(ids)
 	}
 	return "", nil
 }
