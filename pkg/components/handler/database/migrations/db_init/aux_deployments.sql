@@ -36,9 +36,9 @@ CREATE TABLE IF NOT EXISTS aux_dep_configs
 CREATE TABLE IF NOT EXISTS aux_dep_containers
 (
     aux_dep_id CHAR(36)     NOT NULL,
-    ctr_id     VARCHAR(256) NOT NULL,
+    name       VARCHAR(256) NOT NULL,
     alias      VARCHAR(256) NOT NULL,
-    UNIQUE KEY uk_aux_dep_id_ctr_id (aux_dep_id, ctr_id),
+    UNIQUE KEY uk_aux_dep_id_name (aux_dep_id, name),
     INDEX i_aux_dep_id (aux_dep_id),
     FOREIGN KEY (aux_dep_id) REFERENCES aux_deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );

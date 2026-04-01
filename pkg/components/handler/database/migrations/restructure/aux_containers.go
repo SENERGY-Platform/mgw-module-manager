@@ -53,13 +53,24 @@ func migrateAuxContainersTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
-	ok, err = indexExists(ctx, db, tableName, "uk_aux_dep_id_ctr_id")
+	ok, err = columnExists(ctx, db, tableName, "ctr_id")
+	if err != nil {
+		return err
+	}
+	if ok {
+		logger.Info("renaming column", attrColumn, "ctr_id", attrNewName, "name", attrTable, tableName)
+		err = changeColumn(ctx, db, tableName, "ctr_id", "name", "VARCHAR(256)", "NOT NULL", "AFTER aux_dep_id")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = indexExists(ctx, db, tableName, "uk_aux_dep_id_name")
 	if err != nil {
 		return err
 	}
 	if !ok {
-		logger.Info("adding unique index", attrIndex, "uk_aux_dep_id_ctr_id", attrTable, tableName)
-		err = addUniqueIndex(ctx, db, tableName, "uk_aux_dep_id_ctr_id", "aux_dep_id", "ctr_id")
+		logger.Info("adding unique index", attrIndex, "uk_aux_dep_id_name", attrTable, tableName)
+		err = addUniqueIndex(ctx, db, tableName, "uk_aux_dep_id_name", "aux_dep_id", "name")
 		if err != nil {
 			return err
 		}
@@ -79,7 +90,7 @@ func migrateAuxContainersTab(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	newIndexKeys := []string{"uk_aux_dep_id_ctr_id", "i_aux_dep_id"}
+	newIndexKeys := []string{"uk_aux_dep_id_name", "i_aux_dep_id"}
 	for _, key := range currentIndexKeys {
 		if key == "PRIMARY" {
 			continue
