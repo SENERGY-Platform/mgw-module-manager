@@ -129,6 +129,10 @@ func (h *Handler) recreateDeployment(
 	if err != nil {
 		return err
 	}
+	err = h.stopContainers(ctx, currentContainers)
+	if err != nil {
+		return err
+	}
 	err = h.removeDeploymentEnvironment(
 		ctx,
 		deploymentId,

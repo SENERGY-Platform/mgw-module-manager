@@ -145,6 +145,10 @@ func (h *Handler) updateDeployment(
 	if err != nil {
 		return err
 	}
+	err = h.stopContainers(ctx, currentContainers)
+	if err != nil {
+		return err
+	}
 	updatedVolumes := updateVolumes(module.Volumes, currentVolumes, deploymentId)
 	err = h.removeDeploymentEnvironment(
 		ctx,
