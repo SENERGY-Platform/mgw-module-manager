@@ -23,6 +23,15 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
+type Job struct {
+	Id           string    `json:"id"`
+	Description  string    `json:"description"`
+	HasError     bool      `json:"has_error"`
+	ErrorMessage string    `json:"error"`
+	Start        time.Time `json:"start"`
+	End          time.Time `json:"end"`
+}
+
 type UserInput struct {
 	ModuleId      string
 	HostResources map[string]string                        // {ref:resourceID}
