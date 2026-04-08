@@ -8,6 +8,12 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
+const (
+	repositoryJobSlotNum = iota
+	deploymentJobSlotNum
+	moduleJobSlotNum
+)
+
 type modWrapper struct {
 	Mod     module_lib.Module
 	FS      fs.FS

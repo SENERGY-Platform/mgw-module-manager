@@ -16,16 +16,44 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 )
 
-func (s *Service) RefreshRepositories(ctx context.Context) error {
+func (s *Service) RefreshRepositories(_ context.Context) (models_service.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	_, ok := s.jobsHandler.CurrentJob(repositoryJobSlotNum)
+	if ok {
+		return models_service.Job{}, errors.New("active job") // TODO
+	}
 	s.changeRequest = nil
-	return s.repositoriesHandler.RefreshRepositories(ctx)
+	job, err := s.jobsHandler.Create(repositoryJobSlotNum, "refresh repositories")
+	if err != nil {
+		return models_service.Job{}, err
+	}
+	go func() {
+		defer job.Done()
+		defer func() {
+			if err := recover(); err != nil {
+				job.SetError(errors.New(fmt.Sprintf("panic: %v", err))) // TODO
+			}
+		}()
+		err := s.repositoriesHandler.RefreshRepositories(job.Context())
+		if err != nil {
+			job.SetError(err)
+		}
+	}()
+	return models_service.Job{
+		Id:          job.Id,
+		Description: job.Description,
+		Start:       job.Start,
+	}, nil
 }
 
 func (s *Service) RepoModules(ctx context.Context, filter models_service.RepoModulesFilter) ([]models_service.RepoModule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	_, ok := s.jobsHandler.CurrentJob(repositoryJobSlotNum)
+	if ok {
+		return nil, errors.New("active job") // TODO
+	}
 	repos, err := s.repositoriesHandler.Repositories(ctx)
 	if err != nil {
 		return nil, err

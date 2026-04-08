@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"maps"
 	"slices"
 
@@ -35,6 +36,10 @@ import (
 func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]models_service.Module, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	_, ok := s.jobsHandler.CurrentJob(moduleJobSlotNum)
+	if ok {
+		return nil, errors.New("active job") // TODO
+	}
 	handlerModules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
 		Ids:          moduleIds,
 		Dependencies: true,
@@ -57,9 +62,13 @@ func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]
 	return modules, nil
 }
 
-func (s *Service) CreateDeployments(ctx context.Context, userInputs []models_service.UserInput) error {
+func (s *Service) CreateDeployments(ctx context.Context, userInputs []models_service.UserInput) (models_service.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	currentJobs := s.jobsHandler.CurrentJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
+	if len(currentJobs) > 0 {
+		return models_service.Job{}, errors.New("active jobs") // TODO
+	}
 	handlerModules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
 		Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item models_service.UserInput) string {
 			return item.ModuleId
@@ -67,48 +76,120 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []models_ser
 		Dependencies: true,
 	})
 	if err != nil {
-		return err
+		return models_service.Job{}, err
 	}
 	userInputMap, err := getUserInputs(userInputs, handlerModules)
 	if err != nil {
-		return err
+		return models_service.Job{}, err
 	}
-	return s.deploymentsHandler.CreateDeployments(ctx, handlerModules, userInputMap)
+	job, err := s.jobsHandler.Create(deploymentJobSlotNum, "create deployments")
+	if err != nil {
+		return models_service.Job{}, err
+	}
+	go func() {
+		defer job.Done()
+		defer func() {
+			if err := recover(); err != nil {
+				job.SetError(errors.New(fmt.Sprintf("panic: %v", err))) // TODO
+			}
+		}()
+		err := s.deploymentsHandler.CreateDeployments(job.Context(), handlerModules, userInputMap)
+		if err != nil {
+			job.SetError(err)
+		}
+	}()
+	return models_service.Job{
+		Id:          job.Id,
+		Description: job.Description,
+		Start:       job.Start,
+	}, nil
 }
 
-func (s *Service) UpdateDeployments(ctx context.Context, userInputs []models_service.UserInput) error {
+func (s *Service) UpdateDeployments(ctx context.Context, userInputs []models_service.UserInput) (models_service.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	currentJobs := s.jobsHandler.CurrentJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
+	if len(currentJobs) > 0 {
+		return models_service.Job{}, errors.New("active jobs") // TODO
+	}
 	handlerModules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
 		Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item models_service.UserInput) string {
 			return item.ModuleId
 		}),
 	})
 	if err != nil {
-		return err
+		return models_service.Job{}, err
 	}
 	userInputMap, err := getUserInputs(userInputs, handlerModules)
 	if err != nil {
-		return err
+		return models_service.Job{}, err
 	}
-	return s.deploymentsHandler.UpdateDeployments(ctx, handlerModules, userInputMap)
+	job, err := s.jobsHandler.Create(deploymentJobSlotNum, "update deployments")
+	if err != nil {
+		return models_service.Job{}, err
+	}
+	go func() {
+		defer job.Done()
+		defer func() {
+			if err := recover(); err != nil {
+				job.SetError(errors.New(fmt.Sprintf("panic: %v", err))) // TODO
+			}
+		}()
+		err := s.deploymentsHandler.UpdateDeployments(job.Context(), handlerModules, userInputMap)
+		if err != nil {
+			job.SetError(err)
+		}
+	}()
+	return models_service.Job{
+		Id:          job.Id,
+		Description: job.Description,
+		Start:       job.Start,
+	}, nil
 }
 
-func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) error {
+func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (models_service.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	currentJobs := s.jobsHandler.CurrentJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
+	if len(currentJobs) > 0 {
+		return models_service.Job{}, errors.New("active jobs") // TODO
+	}
 	handlerModules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
 		Ids: moduleIds,
 	})
 	if err != nil {
-		return err
+		return models_service.Job{}, err
 	}
-	return s.deploymentsHandler.RecreateDeployments(ctx, handlerModules)
+	job, err := s.jobsHandler.Create(deploymentJobSlotNum, "recreate deployments")
+	if err != nil {
+		return models_service.Job{}, err
+	}
+	go func() {
+		defer job.Done()
+		defer func() {
+			if err := recover(); err != nil {
+				job.SetError(errors.New(fmt.Sprintf("panic: %v", err))) // TODO
+			}
+		}()
+		err := s.deploymentsHandler.RecreateDeployments(job.Context(), handlerModules)
+		if err != nil {
+			job.SetError(err)
+		}
+	}()
+	return models_service.Job{
+		Id:          job.Id,
+		Description: job.Description,
+		Start:       job.Start,
+	}, nil
 }
 
 func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	_, ok := s.jobsHandler.CurrentJob(deploymentJobSlotNum)
+	if ok {
+		return errors.New("active job") // TODO
+	}
 	return s.deploymentsHandler.DeleteDeployments(ctx, models_handler_deployments.DeploymentsFilter{
 		DeploymentsFilter: models_handler_database.DeploymentsFilter{
 			ModuleIds: moduleIds,
@@ -119,6 +200,10 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) err
 func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	_, ok := s.jobsHandler.CurrentJob(deploymentJobSlotNum)
+	if ok {
+		return errors.New("active job") // TODO
+	}
 	handlerModules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
 		Ids:          moduleIds,
 		Dependencies: true,
@@ -132,6 +217,10 @@ func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) err
 func (s *Service) DisableDeployments(ctx context.Context, moduleIds []string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	_, ok := s.jobsHandler.CurrentJob(deploymentJobSlotNum)
+	if ok {
+		return errors.New("active job") // TODO
+	}
 	return s.deploymentsHandler.DisableDeployments(ctx, moduleIds)
 }
 

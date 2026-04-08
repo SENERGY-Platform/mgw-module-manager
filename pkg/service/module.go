@@ -38,6 +38,10 @@ import (
 func (s *Service) Modules(ctx context.Context, filter models_service.ModulesFilter) ([]models_service.ModuleReduced, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	_, ok := s.jobsHandler.CurrentJob(moduleJobSlotNum)
+	if ok {
+		return nil, errors.New("active job") // TODO
+	}
 	modules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
 		Ids:  filter.Ids,
 		Name: filter.Name,
@@ -59,11 +63,15 @@ func (s *Service) Modules(ctx context.Context, filter models_service.ModulesFilt
 func (s *Service) Module(ctx context.Context, id string) (models_service.Module, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	_, ok := s.jobsHandler.CurrentJob(moduleJobSlotNum)
+	if ok {
+		return models_service.Module{}, errors.New("active job") // TODO
+	}
 	handlerModule, err := s.modulesHandler.Module(ctx, id)
 	if err != nil {
 		return models_service.Module{}, err
 	}
-	ok := true
+	ok = true
 	handlerDeployment, err := s.deploymentsHandler.GetDeploymentByModuleId(ctx, id)
 	if err != nil {
 		if !errors.Is(err, models_error.NotFoundErr) {
@@ -91,6 +99,10 @@ func (s *Service) NewModulesChangeRequest(
 ) (models_service.ModulesChangeRequest, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	currentJobs := s.jobsHandler.CurrentJobs([]int{moduleJobSlotNum, repositoryJobSlotNum})
+	if len(currentJobs) > 0 {
+		return models_service.ModulesChangeRequest{}, errors.New("active jobs") // TODO
+	}
 	reqItems, err := validateReqItems(reqItems)
 	if err != nil {
 		return models_service.ModulesChangeRequest{}, err
@@ -114,12 +126,117 @@ func (s *Service) NewModulesChangeRequest(
 	return transformModulesChangeRequest(changeRequest), nil
 }
 
-func (s *Service) ExecModulesChangeRequest(ctx context.Context) (models_service.ModulesChangeReport, error) {
+func (s *Service) ExecModulesChangeRequest(_ context.Context) (models_service.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.changeRequest == nil {
+		return models_service.Job{}, models_error.NotFoundErr
+	}
+	currentJobs := s.jobsHandler.CurrentJobs([]int{moduleJobSlotNum, repositoryJobSlotNum, deploymentJobSlotNum})
+	if len(currentJobs) > 0 {
+		return models_service.Job{}, errors.New("active jobs") // TODO
+	}
+	s.changeReport = nil
+	job, err := s.jobsHandler.Create(moduleJobSlotNum, "execute modules change")
+	if err != nil {
+		return models_service.Job{}, err
+	}
+	go func() {
+		defer job.Done()
+		defer func() {
+			if err := recover(); err != nil {
+				job.SetError(errors.New(fmt.Sprintf("panic: %v", err))) // TODO
+			}
+		}()
+		report := s.execModulesChangeRequest(job.Context())
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		s.changeReport = &report
+	}()
+	return models_service.Job{
+		Id:          job.Id,
+		Description: job.Description,
+		Start:       job.Start,
+	}, nil
+}
+
+func (s *Service) CancelModulesChangeRequest(_ context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.changeRequest == nil {
+		return models_error.NotFoundErr
+	}
+	s.changeRequest = nil
+	return nil
+}
+
+func (s *Service) ModulesAvailableUpdates(ctx context.Context) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	changeRequest, err := s.newModulesUpdateAllChangeRequest(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return len(changeRequest.Change), nil
+}
+
+func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (models_service.ModulesChangeRequest, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	changeRequest, err := s.newModulesUpdateAllChangeRequest(ctx)
+	if err != nil {
+		return models_service.ModulesChangeRequest{}, err
+	}
+	s.changeRequest = &changeRequest
+	return transformModulesChangeRequest(changeRequest), nil
+}
+
+func (s *Service) ModulesChangeReport(_ context.Context) (models_service.ModulesChangeReport, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.changeReport == nil {
 		return models_service.ModulesChangeReport{}, models_error.NotFoundErr
 	}
+	return *s.changeReport, nil
+}
+
+func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modulesChangeRequest, error) {
+	installedMods, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{})
+	if err != nil {
+		return modulesChangeRequest{}, err
+	}
+	if len(installedMods) == 0 {
+		return modulesChangeRequest{}, nil
+	}
+	repoMods, err := s.repositoriesHandler.Modules(ctx, models_handler_repositories.ModulesFilter{Ids: slices.Collect(maps.Keys(installedMods))})
+	if err != nil {
+		return modulesChangeRequest{}, err
+	}
+	if len(repoMods) == 0 {
+		return modulesChangeRequest{}, nil
+	}
+	var reqItems []models_service.ChangeRequestItem
+	for _, repoMod := range repoMods {
+		installedMod, ok := installedMods[repoMod.Id]
+		if !ok {
+			continue
+		}
+		if installedMod.Source == repoMod.Source && installedMod.Channel == repoMod.Channel && installedMod.Version != repoMod.Version {
+			reqItems = append(reqItems, models_service.ChangeRequestItem{
+				Id:      installedMod.ID,
+				Source:  installedMod.Source,
+				Channel: installedMod.Channel,
+			})
+		}
+	}
+	selectedRepoMods, err := s.selectRepoModules(ctx, reqItems, installedMods)
+	if err != nil {
+		return modulesChangeRequest{}, err
+	}
+	return newModulesChangeRequest(selectedRepoMods, installedMods, nil), nil
+}
+
+func (s *Service) execModulesChangeRequest(ctx context.Context) models_service.ModulesChangeReport {
 	defer func() {
 		s.changeRequest = nil
 	}()
@@ -174,74 +291,7 @@ func (s *Service) ExecModulesChangeRequest(ctx context.Context) (models_service.
 		Success: success,
 		Failed:  failed,
 		Created: helper_time.Now(),
-	}, nil
-}
-
-func (s *Service) CancelModulesChangeRequest(_ context.Context) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if s.changeRequest == nil {
-		return models_error.NotFoundErr
 	}
-	s.changeRequest = nil
-	return nil
-}
-
-func (s *Service) ModulesAvailableUpdates(ctx context.Context) (int, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	changeRequest, err := s.newModulesUpdateAllChangeRequest(ctx)
-	if err != nil {
-		return 0, err
-	}
-	return len(changeRequest.Change), nil
-}
-
-func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (models_service.ModulesChangeRequest, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	changeRequest, err := s.newModulesUpdateAllChangeRequest(ctx)
-	if err != nil {
-		return models_service.ModulesChangeRequest{}, err
-	}
-	s.changeRequest = &changeRequest
-	return transformModulesChangeRequest(changeRequest), nil
-}
-
-func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modulesChangeRequest, error) {
-	installedMods, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{})
-	if err != nil {
-		return modulesChangeRequest{}, err
-	}
-	if len(installedMods) == 0 {
-		return modulesChangeRequest{}, nil
-	}
-	repoMods, err := s.repositoriesHandler.Modules(ctx, models_handler_repositories.ModulesFilter{Ids: slices.Collect(maps.Keys(installedMods))})
-	if err != nil {
-		return modulesChangeRequest{}, err
-	}
-	if len(repoMods) == 0 {
-		return modulesChangeRequest{}, nil
-	}
-	var reqItems []models_service.ChangeRequestItem
-	for _, repoMod := range repoMods {
-		installedMod, ok := installedMods[repoMod.Id]
-		if !ok {
-			continue
-		}
-		if installedMod.Source == repoMod.Source && installedMod.Channel == repoMod.Channel && installedMod.Version != repoMod.Version {
-			reqItems = append(reqItems, models_service.ChangeRequestItem{
-				Id:      installedMod.ID,
-				Source:  installedMod.Source,
-				Channel: installedMod.Channel,
-			})
-		}
-	}
-	selectedRepoMods, err := s.selectRepoModules(ctx, reqItems, installedMods)
-	if err != nil {
-		return modulesChangeRequest{}, err
-	}
-	return newModulesChangeRequest(selectedRepoMods, installedMods, nil), nil
 }
 
 func validateReqItems(reqItems []models_service.ChangeRequestItem) ([]models_service.ChangeRequestItem, error) {
