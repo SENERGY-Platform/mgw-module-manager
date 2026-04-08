@@ -49,7 +49,7 @@ func New(ctx context.Context, config Config) *Handler {
 	}
 }
 
-func (h *Handler) Create(slotNum int) (*Job, error) {
+func (h *Handler) Create(slotNum int, description string) (*Job, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	_, ok := h.jobSlots[slotNum]
@@ -62,14 +62,13 @@ func (h *Handler) Create(slotNum int) (*Job, error) {
 	}
 	ctx, cf := context.WithCancel(h.ctx)
 	job := &Job{
-		context:    ctx,
-		cancelFunc: cf,
-		slotNum:    slotNum,
-		doneFunc:   h.done,
-		data: JobData{
-			Id:    id,
-			Start: helper_time.Now(),
-		},
+		Id:          id,
+		Description: description,
+		Start:       helper_time.Now(),
+		context:     ctx,
+		cancelFunc:  cf,
+		slotNum:     slotNum,
+		doneFunc:    h.done,
 	}
 	h.jobSlots[slotNum] = job
 	h.jobMap[id] = job
@@ -142,7 +141,7 @@ func (h *Handler) cleanup() {
 	tmp := make(map[string]*Job)
 	now := helper_time.Now()
 	for id, job := range h.jobMap {
-		data := job.Data()
+		data := job.RuntimeData()
 		if now.Sub(data.End) < h.config.MaxJobAge {
 			tmp[id] = job
 		}

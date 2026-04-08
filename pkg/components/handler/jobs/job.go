@@ -25,17 +25,18 @@ import (
 )
 
 type Job struct {
-	context    context.Context
-	cancelFunc context.CancelFunc
-	slotNum    int
-	doneFunc   func(int)
-	data       JobData
-	mu         sync.RWMutex
+	Id          string
+	Description string
+	Start       time.Time
+	runtimeData RuntimeData
+	slotNum     int
+	context     context.Context
+	cancelFunc  context.CancelFunc
+	doneFunc    func(int)
+	mu          sync.RWMutex
 }
 
-type JobData struct {
-	Id    string
-	Start time.Time
+type RuntimeData struct {
 	End   time.Time
 	Error error
 }
@@ -57,17 +58,17 @@ func (j *Job) Done() {
 func (j *Job) SetError(err error) {
 	j.mu.Lock()
 	defer j.mu.Unlock()
-	j.data.Error = err
+	j.runtimeData.Error = err
 }
 
-func (j *Job) Data() JobData {
+func (j *Job) RuntimeData() RuntimeData {
 	j.mu.RLock()
 	defer j.mu.RUnlock()
-	return j.data
+	return j.runtimeData
 }
 
 func (j *Job) setEnd() {
 	j.mu.Lock()
 	defer j.mu.Unlock()
-	j.data.End = helper_time.Now()
+	j.runtimeData.End = helper_time.Now()
 }
