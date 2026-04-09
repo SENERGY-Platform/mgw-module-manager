@@ -36,7 +36,6 @@ type databaseHandler interface {
 		volumes []models_handler_database.DeploymentVolume,
 		containers []models_handler_database.DeploymentContainer,
 	) error
-	ReadDeployment(ctx context.Context, id string) (models_handler_database.Deployment, error)
 	ReadDeployments(
 		ctx context.Context,
 		filter models_handler_database.DeploymentsFilter,
