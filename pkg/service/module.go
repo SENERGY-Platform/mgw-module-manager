@@ -462,6 +462,7 @@ func getModule(module models_handler_modules.Module, deployment models_handler_d
 			Alias:   container.Alias,
 			ImageId: container.ImageId,
 			State:   container.State,
+			Health:  container.Health,
 		}
 	}
 	volumes := make(map[string]string)
