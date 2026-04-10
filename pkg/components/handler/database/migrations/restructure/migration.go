@@ -25,10 +25,10 @@ type migration []func(ctx context.Context, db *sql.DB) error
 
 var Migration = migration{
 	migrateAuxConfigsTab,
-	migrateAuxContainersTab,
 	migrateAuxLabelsTab,
 	migrateAuxVolumesTab,
-	migrateAuxDeployments,
+	migrateAuxDeploymentsTab,
+	migrateAuxContainersTab,
 	migrateDepAdvItemsTab,
 	migrateDepAdvertisementsTab,
 	createDepConfigTables,

@@ -22,7 +22,7 @@ import (
 	"slices"
 )
 
-func migrateAuxDeployments(ctx context.Context, db *sql.DB) error {
+func migrateAuxDeploymentsTab(ctx context.Context, db *sql.DB) error {
 	tableName := "aux_deployments"
 	ok, err := tableExists(ctx, db, tableName)
 	if err != nil {
@@ -42,6 +42,28 @@ func migrateAuxDeployments(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
+	ok, err = columnExists(ctx, db, tableName, "ctr_name")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.Info("adding column", attrColumn, "ctr_name", attrTable, tableName)
+		err = addColumn(ctx, db, tableName, "ctr_name", "VARCHAR(256)", "NOT NULL", "AFTER enabled")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = columnExists(ctx, db, tableName, "ctr_alias")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.Info("adding column", attrColumn, "ctr_alias", attrTable, tableName)
+		err = addColumn(ctx, db, tableName, "ctr_alias", "VARCHAR(256)", "NOT NULL", "AFTER ctr_name")
+		if err != nil {
+			return err
+		}
+	}
 	ok, err = indexExists(ctx, db, tableName, "PRIMARY")
 	if err != nil {
 		return err
@@ -49,6 +71,17 @@ func migrateAuxDeployments(ctx context.Context, db *sql.DB) error {
 	if !ok {
 		logger.Info("adding primary key", attrColumn, "id", attrTable, tableName)
 		err = addPrimaryKey(ctx, db, tableName, "id")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = indexExists(ctx, db, tableName, "uk_id_ctr_name")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.Info("adding unique index", attrIndex, "uk_id_ctr_name", attrTable, tableName)
+		err = addUniqueIndex(ctx, db, tableName, "uk_id_ctr_name", "id", "ctr_name")
 		if err != nil {
 			return err
 		}
@@ -79,7 +112,7 @@ func migrateAuxDeployments(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	newIndexKeys := []string{"i_dep_id", "i_dep_id_ref"}
+	newIndexKeys := []string{"uk_id_ctr_name", "i_dep_id", "i_dep_id_ref"}
 	for _, key := range currentIndexKeys {
 		if key == "PRIMARY" {
 			continue

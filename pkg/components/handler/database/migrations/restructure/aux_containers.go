@@ -19,7 +19,6 @@ package migration_db_restructure
 import (
 	"context"
 	"database/sql"
-	"slices"
 )
 
 func migrateAuxContainersTab(ctx context.Context, db *sql.DB) error {
@@ -31,78 +30,55 @@ func migrateAuxContainersTab(ctx context.Context, db *sql.DB) error {
 	if !ok {
 		return nil
 	}
-	ok, err = columnExists(ctx, db, tableName, "index")
+	containers, err := queryAuxDepContainers(ctx, db)
 	if err != nil {
 		return err
 	}
-	if ok {
-		logger.Info("dropping column", attrColumn, "index", attrTable, tableName)
-		err = dropColumn(ctx, db, tableName, "`index`")
+	logger.Info("transforming data from table", attrTable, tableName)
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for _, container := range containers {
+		_, err = tx.ExecContext(
+			ctx,
+			"UPDATE aux_deployments SET ctr_name = ?, ctr_alias = ? WHERE id = ?",
+			container.Id,
+			container.Alias,
+			container.AuxId,
+		)
 		if err != nil {
 			return err
 		}
 	}
-	ok, err = columnExists(ctx, db, tableName, "aux_id")
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
-	if ok {
-		logger.Info("renaming column", attrColumn, "aux_id", attrNewName, "aux_dep_id", attrTable, tableName)
-		err = changeColumn(ctx, db, tableName, "aux_id", "aux_dep_id", "char(36)", "NOT NULL", "FIRST")
-		if err != nil {
-			return err
-		}
-	}
-	ok, err = columnExists(ctx, db, tableName, "ctr_id")
+	logger.Info("dropping table", attrTable, tableName)
+	return dropTable(ctx, db, tableName)
+}
+
+func queryAuxDepContainers(ctx context.Context, db *sql.DB) ([]auxDepContainer, error) {
+	rows, err := db.QueryContext(ctx, "SELECT aux_id, ctr_id, alias FROM aux_containers")
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if ok {
-		logger.Info("renaming column", attrColumn, "ctr_id", attrNewName, "name", attrTable, tableName)
-		err = changeColumn(ctx, db, tableName, "ctr_id", "name", "VARCHAR(256)", "NOT NULL", "AFTER aux_dep_id")
-		if err != nil {
-			return err
+	defer rows.Close()
+	var containers []auxDepContainer
+	for rows.Next() {
+		var ctr auxDepContainer
+		if err = rows.Scan(&ctr.AuxId, &ctr.Id, &ctr.Alias); err != nil {
+			return nil, err
 		}
+		containers = append(containers, ctr)
 	}
-	ok, err = indexExists(ctx, db, tableName, "uk_aux_dep_id_name")
-	if err != nil {
-		return err
-	}
-	if !ok {
-		logger.Info("adding unique index", attrIndex, "uk_aux_dep_id_name", attrTable, tableName)
-		err = addUniqueIndex(ctx, db, tableName, "uk_aux_dep_id_name", "aux_dep_id", "name")
-		if err != nil {
-			return err
-		}
-	}
-	ok, err = indexExists(ctx, db, tableName, "i_aux_dep_id")
-	if err != nil {
-		return err
-	}
-	if !ok {
-		logger.Info("adding index", attrIndex, "i_aux_dep_id", attrTable, tableName)
-		err = addIndex(ctx, db, tableName, "i_aux_dep_id", "aux_dep_id")
-		if err != nil {
-			return err
-		}
-	}
-	currentIndexKeys, err := indexKeyNames(ctx, db, tableName)
-	if err != nil {
-		return err
-	}
-	newIndexKeys := []string{"uk_aux_dep_id_name", "i_aux_dep_id"}
-	for _, key := range currentIndexKeys {
-		if key == "PRIMARY" {
-			continue
-		}
-		if !slices.Contains(newIndexKeys, key) {
-			logger.Info("dropping index", attrIndex, key, attrTable, tableName)
-			err = dropIndex(ctx, db, tableName, key)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	logger.Info("renaming table", attrTable, tableName, attrNewName, "aux_dep_containers")
-	return renameTable(ctx, db, tableName, "aux_dep_containers")
+	return containers, nil
+}
+
+type auxDepContainer struct {
+	Id    string
+	AuxId string
+	Alias string
 }
