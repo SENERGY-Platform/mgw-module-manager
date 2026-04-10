@@ -23,6 +23,7 @@ import (
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/deployments"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"
 )
@@ -41,15 +42,6 @@ type GitHubModulesRepoHandlerConfig struct {
 	WorkDirPath string        `json:"work_dir_path" env_var:"GITHUB_MODULES_REPO_HANDLER_WORK_DIR_PATH"`
 }
 
-type JobsConfig struct {
-	BufferSize  int   `json:"buffer_size" env_var:"JOBS_BUFFER_SIZE"`
-	MaxNumber   int   `json:"max_number" env_var:"JOBS_MAX_NUMBER"`
-	CCHInterval int   `json:"cch_interval" env_var:"JOBS_CCH_INTERVAL"`
-	JHInterval  int   `json:"jh_interval" env_var:"JOBS_JH_INTERVAL"`
-	PJHInterval int64 `json:"pjh_interval" env_var:"JOBS_PJH_INTERVAL"`
-	MaxAge      int64 `json:"max_age" env_var:"JOBS_MAX_AGE"`
-}
-
 type DatabaseConfig struct {
 	MySQL handler_database.Config
 	SQL   helper_sql_db.Config
@@ -62,7 +54,7 @@ type Config struct {
 	DeploymentsHandler       handler_deployments.Config     `json:"deployments_handler"`
 	Logger                   struct_logger.Config           `json:"logger"`
 	GitHubModulesRepoHandler GitHubModulesRepoHandlerConfig `json:"github_modules_repo_handler"`
-	Jobs                     JobsConfig                     `json:"jobs"`
+	JobsHandler              handler_jobs.Config            `json:"jobshandler"`
 	Database                 DatabaseConfig                 `json:"database"`
 	ManagerIdPath            string                         `json:"manager_id_path" env_var:"MANAGER_ID_PATH"`
 	CoreId                   string                         `json:"core_id" env_var:"CORE_ID"`
@@ -101,13 +93,9 @@ func New(path string) (*Config, error) {
 			BaseUrl: "https://api.github.com",
 			Timeout: time.Minute,
 		},
-		Jobs: JobsConfig{
-			BufferSize:  200,
-			MaxNumber:   20,
-			CCHInterval: 500000,
-			JHInterval:  500000,
-			PJHInterval: 300000000000,
-			MaxAge:      172800000000000,
+		JobsHandler: handler_jobs.Config{
+			MaxJobAge:        time.Hour,
+			CleanupLoopDelay: time.Minute * 5,
 		},
 		Database: DatabaseConfig{
 			MySQL: handler_database.Config{
