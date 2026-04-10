@@ -35,7 +35,7 @@ func (h *Handler) ReadAuxiliaryDeployments(
 	fc, val := genAuxiliaryDeploymentsFilter(deploymentId, filter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
-		"SELECT id, dep_id, image, ref, name, enabled, command, pseudo_tty, created, updated FROM aux_deployments"+fc+";",
+		"SELECT id, dep_id, image, ref, name, enabled, ctr_name, ctr_alias, command, pseudo_tty, created, updated FROM aux_deployments"+fc+";",
 		val...,
 	)
 	if err != nil {
@@ -55,6 +55,8 @@ func (h *Handler) ReadAuxiliaryDeployments(
 			&auxDep.Reference,
 			&auxDep.Name,
 			&auxDep.Enabled,
+			&auxDep.Container.Name,
+			&auxDep.Container.Alias,
 			&command,
 			&pseudoTTY,
 			&ct,

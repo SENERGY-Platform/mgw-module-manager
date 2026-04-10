@@ -27,7 +27,13 @@ type AuxiliaryDeployment struct {
 	Created      time.Time
 	Updated      time.Time
 	Enabled      bool
+	Container    AuxiliaryDeploymentContainer
 	RunConfig    AuxiliaryDeploymentRunConfig
+}
+
+type AuxiliaryDeploymentContainer struct {
+	Name  string
+	Alias string
 }
 
 type AuxiliaryDeploymentRunConfig struct {
