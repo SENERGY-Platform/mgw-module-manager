@@ -151,40 +151,6 @@ func (h *Handler) ReadAuxiliaryDeploymentsConfigs(
 	return auxDepsConfigs, nil
 }
 
-func (h *Handler) ReadAuxiliaryDeploymentsContainers(
-	ctx context.Context,
-	auxiliaryDeploymentsIds []string,
-) (map[string]map[string]string, error) {
-	fc, val := genAuxiliaryDeploymentsIdsFilter(auxiliaryDeploymentsIds)
-	rows, err := h.sqlDB.QueryContext(
-		ctx,
-		"SELECT aux_dep_id, name, alias FROM aux_dep_containers"+fc+";",
-		val...,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	auxDepsContainers := make(map[string]map[string]string)
-	for rows.Next() {
-		var id, name, alias string
-		err = rows.Scan(&id, &name, &alias)
-		if err != nil {
-			return nil, err
-		}
-		containers, ok := auxDepsContainers[id]
-		if !ok {
-			containers = make(map[string]string)
-			auxDepsContainers[id] = containers
-		}
-		containers[name] = alias
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-	return auxDepsContainers, nil
-}
-
 func (h *Handler) ReadAuxiliaryDeploymentsVolumes(
 	ctx context.Context,
 	auxiliaryDeploymentsIds []string,
