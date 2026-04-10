@@ -81,6 +81,7 @@ type Container struct {
 	Alias   string `json:"alias"`
 	ImageId string `json:"image_id"` // docker image id
 	State   string `json:"state"`    // docker container state
+	Health  string `json:"health"`   // docker container health
 }
 
 type Secret struct {
