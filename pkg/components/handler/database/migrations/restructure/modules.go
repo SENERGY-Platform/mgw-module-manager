@@ -41,6 +41,17 @@ func migrateModulesTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
+	ok, err = columnExists(ctx, db, tableName, "modfile")
+	if err != nil {
+		return err
+	}
+	if ok {
+		logger.Info("dropping column", attrColumn, "modfile", attrTable, tableName)
+		err = dropColumn(ctx, db, tableName, "`modfile`")
+		if err != nil {
+			return err
+		}
+	}
 	ok, err = indexExists(ctx, db, tableName, "PRIMARY")
 	if err != nil {
 		return err

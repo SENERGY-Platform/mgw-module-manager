@@ -28,7 +28,14 @@ import (
 )
 
 func createDepConfigTables(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx,
+	ok, err := tableExists(ctx, db, "deployments")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	_, err = db.ExecContext(ctx,
 		`CREATE TABLE IF NOT EXISTS dep_configs
 (
 id        VARCHAR(256) NOT NULL,
@@ -78,43 +85,42 @@ func migrateConfigsTab(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	if len(configs) == 0 {
-		return nil
-	}
-	logger.Info("transforming data from table", attrTable, tableName)
-	tx, err := db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-	for _, c := range configs {
-		cId := c.DepId + "_" + c.Ref
-		_, err = tx.ExecContext(
-			ctx,
-			"INSERT INTO dep_configs (id, dep_id, ref, data_type, is_list) VALUES (?, ?, ?, ?, ?)",
-			cId,
-			c.DepId,
-			c.Ref,
-			c.DT,
-			false,
-		)
+	if len(configs) > 0 {
+		logger.Info("transforming data from table", attrTable, tableName)
+		tx, err := db.BeginTx(ctx, nil)
 		if err != nil {
 			return err
 		}
-		_, err = tx.ExecContext(
-			ctx,
-			fmt.Sprintf("INSERT INTO dep_config_values (c_id, %s, ord) VALUES (?, ?, ?)", getColName(c.DT)),
-			cId,
-			c.Val,
-			0,
-		)
+		defer tx.Rollback()
+		for _, c := range configs {
+			cId := c.DepId + "_" + c.Ref
+			_, err = tx.ExecContext(
+				ctx,
+				"INSERT INTO dep_configs (id, dep_id, ref, data_type, is_list) VALUES (?, ?, ?, ?, ?)",
+				cId,
+				c.DepId,
+				c.Ref,
+				c.DT,
+				false,
+			)
+			if err != nil {
+				return err
+			}
+			_, err = tx.ExecContext(
+				ctx,
+				fmt.Sprintf("INSERT INTO dep_config_values (c_id, %s, ord) VALUES (?, ?, ?)", getColName(c.DT)),
+				cId,
+				c.Val,
+				0,
+			)
+			if err != nil {
+				return err
+			}
+		}
+		err = tx.Commit()
 		if err != nil {
 			return err
 		}
-	}
-	err = tx.Commit()
-	if err != nil {
-		return err
 	}
 	logger.Info("dropping table", attrTable, tableName)
 	return dropTable(ctx, db, tableName)
@@ -133,40 +139,39 @@ func migrateListConfigsTab(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	if len(configs) == 0 {
-		return nil
-	}
-	logger.Info("transforming data from table", attrTable, tableName)
-	tx, err := db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-	for _, c := range configs {
-		cId := c.DepId + "_" + c.Ref
-		_, err = tx.ExecContext(
-			ctx,
-			"INSERT INTO dep_configs (id, dep_id, ref, data_type, is_list) VALUES (?, ?, ?, ?, ?)",
-			cId,
-			c.DepId,
-			c.Ref,
-			c.DT,
-			false,
-		)
+	if len(configs) > 0 {
+		logger.Info("transforming data from table", attrTable, tableName)
+		tx, err := db.BeginTx(ctx, nil)
 		if err != nil {
 			return err
 		}
-		stmt := fmt.Sprintf("INSERT INTO dep_config_values (c_id, %s, ord) VALUES (?, ?, ?)", getColName(c.DT))
-		for i, val := range c.Vals {
-			_, err = tx.ExecContext(ctx, stmt, cId, val, i)
+		defer tx.Rollback()
+		for _, c := range configs {
+			cId := c.DepId + "_" + c.Ref
+			_, err = tx.ExecContext(
+				ctx,
+				"INSERT INTO dep_configs (id, dep_id, ref, data_type, is_list) VALUES (?, ?, ?, ?, ?)",
+				cId,
+				c.DepId,
+				c.Ref,
+				c.DT,
+				false,
+			)
 			if err != nil {
 				return err
 			}
+			stmt := fmt.Sprintf("INSERT INTO dep_config_values (c_id, %s, ord) VALUES (?, ?, ?)", getColName(c.DT))
+			for i, val := range c.Vals {
+				_, err = tx.ExecContext(ctx, stmt, cId, val, i)
+				if err != nil {
+					return err
+				}
+			}
 		}
-	}
-	err = tx.Commit()
-	if err != nil {
-		return err
+		err = tx.Commit()
+		if err != nil {
+			return err
+		}
 	}
 	logger.Info("dropping table", attrTable, tableName)
 	return dropTable(ctx, db, tableName)

@@ -81,7 +81,7 @@ func main() {
 
 	databaseHandler := handler_database.New(sqlDB)
 	migration_db_restructure.InitLogger(logger)
-	err = databaseHandler.Migrate(ctx, migration_db_init.Migration, migration_db_restructure.Migration)
+	err = databaseHandler.Migrate(ctx, migration_db_restructure.Migration, migration_db_init.Migration)
 	if err != nil {
 		logger.Error("database migration failed", slog_attr.ErrorKey, err)
 		ec = 1

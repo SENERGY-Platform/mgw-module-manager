@@ -24,7 +24,14 @@ import (
 
 func migrateDepAdvertisementsTab(ctx context.Context, db *sql.DB) error {
 	tableName := "dep_advertisements"
-	ok, err := columnExists(ctx, db, tableName, "index")
+	ok, err := tableExists(ctx, db, tableName)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	ok, err = columnExists(ctx, db, tableName, "index")
 	if err != nil {
 		return err
 	}

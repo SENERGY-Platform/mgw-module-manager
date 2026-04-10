@@ -42,6 +42,17 @@ func migrateContainersTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
+	ok, err = columnExists(ctx, db, tableName, "order")
+	if err != nil {
+		return err
+	}
+	if ok {
+		logger.Info("dropping column", attrColumn, "order", attrTable, tableName)
+		err = dropColumn(ctx, db, tableName, "`order`")
+		if err != nil {
+			return err
+		}
+	}
 	ok, err = columnExists(ctx, db, tableName, "ctr_id")
 	if err != nil {
 		return err
