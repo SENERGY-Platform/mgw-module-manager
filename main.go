@@ -23,6 +23,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/db_init"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/restructure"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/deployments"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github"
@@ -142,8 +143,10 @@ func main() {
 		config.DeploymentsHandler,
 	)
 
+	jobsHandler := handler_jobs.New(ctx, config.JobsHandler)
+
 	service.InitLogger(logger)
-	srv := service.New(repositoriesHandler, modulesHdl, deploymentsHandler)
+	srv := service.New(repositoriesHandler, modulesHdl, deploymentsHandler, jobsHandler)
 
 	httpApi, err := api.New(
 		srv,
@@ -197,6 +200,13 @@ func main() {
 	go func() {
 		defer wg.Done()
 		deploymentsHandler.DeploymentHealthMonitor(ctx)
+		cf()
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		jobsHandler.Cleanup(ctx)
 		cf()
 	}()
 
