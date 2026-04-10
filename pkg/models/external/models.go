@@ -63,8 +63,16 @@ type CewMount = cew_model.Mount
 type CewDevice = cew_model.Device
 
 const (
+	CewInitState            = cew_model.InitState
 	CewRunningState         = cew_model.RunningState
+	CewPausedState          = cew_model.PausedState
+	CewRestartingState      = cew_model.RestartingState
+	CewRemovingState        = cew_model.RemovingState
+	CewStoppedState         = cew_model.StoppedState
+	CewDeadState            = cew_model.DeadState
+	CewHealthyState         = cew_model.HealthyState
 	CewUnhealthyState       = cew_model.UnhealthyState
+	CewTransitionState      = cew_model.TransitionState
 	CewRestartStrategyNever = cew_model.RestartNever
 	CewMountTypeVolume      = cew_model.VolumeMount
 	CewMountTypeBind        = cew_model.BindMount
