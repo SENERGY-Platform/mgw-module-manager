@@ -25,7 +25,6 @@ import (
 	"path"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
@@ -59,7 +58,6 @@ func (h *Handler) CreateDeployments(
 	if err != nil {
 		return err
 	}
-	timestamp := helper_time.Now()
 	var errs []string
 	for moduleId, module := range selectedModules {
 		cacheItem, ok := cache.Deployments[moduleId]
@@ -73,7 +71,6 @@ func (h *Handler) CreateDeployments(
 			userInputs[moduleId],
 			cacheItem.DeploymentId,
 			cacheItem.Containers,
-			timestamp,
 			cache,
 		)
 		if err != nil {
@@ -92,15 +89,14 @@ func (h *Handler) createDeployment(
 	userInput models_handler_deployments.UserInput,
 	deploymentId string,
 	cacheContainers map[string]containerCacheItem,
-	timestamp time.Time,
 	cache cacheCollection,
 ) error {
 	newDeployment, err := getDeployment(module, deploymentId)
 	if err != nil {
 		return err
 	}
-	newDeployment.Created = timestamp
-	newDeployment.Updated = timestamp
+	newDeployment.Created = helper_time.Now()
+	newDeployment.Updated = newDeployment.Created
 	defaultData, err := getDefaultData(module)
 	if err != nil {
 		return err

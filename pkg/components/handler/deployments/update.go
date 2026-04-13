@@ -24,7 +24,6 @@ import (
 	"path"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
@@ -62,7 +61,6 @@ func (h *Handler) UpdateDeployments(
 	if err != nil {
 		return err
 	}
-	timestamp := helper_time.Now()
 	var errs []string
 	for moduleId, module := range selectedModules {
 		cacheItem, ok := cache.Deployments[moduleId]
@@ -79,7 +77,6 @@ func (h *Handler) UpdateDeployments(
 			deployments[cacheItem.DeploymentId],
 			deploymentsContainers[cacheItem.DeploymentId],
 			deploymentsVolumes[cacheItem.DeploymentId],
-			timestamp,
 			cache,
 		)
 		if err != nil {
@@ -101,7 +98,6 @@ func (h *Handler) updateDeployment(
 	currentDeployment models_handler_database.Deployment,
 	currentContainers map[string]models_handler_database.DeploymentContainer,
 	currentVolumes map[string]models_handler_database.DeploymentVolume,
-	timestamp time.Time,
 	cache cacheCollection,
 ) error {
 	newDeployment, err := getDeployment(module, deploymentId)
@@ -110,7 +106,7 @@ func (h *Handler) updateDeployment(
 	}
 	newDeployment.Enabled = currentDeployment.Enabled
 	newDeployment.Created = currentDeployment.Created
-	newDeployment.Updated = timestamp
+	newDeployment.Updated = helper_time.Now()
 	defaultData, err := getDefaultData(module)
 	if err != nil {
 		return err
