@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS aux_dep_volumes
 CREATE TABLE IF NOT EXISTS aux_dep_volume_mounts
 (
     vol_id     VARCHAR(512) NOT NULL,
+    ref        VARCHAR(256) NOT NULL,
     aux_dep_id CHAR(36)     NOT NULL,
     mnt_path   VARCHAR(512) NOT NULL,
     UNIQUE KEY uk_aux_dep_id_mnt_path (aux_dep_id, mnt_path),

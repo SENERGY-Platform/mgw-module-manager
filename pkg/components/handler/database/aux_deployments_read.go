@@ -190,6 +190,7 @@ func (h *Handler) ReadAuxiliaryDeploymentsVolumes(
 		}
 		volume.Mounts = append(volume.Mounts, models_handler_database.AuxiliaryDeploymentVolumeMount{
 			VolumeId:              id,
+			Reference:             ref,
 			AuxiliaryDeploymentId: auxDepId,
 			MountPath:             mntPath,
 		})
@@ -205,7 +206,7 @@ func (h *Handler) ReadAuxiliaryDeploymentsVolumeMounts(
 	fc, val := genAuxiliaryDeploymentsIdsFilter(auxiliaryDeploymentsIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
-		"SELECT vol_id, aux_dep_id, mnt_path FROM aux_dep_volume_mounts"+fc+";",
+		"SELECT vol_id, ref, aux_dep_id, mnt_path FROM aux_dep_volume_mounts"+fc+";",
 		val...,
 	)
 	if err != nil {
@@ -215,7 +216,7 @@ func (h *Handler) ReadAuxiliaryDeploymentsVolumeMounts(
 	auxDepsVolumeMounts := make(map[string][]models_handler_database.AuxiliaryDeploymentVolumeMount)
 	for rows.Next() {
 		var mount models_handler_database.AuxiliaryDeploymentVolumeMount
-		err = rows.Scan(&mount.VolumeId, &mount.AuxiliaryDeploymentId, &mount.MountPath)
+		err = rows.Scan(&mount.VolumeId, &mount.Reference, &mount.AuxiliaryDeploymentId, &mount.MountPath)
 		if err != nil {
 			return nil, err
 		}
