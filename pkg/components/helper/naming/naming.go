@@ -41,12 +41,8 @@ func NewContainerAlias(arg ...string) string {
 	return fmt.Sprintf("%s-%s-%s", Prefix, CoreId, GenHash(arg...))
 }
 
-func NewVolumeName(arg ...string) string {
-	return fmt.Sprintf("%s_%s_%s", Prefix, CoreId, GenHash(arg...))
-}
-
-func NewDeprecatedVolumeName(arg ...string) string {
-	return "mgw_" + GenHash(arg...)
+func NewVolumeName(prefix string, arg ...string) string {
+	return fmt.Sprintf("%s_%s_%s_%s", Prefix, CoreId, prefix, GenHash(arg...))
 }
 
 func GenHash(str ...string) string {

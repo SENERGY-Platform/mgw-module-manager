@@ -282,7 +282,7 @@ func updateVolumes(
 		volume := deploymentVolumes[reference]
 		name := volume.Name
 		if name == "" {
-			name = helper_naming.NewVolumeName(deploymentId, reference)
+			name = helper_naming.NewVolumeName("dep", deploymentId, reference)
 		}
 		volumes[reference] = models_handler_database.DeploymentVolume{
 			DeploymentId: deploymentId,

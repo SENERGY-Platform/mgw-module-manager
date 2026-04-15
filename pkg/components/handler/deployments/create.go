@@ -361,7 +361,7 @@ func getNewVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[s
 		volumes[reference] = models_handler_database.DeploymentVolume{
 			DeploymentId: deploymentId,
 			Reference:    reference,
-			Name:         helper_naming.NewVolumeName(deploymentId, reference),
+			Name:         helper_naming.NewVolumeName("dep", deploymentId, reference),
 		}
 	}
 	return volumes
