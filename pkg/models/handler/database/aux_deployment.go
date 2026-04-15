@@ -41,7 +41,6 @@ type AuxiliaryDeploymentVolume struct {
 	DeploymentId string
 	Reference    string
 	Name         string
-	Mounts       []AuxiliaryDeploymentVolumeMount
 }
 
 type AuxiliaryDeploymentVolumeMount struct {
