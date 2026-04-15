@@ -81,7 +81,7 @@ func migrateAuxVolumesTab(ctx context.Context, db *sql.DB) error {
 	}
 	if !ok {
 		logger.Info("adding column", attrColumn, "ref", attrTable, tableName)
-		err = addColumn(ctx, db, tableName, "ref", "VARCHAR(128)", "NOT NULL", "AFTER dep_id")
+		err = addColumn(ctx, db, tableName, "ref", "VARCHAR(256)", "NOT NULL", "AFTER dep_id")
 		if err != nil {
 			return err
 		}
@@ -125,5 +125,6 @@ func migrateAuxVolumesTab(ctx context.Context, db *sql.DB) error {
 			}
 		}
 	}
-	return nil
+	logger.Info("renaming table", attrTable, tableName, attrNewName, "aux_dep_volumes")
+	return renameTable(ctx, db, tableName, "aux_dep_volumes")
 }
