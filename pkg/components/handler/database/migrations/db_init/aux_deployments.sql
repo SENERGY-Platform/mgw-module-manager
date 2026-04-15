@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS aux_deployments
     command    VARCHAR(512),
     pseudo_tty BOOLEAN,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_id_ctr_name (id, ctr_name),
     INDEX i_dep_id (dep_id),
     INDEX i_dep_id_ref (dep_id, ref),
     FOREIGN KEY fk_dep_id (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT

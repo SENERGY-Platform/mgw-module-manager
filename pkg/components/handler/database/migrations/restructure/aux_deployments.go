@@ -75,17 +75,6 @@ func migrateAuxDeploymentsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
-	ok, err = indexExists(ctx, db, tableName, "uk_id_ctr_name")
-	if err != nil {
-		return err
-	}
-	if !ok {
-		logger.Info("adding unique index", attrIndex, "uk_id_ctr_name", attrTable, tableName)
-		err = addUniqueIndex(ctx, db, tableName, "uk_id_ctr_name", "id", "ctr_name")
-		if err != nil {
-			return err
-		}
-	}
 	ok, err = indexExists(ctx, db, tableName, "i_dep_id")
 	if err != nil {
 		return err
