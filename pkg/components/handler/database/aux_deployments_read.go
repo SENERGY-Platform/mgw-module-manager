@@ -151,38 +151,81 @@ func (h *Handler) ReadAuxiliaryDeploymentsConfigs(
 	return auxDepsConfigs, nil
 }
 
+const selectAuxiliaryDeploymentsVolumesStmt = `SELECT * FROM (SELECT aux_dep_volumes.id, aux_dep_volumes.dep_id, aux_dep_volumes.ref, aux_dep_volumes.name, aux_dep_volume_mounts.aux_dep_id, aux_dep_volume_mounts.mnt_path
+FROM aux_dep_volumes
+LEFT JOIN aux_dep_volume_mounts
+ON aux_dep_volumes.id = aux_dep_volume_mounts.vol_id ORDER BY dep_id, ref, aux_dep_id) AS SUB WHERE SUB.dep_id = ?`
+
 func (h *Handler) ReadAuxiliaryDeploymentsVolumes(
 	ctx context.Context,
+	deploymentId string,
+) (map[string]models_handler_database.AuxiliaryDeploymentVolume, error) {
+	rows, err := h.sqlDB.QueryContext(
+		ctx,
+		selectAuxiliaryDeploymentsVolumesStmt+";",
+		deploymentId,
+	)
+	if err != nil {
+		return nil, err
+	}
+	auxDepVolumes := make(map[string]models_handler_database.AuxiliaryDeploymentVolume)
+	for rows.Next() {
+		var id string
+		var depId string
+		var ref string
+		var name string
+		var auxDepId string
+		var mntPath string
+		err = rows.Scan(&id, &depId, &ref, &name, &auxDepId, &mntPath)
+		if err != nil {
+			return nil, err
+		}
+		volume, ok := auxDepVolumes[ref]
+		if !ok {
+			volume.Id = id
+			volume.DeploymentId = depId
+			volume.Reference = ref
+			volume.Name = name
+		}
+		volume.Mounts = append(volume.Mounts, models_handler_database.AuxiliaryDeploymentVolumeMount{
+			VolumeId:              id,
+			AuxiliaryDeploymentId: auxDepId,
+			MountPath:             mntPath,
+		})
+		auxDepVolumes[ref] = volume
+	}
+	return auxDepVolumes, nil
+}
+
+func (h *Handler) ReadAuxiliaryDeploymentsVolumeMounts(
+	ctx context.Context,
 	auxiliaryDeploymentsIds []string,
-) (map[string]map[string]models_handler_database.AuxiliaryDeploymentVolume, error) {
+) (map[string][]models_handler_database.AuxiliaryDeploymentVolumeMount, error) {
 	fc, val := genAuxiliaryDeploymentsIdsFilter(auxiliaryDeploymentsIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
-		"SELECT aux_dep_id, ref, name, mnt_point FROM aux_dep_volumes"+fc+";",
+		"SELECT vol_id, aux_dep_id, mnt_path FROM aux_dep_volume_mounts"+fc+";",
 		val...,
 	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	auxDepsVolumes := make(map[string]map[string]models_handler_database.AuxiliaryDeploymentVolume)
+	auxDepsVolumeMounts := make(map[string][]models_handler_database.AuxiliaryDeploymentVolumeMount)
 	for rows.Next() {
-		var volume models_handler_database.AuxiliaryDeploymentVolume
-		err = rows.Scan(&volume.AuxiliaryDeploymentId, &volume.Reference, &volume.Name, &volume.MountPath)
+		var mount models_handler_database.AuxiliaryDeploymentVolumeMount
+		err = rows.Scan(&mount.VolumeId, &mount.AuxiliaryDeploymentId, &mount.MountPath)
 		if err != nil {
 			return nil, err
 		}
-		volumes, ok := auxDepsVolumes[volume.AuxiliaryDeploymentId]
-		if !ok {
-			volumes = make(map[string]models_handler_database.AuxiliaryDeploymentVolume)
-			auxDepsVolumes[volume.AuxiliaryDeploymentId] = volumes
-		}
-		volumes[volume.Reference] = volume
+		mounts := auxDepsVolumeMounts[mount.AuxiliaryDeploymentId]
+		mounts = append(mounts, mount)
+		auxDepsVolumeMounts[mount.AuxiliaryDeploymentId] = mounts
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
-	return auxDepsVolumes, nil
+	return auxDepsVolumeMounts, nil
 }
 
 func genAuxiliaryDeploymentsFilter(deploymentId string, filter models_handler_database.AuxiliaryDeploymentsFilter) (string, []any) {

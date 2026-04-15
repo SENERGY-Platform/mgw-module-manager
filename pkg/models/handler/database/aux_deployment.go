@@ -36,6 +36,20 @@ type AuxiliaryDeploymentContainer struct {
 	Alias string
 }
 
+type AuxiliaryDeploymentVolume struct {
+	Id           string
+	DeploymentId string
+	Reference    string
+	Name         string
+	Mounts       []AuxiliaryDeploymentVolumeMount
+}
+
+type AuxiliaryDeploymentVolumeMount struct {
+	VolumeId              string
+	AuxiliaryDeploymentId string
+	MountPath             string
+}
+
 type AuxiliaryDeploymentRunConfig struct {
 	Command   string
 	PseudoTTY bool
