@@ -168,6 +168,7 @@ func (h *Handler) ReadAuxiliaryDeploymentsVolumes(
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	auxDepVolumes := make(map[string]models_handler_database.AuxiliaryDeploymentVolume)
 	for rows.Next() {
 		var id string
