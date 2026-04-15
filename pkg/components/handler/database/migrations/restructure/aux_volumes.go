@@ -47,30 +47,63 @@ func migrateAuxVolumesTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("renaming column", attrColumn, "aux_id", attrNewName, "aux_dep_id", attrTable, tableName)
-		err = changeColumn(ctx, db, tableName, "aux_id", "aux_dep_id", "char(36)", "NOT NULL", "FIRST")
+		logger.Info("dropping column", attrColumn, "aux_id", attrTable, tableName)
+		err = dropColumn(ctx, db, tableName, "`aux_id`")
 		if err != nil {
 			return err
 		}
 	}
-	ok, err = indexExists(ctx, db, tableName, "uk_aux_dep_id_name")
+	ok, err = columnExists(ctx, db, tableName, "mnt_point")
 	if err != nil {
 		return err
 	}
-	if !ok {
-		logger.Info("adding unique index", attrIndex, "uk_aux_dep_id_name", attrTable, tableName)
-		err = addUniqueIndex(ctx, db, tableName, "uk_aux_dep_id_name", "aux_dep_id", "name")
+	if ok {
+		logger.Info("dropping column", attrColumn, "mnt_point", attrTable, tableName)
+		err = dropColumn(ctx, db, tableName, "`mnt_point`")
 		if err != nil {
 			return err
 		}
 	}
-	ok, err = indexExists(ctx, db, tableName, "i_aux_dep_id")
+	ok, err = columnExists(ctx, db, tableName, "dep_id")
 	if err != nil {
 		return err
 	}
 	if !ok {
-		logger.Info("adding index", attrIndex, "i_aux_dep_id", attrTable, tableName)
-		err = addIndex(ctx, db, tableName, "i_aux_dep_id", "aux_dep_id")
+		logger.Info("adding column", attrColumn, "dep_id", attrTable, tableName)
+		err = addColumn(ctx, db, tableName, "dep_id", "CHAR(36)", "NOT NULL", "FIRST")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = columnExists(ctx, db, tableName, "ref")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.Info("adding column", attrColumn, "ref", attrTable, tableName)
+		err = addColumn(ctx, db, tableName, "ref", "VARCHAR(128)", "NOT NULL", "AFTER dep_id")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = indexExists(ctx, db, tableName, "uk_dep_id_ref")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.Info("adding unique index", attrIndex, "uk_dep_id_ref", attrTable, tableName)
+		err = addUniqueIndex(ctx, db, tableName, "uk_dep_id_ref", "dep_id", "ref")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = indexExists(ctx, db, tableName, "i_dep_id")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.Info("adding index", attrIndex, "i_dep_id", attrTable, tableName)
+		err = addIndex(ctx, db, tableName, "i_dep_id", "dep_id")
 		if err != nil {
 			return err
 		}
@@ -79,7 +112,7 @@ func migrateAuxVolumesTab(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	newIndexKeys := []string{"uk_aux_dep_id_name", "i_aux_dep_id"}
+	newIndexKeys := []string{"uk_dep_id_ref", "i_dep_id"}
 	for _, key := range currentIndexKeys {
 		if key == "PRIMARY" {
 			continue
@@ -92,6 +125,5 @@ func migrateAuxVolumesTab(ctx context.Context, db *sql.DB) error {
 			}
 		}
 	}
-	logger.Info("renaming table", attrTable, tableName, attrNewName, "aux_dep_volumes")
-	return renameTable(ctx, db, tableName, "aux_dep_volumes")
+	return nil
 }

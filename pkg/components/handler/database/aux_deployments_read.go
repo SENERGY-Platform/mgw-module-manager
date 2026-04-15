@@ -154,30 +154,30 @@ func (h *Handler) ReadAuxiliaryDeploymentsConfigs(
 func (h *Handler) ReadAuxiliaryDeploymentsVolumes(
 	ctx context.Context,
 	auxiliaryDeploymentsIds []string,
-) (map[string]map[string]string, error) {
+) (map[string]map[string]models_handler_database.AuxiliaryDeploymentVolume, error) {
 	fc, val := genAuxiliaryDeploymentsIdsFilter(auxiliaryDeploymentsIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
-		"SELECT aux_dep_id, name, mnt_point FROM aux_dep_volumes"+fc+";",
+		"SELECT aux_dep_id, ref, name, mnt_point FROM aux_dep_volumes"+fc+";",
 		val...,
 	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	auxDepsVolumes := make(map[string]map[string]string)
+	auxDepsVolumes := make(map[string]map[string]models_handler_database.AuxiliaryDeploymentVolume)
 	for rows.Next() {
-		var id, name, mountPath string
-		err = rows.Scan(&id, &name, &mountPath)
+		var volume models_handler_database.AuxiliaryDeploymentVolume
+		err = rows.Scan(&volume.AuxiliaryDeploymentId, &volume.Reference, &volume.Name, &volume.MountPath)
 		if err != nil {
 			return nil, err
 		}
-		volumes, ok := auxDepsVolumes[id]
+		volumes, ok := auxDepsVolumes[volume.AuxiliaryDeploymentId]
 		if !ok {
-			volumes = make(map[string]string)
-			auxDepsVolumes[id] = volumes
+			volumes = make(map[string]models_handler_database.AuxiliaryDeploymentVolume)
+			auxDepsVolumes[volume.AuxiliaryDeploymentId] = volumes
 		}
-		volumes[name] = mountPath
+		volumes[volume.Reference] = volume
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err

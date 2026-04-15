@@ -35,12 +35,21 @@ CREATE TABLE IF NOT EXISTS aux_dep_configs
     INDEX i_aux_dep_id (aux_dep_id),
     FOREIGN KEY (aux_dep_id) REFERENCES aux_deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
+CREATE TABLE IF NOT EXISTS aux_volumes
+(
+    dep_id CHAR(36)     NOT NULL,
+    ref    VARCHAR(128) NOT NULL,
+    name   VARCHAR(256) NOT NULL,
+    UNIQUE KEY uk_dep_id_ref (dep_id, ref),
+    INDEX i_dep_id (dep_id),
+    FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
+);
 CREATE TABLE IF NOT EXISTS aux_dep_volumes
 (
     aux_dep_id CHAR(36)     NOT NULL,
-    name       VARCHAR(256) NOT NULL,
+    ref        VARCHAR(256) NOT NULL,
     mnt_point  VARCHAR(256) NOT NULL,
-    UNIQUE KEY uk_aux_dep_id_name (aux_dep_id, name),
+    UNIQUE KEY uk_aux_dep_id_ref (aux_dep_id, ref),
     INDEX i_aux_dep_id (aux_dep_id),
     FOREIGN KEY (aux_dep_id) REFERENCES aux_deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );

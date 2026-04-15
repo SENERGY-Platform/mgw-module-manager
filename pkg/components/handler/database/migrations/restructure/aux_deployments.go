@@ -101,7 +101,7 @@ func migrateAuxDeploymentsTab(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	newIndexKeys := []string{"uk_id_ctr_name", "i_dep_id", "i_dep_id_ref"}
+	newIndexKeys := []string{"i_dep_id", "i_dep_id_ref"}
 	for _, key := range currentIndexKeys {
 		if key == "PRIMARY" {
 			continue
