@@ -123,7 +123,7 @@ func (h *Handler) ReadAuxiliaryDeploymentsConfigs(
 	fc, val := genAuxiliaryDeploymentsIdsFilter(auxiliaryDeploymentsIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
-		"SELECT aux_dep_id, ref, value FROM aux_dep_configs"+fc+";",
+		"SELECT aux_dep_id, name, value FROM aux_dep_configs"+fc+";",
 		val...,
 	)
 	if err != nil {
@@ -132,9 +132,9 @@ func (h *Handler) ReadAuxiliaryDeploymentsConfigs(
 	defer rows.Close()
 	auxDepsConfigs := make(map[string]map[string]string)
 	for rows.Next() {
-		var id, reference string
+		var id, name string
 		var value sql.NullString
-		err = rows.Scan(&id, &reference, &value)
+		err = rows.Scan(&id, &name, &value)
 		if err != nil {
 			return nil, err
 		}
@@ -143,7 +143,7 @@ func (h *Handler) ReadAuxiliaryDeploymentsConfigs(
 			configs = make(map[string]string)
 			auxDepsConfigs[id] = configs
 		}
-		configs[reference] = value.String
+		configs[name] = value.String
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err
