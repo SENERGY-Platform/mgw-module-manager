@@ -29,12 +29,12 @@ var Prefix string
 var ManagerId string
 var ModuleContainerNetwork string
 
-func NewContainerName(subPrefix string) (string, error) {
+func NewContainerName(prefix string) (string, error) {
 	newUUID, err := uuid.NewV7()
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s-%s-%s-%s", Prefix, CoreId, subPrefix, GenHash(newUUID.String())), nil
+	return fmt.Sprintf("%s-%s-%s-%s", Prefix, CoreId, prefix, GenHash(newUUID.String())), nil
 }
 
 func NewContainerAlias(arg ...string) string {
