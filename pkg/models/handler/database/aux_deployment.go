@@ -52,7 +52,7 @@ type AuxiliaryDeploymentVolumeMount struct {
 }
 
 type AuxiliaryDeploymentRunConfig struct {
-	Command   string
+	Command   []string
 	PseudoTTY bool
 }
 

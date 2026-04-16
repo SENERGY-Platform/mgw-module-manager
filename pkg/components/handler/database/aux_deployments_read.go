@@ -71,7 +71,7 @@ func (h *Handler) ReadAuxiliaryDeployments(
 		if auxDep.Updated, err = time.Parse(timeLayout, string(ut)); err != nil {
 			return nil, err
 		}
-		auxDep.RunConfig.Command = command.String
+		auxDep.RunConfig.Command = strings.Split(command.String, ",")
 		auxDep.RunConfig.PseudoTTY = pseudoTTY.Bool
 		auxDeps[auxDep.Id] = auxDep
 	}

@@ -78,6 +78,6 @@ type ServiceInput struct {
 }
 
 type RunConfig struct {
-	Command   string
+	Command   []string
 	PseudoTTY int
 }

@@ -18,6 +18,7 @@ package handler_database
 
 import (
 	"context"
+	"strings"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
@@ -47,7 +48,7 @@ func (h *Handler) CreateAuxiliaryDeployment(
 		auxiliaryDeployment.Enabled,
 		auxiliaryDeployment.Container.Name,
 		auxiliaryDeployment.Container.Alias,
-		auxiliaryDeployment.RunConfig.Command,
+		strings.Join(auxiliaryDeployment.RunConfig.Command, ","),
 		auxiliaryDeployment.RunConfig.PseudoTTY,
 	)
 	if err != nil {
