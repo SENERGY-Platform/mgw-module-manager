@@ -121,11 +121,11 @@ func getAuxiliaryDeployments(
 	for id, dbAuxDep := range dbAuxDeployments {
 		cewContainer := cewContainers[dbAuxDep.Container.Name]
 		auxDeployments[id] = models_handler_aux_deployments.AuxiliaryDeployment{
-			AuxiliaryDeployment: dbAuxDep,
-			Labels:              dbAuxDepLabels[id],
-			Configs:             dbAuxDepConfigs[id],
-			Volumes:             getVolumes(dbAuxDepVolumeMounts[id]),
-			ContainerInfo:       getContainerInfo(cewContainer),
+			AuxiliaryDeploymentBase: newAuxiliaryDeploymentBase(dbAuxDep),
+			Labels:                  dbAuxDepLabels[id],
+			Configs:                 dbAuxDepConfigs[id],
+			Volumes:                 getVolumes(dbAuxDepVolumeMounts[id]),
+			Container:               getContainer(dbAuxDep.Container, cewContainer),
 		}
 	}
 	return auxDeployments
@@ -139,8 +139,8 @@ func getReducedAuxiliaryDeployments(
 	for id, dbAuxDep := range dbAuxDeployments {
 		cewContainer := cewContainers[dbAuxDep.Container.Name]
 		auxDeployments[id] = models_handler_aux_deployments.AuxiliaryDeploymentReduced{
-			AuxiliaryDeployment: dbAuxDep,
-			ContainerInfo:       getContainerInfo(cewContainer),
+			AuxiliaryDeploymentBase: newAuxiliaryDeploymentBase(dbAuxDep),
+			Container:               getContainer(dbAuxDep.Container, cewContainer),
 		}
 	}
 	return auxDeployments
@@ -157,8 +157,10 @@ func getVolumes(mounts []models_handler_database.AuxiliaryDeploymentVolumeMount)
 	return volumes
 }
 
-func getContainerInfo(cewContainer models_external.Container) models_handler_aux_deployments.ContainerInfo {
-	ctrInfo := models_handler_aux_deployments.ContainerInfo{
+func getContainer(dbContainer models_handler_database.AuxiliaryDeploymentContainer, cewContainer models_external.Container) models_handler_aux_deployments.Container {
+	ctrInfo := models_handler_aux_deployments.Container{
+		Name:    dbContainer.Name,
+		Alias:   dbContainer.Alias,
 		ImageId: cewContainer.ImageID,
 		State:   cewContainer.State,
 	}
@@ -166,4 +168,18 @@ func getContainerInfo(cewContainer models_external.Container) models_handler_aux
 		ctrInfo.Health = *cewContainer.Health
 	}
 	return ctrInfo
+}
+
+func newAuxiliaryDeploymentBase(dbAuxDep models_handler_database.AuxiliaryDeployment) models_handler_aux_deployments.AuxiliaryDeploymentBase {
+	return models_handler_aux_deployments.AuxiliaryDeploymentBase{
+		Id:           dbAuxDep.Id,
+		DeploymentId: dbAuxDep.DeploymentId,
+		Reference:    dbAuxDep.Reference,
+		Name:         dbAuxDep.Name,
+		Image:        dbAuxDep.Image,
+		Created:      dbAuxDep.Created,
+		Updated:      dbAuxDep.Updated,
+		Enabled:      dbAuxDep.Enabled,
+		RunConfig:    dbAuxDep.RunConfig,
+	}
 }

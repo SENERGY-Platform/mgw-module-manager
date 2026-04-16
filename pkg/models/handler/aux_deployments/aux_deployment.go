@@ -17,20 +17,34 @@
 package models_handler_aux_deployments
 
 import (
+	"time"
+
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
+type AuxiliaryDeploymentBase struct {
+	Id           string
+	DeploymentId string
+	Reference    string
+	Name         string
+	Image        string
+	Created      time.Time
+	Updated      time.Time
+	Enabled      bool
+	RunConfig    models_handler_database.AuxiliaryDeploymentRunConfig
+}
+
 type AuxiliaryDeployment struct {
-	models_handler_database.AuxiliaryDeployment
-	Labels        map[string]string // {name:value}
-	Configs       map[string]string // {varName:value}
-	Volumes       []Volume
-	ContainerInfo ContainerInfo
+	AuxiliaryDeploymentBase
+	Labels    map[string]string // {name:value}
+	Configs   map[string]string // {varName:value}
+	Volumes   []Volume
+	Container Container
 }
 
 type AuxiliaryDeploymentReduced struct {
-	models_handler_database.AuxiliaryDeployment
-	ContainerInfo ContainerInfo
+	AuxiliaryDeploymentBase
+	Container Container
 }
 
 type Volume struct {
@@ -38,7 +52,9 @@ type Volume struct {
 	MountPath string
 }
 
-type ContainerInfo struct {
+type Container struct {
+	Name    string
+	Alias   string
 	ImageId string // docker image id
 	State   string // docker container state
 	Health  string // docker container health
