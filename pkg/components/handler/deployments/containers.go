@@ -59,13 +59,13 @@ func (h *Handler) createContainers(
 		envVariables[models_constants.EnvVariableCoreId] = helper_naming.CoreId
 		envVariables[models_constants.EnvVariableDeploymentId] = deploymentId
 		var mounts []models_external.CewMount
-		mounts = appendIncludeMounts(mounts, service.BindMounts, deploymentDirName, h.config.WorkDirPath)
+		mounts = appendIncludeMounts(mounts, service.BindMounts, deploymentDirName, h.config.HostWorkDirPath)
 		mounts = appendTmpfsMounts(mounts, service.Tmpfs)
 		mounts = appendVolumeMounts(mounts, service.Volumes, volumes)
 		mounts = appendApplicationMounts(mounts, service.HostResources, userDataHostResources, cacheHostResources)
 		mounts = appendSecretMounts(mounts, service.SecretMounts, userDataSecrets, bindMounts.Secrets, h.config.HostSecretsPath)
-		mounts = appendFileMounts(mounts, service.Files, deploymentFilesDirName, bindMounts.Files, h.config.WorkDirPath)
-		mounts = appendFileGroupMounts(mounts, service.FileGroups, deploymentFilesDirName, bindMounts.FileGroups, h.config.WorkDirPath)
+		mounts = appendFileMounts(mounts, service.Files, deploymentFilesDirName, bindMounts.Files, h.config.HostWorkDirPath)
+		mounts = appendFileGroupMounts(mounts, service.FileGroups, deploymentFilesDirName, bindMounts.FileGroups, h.config.HostWorkDirPath)
 		storageContainer := containers[reference]
 		cewContainer, err := getCewContainer(
 			service.Image,
