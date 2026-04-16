@@ -176,7 +176,7 @@ func (h *Handler) ReadAuxiliaryDeploymentVolumes(
 	return auxDepVolumes, nil
 }
 
-const selectAuxiliaryDeploymentsVolumeMountsStmt = `SELECT aux_dep_volume_mounts.aux_dep_id, aux_dep_volume_mounts.vol_id, aux_dep_volumes.ref, aux_dep_volume_mounts.mnt_path
+const selectAuxiliaryDeploymentsVolumeMountsStmt = `SELECT aux_dep_volume_mounts.aux_dep_id, aux_dep_volume_mounts.vol_id, aux_dep_volumes.name, aux_dep_volumes.ref, aux_dep_volume_mounts.mnt_path
 FROM aux_dep_volume_mounts
 LEFT JOIN aux_dep_volumes
 ON aux_dep_volume_mounts.vol_id = aux_dep_volumes.id ORDER BY aux_dep_id, ref`
@@ -203,7 +203,7 @@ func (h *Handler) ReadAuxiliaryDeploymentsVolumeMounts(
 	auxDepsVolumeMounts := make(map[string][]models_handler_database.AuxiliaryDeploymentVolumeMount)
 	for rows.Next() {
 		var mount models_handler_database.AuxiliaryDeploymentVolumeMount
-		err = rows.Scan(&mount.AuxiliaryDeploymentId, &mount.VolumeId, &mount.Reference, &mount.MountPath)
+		err = rows.Scan(&mount.AuxiliaryDeploymentId, &mount.VolumeId, &mount.VolumeName, &mount.Reference, &mount.MountPath)
 		if err != nil {
 			return nil, err
 		}
