@@ -17,7 +17,9 @@
 package models_constants
 
 const (
-	EnvVariableDeploymentId = "MGW_DID"
+	EnvVariableDeploymentId    = "MGW_DID"
+	EnvVariableAuxDeploymentId = "MGW_AID"
+	EnvVariableCoreId          = "MGW_CID"
 )
 
 const (
@@ -29,6 +31,8 @@ const (
 	LabelCoreId                       = "mgw_cid"
 	LabelManagerId                    = "mgw_mid"
 	LabelDeploymentId                 = "mgw_did"
+	LabelAuxDeploymentId              = "mgw_aid"
+	LabelAuxDeploymentReference       = "mgw_aref"
 	LabelAuxDeploymentVolumeId        = "mgw_advid"
 	LabelVolumeReference              = "mgw_vref"
 	LabelVolumeType                   = "mgw_vt"
