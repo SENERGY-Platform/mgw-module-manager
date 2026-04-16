@@ -43,33 +43,15 @@ func (h *Handler) CreateAuxiliaryDeployment(
 	dependencies map[string]models_handler_deployments.DeploymentReduced,
 	serviceInput models_handler_aux_deployments.ServiceInput,
 ) (models_handler_aux_deployments.AuxiliaryDeploymentReduced, error) {
-	auxiliaryDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id)
+	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id)
 	if err != nil {
 		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
 	}
-	return h.createAuxiliaryDeployment(
-		ctx,
-		module,
-		activeDeployment,
-		dependencies,
-		serviceInput,
-		auxiliaryDeploymentVolumes,
-	)
-}
-
-func (h *Handler) createAuxiliaryDeployment(
-	ctx context.Context,
-	module models_handler_modules.Module,
-	activeDeployment models_handler_deployments.Deployment,
-	dependencies map[string]models_handler_deployments.DeploymentReduced,
-	serviceInput models_handler_aux_deployments.ServiceInput,
-	auxDeploymentVolumes map[string]models_handler_database.AuxiliaryDeploymentVolume, // {reference:AuxiliaryDeploymentVolume}
-) (models_handler_aux_deployments.AuxiliaryDeploymentReduced, error) {
 	auxService, ok := module.AuxServices[serviceInput.Reference]
 	if !ok {
-		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, errors.New("auxiliary service reference not found")
+		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, errors.New("auxiliary service reference not found") // TODO
 	}
-	err := validateImage(module.AuxImgSrc, serviceInput.Image)
+	err = validateImage(module.AuxImgSrc, serviceInput.Image)
 	if err != nil {
 		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
 	}
