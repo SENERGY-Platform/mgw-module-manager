@@ -68,6 +68,7 @@ func (h *Handler) createContainerVolume(ctx context.Context, volume models_handl
 		Labels: map[string]string{
 			models_constants.LabelCoreId:          helper_naming.CoreId,
 			models_constants.LabelManagerId:       helper_naming.ManagerId,
+			models_constants.LabelVolumeType:      models_constants.DeploymentAbbreviation,
 			models_constants.LabelDeploymentId:    volume.DeploymentId,
 			models_constants.LabelVolumeReference: volume.Reference,
 		},
@@ -111,6 +112,7 @@ func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) 
 		Labels: map[string]string{
 			models_constants.LabelCoreId:       helper_naming.CoreId,
 			models_constants.LabelManagerId:    helper_naming.ManagerId,
+			models_constants.LabelVolumeType:   models_constants.DeploymentAbbreviation,
 			models_constants.LabelDeploymentId: deploymentId,
 		},
 	})
