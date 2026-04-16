@@ -56,6 +56,7 @@ func (h *Handler) createContainers(
 		setSecretValueEnvVariables(envVariables, service.SecretVars, userDataSecrets, cacheSecretValues)
 		setInternalDependencyEnvVariables(envVariables, service.SrvReferences, containers)
 		setExternalDependencyEnvVariables(envVariables, service.ExtDependencies, cacheDeployments)
+		envVariables[models_constants.EnvVariableCoreId] = helper_naming.CoreId
 		envVariables[models_constants.EnvVariableDeploymentId] = deploymentId
 		var mounts []models_external.CewMount
 		mounts = appendIncludeMounts(mounts, service.BindMounts, deploymentDirName, h.config.WorkDirPath)
