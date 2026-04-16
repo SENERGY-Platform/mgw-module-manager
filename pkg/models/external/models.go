@@ -40,6 +40,7 @@ type ModuleLibBindMount = module_lib.BindMount
 type ModuleLibExtDependencyTarget = module_lib.ExtDependencyTarget
 type ModuleLibHostResource = module_lib.HostResource
 type ModuleLibFile = module_lib.File
+type ModuleLibAuxService = module_lib.AuxService
 
 const (
 	ModuleLibBoolType    = module_lib.BoolType
