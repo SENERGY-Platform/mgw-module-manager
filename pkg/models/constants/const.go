@@ -21,6 +21,11 @@ const (
 )
 
 const (
+	DeploymentAbbreviation    = "dep"
+	AuxDeploymentAbbreviation = "aux-dep"
+)
+
+const (
 	LabelCoreId                       = "mgw_cid"
 	LabelManagerId                    = "mgw_mid"
 	LabelDeploymentId                 = "mgw_did"
