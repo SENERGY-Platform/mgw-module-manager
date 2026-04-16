@@ -491,17 +491,15 @@ func newCewPorts(servicePorts []models_external.ModuleLibPort) (ports []models_e
 
 func newCewRunConfig(serviceRunConfig models_external.ModuleLibRunConfig) models_external.CewRunConfig {
 	rc := models_external.CewRunConfig{
-		RestartStrategy: models_external.CewRestartStrategyNever, // restarts should be handled by module-manager
-		Retries:         nil,                                     // sollte von health handler verwendet werden?
-		RemoveAfterRun:  false,                                   // wird das benutzt?
+		RestartStrategy: models_external.CewRestartStrategyNever,
 		PseudoTTY:       serviceRunConfig.PseudoTTY,
 		Command:         serviceRunConfig.Command,
 	}
 	if serviceRunConfig.StopTimeout > 0 {
-		rc.StopTimeout = &serviceRunConfig.StopTimeout // pointer unnötig, cew anpassen
+		rc.StopTimeout = &serviceRunConfig.StopTimeout // unnecessary pointer, change cew
 	}
 	if serviceRunConfig.StopSignal != "" {
-		rc.StopSignal = &serviceRunConfig.StopSignal // pointer unnötig, cew anpassen
+		rc.StopSignal = &serviceRunConfig.StopSignal // unnecessary pointer, change cew
 	}
 	return rc
 }
