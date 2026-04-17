@@ -69,6 +69,9 @@ func (h *Handler) UpdateAuxiliaryDeployment(
 	if err != nil {
 		return err
 	}
+	if serviceInput.Name == "" {
+		serviceInput.Name = currentAuxDeployment.Name
+	}
 	newAuxDeployment, err := getAuxiliaryDeployment(
 		auxService.Name,
 		auxService.RunConfig,
