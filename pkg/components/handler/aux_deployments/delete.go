@@ -72,14 +72,34 @@ func (h *Handler) DeleteAuxiliaryDeployments(
 	return deleted, nil
 }
 
-func (h *Handler) deleteAuxiliaryDeployment(ctx context.Context, id, containerName string) error {
-	err := helper_containers.Remove(ctx, h.containerEngineWrapperClient, containerName)
+func (h *Handler) CleanAuxiliaryDeployments(ctx context.Context, deploymentId string) error {
+	mu := h.mutexes.Get(deploymentId)
+	mu.Lock()
+	defer mu.Unlock()
+	auxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, models_handler_database.AuxiliaryDeploymentsFilter{})
 	if err != nil {
 		return err
 	}
-	err = h.databaseHandler.DeleteAuxiliaryDeployment(ctx, id)
-	if err != nil {
-		return err
+	if len(auxDeployments) == 0 {
+		return nil
 	}
+	var deleted []string
+	var errs []string
+	for id, auxDep := range auxDeployments {
+		err = helper_containers.Remove(ctx, h.containerEngineWrapperClient, auxDep.Container.Name)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+		deleted = append(deleted, id)
+	}
+	err = h.databaseHandler.DeleteAuxiliaryDeployments(ctx, deleted)
+	if err != nil {
+		errs = append(errs, err.Error())
+	}
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "\n")) // TODO
+	}
+	h.mutexes.Delete(deploymentId)
 	return nil
 }
