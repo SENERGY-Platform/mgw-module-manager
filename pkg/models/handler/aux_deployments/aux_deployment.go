@@ -72,7 +72,7 @@ type ServiceInput struct {
 	PullImage bool
 	Labels    map[string]string // {name:value}
 	Configs   map[string]string // {varName:value}
-	Volumes   map[string]string // {mntPath:volumeName}
+	Volumes   map[string]string // {mntPath:reference}
 	RunConfig RunConfig
 	Enabled   bool
 }
