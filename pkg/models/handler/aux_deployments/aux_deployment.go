@@ -77,6 +77,11 @@ type ServiceInput struct {
 	Enabled   bool
 }
 
+type UpdateServiceInput struct {
+	ServiceInput
+	Incremental bool
+}
+
 type RunConfig struct {
 	Command   []string
 	PseudoTTY int
