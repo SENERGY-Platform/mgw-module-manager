@@ -43,13 +43,13 @@ func (h *Handler) CreateAuxiliaryDeployment(
 	dependencies map[string]models_handler_deployments.DeploymentReduced,
 	serviceInput models_handler_aux_deployments.ServiceInput,
 ) (models_handler_aux_deployments.AuxiliaryDeploymentReduced, error) {
-	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id)
-	if err != nil {
-		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
-	}
 	auxService, ok := module.AuxServices[serviceInput.Reference]
 	if !ok {
 		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, errors.New("auxiliary service reference not found") // TODO
+	}
+	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id)
+	if err != nil {
+		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
 	}
 	err = validateImage(module.AuxImgSrc, serviceInput.Image)
 	if err != nil {
