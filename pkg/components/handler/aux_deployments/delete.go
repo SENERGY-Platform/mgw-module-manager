@@ -36,12 +36,12 @@ func (h *Handler) DeleteAuxiliaryDeployments(
 	defer mu.Unlock()
 	auxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, filter.AuxiliaryDeploymentsFilter)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if filter.State != "" {
 		cewContainers, err := h.getCewContainers(ctx, auxDeployments)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		tmp := make(map[string]models_handler_database.AuxiliaryDeployment)
 		for id, auxDep := range auxDeployments {
@@ -52,17 +52,24 @@ func (h *Handler) DeleteAuxiliaryDeployments(
 		}
 		auxDeployments = tmp
 	}
+	var deleted []string
 	var errs []string
 	for id, auxDep := range auxDeployments {
-		err = h.deleteAuxiliaryDeployment(ctx, id, auxDep.Container.Name)
+		err = helper_containers.Remove(ctx, h.containerEngineWrapperClient, auxDep.Container.Name)
 		if err != nil {
 			errs = append(errs, err.Error())
+			continue
 		}
+		deleted = append(deleted, id)
+	}
+	err = h.databaseHandler.DeleteAuxiliaryDeployments(ctx, deleted)
+	if err != nil {
+		errs = append(errs, err.Error())
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
+		return deleted, errors.New(strings.Join(errs, "\n")) // TODO
 	}
-	return nil
+	return deleted, nil
 }
 
 func (h *Handler) deleteAuxiliaryDeployment(ctx context.Context, id, containerName string) error {
