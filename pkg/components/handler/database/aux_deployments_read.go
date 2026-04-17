@@ -142,6 +142,14 @@ func (h *Handler) ReadAuxiliaryDeploymentsLabels(
 	return auxDepsLabels, nil
 }
 
+func (h *Handler) ReadAuxiliaryDeploymentConfigs(ctx context.Context, auxiliaryDeploymentId string) (map[string]string, error) {
+	auxDepsConfigs, err := h.ReadAuxiliaryDeploymentsConfigs(ctx, []string{auxiliaryDeploymentId})
+	if err != nil {
+		return nil, err
+	}
+	return auxDepsConfigs[auxiliaryDeploymentId], nil
+}
+
 func (h *Handler) ReadAuxiliaryDeploymentsConfigs(
 	ctx context.Context,
 	auxiliaryDeploymentsIds []string,
