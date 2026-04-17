@@ -183,7 +183,7 @@ func getAuxiliaryDeployment(
 		Id:           auxDeploymentId,
 		DeploymentId: deploymentId,
 		Reference:    serviceInput.Reference,
-		Name:         serviceInput.Name,
+		Name:         name,
 		Image:        serviceInput.Image,
 		Enabled:      serviceInput.Enabled,
 		Container: models_handler_database.AuxiliaryDeploymentContainer{
