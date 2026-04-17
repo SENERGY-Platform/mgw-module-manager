@@ -37,7 +37,7 @@ func (h *Handler) createContainer(
 	dependencies map[string]models_handler_deployments.DeploymentReduced,
 	auxDeployment models_handler_database.AuxiliaryDeployment,
 	configs map[string]string,
-	auxDeploymentVolumeMounts []models_handler_database.AuxiliaryDeploymentVolumeMount,
+	volumeMounts []models_handler_database.AuxiliaryDeploymentVolumeMount,
 ) error {
 	envVariables := make(map[string]string)
 	maps.Copy(envVariables, configs)
@@ -49,7 +49,7 @@ func (h *Handler) createContainer(
 	var mounts []models_external.CewMount
 	mounts = appendIncludeMounts(mounts, moduleAuxService.BindMounts, activeDeployment.DirName, h.config.HostWorkDirPath)
 	mounts = appendTmpfsMounts(mounts, moduleAuxService.Tmpfs)
-	mounts = appendVolumeMounts(mounts, moduleAuxService.Volumes, activeDeployment.Volumes, auxDeploymentVolumeMounts)
+	mounts = appendVolumeMounts(mounts, moduleAuxService.Volumes, activeDeployment.Volumes, volumeMounts)
 	cewContainer := getCewContainer(
 		auxServiceReference,
 		moduleAuxService.RunConfig,

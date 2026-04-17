@@ -140,7 +140,7 @@ func getNewVolumes(
 	return volumes
 }
 
-func getAuxDeploymentVolumeMounts(
+func getVolumeMounts(
 	auxDeploymentId string,
 	serviceInputVolumes map[string]string, // {mntPath:reference}
 	auxiliaryDeploymentVolumes map[string]models_handler_database.AuxiliaryDeploymentVolume,

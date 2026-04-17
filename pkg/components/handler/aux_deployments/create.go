@@ -85,13 +85,13 @@ func (h *Handler) CreateAuxiliaryDeployment(
 		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
 	}
 	maps.Copy(auxDeploymentVolumes, newAuxDeploymentVolumes)
-	auxDeploymentVolumeMounts := getAuxDeploymentVolumeMounts(newAuxDeployment.Id, serviceInput.Volumes, auxDeploymentVolumes)
+	volumeMounts := getVolumeMounts(newAuxDeployment.Id, serviceInput.Volumes, auxDeploymentVolumes)
 	err = h.databaseHandler.CreateAuxiliaryDeployment(
 		ctx,
 		newAuxDeployment,
 		serviceInput.Labels,
 		serviceInput.Configs,
-		auxDeploymentVolumeMounts,
+		volumeMounts,
 	)
 	if err != nil {
 		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
@@ -115,7 +115,7 @@ func (h *Handler) CreateAuxiliaryDeployment(
 		dependencies,
 		newAuxDeployment,
 		mergedConfigs,
-		auxDeploymentVolumeMounts,
+		volumeMounts,
 	)
 	return models_handler_aux_deployments.AuxiliaryDeploymentReduced{
 		AuxiliaryDeploymentBase: newAuxiliaryDeploymentBase(newAuxDeployment),
