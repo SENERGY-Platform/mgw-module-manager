@@ -33,6 +33,9 @@ func (h *Handler) GetAuxiliaryDeployment(
 	deploymentId string,
 	auxDeploymentId string,
 ) (models_handler_aux_deployments.AuxiliaryDeployment, error) {
+	mu := h.mutexes.Get(deploymentId)
+	mu.RLock()
+	defer mu.RUnlock()
 	auxDeployments, err := h.GetAuxiliaryDeployments(ctx, deploymentId, models_handler_aux_deployments.AuxiliaryDeploymentsFilter{
 		AuxiliaryDeploymentsFilter: models_handler_database.AuxiliaryDeploymentsFilter{
 			Ids: []string{auxDeploymentId},
@@ -52,6 +55,9 @@ func (h *Handler) GetAuxiliaryDeployments(
 	deploymentId string,
 	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
 ) (map[string]models_handler_aux_deployments.AuxiliaryDeployment, error) {
+	mu := h.mutexes.Get(deploymentId)
+	mu.RLock()
+	defer mu.RUnlock()
 	dbAuxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, filter.AuxiliaryDeploymentsFilter)
 	if err != nil {
 		return nil, err
@@ -81,6 +87,9 @@ func (h *Handler) GetReducedAuxiliaryDeployments(
 	deploymentId string,
 	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
 ) (map[string]models_handler_aux_deployments.AuxiliaryDeploymentReduced, error) {
+	mu := h.mutexes.Get(deploymentId)
+	mu.RLock()
+	defer mu.RUnlock()
 	dbAuxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, filter.AuxiliaryDeploymentsFilter)
 	if err != nil {
 		return nil, err

@@ -30,7 +30,10 @@ func (h *Handler) DeleteAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
 	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
-) error {
+) ([]string, error) {
+	mu := h.mutexes.Get(deploymentId)
+	mu.Lock()
+	defer mu.Unlock()
 	auxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, filter.AuxiliaryDeploymentsFilter)
 	if err != nil {
 		return err

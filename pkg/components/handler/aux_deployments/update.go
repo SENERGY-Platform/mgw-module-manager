@@ -37,6 +37,9 @@ func (h *Handler) UpdateAuxiliaryDeployment(
 	auxDeploymentId string,
 	serviceInput models_handler_aux_deployments.UpdateServiceInput,
 ) error {
+	mu := h.mutexes.Get(activeDeployment.Id)
+	mu.Lock()
+	defer mu.Unlock()
 	currentAuxDeployment, err := h.databaseHandler.ReadAuxiliaryDeployment(ctx, activeDeployment.Id, auxDeploymentId)
 	if err != nil {
 		return err

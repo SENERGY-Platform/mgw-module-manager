@@ -44,6 +44,9 @@ func (h *Handler) CreateAuxiliaryDeployment(
 	dependencies map[string]models_handler_deployments.DeploymentReduced,
 	serviceInput models_handler_aux_deployments.ServiceInput,
 ) (models_handler_aux_deployments.AuxiliaryDeploymentReduced, error) {
+	mu := h.mutexes.Get(activeDeployment.Id)
+	mu.Lock()
+	defer mu.Unlock()
 	auxService, ok := module.AuxServices[serviceInput.Reference]
 	if !ok {
 		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, errors.New("auxiliary service reference not found") // TODO

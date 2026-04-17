@@ -18,6 +18,8 @@ package handler_aux_deployments
 
 import (
 	"time"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/mutex_map"
 )
 
 type Config struct {
@@ -32,6 +34,7 @@ type Handler struct {
 	databaseHandler              databaseHandler
 	containerEngineWrapperClient containerEngineWrapperClient
 	config                       Config
+	mutexes                      *helper_mutex_map.RWMutexMap
 }
 
 func New(databaseHandler databaseHandler, containerEngineWrapperClient containerEngineWrapperClient, config Config) *Handler {
@@ -39,5 +42,6 @@ func New(databaseHandler databaseHandler, containerEngineWrapperClient container
 		databaseHandler:              databaseHandler,
 		containerEngineWrapperClient: containerEngineWrapperClient,
 		config:                       config,
+		mutexes:                      helper_mutex_map.New(),
 	}
 }
