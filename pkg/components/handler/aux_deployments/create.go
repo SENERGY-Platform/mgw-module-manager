@@ -96,6 +96,14 @@ func (h *Handler) CreateAuxiliaryDeployment(
 	if err != nil {
 		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
 	}
+	defer func() {
+		if err != nil {
+			e := h.databaseHandler.DeleteAuxiliaryDeployment(ctx, activeDeployment.Id, id)
+			if e != nil {
+				logger.Error(e.Error()) // TODO
+			}
+		}
+	}()
 	err = h.ensureAuxDeploymentEnvironment(
 		ctx,
 		activeDeployment.Id,
@@ -120,7 +128,6 @@ func (h *Handler) CreateAuxiliaryDeployment(
 	if err != nil {
 		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
 	}
-	// TODO remove from DB if createContainer fails?
 	return models_handler_aux_deployments.AuxiliaryDeploymentReduced{
 		AuxiliaryDeploymentBase: newAuxiliaryDeploymentBase(newAuxDeployment),
 		Container: models_handler_aux_deployments.Container{
