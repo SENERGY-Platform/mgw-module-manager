@@ -55,7 +55,7 @@ func (h *Handler) DeleteDeployments(ctx context.Context, filter models_handler_d
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
+		return errors.New(strings.Join(errs, "\n")) // TODO
 	}
 	return nil
 }

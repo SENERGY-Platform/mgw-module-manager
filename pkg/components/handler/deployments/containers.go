@@ -24,7 +24,7 @@ import (
 
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
@@ -86,7 +86,6 @@ func (h *Handler) createContainers(
 			continue
 		}
 	}
-
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n"))
 	}
@@ -99,24 +98,13 @@ func (h *Handler) removeContainers(
 ) error {
 	var errs []string
 	for _, container := range deploymentContainers {
-		err := h.removeContainer(ctx, container.Name)
+		err := helper_containers.Remove(ctx, h.containerEngineWrapperClient, container.Name)
 		if err != nil {
 			errs = append(errs, err.Error())
 		}
 	}
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n")) // TODO
-	}
-	return nil
-}
-
-func (h *Handler) removeContainer(ctx context.Context, containerId string) error {
-	err := h.containerEngineWrapperClient.RemoveContainer(ctx, containerId, true)
-	if err != nil {
-		var notFoundErr *models_external.CEWNotFoundErr
-		if !errors.As(err, &notFoundErr) {
-			return err
-		}
 	}
 	return nil
 }
@@ -144,28 +132,13 @@ func (h *Handler) stopContainers(
 ) error {
 	var errs []string
 	for _, container := range deploymentContainers {
-		err := h.stopContainer(ctx, container.Name)
+		err := helper_containers.Stop(ctx, h.containerEngineWrapperClient, container.Name, h.config.JobPollInterval)
 		if err != nil {
 			errs = append(errs, err.Error())
 		}
 	}
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n")) // TODO
-	}
-	return nil
-}
-
-func (h *Handler) stopContainer(ctx context.Context, containerId string) error {
-	jobId, err := h.containerEngineWrapperClient.StopContainer(ctx, containerId)
-	if err != nil {
-		return err
-	}
-	job, err := helper_job.Await(ctx, h.containerEngineWrapperClient, jobId, h.config.JobPollInterval)
-	if err != nil {
-		return err
-	}
-	if job.Error != nil {
-		return errors.New(job.Error.Message)
 	}
 	return nil
 }
@@ -176,28 +149,13 @@ func (h *Handler) restartContainers(
 ) error {
 	var errs []string
 	for _, container := range deploymentContainers {
-		err := h.restartContainer(ctx, container.Name)
+		err := helper_containers.Restart(ctx, h.containerEngineWrapperClient, container.Name, h.config.JobPollInterval)
 		if err != nil {
 			errs = append(errs, err.Error())
 		}
 	}
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n")) // TODO
-	}
-	return nil
-}
-
-func (h *Handler) restartContainer(ctx context.Context, containerId string) error {
-	jobId, err := h.containerEngineWrapperClient.RestartContainer(ctx, containerId)
-	if err != nil {
-		return err
-	}
-	job, err := helper_job.Await(ctx, h.containerEngineWrapperClient, jobId, h.config.JobPollInterval)
-	if err != nil {
-		return err
-	}
-	if job.Error != nil {
-		return errors.New(job.Error.Message)
 	}
 	return nil
 }

@@ -25,6 +25,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
@@ -145,7 +146,14 @@ func (h *Handler) ensureAuxDeploymentEnvironment(
 	forceImagePull bool,
 	volumes map[string]models_handler_database.AuxiliaryDeploymentVolume,
 ) error {
-	err := h.ensureContainerImage(ctx, imageName, forceImagePull)
+	err := helper_containers.EnsureImage(
+		ctx,
+		h.containerEngineWrapperClient,
+		imageName,
+		forceImagePull,
+		h.config.PathEscapeDepth,
+		h.config.JobPollInterval,
+	)
 	if err != nil {
 		return err
 	}

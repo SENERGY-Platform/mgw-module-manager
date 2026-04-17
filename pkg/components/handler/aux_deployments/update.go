@@ -22,6 +22,7 @@ import (
 	"maps"
 	"slices"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
@@ -99,6 +100,14 @@ func (h *Handler) UpdateAuxiliaryDeployment(
 	}
 	maps.Copy(auxDeploymentVolumes, newAuxDeploymentVolumes)
 	volumeMounts := getVolumeMounts(newAuxDeployment.Id, serviceInput.Volumes, auxDeploymentVolumes)
+	err = helper_containers.Stop(ctx, h.containerEngineWrapperClient, currentAuxDeployment.Container.Name, h.config.JobPollInterval)
+	if err != nil {
+		return err
+	}
+	err = helper_containers.Remove(ctx, h.containerEngineWrapperClient, currentAuxDeployment.Container.Name)
+	if err != nil {
+		return err
+	}
 	err = h.databaseHandler.UpdateAuxiliaryDeployment(
 		ctx,
 		newAuxDeployment,

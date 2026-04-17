@@ -21,8 +21,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -33,37 +32,20 @@ func (h *Handler) ensureContainerImages(ctx context.Context, moduleServices map[
 	}
 	var errs []string
 	for imageName := range imageNames {
-		err := h.ensureContainerImage(ctx, imageName)
+		err := helper_containers.EnsureImage(
+			ctx,
+			h.containerEngineWrapperClient,
+			imageName,
+			false,
+			h.config.PathEscapeDepth,
+			h.config.JobPollInterval,
+		)
 		if err != nil {
 			errs = append(errs, err.Error())
 		}
 	}
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n")) // TODO
-	}
-	return nil
-}
-
-func (h *Handler) ensureContainerImage(ctx context.Context, imageName string) error {
-	_, err := h.containerEngineWrapperClient.GetImage(ctx, helper_url.EscapePath(imageName, h.config.PathEscapeDepth))
-	if err != nil {
-		var notFoundErr *models_external.CEWNotFoundErr
-		if !errors.As(err, &notFoundErr) {
-			return err
-		}
-	} else {
-		return nil
-	}
-	jobId, err := h.containerEngineWrapperClient.AddImage(ctx, imageName)
-	if err != nil {
-		return err
-	}
-	job, err := helper_job.Await(ctx, h.containerEngineWrapperClient, jobId, h.config.JobPollInterval)
-	if err != nil {
-		return err
-	}
-	if job.Error != nil {
-		return errors.New(job.Error.Message)
 	}
 	return nil
 }
