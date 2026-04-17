@@ -62,6 +62,7 @@ type databaseHandler interface {
 		configs map[string]string,
 		volumeMounts []models_handler_database.AuxiliaryDeploymentVolumeMount,
 	) error
+	DeleteAuxiliaryDeployment(ctx context.Context, deploymentId, auxDeploymentId string) error
 }
 
 type containerEngineWrapperClient interface {
