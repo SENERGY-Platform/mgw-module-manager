@@ -24,6 +24,11 @@ import (
 )
 
 type databaseHandler interface {
+	ReadAuxiliaryDeployment(
+		ctx context.Context,
+		deploymentId string,
+		auxDeploymentId string,
+	) (models_handler_database.AuxiliaryDeployment, error)
 	ReadAuxiliaryDeployments(
 		ctx context.Context,
 		deploymentId string,

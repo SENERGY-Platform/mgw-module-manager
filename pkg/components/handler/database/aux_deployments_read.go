@@ -24,8 +24,26 @@ import (
 	"time"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
+
+func (h *Handler) ReadAuxiliaryDeployment(
+	ctx context.Context,
+	deploymentId string,
+	auxDeploymentId string,
+) (models_handler_database.AuxiliaryDeployment, error) {
+	auxDeployments, err := h.ReadAuxiliaryDeployments(ctx, deploymentId, models_handler_database.AuxiliaryDeploymentsFilter{
+		Ids: []string{auxDeploymentId},
+	})
+	if err != nil {
+		return models_handler_database.AuxiliaryDeployment{}, err
+	}
+	if len(auxDeploymentId) == 0 {
+		return models_handler_database.AuxiliaryDeployment{}, models_error.NotFoundErr
+	}
+	return auxDeployments[auxDeploymentId], nil
+}
 
 func (h *Handler) ReadAuxiliaryDeployments(
 	ctx context.Context,
