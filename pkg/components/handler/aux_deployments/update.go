@@ -36,13 +36,16 @@ func (h *Handler) UpdateAuxiliaryDeployment(
 	auxDeploymentId string,
 	serviceInput models_handler_aux_deployments.UpdateServiceInput,
 ) error {
-	auxService, ok := module.AuxServices[serviceInput.Reference]
-	if !ok {
-		return errors.New("auxiliary service reference not found") // TODO
-	}
 	currentAuxDeployment, err := h.databaseHandler.ReadAuxiliaryDeployment(ctx, activeDeployment.Id, auxDeploymentId)
 	if err != nil {
 		return err
+	}
+	if serviceInput.Reference == "" {
+		serviceInput.Reference = currentAuxDeployment.Reference
+	}
+	auxService, ok := module.AuxServices[serviceInput.Reference]
+	if !ok {
+		return errors.New("auxiliary service reference not found") // TODO
 	}
 	err = validateImage(module.AuxImgSrc, serviceInput.Image)
 	if err != nil {
