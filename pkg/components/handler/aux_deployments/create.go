@@ -99,7 +99,7 @@ func (h *Handler) CreateAuxiliaryDeployment(
 	}
 	defer func() {
 		if err != nil {
-			e := h.databaseHandler.DeleteAuxiliaryDeployment(ctx, activeDeployment.Id, id)
+			e := h.databaseHandler.DeleteAuxiliaryDeployment(ctx, id)
 			if e != nil {
 				logger.Error(e.Error()) // TODO
 			}

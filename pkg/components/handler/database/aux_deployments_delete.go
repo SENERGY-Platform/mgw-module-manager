@@ -16,23 +16,14 @@
 
 package handler_database
 
-import (
-	"context"
+import "context"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-)
-
-func (h *Handler) DeleteAuxiliaryDeployment(ctx context.Context, deploymentId, auxDeploymentId string) error {
-	return h.DeleteAuxiliaryDeployments(ctx, deploymentId, models_handler_database.AuxiliaryDeploymentsFilter{
-		Ids: []string{auxDeploymentId},
-	})
+func (h *Handler) DeleteAuxiliaryDeployment(ctx context.Context, auxDeploymentId string) error {
+	return h.DeleteAuxiliaryDeployments(ctx, []string{auxDeploymentId})
 }
 
-func (h *Handler) DeleteAuxiliaryDeployments(ctx context.Context,
-	deploymentId string,
-	filter models_handler_database.AuxiliaryDeploymentsFilter,
-) error {
-	fc, val := genAuxiliaryDeploymentsFilter(deploymentId, filter)
+func (h *Handler) DeleteAuxiliaryDeployments(ctx context.Context, auxiliaryDeploymentsIds []string) error {
+	fc, val := genAuxiliaryDeploymentsIdsFilter(auxiliaryDeploymentsIds)
 	_, err := h.sqlDB.ExecContext(
 		ctx,
 		"DELETE FROM aux_deployments"+fc+";",

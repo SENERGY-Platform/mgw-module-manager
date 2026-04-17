@@ -305,8 +305,8 @@ func genAuxiliaryDeploymentsFilter(deploymentId string, filter models_handler_da
 }
 
 func genAuxiliaryDeploymentsIdsFilter(ids []string) (string, []any) {
-	ids = helper_slices.RemoveDuplicates(ids)
 	if len(ids) > 0 {
+		ids = helper_slices.RemoveDuplicates(ids)
 		return " WHERE aux_dep_id IN (" + genQuestionMarks(len(ids)) + ")", helper_slices.ToAny(ids)
 	}
 	return "", nil
