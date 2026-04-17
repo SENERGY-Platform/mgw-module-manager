@@ -117,6 +117,10 @@ func (h *Handler) CreateAuxiliaryDeployment(
 		mergedConfigs,
 		volumeMounts,
 	)
+	if err != nil {
+		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
+	}
+	// TODO remove from DB if createContainer fails?
 	return models_handler_aux_deployments.AuxiliaryDeploymentReduced{
 		AuxiliaryDeploymentBase: newAuxiliaryDeploymentBase(newAuxDeployment),
 		Container: models_handler_aux_deployments.Container{
