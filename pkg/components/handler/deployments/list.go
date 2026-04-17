@@ -142,9 +142,7 @@ func (h *Handler) getDeploymentsReduced(
 			Deployment: stgDep,
 			Containers: getContainers(deploymentContainers, cewContainersMap),
 		}
-		if cewErr != nil || !deployment.Enabled {
-			deployment.State = models_handler_deployments.StateNotAvailable
-		} else {
+		if cewErr == nil && deployment.Enabled {
 			deployment.State = getDeploymentState(getContainersCombinedState(deploymentContainers, cewContainersMap))
 		}
 		if filter.State > 0 && deployment.State != filter.State {
@@ -190,9 +188,7 @@ func (h *Handler) getDeployments(
 			Files:         deploymentsUserData[id].Files,
 			FileGroups:    deploymentsUserData[id].FileGroups,
 		}
-		if cewErr != nil || !deployment.Enabled {
-			deployment.State = models_handler_deployments.StateNotAvailable
-		} else {
+		if cewErr == nil && deployment.Enabled {
 			deployment.State = getDeploymentState(getContainersCombinedState(deploymentContainers, cewContainersMap))
 		}
 		if filter.State > 0 && deployment.State != filter.State {

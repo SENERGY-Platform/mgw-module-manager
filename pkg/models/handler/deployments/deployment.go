@@ -24,7 +24,6 @@ import (
 const (
 	StateHealthy = iota + 1
 	StateUnhealthy
-	StateNotAvailable
 )
 
 type Deployment struct {
