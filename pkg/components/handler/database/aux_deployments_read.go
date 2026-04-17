@@ -99,6 +99,14 @@ func (h *Handler) ReadAuxiliaryDeployments(
 	return auxDeps, nil
 }
 
+func (h *Handler) ReadAuxiliaryDeploymentLabels(ctx context.Context, auxiliaryDeploymentId string) (map[string]string, error) {
+	auxDepsLabels, err := h.ReadAuxiliaryDeploymentsLabels(ctx, []string{auxiliaryDeploymentId})
+	if err != nil {
+		return nil, err
+	}
+	return auxDepsLabels[auxiliaryDeploymentId], nil
+}
+
 func (h *Handler) ReadAuxiliaryDeploymentsLabels(
 	ctx context.Context,
 	auxiliaryDeploymentsIds []string,
@@ -192,6 +200,17 @@ func (h *Handler) ReadAuxiliaryDeploymentVolumes(
 		auxDepVolumes[volume.Reference] = volume
 	}
 	return auxDepVolumes, nil
+}
+
+func (h *Handler) ReadAuxiliaryDeploymentVolumeMounts(
+	ctx context.Context,
+	auxiliaryDeploymentId string,
+) ([]models_handler_database.AuxiliaryDeploymentVolumeMount, error) {
+	auxDepsVolumeMounts, err := h.ReadAuxiliaryDeploymentsVolumeMounts(ctx, []string{auxiliaryDeploymentId})
+	if err != nil {
+		return nil, err
+	}
+	return auxDepsVolumeMounts[auxiliaryDeploymentId], nil
 }
 
 const selectAuxiliaryDeploymentsVolumeMountsStmt = `SELECT aux_dep_volume_mounts.aux_dep_id, aux_dep_volume_mounts.vol_id, aux_dep_volumes.name, aux_dep_volumes.ref, aux_dep_volume_mounts.mnt_path

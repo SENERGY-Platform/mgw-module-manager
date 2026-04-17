@@ -34,8 +34,13 @@ type databaseHandler interface {
 		deploymentId string,
 		filter models_handler_database.AuxiliaryDeploymentsFilter,
 	) (map[string]models_handler_database.AuxiliaryDeployment, error)
+	ReadAuxiliaryDeploymentLabels(ctx context.Context, auxiliaryDeploymentId string) (map[string]string, error)
 	ReadAuxiliaryDeploymentsLabels(ctx context.Context, auxDeploymentsIds []string) (map[string]map[string]string, error)
 	ReadAuxiliaryDeploymentsConfigs(ctx context.Context, auxDeploymentsIds []string) (map[string]map[string]string, error)
+	ReadAuxiliaryDeploymentVolumeMounts(
+		ctx context.Context,
+		auxiliaryDeploymentId string,
+	) ([]models_handler_database.AuxiliaryDeploymentVolumeMount, error)
 	ReadAuxiliaryDeploymentsVolumeMounts(
 		ctx context.Context,
 		auxiliaryDeploymentsIds []string,
