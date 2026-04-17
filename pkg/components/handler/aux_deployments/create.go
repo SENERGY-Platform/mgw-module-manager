@@ -60,6 +60,7 @@ func (h *Handler) CreateAuxiliaryDeployment(
 		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
 	}
 	newAuxDeployment, err := getAuxiliaryDeployment(
+		auxService.Name,
 		auxService.RunConfig,
 		activeDeployment.Id,
 		id,
@@ -152,6 +153,7 @@ func (h *Handler) ensureAuxDeploymentEnvironment(
 }
 
 func getAuxiliaryDeployment(
+	moduleAuxServiceName string,
 	moduleAuxServiceRunConfig models_external.ModuleLibRunConfig,
 	deploymentId string,
 	auxDeploymentId string,
@@ -161,6 +163,10 @@ func getAuxiliaryDeployment(
 	ctrName, err := helper_naming.NewContainerName(models_constants.AuxDeploymentAbbreviation)
 	if err != nil {
 		return models_handler_database.AuxiliaryDeployment{}, err
+	}
+	name := moduleAuxServiceName
+	if serviceInput.Name != "" {
+		name = serviceInput.Name
 	}
 	command := moduleAuxServiceRunConfig.Command
 	if len(serviceInput.RunConfig.Command) > 0 {
