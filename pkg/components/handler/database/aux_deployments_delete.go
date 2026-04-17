@@ -16,7 +16,11 @@
 
 package handler_database
 
-import "context"
+import (
+	"context"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+)
 
 func (h *Handler) DeleteAuxiliaryDeployment(ctx context.Context, auxDeploymentId string) error {
 	return h.DeleteAuxiliaryDeployments(ctx, []string{auxDeploymentId})
@@ -33,4 +37,12 @@ func (h *Handler) DeleteAuxiliaryDeployments(ctx context.Context, auxiliaryDeplo
 		return err
 	}
 	return nil
+}
+
+func genAuxiliaryDeploymentsIdsFilter(ids []string) (string, []any) {
+	if len(ids) > 0 {
+		ids = helper_slices.RemoveDuplicates(ids)
+		return " WHERE id IN (" + genQuestionMarks(len(ids)) + ")", helper_slices.ToAny(ids)
+	}
+	return "", nil
 }

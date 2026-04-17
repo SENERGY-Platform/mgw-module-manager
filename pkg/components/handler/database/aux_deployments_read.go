@@ -111,7 +111,7 @@ func (h *Handler) ReadAuxiliaryDeploymentsLabels(
 	ctx context.Context,
 	auxiliaryDeploymentsIds []string,
 ) (map[string]map[string]string, error) {
-	fc, val := genAuxiliaryDeploymentsIdsFilter(auxiliaryDeploymentsIds)
+	fc, val := genAuxiliaryDeploymentsAssetsIdsFilter(auxiliaryDeploymentsIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
 		"SELECT aux_dep_id, name, value FROM aux_dep_labels"+fc+";",
@@ -154,7 +154,7 @@ func (h *Handler) ReadAuxiliaryDeploymentsConfigs(
 	ctx context.Context,
 	auxiliaryDeploymentsIds []string,
 ) (map[string]map[string]string, error) {
-	fc, val := genAuxiliaryDeploymentsIdsFilter(auxiliaryDeploymentsIds)
+	fc, val := genAuxiliaryDeploymentsAssetsIdsFilter(auxiliaryDeploymentsIds)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
 		"SELECT aux_dep_id, name, value FROM aux_dep_configs"+fc+";",
@@ -304,7 +304,7 @@ func genAuxiliaryDeploymentsFilter(deploymentId string, filter models_handler_da
 	return "", nil
 }
 
-func genAuxiliaryDeploymentsIdsFilter(ids []string) (string, []any) {
+func genAuxiliaryDeploymentsAssetsIdsFilter(ids []string) (string, []any) {
 	if len(ids) > 0 {
 		ids = helper_slices.RemoveDuplicates(ids)
 		return " WHERE aux_dep_id IN (" + genQuestionMarks(len(ids)) + ")", helper_slices.ToAny(ids)
