@@ -18,6 +18,7 @@ package handler_database
 
 import (
 	"context"
+	"database/sql"
 	"strings"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
@@ -54,41 +55,9 @@ func (h *Handler) CreateAuxiliaryDeployment(
 	if err != nil {
 		return err
 	}
-	for name, value := range labels {
-		_, err = tx.ExecContext(
-			ctx,
-			"INSERT INTO aux_dep_labels (aux_dep_id, name, value) VALUES (?, ?, ?)",
-			auxiliaryDeployment.Id,
-			name,
-			value,
-		)
-		if err != nil {
-			return err
-		}
-	}
-	for varName, value := range configs {
-		_, err = tx.ExecContext(
-			ctx,
-			"INSERT INTO aux_dep_configs (aux_dep_id, name, value) VALUES (?, ?, ?)",
-			auxiliaryDeployment.Id,
-			varName,
-			value,
-		)
-		if err != nil {
-			return err
-		}
-	}
-	for _, mount := range volumeMounts {
-		_, err = tx.ExecContext(
-			ctx,
-			"INSERT INTO aux_dep_volume_mounts (vol_id, aux_dep_id, mnt_path) VALUES (?, ?, ?)",
-			mount.VolumeId,
-			auxiliaryDeployment.Id,
-			mount.MountPath,
-		)
-		if err != nil {
-			return err
-		}
+	err = h.createAuxiliaryDeploymentAssets(ctx, tx, auxiliaryDeployment.Id, labels, configs, volumeMounts)
+	if err != nil {
+		return err
 	}
 	return tx.Commit()
 }
@@ -117,4 +86,52 @@ func (h *Handler) CreateAuxiliaryDeploymentVolumes(
 		}
 	}
 	return tx.Commit()
+}
+
+func (h *Handler) createAuxiliaryDeploymentAssets(
+	ctx context.Context,
+	tx *sql.Tx,
+	auxDeploymentId string,
+	labels map[string]string,
+	configs map[string]string,
+	volumeMounts []models_handler_database.AuxiliaryDeploymentVolumeMount,
+) error {
+	var err error
+	for name, value := range labels {
+		_, err = tx.ExecContext(
+			ctx,
+			"INSERT INTO aux_dep_labels (aux_dep_id, name, value) VALUES (?, ?, ?)",
+			auxDeploymentId,
+			name,
+			value,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	for varName, value := range configs {
+		_, err = tx.ExecContext(
+			ctx,
+			"INSERT INTO aux_dep_configs (aux_dep_id, name, value) VALUES (?, ?, ?)",
+			auxDeploymentId,
+			varName,
+			value,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	for _, mount := range volumeMounts {
+		_, err = tx.ExecContext(
+			ctx,
+			"INSERT INTO aux_dep_volume_mounts (vol_id, aux_dep_id, mnt_path) VALUES (?, ?, ?)",
+			mount.VolumeId,
+			auxDeploymentId,
+			mount.MountPath,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
