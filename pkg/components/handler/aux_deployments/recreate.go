@@ -24,6 +24,8 @@ import (
 	"strings"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
@@ -125,11 +127,20 @@ func (h *Handler) recreateAuxiliaryDeployment(
 	configs map[string]string,
 	volumeMounts []models_handler_database.AuxiliaryDeploymentVolumeMount,
 ) error {
-	err := helper_containers.Stop(ctx, h.containerEngineWrapperClient, currentAuxDeployment.Container.Name, h.config.JobPollInterval)
+	ctrName, err := helper_naming.NewContainerName(models_constants.AuxDeploymentAbbreviation)
+	if err != nil {
+		return err
+	}
+	currentAuxDeployment.Container.Name = ctrName
+	err = helper_containers.Stop(ctx, h.containerEngineWrapperClient, currentAuxDeployment.Container.Name, h.config.JobPollInterval)
 	if err != nil {
 		return err
 	}
 	err = helper_containers.Remove(ctx, h.containerEngineWrapperClient, currentAuxDeployment.Container.Name)
+	if err != nil {
+		return err
+	}
+	err = h.databaseHandler.UpdateAuxiliaryDeploymentContainerName(ctx, currentAuxDeployment.Id, ctrName)
 	if err != nil {
 		return err
 	}
