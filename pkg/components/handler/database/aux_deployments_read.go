@@ -190,10 +190,11 @@ func (h *Handler) ReadAuxiliaryDeploymentVolumes(
 	ctx context.Context,
 	deploymentId string,
 ) (map[string]models_handler_database.AuxiliaryDeploymentVolume, error) {
+	fc, val := genAuxiliaryDeploymentVolumesFilter(deploymentId)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
-		"SELECT id, dep_id, ref, name FROM aux_dep_volumes WHERE dep_id = ?;",
-		deploymentId,
+		"SELECT id, dep_id, ref, name FROM aux_dep_volumes"+fc+";",
+		val...,
 	)
 	if err != nil {
 		return nil, err
@@ -264,8 +265,12 @@ func (h *Handler) ReadAuxiliaryDeploymentsVolumeMounts(
 }
 
 func genAuxiliaryDeploymentsFilter(deploymentId string, filter models_handler_database.AuxiliaryDeploymentsFilter) (string, []any) {
-	fc := []string{"dep_id = ?"}
-	val := []any{deploymentId}
+	var fc []string
+	var val []any
+	if deploymentId != "" {
+		fc = append(fc, "dep_id = ?")
+		val = append(val, deploymentId)
+	}
 	if len(filter.Labels) > 0 {
 		var tc int
 		var str string
@@ -317,6 +322,19 @@ func genAuxiliaryDeploymentsAssetsIdsFilter(ids []string) (string, []any) {
 	if len(ids) > 0 {
 		ids = helper_slices.RemoveDuplicates(ids)
 		return " WHERE aux_dep_id IN (" + genQuestionMarks(len(ids)) + ")", helper_slices.ToAny(ids)
+	}
+	return "", nil
+}
+
+func genAuxiliaryDeploymentVolumesFilter(deploymentId string) (string, []any) {
+	var fc []string
+	var val []any
+	if deploymentId != "" {
+		fc = append(fc, "dep_id = ?")
+		val = append(val, deploymentId)
+	}
+	if len(fc) > 0 {
+		return " WHERE " + strings.Join(fc, " AND "), val
 	}
 	return "", nil
 }
