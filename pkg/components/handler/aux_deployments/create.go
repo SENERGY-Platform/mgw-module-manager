@@ -119,7 +119,6 @@ func (h *Handler) CreateAuxiliaryDeployment(
 	if err != nil {
 		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
 	}
-	mergedConfigs := mergeConfigs(deploymentConfigs, serviceInput.Configs)
 	err = h.createContainer(
 		ctx,
 		auxService,
@@ -127,7 +126,7 @@ func (h *Handler) CreateAuxiliaryDeployment(
 		activeDeployment,
 		dependencies,
 		newAuxDeployment,
-		mergedConfigs,
+		mergeConfigs(deploymentConfigs, serviceInput.Configs),
 		volumeMounts,
 	)
 	if err != nil {

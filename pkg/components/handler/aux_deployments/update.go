@@ -128,7 +128,6 @@ func (h *Handler) UpdateAuxiliaryDeployment(
 	if err != nil {
 		return err
 	}
-	mergedConfigs := mergeConfigs(deploymentConfigs, serviceInput.Configs)
 	return h.createContainer(
 		ctx,
 		auxService,
@@ -136,7 +135,7 @@ func (h *Handler) UpdateAuxiliaryDeployment(
 		activeDeployment,
 		dependencies,
 		newAuxDeployment,
-		mergedConfigs,
+		mergeConfigs(deploymentConfigs, serviceInput.Configs),
 		volumeMounts,
 	)
 }
