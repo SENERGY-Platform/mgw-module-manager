@@ -107,7 +107,7 @@ func (h *Handler) UpdateAuxiliaryDeploymentsEnabledState(ctx context.Context, au
 }
 
 func (h *Handler) UpdateAuxiliaryDeploymentEnabledState(ctx context.Context, id string, state bool) error {
-	return h.UpdateDeploymentsEnabledState(ctx, []string{id}, state)
+	return h.UpdateAuxiliaryDeploymentsEnabledState(ctx, []string{id}, state)
 }
 
 func (h *Handler) deleteAuxiliaryDeploymentAssets(ctx context.Context, tx *sql.Tx, auxDeploymentId string) error {
