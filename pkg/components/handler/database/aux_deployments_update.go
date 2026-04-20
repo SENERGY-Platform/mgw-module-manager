@@ -78,6 +78,38 @@ func (h *Handler) UpdateAuxiliaryDeploymentContainerName(ctx context.Context, au
 	return nil
 }
 
+func (h *Handler) UpdateAuxiliaryDeploymentsEnabledState(ctx context.Context, auxDeploymentIds []string, state bool) (err error) {
+	var db sqlDatabase = h.sqlDB
+	var tx *sql.Tx
+	if len(auxDeploymentIds) > 0 {
+		tx, err = h.sqlDB.BeginTx(ctx, nil)
+		if err != nil {
+			return err
+		}
+		defer tx.Rollback()
+		db = tx
+	}
+	for _, id := range auxDeploymentIds {
+		_, err = db.ExecContext(
+			ctx,
+			"UPDATE aux_deployments SET enabled = ? WHERE id = ?",
+			state,
+			id,
+		)
+		if err != nil {
+			return
+		}
+	}
+	if tx != nil {
+		err = tx.Commit()
+	}
+	return
+}
+
+func (h *Handler) UpdateAuxiliaryDeploymentEnabledState(ctx context.Context, id string, state bool) error {
+	return h.UpdateDeploymentsEnabledState(ctx, []string{id}, state)
+}
+
 func (h *Handler) deleteAuxiliaryDeploymentAssets(ctx context.Context, tx *sql.Tx, auxDeploymentId string) error {
 	_, err := tx.ExecContext(
 		ctx,
