@@ -27,6 +27,7 @@ type AuxiliaryDeployment struct {
 	Created      time.Time
 	Updated      time.Time
 	Enabled      bool
+	Recreate     bool
 	Container    AuxiliaryDeploymentContainer
 	RunConfig    AuxiliaryDeploymentRunConfig
 }
@@ -57,8 +58,9 @@ type AuxiliaryDeploymentRunConfig struct {
 }
 
 type AuxiliaryDeploymentsFilter struct {
-	Ids     []string
-	Labels  map[string]string
-	Image   string
-	Enabled int
+	Ids      []string
+	Labels   map[string]string
+	Image    string
+	Enabled  int
+	Recreate int
 }

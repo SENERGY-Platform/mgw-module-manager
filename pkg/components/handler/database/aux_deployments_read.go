@@ -53,7 +53,7 @@ func (h *Handler) ReadAuxiliaryDeployments(
 	fc, val := genAuxiliaryDeploymentsFilter(deploymentId, filter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
-		"SELECT id, dep_id, image, ref, name, enabled, ctr_name, ctr_alias, command, pseudo_tty, created, updated FROM aux_deployments"+fc+";",
+		"SELECT id, dep_id, image, ref, name, enabled, ctr_name, ctr_alias, recreate, command, pseudo_tty, created, updated FROM aux_deployments"+fc+";",
 		val...,
 	)
 	if err != nil {
@@ -75,6 +75,7 @@ func (h *Handler) ReadAuxiliaryDeployments(
 			&auxDep.Enabled,
 			&auxDep.Container.Name,
 			&auxDep.Container.Alias,
+			&auxDep.Recreate,
 			&command,
 			&pseudoTTY,
 			&ct,
@@ -292,6 +293,14 @@ func genAuxiliaryDeploymentsFilter(deploymentId string, filter models_handler_da
 	}
 	if filter.Enabled > 0 {
 		fc = append(fc, "enabled = ?")
+		val = append(val, true)
+	}
+	if filter.Recreate < 0 {
+		fc = append(fc, "recreate = ?")
+		val = append(val, false)
+	}
+	if filter.Recreate > 0 {
+		fc = append(fc, "recreate = ?")
 		val = append(val, true)
 	}
 	if filter.Image != "" {

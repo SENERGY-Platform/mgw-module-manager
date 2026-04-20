@@ -64,6 +64,17 @@ func migrateAuxDeploymentsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
+	ok, err = columnExists(ctx, db, tableName, "recreate")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.Info("adding column", attrColumn, "recreate", attrTable, tableName)
+		err = addColumn(ctx, db, tableName, "recreate", "BOOLEAN", "NOT NULL", "AFTER ctr_alias")
+		if err != nil {
+			return err
+		}
+	}
 	ok, err = indexExists(ctx, db, tableName, "PRIMARY")
 	if err != nil {
 		return err

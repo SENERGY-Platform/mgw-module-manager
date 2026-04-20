@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS aux_deployments
     enabled    BOOLEAN      NOT NULL,
     ctr_name   VARCHAR(256) NOT NULL,
     ctr_alias  VARCHAR(256) NOT NULL,
+    recreate   BOOLEAN      NOT NULL,
     command    VARCHAR(512),
     pseudo_tty BOOLEAN,
     PRIMARY KEY (id),
