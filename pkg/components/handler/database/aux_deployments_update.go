@@ -65,6 +65,19 @@ func (h *Handler) UpdateAuxiliaryDeployment(
 	return tx.Commit()
 }
 
+func (h *Handler) UpdateAuxiliaryDeploymentContainerName(ctx context.Context, auxDeploymentId, name string) error {
+	_, err := h.sqlDB.ExecContext(
+		ctx,
+		"UPDATE aux_deployments SET ctr_name = ? WHERE id = ?",
+		name,
+		auxDeploymentId,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (h *Handler) deleteAuxiliaryDeploymentAssets(ctx context.Context, tx *sql.Tx, auxDeploymentId string) error {
 	_, err := tx.ExecContext(
 		ctx,
