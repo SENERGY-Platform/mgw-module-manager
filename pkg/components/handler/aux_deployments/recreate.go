@@ -43,23 +43,9 @@ func (h *Handler) RecreateAuxiliaryDeployments(
 	mu := h.mutexes.Get(activeDeployment.Id)
 	mu.RLock()
 	defer mu.RUnlock()
-	auxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, activeDeployment.Id, filter.AuxiliaryDeploymentsFilter)
+	auxDeployments, err := h.readAuxiliaryDeploymentsAndFilterByState(ctx, activeDeployment.Id, filter)
 	if err != nil {
 		return nil, err
-	}
-	if filter.State != "" {
-		cewContainers, err := h.getCewContainers(ctx, auxDeployments)
-		if err != nil {
-			return nil, err
-		}
-		tmp := make(map[string]models_handler_database.AuxiliaryDeployment)
-		for id, auxDep := range auxDeployments {
-			cewContainer := cewContainers[auxDep.Container.Name]
-			if cewContainer.State == filter.State {
-				tmp[id] = auxDep
-			}
-		}
-		auxDeployments = tmp
 	}
 	auxDepIds := slices.Collect(maps.Keys(auxDeployments))
 	auxDepConfigs, err := h.databaseHandler.ReadAuxiliaryDeploymentsConfigs(ctx, auxDepIds)
@@ -165,4 +151,30 @@ func (h *Handler) recreateAuxiliaryDeployment(
 		mergeConfigs(deploymentConfigs, configs),
 		volumeMounts,
 	)
+}
+
+func (h *Handler) readAuxiliaryDeploymentsAndFilterByState(
+	ctx context.Context,
+	deploymentId string,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+) (map[string]models_handler_database.AuxiliaryDeployment, error) {
+	auxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, filter.AuxiliaryDeploymentsFilter)
+	if err != nil {
+		return nil, err
+	}
+	if filter.State != "" {
+		cewContainers, err := h.getCewContainers(ctx, auxDeployments)
+		if err != nil {
+			return nil, err
+		}
+		tmp := make(map[string]models_handler_database.AuxiliaryDeployment)
+		for id, auxDep := range auxDeployments {
+			cewContainer := cewContainers[auxDep.Container.Name]
+			if cewContainer.State == filter.State {
+				tmp[id] = auxDep
+			}
+		}
+		auxDeployments = tmp
+	}
+	return auxDeployments, nil
 }

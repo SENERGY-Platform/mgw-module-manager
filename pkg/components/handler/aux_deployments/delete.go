@@ -23,7 +23,6 @@ import (
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) DeleteAuxiliaryDeployments(
@@ -34,23 +33,9 @@ func (h *Handler) DeleteAuxiliaryDeployments(
 	mu := h.mutexes.Get(deploymentId)
 	mu.Lock()
 	defer mu.Unlock()
-	auxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, filter.AuxiliaryDeploymentsFilter)
+	auxDeployments, err := h.readAuxiliaryDeploymentsAndFilterByState(ctx, deploymentId, filter)
 	if err != nil {
 		return nil, err
-	}
-	if filter.State != "" {
-		cewContainers, err := h.getCewContainers(ctx, auxDeployments)
-		if err != nil {
-			return nil, err
-		}
-		tmp := make(map[string]models_handler_database.AuxiliaryDeployment)
-		for id, auxDep := range auxDeployments {
-			cewContainer := cewContainers[auxDep.Container.Name]
-			if cewContainer.State == filter.State {
-				tmp[id] = auxDep
-			}
-		}
-		auxDeployments = tmp
 	}
 	var deleted []string
 	var errs []string
