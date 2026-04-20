@@ -189,6 +189,7 @@ func newAuxiliaryDeploymentBase(dbAuxDep models_handler_database.AuxiliaryDeploy
 		Created:      dbAuxDep.Created,
 		Updated:      dbAuxDep.Updated,
 		Enabled:      dbAuxDep.Enabled,
+		Recreate:     dbAuxDep.Recreate,
 		RunConfig:    dbAuxDep.RunConfig,
 	}
 }

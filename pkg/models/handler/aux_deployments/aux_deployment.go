@@ -31,6 +31,7 @@ type AuxiliaryDeploymentBase struct {
 	Created      time.Time
 	Updated      time.Time
 	Enabled      bool
+	Recreate     bool
 	RunConfig    models_handler_database.AuxiliaryDeploymentRunConfig
 }
 
