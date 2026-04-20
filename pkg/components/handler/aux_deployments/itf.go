@@ -70,6 +70,7 @@ type databaseHandler interface {
 		volumeMounts []models_handler_database.AuxiliaryDeploymentVolumeMount,
 	) error
 	UpdateAuxiliaryDeploymentContainerName(ctx context.Context, auxDeploymentId, name string) error
+	UpdateAuxiliaryDeploymentsEnabledState(ctx context.Context, auxDeploymentIds []string, state bool) error
 	DeleteAuxiliaryDeployment(ctx context.Context, auxDeploymentId string) error
 	DeleteAuxiliaryDeployments(ctx context.Context, auxiliaryDeploymentsIds []string) error
 }
