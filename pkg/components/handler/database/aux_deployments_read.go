@@ -226,7 +226,7 @@ func (h *Handler) ReadAuxiliaryDeploymentVolumeMounts(
 const selectAuxiliaryDeploymentsVolumeMountsStmt = `SELECT aux_dep_volume_mounts.aux_dep_id, aux_dep_volume_mounts.vol_id, aux_dep_volumes.name, aux_dep_volumes.ref, aux_dep_volume_mounts.mnt_path
 FROM aux_dep_volume_mounts
 LEFT JOIN aux_dep_volumes
-ON aux_dep_volume_mounts.vol_id = aux_dep_volumes.id ORDER BY aux_dep_id, ref`
+ON aux_dep_volume_mounts.vol_id = aux_dep_volumes.id`
 
 func (h *Handler) ReadAuxiliaryDeploymentsVolumeMounts(
 	ctx context.Context,
@@ -238,10 +238,10 @@ func (h *Handler) ReadAuxiliaryDeploymentsVolumeMounts(
 		auxiliaryDeploymentsIds = helper_slices.RemoveDuplicates(auxiliaryDeploymentsIds)
 		rows, err = h.sqlDB.QueryContext(
 			ctx,
-			"SELECT * FROM ("+selectAuxiliaryDeploymentsVolumeMountsStmt+") AS SUB WHERE SUB.aux_dep_id IN ("+genQuestionMarks(len(auxiliaryDeploymentsIds))+");",
+			selectAuxiliaryDeploymentsVolumeMountsStmt+" WHERE aux_dep_id IN ("+genQuestionMarks(len(auxiliaryDeploymentsIds))+") ORDER BY aux_dep_id, ref;",
 		)
 	} else {
-		rows, err = h.sqlDB.QueryContext(ctx, selectAuxiliaryDeploymentsVolumeMountsStmt+";")
+		rows, err = h.sqlDB.QueryContext(ctx, selectAuxiliaryDeploymentsVolumeMountsStmt+" ORDER BY aux_dep_id, ref;")
 	}
 	if err != nil {
 		return nil, err
