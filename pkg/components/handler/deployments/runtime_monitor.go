@@ -27,13 +27,13 @@ import (
 )
 
 func (h *Handler) RuntimeMonitor(ctx context.Context) {
-	timer := time.NewTimer(h.config.HealthMonitorStartupDelay)
+	timer := time.NewTimer(h.config.RuntimeMonitorStartupDelay)
 	defer timer.Stop()
 	for {
 		select {
 		case <-timer.C:
 			h.checkDeployments(ctx)
-			timer.Reset(h.config.HealthMonitorLoopDelay)
+			timer.Reset(h.config.RuntimeMonitorLoopDelay)
 		case <-ctx.Done():
 			return
 		}
@@ -46,7 +46,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 		logger.Error(err.Error()) // TODO
 		return
 	}
-	filteredDeployments := h.healthMonitorJobsFilter(deployments)
+	filteredDeployments := h.runtimeMonitorJobsFilter(deployments)
 	for id, deployment := range filteredDeployments {
 		deploymentContainers := deploymentsContainers[id]
 		state := getContainersCombinedState(deploymentContainers, cewContainersMap)
@@ -57,13 +57,13 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 			if state == containersStateRunning {
 				continue
 			}
-			h.healthMonitorJobsAdd(id)
+			h.runtimeMonitorJobsAdd(id)
 			go h.startDeployment(ctx, id, deploymentContainers, deploymentsMountSecrets[id])
 		} else {
 			if state == containersStateStopped {
 				continue
 			}
-			h.healthMonitorJobsAdd(id)
+			h.runtimeMonitorJobsAdd(id)
 			go h.stopDeployment(ctx, id, deploymentContainers, len(deploymentsMountSecrets[id]) > 0)
 		}
 	}
@@ -120,7 +120,7 @@ func (h *Handler) startDeployment(
 				logger.Error(e.Error()) // TODO
 			}
 		}
-		h.healthMonitorJobsRemove(deploymentId)
+		h.runtimeMonitorJobsRemove(deploymentId)
 	}()
 	err = h.loadDeploymentMountSecrets(ctx, deploymentId, deploymentMountSecrets)
 	if err != nil {
@@ -167,7 +167,7 @@ func (h *Handler) stopDeployment(
 	deploymentContainers map[string]models_handler_database.DeploymentContainer,
 	hasMountSecrets bool,
 ) {
-	defer h.healthMonitorJobsRemove(deploymentId)
+	defer h.runtimeMonitorJobsRemove(deploymentId)
 	if hasMountSecrets {
 		err, _ := h.secretManagerClient.CleanPathVariants(ctx, deploymentId)
 		if err != nil {
@@ -180,12 +180,12 @@ func (h *Handler) stopDeployment(
 	}
 }
 
-func (h *Handler) healthMonitorJobsFilter(deployments map[string]models_handler_database.Deployment) map[string]models_handler_database.Deployment {
-	h.healthMonitorJobsMu.RLock()
-	defer h.healthMonitorJobsMu.RUnlock()
+func (h *Handler) runtimeMonitorJobsFilter(deployments map[string]models_handler_database.Deployment) map[string]models_handler_database.Deployment {
+	h.runtimeMonitorJobsMu.RLock()
+	defer h.runtimeMonitorJobsMu.RUnlock()
 	filteredDeployments := make(map[string]models_handler_database.Deployment)
 	for id, deployment := range deployments {
-		_, ok := h.healthMonitorJobs[id]
+		_, ok := h.runtimeMonitorJobs[id]
 		if !ok {
 			filteredDeployments[id] = deployment
 		}
@@ -193,14 +193,14 @@ func (h *Handler) healthMonitorJobsFilter(deployments map[string]models_handler_
 	return filteredDeployments
 }
 
-func (h *Handler) healthMonitorJobsAdd(id string) {
-	h.healthMonitorJobsMu.Lock()
-	defer h.healthMonitorJobsMu.Unlock()
-	h.healthMonitorJobs[id] = struct{}{}
+func (h *Handler) runtimeMonitorJobsAdd(id string) {
+	h.runtimeMonitorJobsMu.Lock()
+	defer h.runtimeMonitorJobsMu.Unlock()
+	h.runtimeMonitorJobs[id] = struct{}{}
 }
 
-func (h *Handler) healthMonitorJobsRemove(id string) {
-	h.healthMonitorJobsMu.Lock()
-	defer h.healthMonitorJobsMu.Unlock()
-	delete(h.healthMonitorJobs, id)
+func (h *Handler) runtimeMonitorJobsRemove(id string) {
+	h.runtimeMonitorJobsMu.Lock()
+	defer h.runtimeMonitorJobsMu.Unlock()
+	delete(h.runtimeMonitorJobs, id)
 }

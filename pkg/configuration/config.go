@@ -77,10 +77,10 @@ func New(path string) (*Config, error) {
 			JobPollInterval: time.Millisecond * 500,
 		},
 		DeploymentsHandler: handler_deployments.Config{
-			WorkDirPath:               "/opt/module-manager/deployments",
-			JobPollInterval:           time.Millisecond * 500,
-			HealthMonitorStartupDelay: time.Second * 30,
-			HealthMonitorLoopDelay:    time.Second * 5,
+			WorkDirPath:                "/opt/module-manager/deployments",
+			JobPollInterval:            time.Millisecond * 500,
+			RuntimeMonitorStartupDelay: time.Second * 30,
+			RuntimeMonitorLoopDelay:    time.Second * 5,
 		},
 		Logger: struct_logger.Config{
 			Handler:    struct_logger.TextHandlerSelector,
