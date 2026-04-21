@@ -21,11 +21,20 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"strings"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
 )
 
 const timeLayout = "2006-01-02 15:04:05.000000"
+
+type Config struct {
+	Address  string        `json:"address" env_var:"DATABASE_ADDRESS"`
+	Database string        `json:"database" env_var:"DATABASE_NAME"`
+	User     string        `json:"user" env_var:"DATABASE_USER"`
+	Password string        `json:"password" env_var:"DATABASE_PASSWORD"`
+	Timeout  time.Duration `json:"timeout" env_var:"DATABASE_TIMEOUT"`
+}
 
 func NewConnector(config Config) (driver.Connector, error) {
 	cfg := mysql.NewConfig()
