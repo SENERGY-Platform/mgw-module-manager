@@ -50,8 +50,8 @@ type databaseHandler interface {
 		ctx context.Context,
 		deploymentId string,
 	) (map[string]models_handler_database.AuxiliaryDeploymentVolume, error)
-	ReadEnabledAuxDeploymentsByParent(ctx context.Context) (
-		map[string]map[string]models_handler_database.AuxiliaryDeployment,
+	ReadAuxDeploymentsByParent(ctx context.Context) (
+		map[string]models_handler_database.AuxiliaryDeploymentParent,
 		error,
 	)
 	CreateAuxiliaryDeploymentVolumes(

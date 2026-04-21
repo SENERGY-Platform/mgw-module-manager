@@ -264,13 +264,12 @@ func (h *Handler) ReadAuxiliaryDeploymentsVolumeMounts(
 	return auxDepsVolumeMounts, nil
 }
 
-const selectEnabledAuxDeploymentsStmt = `SELECT aux_deployments.id, aux_deployments.dep_id, aux_deployments.image, aux_deployments.ref, aux_deployments.name, aux_deployments.enabled, aux_deployments.ctr_name, aux_deployments.ctr_alias, aux_deployments.recreate, aux_deployments.command, aux_deployments.pseudo_tty, aux_deployments.created, aux_deployments.updated
+const selectEnabledAuxDeploymentsStmt = `SELECT deployments.id AS dep_id, deployments.enabled AS dep_enabled, aux_deployments.id, aux_deployments.enabled, aux_deployments.ctr_name, aux_deployments.ctr_alias
 FROM aux_deployments 
-LEFT JOIN deployments ON aux_deployments.dep_id = deployments.id 
-WHERE deployments.enabled = true AND aux_deployments.enabled = true`
+LEFT JOIN deployments ON aux_deployments.dep_id = deployments.id`
 
-func (h *Handler) ReadEnabledAuxDeploymentsByParent(ctx context.Context) (
-	map[string]map[string]models_handler_database.AuxiliaryDeployment,
+func (h *Handler) ReadAuxDeploymentsByParent(ctx context.Context) (
+	map[string]models_handler_database.AuxiliaryDeploymentParent,
 	error,
 ) {
 	rows, err := h.sqlDB.QueryContext(
@@ -281,44 +280,30 @@ func (h *Handler) ReadEnabledAuxDeploymentsByParent(ctx context.Context) (
 		return nil, err
 	}
 	defer rows.Close()
-	auxDepsByParent := make(map[string]map[string]models_handler_database.AuxiliaryDeployment)
+	auxDepsByParent := make(map[string]models_handler_database.AuxiliaryDeploymentParent)
 	for rows.Next() {
+		var parentId string
+		var parentEnabled bool
 		var auxDep models_handler_database.AuxiliaryDeployment
-		var ct, ut []uint8
-		var command sql.NullString
-		var pseudoTTY sql.NullBool
 		err = rows.Scan(
+			&parentId,
+			&parentEnabled,
 			&auxDep.Id,
-			&auxDep.DeploymentId,
-			&auxDep.Image,
-			&auxDep.Reference,
-			&auxDep.Name,
 			&auxDep.Enabled,
 			&auxDep.Container.Name,
 			&auxDep.Container.Alias,
-			&auxDep.Recreate,
-			&command,
-			&pseudoTTY,
-			&ct,
-			&ut,
 		)
 		if err != nil {
 			return nil, err
 		}
-		if auxDep.Created, err = time.Parse(timeLayout, string(ct)); err != nil {
-			return nil, err
-		}
-		if auxDep.Updated, err = time.Parse(timeLayout, string(ut)); err != nil {
-			return nil, err
-		}
-		auxDep.RunConfig.Command = strings.Split(command.String, ",")
-		auxDep.RunConfig.PseudoTTY = pseudoTTY.Bool
-		auxDeps, ok := auxDepsByParent[auxDep.DeploymentId]
+		auxDepParent, ok := auxDepsByParent[parentId]
 		if !ok {
-			auxDeps = make(map[string]models_handler_database.AuxiliaryDeployment)
-			auxDepsByParent[auxDep.DeploymentId] = auxDeps
+			auxDepParent.Id = parentId
+			auxDepParent.Enabled = parentEnabled
+			auxDepParent.AuxiliaryDeployments = make(map[string]models_handler_database.AuxiliaryDeployment)
+			auxDepsByParent[parentId] = auxDepParent
 		}
-		auxDeps[auxDep.Id] = auxDep
+		auxDepParent.AuxiliaryDeployments[auxDep.Id] = auxDep
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err
