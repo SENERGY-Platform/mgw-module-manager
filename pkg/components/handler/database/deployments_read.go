@@ -411,7 +411,7 @@ func (h *Handler) ReadDeploymentFileGroups(ctx context.Context, deploymentId str
 const selectFileGroupsStmt = `SELECT dep_file_groups.id, dep_file_groups.dep_id, dep_file_groups.ref, dep_file_group_files.path, dep_file_group_files.format, dep_file_group_files.data
 FROM dep_file_groups
 LEFT JOIN dep_file_group_files
-ON dep_file_groups.id = dep_file_group_files.g_id ORDER BY dep_id, path`
+ON dep_file_groups.id = dep_file_group_files.g_id`
 
 func (h *Handler) ReadDeploymentsFileGroups(ctx context.Context, deploymentIds []string) (map[string]map[string]models_handler_database.DeploymentFileGroup, error) {
 	var rows *sql.Rows
@@ -420,11 +420,11 @@ func (h *Handler) ReadDeploymentsFileGroups(ctx context.Context, deploymentIds [
 		deploymentIds = helper_slices.RemoveDuplicates(deploymentIds)
 		rows, err = h.sqlDB.QueryContext(
 			ctx,
-			"SELECT * FROM ("+selectFileGroupsStmt+") AS SUB WHERE SUB.dep_id IN ("+genQuestionMarks(len(deploymentIds))+");",
+			selectFileGroupsStmt+" WHERE dep_id IN ("+genQuestionMarks(len(deploymentIds))+") ORDER BY dep_id, path;",
 			helper_slices.ToAny(deploymentIds)...,
 		)
 	} else {
-		rows, err = h.sqlDB.QueryContext(ctx, selectFileGroupsStmt+";")
+		rows, err = h.sqlDB.QueryContext(ctx, selectFileGroupsStmt+" ORDER BY dep_id, path;")
 	}
 	if err != nil {
 		return nil, err
