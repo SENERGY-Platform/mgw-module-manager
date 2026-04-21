@@ -264,13 +264,13 @@ func (h *Handler) ReadAuxiliaryDeploymentsVolumeMounts(
 	return auxDepsVolumeMounts, nil
 }
 
-const selectEnabledAuxDeploymentsStmt = `SELECT aux_deployments.id, aux_deployments.dep_id, aux_deployments.ctr_name, aux_deployments.ctr_alias
+const selectEnabledAuxDeploymentsStmt = `SELECT aux_deployments.id, aux_deployments.dep_id, aux_deployments.image, aux_deployments.ref, aux_deployments.name, aux_deployments.enabled, aux_deployments.ctr_name, aux_deployments.ctr_alias, aux_deployments.recreate, aux_deployments.command, aux_deployments.pseudo_tty, aux_deployments.created, aux_deployments.updated
 FROM aux_deployments 
 LEFT JOIN deployments ON aux_deployments.dep_id = deployments.id 
 WHERE deployments.enabled = true AND aux_deployments.enabled = true`
 
-func (h *Handler) ReadEnabledAuxDeploymentsContainersByParent(ctx context.Context) (
-	map[string]map[string]models_handler_database.AuxiliaryDeploymentContainer,
+func (h *Handler) ReadEnabledAuxDeploymentsByParent(ctx context.Context) (
+	map[string]map[string]models_handler_database.AuxiliaryDeployment,
 	error,
 ) {
 	rows, err := h.sqlDB.QueryContext(
@@ -281,31 +281,49 @@ func (h *Handler) ReadEnabledAuxDeploymentsContainersByParent(ctx context.Contex
 		return nil, err
 	}
 	defer rows.Close()
-	deps := make(map[string]map[string]models_handler_database.AuxiliaryDeploymentContainer)
+	auxDepsByParent := make(map[string]map[string]models_handler_database.AuxiliaryDeployment)
 	for rows.Next() {
-		var id string
-		var depId string
-		var container models_handler_database.AuxiliaryDeploymentContainer
+		var auxDep models_handler_database.AuxiliaryDeployment
+		var ct, ut []uint8
+		var command sql.NullString
+		var pseudoTTY sql.NullBool
 		err = rows.Scan(
-			&id,
-			&depId,
-			&container.Name,
-			&container.Alias,
+			&auxDep.Id,
+			&auxDep.DeploymentId,
+			&auxDep.Image,
+			&auxDep.Reference,
+			&auxDep.Name,
+			&auxDep.Enabled,
+			&auxDep.Container.Name,
+			&auxDep.Container.Alias,
+			&auxDep.Recreate,
+			&command,
+			&pseudoTTY,
+			&ct,
+			&ut,
 		)
 		if err != nil {
 			return nil, err
 		}
-		auxDeps, ok := deps[depId]
-		if !ok {
-			auxDeps = make(map[string]models_handler_database.AuxiliaryDeploymentContainer)
-			deps[depId] = auxDeps
+		if auxDep.Created, err = time.Parse(timeLayout, string(ct)); err != nil {
+			return nil, err
 		}
-		auxDeps[id] = container
+		if auxDep.Updated, err = time.Parse(timeLayout, string(ut)); err != nil {
+			return nil, err
+		}
+		auxDep.RunConfig.Command = strings.Split(command.String, ",")
+		auxDep.RunConfig.PseudoTTY = pseudoTTY.Bool
+		auxDeps, ok := auxDepsByParent[auxDep.DeploymentId]
+		if !ok {
+			auxDeps = make(map[string]models_handler_database.AuxiliaryDeployment)
+			auxDepsByParent[auxDep.DeploymentId] = auxDeps
+		}
+		auxDeps[auxDep.Id] = auxDep
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
-	return deps, nil
+	return auxDepsByParent, nil
 }
 
 func genAuxiliaryDeploymentsFilter(deploymentId string, filter models_handler_database.AuxiliaryDeploymentsFilter) (string, []any) {
