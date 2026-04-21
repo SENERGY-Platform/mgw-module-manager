@@ -26,7 +26,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
-func (h *Handler) DeploymentRuntimeMonitor(ctx context.Context) {
+func (h *Handler) RuntimeMonitor(ctx context.Context) {
 	timer := time.NewTimer(h.config.HealthMonitorStartupDelay)
 	defer timer.Stop()
 	for {
