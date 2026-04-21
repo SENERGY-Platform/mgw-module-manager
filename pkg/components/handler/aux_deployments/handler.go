@@ -23,11 +23,11 @@ import (
 )
 
 type Config struct {
-	PathEscapeDepth           int           `json:"path_escape_depth" env_var:"PATH_ESCAPE_DEPTH"`
-	JobPollInterval           time.Duration `json:"job_poll_interval" env_var:"JOB_POLL_INTERVAL"`
-	HostWorkDirPath           string        `json:"host_work_dir_path" env_var:"DEPLOYMENTS_HANDLER_HOST_WORK_DIR_PATH"`
-	HealthMonitorStartupDelay time.Duration `json:"health_monitor_startup_delay" env_var:"AUX_DEPLOYMENTS_HANDLER_HEALTH_MONITOR_STARTUP_DELAY"`
-	HealthMonitorLoopDelay    time.Duration `json:"health_monitor_loop_delay" env_var:"AUX_DEPLOYMENTS_HANDLER_HEALTH_MONITOR_LOOP_DELAY"`
+	PathEscapeDepth            int           `json:"path_escape_depth" env_var:"PATH_ESCAPE_DEPTH"`
+	JobPollInterval            time.Duration `json:"job_poll_interval" env_var:"JOB_POLL_INTERVAL"`
+	HostWorkDirPath            string        `json:"host_work_dir_path" env_var:"DEPLOYMENTS_HANDLER_HOST_WORK_DIR_PATH"`
+	RuntimeMonitorStartupDelay time.Duration `json:"runtime_monitor_startup_delay" env_var:"AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY"`
+	RuntimeMonitorLoopDelay    time.Duration `json:"runtime_monitor_loop_delay" env_var:"AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY"`
 }
 
 type Handler struct {
