@@ -34,11 +34,11 @@ func (h *Handler) queryConfigs(ctx context.Context, ids []string, t1, t2 string,
 		ids = helper_slices.RemoveDuplicates(ids)
 		rows, err = h.sqlDB.QueryContext(
 			ctx,
-			genSelectConfigsFilterIdsStmt(t1, t2, len(ids), filterIdCol, t1Cols...)+";",
+			genSelectConfigsStmt(t1, t2, t1Cols...)+fmt.Sprintf(") WHERE %s IN (", filterIdCol)+genQuestionMarks(len(ids))+") ORDER BY is_list, id, ord;",
 			helper_slices.ToAny(ids)...,
 		)
 	} else {
-		rows, err = h.sqlDB.QueryContext(ctx, genSelectConfigsStmt(t1, t2, t1Cols...)+";")
+		rows, err = h.sqlDB.QueryContext(ctx, genSelectConfigsStmt(t1, t2, t1Cols...)+" ORDER BY is_list, id, ord;")
 	}
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (h *Handler) queryConfigs(ctx context.Context, ids []string, t1, t2 string,
 const selectConfigsStmt = `SELECT _t1_.id, _t1_.data_type, _t1_.is_list, _t2_.v_string, _t2_.v_int, _t2_.v_float, _t2_.v_bool, _t2_.ord%s
 FROM _t1_
 LEFT JOIN _t2_
-ON _t1_.id = _t2_.c_id ORDER BY is_list, _t1_.id, ord`
+ON _t1_.id = _t2_.c_id`
 
 func genSelectConfigsStmt(t1, t2 string, t1Cols ...string) string {
 	stmt := strings.ReplaceAll(strings.ReplaceAll(selectConfigsStmt, "_t1_", t1), "_t2_", t2)
@@ -61,10 +61,6 @@ func genSelectConfigsStmt(t1, t2 string, t1Cols ...string) string {
 		return fmt.Sprintf(stmt, ", "+strings.Join(cols, ", "))
 	}
 	return fmt.Sprintf(stmt, "")
-}
-
-func genSelectConfigsFilterIdsStmt(t1, t2 string, lenIds int, filterIdCol string, t1Cols ...string) string {
-	return "SELECT * FROM (" + genSelectConfigsStmt(t1, t2, t1Cols...) + fmt.Sprintf(") AS SUB WHERE SUB.%s IN (", filterIdCol) + genQuestionMarks(lenIds) + ");"
 }
 
 func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, config models_handler_database.Config) error {
