@@ -264,6 +264,50 @@ func (h *Handler) ReadAuxiliaryDeploymentsVolumeMounts(
 	return auxDepsVolumeMounts, nil
 }
 
+const selectEnabledAuxDeploymentsStmt = `SELECT aux_deployments.id, aux_deployments.dep_id, aux_deployments.ctr_name, aux_deployments.ctr_alias
+FROM aux_deployments 
+LEFT JOIN deployments ON aux_deployments.dep_id = deployments.id 
+WHERE deployments.enabled = true AND aux_deployments.enabled = true`
+
+func (h *Handler) ReadEnabledAuxDeploymentsContainersByParent(ctx context.Context) (
+	map[string]map[string]models_handler_database.AuxiliaryDeploymentContainer,
+	error,
+) {
+	rows, err := h.sqlDB.QueryContext(
+		ctx,
+		selectEnabledAuxDeploymentsStmt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	deps := make(map[string]map[string]models_handler_database.AuxiliaryDeploymentContainer)
+	for rows.Next() {
+		var id string
+		var depId string
+		var container models_handler_database.AuxiliaryDeploymentContainer
+		err = rows.Scan(
+			&id,
+			&depId,
+			&container.Name,
+			&container.Alias,
+		)
+		if err != nil {
+			return nil, err
+		}
+		auxDeps, ok := deps[depId]
+		if !ok {
+			auxDeps = make(map[string]models_handler_database.AuxiliaryDeploymentContainer)
+			deps[depId] = auxDeps
+		}
+		auxDeps[id] = container
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return deps, nil
+}
+
 func genAuxiliaryDeploymentsFilter(deploymentId string, filter models_handler_database.AuxiliaryDeploymentsFilter) (string, []any) {
 	var fc []string
 	var val []any
