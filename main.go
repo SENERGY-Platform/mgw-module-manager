@@ -199,7 +199,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		deploymentsHandler.DeploymentHealthMonitor(ctx)
+		deploymentsHandler.DeploymentRuntimeMonitor(ctx)
 		cf()
 	}()
 
