@@ -64,3 +64,9 @@ type AuxiliaryDeploymentsFilter struct {
 	Enabled  int
 	Recreate int
 }
+
+type AuxiliaryDeploymentParent struct {
+	Id                   string
+	Enabled              bool
+	AuxiliaryDeployments map[string]AuxiliaryDeployment
+}
