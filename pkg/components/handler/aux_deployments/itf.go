@@ -49,10 +49,12 @@ type databaseHandler interface {
 	ReadAuxiliaryDeploymentVolumes(
 		ctx context.Context,
 		deploymentId string,
+		refFilter []string,
 	) (map[string]models_handler_database.AuxiliaryDeploymentVolume, error)
 	ReadAuxiliaryDeploymentVolumesWithMounts(
 		ctx context.Context,
 		deploymentId string,
+		refFilter []string,
 	) (map[string]models_handler_database.AuxiliaryDeploymentVolumeWithMounts, error)
 	ReadAuxDeploymentsByParent(ctx context.Context) (
 		map[string]models_handler_database.AuxiliaryDeploymentParent,

@@ -32,11 +32,12 @@ import (
 func (h *Handler) GetVolumes(
 	ctx context.Context,
 	deploymentId string,
+	filterReferences []string,
 ) (map[string]models_handler_database.AuxiliaryDeploymentVolume, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.RLock()
 	defer mu.RUnlock()
-	volumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, deploymentId)
+	volumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, deploymentId, filterReferences)
 	if err != nil {
 		return nil, err
 	}
@@ -46,11 +47,12 @@ func (h *Handler) GetVolumes(
 func (h *Handler) GetVolumesWithMounts(
 	ctx context.Context,
 	deploymentId string,
+	filterReferences []string,
 ) (map[string]models_handler_database.AuxiliaryDeploymentVolumeWithMounts, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.RLock()
 	defer mu.RUnlock()
-	volumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumesWithMounts(ctx, deploymentId)
+	volumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumesWithMounts(ctx, deploymentId, filterReferences)
 	if err != nil {
 		return nil, err
 	}

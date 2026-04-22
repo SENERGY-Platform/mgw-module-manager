@@ -189,11 +189,13 @@ func (h *Handler) ReadAuxiliaryDeploymentsConfigs(
 func (h *Handler) ReadAuxiliaryDeploymentVolumes(
 	ctx context.Context,
 	deploymentId string,
+	refFilter []string,
 ) (map[string]models_handler_database.AuxiliaryDeploymentVolume, error) {
+	fc, val := genAuxiliaryDeploymentVolumesFilter(deploymentId, refFilter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
-		"SELECT id, dep_id, ref, name FROM aux_dep_volumes WHERE dep_id = ?;",
-		deploymentId,
+		"SELECT id, dep_id, ref, name FROM aux_dep_volumes"+fc+";",
+		val...,
 	)
 	if err != nil {
 		return nil, err
@@ -219,11 +221,13 @@ ON aux_dep_volumes.id = aux_dep_volume_mounts.vol_id`
 func (h *Handler) ReadAuxiliaryDeploymentVolumesWithMounts(
 	ctx context.Context,
 	deploymentId string,
+	refFilter []string,
 ) (map[string]models_handler_database.AuxiliaryDeploymentVolumeWithMounts, error) {
+	fc, val := genAuxiliaryDeploymentVolumesFilter(deploymentId, refFilter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
-		selectAuxiliaryDeploymentVolumesWithMountsStmt+" WHERE dep_id = ?;",
-		deploymentId,
+		selectAuxiliaryDeploymentVolumesWithMountsStmt+fc+";",
+		val...,
 	)
 	if err != nil {
 		return nil, err
@@ -410,6 +414,22 @@ func genAuxiliaryDeploymentsAssetsIdsFilter(ids []string) (string, []any) {
 	if len(ids) > 0 {
 		ids = helper_slices.RemoveDuplicates(ids)
 		return " WHERE aux_dep_id IN (" + genQuestionMarks(len(ids)) + ")", helper_slices.ToAny(ids)
+	}
+	return "", nil
+}
+
+func genAuxiliaryDeploymentVolumesFilter(deploymentId string, references []string) (string, []any) {
+	fc := []string{"dep_id = ?"}
+	val := []any{deploymentId}
+	if len(references) > 0 {
+		references = helper_slices.RemoveDuplicates(references)
+		fc = append(fc, "ref IN ("+genQuestionMarks(len(references))+")")
+		for _, ref := range references {
+			val = append(val, ref)
+		}
+	}
+	if len(fc) > 0 {
+		return " WHERE " + strings.Join(fc, " AND "), val
 	}
 	return "", nil
 }
