@@ -54,6 +54,7 @@ func (h *Handler) DeleteAuxiliaryDeployments(
 	err = h.databaseHandler.DeleteAuxiliaryDeployments(ctx, deleted)
 	if err != nil {
 		errs = append(errs, err.Error())
+		return nil, errors.New(strings.Join(errs, "\n")) // TODO
 	}
 	if len(errs) > 0 {
 		return deleted, errors.New(strings.Join(errs, "\n")) // TODO
