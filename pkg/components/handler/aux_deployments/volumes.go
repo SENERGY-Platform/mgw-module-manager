@@ -76,8 +76,37 @@ func (h *Handler) DeleteVolumes(
 	if err != nil {
 		return nil, err
 	}
+	return h.deleteVolumes(ctx, deploymentId, volumes)
+}
+
+func (h *Handler) DeleteUnusedVolumes(ctx context.Context, deploymentId string, excludeReferences []string) ([]string, error) {
+	mu := h.mutexes.Get(deploymentId)
+	mu.Lock()
+	defer mu.Unlock()
+	volumesWithMounts, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumesWithMounts(ctx, deploymentId, nil)
+	if err != nil {
+		return nil, err
+	}
+	for _, reference := range excludeReferences {
+		delete(volumesWithMounts, reference)
+	}
+	volumes := make(map[string]models_handler_database.AuxiliaryDeploymentVolume)
+	for reference, volume := range volumesWithMounts {
+		if len(volume.MountedBy) == 0 {
+			volumes[reference] = volume.AuxiliaryDeploymentVolume
+		}
+	}
+	return h.deleteVolumes(ctx, deploymentId, volumes)
+}
+
+func (h *Handler) deleteVolumes(
+	ctx context.Context,
+	deploymentId string,
+	volumes map[string]models_handler_database.AuxiliaryDeploymentVolume,
+) ([]string, error) {
 	var deleted []string
 	var errs []string
+	var err error
 	for reference, volume := range volumes {
 		err = helper_containers.RemoveVolume(ctx, h.containerEngineWrapperClient, volume.Name)
 		if err != nil {
