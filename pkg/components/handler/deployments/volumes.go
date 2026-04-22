@@ -22,6 +22,7 @@ import (
 	"maps"
 	"strings"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
@@ -41,7 +42,7 @@ func (h *Handler) ensureContainerVolumes(ctx context.Context,
 	for name := range existingVolumes {
 		_, ok := volumes[name]
 		if !ok {
-			err = h.removeContainerVolume(ctx, name)
+			err = helper_containers.RemoveVolume(ctx, h.containerEngineWrapperClient, name)
 			if err != nil {
 				errs = append(errs, err.Error())
 			}
@@ -85,24 +86,13 @@ func (h *Handler) removeContainerVolumes(
 ) error {
 	var errs []string
 	for _, volume := range deploymentVolumes {
-		err := h.removeContainerVolume(ctx, volume.Name)
+		err := helper_containers.RemoveVolume(ctx, h.containerEngineWrapperClient, volume.Name)
 		if err != nil {
 			errs = append(errs, err.Error())
 		}
 	}
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
-}
-
-func (h *Handler) removeContainerVolume(ctx context.Context, name string) error {
-	err := h.containerEngineWrapperClient.RemoveVolume(ctx, name, false)
-	if err != nil {
-		var notFoundErr *models_external.CEWNotFoundErr
-		if !errors.As(err, &notFoundErr) {
-			return err
-		}
 	}
 	return nil
 }

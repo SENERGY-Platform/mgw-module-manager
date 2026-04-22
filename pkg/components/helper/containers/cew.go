@@ -99,3 +99,14 @@ func EnsureImage(
 	}
 	return nil
 }
+
+func RemoveVolume(ctx context.Context, client containerEngineWrapperClient, name string) error {
+	err := client.RemoveVolume(ctx, name, false)
+	if err != nil {
+		var notFoundErr *models_external.CEWNotFoundErr
+		if !errors.As(err, &notFoundErr) {
+			return err
+		}
+	}
+	return nil
+}
