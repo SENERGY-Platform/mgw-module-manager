@@ -29,6 +29,34 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
+func (h *Handler) GetVolumes(
+	ctx context.Context,
+	deploymentId string,
+) (map[string]models_handler_database.AuxiliaryDeploymentVolume, error) {
+	mu := h.mutexes.Get(deploymentId)
+	mu.RLock()
+	defer mu.RUnlock()
+	volumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, deploymentId)
+	if err != nil {
+		return nil, err
+	}
+	return volumes, nil
+}
+
+func (h *Handler) GetVolumesWithMounts(
+	ctx context.Context,
+	deploymentId string,
+) (map[string]models_handler_database.AuxiliaryDeploymentVolumeWithMounts, error) {
+	mu := h.mutexes.Get(deploymentId)
+	mu.RLock()
+	defer mu.RUnlock()
+	volumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumesWithMounts(ctx, deploymentId)
+	if err != nil {
+		return nil, err
+	}
+	return volumes, nil
+}
+
 func (h *Handler) ensureContainerVolumes(
 	ctx context.Context,
 	volumes map[string]models_handler_database.AuxiliaryDeploymentVolume,
