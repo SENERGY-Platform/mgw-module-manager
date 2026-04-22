@@ -143,23 +143,6 @@ func (h *Handler) stopContainers(
 	return nil
 }
 
-func (h *Handler) restartContainers(
-	ctx context.Context,
-	deploymentContainers map[string]models_handler_database.DeploymentContainer,
-) error {
-	var errs []string
-	for _, container := range deploymentContainers {
-		err := helper_containers.Restart(ctx, h.containerEngineWrapperClient, container.Name, h.config.JobPollInterval)
-		if err != nil {
-			errs = append(errs, err.Error())
-		}
-	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
-	}
-	return nil
-}
-
 func getCewContainer(
 	serviceImage string,
 	serviceDeviceCGroupRules []string,
