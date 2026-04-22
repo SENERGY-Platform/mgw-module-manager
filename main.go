@@ -19,6 +19,7 @@ import (
 	cm_client "github.com/SENERGY-Platform/mgw-core-manager/client"
 	hm_client "github.com/SENERGY-Platform/mgw-host-manager/client"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/api"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/aux_deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/db_init"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/restructure"
@@ -143,6 +144,13 @@ func main() {
 		config.DeploymentsHandler,
 	)
 
+	handler_aux_deployments.InitLogger(logger)
+	auxDeploymentsHandler := handler_aux_deployments.New(
+		databaseHandler,
+		containerEngineWrapperClient,
+		config.AuxDeploymentsHandler,
+	)
+
 	jobsHandler := handler_jobs.New(ctx, config.JobsHandler)
 
 	service.InitLogger(logger)
@@ -200,6 +208,13 @@ func main() {
 	go func() {
 		defer wg.Done()
 		deploymentsHandler.RuntimeMonitor(ctx)
+		cf()
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		auxDeploymentsHandler.RuntimeMonitor(ctx)
 		cf()
 	}()
 

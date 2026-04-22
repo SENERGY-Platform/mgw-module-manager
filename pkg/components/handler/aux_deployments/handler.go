@@ -17,6 +17,7 @@
 package handler_aux_deployments
 
 import (
+	"sync"
 	"time"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/mutex_map"
@@ -35,6 +36,8 @@ type Handler struct {
 	containerEngineWrapperClient containerEngineWrapperClient
 	config                       Config
 	mutexes                      *helper_mutex_map.RWMutexMap
+	runtimeMonitorJobs           map[string]struct{}
+	runtimeMonitorJobsMu         sync.RWMutex
 }
 
 func New(databaseHandler databaseHandler, containerEngineWrapperClient containerEngineWrapperClient, config Config) *Handler {
