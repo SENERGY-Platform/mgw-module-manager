@@ -44,6 +44,11 @@ type AuxiliaryDeploymentVolume struct {
 	Name         string
 }
 
+type AuxiliaryDeploymentVolumeWithMounts struct {
+	AuxiliaryDeploymentVolume
+	MountedBy []string
+}
+
 type AuxiliaryDeploymentVolumeMount struct {
 	VolumeId              string
 	VolumeName            string
