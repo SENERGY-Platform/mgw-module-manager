@@ -69,7 +69,7 @@ func (h *Handler) UpdateAuxiliaryDeployment(
 			return err
 		}
 	}
-	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id)
+	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id, nil)
 	if err != nil {
 		return err
 	}

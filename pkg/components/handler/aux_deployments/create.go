@@ -51,7 +51,7 @@ func (h *Handler) CreateAuxiliaryDeployment(
 	if !ok {
 		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, errors.New("auxiliary service reference not found") // TODO
 	}
-	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id)
+	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id, nil)
 	if err != nil {
 		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
 	}

@@ -56,7 +56,7 @@ func (h *Handler) RecreateAuxiliaryDeployments(
 	if err != nil {
 		return nil, err
 	}
-	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id)
+	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id, nil)
 	if err != nil {
 		return nil, err
 	}
