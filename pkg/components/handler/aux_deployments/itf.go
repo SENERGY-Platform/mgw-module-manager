@@ -83,6 +83,7 @@ type databaseHandler interface {
 	UpdateAuxiliaryDeploymentsEnabledState(ctx context.Context, auxDeploymentIds []string, state bool) error
 	DeleteAuxiliaryDeployment(ctx context.Context, auxDeploymentId string) error
 	DeleteAuxiliaryDeployments(ctx context.Context, auxiliaryDeploymentsIds []string) error
+	DeleteAuxiliaryDeploymentVolumes(ctx context.Context, deploymentId string, references []string) error
 }
 
 type containerEngineWrapperClient interface {

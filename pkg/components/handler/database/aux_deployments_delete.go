@@ -39,6 +39,19 @@ func (h *Handler) DeleteAuxiliaryDeployments(ctx context.Context, auxiliaryDeplo
 	return nil
 }
 
+func (h *Handler) DeleteAuxiliaryDeploymentVolumes(ctx context.Context, deploymentId string, references []string) error {
+	fc, val := genAuxiliaryDeploymentVolumesFilter(deploymentId, references)
+	_, err := h.sqlDB.ExecContext(
+		ctx,
+		"DELETE FROM aux_dep_volumes"+fc+";",
+		val...,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func genAuxiliaryDeploymentsIdsFilter(ids []string) (string, []any) {
 	if len(ids) > 0 {
 		ids = helper_slices.RemoveDuplicates(ids)

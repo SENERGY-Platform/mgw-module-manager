@@ -22,6 +22,7 @@ import (
 	"maps"
 	"strings"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
@@ -57,6 +58,43 @@ func (h *Handler) GetVolumesWithMounts(
 		return nil, err
 	}
 	return volumes, nil
+}
+
+func (h *Handler) DeleteVolumes(
+	ctx context.Context,
+	deploymentId string,
+	filterReferences []string,
+	allowAll bool,
+) ([]string, error) {
+	if !allowAll && len(filterReferences) == 0 {
+		return nil, nil
+	}
+	mu := h.mutexes.Get(deploymentId)
+	mu.Lock()
+	defer mu.Unlock()
+	volumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, deploymentId, filterReferences)
+	if err != nil {
+		return nil, err
+	}
+	var deleted []string
+	var errs []string
+	for reference, volume := range volumes {
+		err = helper_containers.RemoveVolume(ctx, h.containerEngineWrapperClient, volume.Name)
+		if err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+		deleted = append(deleted, reference)
+	}
+	err = h.databaseHandler.DeleteAuxiliaryDeploymentVolumes(ctx, deploymentId, deleted)
+	if err != nil {
+		errs = append(errs, err.Error())
+		return nil, errors.New(strings.Join(errs, "\n")) // TODO
+	}
+	if len(errs) > 0 {
+		return deleted, errors.New(strings.Join(errs, "\n")) // TODO
+	}
+	return deleted, nil
 }
 
 func (h *Handler) ensureContainerVolumes(
