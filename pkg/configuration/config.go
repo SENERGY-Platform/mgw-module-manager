@@ -21,6 +21,7 @@ import (
 
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/aux_deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
@@ -52,6 +53,7 @@ type Config struct {
 	MGW                      MGWConfig                      `json:"mgw"`
 	ModulesHandler           handler_modules.Config         `json:"modules_handler"`
 	DeploymentsHandler       handler_deployments.Config     `json:"deployments_handler"`
+	AuxDeploymentsHandler    handler_aux_deployments.Config `json:"aux_deployments_handler"`
 	Logger                   struct_logger.Config           `json:"logger"`
 	GitHubModulesRepoHandler GitHubModulesRepoHandlerConfig `json:"github_modules_repo_handler"`
 	JobsHandler              handler_jobs.Config            `json:"jobshandler"`
@@ -78,6 +80,11 @@ func New(path string) (*Config, error) {
 		},
 		DeploymentsHandler: handler_deployments.Config{
 			WorkDirPath:                "/opt/module-manager/deployments",
+			JobPollInterval:            time.Millisecond * 500,
+			RuntimeMonitorStartupDelay: time.Second * 30,
+			RuntimeMonitorLoopDelay:    time.Second * 5,
+		},
+		AuxDeploymentsHandler: handler_aux_deployments.Config{
 			JobPollInterval:            time.Millisecond * 500,
 			RuntimeMonitorStartupDelay: time.Second * 30,
 			RuntimeMonitorLoopDelay:    time.Second * 5,
