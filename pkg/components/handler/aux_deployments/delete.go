@@ -29,7 +29,11 @@ func (h *Handler) DeleteAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
 	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	allowAll bool,
 ) ([]string, error) {
+	if !allowAll && filterEmpty(filter) {
+		return nil, nil
+	}
 	mu := h.mutexes.Get(deploymentId)
 	mu.Lock()
 	defer mu.Unlock()
@@ -59,4 +63,22 @@ func (h *Handler) DeleteAuxiliaryDeployments(
 
 func (h *Handler) DeleteMutex(deploymentId string) {
 	h.mutexes.Delete(deploymentId)
+}
+
+func filterEmpty(filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter) bool {
+	switch {
+	case filter.State != "":
+		return false
+	case filter.Enabled != 0:
+		return false
+	case filter.Image != "":
+		return false
+	case filter.Recreate != 0:
+		return false
+	case len(filter.Ids) > 0:
+		return false
+	case len(filter.Labels) > 0:
+		return false
+	}
+	return true
 }
