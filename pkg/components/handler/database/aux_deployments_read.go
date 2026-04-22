@@ -264,7 +264,7 @@ func (h *Handler) ReadAuxiliaryDeploymentsVolumeMounts(
 	return auxDepsVolumeMounts, nil
 }
 
-const selectEnabledAuxDeploymentsStmt = `SELECT deployments.id AS dep_id, deployments.enabled AS dep_enabled, aux_deployments.id, aux_deployments.enabled, aux_deployments.ctr_name, aux_deployments.ctr_alias
+const selectAuxDeploymentsByParentStmt = `SELECT deployments.id AS dep_id, deployments.enabled AS dep_enabled, aux_deployments.id, aux_deployments.enabled, aux_deployments.ctr_name, aux_deployments.ctr_alias
 FROM aux_deployments 
 LEFT JOIN deployments ON aux_deployments.dep_id = deployments.id`
 
@@ -274,7 +274,7 @@ func (h *Handler) ReadAuxDeploymentsByParent(ctx context.Context) (
 ) {
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
-		selectEnabledAuxDeploymentsStmt,
+		selectAuxDeploymentsByParentStmt,
 	)
 	if err != nil {
 		return nil, err
