@@ -24,7 +24,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 )
 
-func (h *Handler) EnableAuxiliaryDeployments(
+func (h *Handler) EnableDeployments(
 	ctx context.Context,
 	deploymentId string,
 	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
@@ -39,7 +39,7 @@ func (h *Handler) EnableAuxiliaryDeployments(
 	return h.databaseHandler.UpdateAuxiliaryDeploymentsEnabledState(ctx, slices.Collect(maps.Keys(auxDeployments)), true)
 }
 
-func (h *Handler) DisableAuxiliaryDeployments(
+func (h *Handler) DisableDeployments(
 	ctx context.Context,
 	deploymentId string,
 	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,

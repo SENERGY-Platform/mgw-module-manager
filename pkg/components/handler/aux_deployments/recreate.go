@@ -33,7 +33,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
-func (h *Handler) RecreateAuxiliaryDeployments(
+func (h *Handler) RecreateDeployments(
 	ctx context.Context,
 	module models_handler_modules.Module,
 	activeDeployment models_handler_deployments.Deployment,

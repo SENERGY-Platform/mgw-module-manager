@@ -25,7 +25,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 )
 
-func (h *Handler) DeleteAuxiliaryDeployments(
+func (h *Handler) DeleteDeployments(
 	ctx context.Context,
 	deploymentId string,
 	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,

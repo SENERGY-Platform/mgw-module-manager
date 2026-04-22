@@ -28,7 +28,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
-func (h *Handler) GetAuxiliaryDeployment(
+func (h *Handler) GetDeployment(
 	ctx context.Context,
 	deploymentId string,
 	auxDeploymentId string,
@@ -36,7 +36,7 @@ func (h *Handler) GetAuxiliaryDeployment(
 	mu := h.mutexes.Get(deploymentId)
 	mu.RLock()
 	defer mu.RUnlock()
-	auxDeployments, err := h.GetAuxiliaryDeployments(ctx, deploymentId, models_handler_aux_deployments.AuxiliaryDeploymentsFilter{
+	auxDeployments, err := h.GetDeployments(ctx, deploymentId, models_handler_aux_deployments.AuxiliaryDeploymentsFilter{
 		AuxiliaryDeploymentsFilter: models_handler_database.AuxiliaryDeploymentsFilter{
 			Ids: []string{auxDeploymentId},
 		},
@@ -50,7 +50,7 @@ func (h *Handler) GetAuxiliaryDeployment(
 	return auxDeployments[auxDeploymentId], nil
 }
 
-func (h *Handler) GetAuxiliaryDeployments(
+func (h *Handler) GetDeployments(
 	ctx context.Context,
 	deploymentId string,
 	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
@@ -82,7 +82,7 @@ func (h *Handler) GetAuxiliaryDeployments(
 	return getAuxiliaryDeployments(dbAuxDeployments, dbAuxDepLabels, dbAuxDepConfigs, dbAuxDepVolumeMounts, cewContainers), nil
 }
 
-func (h *Handler) GetReducedAuxiliaryDeployments(
+func (h *Handler) GetReducedDeployments(
 	ctx context.Context,
 	deploymentId string,
 	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
