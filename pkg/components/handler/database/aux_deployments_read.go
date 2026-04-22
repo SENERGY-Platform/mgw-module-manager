@@ -211,6 +211,48 @@ func (h *Handler) ReadAuxiliaryDeploymentVolumes(
 	return auxDepVolumes, nil
 }
 
+const selectAuxiliaryDeploymentVolumesWithMountsStmt = `SELECT aux_dep_volumes.id, aux_dep_volumes.dep_id, aux_dep_volumes.ref, aux_dep_volumes.name, aux_dep_volume_mounts.aux_dep_id
+FROM aux_dep_volumes
+LEFT JOIN aux_dep_volume_mounts
+ON aux_dep_volumes.id = aux_dep_volume_mounts.vol_id`
+
+func (h *Handler) ReadAuxiliaryDeploymentVolumesWithMounts(
+	ctx context.Context,
+	deploymentId string,
+) (map[string]models_handler_database.AuxiliaryDeploymentVolumeWithMounts, error) {
+	rows, err := h.sqlDB.QueryContext(
+		ctx,
+		selectAuxiliaryDeploymentVolumesWithMountsStmt+" WHERE dep_id = ?;",
+		deploymentId,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	auxDepVolumes := make(map[string]models_handler_database.AuxiliaryDeploymentVolumeWithMounts)
+	for rows.Next() {
+		var id string
+		var depId string
+		var reference string
+		var volName string
+		var auxDepId string
+		err = rows.Scan(&id, &depId, &reference, &volName, &auxDepId)
+		if err != nil {
+			return nil, err
+		}
+		volume, ok := auxDepVolumes[reference]
+		if !ok {
+			volume.Id = id
+			volume.DeploymentId = depId
+			volume.Reference = reference
+			volume.Name = volName
+		}
+		volume.MountedBy = append(volume.MountedBy, auxDepId)
+		auxDepVolumes[reference] = volume
+	}
+	return auxDepVolumes, nil
+}
+
 func (h *Handler) ReadAuxiliaryDeploymentVolumeMounts(
 	ctx context.Context,
 	auxiliaryDeploymentId string,
