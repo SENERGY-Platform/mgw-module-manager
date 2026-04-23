@@ -49,6 +49,25 @@ func New(ctx context.Context, config Config) *Handler {
 	}
 }
 
+func (h *Handler) CreateJob(description string) (*Job, error) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	id, err := helper_uuid.New()
+	if err != nil {
+		return nil, err
+	}
+	ctx, cf := context.WithCancel(h.ctx)
+	job := &Job{
+		Id:          id,
+		Description: description,
+		Start:       helper_time.Now(),
+		context:     ctx,
+		cancelFunc:  cf,
+	}
+	h.jobMap[id] = job
+	return job, nil
+}
+
 func (h *Handler) CreateSlotJob(slotNum int, description string) (*Job, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
