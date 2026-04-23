@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 InfAI (CC SES)
+ * Copyright 2026 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,30 +22,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
-
-type Job struct {
-	Id           string    `json:"id"`
-	Description  string    `json:"description"`
-	HasError     bool      `json:"has_error"`
-	ErrorMessage string    `json:"error"`
-	Start        time.Time `json:"start"`
-	End          time.Time `json:"end"`
-}
-
-type UserInput struct {
-	ModuleId      string                                   `json:"module_id"`
-	HostResources map[string]string                        `json:"host_resources"` // {ref:resourceID}
-	Secrets       map[string]string                        `json:"secrets"`        // {ref:secretID}
-	Configs       map[string]any                           `json:"configs"`        // {ref:value}
-	GlobalConfigs map[string]string                        `json:"global_configs"` // {ref:configID}
-	Files         map[string]string                        `json:"files"`          // {ref:data}
-	FileGroups    map[string]map[string]FileGroupUserInput `json:"file_groups"`    // {ref:{path:FileGroupUserInput}}
-}
-
-type FileGroupUserInput struct {
-	Format int    `json:"format"`
-	Data   string `json:"data"`
-}
 
 type Module struct {
 	models_external.ModuleLibModule
@@ -139,45 +115,6 @@ type ModulesFilter struct {
 	IsDeployed        int
 	DeploymentEnabled int
 	DeploymentState   int
-}
-
-type RepoModule struct {
-	Id           string                  `json:"id"`
-	Name         string                  `json:"name"`
-	Desc         string                  `json:"description"`
-	Version      string                  `json:"version"`
-	Repositories []Repository            `json:"repositories"`
-	Installed    *InstalledModuleVariant `json:"installed"`
-}
-
-type InstalledModuleVariant struct {
-	ModuleVariant
-	NextVersion string `json:"next_version"`
-}
-
-type RepoModulesFilter struct {
-	Ids             []string           `json:"ids"`
-	Name            string             `json:"name"`
-	Repositories    []RepositoryFilter `json:"repositories"`
-	Installed       bool               `json:"installed"`
-	UpdateAvailable bool               `json:"update_available"`
-}
-
-type RepositoryFilter struct {
-	Source   string   `json:"source"`
-	Channels []string `json:"channels"`
-}
-
-type Repository struct {
-	Source   string    `json:"source"`
-	Priority int       `json:"priority"`
-	Channels []Channel `json:"channels"`
-}
-
-type Channel struct {
-	Name     string `json:"name"`
-	Priority int    `json:"priority"`
-	Version  string `json:"version"`
 }
 
 type ModuleVariant struct {
