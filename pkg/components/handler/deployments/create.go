@@ -24,7 +24,6 @@ import (
 	"os"
 	"path"
 	"slices"
-	"strings"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
@@ -42,7 +41,7 @@ func (h *Handler) CreateDeployments(
 	ctx context.Context,
 	selectedModules map[string]models_handler_modules.Module,
 	userInputs map[string]models_handler_deployments.UserInput,
-) error {
+) ([]models_handler_deployments.CreateResult, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	cache := cacheCollection{
@@ -53,20 +52,20 @@ func (h *Handler) CreateDeployments(
 	var err error
 	selectedModules, err = h.filterSelectedModules(ctx, selectedModules)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	cache.Deployments, err = initDeploymentsCacheFromModules(selectedModules)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	var errs []string
+	var results []models_handler_deployments.CreateResult
 	for moduleId, module := range selectedModules {
 		cacheItem, ok := cache.Deployments[moduleId]
 		if !ok {
-			errs = append(errs, "module "+moduleId+" not deployed")
+			results = append(results, models_handler_deployments.CreateResult{ModuleId: moduleId, ErrorMessage: "not deployed"})
 			continue
 		}
-		err = h.createDeployment(
+		id, err := h.createDeployment(
 			ctx,
 			module,
 			userInputs[moduleId],
@@ -74,14 +73,13 @@ func (h *Handler) CreateDeployments(
 			cacheItem.Containers,
 			cache,
 		)
+		result := models_handler_deployments.CreateResult{ModuleId: moduleId, Id: id}
 		if err != nil {
-			errs = append(errs, err.Error())
+			result.ErrorMessage = err.Error()
 		}
+		results = append(results, result)
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return results, nil
 }
 
 func (h *Handler) createDeployment(
@@ -91,20 +89,20 @@ func (h *Handler) createDeployment(
 	deploymentId string,
 	cacheContainers map[string]containerCacheItem,
 	cache cacheCollection,
-) error {
+) (string, error) {
 	newDeployment, err := getDeployment(module, deploymentId)
 	if err != nil {
-		return err
+		return "", err
 	}
 	newDeployment.Created = helper_time.Now()
 	newDeployment.Updated = newDeployment.Created
 	defaultData, err := getDefaultData(module)
 	if err != nil {
-		return err
+		return "", err
 	}
 	userData, err := getUserData(module, defaultData, userInput, deploymentId)
 	if err != nil {
-		return err
+		return "", err
 	}
 	err = h.updateCaches(
 		ctx,
@@ -115,7 +113,7 @@ func (h *Handler) createDeployment(
 		cache,
 	)
 	if err != nil {
-		return err
+		return "", err
 	}
 	mergedConfigs, mergedFiles, err := mergeDefaultAndUserData(
 		module,
@@ -126,11 +124,11 @@ func (h *Handler) createDeployment(
 		cache.GlobalConfigs,
 	)
 	if err != nil {
-		return err
+		return "", err
 	}
 	newContainers, err := getNewContainers(module.Services, cacheContainers, deploymentId)
 	if err != nil {
-		return err
+		return "", err
 	}
 	newVolumes := getNewVolumes(module.Volumes, deploymentId)
 	err = h.databaseHandler.CreateDeployment(
@@ -146,7 +144,7 @@ func (h *Handler) createDeployment(
 		slices.Collect(maps.Values(newContainers)),
 	)
 	if err != nil {
-		return err
+		return "", err
 	}
 	err = h.ensureDeploymentEnvironment(
 		ctx,
@@ -158,7 +156,7 @@ func (h *Handler) createDeployment(
 		newVolumes,
 	)
 	if err != nil {
-		return err
+		return newDeployment.Id, err
 	}
 	bindMounts, err := h.getBindMounts(
 		ctx,
@@ -169,13 +167,9 @@ func (h *Handler) createDeployment(
 		mergedFiles,
 	)
 	if err != nil {
-		return err
+		return newDeployment.Id, err
 	}
 	// TODO "mount secrets" must be "unloaded" if one of the following steps fail
-	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
-	if err != nil {
-		logger.Error(err.Error()) // TODO
-	}
 	err = h.createContainers(
 		ctx,
 		module.Configs,
@@ -194,9 +188,13 @@ func (h *Handler) createDeployment(
 		cache.HostResources,
 	)
 	if err != nil {
-		logger.Error(err.Error()) // TODO
+		return newDeployment.Id, err
 	}
-	return nil
+	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
+	if err != nil {
+		return newDeployment.Id, err
+	}
+	return newDeployment.Id, nil
 }
 
 func (h *Handler) getBindMounts(
