@@ -60,9 +60,9 @@ type DeploymentSecret struct {
 }
 
 type DeploymentSecretItem struct {
-	Name    string
-	AsMount bool
-	AsEnv   bool
+	Name    string `json:"name"`
+	AsMount bool   `json:"as_mount"`
+	AsEnv   bool   `json:"as_env"`
 }
 
 type DeploymentUserConfig struct {
