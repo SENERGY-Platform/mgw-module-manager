@@ -33,18 +33,18 @@ type Job struct {
 }
 
 type UserInput struct {
-	ModuleId      string
-	HostResources map[string]string                        // {ref:resourceID}
-	Secrets       map[string]string                        // {ref:secretID}
-	Configs       map[string]any                           // {ref:value}
-	GlobalConfigs map[string]string                        // {ref:configID}
-	Files         map[string]string                        // {ref:data}
-	FileGroups    map[string]map[string]FileGroupUserInput // {ref:{path:FileGroupUserInput}}
+	ModuleId      string                                   `json:"module_id"`
+	HostResources map[string]string                        `json:"host_resources"` // {ref:resourceID}
+	Secrets       map[string]string                        `json:"secrets"`        // {ref:secretID}
+	Configs       map[string]any                           `json:"configs"`        // {ref:value}
+	GlobalConfigs map[string]string                        `json:"global_configs"` // {ref:configID}
+	Files         map[string]string                        `json:"files"`          // {ref:data}
+	FileGroups    map[string]map[string]FileGroupUserInput `json:"file_groups"`    // {ref:{path:FileGroupUserInput}}
 }
 
 type FileGroupUserInput struct {
-	Format int
-	Data   string
+	Format int    `json:"format"`
+	Data   string `json:"data"`
 }
 
 type Module struct {
