@@ -21,8 +21,8 @@ import (
 	"errors"
 	"slices"
 
-	handler_jobs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
-	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
 func (s *Service) Jobs(_ context.Context, filterIds []string) ([]models_service.Job, error) {
@@ -63,16 +63,11 @@ func (s *Service) CancelJob(_ context.Context, jobId string) error {
 }
 
 func getJob(handlerJob *handler_jobs.Job) models_service.Job {
-	runtimeData := handlerJob.RuntimeData()
 	job := models_service.Job{
 		Id:          handlerJob.Id,
 		Description: handlerJob.Description,
 		Start:       handlerJob.Start,
-		End:         runtimeData.End,
-	}
-	if runtimeData.Error != nil {
-		job.ErrorMessage = runtimeData.Error.Error()
-		job.HasError = true
+		End:         handlerJob.End(),
 	}
 	return job
 }

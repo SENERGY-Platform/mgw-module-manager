@@ -38,7 +38,7 @@ import (
 func (s *Service) Modules(ctx context.Context, filter models_service.ModulesFilter) ([]models_service.ModuleReduced, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	_, ok := s.jobsHandler.CurrentJob(moduleJobSlotNum)
+	_, ok := s.jobsHandler.CurrentSlotJob(moduleJobSlotNum)
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}
@@ -63,7 +63,7 @@ func (s *Service) Modules(ctx context.Context, filter models_service.ModulesFilt
 func (s *Service) Module(ctx context.Context, id string) (models_service.Module, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	_, ok := s.jobsHandler.CurrentJob(moduleJobSlotNum)
+	_, ok := s.jobsHandler.CurrentSlotJob(moduleJobSlotNum)
 	if ok {
 		return models_service.Module{}, errors.New("active job") // TODO
 	}
@@ -99,7 +99,7 @@ func (s *Service) NewModulesChangeRequest(
 ) (models_service.ModulesChangeRequest, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	currentJobs := s.jobsHandler.CurrentJobs([]int{moduleJobSlotNum, repositoryJobSlotNum})
+	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{moduleJobSlotNum, repositoryJobSlotNum})
 	if len(currentJobs) > 0 {
 		return models_service.ModulesChangeRequest{}, errors.New("active jobs") // TODO
 	}
@@ -132,12 +132,12 @@ func (s *Service) ExecModulesChangeRequest(_ context.Context) (models_service.Jo
 	if s.changeRequest == nil {
 		return models_service.Job{}, models_error.NotFoundErr
 	}
-	currentJobs := s.jobsHandler.CurrentJobs([]int{moduleJobSlotNum, repositoryJobSlotNum, deploymentJobSlotNum})
+	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{moduleJobSlotNum, repositoryJobSlotNum, deploymentJobSlotNum})
 	if len(currentJobs) > 0 {
 		return models_service.Job{}, errors.New("active jobs") // TODO
 	}
 	s.changeReport = nil
-	job, err := s.jobsHandler.Create(moduleJobSlotNum, "execute modules change")
+	job, err := s.jobsHandler.CreateSlotJob(moduleJobSlotNum, "execute modules change")
 	if err != nil {
 		return models_service.Job{}, err
 	}

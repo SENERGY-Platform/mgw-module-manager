@@ -19,12 +19,12 @@ import (
 func (s *Service) RefreshRepositories(_ context.Context) (models_service.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	_, ok := s.jobsHandler.CurrentJob(repositoryJobSlotNum)
+	_, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
 	if ok {
 		return models_service.Job{}, errors.New("active job") // TODO
 	}
 	s.changeRequest = nil
-	job, err := s.jobsHandler.Create(repositoryJobSlotNum, "refresh repositories")
+	job, err := s.jobsHandler.CreateSlotJob(repositoryJobSlotNum, "refresh repositories")
 	if err != nil {
 		return models_service.Job{}, err
 	}
@@ -50,7 +50,7 @@ func (s *Service) RefreshRepositories(_ context.Context) (models_service.Job, er
 func (s *Service) RepoModules(ctx context.Context, filter models_service.RepoModulesFilter) ([]models_service.RepoModule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	_, ok := s.jobsHandler.CurrentJob(repositoryJobSlotNum)
+	_, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}

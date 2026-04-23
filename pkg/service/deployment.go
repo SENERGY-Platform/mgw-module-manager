@@ -36,7 +36,7 @@ import (
 func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]models_service.Module, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	_, ok := s.jobsHandler.CurrentJob(moduleJobSlotNum)
+	_, ok := s.jobsHandler.CurrentSlotJob(moduleJobSlotNum)
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}
@@ -65,7 +65,7 @@ func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]
 func (s *Service) CreateDeployments(ctx context.Context, userInputs []models_service.UserInput) (models_service.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	currentJobs := s.jobsHandler.CurrentJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
+	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
 	if len(currentJobs) > 0 {
 		return models_service.Job{}, errors.New("active jobs") // TODO
 	}
@@ -82,7 +82,7 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []models_ser
 	if err != nil {
 		return models_service.Job{}, err
 	}
-	job, err := s.jobsHandler.Create(deploymentJobSlotNum, "create deployments")
+	job, err := s.jobsHandler.CreateSlotJob(deploymentJobSlotNum, "create deployments")
 	if err != nil {
 		return models_service.Job{}, err
 	}
@@ -118,7 +118,7 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []models_ser
 func (s *Service) UpdateDeployments(ctx context.Context, userInputs []models_service.UserInput) (models_service.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	currentJobs := s.jobsHandler.CurrentJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
+	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
 	if len(currentJobs) > 0 {
 		return models_service.Job{}, errors.New("active jobs") // TODO
 	}
@@ -170,7 +170,7 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []models_ser
 func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (models_service.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	currentJobs := s.jobsHandler.CurrentJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
+	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
 	if len(currentJobs) > 0 {
 		return models_service.Job{}, errors.New("active jobs") // TODO
 	}
@@ -180,7 +180,7 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 	if err != nil {
 		return models_service.Job{}, err
 	}
-	job, err := s.jobsHandler.Create(deploymentJobSlotNum, "recreate deployments")
+	job, err := s.jobsHandler.CreateSlotJob(deploymentJobSlotNum, "recreate deployments")
 	if err != nil {
 		return models_service.Job{}, err
 	}
@@ -216,7 +216,7 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	_, ok := s.jobsHandler.CurrentJob(deploymentJobSlotNum)
+	_, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
 	if ok {
 		return errors.New("active job") // TODO
 	}
@@ -230,7 +230,7 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) err
 func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	_, ok := s.jobsHandler.CurrentJob(deploymentJobSlotNum)
+	_, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
 	if ok {
 		return errors.New("active job") // TODO
 	}
@@ -247,7 +247,7 @@ func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) err
 func (s *Service) DisableDeployments(ctx context.Context, moduleIds []string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	_, ok := s.jobsHandler.CurrentJob(deploymentJobSlotNum)
+	_, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
 	if ok {
 		return errors.New("active job") // TODO
 	}
