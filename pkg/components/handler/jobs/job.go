@@ -21,24 +21,22 @@ import (
 	"sync"
 	"time"
 
-	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 )
+
+type doneHandler interface {
+	JobDone()
+}
 
 type Job struct {
 	Id          string
 	Description string
 	Start       time.Time
-	runtimeData RuntimeData
-	slotNum     int
+	end         time.Time
+	doneHandler doneHandler
 	context     context.Context
 	cancelFunc  context.CancelFunc
-	doneFunc    func(int)
 	mu          sync.RWMutex
-}
-
-type RuntimeData struct {
-	End   time.Time
-	Error error
 }
 
 func (j *Job) Context() context.Context {
@@ -52,23 +50,19 @@ func (j *Job) Cancel() {
 func (j *Job) Done() {
 	defer j.cancelFunc()
 	j.setEnd()
-	j.doneFunc(j.slotNum)
+	if j.doneHandler != nil {
+		j.doneHandler.JobDone()
+	}
 }
 
-func (j *Job) SetError(err error) {
-	j.mu.Lock()
-	defer j.mu.Unlock()
-	j.runtimeData.Error = err
-}
-
-func (j *Job) RuntimeData() RuntimeData {
+func (j *Job) End() time.Time {
 	j.mu.RLock()
 	defer j.mu.RUnlock()
-	return j.runtimeData
+	return j.end
 }
 
 func (j *Job) setEnd() {
 	j.mu.Lock()
 	defer j.mu.Unlock()
-	j.runtimeData.End = helper_time.Now()
+	j.end = helper_time.Now()
 }

@@ -23,8 +23,8 @@ import (
 	"sync"
 	"time"
 
-	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
-	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 )
 
 type Config struct {
@@ -49,7 +49,7 @@ func New(ctx context.Context, config Config) *Handler {
 	}
 }
 
-func (h *Handler) Create(slotNum int, description string) (*Job, error) {
+func (h *Handler) CreateSlotJob(slotNum int, description string) (*Job, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	_, ok := h.jobSlots[slotNum]
@@ -65,24 +65,26 @@ func (h *Handler) Create(slotNum int, description string) (*Job, error) {
 		Id:          id,
 		Description: description,
 		Start:       helper_time.Now(),
-		context:     ctx,
-		cancelFunc:  cf,
-		slotNum:     slotNum,
-		doneFunc:    h.done,
+		doneHandler: slotJobDoneHandler{
+			slotNum:  slotNum,
+			doneFunc: h.slotJobDone,
+		},
+		context:    ctx,
+		cancelFunc: cf,
 	}
 	h.jobSlots[slotNum] = job
 	h.jobMap[id] = job
 	return job, nil
 }
 
-func (h *Handler) CurrentJob(slotNum int) (*Job, bool) {
+func (h *Handler) CurrentSlotJob(slotNum int) (*Job, bool) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	job, ok := h.jobSlots[slotNum]
 	return job, ok
 }
 
-func (h *Handler) CurrentJobs(slotNumFilter []int) map[int]*Job {
+func (h *Handler) CurrentSlotJobs(slotNumFilter []int) map[int]*Job {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	if len(slotNumFilter) == 0 {
@@ -141,16 +143,25 @@ func (h *Handler) cleanup() {
 	tmp := make(map[string]*Job)
 	now := helper_time.Now()
 	for id, job := range h.jobMap {
-		data := job.RuntimeData()
-		if now.Sub(data.End) < h.config.MaxJobAge {
+		end := job.End()
+		if now.Sub(end) < h.config.MaxJobAge {
 			tmp[id] = job
 		}
 	}
 	h.jobMap = tmp
 }
 
-func (h *Handler) done(slotNum int) {
+func (h *Handler) slotJobDone(slotNum int) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	delete(h.jobSlots, slotNum)
+}
+
+type slotJobDoneHandler struct {
+	slotNum  int
+	doneFunc func(int)
+}
+
+func (h slotJobDoneHandler) JobDone() {
+	h.doneFunc(h.slotNum)
 }
