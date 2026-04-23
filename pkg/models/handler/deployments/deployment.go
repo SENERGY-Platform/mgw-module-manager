@@ -73,7 +73,8 @@ type FileGroupUserInput struct {
 }
 
 type CreateResult struct {
-	ModuleId     string `json:"module_id"`
-	Id           string `json:"id"`
-	ErrorMessage string `json:"error_message"`
+	ModuleId string `json:"module_id"`
+	Id       string `json:"id"`
+	HasError bool   `json:"has_error"`
+	ErrorMsg string `json:"error_msg"`
 }

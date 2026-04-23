@@ -16,6 +16,8 @@
 
 package models_service
 
+import "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
+
 type UserInput struct {
 	ModuleId      string                                   `json:"module_id"`
 	HostResources map[string]string                        `json:"host_resources"` // {ref:resourceID}
@@ -29,4 +31,11 @@ type UserInput struct {
 type FileGroupUserInput struct {
 	Format int    `json:"format"`
 	Data   string `json:"data"`
+}
+
+type CreateDeploymentsResult struct {
+	Results       []models_handler_deployments.CreateResult `json:"results"`
+	ResultsErrNum int                                       `json:"results_err_num"`
+	HasError      bool                                      `json:"has_error"`
+	Error         string                                    `json:"error"`
 }
