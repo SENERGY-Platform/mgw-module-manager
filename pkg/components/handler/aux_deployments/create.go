@@ -204,6 +204,7 @@ func getAuxiliaryDeployment(
 			Command:   command,
 			PseudoTTY: pseudoTTY,
 		},
+		Recreate: serviceInput.Recreate,
 	}, nil
 }
 

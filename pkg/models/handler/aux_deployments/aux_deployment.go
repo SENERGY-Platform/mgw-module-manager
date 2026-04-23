@@ -67,15 +67,16 @@ type AuxiliaryDeploymentsFilter struct {
 }
 
 type ServiceInput struct {
-	Reference string
-	Name      string
-	Image     string
-	PullImage bool
-	Labels    map[string]string // {name:value}
-	Configs   map[string]string // {varName:value}
-	Volumes   map[string]string // {mntPath:reference}
-	RunConfig RunConfig
-	Enabled   bool
+	Reference string            `json:"reference"`
+	Name      string            `json:"name"`
+	Image     string            `json:"image"`
+	PullImage bool              `json:"pull_image"`
+	Labels    map[string]string `json:"labels"`  // {name:value}
+	Configs   map[string]string `json:"configs"` // {varName:value}
+	Volumes   map[string]string `json:"volumes"` // {mntPath:reference}
+	RunConfig RunConfig         `json:"run_config"`
+	Enabled   bool              `json:"enabled"`
+	Recreate  bool              `json:"recreate"` // recreate the auxiliary deployment if parent deployment gets updated
 }
 
 type UpdateServiceInput struct {
@@ -84,6 +85,6 @@ type UpdateServiceInput struct {
 }
 
 type RunConfig struct {
-	Command   []string
-	PseudoTTY int
+	Command   []string `json:"command"`
+	PseudoTTY int      `json:"pseudo_tty"`
 }
