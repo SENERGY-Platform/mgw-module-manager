@@ -72,7 +72,7 @@ type FileGroupUserInput struct {
 	Data   []byte
 }
 
-type CreateResult struct {
+type Result struct {
 	ModuleId string `json:"module_id"`
 	Id       string `json:"id"`
 	HasError bool   `json:"has_error"`

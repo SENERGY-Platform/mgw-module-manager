@@ -41,7 +41,7 @@ func (h *Handler) CreateDeployments(
 	ctx context.Context,
 	selectedModules map[string]models_handler_modules.Module,
 	userInputs map[string]models_handler_deployments.UserInput,
-) ([]models_handler_deployments.CreateResult, error) {
+) ([]models_handler_deployments.Result, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	cache := cacheCollection{
@@ -58,14 +58,18 @@ func (h *Handler) CreateDeployments(
 	if err != nil {
 		return nil, err
 	}
-	var results []models_handler_deployments.CreateResult
+	var results []models_handler_deployments.Result
 	for moduleId, module := range selectedModules {
+		result := models_handler_deployments.Result{ModuleId: moduleId}
 		cacheItem, ok := cache.Deployments[moduleId]
 		if !ok {
-			results = append(results, models_handler_deployments.CreateResult{ModuleId: moduleId, ErrorMessage: "not deployed"})
+			result.HasError = true
+			result.ErrorMsg = "not installed"
+			results = append(results, result)
 			continue
 		}
-		id, err := h.createDeployment(
+		result.Id = cacheItem.DeploymentId
+		err = h.createDeployment(
 			ctx,
 			module,
 			userInputs[moduleId],
@@ -73,9 +77,9 @@ func (h *Handler) CreateDeployments(
 			cacheItem.Containers,
 			cache,
 		)
-		result := models_handler_deployments.CreateResult{ModuleId: moduleId, Id: id}
 		if err != nil {
-			result.ErrorMessage = err.Error()
+			result.HasError = true
+			result.ErrorMsg = err.Error()
 		}
 		results = append(results, result)
 	}
@@ -89,20 +93,20 @@ func (h *Handler) createDeployment(
 	deploymentId string,
 	cacheContainers map[string]containerCacheItem,
 	cache cacheCollection,
-) (string, error) {
+) error {
 	newDeployment, err := getDeployment(module, deploymentId)
 	if err != nil {
-		return "", err
+		return err
 	}
 	newDeployment.Created = helper_time.Now()
 	newDeployment.Updated = newDeployment.Created
 	defaultData, err := getDefaultData(module)
 	if err != nil {
-		return "", err
+		return err
 	}
 	userData, err := getUserData(module, defaultData, userInput, deploymentId)
 	if err != nil {
-		return "", err
+		return err
 	}
 	err = h.updateCaches(
 		ctx,
@@ -113,7 +117,7 @@ func (h *Handler) createDeployment(
 		cache,
 	)
 	if err != nil {
-		return "", err
+		return err
 	}
 	mergedConfigs, mergedFiles, err := mergeDefaultAndUserData(
 		module,
@@ -124,11 +128,11 @@ func (h *Handler) createDeployment(
 		cache.GlobalConfigs,
 	)
 	if err != nil {
-		return "", err
+		return err
 	}
 	newContainers, err := getNewContainers(module.Services, cacheContainers, deploymentId)
 	if err != nil {
-		return "", err
+		return err
 	}
 	newVolumes := getNewVolumes(module.Volumes, deploymentId)
 	err = h.databaseHandler.CreateDeployment(
@@ -144,7 +148,7 @@ func (h *Handler) createDeployment(
 		slices.Collect(maps.Values(newContainers)),
 	)
 	if err != nil {
-		return "", err
+		return err
 	}
 	err = h.ensureDeploymentEnvironment(
 		ctx,
@@ -156,7 +160,7 @@ func (h *Handler) createDeployment(
 		newVolumes,
 	)
 	if err != nil {
-		return newDeployment.Id, err
+		return err
 	}
 	bindMounts, err := h.getBindMounts(
 		ctx,
@@ -167,7 +171,7 @@ func (h *Handler) createDeployment(
 		mergedFiles,
 	)
 	if err != nil {
-		return newDeployment.Id, err
+		return err
 	}
 	// TODO "mount secrets" must be "unloaded" if one of the following steps fail
 	err = h.createContainers(
@@ -188,13 +192,13 @@ func (h *Handler) createDeployment(
 		cache.HostResources,
 	)
 	if err != nil {
-		return newDeployment.Id, err
+		return err
 	}
 	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
 	if err != nil {
-		return newDeployment.Id, err
+		return err
 	}
-	return newDeployment.Id, nil
+	return nil
 }
 
 func (h *Handler) getBindMounts(

@@ -15,6 +15,7 @@ type Service struct {
 	jobsHandler           *handler_jobs.Handler
 	changeRequest         *modulesChangeRequest
 	changeReport          *models_service.ModulesChangeReport
+	jobResults            *jobResults
 	mu                    sync.RWMutex
 }
 
@@ -31,5 +32,8 @@ func New(
 		deploymentsHandler:    deploymentsHandler,
 		auxDeploymentsHandler: auxDeploymentsHandler,
 		jobsHandler:           jobsHandler,
+		jobResults: &jobResults{
+			deployments: make(map[string]models_service.DeploymentsResult),
+		},
 	}
 }

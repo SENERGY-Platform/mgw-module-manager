@@ -41,13 +41,16 @@ type deploymentsHandler interface {
 		ctx context.Context,
 		selectedModules map[string]models_handler_modules.Module,
 		userInputs map[string]models_handler_deployments.UserInput,
-	) error
+	) ([]models_handler_deployments.Result, error)
 	UpdateDeployments(
 		ctx context.Context,
 		selectedModules map[string]models_handler_modules.Module,
 		userInputs map[string]models_handler_deployments.UserInput,
-	) error
-	RecreateDeployments(ctx context.Context, selectedModules map[string]models_handler_modules.Module) error
+	) ([]models_handler_deployments.Result, error)
+	RecreateDeployments(
+		ctx context.Context,
+		selectedModules map[string]models_handler_modules.Module,
+	) ([]models_handler_deployments.Result, error)
 	DeleteDeployments(ctx context.Context, filter models_handler_deployments.DeploymentsFilter) error
 	EnableDeployments(ctx context.Context, moduleIds []string) error
 	DisableDeployments(ctx context.Context, moduleIds []string) error

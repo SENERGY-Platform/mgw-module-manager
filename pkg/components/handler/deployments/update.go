@@ -18,12 +18,10 @@ package handler_deployments
 
 import (
 	"context"
-	"errors"
 	"maps"
 	"os"
 	"path"
 	"slices"
-	"strings"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
@@ -39,19 +37,19 @@ func (h *Handler) UpdateDeployments(
 	ctx context.Context,
 	selectedModules map[string]models_handler_modules.Module,
 	userInputs map[string]models_handler_deployments.UserInput,
-) error {
+) ([]models_handler_deployments.Result, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_database.DeploymentsFilter{
 		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	deploymentIds := slices.Collect(maps.Keys(deployments))
 	deploymentsVolumes, deploymentsContainers, err := h.getDeploymentsVolumesAndContainersFromDB(ctx, deploymentIds)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	cache := cacheCollection{
 		HostResources: make(map[string]models_external.HostResource),
@@ -60,15 +58,19 @@ func (h *Handler) UpdateDeployments(
 	}
 	cache.Deployments, err = initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	var errs []string
+	var results []models_handler_deployments.Result
 	for moduleId, module := range selectedModules {
+		result := models_handler_deployments.Result{ModuleId: moduleId}
 		cacheItem, ok := cache.Deployments[moduleId]
 		if !ok {
-			errs = append(errs, "module "+moduleId+" not deployed")
+			result.HasError = true
+			result.ErrorMsg = "not installed"
+			results = append(results, result)
 			continue
 		}
+		result.Id = cacheItem.DeploymentId
 		err = h.updateDeployment(
 			ctx,
 			module,
@@ -81,13 +83,12 @@ func (h *Handler) UpdateDeployments(
 			cache,
 		)
 		if err != nil {
-			errs = append(errs, err.Error())
+			result.HasError = true
+			result.ErrorMsg = err.Error()
 		}
+		results = append(results, result)
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return results, nil
 }
 
 func (h *Handler) updateDeployment(

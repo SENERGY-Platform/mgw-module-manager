@@ -22,31 +22,34 @@ import (
 	"io/fs"
 	"maps"
 	"slices"
-	"strings"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
-func (h *Handler) RecreateDeployments(ctx context.Context, selectedModules map[string]models_handler_modules.Module) error {
+func (h *Handler) RecreateDeployments(
+	ctx context.Context,
+	selectedModules map[string]models_handler_modules.Module,
+) ([]models_handler_deployments.Result, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_database.DeploymentsFilter{
 		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	deploymentIds := slices.Collect(maps.Keys(deployments))
 	deploymentsUserData, err := h.getDeploymentsUserDataFromDB(ctx, deploymentIds)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	deploymentsVolumes, deploymentsContainers, err := h.getDeploymentsVolumesAndContainersFromDB(ctx, deploymentIds)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	cache := cacheCollection{
 		HostResources: make(map[string]models_external.HostResource),
@@ -55,15 +58,19 @@ func (h *Handler) RecreateDeployments(ctx context.Context, selectedModules map[s
 	}
 	cache.Deployments, err = initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	var errs []string
+	var results []models_handler_deployments.Result
 	for moduleId, module := range selectedModules {
+		result := models_handler_deployments.Result{ModuleId: moduleId}
 		cacheItem, ok := cache.Deployments[moduleId]
 		if !ok {
-			errs = append(errs, "module "+moduleId+" not deployed") // TODO
+			result.HasError = true
+			result.ErrorMsg = "not installed"
+			results = append(results, result)
 			continue
 		}
+		result.Id = cacheItem.DeploymentId
 		err = h.recreateDeployment(
 			ctx,
 			module,
@@ -76,13 +83,12 @@ func (h *Handler) RecreateDeployments(ctx context.Context, selectedModules map[s
 			cache,
 		)
 		if err != nil {
-			errs = append(errs, err.Error())
+			result.HasError = true
+			result.ErrorMsg = err.Error()
 		}
+		results = append(results, result)
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return results, nil
 }
 
 func (h *Handler) recreateDeployment(
