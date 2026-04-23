@@ -154,7 +154,7 @@ func main() {
 	jobsHandler := handler_jobs.New(ctx, config.JobsHandler)
 
 	service.InitLogger(logger)
-	srv := service.New(repositoriesHandler, modulesHdl, deploymentsHandler, jobsHandler)
+	srv := service.New(repositoriesHandler, modulesHdl, deploymentsHandler, auxDeploymentsHandler, jobsHandler)
 
 	httpApi, err := api.New(
 		srv,

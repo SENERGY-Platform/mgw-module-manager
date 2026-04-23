@@ -4,6 +4,8 @@ import (
 	"context"
 	"io/fs"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
@@ -49,4 +51,78 @@ type deploymentsHandler interface {
 	DeleteDeployments(ctx context.Context, filter models_handler_deployments.DeploymentsFilter) error
 	EnableDeployments(ctx context.Context, moduleIds []string) error
 	DisableDeployments(ctx context.Context, moduleIds []string) error
+}
+
+type auxiliaryDeploymentsHandler interface {
+	GetDeployment(
+		ctx context.Context,
+		deploymentId string,
+		auxDeploymentId string,
+	) (models_handler_aux_deployments.AuxiliaryDeployment, error)
+	GetDeployments(
+		ctx context.Context,
+		deploymentId string,
+		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	) (map[string]models_handler_aux_deployments.AuxiliaryDeployment, error)
+	GetReducedDeployments(
+		ctx context.Context,
+		deploymentId string,
+		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	) (map[string]models_handler_aux_deployments.AuxiliaryDeploymentReduced, error)
+	CreateDeployment(
+		ctx context.Context,
+		module models_handler_modules.Module,
+		activeDeployment models_handler_deployments.Deployment,
+		dependencies map[string]models_handler_deployments.DeploymentReduced,
+		serviceInput models_handler_aux_deployments.ServiceInput,
+	) (models_handler_aux_deployments.AuxiliaryDeploymentReduced, error)
+	UpdateDeployment(
+		ctx context.Context,
+		module models_handler_modules.Module,
+		activeDeployment models_handler_deployments.Deployment,
+		dependencies map[string]models_handler_deployments.DeploymentReduced,
+		auxDeploymentId string,
+		serviceInput models_handler_aux_deployments.UpdateServiceInput,
+	) error
+	RecreateDeployments(
+		ctx context.Context,
+		module models_handler_modules.Module,
+		activeDeployment models_handler_deployments.Deployment,
+		dependencies map[string]models_handler_deployments.DeploymentReduced,
+		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	) ([]string, error)
+	DeleteDeployments(
+		ctx context.Context,
+		deploymentId string,
+		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+		allowAll bool,
+	) ([]string, error)
+	EnableDeployments(
+		ctx context.Context,
+		deploymentId string,
+		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	) error
+	DisableDeployments(
+		ctx context.Context,
+		deploymentId string,
+		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	) error
+	GetVolumes(
+		ctx context.Context,
+		deploymentId string,
+		filterReferences []string,
+	) (map[string]models_handler_database.AuxiliaryDeploymentVolume, error)
+	GetVolumesWithMounts(
+		ctx context.Context,
+		deploymentId string,
+		filterReferences []string,
+	) (map[string]models_handler_database.AuxiliaryDeploymentVolumeWithMounts, error)
+	DeleteVolumes(
+		ctx context.Context,
+		deploymentId string,
+		filterReferences []string,
+		allowAll bool,
+	) ([]string, error)
+	DeleteUnusedVolumes(ctx context.Context, deploymentId string, excludeReferences []string) ([]string, error)
+	DeleteMutex(deploymentId string)
 }

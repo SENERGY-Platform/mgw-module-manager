@@ -8,25 +8,28 @@ import (
 )
 
 type Service struct {
-	repositoriesHandler repositoriesHandler
-	modulesHandler      modulesHandler
-	deploymentsHandler  deploymentsHandler
-	jobsHandler         *handler_jobs.Handler
-	changeRequest       *modulesChangeRequest
-	changeReport        *models_service.ModulesChangeReport
-	mu                  sync.RWMutex
+	repositoriesHandler   repositoriesHandler
+	modulesHandler        modulesHandler
+	deploymentsHandler    deploymentsHandler
+	auxDeploymentsHandler auxiliaryDeploymentsHandler
+	jobsHandler           *handler_jobs.Handler
+	changeRequest         *modulesChangeRequest
+	changeReport          *models_service.ModulesChangeReport
+	mu                    sync.RWMutex
 }
 
 func New(
 	repositoriesHandler repositoriesHandler,
 	modulesHandler modulesHandler,
 	deploymentsHandler deploymentsHandler,
+	auxDeploymentsHandler auxiliaryDeploymentsHandler,
 	jobsHandler *handler_jobs.Handler,
 ) *Service {
 	return &Service{
-		repositoriesHandler: repositoriesHandler,
-		modulesHandler:      modulesHandler,
-		deploymentsHandler:  deploymentsHandler,
-		jobsHandler:         jobsHandler,
+		repositoriesHandler:   repositoriesHandler,
+		modulesHandler:        modulesHandler,
+		deploymentsHandler:    deploymentsHandler,
+		auxDeploymentsHandler: auxDeploymentsHandler,
+		jobsHandler:           jobsHandler,
 	}
 }
