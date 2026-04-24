@@ -28,28 +28,36 @@ func (h *Handler) EnableDeployments(
 	ctx context.Context,
 	deploymentId string,
 	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
-) error {
+) ([]string, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.RLock()
 	defer mu.RUnlock()
 	auxDeployments, err := h.readAuxiliaryDeploymentsAndFilterByState(ctx, deploymentId, filter)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return h.databaseHandler.UpdateAuxiliaryDeploymentsEnabledState(ctx, slices.Collect(maps.Keys(auxDeployments)), true)
+	err = h.databaseHandler.UpdateAuxiliaryDeploymentsEnabledState(ctx, slices.Collect(maps.Keys(auxDeployments)), true)
+	if err != nil {
+		return nil, err
+	}
+	return slices.Collect(maps.Keys(auxDeployments)), nil
 }
 
 func (h *Handler) DisableDeployments(
 	ctx context.Context,
 	deploymentId string,
 	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
-) error {
+) ([]string, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.RLock()
 	defer mu.RUnlock()
 	auxDeployments, err := h.readAuxiliaryDeploymentsAndFilterByState(ctx, deploymentId, filter)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return h.databaseHandler.UpdateAuxiliaryDeploymentsEnabledState(ctx, slices.Collect(maps.Keys(auxDeployments)), false)
+	err = h.databaseHandler.UpdateAuxiliaryDeploymentsEnabledState(ctx, slices.Collect(maps.Keys(auxDeployments)), false)
+	if err != nil {
+		return nil, err
+	}
+	return slices.Collect(maps.Keys(auxDeployments)), nil
 }

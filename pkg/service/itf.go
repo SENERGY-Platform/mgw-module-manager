@@ -105,12 +105,12 @@ type auxiliaryDeploymentsHandler interface {
 		ctx context.Context,
 		deploymentId string,
 		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
-	) error
+	) ([]string, error)
 	DisableDeployments(
 		ctx context.Context,
 		deploymentId string,
 		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
-	) error
+	) ([]string, error)
 	GetVolumes(
 		ctx context.Context,
 		deploymentId string,
