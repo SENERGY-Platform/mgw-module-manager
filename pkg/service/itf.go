@@ -78,7 +78,7 @@ type auxiliaryDeploymentsHandler interface {
 		activeDeployment models_handler_deployments.Deployment,
 		dependencies map[string]models_handler_deployments.DeploymentReduced,
 		serviceInput models_handler_aux_deployments.ServiceInput,
-	) (models_handler_aux_deployments.AuxiliaryDeploymentReduced, error)
+	) (models_handler_aux_deployments.Result, error)
 	UpdateDeployment(
 		ctx context.Context,
 		module models_handler_modules.Module,
