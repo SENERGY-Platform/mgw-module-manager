@@ -36,11 +36,12 @@ func (h *Handler) EnableDeployments(
 	if err != nil {
 		return nil, err
 	}
-	err = h.databaseHandler.UpdateAuxiliaryDeploymentsEnabledState(ctx, slices.Collect(maps.Keys(auxDeployments)), true)
+	ids := slices.Collect(maps.Keys(auxDeployments))
+	err = h.databaseHandler.UpdateAuxiliaryDeploymentsEnabledState(ctx, ids, true)
 	if err != nil {
 		return nil, err
 	}
-	return slices.Collect(maps.Keys(auxDeployments)), nil
+	return ids, nil
 }
 
 func (h *Handler) DisableDeployments(
@@ -55,9 +56,10 @@ func (h *Handler) DisableDeployments(
 	if err != nil {
 		return nil, err
 	}
-	err = h.databaseHandler.UpdateAuxiliaryDeploymentsEnabledState(ctx, slices.Collect(maps.Keys(auxDeployments)), false)
+	ids := slices.Collect(maps.Keys(auxDeployments))
+	err = h.databaseHandler.UpdateAuxiliaryDeploymentsEnabledState(ctx, ids, false)
 	if err != nil {
 		return nil, err
 	}
-	return slices.Collect(maps.Keys(auxDeployments)), nil
+	return ids, nil
 }
