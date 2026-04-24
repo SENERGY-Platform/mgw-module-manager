@@ -33,8 +33,9 @@ func New(
 		auxDeploymentsHandler: auxDeploymentsHandler,
 		jobsHandler:           jobsHandler,
 		jobResults: &jobResults{
-			deploymentOperationResults: make(map[string]models_service.DeploymentsResult),
-			moduleChangeResults:        make(map[string]models_service.ModulesChangeResult),
+			deploymentOperationResults: make(map[string]models_service.JobResultDeployments),
+			moduleChangeResults:        make(map[string]models_service.JobResultModulesChange),
+			refreshRepositoriesResults: make(map[string]models_service.JobResult),
 		},
 	}
 }

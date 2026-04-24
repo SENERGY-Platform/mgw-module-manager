@@ -26,6 +26,7 @@ import (
 type jobResults struct {
 	deploymentOperationResults map[string]models_service.JobResultDeployments
 	moduleChangeResults        map[string]models_service.JobResultModulesChange
+	refreshRepositoriesResults map[string]models_service.JobResult
 	mu                         sync.RWMutex
 }
 
@@ -57,6 +58,22 @@ func (r *jobResults) GetModuleChangeResult(jobId string) (models_service.JobResu
 	res, ok := r.moduleChangeResults[jobId]
 	if !ok {
 		return models_service.JobResultModulesChange{}, models_error.NotFoundErr
+	}
+	return res, nil
+}
+
+func (r *jobResults) setRefreshRepositoriesResult(jobId string, res models_service.JobResult) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.refreshRepositoriesResults[jobId] = res
+}
+
+func (r *jobResults) GetRefreshRepositoriesResult(jobId string) (models_service.JobResult, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	res, ok := r.refreshRepositoriesResults[jobId]
+	if !ok {
+		return models_service.JobResult{}, models_error.NotFoundErr
 	}
 	return res, nil
 }
