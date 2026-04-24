@@ -18,14 +18,13 @@ package handler_aux_deployments
 
 import (
 	"context"
-	"errors"
 	"maps"
 	"slices"
-	"strings"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
@@ -39,7 +38,7 @@ func (h *Handler) RecreateDeployments(
 	activeDeployment models_handler_deployments.Deployment,
 	dependencies map[string]models_handler_deployments.DeploymentReduced,
 	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
-) ([]string, error) {
+) ([]models_handler_aux_deployments.BatchResult, error) {
 	mu := h.mutexes.Get(activeDeployment.Id)
 	mu.RLock()
 	defer mu.RUnlock()
@@ -65,19 +64,21 @@ func (h *Handler) RecreateDeployments(
 		return nil, err
 	}
 	cacheDeploymentConfigs := make(map[string]map[string]string)
-	var recreated []string
-	var errs []string
+	var results []models_handler_aux_deployments.BatchResult
 	for id, auxDep := range auxDeployments {
+		result := models_handler_aux_deployments.BatchResult{Id: id}
 		auxService, ok := module.AuxServices[auxDep.Reference]
 		if !ok {
-			errs = append(errs, "auxiliary service reference not found") // TODO
+			result.ErrorResult = models_error.NewErrorResult("auxiliary service reference not found")
+			results = append(results, result)
 			continue
 		}
 		deploymentConfigs, ok := cacheDeploymentConfigs[auxDep.Reference]
 		if !ok {
 			deploymentConfigs, err = getDeploymentConfigs(module.Configs, auxService.Configs, activeDeployment.Configs)
 			if err != nil {
-				errs = append(errs, err.Error())
+				result.ErrorResult = models_error.NewErrorResult(err.Error())
+				results = append(results, result)
 				continue
 			}
 		}
@@ -92,15 +93,11 @@ func (h *Handler) RecreateDeployments(
 			auxDepVolumeMounts[id],
 		)
 		if err != nil {
-			errs = append(errs, err.Error())
-			continue
+			result.ErrorResult = models_error.NewErrorResult(err.Error())
 		}
-		recreated = append(recreated, id)
+		results = append(results, result)
 	}
-	if len(errs) > 0 {
-		return recreated, errors.New(strings.Join(errs, "\n")) // TODO
-	}
-	return recreated, nil
+	return results, nil
 }
 
 func (h *Handler) recreateAuxiliaryDeployment(

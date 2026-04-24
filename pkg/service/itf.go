@@ -94,13 +94,13 @@ type auxiliaryDeploymentsHandler interface {
 		activeDeployment models_handler_deployments.Deployment,
 		dependencies map[string]models_handler_deployments.DeploymentReduced,
 		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
-	) ([]string, error)
+	) ([]models_handler_aux_deployments.BatchResult, error)
 	DeleteDeployments(
 		ctx context.Context,
 		deploymentId string,
 		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
 		allowAll bool,
-	) ([]string, error)
+	) ([]models_handler_aux_deployments.BatchResult, error)
 	EnableDeployments(
 		ctx context.Context,
 		deploymentId string,
