@@ -228,29 +228,29 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]
 	})
 }
 
-func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) error {
+func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	_, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
 	if ok {
-		return errors.New("active job") // TODO
+		return nil, errors.New("active job") // TODO
 	}
 	handlerModules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
 		Ids:          moduleIds,
 		Dependencies: true,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	return s.deploymentsHandler.EnableDeployments(ctx, slices.Collect(maps.Keys(handlerModules)))
 }
 
-func (s *Service) DisableDeployments(ctx context.Context, moduleIds []string) error {
+func (s *Service) DisableDeployments(ctx context.Context, moduleIds []string) ([]string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	_, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
 	if ok {
-		return errors.New("active job") // TODO
+		return nil, errors.New("active job") // TODO
 	}
 	return s.deploymentsHandler.DisableDeployments(ctx, moduleIds)
 }

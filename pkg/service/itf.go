@@ -56,8 +56,8 @@ type deploymentsHandler interface {
 		ctx context.Context,
 		filter models_handler_deployments.DeploymentsFilter,
 	) ([]models_handler_deployments.Result, error)
-	EnableDeployments(ctx context.Context, moduleIds []string) error
-	DisableDeployments(ctx context.Context, moduleIds []string) error
+	EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error)
+	DisableDeployments(ctx context.Context, moduleIds []string) ([]string, error)
 }
 
 type auxiliaryDeploymentsHandler interface {

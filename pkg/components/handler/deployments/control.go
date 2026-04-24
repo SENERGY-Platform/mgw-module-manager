@@ -24,26 +24,36 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
-func (h *Handler) EnableDeployments(ctx context.Context, moduleIds []string) error {
+func (h *Handler) EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_database.DeploymentsFilter{
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return h.databaseHandler.UpdateDeploymentsEnabledState(ctx, slices.Collect(maps.Keys(deployments)), true)
+	ids := slices.Collect(maps.Keys(deployments))
+	err = h.databaseHandler.UpdateDeploymentsEnabledState(ctx, ids, true)
+	if err != nil {
+		return nil, err
+	}
+	return ids, nil
 }
 
-func (h *Handler) DisableDeployments(ctx context.Context, moduleIds []string) error {
+func (h *Handler) DisableDeployments(ctx context.Context, moduleIds []string) ([]string, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_database.DeploymentsFilter{
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return h.databaseHandler.UpdateDeploymentsEnabledState(ctx, slices.Collect(maps.Keys(deployments)), false)
+	ids := slices.Collect(maps.Keys(deployments))
+	err = h.databaseHandler.UpdateDeploymentsEnabledState(ctx, ids, false)
+	if err != nil {
+		return nil, err
+	}
+	return ids, nil
 }
