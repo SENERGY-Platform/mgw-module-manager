@@ -30,6 +30,7 @@ func New(
 		deploymentsResults:         make(map[string]models_service.JobResultDeployments),
 		moduleChangeResults:        make(map[string]models_service.JobResultModulesChange),
 		refreshRepositoriesResults: make(map[string]models_service.JobResult),
+		auxDeploymentCreateResults: make(map[string]models_service.JobResultCreateAuxiliaryDeployment),
 	}
 	jobsHandler.SetCleanupHandler(jResults.deleteResults)
 	return &Service{

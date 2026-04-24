@@ -22,3 +22,8 @@ type ServiceInput struct {
 	DeploymentId string `json:"deployment_id"`
 	models_handler_aux_deployments.ServiceInput
 }
+
+type JobResultCreateAuxiliaryDeployment struct {
+	JobResult
+	models_handler_aux_deployments.Result
+}
