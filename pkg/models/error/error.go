@@ -86,3 +86,15 @@ func (e *RepoModuleErr) Error() string {
 func (e *RepoModuleErr) Unwrap() error {
 	return e.err
 }
+
+type ErrorResult struct {
+	HasError bool   `json:"has_error"`
+	ErrorMsg string `json:"error_msg"`
+}
+
+func NewErrorResult(msg string) ErrorResult {
+	return ErrorResult{
+		HasError: true,
+		ErrorMsg: msg,
+	}
+}

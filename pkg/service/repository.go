@@ -33,15 +33,13 @@ func (s *Service) RefreshRepositories(_ context.Context) (models_service.Job, er
 		jobResult := models_service.JobResult{JobId: job.Id}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.HasError = true
-				jobResult.ErrorMsg = fmt.Sprintf("panic: %v", err)
+				jobResult.ErrorResult = models_error.NewErrorResult(fmt.Sprintf("panic: %v", err))
 				s.jobResults.setRefreshRepositoriesResult(job.Id, jobResult)
 			}
 		}()
 		err = s.repositoriesHandler.RefreshRepositories(job.Context())
 		if err != nil {
-			jobResult.HasError = true
-			jobResult.ErrorMsg = err.Error()
+			jobResult.ErrorResult = models_error.NewErrorResult(err.Error())
 		}
 		s.jobResults.setRefreshRepositoriesResult(job.Id, jobResult)
 	}()

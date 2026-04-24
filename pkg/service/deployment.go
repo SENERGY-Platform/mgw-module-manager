@@ -27,6 +27,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
@@ -93,15 +94,13 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []models_ser
 		}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.HasError = true
-				jobResult.ErrorMsg = fmt.Sprintf("panic: %v", err)
+				jobResult.ErrorResult = models_error.NewErrorResult(fmt.Sprintf("panic: %v", err))
 				s.jobResults.setDeploymentsResult(job.Id, jobResult)
 			}
 		}()
 		jobResult.Results, err = s.deploymentsHandler.CreateDeployments(job.Context(), handlerModules, userInputMap)
 		if err != nil {
-			jobResult.HasError = true
-			jobResult.ErrorMsg = err.Error()
+			jobResult.ErrorResult = models_error.NewErrorResult(err.Error())
 		}
 		for _, res := range jobResult.Results {
 			if res.HasError {
@@ -147,15 +146,13 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []models_ser
 		}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.HasError = true
-				jobResult.ErrorMsg = fmt.Sprintf("panic: %v", err)
+				jobResult.ErrorResult = models_error.NewErrorResult(fmt.Sprintf("panic: %v", err))
 				s.jobResults.setDeploymentsResult(job.Id, jobResult)
 			}
 		}()
 		jobResult.Results, err = s.deploymentsHandler.UpdateDeployments(job.Context(), handlerModules, userInputMap)
 		if err != nil {
-			jobResult.HasError = true
-			jobResult.ErrorMsg = err.Error()
+			jobResult.ErrorResult = models_error.NewErrorResult(err.Error())
 		}
 		for _, res := range jobResult.Results {
 			if res.HasError {
@@ -195,15 +192,13 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 		}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.HasError = true
-				jobResult.ErrorMsg = fmt.Sprintf("panic: %v", err)
+				jobResult.ErrorResult = models_error.NewErrorResult(fmt.Sprintf("panic: %v", err))
 				s.jobResults.setDeploymentsResult(job.Id, jobResult)
 			}
 		}()
 		jobResult.Results, err = s.deploymentsHandler.RecreateDeployments(job.Context(), handlerModules)
 		if err != nil {
-			jobResult.HasError = true
-			jobResult.ErrorMsg = err.Error()
+			jobResult.ErrorResult = models_error.NewErrorResult(err.Error())
 		}
 		for _, res := range jobResult.Results {
 			if res.HasError {

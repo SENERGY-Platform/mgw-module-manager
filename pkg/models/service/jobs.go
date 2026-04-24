@@ -16,7 +16,11 @@
 
 package models_service
 
-import "time"
+import (
+	"time"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+)
 
 type Job struct {
 	Id          string    `json:"id"`
@@ -26,7 +30,6 @@ type Job struct {
 }
 
 type JobResult struct {
-	JobId    string `json:"job_id"`
-	HasError bool   `json:"has_error"`
-	ErrorMsg string `json:"error_msg"`
+	JobId string `json:"job_id"`
+	models_error.ErrorResult
 }

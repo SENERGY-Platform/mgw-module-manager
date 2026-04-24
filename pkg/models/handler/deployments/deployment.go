@@ -18,6 +18,7 @@ package models_handler_deployments
 
 import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
@@ -75,6 +76,5 @@ type FileGroupUserInput struct {
 type Result struct {
 	ModuleId string `json:"module_id"`
 	Id       string `json:"id"`
-	HasError bool   `json:"has_error"`
-	ErrorMsg string `json:"error_msg"`
+	models_error.ErrorResult
 }

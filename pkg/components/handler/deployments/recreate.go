@@ -24,6 +24,7 @@ import (
 	"slices"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
@@ -65,8 +66,7 @@ func (h *Handler) RecreateDeployments(
 		result := models_handler_deployments.Result{ModuleId: moduleId}
 		cacheItem, ok := cache.Deployments[moduleId]
 		if !ok {
-			result.HasError = true
-			result.ErrorMsg = "not installed"
+			result.ErrorResult = models_error.NewErrorResult("not installed")
 			results = append(results, result)
 			continue
 		}
@@ -83,8 +83,7 @@ func (h *Handler) RecreateDeployments(
 			cache,
 		)
 		if err != nil {
-			result.HasError = true
-			result.ErrorMsg = err.Error()
+			result.ErrorResult = models_error.NewErrorResult(err.Error())
 		}
 		results = append(results, result)
 	}
