@@ -19,25 +19,26 @@ package service
 import (
 	"sync"
 
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
 type jobResults struct {
-	deployments map[string]models_service.DeploymentsResult
-	mu          sync.RWMutex
+	deploymentOperationResults map[string]models_service.DeploymentsResult
+	moduleChangeResults        map[string]models_service.ModulesChangeResult
+	mu                         sync.RWMutex
 }
 
-func (r *jobResults) setDeployments(jobId string, res models_service.DeploymentsResult) {
+func (r *jobResults) setDeploymentOperationResult(jobId string, res models_service.DeploymentsResult) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.deployments[jobId] = res
+	r.deploymentOperationResults[jobId] = res
 }
 
-func (r *jobResults) GetDeployments(jobId string) (models_service.DeploymentsResult, error) {
+func (r *jobResults) GetDeploymentOperationResult(jobId string) (models_service.DeploymentsResult, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	res, ok := r.deployments[jobId]
+	res, ok := r.deploymentOperationResults[jobId]
 	if !ok {
 		return models_service.DeploymentsResult{}, models_error.NotFoundErr
 	}
