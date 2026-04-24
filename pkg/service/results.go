@@ -24,7 +24,7 @@ import (
 )
 
 type jobResults struct {
-	deploymentOperationResults map[string]models_service.JobResultDeployments
+	deploymentsResults         map[string]models_service.JobResultDeployments
 	moduleChangeResults        map[string]models_service.JobResultModulesChange
 	refreshRepositoriesResults map[string]models_service.JobResult
 	mu                         sync.RWMutex
@@ -33,13 +33,13 @@ type jobResults struct {
 func (r *jobResults) setDeploymentsResult(jobId string, res models_service.JobResultDeployments) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.deploymentOperationResults[jobId] = res
+	r.deploymentsResults[jobId] = res
 }
 
 func (r *jobResults) GetDeploymentsResult(jobId string) (models_service.JobResultDeployments, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	res, ok := r.deploymentOperationResults[jobId]
+	res, ok := r.deploymentsResults[jobId]
 	if !ok {
 		return models_service.JobResultDeployments{}, models_error.NotFoundErr
 	}
