@@ -52,7 +52,10 @@ type deploymentsHandler interface {
 		ctx context.Context,
 		selectedModules map[string]models_handler_modules.Module,
 	) ([]models_handler_deployments.Result, error)
-	DeleteDeployments(ctx context.Context, filter models_handler_deployments.DeploymentsFilter) error
+	DeleteDeployments(
+		ctx context.Context,
+		filter models_handler_deployments.DeploymentsFilter,
+	) ([]models_handler_deployments.Result, error)
 	EnableDeployments(ctx context.Context, moduleIds []string) error
 	DisableDeployments(ctx context.Context, moduleIds []string) error
 }

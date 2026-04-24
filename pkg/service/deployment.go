@@ -214,12 +214,12 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 	}, nil
 }
 
-func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) error {
+func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]models_handler_deployments.Result, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	_, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
 	if ok {
-		return errors.New("active job") // TODO
+		return nil, errors.New("active job") // TODO
 	}
 	return s.deploymentsHandler.DeleteDeployments(ctx, models_handler_deployments.DeploymentsFilter{
 		DeploymentsFilter: models_handler_database.DeploymentsFilter{

@@ -21,27 +21,31 @@ import (
 	"errors"
 	"maps"
 	"slices"
-	"strings"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 )
 
-func (h *Handler) DeleteDeployments(ctx context.Context, filter models_handler_deployments.DeploymentsFilter) error {
+func (h *Handler) DeleteDeployments(
+	ctx context.Context,
+	filter models_handler_deployments.DeploymentsFilter,
+) ([]models_handler_deployments.Result, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	deployments, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	deploymentsVolumes, deploymentsContainers, err := h.getDeploymentsVolumesAndContainersFromDB(ctx, slices.Collect(maps.Keys(deployments)))
 	if err != nil {
-		return err
+		return nil, err
 	}
-	var errs []string
+	var results []models_handler_deployments.Result
 	for id, deployment := range deployments {
+		result := models_handler_deployments.Result{ModuleId: deployment.ModuleId, Id: deployment.Id}
 		err = h.deleteDeployment(
 			ctx,
 			deployment.Id,
@@ -51,13 +55,11 @@ func (h *Handler) DeleteDeployments(ctx context.Context, filter models_handler_d
 			deploymentsVolumes[id],
 		)
 		if err != nil {
-			errs = append(errs, err.Error())
+			result.ErrorResult = models_error.NewErrorResult(err.Error())
 		}
+		results = append(results, result)
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
-	}
-	return nil
+	return results, nil
 }
 
 func (h *Handler) deleteDeployment(
