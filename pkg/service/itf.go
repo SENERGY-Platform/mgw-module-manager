@@ -126,7 +126,11 @@ type auxiliaryDeploymentsHandler interface {
 		deploymentId string,
 		filterReferences []string,
 		allowAll bool,
-	) ([]string, error)
-	DeleteUnusedVolumes(ctx context.Context, deploymentId string, excludeReferences []string) ([]string, error)
+	) ([]models_handler_aux_deployments.VolumeResult, error)
+	DeleteUnusedVolumes(
+		ctx context.Context,
+		deploymentId string,
+		excludeReferences []string,
+	) ([]models_handler_aux_deployments.VolumeResult, error)
 	DeleteMutex(deploymentId string)
 }
