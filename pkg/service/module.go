@@ -143,11 +143,13 @@ func (s *Service) ExecModulesChangeRequest(_ context.Context) (models_service.Jo
 	}
 	go func() {
 		defer job.Done()
-		jobResult := models_service.ModulesChangeResult{JobId: job.Id}
+		jobResult := models_service.JobResultModulesChange{
+			JobResult: models_service.JobResult{JobId: job.Id},
+		}
 		defer func() {
 			if err := recover(); err != nil {
 				jobResult.HasError = true
-				jobResult.Error = fmt.Sprintf("panic: %v", err)
+				jobResult.ErrorMsg = fmt.Sprintf("panic: %v", err)
 				s.jobResults.setModuleChangeResult(job.Id, jobResult)
 			}
 		}()

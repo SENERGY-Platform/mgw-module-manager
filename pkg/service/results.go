@@ -24,39 +24,39 @@ import (
 )
 
 type jobResults struct {
-	deploymentOperationResults map[string]models_service.DeploymentsResult
-	moduleChangeResults        map[string]models_service.ModulesChangeResult
+	deploymentOperationResults map[string]models_service.JobResultDeployments
+	moduleChangeResults        map[string]models_service.JobResultModulesChange
 	mu                         sync.RWMutex
 }
 
-func (r *jobResults) setDeploymentOperationResult(jobId string, res models_service.DeploymentsResult) {
+func (r *jobResults) setDeploymentsResult(jobId string, res models_service.JobResultDeployments) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.deploymentOperationResults[jobId] = res
 }
 
-func (r *jobResults) GetDeploymentOperationResult(jobId string) (models_service.DeploymentsResult, error) {
+func (r *jobResults) GetDeploymentsResult(jobId string) (models_service.JobResultDeployments, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	res, ok := r.deploymentOperationResults[jobId]
 	if !ok {
-		return models_service.DeploymentsResult{}, models_error.NotFoundErr
+		return models_service.JobResultDeployments{}, models_error.NotFoundErr
 	}
 	return res, nil
 }
 
-func (r *jobResults) setModuleChangeResult(jobId string, res models_service.ModulesChangeResult) {
+func (r *jobResults) setModuleChangeResult(jobId string, res models_service.JobResultModulesChange) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.moduleChangeResults[jobId] = res
 }
 
-func (r *jobResults) GetModuleChangeReport(jobId string) (models_service.ModulesChangeResult, error) {
+func (r *jobResults) GetModuleChangeResult(jobId string) (models_service.JobResultModulesChange, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	res, ok := r.moduleChangeResults[jobId]
 	if !ok {
-		return models_service.ModulesChangeResult{}, models_error.NotFoundErr
+		return models_service.JobResultModulesChange{}, models_error.NotFoundErr
 	}
 	return res, nil
 }

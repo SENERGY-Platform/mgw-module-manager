@@ -88,25 +88,27 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []models_ser
 	}
 	go func() {
 		defer job.Done()
-		jobResult := models_service.DeploymentsResult{JobId: job.Id}
+		jobResult := models_service.JobResultDeployments{
+			JobResult: models_service.JobResult{JobId: job.Id},
+		}
 		defer func() {
 			if err := recover(); err != nil {
 				jobResult.HasError = true
-				jobResult.Error = fmt.Sprintf("panic: %v", err)
-				s.jobResults.setDeploymentOperationResult(job.Id, jobResult)
+				jobResult.ErrorMsg = fmt.Sprintf("panic: %v", err)
+				s.jobResults.setDeploymentsResult(job.Id, jobResult)
 			}
 		}()
 		jobResult.Results, err = s.deploymentsHandler.CreateDeployments(job.Context(), handlerModules, userInputMap)
 		if err != nil {
 			jobResult.HasError = true
-			jobResult.Error = err.Error()
+			jobResult.ErrorMsg = err.Error()
 		}
 		for _, res := range jobResult.Results {
 			if res.HasError {
 				jobResult.ResultsErrNum++
 			}
 		}
-		s.jobResults.setDeploymentOperationResult(job.Id, jobResult)
+		s.jobResults.setDeploymentsResult(job.Id, jobResult)
 	}()
 	return models_service.Job{
 		Id:          job.Id,
@@ -140,25 +142,27 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []models_ser
 	}
 	go func() {
 		defer job.Done()
-		jobResult := models_service.DeploymentsResult{JobId: job.Id}
+		jobResult := models_service.JobResultDeployments{
+			JobResult: models_service.JobResult{JobId: job.Id},
+		}
 		defer func() {
 			if err := recover(); err != nil {
 				jobResult.HasError = true
-				jobResult.Error = fmt.Sprintf("panic: %v", err)
-				s.jobResults.setDeploymentOperationResult(job.Id, jobResult)
+				jobResult.ErrorMsg = fmt.Sprintf("panic: %v", err)
+				s.jobResults.setDeploymentsResult(job.Id, jobResult)
 			}
 		}()
 		jobResult.Results, err = s.deploymentsHandler.UpdateDeployments(job.Context(), handlerModules, userInputMap)
 		if err != nil {
 			jobResult.HasError = true
-			jobResult.Error = err.Error()
+			jobResult.ErrorMsg = err.Error()
 		}
 		for _, res := range jobResult.Results {
 			if res.HasError {
 				jobResult.ResultsErrNum++
 			}
 		}
-		s.jobResults.setDeploymentOperationResult(job.Id, jobResult)
+		s.jobResults.setDeploymentsResult(job.Id, jobResult)
 	}()
 	return models_service.Job{
 		Id:          job.Id,
@@ -186,25 +190,27 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 	}
 	go func() {
 		defer job.Done()
-		jobResult := models_service.DeploymentsResult{JobId: job.Id}
+		jobResult := models_service.JobResultDeployments{
+			JobResult: models_service.JobResult{JobId: job.Id},
+		}
 		defer func() {
 			if err := recover(); err != nil {
 				jobResult.HasError = true
-				jobResult.Error = fmt.Sprintf("panic: %v", err)
-				s.jobResults.setDeploymentOperationResult(job.Id, jobResult)
+				jobResult.ErrorMsg = fmt.Sprintf("panic: %v", err)
+				s.jobResults.setDeploymentsResult(job.Id, jobResult)
 			}
 		}()
 		jobResult.Results, err = s.deploymentsHandler.RecreateDeployments(job.Context(), handlerModules)
 		if err != nil {
 			jobResult.HasError = true
-			jobResult.Error = err.Error()
+			jobResult.ErrorMsg = err.Error()
 		}
 		for _, res := range jobResult.Results {
 			if res.HasError {
 				jobResult.ResultsErrNum++
 			}
 		}
-		s.jobResults.setDeploymentOperationResult(job.Id, jobResult)
+		s.jobResults.setDeploymentsResult(job.Id, jobResult)
 	}()
 	return models_service.Job{
 		Id:          job.Id,

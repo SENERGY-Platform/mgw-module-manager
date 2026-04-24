@@ -3,8 +3,8 @@ package service
 import (
 	"sync"
 
-	handler_jobs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
-	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
 type Service struct {

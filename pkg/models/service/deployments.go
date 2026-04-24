@@ -33,10 +33,8 @@ type FileGroupUserInput struct {
 	Data   string `json:"data"`
 }
 
-type DeploymentsResult struct {
-	JobId         string                              `json:"job_id"`
+type JobResultDeployments struct {
+	JobResult
 	Results       []models_handler_deployments.Result `json:"results"`
 	ResultsErrNum int                                 `json:"results_err_num"`
-	HasError      bool                                `json:"has_error"`
-	Error         string                              `json:"error"`
 }

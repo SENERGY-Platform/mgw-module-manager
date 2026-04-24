@@ -24,3 +24,9 @@ type Job struct {
 	Start       time.Time `json:"start"`
 	End         time.Time `json:"end"`
 }
+
+type JobResult struct {
+	JobId    string `json:"job_id"`
+	HasError bool   `json:"has_error"`
+	ErrorMsg string `json:"error_msg"`
+}

@@ -166,9 +166,7 @@ type ModulesChangeReport struct {
 	Failed  []ChangeReportErrItem `json:"failed"`
 }
 
-type ModulesChangeResult struct {
-	JobId string `json:"job_id"`
+type JobResultModulesChange struct {
+	JobResult
 	ModulesChangeReport
-	HasError bool   `json:"has_error"`
-	Error    string `json:"error_msg"`
 }
