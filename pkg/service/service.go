@@ -26,16 +26,18 @@ func New(
 	auxDeploymentsHandler auxiliaryDeploymentsHandler,
 	jobsHandler *handler_jobs.Handler,
 ) *Service {
+	jResults := &jobResults{
+		deploymentOperationResults: make(map[string]models_service.JobResultDeployments),
+		moduleChangeResults:        make(map[string]models_service.JobResultModulesChange),
+		refreshRepositoriesResults: make(map[string]models_service.JobResult),
+	}
+	jobsHandler.SetCleanupHandler(jResults.deleteResults)
 	return &Service{
 		repositoriesHandler:   repositoriesHandler,
 		modulesHandler:        modulesHandler,
 		deploymentsHandler:    deploymentsHandler,
 		auxDeploymentsHandler: auxDeploymentsHandler,
 		jobsHandler:           jobsHandler,
-		jobResults: &jobResults{
-			deploymentOperationResults: make(map[string]models_service.JobResultDeployments),
-			moduleChangeResults:        make(map[string]models_service.JobResultModulesChange),
-			refreshRepositoriesResults: make(map[string]models_service.JobResult),
-		},
+		jobResults:            jResults,
 	}
 }

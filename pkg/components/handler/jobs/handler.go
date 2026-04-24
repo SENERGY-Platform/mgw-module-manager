@@ -33,11 +33,12 @@ type Config struct {
 }
 
 type Handler struct {
-	jobSlots map[int]*Job
-	jobMap   map[string]*Job
-	config   Config
-	ctx      context.Context
-	mu       sync.RWMutex
+	jobSlots       map[int]*Job
+	jobMap         map[string]*Job
+	config         Config
+	cleanupHandler func([]string)
+	ctx            context.Context
+	mu             sync.RWMutex
 }
 
 func New(ctx context.Context, config Config) *Handler {
@@ -142,13 +143,20 @@ func (h *Handler) Jobs(filterIds []string) map[string]*Job {
 	return tmp
 }
 
+func (h *Handler) SetCleanupHandler(f func([]string)) {
+	h.cleanupHandler = f
+}
+
 func (h *Handler) Cleanup(ctx context.Context) {
 	timer := time.NewTimer(h.config.CleanupLoopDelay)
 	defer timer.Stop()
 	for {
 		select {
 		case <-timer.C:
-			h.cleanup()
+			oldJobs := h.cleanup()
+			if h.cleanupHandler != nil && len(oldJobs) > 0 {
+				h.cleanupHandler(oldJobs)
+			}
 			timer.Reset(h.config.CleanupLoopDelay)
 		case <-ctx.Done():
 			return
@@ -156,18 +164,22 @@ func (h *Handler) Cleanup(ctx context.Context) {
 	}
 }
 
-func (h *Handler) cleanup() {
+func (h *Handler) cleanup() []string {
 	h.mu.Lock()
 	defer h.mu.Unlock()
+	var oldJobs []string
 	tmp := make(map[string]*Job)
 	now := helper_time.Now()
 	for id, job := range h.jobMap {
 		end := job.End()
 		if now.Sub(end) < h.config.MaxJobAge {
 			tmp[id] = job
+		} else {
+			oldJobs = append(oldJobs, id)
 		}
 	}
 	h.jobMap = tmp
+	return oldJobs
 }
 
 func (h *Handler) slotJobDone(slotNum int) {

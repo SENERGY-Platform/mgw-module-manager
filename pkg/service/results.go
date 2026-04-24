@@ -77,3 +77,13 @@ func (r *jobResults) GetRefreshRepositoriesResult(jobId string) (models_service.
 	}
 	return res, nil
 }
+
+func (r *jobResults) deleteResults(jobIds []string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for _, id := range jobIds {
+		delete(r.deploymentOperationResults, id)
+		delete(r.moduleChangeResults, id)
+		delete(r.refreshRepositoriesResults, id)
+	}
+}
