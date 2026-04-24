@@ -34,6 +34,7 @@ func New(
 		jobsHandler:           jobsHandler,
 		jobResults: &jobResults{
 			deploymentOperationResults: make(map[string]models_service.DeploymentsResult),
+			moduleChangeResults:        make(map[string]models_service.ModulesChangeResult),
 		},
 	}
 }

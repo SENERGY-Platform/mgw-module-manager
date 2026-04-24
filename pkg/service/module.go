@@ -143,15 +143,16 @@ func (s *Service) ExecModulesChangeRequest(_ context.Context) (models_service.Jo
 	}
 	go func() {
 		defer job.Done()
+		jobResult := models_service.ModulesChangeResult{JobId: job.Id}
 		defer func() {
 			if err := recover(); err != nil {
-				job.SetError(errors.New(fmt.Sprintf("panic: %v", err))) // TODO
+				jobResult.HasError = true
+				jobResult.Error = fmt.Sprintf("panic: %v", err)
+				s.jobResults.setModuleChangeResult(job.Id, jobResult)
 			}
 		}()
-		report := s.execModulesChangeRequest(job.Context())
-		s.mu.Lock()
-		defer s.mu.Unlock()
-		s.changeReport = &report
+		jobResult.ModulesChangeReport = s.execModulesChangeRequest(job.Context())
+		s.jobResults.setModuleChangeResult(job.Id, jobResult)
 	}()
 	return models_service.Job{
 		Id:          job.Id,
@@ -290,7 +291,6 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) models_service.M
 	return models_service.ModulesChangeReport{
 		Success: success,
 		Failed:  failed,
-		Created: helper_time.Now(),
 	}
 }
 

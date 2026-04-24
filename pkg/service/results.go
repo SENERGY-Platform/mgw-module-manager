@@ -44,3 +44,19 @@ func (r *jobResults) GetDeploymentOperationResult(jobId string) (models_service.
 	}
 	return res, nil
 }
+
+func (r *jobResults) setModuleChangeResult(jobId string, res models_service.ModulesChangeResult) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.moduleChangeResults[jobId] = res
+}
+
+func (r *jobResults) GetModuleChangeReport(jobId string) (models_service.ModulesChangeResult, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	res, ok := r.moduleChangeResults[jobId]
+	if !ok {
+		return models_service.ModulesChangeResult{}, models_error.NotFoundErr
+	}
+	return res, nil
+}
