@@ -24,6 +24,7 @@ import (
 	"slices"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
@@ -140,6 +141,72 @@ func (s *Service) UpdateAuxiliaryDeployment(
 			jobResult.ErrorResult = models_error.NewErrorResult(err.Error())
 		}
 		s.jobResults.setUpdateAuxiliaryDeploymentResult(job.Id, jobResult)
+	}()
+	return models_service.Job{
+		Id:          job.Id,
+		Description: job.Description,
+		Start:       job.Start,
+	}, nil
+}
+
+func (s *Service) RecreateAuxiliaryDeployments(
+	ctx context.Context,
+	deploymentId string,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+) (models_service.Job, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
+	if len(currentJobs) > 0 {
+		return models_service.Job{}, errors.New("active jobs") // TODO
+	}
+	activeDeployment, err := s.deploymentsHandler.GetDeployment(ctx, deploymentId)
+	if err != nil {
+		return models_service.Job{}, err
+	}
+	module, err := s.modulesHandler.Module(ctx, activeDeployment.ModuleId)
+	if err != nil {
+		return models_service.Job{}, err
+	}
+	dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_handler_deployments.DeploymentsFilter{
+		DeploymentsFilter: models_handler_database.DeploymentsFilter{
+			ModuleIds: slices.Collect(maps.Keys(module.Dependencies)),
+		},
+	})
+	if err != nil {
+		return models_service.Job{}, err
+	}
+	job, err := s.jobsHandler.CreateJob("recreate auxiliary deployments")
+	if err != nil {
+		return models_service.Job{}, err
+	}
+	go func() {
+		defer job.Done()
+		jobResult := models_service.JobResultAuxiliaryDeployments{
+			JobResult: models_service.JobResult{JobId: job.Id},
+		}
+		defer func() {
+			if err := recover(); err != nil {
+				jobResult.ErrorResult = models_error.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				s.jobResults.setAuxiliaryDeploymentsResult(job.Id, jobResult)
+			}
+		}()
+		jobResult.Results, err = s.auxDeploymentsHandler.RecreateDeployments(
+			job.Context(),
+			module,
+			activeDeployment,
+			dependencyDeployments,
+			filter,
+		)
+		if err != nil {
+			jobResult.ErrorResult = models_error.NewErrorResult(err.Error())
+		}
+		for _, res := range jobResult.Results {
+			if res.HasError {
+				jobResult.ResultsErrNum++
+			}
+		}
+		s.jobResults.setAuxiliaryDeploymentsResult(job.Id, jobResult)
 	}()
 	return models_service.Job{
 		Id:          job.Id,
