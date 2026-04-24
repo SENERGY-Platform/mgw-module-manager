@@ -137,3 +137,12 @@ type auxiliaryDeploymentsHandler interface {
 	) ([]models_handler_aux_deployments.VolumeResult, error)
 	DeleteMutex(deploymentId string)
 }
+
+type globalConfigsHandler interface {
+	CreateGlobalConfig(ctx context.Context, config models_handler_database.GlobalConfig) error
+	ReadGlobalConfig(ctx context.Context, id string) (models_handler_database.GlobalConfig, error)
+	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_database.GlobalConfig, error)
+	UpdateGlobalConfig(ctx context.Context, config models_handler_database.GlobalConfig) error
+	DeleteGlobalConfig(ctx context.Context, id string) error
+	DeleteGlobalConfigs(ctx context.Context, ids []string) error
+}

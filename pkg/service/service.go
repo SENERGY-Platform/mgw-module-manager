@@ -12,6 +12,7 @@ type Service struct {
 	modulesHandler        modulesHandler
 	deploymentsHandler    deploymentsHandler
 	auxDeploymentsHandler auxiliaryDeploymentsHandler
+	globalConfigsHandler  globalConfigsHandler
 	jobsHandler           *handler_jobs.Handler
 	changeRequest         *modulesChangeRequest
 	changeReport          *models_service.ModulesChangeReport
@@ -24,6 +25,7 @@ func New(
 	modulesHandler modulesHandler,
 	deploymentsHandler deploymentsHandler,
 	auxDeploymentsHandler auxiliaryDeploymentsHandler,
+	globalConfigsHandler globalConfigsHandler,
 	jobsHandler *handler_jobs.Handler,
 ) *Service {
 	jResults := &jobResults{
@@ -38,6 +40,7 @@ func New(
 		modulesHandler:        modulesHandler,
 		deploymentsHandler:    deploymentsHandler,
 		auxDeploymentsHandler: auxDeploymentsHandler,
+		globalConfigsHandler:  globalConfigsHandler,
 		jobsHandler:           jobsHandler,
 		jobResults:            jResults,
 	}
