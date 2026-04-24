@@ -28,6 +28,7 @@ type modulesHandler interface {
 }
 
 type deploymentsHandler interface {
+	GetDeployment(ctx context.Context, id string) (models_handler_deployments.Deployment, error)
 	GetReducedDeploymentsByModuleIds(
 		ctx context.Context,
 		filter models_handler_deployments.DeploymentsFilter,
