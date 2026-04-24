@@ -28,6 +28,7 @@ type jobResults struct {
 	moduleChangeResults        map[string]models_service.JobResultModulesChange
 	refreshRepositoriesResults map[string]models_service.JobResult
 	auxDeploymentCreateResults map[string]models_service.JobResultCreateAuxiliaryDeployment
+	auxDeploymentUpdateResults map[string]models_service.JobResult
 	mu                         sync.RWMutex
 }
 
@@ -91,6 +92,22 @@ func (r *jobResults) GetCreateAuxiliaryDeploymentResult(jobId string) (models_se
 	res, ok := r.auxDeploymentCreateResults[jobId]
 	if !ok {
 		return models_service.JobResultCreateAuxiliaryDeployment{}, models_error.NotFoundErr
+	}
+	return res, nil
+}
+
+func (r *jobResults) setUpdateAuxiliaryDeploymentResult(jobId string, res models_service.JobResult) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.auxDeploymentUpdateResults[jobId] = res
+}
+
+func (r *jobResults) GetUpdateAuxiliaryDeploymentResult(jobId string) (models_service.JobResult, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	res, ok := r.auxDeploymentUpdateResults[jobId]
+	if !ok {
+		return models_service.JobResult{}, models_error.NotFoundErr
 	}
 	return res, nil
 }

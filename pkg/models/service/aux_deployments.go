@@ -23,6 +23,12 @@ type ServiceInput struct {
 	models_handler_aux_deployments.ServiceInput
 }
 
+type ServiceInputUpdate struct {
+	DeploymentId    string `json:"deployment_id"`
+	AuxDeploymentId string `json:"auxiliary_deployment_id"`
+	models_handler_aux_deployments.UpdateServiceInput
+}
+
 type JobResultCreateAuxiliaryDeployment struct {
 	JobResult
 	models_handler_aux_deployments.Result
