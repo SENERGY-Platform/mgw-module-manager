@@ -33,3 +33,9 @@ type JobResultCreateAuxiliaryDeployment struct {
 	JobResult
 	models_handler_aux_deployments.Result
 }
+
+type JobResultAuxiliaryDeployments struct {
+	JobResult
+	Results       []models_handler_aux_deployments.BatchResult `json:"results"`
+	ResultsErrNum int                                          `json:"results_err_num"`
+}
