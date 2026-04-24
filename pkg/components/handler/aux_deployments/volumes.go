@@ -22,11 +22,12 @@ import (
 	"maps"
 	"strings"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
@@ -65,7 +66,7 @@ func (h *Handler) DeleteVolumes(
 	deploymentId string,
 	filterReferences []string,
 	allowAll bool,
-) ([]string, error) {
+) ([]models_handler_aux_deployments.VolumeResult, error) {
 	if !allowAll && len(filterReferences) == 0 {
 		return nil, nil
 	}
@@ -79,7 +80,11 @@ func (h *Handler) DeleteVolumes(
 	return h.deleteVolumes(ctx, deploymentId, volumes)
 }
 
-func (h *Handler) DeleteUnusedVolumes(ctx context.Context, deploymentId string, excludeReferences []string) ([]string, error) {
+func (h *Handler) DeleteUnusedVolumes(
+	ctx context.Context,
+	deploymentId string,
+	excludeReferences []string,
+) ([]models_handler_aux_deployments.VolumeResult, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.Lock()
 	defer mu.Unlock()
@@ -103,27 +108,24 @@ func (h *Handler) deleteVolumes(
 	ctx context.Context,
 	deploymentId string,
 	volumes map[string]models_handler_database.AuxiliaryDeploymentVolume,
-) ([]string, error) {
+) ([]models_handler_aux_deployments.VolumeResult, error) {
 	var deleted []string
-	var errs []string
-	var err error
+	var results []models_handler_aux_deployments.VolumeResult
 	for reference, volume := range volumes {
-		err = helper_containers.RemoveVolume(ctx, h.containerEngineWrapperClient, volume.Name)
+		result := models_handler_aux_deployments.VolumeResult{Reference: reference}
+		err := h.containerEngineWrapperClient.RemoveVolume(ctx, volume.Name, false)
 		if err != nil {
-			errs = append(errs, err.Error())
-			continue
+			result.ErrorResult = models_error.NewErrorResult(err.Error())
+		} else {
+			deleted = append(deleted, reference)
 		}
-		deleted = append(deleted, reference)
+		results = append(results, result)
 	}
-	err = h.databaseHandler.DeleteAuxiliaryDeploymentVolumes(ctx, deploymentId, deleted)
+	err := h.databaseHandler.DeleteAuxiliaryDeploymentVolumes(ctx, deploymentId, deleted)
 	if err != nil {
-		errs = append(errs, err.Error())
-		return nil, errors.New(strings.Join(errs, "\n")) // TODO
+		return results, err
 	}
-	if len(errs) > 0 {
-		return deleted, errors.New(strings.Join(errs, "\n")) // TODO
-	}
-	return deleted, nil
+	return results, nil
 }
 
 func (h *Handler) ensureContainerVolumes(

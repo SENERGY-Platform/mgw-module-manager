@@ -99,3 +99,8 @@ type BatchResult struct {
 	Id string `json:"id"`
 	models_error.ErrorResult
 }
+
+type VolumeResult struct {
+	Reference string `json:"reference"`
+	models_error.ErrorResult
+}
