@@ -214,3 +214,49 @@ func (s *Service) RecreateAuxiliaryDeployments(
 		Start:       job.Start,
 	}, nil
 }
+
+func (s *Service) DeleteAuxiliaryDeployments(
+	_ context.Context,
+	deploymentId string,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	allowAll bool,
+) (models_service.Job, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	job, err := s.jobsHandler.CreateJob("delete auxiliary deployments")
+	if err != nil {
+		return models_service.Job{}, err
+	}
+	go func() {
+		defer job.Done()
+		jobResult := models_service.JobResultAuxiliaryDeployments{
+			JobResult: models_service.JobResult{JobId: job.Id},
+		}
+		defer func() {
+			if err := recover(); err != nil {
+				jobResult.ErrorResult = models_error.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				s.jobResults.setAuxiliaryDeploymentsResult(job.Id, jobResult)
+			}
+		}()
+		jobResult.Results, err = s.auxDeploymentsHandler.DeleteDeployments(
+			job.Context(),
+			deploymentId,
+			filter,
+			allowAll,
+		)
+		if err != nil {
+			jobResult.ErrorResult = models_error.NewErrorResult(err.Error())
+		}
+		for _, res := range jobResult.Results {
+			if res.HasError {
+				jobResult.ResultsErrNum++
+			}
+		}
+		s.jobResults.setAuxiliaryDeploymentsResult(job.Id, jobResult)
+	}()
+	return models_service.Job{
+		Id:          job.Id,
+		Description: job.Description,
+		Start:       job.Start,
+	}, nil
+}
