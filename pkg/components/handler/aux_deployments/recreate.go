@@ -40,8 +40,8 @@ func (h *Handler) RecreateDeployments(
 	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
 ) ([]models_handler_aux_deployments.BatchResult, error) {
 	mu := h.mutexes.Get(activeDeployment.Id)
-	mu.RLock()
-	defer mu.RUnlock()
+	mu.Lock()
+	defer mu.Unlock()
 	auxDeployments, err := h.readAuxiliaryDeploymentsAndFilterByState(ctx, activeDeployment.Id, filter)
 	if err != nil {
 		return nil, err
