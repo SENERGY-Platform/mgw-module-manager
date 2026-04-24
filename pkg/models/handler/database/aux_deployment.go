@@ -58,8 +58,8 @@ type AuxiliaryDeploymentVolumeMount struct {
 }
 
 type AuxiliaryDeploymentRunConfig struct {
-	Command   []string
-	PseudoTTY bool
+	Command   []string `json:"command"`
+	PseudoTTY bool     `json:"pseudo_tty"`
 }
 
 type AuxiliaryDeploymentsFilter struct {

@@ -23,42 +23,42 @@ import (
 )
 
 type AuxiliaryDeploymentBase struct {
-	Id           string
-	DeploymentId string
-	Reference    string
-	Name         string
-	Image        string
-	Created      time.Time
-	Updated      time.Time
-	Enabled      bool
-	Recreate     bool
-	RunConfig    models_handler_database.AuxiliaryDeploymentRunConfig
+	Id           string                                               `json:"id"`
+	DeploymentId string                                               `json:"deployment_id"`
+	Reference    string                                               `json:"reference"`
+	Name         string                                               `json:"name"`
+	Image        string                                               `json:"image"`
+	Created      time.Time                                            `json:"created"`
+	Updated      time.Time                                            `json:"updated"`
+	Enabled      bool                                                 `json:"enabled"`
+	Recreate     bool                                                 `json:"recreate"`
+	RunConfig    models_handler_database.AuxiliaryDeploymentRunConfig `json:"run_config"`
 }
 
 type AuxiliaryDeployment struct {
 	AuxiliaryDeploymentBase
-	Labels    map[string]string // {name:value}
-	Configs   map[string]string // {varName:value}
-	Volumes   []Volume
-	Container Container
+	Labels    map[string]string `json:"labels"`  // {name:value}
+	Configs   map[string]string `json:"configs"` // {varName:value}
+	Volumes   []Volume          `json:"volumes"`
+	Container Container         `json:"container"`
 }
 
 type AuxiliaryDeploymentReduced struct {
 	AuxiliaryDeploymentBase
-	Container Container
+	Container Container `json:"container"`
 }
 
 type Volume struct {
-	Reference string
-	MountPath string
+	Reference string `json:"reference"`
+	MountPath string `json:"mount_path"`
 }
 
 type Container struct {
-	Name    string
-	Alias   string
-	ImageId string // docker image id
-	State   string // docker container state
-	Health  string // docker container health
+	Name    string `json:"name"`
+	Alias   string `json:"alias"`
+	ImageId string `json:"image_id"` // docker image id
+	State   string `json:"state"`    // docker container state
+	Health  string `json:"health"`   // docker container health
 }
 
 type AuxiliaryDeploymentsFilter struct {
@@ -67,24 +67,24 @@ type AuxiliaryDeploymentsFilter struct {
 }
 
 type ServiceInput struct {
-	Reference string            `json:"reference"`
-	Name      string            `json:"name"`
-	Image     string            `json:"image"`
-	PullImage bool              `json:"pull_image"`
-	Labels    map[string]string `json:"labels"`  // {name:value}
-	Configs   map[string]string `json:"configs"` // {varName:value}
-	Volumes   map[string]string `json:"volumes"` // {mntPath:reference}
-	RunConfig RunConfig         `json:"run_config"`
-	Enabled   bool              `json:"enabled"`
-	Recreate  bool              `json:"recreate"` // recreate the auxiliary deployment if parent deployment gets updated
+	Reference string                `json:"reference"`
+	Name      string                `json:"name"`
+	Image     string                `json:"image"`
+	PullImage bool                  `json:"pull_image"`
+	Labels    map[string]string     `json:"labels"`  // {name:value}
+	Configs   map[string]string     `json:"configs"` // {varName:value}
+	Volumes   map[string]string     `json:"volumes"` // {mntPath:reference}
+	RunConfig ServiceInputRunConfig `json:"run_config"`
+	Enabled   bool                  `json:"enabled"`
+	Recreate  bool                  `json:"recreate"` // recreate the auxiliary deployment if parent deployment gets updated
 }
 
 type UpdateServiceInput struct {
 	ServiceInput
-	Incremental bool
+	Incremental bool `json:"incremental"`
 }
 
-type RunConfig struct {
+type ServiceInputRunConfig struct {
 	Command   []string `json:"command"`
 	PseudoTTY int      `json:"pseudo_tty"`
 }
