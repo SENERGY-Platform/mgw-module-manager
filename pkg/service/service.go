@@ -27,7 +27,7 @@ func New(
 	jobsHandler *handler_jobs.Handler,
 ) *Service {
 	jResults := &jobResults{
-		deploymentOperationResults: make(map[string]models_service.JobResultDeployments),
+		deploymentsResults:         make(map[string]models_service.JobResultDeployments),
 		moduleChangeResults:        make(map[string]models_service.JobResultModulesChange),
 		refreshRepositoriesResults: make(map[string]models_service.JobResult),
 	}
