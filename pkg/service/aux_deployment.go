@@ -52,6 +52,9 @@ func (s *Service) CreateAuxiliaryDeployment(
 			ModuleIds: slices.Collect(maps.Keys(module.Dependencies)),
 		},
 	})
+	if err != nil {
+		return models_service.Job{}, err
+	}
 	job, err := s.jobsHandler.CreateJob("create auxiliary deployment")
 	if err != nil {
 		return models_service.Job{}, err
