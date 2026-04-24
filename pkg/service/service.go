@@ -33,7 +33,7 @@ func New(
 		auxDeploymentsHandler: auxDeploymentsHandler,
 		jobsHandler:           jobsHandler,
 		jobResults: &jobResults{
-			deployments: make(map[string]models_service.DeploymentsResult),
+			deploymentOperationResults: make(map[string]models_service.DeploymentsResult),
 		},
 	}
 }

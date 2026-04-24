@@ -164,10 +164,11 @@ type ChangeReportErrItem struct {
 type ModulesChangeReport struct {
 	Success []ChangeReportItem    `json:"success"`
 	Failed  []ChangeReportErrItem `json:"failed"`
-	Created time.Time             `json:"created"`
 }
 
-type ModulesFailedReport struct {
-	ModuleAbbreviated
-	Error string `json:"error"`
+type ModulesChangeResult struct {
+	JobId string `json:"job_id"`
+	ModulesChangeReport
+	HasError bool   `json:"has_error"`
+	Error    string `json:"error_msg"`
 }
