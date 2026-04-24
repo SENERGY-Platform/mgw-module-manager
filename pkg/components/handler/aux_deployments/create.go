@@ -43,25 +43,25 @@ func (h *Handler) CreateDeployment(
 	activeDeployment models_handler_deployments.Deployment,
 	dependencies map[string]models_handler_deployments.DeploymentReduced,
 	serviceInput models_handler_aux_deployments.ServiceInput,
-) (models_handler_aux_deployments.AuxiliaryDeploymentReduced, error) {
+) (models_handler_aux_deployments.Result, error) {
 	mu := h.mutexes.Get(activeDeployment.Id)
 	mu.Lock()
 	defer mu.Unlock()
 	auxService, ok := module.AuxServices[serviceInput.Reference]
 	if !ok {
-		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, errors.New("auxiliary service reference not found") // TODO
+		return models_handler_aux_deployments.Result{}, errors.New("auxiliary service reference not found") // TODO
 	}
 	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id, nil)
 	if err != nil {
-		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
+		return models_handler_aux_deployments.Result{}, err
 	}
 	err = validateImage(module.AuxImgSrc, serviceInput.Image)
 	if err != nil {
-		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
+		return models_handler_aux_deployments.Result{}, err
 	}
 	id, err := helper_uuid.New()
 	if err != nil {
-		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
+		return models_handler_aux_deployments.Result{}, err
 	}
 	newAuxDeployment, err := getAuxiliaryDeployment(
 		auxService.Name,
@@ -72,13 +72,13 @@ func (h *Handler) CreateDeployment(
 		serviceInput,
 	)
 	if err != nil {
-		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
+		return models_handler_aux_deployments.Result{}, err
 	}
 	newAuxDeployment.Created = helper_time.Now()
 	newAuxDeployment.Updated = newAuxDeployment.Created
 	deploymentConfigs, err := getDeploymentConfigs(module.Configs, auxService.Configs, activeDeployment.Configs)
 	if err != nil {
-		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
+		return models_handler_aux_deployments.Result{}, err
 	}
 	newAuxDeploymentVolumes := getNewVolumes(activeDeployment.Id, serviceInput.Volumes, auxDeploymentVolumes)
 	err = h.databaseHandler.CreateAuxiliaryDeploymentVolumes(
@@ -87,7 +87,7 @@ func (h *Handler) CreateDeployment(
 		slices.Collect(maps.Values(newAuxDeploymentVolumes)),
 	)
 	if err != nil {
-		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
+		return models_handler_aux_deployments.Result{}, err
 	}
 	maps.Copy(auxDeploymentVolumes, newAuxDeploymentVolumes)
 	volumeMounts := getVolumeMounts(newAuxDeployment.Id, serviceInput.Volumes, auxDeploymentVolumes)
@@ -99,7 +99,7 @@ func (h *Handler) CreateDeployment(
 		volumeMounts,
 	)
 	if err != nil {
-		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
+		return models_handler_aux_deployments.Result{}, err
 	}
 	defer func() {
 		if err != nil {
@@ -117,7 +117,7 @@ func (h *Handler) CreateDeployment(
 		auxDeploymentVolumes,
 	)
 	if err != nil {
-		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
+		return models_handler_aux_deployments.Result{}, err
 	}
 	err = h.createContainer(
 		ctx,
@@ -130,14 +130,11 @@ func (h *Handler) CreateDeployment(
 		volumeMounts,
 	)
 	if err != nil {
-		return models_handler_aux_deployments.AuxiliaryDeploymentReduced{}, err
+		return models_handler_aux_deployments.Result{}, err
 	}
-	return models_handler_aux_deployments.AuxiliaryDeploymentReduced{
-		AuxiliaryDeploymentBase: newAuxiliaryDeploymentBase(newAuxDeployment),
-		Container: models_handler_aux_deployments.Container{
-			Name:  newAuxDeployment.Container.Name,
-			Alias: newAuxDeployment.Container.Alias,
-		},
+	return models_handler_aux_deployments.Result{
+		Id:             newAuxDeployment.Id,
+		ContainerAlias: newAuxDeployment.Container.Alias,
 	}, nil
 }
 

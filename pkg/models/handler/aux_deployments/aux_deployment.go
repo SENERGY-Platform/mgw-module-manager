@@ -19,6 +19,7 @@ package models_handler_aux_deployments
 import (
 	"time"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
@@ -87,4 +88,14 @@ type UpdateServiceInput struct {
 type ServiceInputRunConfig struct {
 	Command   []string `json:"command"`
 	PseudoTTY int      `json:"pseudo_tty"`
+}
+
+type Result struct {
+	Id             string `json:"id"`
+	ContainerAlias string `json:"container_alias"`
+}
+
+type BatchResult struct {
+	Id string `json:"id"`
+	models_error.ErrorResult
 }
