@@ -30,6 +30,36 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
+func (s *Service) GetAuxiliaryDeployment(
+	ctx context.Context,
+	deploymentId string,
+	auxDeploymentId string,
+) (models_handler_aux_deployments.AuxiliaryDeployment, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.auxDeploymentsHandler.GetDeployment(ctx, deploymentId, auxDeploymentId)
+}
+
+func (s *Service) GetAuxiliaryDeployments(
+	ctx context.Context,
+	deploymentId string,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+) (map[string]models_handler_aux_deployments.AuxiliaryDeployment, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.auxDeploymentsHandler.GetDeployments(ctx, deploymentId, filter)
+}
+
+func (s *Service) GetReducedAuxiliaryDeployments(
+	ctx context.Context,
+	deploymentId string,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+) (map[string]models_handler_aux_deployments.AuxiliaryDeploymentReduced, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.auxDeploymentsHandler.GetReducedDeployments(ctx, deploymentId, filter)
+}
+
 func (s *Service) CreateAuxiliaryDeployment(
 	ctx context.Context,
 	serviceInput models_service.ServiceInput,
@@ -259,4 +289,65 @@ func (s *Service) DeleteAuxiliaryDeployments(
 		Description: job.Description,
 		Start:       job.Start,
 	}, nil
+}
+
+func (s *Service) EnableAuxiliaryDeployments(
+	ctx context.Context,
+	deploymentId string,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+) ([]string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.auxDeploymentsHandler.EnableDeployments(ctx, deploymentId, filter)
+}
+
+func (s *Service) DisableAuxiliaryDeployments(
+	ctx context.Context,
+	deploymentId string,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+) ([]string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.auxDeploymentsHandler.DisableDeployments(ctx, deploymentId, filter)
+}
+
+func (s *Service) GetAuxiliaryDeploymentVolumes(
+	ctx context.Context,
+	deploymentId string,
+	filterReferences []string,
+) (map[string]models_handler_database.AuxiliaryDeploymentVolume, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.auxDeploymentsHandler.GetVolumes(ctx, deploymentId, filterReferences)
+}
+
+func (s *Service) GetAuxiliaryDeploymentVolumesWithMounts(
+	ctx context.Context,
+	deploymentId string,
+	filterReferences []string,
+) (map[string]models_handler_database.AuxiliaryDeploymentVolumeWithMounts, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.auxDeploymentsHandler.GetVolumesWithMounts(ctx, deploymentId, filterReferences)
+}
+
+func (s *Service) DeleteAuxiliaryDeploymentVolumes(
+	ctx context.Context,
+	deploymentId string,
+	filterReferences []string,
+	allowAll bool,
+) ([]models_handler_aux_deployments.VolumeResult, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.auxDeploymentsHandler.DeleteVolumes(ctx, deploymentId, filterReferences, allowAll)
+}
+
+func (s *Service) DeleteUnusedAuxiliaryDeploymentVolumes(
+	ctx context.Context,
+	deploymentId string,
+	excludeReferences []string,
+) ([]models_handler_aux_deployments.VolumeResult, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.auxDeploymentsHandler.DeleteUnusedVolumes(ctx, deploymentId, excludeReferences)
 }
