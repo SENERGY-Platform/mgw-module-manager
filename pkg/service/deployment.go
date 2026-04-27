@@ -28,7 +28,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
@@ -193,47 +192,6 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []models_ser
 		Description: job.Description,
 		Start:       job.Start,
 	}, nil
-}
-
-func (s *Service) recreateAuxDeployments(
-	ctx context.Context,
-	module models_handler_modules.Module,
-	deploymentId string,
-	cacheDependencyDeployments map[string]models_handler_deployments.DeploymentReduced,
-) ([]models_handler_aux_deployments.BatchResult, error) {
-	activeDeployment, err := s.deploymentsHandler.GetDeployment(ctx, deploymentId)
-	if err != nil {
-		return nil, err
-	}
-	var idsNotInCache []string
-	for id := range module.Dependencies {
-		_, ok := cacheDependencyDeployments[id]
-		if !ok {
-			idsNotInCache = append(idsNotInCache, id)
-		}
-	}
-	if len(idsNotInCache) > 0 {
-		dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_handler_deployments.DeploymentsFilter{
-			DeploymentsFilter: models_handler_database.DeploymentsFilter{
-				ModuleIds: idsNotInCache,
-			},
-		})
-		if err != nil {
-			return nil, err
-		}
-		maps.Copy(cacheDependencyDeployments, dependencyDeployments)
-	}
-	return s.auxDeploymentsHandler.RecreateDeployments(
-		ctx,
-		module,
-		activeDeployment,
-		cacheDependencyDeployments,
-		models_handler_aux_deployments.AuxiliaryDeploymentsFilter{
-			AuxiliaryDeploymentsFilter: models_handler_database.AuxiliaryDeploymentsFilter{
-				Recreate: 1,
-			},
-		},
-	)
 }
 
 func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (models_service.Job, error) {

@@ -27,6 +27,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
+	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
@@ -350,4 +351,45 @@ func (s *Service) DeleteUnusedAuxiliaryDeploymentVolumes(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.auxDeploymentsHandler.DeleteUnusedVolumes(ctx, deploymentId, excludeReferences)
+}
+
+func (s *Service) recreateAuxDeployments(
+	ctx context.Context,
+	module models_handler_modules.Module,
+	deploymentId string,
+	cacheDependencyDeployments map[string]models_handler_deployments.DeploymentReduced,
+) ([]models_handler_aux_deployments.BatchResult, error) {
+	activeDeployment, err := s.deploymentsHandler.GetDeployment(ctx, deploymentId)
+	if err != nil {
+		return nil, err
+	}
+	var idsNotInCache []string
+	for id := range module.Dependencies {
+		_, ok := cacheDependencyDeployments[id]
+		if !ok {
+			idsNotInCache = append(idsNotInCache, id)
+		}
+	}
+	if len(idsNotInCache) > 0 {
+		dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_handler_deployments.DeploymentsFilter{
+			DeploymentsFilter: models_handler_database.DeploymentsFilter{
+				ModuleIds: idsNotInCache,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+		maps.Copy(cacheDependencyDeployments, dependencyDeployments)
+	}
+	return s.auxDeploymentsHandler.RecreateDeployments(
+		ctx,
+		module,
+		activeDeployment,
+		cacheDependencyDeployments,
+		models_handler_aux_deployments.AuxiliaryDeploymentsFilter{
+			AuxiliaryDeploymentsFilter: models_handler_database.AuxiliaryDeploymentsFilter{
+				Recreate: 1,
+			},
+		},
+	)
 }
