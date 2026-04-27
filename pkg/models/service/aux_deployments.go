@@ -16,7 +16,10 @@
 
 package models_service
 
-import "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
+import (
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
+)
 
 type ServiceInput struct {
 	DeploymentId string `json:"deployment_id"`
@@ -36,6 +39,12 @@ type JobResultCreateAuxiliaryDeployment struct {
 
 type JobResultAuxiliaryDeployments struct {
 	JobResult
+	Results       []models_handler_aux_deployments.BatchResult `json:"results"`
+	ResultsErrNum int                                          `json:"results_err_num"`
+}
+
+type RecreateAuxiliaryDeploymentResult struct {
+	models_error.ErrorResult
 	Results       []models_handler_aux_deployments.BatchResult `json:"results"`
 	ResultsErrNum int                                          `json:"results_err_num"`
 }

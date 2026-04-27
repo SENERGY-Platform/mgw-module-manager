@@ -38,3 +38,14 @@ type JobResultDeployments struct {
 	Results       []models_handler_deployments.Result `json:"results"`
 	ResultsErrNum int                                 `json:"results_err_num"`
 }
+
+type JobResultUpdateDeployments struct {
+	JobResult
+	Results       []JobResultUpdateDeploymentsResult `json:"results"`
+	ResultsErrNum int                                `json:"results_err_num"`
+}
+
+type JobResultUpdateDeploymentsResult struct {
+	models_handler_deployments.Result
+	AuxiliaryDeployments RecreateAuxiliaryDeploymentResult `json:"auxiliary_deployments"`
+}

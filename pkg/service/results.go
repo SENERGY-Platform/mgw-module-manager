@@ -25,6 +25,7 @@ import (
 
 type jobResults struct {
 	deploymentsResults         map[string]models_service.JobResultDeployments
+	deploymentsUpdateResults   map[string]models_service.JobResultUpdateDeployments
 	moduleChangeResults        map[string]models_service.JobResultModulesChange
 	refreshRepositoriesResults map[string]models_service.JobResult
 	auxDeploymentCreateResults map[string]models_service.JobResultCreateAuxiliaryDeployment
@@ -45,6 +46,22 @@ func (r *jobResults) GetDeploymentsResult(jobId string) (models_service.JobResul
 	res, ok := r.deploymentsResults[jobId]
 	if !ok {
 		return models_service.JobResultDeployments{}, models_error.NotFoundErr
+	}
+	return res, nil
+}
+
+func (r *jobResults) setUpdateDeploymentsResult(jobId string, res models_service.JobResultUpdateDeployments) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.deploymentsUpdateResults[jobId] = res
+}
+
+func (r *jobResults) GetUpdateDeploymentsResult(jobId string) (models_service.JobResultUpdateDeployments, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	res, ok := r.deploymentsUpdateResults[jobId]
+	if !ok {
+		return models_service.JobResultUpdateDeployments{}, models_error.NotFoundErr
 	}
 	return res, nil
 }

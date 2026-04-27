@@ -28,6 +28,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
@@ -141,31 +142,98 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []models_ser
 	}
 	go func() {
 		defer job.Done()
-		jobResult := models_service.JobResultDeployments{
+		jobResult := models_service.JobResultUpdateDeployments{
 			JobResult: models_service.JobResult{JobId: job.Id},
 		}
 		defer func() {
 			if err := recover(); err != nil {
 				jobResult.ErrorResult = models_error.NewErrorResult(fmt.Sprintf("panic: %v", err))
-				s.jobResults.setDeploymentsResult(job.Id, jobResult)
+				s.jobResults.setUpdateDeploymentsResult(job.Id, jobResult)
 			}
 		}()
-		jobResult.Results, err = s.deploymentsHandler.UpdateDeployments(job.Context(), handlerModules, userInputMap)
+		updateDepResults, err := s.deploymentsHandler.UpdateDeployments(job.Context(), handlerModules, userInputMap)
 		if err != nil {
 			jobResult.ErrorResult = models_error.NewErrorResult(err.Error())
 		}
-		for _, res := range jobResult.Results {
-			if res.HasError {
+		for _, updateDepResult := range updateDepResults {
+			if updateDepResult.HasError {
 				jobResult.ResultsErrNum++
 			}
 		}
-		s.jobResults.setDeploymentsResult(job.Id, jobResult)
+		cacheDependencyDeployments := make(map[string]models_handler_deployments.DeploymentReduced)
+		for _, updateDepResult := range updateDepResults {
+			result := models_service.JobResultUpdateDeploymentsResult{Result: updateDepResult}
+			if !updateDepResult.HasError {
+				module, ok := handlerModules[updateDepResult.ModuleId]
+				if ok {
+					result.AuxiliaryDeployments.Results, err = s.recreateAuxDeployments(
+						ctx,
+						module,
+						updateDepResult.Id,
+						cacheDependencyDeployments,
+					)
+					if err != nil {
+						result.AuxiliaryDeployments.ErrorResult = models_error.NewErrorResult(err.Error())
+					}
+					for _, res := range result.AuxiliaryDeployments.Results {
+						if res.HasError {
+							result.AuxiliaryDeployments.ResultsErrNum++
+						}
+					}
+				} else {
+					result.AuxiliaryDeployments.ErrorResult = models_error.NewErrorResult("missing module")
+				}
+			}
+			jobResult.Results = append(jobResult.Results, result)
+		}
+		s.jobResults.setUpdateDeploymentsResult(job.Id, jobResult)
 	}()
 	return models_service.Job{
 		Id:          job.Id,
 		Description: job.Description,
 		Start:       job.Start,
 	}, nil
+}
+
+func (s *Service) recreateAuxDeployments(
+	ctx context.Context,
+	module models_handler_modules.Module,
+	deploymentId string,
+	cacheDependencyDeployments map[string]models_handler_deployments.DeploymentReduced,
+) ([]models_handler_aux_deployments.BatchResult, error) {
+	activeDeployment, err := s.deploymentsHandler.GetDeployment(ctx, deploymentId)
+	if err != nil {
+		return nil, err
+	}
+	var idsNotInCache []string
+	for id := range module.Dependencies {
+		_, ok := cacheDependencyDeployments[id]
+		if !ok {
+			idsNotInCache = append(idsNotInCache, id)
+		}
+	}
+	if len(idsNotInCache) > 0 {
+		dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_handler_deployments.DeploymentsFilter{
+			DeploymentsFilter: models_handler_database.DeploymentsFilter{
+				ModuleIds: idsNotInCache,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+		maps.Copy(cacheDependencyDeployments, dependencyDeployments)
+	}
+	return s.auxDeploymentsHandler.RecreateDeployments(
+		ctx,
+		module,
+		activeDeployment,
+		cacheDependencyDeployments,
+		models_handler_aux_deployments.AuxiliaryDeploymentsFilter{
+			AuxiliaryDeploymentsFilter: models_handler_database.AuxiliaryDeploymentsFilter{
+				Recreate: 1,
+			},
+		},
+	)
 }
 
 func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (models_service.Job, error) {
