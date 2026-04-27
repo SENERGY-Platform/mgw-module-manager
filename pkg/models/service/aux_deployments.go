@@ -48,3 +48,11 @@ type RecreateAuxiliaryDeploymentResult struct {
 	Results       []models_handler_aux_deployments.BatchResult `json:"results"`
 	ResultsErrNum int                                          `json:"results_err_num"`
 }
+
+type DeleteAuxiliaryDeploymentResult struct {
+	models_error.ErrorResult
+	Results             []models_handler_aux_deployments.BatchResult  `json:"results"`
+	ResultsErrNum       int                                           `json:"results_err_num"`
+	VolumeResults       []models_handler_aux_deployments.VolumeResult `json:"volume_results"`
+	VolumeResultsErrNum int                                           `json:"volume_results_err_num"`
+}

@@ -49,3 +49,8 @@ type JobResultUpdateDeploymentsResult struct {
 	models_handler_deployments.Result
 	AuxiliaryDeployments RecreateAuxiliaryDeploymentResult `json:"auxiliary_deployments"`
 }
+
+type DeleteDeploymentsResult struct {
+	models_handler_deployments.Result
+	AuxiliaryDeployments DeleteAuxiliaryDeploymentResult `json:"auxiliary_deployments"`
+}

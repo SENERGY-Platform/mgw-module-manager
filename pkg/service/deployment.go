@@ -28,6 +28,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
@@ -240,18 +241,72 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 	}, nil
 }
 
-func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]models_handler_deployments.Result, error) {
+func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]models_service.DeleteDeploymentsResult, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	_, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}
-	return s.deploymentsHandler.DeleteDeployments(ctx, models_handler_deployments.DeploymentsFilter{
+	deploymentIds, err := s.deploymentsHandler.GetDeploymentIds(ctx, models_handler_database.DeploymentsFilter{
+		ModuleIds: moduleIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+	auxResults := make(map[string]models_service.DeleteAuxiliaryDeploymentResult)
+	var toDelete []string
+	for id := range deploymentIds {
+		var auxResult models_service.DeleteAuxiliaryDeploymentResult
+		auxResult.Results, auxResult.VolumeResults, err = s.deleteAuxDeployments(ctx, id)
+		if err != nil {
+			auxResult.ErrorResult = models_error.NewErrorResult(err.Error())
+		}
+		for _, res := range auxResult.Results {
+			if res.HasError {
+				auxResult.ResultsErrNum++
+			}
+		}
+		for _, res := range auxResult.VolumeResults {
+			if res.HasError {
+				auxResult.VolumeResultsErrNum++
+			}
+		}
+		auxResults[id] = auxResult
+		if !auxResult.HasError && auxResult.ResultsErrNum+auxResult.VolumeResultsErrNum == 0 {
+			toDelete = append(toDelete, id)
+		}
+	}
+	deleteResults, err := s.deploymentsHandler.DeleteDeployments(ctx, models_handler_deployments.DeploymentsFilter{
 		DeploymentsFilter: models_handler_database.DeploymentsFilter{
-			ModuleIds: moduleIds,
+			Ids: toDelete,
 		},
 	})
+	deleteResultsMap := maps.Collect(helper_slices.AllFunc(deleteResults, func(item models_handler_deployments.Result) string {
+		return item.Id
+	}))
+	var results []models_service.DeleteDeploymentsResult
+	for id, moduleId := range deploymentIds {
+		var errResult models_error.ErrorResult
+		deleteResult, ok := deleteResultsMap[id]
+		if !ok {
+			errResult = models_error.NewErrorResult("not deleted")
+		} else {
+			errResult = deleteResult.ErrorResult
+		}
+		results = append(results, models_service.DeleteDeploymentsResult{
+			Result: models_handler_deployments.Result{
+				ModuleId:    moduleId,
+				Id:          id,
+				ErrorResult: errResult,
+			},
+			AuxiliaryDeployments: auxResults[id],
+		})
+	}
+	if err != nil {
+		return results, err
+	}
+	return results, nil
 }
 
 func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error) {
@@ -279,6 +334,26 @@ func (s *Service) DisableDeployments(ctx context.Context, moduleIds []string) ([
 		return nil, errors.New("active job") // TODO
 	}
 	return s.deploymentsHandler.DisableDeployments(ctx, moduleIds)
+}
+
+func (s *Service) deleteAuxDeployments(
+	ctx context.Context,
+	deploymentId string,
+) ([]models_handler_aux_deployments.BatchResult, []models_handler_aux_deployments.VolumeResult, error) {
+	results, err := s.auxDeploymentsHandler.DeleteDeployments(
+		ctx,
+		deploymentId,
+		models_handler_aux_deployments.AuxiliaryDeploymentsFilter{},
+		true,
+	)
+	if err != nil {
+		return results, nil, err
+	}
+	volResults, err := s.auxDeploymentsHandler.DeleteVolumes(ctx, deploymentId, nil, true)
+	if err != nil {
+		return results, volResults, err
+	}
+	return results, volResults, nil
 }
 
 func getUserInputs(
