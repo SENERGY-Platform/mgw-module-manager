@@ -38,6 +38,7 @@ type deploymentsHandler interface {
 		filter models_handler_deployments.DeploymentsFilter,
 	) (map[string]models_handler_deployments.Deployment, error)
 	GetDeploymentByModuleId(ctx context.Context, moduleId string) (models_handler_deployments.Deployment, error)
+	GetDeploymentIds(ctx context.Context, filter models_handler_database.DeploymentsFilter) (map[string]string, error)
 	CreateDeployments(
 		ctx context.Context,
 		selectedModules map[string]models_handler_modules.Module,

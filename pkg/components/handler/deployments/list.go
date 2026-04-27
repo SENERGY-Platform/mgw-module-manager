@@ -93,6 +93,24 @@ func (h *Handler) GetDeploymentByModuleId(ctx context.Context, moduleId string) 
 	return deployments[moduleId], nil
 }
 
+func (h *Handler) GetDeploymentIds(
+	ctx context.Context,
+	filter models_handler_database.DeploymentsFilter,
+) (map[string]string, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	ids := make(map[string]string)
+	for id, deployment := range deployments {
+		ids[id] = deployment.ModuleId
+	}
+	return ids, nil
+}
+
 func (h *Handler) GetDeployments(
 	ctx context.Context,
 	filter models_handler_deployments.DeploymentsFilter,
