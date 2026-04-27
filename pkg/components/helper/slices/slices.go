@@ -22,8 +22,18 @@ import (
 
 func AllFunc[S ~[]E, E any, K comparable](sl S, keyF func(item E) K) iter.Seq2[K, E] {
 	return func(yield func(K, E) bool) {
-		for i, v := range sl {
-			if !yield(keyF(sl[i]), v) {
+		for _, v := range sl {
+			if !yield(keyF(v), v) {
+				return
+			}
+		}
+	}
+}
+
+func Extract[S ~[]E, E, V any, K comparable](sl S, pairF func(item E) (K, V)) iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for _, v := range sl {
+			if !yield(pairF(v)) {
 				return
 			}
 		}
@@ -57,22 +67,6 @@ func RemoveDuplicates[S ~[]E, E comparable](sl S) []E {
 			sl2 = append(sl2, s)
 		}
 		set[s] = struct{}{}
-	}
-	return sl2
-}
-
-func RemoveDuplicatesFunc[S ~[]E, E any, K comparable](sl S, f func(E) K) []E {
-	if len(sl) < 2 {
-		return sl
-	}
-	set := make(map[K]struct{})
-	var sl2 []E
-	for _, s := range sl {
-		key := f(s)
-		if _, ok := set[key]; !ok {
-			sl2 = append(sl2, s)
-		}
-		set[key] = struct{}{}
 	}
 	return sl2
 }
