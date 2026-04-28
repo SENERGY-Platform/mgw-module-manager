@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS dep_advertisements
     UNIQUE KEY uk_dep_id_ref (dep_id, ref),
     INDEX i_dep_id (dep_id),
     INDEX i_mod_id (mod_id),
+    INDEX i_origin (origin),
+    INDEX i_ref (ref),
     FOREIGN KEY (dep_id) REFERENCES deployments (id) ON DELETE CASCADE ON UPDATE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS dep_adv_items

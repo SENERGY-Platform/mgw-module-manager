@@ -86,6 +86,28 @@ func migrateDepAdvertisementsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
+	ok, err = indexExists(ctx, db, tableName, "i_origin")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.Info("adding index", attrIndex, "i_origin", attrTable, tableName)
+		err = addIndex(ctx, db, tableName, "i_origin", "origin")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = indexExists(ctx, db, tableName, "i_ref")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.Info("adding index", attrIndex, "i_ref", attrTable, tableName)
+		err = addIndex(ctx, db, tableName, "i_ref", "ref")
+		if err != nil {
+			return err
+		}
+	}
 	currentIndexKeys, err := indexKeyNames(ctx, db, tableName)
 	if err != nil {
 		return err
