@@ -151,7 +151,11 @@ func (r *jobResults) deleteResults(jobIds []string) {
 	defer r.mu.Unlock()
 	for _, id := range jobIds {
 		delete(r.deploymentsResults, id)
+		delete(r.deploymentsUpdateResults, id)
 		delete(r.moduleChangeResults, id)
 		delete(r.refreshRepositoriesResults, id)
+		delete(r.auxDeploymentCreateResults, id)
+		delete(r.auxDeploymentUpdateResults, id)
+		delete(r.auxDeploymentResults, id)
 	}
 }
