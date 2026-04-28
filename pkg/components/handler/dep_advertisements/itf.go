@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dep_advertisements
+package handler_dep_advertisements
 
 import (
 	"context"
