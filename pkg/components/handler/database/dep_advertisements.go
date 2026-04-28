@@ -31,6 +31,46 @@ FROM dep_advertisements
 LEFT JOIN dep_adv_items
 ON dep_advertisements.id = dep_adv_items.dep_adv_id`
 
+func (h *Handler) ReadDeploymentAdvertisement(
+	ctx context.Context,
+	deploymentId string,
+	reference string,
+) (models_handler_database.DeploymentAdvertisement, error) {
+	rows, err := h.sqlDB.QueryContext(
+		ctx,
+		selectDeploymentAdvertisementsStmt+" WHERE dep_id = ? AND ref = ?;",
+		deploymentId,
+		reference,
+	)
+	if err != nil {
+		return models_handler_database.DeploymentAdvertisement{}, err
+	}
+	defer rows.Close()
+	var depAdv models_handler_database.DeploymentAdvertisement
+	for rows.Next() {
+		var ts []uint8
+		var itemKey string
+		var itemValue sql.NullString
+		err = rows.Scan(&depAdv.Id, &depAdv.DeploymentId, &depAdv.ModuleId, &depAdv.Origin, &depAdv.Reference, &ts, &itemKey, &itemValue)
+		if err != nil {
+			return models_handler_database.DeploymentAdvertisement{}, err
+		}
+		if depAdv.Timestamp.IsZero() {
+			if depAdv.Timestamp, err = time.Parse(timeLayout, string(ts)); err != nil {
+				return models_handler_database.DeploymentAdvertisement{}, err
+			}
+		}
+		if depAdv.Items == nil {
+			depAdv.Items = make(map[string]string)
+		}
+		depAdv.Items[itemKey] = itemValue.String
+	}
+	if err = rows.Err(); err != nil {
+		return models_handler_database.DeploymentAdvertisement{}, err
+	}
+	return depAdv, nil
+}
+
 func (h *Handler) ReadDeploymentAdvertisements(
 	ctx context.Context,
 	deploymentId string,
