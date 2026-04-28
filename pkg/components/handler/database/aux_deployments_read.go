@@ -419,8 +419,12 @@ func genAuxiliaryDeploymentsAssetsIdsFilter(ids []string) (string, []any) {
 }
 
 func genAuxiliaryDeploymentVolumesFilter(deploymentId string, references []string) (string, []any) {
-	fc := []string{"dep_id = ?"}
-	val := []any{deploymentId}
+	var fc []string
+	var val []any
+	if deploymentId != "" {
+		fc = append(fc, "dep_id = ?")
+		val = append(val, deploymentId)
+	}
 	if len(references) > 0 {
 		references = helper_slices.RemoveDuplicates(references)
 		fc = append(fc, "ref IN ("+genQuestionMarks(len(references))+")")
