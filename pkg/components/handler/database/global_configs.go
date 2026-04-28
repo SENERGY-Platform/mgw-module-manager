@@ -151,14 +151,22 @@ func (h *Handler) DeleteGlobalConfig(ctx context.Context, id string) error {
 }
 
 func (h *Handler) DeleteGlobalConfigs(ctx context.Context, ids []string) error {
-	ids = helper_slices.RemoveDuplicates(ids)
+	fc, val := genDeleteGlobalConfigsFilter(ids)
 	_, err := h.sqlDB.ExecContext(
 		ctx,
-		"DELETE FROM global_configs WHERE id IN ("+genQuestionMarks(len(ids))+")",
-		helper_slices.ToAny(ids)...,
+		"DELETE FROM global_configs"+fc+";",
+		val...,
 	)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func genDeleteGlobalConfigsFilter(ids []string) (string, []any) {
+	if len(ids) > 0 {
+		ids = helper_slices.RemoveDuplicates(ids)
+		return " WHERE id IN (" + genQuestionMarks(len(ids)) + ")", helper_slices.ToAny(ids)
+	}
+	return "", nil
 }

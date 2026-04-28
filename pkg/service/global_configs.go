@@ -52,7 +52,10 @@ func (s *Service) DeleteGlobalConfig(ctx context.Context, id string) error {
 	return s.globalConfigsHandler.DeleteGlobalConfig(ctx, id)
 }
 
-func (s *Service) DeleteGlobalConfigs(ctx context.Context, ids []string) error {
+func (s *Service) DeleteGlobalConfigs(ctx context.Context, ids []string, allowAll bool) error {
+	if !allowAll && len(ids) == 0 {
+		return nil
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.globalConfigsHandler.DeleteGlobalConfigs(ctx, ids)
