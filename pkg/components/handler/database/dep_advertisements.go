@@ -73,10 +73,9 @@ func (h *Handler) ReadDeploymentAdvertisement(
 
 func (h *Handler) ReadDeploymentAdvertisements(
 	ctx context.Context,
-	deploymentId string,
 	filter models_handler_database.DeploymentAdvertisementsFilter,
 ) (map[string]models_handler_database.DeploymentAdvertisement, error) {
-	fc, val := genDeploymentAdvertisementsFilter(deploymentId, filter)
+	fc, val := genDeploymentAdvertisementsFilter(filter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
 		selectDeploymentAdvertisementsStmt+fc+";",
@@ -193,12 +192,12 @@ func (h *Handler) writeDeploymentAdvertisement(
 	return nil
 }
 
-func genDeploymentAdvertisementsFilter(deploymentId string, filter models_handler_database.DeploymentAdvertisementsFilter) (string, []any) {
+func genDeploymentAdvertisementsFilter(filter models_handler_database.DeploymentAdvertisementsFilter) (string, []any) {
 	var fc []string
 	var val []any
-	if deploymentId != "" {
+	if filter.DeploymentId != "" {
 		fc = append(fc, "dep_id = ?")
-		val = append(val, deploymentId)
+		val = append(val, filter.DeploymentId)
 	}
 	if len(filter.Ids) > 0 {
 		ids := helper_slices.RemoveDuplicates(filter.Ids)
