@@ -32,7 +32,11 @@ import (
 func (h *Handler) DeleteDeployments(
 	ctx context.Context,
 	filter models_handler_deployments.DeploymentsFilter,
+	allowAll bool,
 ) ([]models_handler_deployments.Result, error) {
+	if !allowAll && filterEmpty(filter) {
+		return nil, nil
+	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	deployments, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
@@ -98,4 +102,18 @@ func (h *Handler) removeHttpEndpoints(ctx context.Context, deploymentId string) 
 		return errors.New(job.Error.Message)
 	}
 	return nil
+}
+
+func filterEmpty(filter models_handler_deployments.DeploymentsFilter) bool {
+	switch {
+	case len(filter.Ids) > 0:
+		return false
+	case len(filter.ModuleIds) > 0:
+		return false
+	case filter.Enabled != 0:
+		return false
+	case filter.State != 0:
+		return false
+	}
+	return true
 }

@@ -277,11 +277,15 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]
 			toDelete = append(toDelete, id)
 		}
 	}
-	deleteResults, err := s.deploymentsHandler.DeleteDeployments(ctx, models_handler_deployments.DeploymentsFilter{
-		DeploymentsFilter: models_handler_database.DeploymentsFilter{
-			Ids: toDelete,
+	deleteResults, err := s.deploymentsHandler.DeleteDeployments(
+		ctx,
+		models_handler_deployments.DeploymentsFilter{
+			DeploymentsFilter: models_handler_database.DeploymentsFilter{
+				Ids: toDelete,
+			},
 		},
-	})
+		false,
+	)
 	deleteResultsMap := maps.Collect(helper_slices.AllFunc(deleteResults, func(item models_handler_deployments.Result) string {
 		return item.Id
 	}))
