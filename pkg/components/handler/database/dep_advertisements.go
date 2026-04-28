@@ -122,15 +122,38 @@ func (h *Handler) ReadDeploymentAdvertisements(
 
 func (h *Handler) WriteDeploymentAdvertisements(
 	ctx context.Context,
+	deploymentId string,
 	advertisements []models_handler_database.DeploymentAdvertisement,
+	incremental bool,
 ) error {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
+	if !incremental {
+		_, err = tx.ExecContext(
+			ctx,
+			"DELETE FROM dep_advertisements WHERE dep_id = ?;",
+			deploymentId,
+		)
+		if err != nil {
+			return err
+		}
+	}
 	for _, advertisement := range advertisements {
-		err = h.writeDeploymentAdvertisement(ctx, tx, advertisement)
+		if incremental {
+			_, err = tx.ExecContext(
+				ctx,
+				"DELETE FROM dep_advertisements WHERE dep_id = ? AND ref = ?;",
+				deploymentId,
+				advertisement.Reference,
+			)
+			if err != nil {
+				return err
+			}
+		}
+		err = h.insertDeploymentAdvertisement(ctx, tx, deploymentId, advertisement)
 		if err != nil {
 			return err
 		}
@@ -151,25 +174,17 @@ func (h *Handler) DeleteDeploymentAdvertisements(ctx context.Context, deployment
 	return nil
 }
 
-func (h *Handler) writeDeploymentAdvertisement(
+func (h *Handler) insertDeploymentAdvertisement(
 	ctx context.Context,
 	tx *sql.Tx,
+	deploymentId string,
 	advertisement models_handler_database.DeploymentAdvertisement,
 ) error {
 	_, err := tx.ExecContext(
 		ctx,
-		"DELETE FROM dep_advertisements WHERE dep_id = ? AND ref = ?;",
-		advertisement.DeploymentId,
-		advertisement.Reference,
-	)
-	if err != nil {
-		return err
-	}
-	_, err = tx.ExecContext(
-		ctx,
 		"INSERT INTO dep_advertisements (id, dep_id, mod_id, origin, ref, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
 		advertisement.Id,
-		advertisement.DeploymentId,
+		deploymentId,
 		advertisement.ModuleId,
 		advertisement.Origin,
 		advertisement.Reference,
