@@ -18,10 +18,10 @@ package service
 
 import (
 	"context"
-	"errors"
 	"slices"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
@@ -40,7 +40,7 @@ func (s *Service) Jobs(_ context.Context, filterIds []string) ([]models_service.
 func (s *Service) Job(_ context.Context, jobId string) (models_service.Job, error) {
 	handlerJob, ok := s.jobsHandler.Job(jobId)
 	if !ok {
-		return models_service.Job{}, errors.New("not found") // TODO
+		return models_service.Job{}, models_error.NotFoundErr
 	}
 	return getJob(handlerJob), nil
 }
@@ -56,7 +56,7 @@ func (s *Service) CancelJobs(_ context.Context, jobIds []string) error {
 func (s *Service) CancelJob(_ context.Context, jobId string) error {
 	handlerJob, ok := s.jobsHandler.Job(jobId)
 	if !ok {
-		return errors.New("not found") // TODO
+		return models_error.NotFoundErr
 	}
 	handlerJob.Cancel()
 	return nil
