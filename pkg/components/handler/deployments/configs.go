@@ -110,7 +110,7 @@ func getDefaultConfigs(moduleConfigs models_external.ModuleLibConfigs) (map[stri
 		if moduleConfig.Default == nil {
 			continue
 		}
-		value, err := helper_configs.GetValue(moduleConfig.Default, moduleConfig)
+		value, err := helper_configs.GetValueWithValidation(moduleConfig.Default, moduleConfig)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue

@@ -373,7 +373,7 @@ func getUserInputs(
 		handlerModule := handlerModules[userInput.ModuleId]
 		configs := make(map[string]models_config.Value)
 		for reference, itfValue := range userInput.Configs {
-			value, err := helper_configs.GetValue(itfValue, handlerModule.Configs[reference])
+			value, err := helper_configs.GetValueWithValidation(itfValue, handlerModule.Configs[reference])
 			if err != nil {
 				return nil, err
 			}
