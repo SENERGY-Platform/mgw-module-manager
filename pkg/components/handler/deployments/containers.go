@@ -43,7 +43,7 @@ func (h *Handler) createContainers(
 	userDataHostResources map[string]models_handler_database.DeploymentHostResource,
 	containers map[string]models_handler_database.DeploymentContainer,
 	volumes map[string]models_handler_database.DeploymentVolume,
-	configs map[string]models_config.Config,
+	configs map[string]models_config.Value,
 	bindMounts bindMountDataCollection,
 	cacheSecretValues map[string]models_external.SecretValueVariant,
 	cacheDeployments map[string]deploymentsCacheItem,
@@ -447,15 +447,15 @@ func newCewRunConfig(serviceRunConfig models_external.ModuleLibRunConfig) models
 
 func configsToStrings(
 	moduleConfigs models_external.ModuleLibConfigs,
-	configs map[string]models_config.Config,
+	configs map[string]models_config.Value,
 ) map[string]string {
 	configValues := make(map[string]string)
 	for reference, config := range configs {
 		if config.IsSlice {
 			moduleConfig := moduleConfigs[reference]
-			configValues[reference] = helper_configs.SliceConfigToString(config, moduleConfig.Delimiter)
+			configValues[reference] = helper_configs.SliceValueToString(config, moduleConfig.Delimiter)
 		} else {
-			configValues[reference] = helper_configs.ConfigToString(config)
+			configValues[reference] = helper_configs.ValueToString(config)
 		}
 	}
 	return configValues

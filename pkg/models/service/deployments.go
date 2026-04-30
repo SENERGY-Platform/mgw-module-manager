@@ -22,7 +22,7 @@ type UserInput struct {
 	ModuleId      string                                   `json:"module_id"`
 	HostResources map[string]string                        `json:"host_resources"` // {ref:resourceID}
 	Secrets       map[string]string                        `json:"secrets"`        // {ref:secretID}
-	Configs       map[string]any                           `json:"configs"`        // {ref:value}
+	Configs       map[string]interface{}                   `json:"configs"`        // {ref:value}
 	GlobalConfigs map[string]string                        `json:"global_configs"` // {ref:configID}
 	Files         map[string]string                        `json:"files"`          // {ref:data}
 	FileGroups    map[string]map[string]FileGroupUserInput `json:"file_groups"`    // {ref:{path:FileGroupUserInput}}

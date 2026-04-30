@@ -33,7 +33,7 @@ const (
 const dirPerm = 0770
 
 type defaultDataCollection struct {
-	Configs map[string]models_config.Config
+	Configs map[string]models_config.Value
 	Files   map[string][]byte
 }
 type userDataCollection struct {

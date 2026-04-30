@@ -29,7 +29,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
-func ConfigIsEqual(a, b models_config.Config) bool {
+func ValueIsEqual(a, b models_config.Value) bool {
 	if a.DataType != b.DataType {
 		return false
 	}
@@ -62,14 +62,14 @@ func ConfigIsEqual(a, b models_config.Config) bool {
 	return false
 }
 
-func GetConfig(val any, moduleConfig models_external.ModuleLibConfigValue) (models_config.Config, error) {
-	config := models_config.Config{
+func GetValue(val any, moduleConfig models_external.ModuleLibConfigValue) (models_config.Value, error) {
+	config := models_config.Value{
 		IsSlice: moduleConfig.IsSlice,
 	}
 	if moduleConfig.IsSlice {
 		anySlice, ok := val.([]any)
 		if !ok {
-			return models_config.Config{}, fmt.Errorf("invalid data type '%T'", val) // TODO
+			return models_config.Value{}, fmt.Errorf("invalid data type '%T'", val) // TODO
 		}
 		switch moduleConfig.DataType {
 		case models_external.ModuleLibStringType:
@@ -77,11 +77,11 @@ func GetConfig(val any, moduleConfig models_external.ModuleLibConfigValue) (mode
 			for _, item := range anySlice {
 				v, err := toString(item)
 				if err != nil {
-					return models_config.Config{}, err
+					return models_config.Value{}, err
 				}
 				err = validateValue(v, moduleConfig)
 				if err != nil {
-					return models_config.Config{}, err
+					return models_config.Value{}, err
 				}
 				config.StringSlice = append(config.StringSlice, v)
 			}
@@ -90,11 +90,11 @@ func GetConfig(val any, moduleConfig models_external.ModuleLibConfigValue) (mode
 			for _, item := range anySlice {
 				v, err := toBool(item)
 				if err != nil {
-					return models_config.Config{}, err
+					return models_config.Value{}, err
 				}
 				err = validateValue(v, moduleConfig)
 				if err != nil {
-					return models_config.Config{}, err
+					return models_config.Value{}, err
 				}
 				config.BoolSlice = append(config.BoolSlice, v)
 			}
@@ -103,11 +103,11 @@ func GetConfig(val any, moduleConfig models_external.ModuleLibConfigValue) (mode
 			for _, item := range anySlice {
 				v, err := toInt64(item)
 				if err != nil {
-					return models_config.Config{}, err
+					return models_config.Value{}, err
 				}
 				err = validateValue(v, moduleConfig)
 				if err != nil {
-					return models_config.Config{}, err
+					return models_config.Value{}, err
 				}
 				config.Int64Slice = append(config.Int64Slice, v)
 			}
@@ -116,16 +116,16 @@ func GetConfig(val any, moduleConfig models_external.ModuleLibConfigValue) (mode
 			for _, item := range anySlice {
 				v, err := toFloat64(item)
 				if err != nil {
-					return models_config.Config{}, err
+					return models_config.Value{}, err
 				}
 				err = validateValue(v, moduleConfig)
 				if err != nil {
-					return models_config.Config{}, err
+					return models_config.Value{}, err
 				}
 				config.Float64Slice = append(config.Float64Slice, v)
 			}
 		default:
-			return models_config.Config{}, fmt.Errorf("unknown data type '%s'", moduleConfig.DataType) // TODO
+			return models_config.Value{}, fmt.Errorf("unknown data type '%s'", moduleConfig.DataType) // TODO
 		}
 	} else {
 		switch moduleConfig.DataType {
@@ -133,54 +133,54 @@ func GetConfig(val any, moduleConfig models_external.ModuleLibConfigValue) (mode
 			config.DataType = models_config.StringType
 			v, err := toString(val)
 			if err != nil {
-				return models_config.Config{}, err
+				return models_config.Value{}, err
 			}
 			config.String = v
 			err = validateValue(v, moduleConfig)
 			if err != nil {
-				return models_config.Config{}, err
+				return models_config.Value{}, err
 			}
 		case models_external.ModuleLibBoolType:
 			config.DataType = models_config.BoolType
 			v, err := toBool(val)
 			if err != nil {
-				return models_config.Config{}, err
+				return models_config.Value{}, err
 			}
 			config.Bool = v
 			err = validateValue(v, moduleConfig)
 			if err != nil {
-				return models_config.Config{}, err
+				return models_config.Value{}, err
 			}
 		case models_external.ModuleLibInt64Type:
 			config.DataType = models_config.Int64Type
 			v, err := toInt64(val)
 			if err != nil {
-				return models_config.Config{}, err
+				return models_config.Value{}, err
 			}
 			config.Int64 = v
 			err = validateValue(v, moduleConfig)
 			if err != nil {
-				return models_config.Config{}, err
+				return models_config.Value{}, err
 			}
 		case models_external.ModuleLibFloat64Type:
 			config.DataType = models_config.Float64Type
 			v, err := toFloat64(val)
 			if err != nil {
-				return models_config.Config{}, err
+				return models_config.Value{}, err
 			}
 			config.Float64 = v
 			err = validateValue(v, moduleConfig)
 			if err != nil {
-				return models_config.Config{}, err
+				return models_config.Value{}, err
 			}
 		default:
-			return models_config.Config{}, fmt.Errorf("unknown data type '%s'", moduleConfig.DataType) // TODO
+			return models_config.Value{}, fmt.Errorf("unknown data type '%s'", moduleConfig.DataType) // TODO
 		}
 	}
 	return config, nil
 }
 
-func ConfigToAny(config models_config.Config) (v any) {
+func ValueToInterface(config models_config.Value) (v interface{}) {
 	switch config.DataType {
 	case models_config.StringType:
 		if config.IsSlice {
@@ -206,7 +206,7 @@ func ConfigToAny(config models_config.Config) (v any) {
 	return
 }
 
-func ConfigToString(config models_config.Config) string {
+func ValueToString(config models_config.Value) string {
 	switch config.DataType {
 	case models_config.StringType:
 		return config.String
@@ -220,7 +220,7 @@ func ConfigToString(config models_config.Config) string {
 	return ""
 }
 
-func SliceConfigToString(config models_config.Config, delimiter string) string {
+func SliceValueToString(config models_config.Value, delimiter string) string {
 	var values []string
 	switch config.DataType {
 	case models_config.StringType:

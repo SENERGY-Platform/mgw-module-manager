@@ -43,7 +43,7 @@ func (h *Handler) CreateGlobalConfig(ctx context.Context, config models_handler_
 	if err != nil {
 		return
 	}
-	err = createConfigValues(ctx, tx, "global_config_values", config.Config)
+	err = createConfigValues(ctx, tx, "global_config_values", config.Id, config.Value)
 	if err != nil {
 		return
 	}
@@ -138,7 +138,7 @@ func (h *Handler) UpdateGlobalConfig(ctx context.Context, config models_handler_
 	if err != nil {
 		return
 	}
-	err = createConfigValues(ctx, tx, "global_config_values", config.Config)
+	err = createConfigValues(ctx, tx, "global_config_values", config.Id, config.Value)
 	if err != nil {
 		return
 	}

@@ -16,7 +16,14 @@
 
 package models_config
 
-type Config struct {
+const (
+	StringType = iota
+	Int64Type
+	Float64Type
+	BoolType
+)
+
+type Value struct {
 	DataType     int
 	IsSlice      bool
 	String       string
@@ -29,9 +36,8 @@ type Config struct {
 	BoolSlice    []bool
 }
 
-const (
-	StringType = iota
-	Int64Type
-	Float64Type
-	BoolType
-)
+type InterfaceValue struct {
+	DataType int         `json:"data_type"`
+	IsSlice  bool        `json:"is_slice"`
+	Value    interface{} `json:"value"`
+}

@@ -19,11 +19,12 @@ package models_handler_database
 import "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 
 type GlobalConfig struct {
-	Config
+	Id   string
 	Name string
+	models_config.Value
 }
 
 type Config struct {
 	Id string
-	models_config.Config
+	models_config.Value
 }

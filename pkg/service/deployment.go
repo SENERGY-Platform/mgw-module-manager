@@ -371,13 +371,13 @@ func getUserInputs(
 			return nil, errors.New("duplicate module id " + userInput.ModuleId) // TODO
 		}
 		handlerModule := handlerModules[userInput.ModuleId]
-		configs := make(map[string]models_config.Config)
-		for reference, value := range userInput.Configs {
-			config, err := helper_configs.GetConfig(value, handlerModule.Configs[reference])
+		configs := make(map[string]models_config.Value)
+		for reference, itfValue := range userInput.Configs {
+			value, err := helper_configs.GetValue(itfValue, handlerModule.Configs[reference])
 			if err != nil {
 				return nil, err
 			}
-			configs[reference] = config
+			configs[reference] = value
 		}
 		files := make(map[string][]byte)
 		for reference, value := range userInput.Files {

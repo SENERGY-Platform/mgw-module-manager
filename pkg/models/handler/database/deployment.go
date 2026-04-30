@@ -18,6 +18,8 @@ package models_handler_database
 
 import (
 	"time"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 )
 
 type Deployment struct {
@@ -66,9 +68,10 @@ type DeploymentSecretItem struct {
 }
 
 type DeploymentUserConfig struct {
-	Config
+	Id           string
 	DeploymentId string
 	Reference    string
+	models_config.Value
 }
 
 type DeploymentGlobalConfig struct {

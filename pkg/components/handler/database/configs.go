@@ -24,7 +24,6 @@ import (
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) queryConfigs(ctx context.Context, ids []string, t1, t2 string, filterIdCol string, t1Cols ...string) (*sql.Rows, error) {
@@ -63,23 +62,23 @@ func genSelectConfigsStmt(t1, t2 string, t1Cols ...string) string {
 	return fmt.Sprintf(stmt, "")
 }
 
-func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, config models_handler_database.Config) error {
-	if config.IsSlice {
-		colName, values := getListConfigValsAndCol(config)
+func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, id string, value models_config.Value) error {
+	if value.IsSlice {
+		colName, itfValues := getListInterfaceValsAndCol(value)
 		stmt := fmt.Sprintf("INSERT INTO %s (c_id, %s, ord) VALUES (?, ?, ?)", tableName, colName)
-		for i, value := range values {
-			_, err := tx.ExecContext(ctx, stmt, config.Id, value, i)
+		for i, itfValue := range itfValues {
+			_, err := tx.ExecContext(ctx, stmt, id, itfValue, i)
 			if err != nil {
 				return err
 			}
 		}
 	} else {
-		colName, value := getConfigValAndCol(config)
+		colName, itfValue := getInterfaceValAndCol(value)
 		_, err := tx.ExecContext(
 			ctx,
 			fmt.Sprintf("INSERT INTO %s (c_id, %s, ord) VALUES (?, ?, ?)", tableName, colName),
-			config.Id,
-			value,
+			id,
+			itfValue,
 			0,
 		)
 		if err != nil {
@@ -89,38 +88,38 @@ func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, confi
 	return nil
 }
 
-func getConfigValAndCol(config models_handler_database.Config) (colName string, value any) {
-	switch config.DataType {
+func getInterfaceValAndCol(v models_config.Value) (colName string, value interface{}) {
+	switch v.DataType {
 	case models_config.StringType:
 		colName = "v_string"
-		value = config.String
+		value = v.String
 	case models_config.Int64Type:
 		colName = "v_int"
-		value = config.Int64
+		value = v.Int64
 	case models_config.Float64Type:
 		colName = "v_float"
-		value = config.Float64
+		value = v.Float64
 	case models_config.BoolType:
 		colName = "v_bool"
-		value = config.Bool
+		value = v.Bool
 	}
 	return
 }
 
-func getListConfigValsAndCol(config models_handler_database.Config) (colName string, values []any) {
-	switch config.DataType {
+func getListInterfaceValsAndCol(v models_config.Value) (colName string, values []interface{}) {
+	switch v.DataType {
 	case models_config.StringType:
 		colName = "v_string"
-		values = helper_slices.ToAny(config.StringSlice)
+		values = helper_slices.ToAny(v.StringSlice)
 	case models_config.Int64Type:
 		colName = "v_int"
-		values = helper_slices.ToAny(config.Int64Slice)
+		values = helper_slices.ToAny(v.Int64Slice)
 	case models_config.Float64Type:
 		colName = "v_float"
-		values = helper_slices.ToAny(config.Float64Slice)
+		values = helper_slices.ToAny(v.Float64Slice)
 	case models_config.BoolType:
 		colName = "v_bool"
-		values = helper_slices.ToAny(config.BoolSlice)
+		values = helper_slices.ToAny(v.BoolSlice)
 	}
 	return
 }

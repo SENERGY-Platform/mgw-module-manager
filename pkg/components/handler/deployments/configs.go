@@ -68,7 +68,7 @@ func (h *Handler) updateGlobalConfigsCache(
 
 func checkConfigs(
 	moduleConfigs models_external.ModuleLibConfigs,
-	configs map[string]models_config.Config,
+	configs map[string]models_config.Value,
 ) error {
 	var errs []string
 	for reference, moduleConfig := range moduleConfigs {
@@ -84,38 +84,38 @@ func checkConfigs(
 }
 
 func mergeConfigs(
-	defaultConfigs map[string]models_config.Config,
+	defaultConfigs map[string]models_config.Value,
 	userDataConfigs map[string]models_handler_database.DeploymentUserConfig,
 	userDataGlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig,
 	cacheGlobalConfigs map[string]models_handler_database.GlobalConfig,
-) map[string]models_config.Config {
-	configs := make(map[string]models_config.Config)
+) map[string]models_config.Value {
+	configs := make(map[string]models_config.Value)
 	maps.Copy(configs, defaultConfigs)
 	for reference, providedConfig := range userDataConfigs {
-		configs[reference] = providedConfig.Config.Config
+		configs[reference] = providedConfig.Value
 	}
 	for reference, selectedGlobalConfig := range userDataGlobalConfigs {
 		globalConfig, ok := cacheGlobalConfigs[selectedGlobalConfig.Id]
 		if ok {
-			configs[reference] = globalConfig.Config.Config
+			configs[reference] = globalConfig.Value
 		}
 	}
 	return configs
 }
 
-func getDefaultConfigs(moduleConfigs models_external.ModuleLibConfigs) (map[string]models_config.Config, error) {
-	configs := make(map[string]models_config.Config)
+func getDefaultConfigs(moduleConfigs models_external.ModuleLibConfigs) (map[string]models_config.Value, error) {
+	configs := make(map[string]models_config.Value)
 	var errs []string
 	for reference, moduleConfig := range moduleConfigs {
 		if moduleConfig.Default == nil {
 			continue
 		}
-		config, err := helper_configs.GetConfig(moduleConfig.Default, moduleConfig)
+		value, err := helper_configs.GetValue(moduleConfig.Default, moduleConfig)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		configs[reference] = config
+		configs[reference] = value
 	}
 	if len(errs) > 0 {
 		return nil, errors.New(strings.Join(errs, "\n")) // TODO
@@ -145,8 +145,8 @@ func getSelectedGlobalConfigs(
 
 func getProvidedConfigs(
 	moduleConfigs models_external.ModuleLibConfigs,
-	defaultConfigs map[string]models_config.Config,
-	userInputConfigs map[string]models_config.Config,
+	defaultConfigs map[string]models_config.Value,
+	userInputConfigs map[string]models_config.Value,
 	deploymentId string,
 ) (map[string]models_handler_database.DeploymentUserConfig, error) {
 	configs := make(map[string]models_handler_database.DeploymentUserConfig)
@@ -157,16 +157,14 @@ func getProvidedConfigs(
 			continue
 		}
 		defaultConfig, ok := defaultConfigs[reference]
-		if ok && helper_configs.ConfigIsEqual(config, defaultConfig) {
+		if ok && helper_configs.ValueIsEqual(config, defaultConfig) {
 			continue
 		}
 		configs[reference] = models_handler_database.DeploymentUserConfig{
 			DeploymentId: deploymentId,
 			Reference:    reference,
-			Config: models_handler_database.Config{
-				Id:     deploymentId + "_" + reference,
-				Config: config,
-			},
+			Id:           deploymentId + "_" + reference,
+			Value:        config,
 		}
 	}
 	if len(errs) > 0 {

@@ -132,7 +132,7 @@ func (h *Handler) createDeploymentResourcesAndConfigs(
 		if err != nil {
 			return
 		}
-		err = createConfigValues(ctx, tx, "dep_config_values", config.Config)
+		err = createConfigValues(ctx, tx, "dep_config_values", config.Id, config.Value)
 		if err != nil {
 			return
 		}

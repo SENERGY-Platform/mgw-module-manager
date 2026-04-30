@@ -42,23 +42,23 @@ func getDeploymentConfigs(
 		deploymentConfig, ok := deploymentConfigs[reference]
 		if ok {
 			if moduleConfig.IsSlice {
-				value = helper_configs.SliceConfigToString(deploymentConfig.Config.Config, moduleConfig.Delimiter)
+				value = helper_configs.SliceValueToString(deploymentConfig.Value, moduleConfig.Delimiter)
 			} else {
-				value = helper_configs.ConfigToString(deploymentConfig.Config.Config)
+				value = helper_configs.ValueToString(deploymentConfig.Value)
 			}
 		} else {
 			if moduleConfig.Default == nil {
 				continue
 			}
-			defaultConfig, err := helper_configs.GetConfig(moduleConfig.Default, moduleConfig)
+			defaultValue, err := helper_configs.GetValue(moduleConfig.Default, moduleConfig)
 			if err != nil {
 				errs = append(errs, err.Error())
 				continue
 			}
 			if moduleConfig.IsSlice {
-				value = helper_configs.SliceConfigToString(defaultConfig, moduleConfig.Delimiter)
+				value = helper_configs.SliceValueToString(defaultValue, moduleConfig.Delimiter)
 			} else {
-				value = helper_configs.ConfigToString(defaultConfig)
+				value = helper_configs.ValueToString(defaultValue)
 			}
 		}
 		configs[varName] = value

@@ -333,7 +333,7 @@ func mergeDefaultAndUserData(
 	userDataGlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig,
 	userDataFiles map[string]models_handler_database.DeploymentFile,
 	cacheGlobalConfigs map[string]models_handler_database.GlobalConfig,
-) (map[string]models_config.Config, map[string][]byte, error) {
+) (map[string]models_config.Value, map[string][]byte, error) {
 	mergedConfigs := mergeConfigs(defaultData.Configs, userDataConfigs, userDataGlobalConfigs, cacheGlobalConfigs)
 	err := checkConfigs(module.Configs, mergedConfigs)
 	if err != nil {
