@@ -8,16 +8,17 @@ import (
 )
 
 type Service struct {
-	repositoriesHandler   repositoriesHandler
-	modulesHandler        modulesHandler
-	deploymentsHandler    deploymentsHandler
-	auxDeploymentsHandler auxiliaryDeploymentsHandler
-	globalConfigsHandler  globalConfigsHandler
-	jobsHandler           *handler_jobs.Handler
-	changeRequest         *modulesChangeRequest
-	changeReport          *models_service.ModulesChangeReport
-	jobResults            *jobResults
-	mu                    sync.RWMutex
+	repositoriesHandler      repositoriesHandler
+	modulesHandler           modulesHandler
+	deploymentsHandler       deploymentsHandler
+	auxDeploymentsHandler    auxiliaryDeploymentsHandler
+	globalConfigsHandler     globalConfigsHandler
+	depAdvertisementsHandler deploymentAdvertisementsHandler
+	jobsHandler              *handler_jobs.Handler
+	changeRequest            *modulesChangeRequest
+	changeReport             *models_service.ModulesChangeReport
+	jobResults               *jobResults
+	mu                       sync.RWMutex
 }
 
 func New(
@@ -26,6 +27,7 @@ func New(
 	deploymentsHandler deploymentsHandler,
 	auxDeploymentsHandler auxiliaryDeploymentsHandler,
 	globalConfigsHandler globalConfigsHandler,
+	depAdvertisementsHandler deploymentAdvertisementsHandler,
 	jobsHandler *handler_jobs.Handler,
 ) *Service {
 	jResults := &jobResults{
@@ -36,12 +38,13 @@ func New(
 	}
 	jobsHandler.SetCleanupHandler(jResults.deleteResults)
 	return &Service{
-		repositoriesHandler:   repositoriesHandler,
-		modulesHandler:        modulesHandler,
-		deploymentsHandler:    deploymentsHandler,
-		auxDeploymentsHandler: auxDeploymentsHandler,
-		globalConfigsHandler:  globalConfigsHandler,
-		jobsHandler:           jobsHandler,
-		jobResults:            jResults,
+		repositoriesHandler:      repositoriesHandler,
+		modulesHandler:           modulesHandler,
+		deploymentsHandler:       deploymentsHandler,
+		auxDeploymentsHandler:    auxDeploymentsHandler,
+		globalConfigsHandler:     globalConfigsHandler,
+		depAdvertisementsHandler: depAdvertisementsHandler,
+		jobsHandler:              jobsHandler,
+		jobResults:               jResults,
 	}
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
@@ -147,4 +148,32 @@ type globalConfigsHandler interface {
 	UpdateGlobalConfig(ctx context.Context, config models_handler_database.GlobalConfig) error
 	DeleteGlobalConfig(ctx context.Context, id string) error
 	DeleteGlobalConfigs(ctx context.Context, ids []string) error
+}
+
+type deploymentAdvertisementsHandler interface {
+	GetAdvertisement(
+		ctx context.Context,
+		deploymentId string,
+		reference string,
+	) (models_handler_database.DeploymentAdvertisement, error)
+	GetAdvertisementById(ctx context.Context, id string) (models_handler_database.DeploymentAdvertisement, error)
+	GetAdvertisements(
+		ctx context.Context,
+		filter models_handler_database.DeploymentAdvertisementsFilter,
+	) (map[string]models_handler_database.DeploymentAdvertisement, error)
+	PutAdvertisement(
+		ctx context.Context,
+		moduleId string,
+		deploymentId string,
+		reference string,
+		items map[string]string,
+	) (string, error)
+	PutAdvertisements(
+		ctx context.Context,
+		moduleId string,
+		deploymentId string,
+		inputs []models_handler_dep_advertisements.DeploymentAdvertisementInput,
+		incremental bool,
+	) ([]string, error)
+	DeleteAdvertisements(ctx context.Context, deploymentId string, references []string, allowAll bool) error
 }
