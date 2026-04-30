@@ -28,6 +28,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
@@ -54,7 +55,7 @@ func (h *Handler) RecreateDeployments(
 	}
 	cache := cacheCollection{
 		HostResources: make(map[string]models_external.HostResource),
-		GlobalConfigs: make(map[string]models_handler_database.GlobalConfig),
+		GlobalConfigs: make(map[string]models_handler_global_configs.Config),
 		SecretValues:  make(map[string]models_external.SecretValueVariant),
 	}
 	cache.Deployments, err = initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
@@ -332,7 +333,7 @@ func mergeDefaultAndUserData(
 	userDataConfigs map[string]models_handler_database.DeploymentUserConfig,
 	userDataGlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig,
 	userDataFiles map[string]models_handler_database.DeploymentFile,
-	cacheGlobalConfigs map[string]models_handler_database.GlobalConfig,
+	cacheGlobalConfigs map[string]models_handler_global_configs.Config,
 ) (map[string]models_config.Value, map[string][]byte, error) {
 	mergedConfigs := mergeConfigs(defaultData.Configs, userDataConfigs, userDataGlobalConfigs, cacheGlobalConfigs)
 	err := checkConfigs(module.Configs, mergedConfigs)

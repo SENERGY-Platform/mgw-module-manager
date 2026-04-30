@@ -28,12 +28,13 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 )
 
 func (h *Handler) updateGlobalConfigsCache(
 	ctx context.Context,
 	userDataGlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig,
-	cacheGlobalConfigs map[string]models_handler_database.GlobalConfig,
+	cacheGlobalConfigs map[string]models_handler_global_configs.Config,
 ) error {
 	selectedIds := helper_slices.CollectFunc(maps.Values(userDataGlobalConfigs), func(item models_handler_database.DeploymentGlobalConfig) string {
 		return item.Id
@@ -87,7 +88,7 @@ func mergeConfigs(
 	defaultConfigs map[string]models_config.Value,
 	userDataConfigs map[string]models_handler_database.DeploymentUserConfig,
 	userDataGlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig,
-	cacheGlobalConfigs map[string]models_handler_database.GlobalConfig,
+	cacheGlobalConfigs map[string]models_handler_global_configs.Config,
 ) map[string]models_config.Value {
 	configs := make(map[string]models_config.Value)
 	maps.Copy(configs, defaultConfigs)

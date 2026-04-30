@@ -20,6 +20,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 )
 
 const (
@@ -58,7 +59,7 @@ type fileGroupMount struct {
 
 type cacheCollection struct {
 	HostResources map[string]models_external.HostResource
-	GlobalConfigs map[string]models_handler_database.GlobalConfig
+	GlobalConfigs map[string]models_handler_global_configs.Config
 	SecretValues  map[string]models_external.SecretValueVariant
 	Deployments   map[string]deploymentsCacheItem
 }

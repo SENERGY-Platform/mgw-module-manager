@@ -4,10 +4,12 @@ import (
 	"context"
 	"io/fs"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 )
@@ -142,12 +144,12 @@ type auxiliaryDeploymentsHandler interface {
 }
 
 type globalConfigsHandler interface {
-	CreateGlobalConfig(ctx context.Context, config models_handler_database.GlobalConfig) error
-	ReadGlobalConfig(ctx context.Context, id string) (models_handler_database.GlobalConfig, error)
-	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_database.GlobalConfig, error)
-	UpdateGlobalConfig(ctx context.Context, config models_handler_database.GlobalConfig) error
+	CreateGlobalConfig(ctx context.Context, name string, value models_config.Value) (string, error)
+	ReadGlobalConfig(ctx context.Context, id string) (models_handler_global_configs.Config, error)
+	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_global_configs.Config, error)
+	UpdateGlobalConfig(ctx context.Context, config models_handler_global_configs.Config) error
 	DeleteGlobalConfig(ctx context.Context, id string) error
-	DeleteGlobalConfigs(ctx context.Context, ids []string) error
+	DeleteGlobalConfigs(ctx context.Context, ids []string, allowAll bool) error
 }
 
 type deploymentAdvertisementsHandler interface {

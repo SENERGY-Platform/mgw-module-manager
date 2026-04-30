@@ -35,6 +35,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
@@ -47,7 +48,7 @@ func (h *Handler) CreateDeployments(
 	defer h.mu.Unlock()
 	cache := cacheCollection{
 		HostResources: make(map[string]models_external.HostResource),
-		GlobalConfigs: make(map[string]models_handler_database.GlobalConfig),
+		GlobalConfigs: make(map[string]models_handler_global_configs.Config),
 		SecretValues:  make(map[string]models_external.SecretValueVariant),
 	}
 	var err error

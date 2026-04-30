@@ -23,7 +23,9 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/db_init"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/restructure"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/dep_advertisements"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/deployments"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/global_configs"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
@@ -154,7 +156,15 @@ func main() {
 	jobsHandler := handler_jobs.New(ctx, config.JobsHandler)
 
 	service.InitLogger(logger)
-	srv := service.New(repositoriesHandler, modulesHdl, deploymentsHandler, auxDeploymentsHandler, databaseHandler, jobsHandler)
+	srv := service.New(
+		repositoriesHandler,
+		modulesHdl,
+		deploymentsHandler,
+		auxDeploymentsHandler,
+		handler_global_configs.New(databaseHandler),
+		handler_dep_advertisements.New(databaseHandler),
+		jobsHandler,
+	)
 
 	httpApi, err := api.New(
 		srv,

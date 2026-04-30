@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package models_handler_database
+package models_handler_global_configs
 
 import "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 
-type GlobalConfig struct {
-	Id   string
-	Name string
+type Config struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
 	models_config.Value
 }
