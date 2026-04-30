@@ -62,7 +62,7 @@ func ValueIsEqual(a, b models_config.Value) bool {
 	return false
 }
 
-func GetValue(val any, moduleConfig models_external.ModuleLibConfigValue) (models_config.Value, error) {
+func GetValueWithValidation(val any, moduleConfig models_external.ModuleLibConfigValue) (models_config.Value, error) {
 	config := models_config.Value{
 		IsSlice: moduleConfig.IsSlice,
 	}
