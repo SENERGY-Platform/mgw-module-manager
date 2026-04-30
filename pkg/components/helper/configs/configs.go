@@ -62,6 +62,85 @@ func ValueIsEqual(a, b models_config.Value) bool {
 	return false
 }
 
+func GetValue(val any, dataType int, isSlice bool) (models_config.Value, error) {
+	config := models_config.Value{
+		DataType: dataType,
+		IsSlice:  isSlice,
+	}
+	if isSlice {
+		anySlice, ok := val.([]any)
+		if !ok {
+			return models_config.Value{}, fmt.Errorf("invalid data type '%T'", val) // TODO
+		}
+		switch dataType {
+		case models_config.StringType:
+			for _, item := range anySlice {
+				v, err := toString(item)
+				if err != nil {
+					return models_config.Value{}, err
+				}
+				config.StringSlice = append(config.StringSlice, v)
+			}
+		case models_config.BoolType:
+			for _, item := range anySlice {
+				v, err := toBool(item)
+				if err != nil {
+					return models_config.Value{}, err
+				}
+				config.BoolSlice = append(config.BoolSlice, v)
+			}
+		case models_config.Int64Type:
+			for _, item := range anySlice {
+				v, err := toInt64(item)
+				if err != nil {
+					return models_config.Value{}, err
+				}
+				config.Int64Slice = append(config.Int64Slice, v)
+			}
+		case models_config.Float64Type:
+			for _, item := range anySlice {
+				v, err := toFloat64(item)
+				if err != nil {
+					return models_config.Value{}, err
+				}
+				config.Float64Slice = append(config.Float64Slice, v)
+			}
+		default:
+			return models_config.Value{}, fmt.Errorf("unknown data type '%s'", dataType) // TODO
+		}
+	} else {
+		switch dataType {
+		case models_config.StringType:
+			v, err := toString(val)
+			if err != nil {
+				return models_config.Value{}, err
+			}
+			config.String = v
+		case models_config.BoolType:
+			v, err := toBool(val)
+			if err != nil {
+				return models_config.Value{}, err
+			}
+			config.Bool = v
+		case models_config.Int64Type:
+			v, err := toInt64(val)
+			if err != nil {
+				return models_config.Value{}, err
+			}
+			config.Int64 = v
+		case models_config.Float64Type:
+			v, err := toFloat64(val)
+			if err != nil {
+				return models_config.Value{}, err
+			}
+			config.Float64 = v
+		default:
+			return models_config.Value{}, fmt.Errorf("unknown data type '%s'", dataType) // TODO
+		}
+	}
+	return config, nil
+}
+
 func GetValueWithValidation(val any, moduleConfig models_external.ModuleLibConfigValue) (models_config.Value, error) {
 	config := models_config.Value{
 		IsSlice: moduleConfig.IsSlice,
