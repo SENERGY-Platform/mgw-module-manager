@@ -94,23 +94,23 @@ func (h *Handler) PutAdvertisements(
 	deploymentId string,
 	inputs []models_handler_dep_advertisements.DeploymentAdvertisementInput,
 	incremental bool,
-) ([]string, error) {
+) (map[string]string, error) {
 	timestamp := helper_time.Now()
 	var advertisements []models_handler_database.DeploymentAdvertisement
-	var ids []string
+	res := make(map[string]string)
 	for _, input := range inputs {
 		advertisement, err := newDatabaseAdvertisement(moduleId, deploymentId, timestamp, input.Reference, input.Items)
 		if err != nil {
 			return nil, err
 		}
 		advertisements = append(advertisements, advertisement)
-		ids = append(ids, advertisement.Id)
+		res[input.Reference] = advertisement.Id
 	}
 	err := h.databaseHandler.WriteDeploymentAdvertisements(ctx, deploymentId, advertisements, incremental)
 	if err != nil {
 		return nil, err
 	}
-	return ids, nil
+	return res, nil
 }
 
 func (h *Handler) DeleteAdvertisements(
