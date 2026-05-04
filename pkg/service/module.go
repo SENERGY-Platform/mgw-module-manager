@@ -137,7 +137,6 @@ func (s *Service) ExecModulesChangeRequest(_ context.Context) (models_service.Jo
 	if len(currentJobs) > 0 {
 		return models_service.Job{}, errors.New("active jobs") // TODO
 	}
-	s.changeReport = nil
 	job, err := s.jobsHandler.CreateSlotJob(moduleJobSlotNum, "execute modules change")
 	if err != nil {
 		return models_service.Job{}, err
@@ -192,15 +191,6 @@ func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (models_
 	}
 	s.changeRequest = &changeRequest
 	return transformModulesChangeRequest(changeRequest), nil
-}
-
-func (s *Service) ModulesChangeReport(_ context.Context) (models_service.ModulesChangeReport, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	if s.changeReport == nil {
-		return models_service.ModulesChangeReport{}, models_error.NotFoundErr
-	}
-	return *s.changeReport, nil
 }
 
 func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modulesChangeRequest, error) {

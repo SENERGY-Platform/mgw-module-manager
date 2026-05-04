@@ -16,7 +16,6 @@ type Service struct {
 	depAdvertisementsHandler deploymentAdvertisementsHandler
 	jobsHandler              *handler_jobs.Handler
 	changeRequest            *modulesChangeRequest
-	changeReport             *models_service.ModulesChangeReport
 	jobResults               jobResults
 	mu                       sync.RWMutex
 }
