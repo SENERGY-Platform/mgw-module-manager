@@ -38,5 +38,9 @@ type databaseHandler interface {
 		advertisements []models_handler_database.DeploymentAdvertisement,
 		incremental bool,
 	) error
-	DeleteDeploymentAdvertisements(ctx context.Context, deploymentId string, references []string) error
+	DeleteDeploymentAdvertisements(
+		ctx context.Context,
+		deploymentId string,
+		filter models_handler_database.DeploymentAdvertisementsFilterReduced,
+	) error
 }

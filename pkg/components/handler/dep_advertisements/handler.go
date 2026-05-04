@@ -113,11 +113,16 @@ func (h *Handler) PutAdvertisements(
 	return ids, nil
 }
 
-func (h *Handler) DeleteAdvertisements(ctx context.Context, deploymentId string, references []string, allowAll bool) error {
-	if !allowAll && len(references) == 0 {
+func (h *Handler) DeleteAdvertisements(
+	ctx context.Context,
+	deploymentId string,
+	filter models_handler_database.DeploymentAdvertisementsFilterReduced,
+	allowAll bool,
+) error {
+	if !allowAll && filterEmpty(filter) {
 		return nil
 	}
-	return h.databaseHandler.DeleteDeploymentAdvertisements(ctx, deploymentId, references)
+	return h.databaseHandler.DeleteDeploymentAdvertisements(ctx, deploymentId, filter)
 }
 
 func newDatabaseAdvertisement(
@@ -141,4 +146,14 @@ func newDatabaseAdvertisement(
 		Timestamp: timestamp,
 		Items:     items,
 	}, nil
+}
+
+func filterEmpty(filter models_handler_database.DeploymentAdvertisementsFilterReduced) bool {
+	switch {
+	case len(filter.References) > 0:
+		return false
+	case len(filter.Ids) > 0:
+		return false
+	}
+	return true
 }

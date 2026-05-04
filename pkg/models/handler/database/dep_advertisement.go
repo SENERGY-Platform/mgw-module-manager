@@ -35,3 +35,8 @@ type DeploymentAdvertisementsFilter struct {
 	Origins      []string
 	References   []string
 }
+
+type DeploymentAdvertisementsFilterReduced struct {
+	Ids        []string
+	References []string
+}

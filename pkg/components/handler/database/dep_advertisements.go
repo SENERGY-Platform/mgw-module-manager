@@ -161,8 +161,12 @@ func (h *Handler) WriteDeploymentAdvertisements(
 	return tx.Commit()
 }
 
-func (h *Handler) DeleteDeploymentAdvertisements(ctx context.Context, deploymentId string, references []string) error {
-	fc, val := genDeleteDeploymentAdvertisementsFilter(deploymentId, references)
+func (h *Handler) DeleteDeploymentAdvertisements(
+	ctx context.Context,
+	deploymentId string,
+	filter models_handler_database.DeploymentAdvertisementsFilterReduced,
+) error {
+	fc, val := genDeleteDeploymentAdvertisementsFilter(deploymentId, filter)
 	_, err := h.sqlDB.ExecContext(
 		ctx,
 		"DELETE FROM dep_advertisements"+fc+";",
@@ -248,15 +252,22 @@ func genDeploymentAdvertisementsFilter(filter models_handler_database.Deployment
 	return "", nil
 }
 
-func genDeleteDeploymentAdvertisementsFilter(deploymentId string, references []string) (string, []any) {
+func genDeleteDeploymentAdvertisementsFilter(deploymentId string, filter models_handler_database.DeploymentAdvertisementsFilterReduced) (string, []any) {
 	var fc []string
 	var val []any
 	if deploymentId != "" {
 		fc = append(fc, "dep_id = ?")
 		val = append(val, deploymentId)
 	}
-	if len(references) > 0 {
-		references = helper_slices.RemoveDuplicates(references)
+	if len(filter.Ids) > 0 {
+		ids := helper_slices.RemoveDuplicates(filter.References)
+		fc = append(fc, "id IN ("+genQuestionMarks(len(ids))+")")
+		for _, id := range ids {
+			val = append(val, id)
+		}
+	}
+	if len(filter.References) > 0 {
+		references := helper_slices.RemoveDuplicates(filter.References)
 		fc = append(fc, "ref IN ("+genQuestionMarks(len(references))+")")
 		for _, ref := range references {
 			val = append(val, ref)
