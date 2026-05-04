@@ -1,0 +1,146 @@
+/*
+ * Copyright 2026 InfAI (CC SES)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package service
+
+import (
+	"context"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+)
+
+func (s *Service) QueryDeploymentAdvertisements(
+	ctx context.Context,
+	filter models_handler_database.DeploymentAdvertisementsFilter,
+) ([]models_service.DeploymentAdvertisement, error) {
+	depAdvMap, err := s.depAdvertisementsHandler.GetAdvertisements(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	var depAdvs []models_service.DeploymentAdvertisement
+	for _, depAdv := range depAdvMap {
+		depAdvs = append(depAdvs, models_service.DeploymentAdvertisement{
+			Id:        depAdv.Id,
+			ModuleId:  depAdv.ModuleId,
+			Origin:    depAdv.Origin,
+			Reference: depAdv.Reference,
+			Timestamp: depAdv.Timestamp,
+			Items:     depAdv.Items,
+		})
+	}
+	return depAdvs, nil
+}
+
+func (s *Service) QueryDeploymentAdvertisement(ctx context.Context, id string) (models_service.DeploymentAdvertisement, error) {
+	depAdv, err := s.depAdvertisementsHandler.GetAdvertisementById(ctx, id)
+	if err != nil {
+		return models_service.DeploymentAdvertisement{}, err
+	}
+	return models_service.DeploymentAdvertisement{
+		Id:        depAdv.Id,
+		ModuleId:  depAdv.ModuleId,
+		Origin:    depAdv.Origin,
+		Reference: depAdv.Reference,
+		Timestamp: depAdv.Timestamp,
+		Items:     depAdv.Items,
+	}, nil
+}
+
+func (s *Service) GetDeploymentAdvertisement(
+	ctx context.Context,
+	deploymentId string,
+	reference string,
+) (models_handler_database.DeploymentAdvertisement, error) {
+	if deploymentId == "" {
+		return models_handler_database.DeploymentAdvertisement{}, models_error.NotFoundErr
+	}
+	return s.depAdvertisementsHandler.GetAdvertisement(ctx, deploymentId, reference)
+}
+
+func (s *Service) GetDeploymentAdvertisementById(
+	ctx context.Context,
+	id string,
+) (models_handler_database.DeploymentAdvertisement, error) {
+	return s.depAdvertisementsHandler.GetAdvertisementById(ctx, id)
+}
+
+func (s *Service) GetDeploymentAdvertisements(
+	ctx context.Context,
+	deploymentId string,
+	filter models_handler_database.DeploymentAdvertisementsFilterReduced,
+) (map[string]models_handler_database.DeploymentAdvertisement, error) {
+	if deploymentId == "" {
+		return nil, models_error.NotFoundErr
+	}
+	return s.depAdvertisementsHandler.GetAdvertisements(ctx, models_handler_database.DeploymentAdvertisementsFilter{
+		DeploymentId: deploymentId,
+		Ids:          filter.Ids,
+		References:   filter.References,
+	})
+}
+
+func (s *Service) PutDeploymentAdvertisement(
+	ctx context.Context,
+	deploymentId string,
+	reference string,
+	items map[string]string,
+) (string, error) {
+	deployment, err := s.deploymentsHandler.GetDeployment(ctx, deploymentId)
+	if err != nil {
+		return "", err
+	}
+	return s.depAdvertisementsHandler.PutAdvertisement(
+		ctx,
+		deployment.ModuleId,
+		deployment.Id,
+		reference,
+		items,
+	)
+}
+
+func (s *Service) PutDeploymentAdvertisements(
+	ctx context.Context,
+	deploymentId string,
+	inputs []models_handler_dep_advertisements.DeploymentAdvertisementInput,
+	incremental bool,
+) (map[string]string, error) {
+	deployment, err := s.deploymentsHandler.GetDeployment(ctx, deploymentId)
+	if err != nil {
+		return nil, err
+	}
+	return s.depAdvertisementsHandler.PutAdvertisements(
+		ctx,
+		deployment.ModuleId,
+		deployment.Id,
+		inputs,
+		incremental,
+	)
+}
+
+func (s *Service) DeleteDeploymentAdvertisements(
+	ctx context.Context,
+	deploymentId string,
+	filter models_handler_database.DeploymentAdvertisementsFilterReduced,
+	allowAll bool,
+) error {
+	if deploymentId == "" {
+		return models_error.NotFoundErr
+	}
+	return s.depAdvertisementsHandler.DeleteAdvertisements(ctx, deploymentId, filter, allowAll)
+}
