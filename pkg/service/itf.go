@@ -176,6 +176,11 @@ type deploymentAdvertisementsHandler interface {
 		deploymentId string,
 		inputs []models_handler_dep_advertisements.DeploymentAdvertisementInput,
 		incremental bool,
-	) ([]string, error)
-	DeleteAdvertisements(ctx context.Context, deploymentId string, references []string, allowAll bool) error
+	) (map[string]string, error)
+	DeleteAdvertisements(
+		ctx context.Context,
+		deploymentId string,
+		filter models_handler_database.DeploymentAdvertisementsFilterReduced,
+		allowAll bool,
+	) error
 }
