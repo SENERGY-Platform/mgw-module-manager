@@ -7,9 +7,9 @@ import (
 	"slices"
 	"strings"
 
-	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
@@ -206,7 +206,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []models_servi
 	return mods, nil
 }
 
-func (s *Service) addRepoModDepsToMap(ctx context.Context, mod module_lib.Module, source, channel string, deps map[string]modWrapper, skipNotFound bool) error {
+func (s *Service) addRepoModDepsToMap(ctx context.Context, mod models_external.ModuleLibModule, source, channel string, deps map[string]modWrapper, skipNotFound bool) error {
 	for depId := range mod.Dependencies {
 		if _, ok := deps[depId]; !ok {
 			depFS, err := s.repositoriesHandler.ModuleFS(ctx, depId, source, channel)
