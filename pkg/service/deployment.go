@@ -96,7 +96,7 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []models_ser
 		defer func() {
 			if err := recover(); err != nil {
 				jobResult.ErrorResult = models_error.NewErrorResult(fmt.Sprintf("panic: %v", err))
-				s.jobResults.setDeploymentsResult(job.Id, jobResult)
+				s.setDeploymentsJobResult(job.Id, jobResult)
 			}
 		}()
 		jobResult.Results, err = s.deploymentsHandler.CreateDeployments(job.Context(), handlerModules, userInputMap)
@@ -108,7 +108,7 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []models_ser
 				jobResult.ResultsErrNum++
 			}
 		}
-		s.jobResults.setDeploymentsResult(job.Id, jobResult)
+		s.setDeploymentsJobResult(job.Id, jobResult)
 	}()
 	return models_service.Job{
 		Id:          job.Id,
@@ -148,7 +148,7 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []models_ser
 		defer func() {
 			if err := recover(); err != nil {
 				jobResult.ErrorResult = models_error.NewErrorResult(fmt.Sprintf("panic: %v", err))
-				s.jobResults.setUpdateDeploymentsResult(job.Id, jobResult)
+				s.setUpdateDeploymentsJobResult(job.Id, jobResult)
 			}
 		}()
 		updateDepResults, err := s.deploymentsHandler.UpdateDeployments(job.Context(), handlerModules, userInputMap)
@@ -186,7 +186,7 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []models_ser
 			}
 			jobResult.Results = append(jobResult.Results, result)
 		}
-		s.jobResults.setUpdateDeploymentsResult(job.Id, jobResult)
+		s.setUpdateDeploymentsJobResult(job.Id, jobResult)
 	}()
 	return models_service.Job{
 		Id:          job.Id,
@@ -220,7 +220,7 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 		defer func() {
 			if err := recover(); err != nil {
 				jobResult.ErrorResult = models_error.NewErrorResult(fmt.Sprintf("panic: %v", err))
-				s.jobResults.setDeploymentsResult(job.Id, jobResult)
+				s.setDeploymentsJobResult(job.Id, jobResult)
 			}
 		}()
 		jobResult.Results, err = s.deploymentsHandler.RecreateDeployments(job.Context(), handlerModules)
@@ -232,7 +232,7 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 				jobResult.ResultsErrNum++
 			}
 		}
-		s.jobResults.setDeploymentsResult(job.Id, jobResult)
+		s.setDeploymentsJobResult(job.Id, jobResult)
 	}()
 	return models_service.Job{
 		Id:          job.Id,

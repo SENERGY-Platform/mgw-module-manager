@@ -17,7 +17,7 @@ type Service struct {
 	jobsHandler              *handler_jobs.Handler
 	changeRequest            *modulesChangeRequest
 	changeReport             *models_service.ModulesChangeReport
-	jobResults               *jobResults
+	jobResults               jobResults
 	mu                       sync.RWMutex
 }
 
@@ -30,13 +30,6 @@ func New(
 	depAdvertisementsHandler deploymentAdvertisementsHandler,
 	jobsHandler *handler_jobs.Handler,
 ) *Service {
-	jResults := &jobResults{
-		deploymentsResults:         make(map[string]models_service.JobResultDeployments),
-		moduleChangeResults:        make(map[string]models_service.JobResultModulesChange),
-		refreshRepositoriesResults: make(map[string]models_service.JobResult),
-		auxDeploymentCreateResults: make(map[string]models_service.JobResultCreateAuxiliaryDeployment),
-	}
-	jobsHandler.SetCleanupHandler(jResults.deleteResults)
 	return &Service{
 		repositoriesHandler:      repositoriesHandler,
 		modulesHandler:           modulesHandler,
@@ -45,6 +38,14 @@ func New(
 		globalConfigsHandler:     globalConfigsHandler,
 		depAdvertisementsHandler: depAdvertisementsHandler,
 		jobsHandler:              jobsHandler,
-		jobResults:               jResults,
+		jobResults: jobResults{
+			deployments:         make(map[string]models_service.JobResultDeployments),
+			deploymentsUpdate:   make(map[string]models_service.JobResultUpdateDeployments),
+			moduleChange:        make(map[string]models_service.JobResultModulesChange),
+			refreshRepositories: make(map[string]models_service.JobResult),
+			auxDeploymentCreate: make(map[string]models_service.JobResultCreateAuxiliaryDeployment),
+			auxDeploymentUpdate: make(map[string]models_service.JobResult),
+			auxDeployment:       make(map[string]models_service.JobResultAuxiliaryDeployments),
+		},
 	}
 }

@@ -166,6 +166,8 @@ func main() {
 		jobsHandler,
 	)
 
+	jobsHandler.SetCleanupHandler(srv.DeleteJobResults)
+
 	httpApi, err := api.New(
 		srv,
 		serviceInfoHandler,

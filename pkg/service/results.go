@@ -24,138 +24,138 @@ import (
 )
 
 type jobResults struct {
-	deploymentsResults         map[string]models_service.JobResultDeployments
-	deploymentsUpdateResults   map[string]models_service.JobResultUpdateDeployments
-	moduleChangeResults        map[string]models_service.JobResultModulesChange
-	refreshRepositoriesResults map[string]models_service.JobResult
-	auxDeploymentCreateResults map[string]models_service.JobResultCreateAuxiliaryDeployment
-	auxDeploymentUpdateResults map[string]models_service.JobResult
-	auxDeploymentResults       map[string]models_service.JobResultAuxiliaryDeployments
-	mu                         sync.RWMutex
+	deployments         map[string]models_service.JobResultDeployments
+	deploymentsUpdate   map[string]models_service.JobResultUpdateDeployments
+	moduleChange        map[string]models_service.JobResultModulesChange
+	refreshRepositories map[string]models_service.JobResult
+	auxDeploymentCreate map[string]models_service.JobResultCreateAuxiliaryDeployment
+	auxDeploymentUpdate map[string]models_service.JobResult
+	auxDeployment       map[string]models_service.JobResultAuxiliaryDeployments
+	mu                  sync.RWMutex
 }
 
-func (r *jobResults) setDeploymentsResult(jobId string, res models_service.JobResultDeployments) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.deploymentsResults[jobId] = res
+func (s *Service) setDeploymentsJobResult(jobId string, res models_service.JobResultDeployments) {
+	s.jobResults.mu.Lock()
+	defer s.jobResults.mu.Unlock()
+	s.jobResults.deployments[jobId] = res
 }
 
-func (r *jobResults) GetDeploymentsResult(jobId string) (models_service.JobResultDeployments, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	res, ok := r.deploymentsResults[jobId]
+func (s *Service) GetDeploymentsJobResult(jobId string) (models_service.JobResultDeployments, error) {
+	s.jobResults.mu.RLock()
+	defer s.jobResults.mu.RUnlock()
+	res, ok := s.jobResults.deployments[jobId]
 	if !ok {
 		return models_service.JobResultDeployments{}, models_error.NotFoundErr
 	}
 	return res, nil
 }
 
-func (r *jobResults) setUpdateDeploymentsResult(jobId string, res models_service.JobResultUpdateDeployments) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.deploymentsUpdateResults[jobId] = res
+func (s *Service) setUpdateDeploymentsJobResult(jobId string, res models_service.JobResultUpdateDeployments) {
+	s.jobResults.mu.Lock()
+	defer s.jobResults.mu.Unlock()
+	s.jobResults.deploymentsUpdate[jobId] = res
 }
 
-func (r *jobResults) GetUpdateDeploymentsResult(jobId string) (models_service.JobResultUpdateDeployments, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	res, ok := r.deploymentsUpdateResults[jobId]
+func (s *Service) GetUpdateDeploymentsJobResult(jobId string) (models_service.JobResultUpdateDeployments, error) {
+	s.jobResults.mu.RLock()
+	defer s.jobResults.mu.RUnlock()
+	res, ok := s.jobResults.deploymentsUpdate[jobId]
 	if !ok {
 		return models_service.JobResultUpdateDeployments{}, models_error.NotFoundErr
 	}
 	return res, nil
 }
 
-func (r *jobResults) setModuleChangeResult(jobId string, res models_service.JobResultModulesChange) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.moduleChangeResults[jobId] = res
+func (s *Service) setModuleChangeJobResult(jobId string, res models_service.JobResultModulesChange) {
+	s.jobResults.mu.Lock()
+	defer s.jobResults.mu.Unlock()
+	s.jobResults.moduleChange[jobId] = res
 }
 
-func (r *jobResults) GetModuleChangeResult(jobId string) (models_service.JobResultModulesChange, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	res, ok := r.moduleChangeResults[jobId]
+func (s *Service) GetModuleChangeJobResult(jobId string) (models_service.JobResultModulesChange, error) {
+	s.jobResults.mu.RLock()
+	defer s.jobResults.mu.RUnlock()
+	res, ok := s.jobResults.moduleChange[jobId]
 	if !ok {
 		return models_service.JobResultModulesChange{}, models_error.NotFoundErr
 	}
 	return res, nil
 }
 
-func (r *jobResults) setRefreshRepositoriesResult(jobId string, res models_service.JobResult) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.refreshRepositoriesResults[jobId] = res
+func (s *Service) setRefreshRepositoriesJobResult(jobId string, res models_service.JobResult) {
+	s.jobResults.mu.Lock()
+	defer s.jobResults.mu.Unlock()
+	s.jobResults.refreshRepositories[jobId] = res
 }
 
-func (r *jobResults) GetRefreshRepositoriesResult(jobId string) (models_service.JobResult, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	res, ok := r.refreshRepositoriesResults[jobId]
+func (s *Service) GetRefreshRepositoriesJobResult(jobId string) (models_service.JobResult, error) {
+	s.jobResults.mu.RLock()
+	defer s.jobResults.mu.RUnlock()
+	res, ok := s.jobResults.refreshRepositories[jobId]
 	if !ok {
 		return models_service.JobResult{}, models_error.NotFoundErr
 	}
 	return res, nil
 }
 
-func (r *jobResults) setCreateAuxiliaryDeploymentResult(jobId string, res models_service.JobResultCreateAuxiliaryDeployment) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.auxDeploymentCreateResults[jobId] = res
+func (s *Service) setCreateAuxiliaryDeploymentJobResult(jobId string, res models_service.JobResultCreateAuxiliaryDeployment) {
+	s.jobResults.mu.Lock()
+	defer s.jobResults.mu.Unlock()
+	s.jobResults.auxDeploymentCreate[jobId] = res
 }
 
-func (r *jobResults) GetCreateAuxiliaryDeploymentResult(jobId string) (models_service.JobResultCreateAuxiliaryDeployment, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	res, ok := r.auxDeploymentCreateResults[jobId]
+func (s *Service) GetCreateAuxiliaryDeploymentJobResult(jobId string) (models_service.JobResultCreateAuxiliaryDeployment, error) {
+	s.jobResults.mu.RLock()
+	defer s.jobResults.mu.RUnlock()
+	res, ok := s.jobResults.auxDeploymentCreate[jobId]
 	if !ok {
 		return models_service.JobResultCreateAuxiliaryDeployment{}, models_error.NotFoundErr
 	}
 	return res, nil
 }
 
-func (r *jobResults) setUpdateAuxiliaryDeploymentResult(jobId string, res models_service.JobResult) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.auxDeploymentUpdateResults[jobId] = res
+func (s *Service) setUpdateAuxiliaryDeploymentJobResult(jobId string, res models_service.JobResult) {
+	s.jobResults.mu.Lock()
+	defer s.jobResults.mu.Unlock()
+	s.jobResults.auxDeploymentUpdate[jobId] = res
 }
 
-func (r *jobResults) GetUpdateAuxiliaryDeploymentResult(jobId string) (models_service.JobResult, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	res, ok := r.auxDeploymentUpdateResults[jobId]
+func (s *Service) GetUpdateAuxiliaryDeploymentJobResult(jobId string) (models_service.JobResult, error) {
+	s.jobResults.mu.RLock()
+	defer s.jobResults.mu.RUnlock()
+	res, ok := s.jobResults.auxDeploymentUpdate[jobId]
 	if !ok {
 		return models_service.JobResult{}, models_error.NotFoundErr
 	}
 	return res, nil
 }
 
-func (r *jobResults) setAuxiliaryDeploymentsResult(jobId string, res models_service.JobResultAuxiliaryDeployments) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.auxDeploymentResults[jobId] = res
+func (s *Service) setAuxiliaryDeploymentsJobResult(jobId string, res models_service.JobResultAuxiliaryDeployments) {
+	s.jobResults.mu.Lock()
+	defer s.jobResults.mu.Unlock()
+	s.jobResults.auxDeployment[jobId] = res
 }
 
-func (r *jobResults) GetAuxiliaryDeploymentsResult(jobId string) (models_service.JobResultAuxiliaryDeployments, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	res, ok := r.auxDeploymentResults[jobId]
+func (s *Service) GetAuxiliaryDeploymentsJobResult(jobId string) (models_service.JobResultAuxiliaryDeployments, error) {
+	s.jobResults.mu.RLock()
+	defer s.jobResults.mu.RUnlock()
+	res, ok := s.jobResults.auxDeployment[jobId]
 	if !ok {
 		return models_service.JobResultAuxiliaryDeployments{}, models_error.NotFoundErr
 	}
 	return res, nil
 }
 
-func (r *jobResults) deleteResults(jobIds []string) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (s *Service) DeleteJobResults(jobIds []string) {
+	s.jobResults.mu.Lock()
+	defer s.jobResults.mu.Unlock()
 	for _, id := range jobIds {
-		delete(r.deploymentsResults, id)
-		delete(r.deploymentsUpdateResults, id)
-		delete(r.moduleChangeResults, id)
-		delete(r.refreshRepositoriesResults, id)
-		delete(r.auxDeploymentCreateResults, id)
-		delete(r.auxDeploymentUpdateResults, id)
-		delete(r.auxDeploymentResults, id)
+		delete(s.jobResults.deployments, id)
+		delete(s.jobResults.deploymentsUpdate, id)
+		delete(s.jobResults.moduleChange, id)
+		delete(s.jobResults.refreshRepositories, id)
+		delete(s.jobResults.auxDeploymentCreate, id)
+		delete(s.jobResults.auxDeploymentUpdate, id)
+		delete(s.jobResults.auxDeployment, id)
 	}
 }

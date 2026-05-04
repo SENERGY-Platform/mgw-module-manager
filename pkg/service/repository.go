@@ -34,14 +34,14 @@ func (s *Service) RefreshRepositories(_ context.Context) (models_service.Job, er
 		defer func() {
 			if err := recover(); err != nil {
 				jobResult.ErrorResult = models_error.NewErrorResult(fmt.Sprintf("panic: %v", err))
-				s.jobResults.setRefreshRepositoriesResult(job.Id, jobResult)
+				s.setRefreshRepositoriesJobResult(job.Id, jobResult)
 			}
 		}()
 		err = s.repositoriesHandler.RefreshRepositories(job.Context())
 		if err != nil {
 			jobResult.ErrorResult = models_error.NewErrorResult(err.Error())
 		}
-		s.jobResults.setRefreshRepositoriesResult(job.Id, jobResult)
+		s.setRefreshRepositoriesJobResult(job.Id, jobResult)
 	}()
 	return models_service.Job{
 		Id:          job.Id,

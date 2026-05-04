@@ -150,11 +150,11 @@ func (s *Service) ExecModulesChangeRequest(_ context.Context) (models_service.Jo
 		defer func() {
 			if err := recover(); err != nil {
 				jobResult.ErrorResult = models_error.NewErrorResult(fmt.Sprintf("panic: %v", err))
-				s.jobResults.setModuleChangeResult(job.Id, jobResult)
+				s.setModuleChangeJobResult(job.Id, jobResult)
 			}
 		}()
 		jobResult.ModulesChangeReport = s.execModulesChangeRequest(job.Context())
-		s.jobResults.setModuleChangeResult(job.Id, jobResult)
+		s.setModuleChangeJobResult(job.Id, jobResult)
 	}()
 	return models_service.Job{
 		Id:          job.Id,
