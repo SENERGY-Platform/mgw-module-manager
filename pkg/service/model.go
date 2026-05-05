@@ -4,8 +4,8 @@ import (
 	"io/fs"
 	"time"
 
-	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 )
 
 type modWrapper struct {
-	Mod     module_lib.Module
+	Mod     models_external.ModuleLibModule
 	FS      fs.FS
 	Source  string
 	Channel string
