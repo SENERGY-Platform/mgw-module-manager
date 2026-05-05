@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package helper_containers
+package containers
 
 import (
 	"context"
@@ -31,7 +31,7 @@ func Stop(ctx context.Context, client containerEngineWrapperClient, containerId 
 	if err != nil {
 		return err
 	}
-	job, err := helper_job.Await(ctx, client, jobId, jobPollInterval)
+	job, err := job.Await(ctx, client, jobId, jobPollInterval)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func Restart(ctx context.Context, client containerEngineWrapperClient, container
 	if err != nil {
 		return err
 	}
-	job, err := helper_job.Await(ctx, client, jobId, jobPollInterval)
+	job, err := job.Await(ctx, client, jobId, jobPollInterval)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func EnsureImage(
 	jobPollInterval time.Duration,
 ) error {
 	if !forcePull {
-		_, err := client.GetImage(ctx, helper_url.EscapePath(imageName, pathEscapeDepth))
+		_, err := client.GetImage(ctx, url.EscapePath(imageName, pathEscapeDepth))
 		if err != nil {
 			var notFoundErr *models_external.CEWNotFoundErr
 			if !errors.As(err, &notFoundErr) {
@@ -90,7 +90,7 @@ func EnsureImage(
 	if err != nil {
 		return err
 	}
-	job, err := helper_job.Await(ctx, client, jobId, jobPollInterval)
+	job, err := job.Await(ctx, client, jobId, jobPollInterval)
 	if err != nil {
 		return err
 	}

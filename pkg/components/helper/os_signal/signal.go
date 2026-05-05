@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package helper_os_signal
+package os_signal
 
 import (
 	"context"

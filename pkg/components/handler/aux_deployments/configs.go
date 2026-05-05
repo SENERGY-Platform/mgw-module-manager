@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package handler_aux_deployments
+package aux_deployments
 
 import (
 	"errors"

@@ -1,4 +1,4 @@
-package handler_repositories
+package repositories
 
 import (
 	"context"

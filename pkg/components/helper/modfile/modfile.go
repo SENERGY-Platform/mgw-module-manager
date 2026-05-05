@@ -1,4 +1,4 @@
-package helper_modfile
+package modfile
 
 import (
 	"errors"

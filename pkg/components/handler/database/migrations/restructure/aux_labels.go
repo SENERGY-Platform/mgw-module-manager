@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package migration_db_restructure
+package restructure
 
 import (
 	"context"

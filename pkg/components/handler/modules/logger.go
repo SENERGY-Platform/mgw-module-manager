@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package handler_modules
+package modules
 
 import (
 	"log/slog"

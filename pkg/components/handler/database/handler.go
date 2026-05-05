@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package handler_database
+package database
 
 import (
 	"context"

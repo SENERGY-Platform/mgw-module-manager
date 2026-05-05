@@ -1,4 +1,4 @@
-package handler_repositories_github
+package github
 
 import (
 	"encoding/json"
@@ -16,8 +16,8 @@ const (
 )
 
 type repoFile struct {
-	GitCommit client_repositories_github.GitCommit `json:"git_commit"`
-	Path      string                               `json:"path"`
+	GitCommit client.GitCommit `json:"git_commit"`
+	Path      string           `json:"path"`
 }
 
 func readRepoFile(p string) (repoFile, error) {

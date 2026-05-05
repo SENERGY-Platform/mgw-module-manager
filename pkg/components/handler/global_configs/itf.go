@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package handler_global_configs
+package global_configs
 
 import (
 	"context"

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models_error
+package error
 
 import "errors"
 

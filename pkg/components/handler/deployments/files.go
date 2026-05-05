@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package handler_deployments
+package deployments
 
 import (
 	"bytes"

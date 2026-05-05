@@ -1,4 +1,4 @@
-package handler_repositories
+package repositories
 
 import (
 	models_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repositories"

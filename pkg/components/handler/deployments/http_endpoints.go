@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package handler_deployments
+package deployments
 
 import (
 	"context"
@@ -46,7 +46,7 @@ func (h *Handler) createHttpEndpoints(
 	if err != nil {
 		return err
 	}
-	job, err := helper_job.Await(ctx, h.coreManagerClient, jobId, h.config.JobPollInterval)
+	job, err := job.Await(ctx, h.coreManagerClient, jobId, h.config.JobPollInterval)
 	if err != nil {
 		return err
 	}

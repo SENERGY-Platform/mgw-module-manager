@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package helper_sql_db
+package sql_db
 
 import "time"
 

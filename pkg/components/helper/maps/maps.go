@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package helper_maps
+package maps
 
 import "iter"
 

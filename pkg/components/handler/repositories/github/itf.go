@@ -1,4 +1,4 @@
-package handler_repositories_github
+package github
 
 import (
 	"context"
@@ -8,6 +8,6 @@ import (
 )
 
 type gitHubClient interface {
-	GetLastCommit(ctx context.Context, owner, repo, ref string) (client_repositories_github.GitCommit, error)
+	GetLastCommit(ctx context.Context, owner, repo, ref string) (client.GitCommit, error)
 	GetRepoTarGzArchive(ctx context.Context, owner, repo, ref string) (io.ReadCloser, error)
 }

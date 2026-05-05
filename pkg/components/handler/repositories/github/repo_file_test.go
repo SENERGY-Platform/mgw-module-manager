@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package handler_repositories_github
+package github
 
 import (
 	"encoding/json"
@@ -28,7 +28,7 @@ import (
 
 func Test_readRepoFile(t *testing.T) {
 	a := repoFile{
-		GitCommit: client_repositories_github.GitCommit{
+		GitCommit: client.GitCommit{
 			Sha: "test_sha",
 		},
 		Path: "test_source",
@@ -58,7 +58,7 @@ func Test_readRepoFile(t *testing.T) {
 
 func Test_writeRepoFile(t *testing.T) {
 	a := repoFile{
-		GitCommit: client_repositories_github.GitCommit{
+		GitCommit: client.GitCommit{
 			Sha: "test_sha",
 		},
 		Path: "test_source",

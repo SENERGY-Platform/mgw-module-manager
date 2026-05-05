@@ -1,4 +1,4 @@
-package handler_modules
+package modules
 
 import (
 	"context"

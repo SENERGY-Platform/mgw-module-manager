@@ -1,4 +1,4 @@
-package handler_repositories_github
+package github
 
 type Channel struct {
 	Name      string

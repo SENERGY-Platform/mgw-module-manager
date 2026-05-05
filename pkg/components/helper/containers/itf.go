@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package helper_containers
+package containers
 
 import (
 	"context"

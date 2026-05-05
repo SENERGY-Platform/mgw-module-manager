@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package handler_aux_deployments
+package aux_deployments
 
 import (
 	"sync"
@@ -35,7 +35,7 @@ type Handler struct {
 	databaseHandler              databaseHandler
 	containerEngineWrapperClient containerEngineWrapperClient
 	config                       Config
-	mutexes                      *helper_mutex_map.RWMutexMap
+	mutexes                      *mutex_map.RWMutexMap
 	runtimeMonitorJobs           map[string]struct{}
 	runtimeMonitorJobsMu         sync.RWMutex
 }
@@ -45,6 +45,6 @@ func New(databaseHandler databaseHandler, containerEngineWrapperClient container
 		databaseHandler:              databaseHandler,
 		containerEngineWrapperClient: containerEngineWrapperClient,
 		config:                       config,
-		mutexes:                      helper_mutex_map.New(),
+		mutexes:                      mutex_map.New(),
 	}
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package helper_mutex_map
+package mutex_map
 
 import "sync"
 
