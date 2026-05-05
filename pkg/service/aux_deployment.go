@@ -27,8 +27,8 @@ import (
 	lib_models_results "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
@@ -80,7 +80,7 @@ func (s *Service) CreateAuxiliaryDeployment(
 	if err != nil {
 		return lib_models_service.Job{}, err
 	}
-	dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_handler_deployments.DeploymentsFilter{
+	dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilter{
 		DeploymentsFilter: models_handler_database.DeploymentsFilter{
 			ModuleIds: slices.Collect(maps.Keys(module.Dependencies)),
 		},
@@ -140,7 +140,7 @@ func (s *Service) UpdateAuxiliaryDeployment(
 	if err != nil {
 		return lib_models_service.Job{}, err
 	}
-	dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_handler_deployments.DeploymentsFilter{
+	dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilter{
 		DeploymentsFilter: models_handler_database.DeploymentsFilter{
 			ModuleIds: slices.Collect(maps.Keys(module.Dependencies)),
 		},
@@ -200,7 +200,7 @@ func (s *Service) RecreateAuxiliaryDeployments(
 	if err != nil {
 		return lib_models_service.Job{}, err
 	}
-	dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_handler_deployments.DeploymentsFilter{
+	dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilter{
 		DeploymentsFilter: models_handler_database.DeploymentsFilter{
 			ModuleIds: slices.Collect(maps.Keys(module.Dependencies)),
 		},
@@ -358,7 +358,7 @@ func (s *Service) recreateAuxDeployments(
 	ctx context.Context,
 	module models_handler_modules.Module,
 	deploymentId string,
-	cacheDependencyDeployments map[string]models_handler_deployments.DeploymentReduced,
+	cacheDependencyDeployments map[string]models_deployments.DeploymentReduced,
 ) ([]lib_models_aux_deployments.BatchResult, error) {
 	activeDeployment, err := s.deploymentsHandler.GetDeployment(ctx, deploymentId)
 	if err != nil {
@@ -372,7 +372,7 @@ func (s *Service) recreateAuxDeployments(
 		}
 	}
 	if len(idsNotInCache) > 0 {
-		dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_handler_deployments.DeploymentsFilter{
+		dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilter{
 			DeploymentsFilter: models_handler_database.DeploymentsFilter{
 				ModuleIds: idsNotInCache,
 			},

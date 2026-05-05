@@ -9,8 +9,8 @@ import (
 	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 )
@@ -32,26 +32,26 @@ type modulesHandler interface {
 }
 
 type deploymentsHandler interface {
-	GetDeployment(ctx context.Context, id string) (models_handler_deployments.Deployment, error)
+	GetDeployment(ctx context.Context, id string) (models_deployments.Deployment, error)
 	GetReducedDeploymentsByModuleIds(
 		ctx context.Context,
-		filter models_handler_deployments.DeploymentsFilter,
-	) (map[string]models_handler_deployments.DeploymentReduced, error)
+		filter models_deployments.DeploymentsFilter,
+	) (map[string]models_deployments.DeploymentReduced, error)
 	GetDeploymentsByModuleIds(
 		ctx context.Context,
-		filter models_handler_deployments.DeploymentsFilter,
-	) (map[string]models_handler_deployments.Deployment, error)
-	GetDeploymentByModuleId(ctx context.Context, moduleId string) (models_handler_deployments.Deployment, error)
+		filter models_deployments.DeploymentsFilter,
+	) (map[string]models_deployments.Deployment, error)
+	GetDeploymentByModuleId(ctx context.Context, moduleId string) (models_deployments.Deployment, error)
 	GetDeploymentIds(ctx context.Context, filter models_handler_database.DeploymentsFilter) (map[string]string, error)
 	CreateDeployments(
 		ctx context.Context,
 		selectedModules map[string]models_handler_modules.Module,
-		userInputs map[string]models_handler_deployments.UserInput,
+		userInputs map[string]models_deployments.UserInput,
 	) ([]lib_models_service.DeploymentResult, error)
 	UpdateDeployments(
 		ctx context.Context,
 		selectedModules map[string]models_handler_modules.Module,
-		userInputs map[string]models_handler_deployments.UserInput,
+		userInputs map[string]models_deployments.UserInput,
 	) ([]lib_models_service.DeploymentResult, error)
 	RecreateDeployments(
 		ctx context.Context,
@@ -59,7 +59,7 @@ type deploymentsHandler interface {
 	) ([]lib_models_service.DeploymentResult, error)
 	DeleteDeployments(
 		ctx context.Context,
-		filter models_handler_deployments.DeploymentsFilter,
+		filter models_deployments.DeploymentsFilter,
 		allowAll bool,
 	) ([]lib_models_service.DeploymentResult, error)
 	EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error)
@@ -85,23 +85,23 @@ type auxiliaryDeploymentsHandler interface {
 	CreateDeployment(
 		ctx context.Context,
 		module models_handler_modules.Module,
-		activeDeployment models_handler_deployments.Deployment,
-		dependencies map[string]models_handler_deployments.DeploymentReduced,
+		activeDeployment models_deployments.Deployment,
+		dependencies map[string]models_deployments.DeploymentReduced,
 		serviceInput lib_models_aux_deployments.ServiceInput,
 	) (lib_models_aux_deployments.Result, error)
 	UpdateDeployment(
 		ctx context.Context,
 		module models_handler_modules.Module,
-		activeDeployment models_handler_deployments.Deployment,
-		dependencies map[string]models_handler_deployments.DeploymentReduced,
+		activeDeployment models_deployments.Deployment,
+		dependencies map[string]models_deployments.DeploymentReduced,
 		auxDeploymentId string,
 		serviceInput lib_models_aux_deployments.UpdateServiceInput,
 	) error
 	RecreateDeployments(
 		ctx context.Context,
 		module models_handler_modules.Module,
-		activeDeployment models_handler_deployments.Deployment,
-		dependencies map[string]models_handler_deployments.DeploymentReduced,
+		activeDeployment models_deployments.Deployment,
+		dependencies map[string]models_deployments.DeploymentReduced,
 		filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 	) ([]lib_models_aux_deployments.BatchResult, error)
 	DeleteDeployments(

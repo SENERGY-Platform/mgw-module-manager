@@ -30,18 +30,18 @@ import (
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
+	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
 func (h *Handler) CreateDeployment(
 	ctx context.Context,
 	module models_handler_modules.Module,
-	activeDeployment models_handler_deployments.Deployment,
-	dependencies map[string]models_handler_deployments.DeploymentReduced,
+	activeDeployment models_deployments.Deployment,
+	dependencies map[string]models_deployments.DeploymentReduced,
 	serviceInput lib_models_aux_deployments.ServiceInput,
 ) (lib_models_aux_deployments.Result, error) {
 	mu := h.mutexes.Get(activeDeployment.Id)
@@ -143,7 +143,7 @@ func (h *Handler) ensureAuxDeploymentEnvironment(
 	deploymentId string,
 	imageName string,
 	forceImagePull bool,
-	volumes map[string]aux_deployments.AuxiliaryDeploymentVolume,
+	volumes map[string]models_aux_deployments.AuxiliaryDeploymentVolume,
 ) error {
 	err := helper_containers.EnsureImage(
 		ctx,
@@ -166,10 +166,10 @@ func getAuxiliaryDeployment(
 	auxDeploymentId string,
 	containerAlias string,
 	serviceInput lib_models_aux_deployments.ServiceInput,
-) (aux_deployments.AuxiliaryDeployment, error) {
+) (models_aux_deployments.AuxiliaryDeployment, error) {
 	ctrName, err := helper_naming.NewContainerName(models_constants.AuxDeploymentAbbreviation)
 	if err != nil {
-		return aux_deployments.AuxiliaryDeployment{}, err
+		return models_aux_deployments.AuxiliaryDeployment{}, err
 	}
 	name := moduleAuxServiceName
 	if serviceInput.Name != "" {
@@ -186,14 +186,14 @@ func getAuxiliaryDeployment(
 	if serviceInput.RunConfig.PseudoTTY > 0 {
 		pseudoTTY = true
 	}
-	return aux_deployments.AuxiliaryDeployment{
+	return models_aux_deployments.AuxiliaryDeployment{
 		Id:           auxDeploymentId,
 		DeploymentId: deploymentId,
 		Reference:    serviceInput.Reference,
 		Name:         name,
 		Image:        serviceInput.Image,
 		Enabled:      serviceInput.Enabled,
-		Container: aux_deployments.AuxiliaryDeploymentContainer{
+		Container: models_aux_deployments.AuxiliaryDeploymentContainer{
 			Name:  ctrName,
 			Alias: containerAlias,
 		},

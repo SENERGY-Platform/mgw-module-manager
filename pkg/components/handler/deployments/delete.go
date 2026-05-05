@@ -25,14 +25,14 @@ import (
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 )
 
 func (h *Handler) DeleteDeployments(
 	ctx context.Context,
-	filter models_handler_deployments.DeploymentsFilter,
+	filter models_deployments.DeploymentsFilter,
 	allowAll bool,
 ) ([]lib_models_service.DeploymentResult, error) {
 	if !allowAll && filterEmpty(filter) {
@@ -105,7 +105,7 @@ func (h *Handler) removeHttpEndpoints(ctx context.Context, deploymentId string) 
 	return nil
 }
 
-func filterEmpty(filter models_handler_deployments.DeploymentsFilter) bool {
+func filterEmpty(filter models_deployments.DeploymentsFilter) bool {
 	switch {
 	case len(filter.Ids) > 0:
 		return false

@@ -29,9 +29,9 @@ import (
 	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 )
@@ -50,7 +50,7 @@ func (s *Service) Modules(ctx context.Context, filter lib_models_service.Modules
 	if err != nil {
 		return nil, err
 	}
-	deployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_handler_deployments.DeploymentsFilter{
+	deployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilter{
 		DeploymentsFilter: models_handler_database.DeploymentsFilter{
 			ModuleIds: slices.Collect(maps.Keys(modules)),
 		},
@@ -394,7 +394,7 @@ func modWrapperToServiceModuleAbbreviated(w modWrapper) lib_models_service.Modul
 
 func getModulesReduced(
 	handlerModules map[string]models_handler_modules.Module,
-	handlerDeployments map[string]models_handler_deployments.DeploymentReduced,
+	handlerDeployments map[string]models_deployments.DeploymentReduced,
 	filter lib_models_service.ModulesFilter) []lib_models_service.ModuleReduced {
 	var modules []lib_models_service.ModuleReduced
 	for moduleId, module := range handlerModules {
@@ -446,7 +446,7 @@ func getModulesReduced(
 	return modules
 }
 
-func getModule(module models_handler_modules.Module, deployment models_handler_deployments.Deployment) lib_models_service.Module {
+func getModule(module models_handler_modules.Module, deployment models_deployments.Deployment) lib_models_service.Module {
 	containers := make(map[string]lib_models_service.Container)
 	for reference, container := range deployment.Containers {
 		containers[reference] = lib_models_service.Container{

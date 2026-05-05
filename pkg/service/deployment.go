@@ -30,8 +30,8 @@ import (
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
@@ -49,7 +49,7 @@ func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]
 	if err != nil {
 		return nil, err
 	}
-	handlerDeployments, err := s.deploymentsHandler.GetDeploymentsByModuleIds(ctx, models_handler_deployments.DeploymentsFilter{
+	handlerDeployments, err := s.deploymentsHandler.GetDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilter{
 		DeploymentsFilter: models_handler_database.DeploymentsFilter{
 			ModuleIds: slices.Collect(maps.Keys(handlerModules)),
 		},
@@ -58,7 +58,7 @@ func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]
 	for id, handlerModule := range handlerModules {
 		_, ok := handlerDeployments[id]
 		if !ok {
-			modules = append(modules, getModule(handlerModule, models_handler_deployments.Deployment{}))
+			modules = append(modules, getModule(handlerModule, models_deployments.Deployment{}))
 		}
 	}
 	return modules, nil
@@ -160,7 +160,7 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 				jobResult.ResultsErrNum++
 			}
 		}
-		cacheDependencyDeployments := make(map[string]models_handler_deployments.DeploymentReduced)
+		cacheDependencyDeployments := make(map[string]models_deployments.DeploymentReduced)
 		for _, updateDepResult := range updateDepResults {
 			result := lib_models_service.JobResultUpdateDeploymentsResult{DeploymentResult: updateDepResult}
 			if !updateDepResult.HasError {
@@ -279,7 +279,7 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]
 	}
 	deleteResults, err := s.deploymentsHandler.DeleteDeployments(
 		ctx,
-		models_handler_deployments.DeploymentsFilter{
+		models_deployments.DeploymentsFilter{
 			DeploymentsFilter: models_handler_database.DeploymentsFilter{
 				Ids: toDelete,
 			},
@@ -363,8 +363,8 @@ func (s *Service) deleteAuxDeployments(
 func getUserInputs(
 	userInputs []lib_models_service.UserInput,
 	handlerModules map[string]models_handler_modules.Module,
-) (map[string]models_handler_deployments.UserInput, error) {
-	userInputsMap := make(map[string]models_handler_deployments.UserInput)
+) (map[string]models_deployments.UserInput, error) {
+	userInputsMap := make(map[string]models_deployments.UserInput)
 	for _, userInput := range userInputs {
 		_, ok := userInputsMap[userInput.ModuleId]
 		if ok {
@@ -387,22 +387,22 @@ func getUserInputs(
 			}
 			files[reference] = data
 		}
-		fileGroups := make(map[string]map[string]models_handler_deployments.FileGroupUserInput)
+		fileGroups := make(map[string]map[string]models_deployments.FileGroupUserInput)
 		for reference, items := range userInput.FileGroups {
-			depItems := make(map[string]models_handler_deployments.FileGroupUserInput)
+			depItems := make(map[string]models_deployments.FileGroupUserInput)
 			for path, item := range items {
 				data, err := base64.StdEncoding.DecodeString(item.Data)
 				if err != nil {
 					return nil, err
 				}
-				depItems[path] = models_handler_deployments.FileGroupUserInput{
+				depItems[path] = models_deployments.FileGroupUserInput{
 					Format: item.Format,
 					Data:   data,
 				}
 			}
 			fileGroups[reference] = depItems
 		}
-		userInputsMap[userInput.ModuleId] = models_handler_deployments.UserInput{
+		userInputsMap[userInput.ModuleId] = models_deployments.UserInput{
 			ModuleId:      userInput.ModuleId,
 			HostResources: userInput.HostResources,
 			Secrets:       userInput.Secrets,

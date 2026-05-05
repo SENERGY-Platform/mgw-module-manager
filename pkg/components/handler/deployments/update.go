@@ -30,16 +30,16 @@ import (
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
 func (h *Handler) UpdateDeployments(
 	ctx context.Context,
 	selectedModules map[string]models_handler_modules.Module,
-	userInputs map[string]models_handler_deployments.UserInput,
+	userInputs map[string]models_deployments.UserInput,
 ) ([]lib_models_service.DeploymentResult, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -95,7 +95,7 @@ func (h *Handler) UpdateDeployments(
 func (h *Handler) updateDeployment(
 	ctx context.Context,
 	module models_handler_modules.Module,
-	userInput models_handler_deployments.UserInput,
+	userInput models_deployments.UserInput,
 	deploymentId string,
 	cacheContainers map[string]containerCacheItem,
 	currentDeployment models_handler_database.Deployment,

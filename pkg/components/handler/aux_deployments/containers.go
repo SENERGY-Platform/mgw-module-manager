@@ -26,17 +26,17 @@ import (
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 )
 
 func (h *Handler) createContainer(
 	ctx context.Context,
 	moduleAuxService models_external.ModuleLibAuxService,
 	auxServiceReference string,
-	activeDeployment models_handler_deployments.Deployment,
-	dependencies map[string]models_handler_deployments.DeploymentReduced,
+	activeDeployment models_deployments.Deployment,
+	dependencies map[string]models_deployments.DeploymentReduced,
 	auxDeployment aux_deployments.AuxiliaryDeployment,
 	configs map[string]string,
 	volumeMounts []aux_deployments.AuxiliaryDeploymentVolumeMount,
@@ -184,7 +184,7 @@ func appendVolumeMounts(
 func setInternalDependencyEnvVariables(
 	envVariables map[string]string,
 	serviceReferences map[string]models_external.ModuleLibSrvRefTarget,
-	deploymentContainers map[string]models_handler_deployments.Container,
+	deploymentContainers map[string]models_deployments.Container,
 ) {
 	for envVarName, target := range serviceReferences {
 		container, ok := deploymentContainers[target.Ref]
@@ -197,7 +197,7 @@ func setInternalDependencyEnvVariables(
 func setExternalDependencyEnvVariables(
 	envVariables map[string]string,
 	serviceExtDependencies map[string]models_external.ModuleLibExtDependencyTarget,
-	deployments map[string]models_handler_deployments.DeploymentReduced,
+	deployments map[string]models_deployments.DeploymentReduced,
 ) {
 	for envVarName, target := range serviceExtDependencies {
 		item, ok := deployments[target.ID]
