@@ -20,18 +20,18 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 )
 
-var errMap = map[error]int{
-	models_error.NotFoundErr:  http.StatusNotFound,
-	models_error.DuplicateErr: http.StatusConflict,
-}
-
 func getStatusCode(err error) int {
-	for e, c := range errMap {
-		if errors.Is(err, e) {
-			return c
+	for {
+		switch err.(type) {
+		case *lib_errors.ErrNotFound:
+			return http.StatusNotFound
+		}
+		err = errors.Unwrap(err)
+		if err == nil {
+			break
 		}
 	}
 	return 0
