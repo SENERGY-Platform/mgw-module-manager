@@ -12,8 +12,8 @@ import (
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
+	models_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repositories"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 )
 
@@ -62,7 +62,7 @@ func (s *Service) RepoModules(ctx context.Context, filter lib_models_service.Rep
 	if err != nil {
 		return nil, err
 	}
-	repoMods, err := s.repositoriesHandler.Modules(ctx, models_handler_repositories.ModulesFilter{
+	repoMods, err := s.repositoriesHandler.Modules(ctx, models_repositories.ModulesFilter{
 		Ids:     filter.Ids,
 		Name:    filter.Name,
 		Sources: newSourceFilters(filter.Repositories),
@@ -81,7 +81,7 @@ func (s *Service) RepoModules(ctx context.Context, filter lib_models_service.Rep
 	return handleInstalledMods(mods, installedMods, filter.Installed, filter.UpdateAvailable), nil
 }
 
-func (s *Service) repoModules(repos []models_handler_repositories.Repository, repoMods []models_handler_repositories.Module) ([]lib_models_service.RepoModule, error) {
+func (s *Service) repoModules(repos []models_repositories.Repository, repoMods []models_repositories.Module) ([]lib_models_service.RepoModule, error) {
 	reposTree := buildReposTree(repos)
 	var repoModules []lib_models_service.RepoModule
 	for id, sources := range buildRepoModsTree(repoMods) {
@@ -179,10 +179,10 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models_s
 	if err != nil {
 		return nil, err
 	}
-	highestPrioRepo := selectByPriority(modRepos, func(item models_handler_repositories.Repository, lastPrio int) (int, bool) {
+	highestPrioRepo := selectByPriority(modRepos, func(item models_repositories.Repository, lastPrio int) (int, bool) {
 		return item.Priority, item.Priority >= lastPrio
 	})
-	highestPrioChannel := selectByPriority(highestPrioRepo.Channels, func(item models_handler_repositories.Channel, lastPrio int) (int, bool) {
+	highestPrioChannel := selectByPriority(highestPrioRepo.Channels, func(item models_repositories.Channel, lastPrio int) (int, bool) {
 		return item.Priority, item.Priority >= lastPrio
 	})
 	deps := make(map[string]modWrapper)
@@ -236,10 +236,10 @@ func (s *Service) addRepoModDepsToMap(ctx context.Context, mod models_external.M
 	return nil
 }
 
-func newSourceFilters(repoFilters []lib_models_service.RepositoryFilter) []models_handler_repositories.SourceFilter {
-	var sourcesFilter []models_handler_repositories.SourceFilter
+func newSourceFilters(repoFilters []lib_models_service.RepositoryFilter) []models_repositories.SourceFilter {
+	var sourcesFilter []models_repositories.SourceFilter
 	for _, repoFilter := range repoFilters {
-		sourcesFilter = append(sourcesFilter, models_handler_repositories.SourceFilter{
+		sourcesFilter = append(sourcesFilter, models_repositories.SourceFilter{
 			Name:     repoFilter.Source,
 			Channels: repoFilter.Channels,
 		})
@@ -247,7 +247,7 @@ func newSourceFilters(repoFilters []lib_models_service.RepositoryFilter) []model
 	return sourcesFilter
 }
 
-func buildRepoModsTree(repoMods []models_handler_repositories.Module) map[string]map[string]map[string]repoModAbbreviated {
+func buildRepoModsTree(repoMods []models_repositories.Module) map[string]map[string]map[string]repoModAbbreviated {
 	repoModsTree := make(map[string]map[string]map[string]repoModAbbreviated) // {id:{source:{channel:repoModAbbreviated}}}
 	for _, repoMod := range repoMods {
 		sources, ok := repoModsTree[repoMod.Id]
@@ -269,7 +269,7 @@ func buildRepoModsTree(repoMods []models_handler_repositories.Module) map[string
 	return repoModsTree
 }
 
-func buildReposTree(repos []models_handler_repositories.Repository) map[string]repoAbbreviated {
+func buildReposTree(repos []models_repositories.Repository) map[string]repoAbbreviated {
 	reposTree := make(map[string]repoAbbreviated) // {source:repoAbbreviated}
 	for _, repo := range repos {
 		channels := make(map[string]int)

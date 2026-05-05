@@ -11,8 +11,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/archive"
-	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
+	helper_archive "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/archive"
+	models_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repositories"
 )
 
 const gitHubCom = "github.com"
@@ -61,10 +61,10 @@ func (h *Handler) Source() string {
 	return path.Join(gitHubCom, h.owner, h.repo)
 }
 
-func (h *Handler) Channels() []models_handler_repositories.Channel {
-	var channels []models_handler_repositories.Channel
+func (h *Handler) Channels() []models_repositories.Channel {
+	var channels []models_repositories.Channel
 	for _, channel := range h.channels {
-		channels = append(channels, models_handler_repositories.Channel{Name: channel.Name, Priority: channel.Priority})
+		channels = append(channels, models_repositories.Channel{Name: channel.Name, Priority: channel.Priority})
 	}
 	return channels
 }

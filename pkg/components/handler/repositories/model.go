@@ -1,7 +1,7 @@
 package handler_repositories
 
 import (
-	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
+	models_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repositories"
 )
 
 type Repository struct {
@@ -10,6 +10,6 @@ type Repository struct {
 }
 
 type moduleWrapper struct {
-	models_handler_repositories.Module
+	models_repositories.Module
 	FSysRef string
 }

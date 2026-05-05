@@ -31,8 +31,8 @@ import (
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
+	models_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repositories"
 )
 
 func (s *Service) Modules(ctx context.Context, filter lib_models_service.ModulesFilter) ([]lib_models_service.ModuleReduced, error) {
@@ -200,7 +200,7 @@ func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modules
 	if len(installedMods) == 0 {
 		return modulesChangeRequest{}, nil
 	}
-	repoMods, err := s.repositoriesHandler.Modules(ctx, models_handler_repositories.ModulesFilter{Ids: slices.Collect(maps.Keys(installedMods))})
+	repoMods, err := s.repositoriesHandler.Modules(ctx, models_repositories.ModulesFilter{Ids: slices.Collect(maps.Keys(installedMods))})
 	if err != nil {
 		return modulesChangeRequest{}, err
 	}

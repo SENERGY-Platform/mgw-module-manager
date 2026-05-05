@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models_handler_repositories
+package repositories
 
 type Repository struct {
 	Source   string
