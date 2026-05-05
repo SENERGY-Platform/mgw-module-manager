@@ -16,15 +16,19 @@
 
 package service
 
-import models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-
 type GlobalConfigInput struct {
 	Name string `json:"name"`
-	models_config.InterfaceValue
+	InterfaceValue
 }
 
 type GlobalConfig struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
-	models_config.InterfaceValue
+	InterfaceValue
+}
+
+type InterfaceValue struct {
+	DataType int         `json:"data_type"`
+	IsSlice  bool        `json:"is_slice"`
+	Value    interface{} `json:"value"`
 }

@@ -21,7 +21,6 @@ import (
 
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
-	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 )
 
@@ -89,7 +88,7 @@ func newGlobalConfig(config models_handler_global_configs.Config) service.Global
 	return service.GlobalConfig{
 		Id:   config.Id,
 		Name: config.Name,
-		InterfaceValue: models_config.InterfaceValue{
+		InterfaceValue: service.InterfaceValue{
 			DataType: config.DataType,
 			IsSlice:  config.IsSlice,
 			Value:    helper_configs.ValueToInterface(config.Value),

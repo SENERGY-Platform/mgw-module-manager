@@ -35,9 +35,3 @@ type Value struct {
 	Bool         bool
 	BoolSlice    []bool
 }
-
-type InterfaceValue struct {
-	DataType int         `json:"data_type"`
-	IsSlice  bool        `json:"is_slice"`
-	Value    interface{} `json:"value"`
-}

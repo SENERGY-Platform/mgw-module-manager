@@ -19,7 +19,6 @@ package service
 import (
 	"time"
 
-	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
@@ -35,22 +34,22 @@ type Module struct {
 }
 
 type Deployment struct {
-	Id            string                                  `json:"id"`
-	ModuleSource  string                                  `json:"module_source"`
-	ModuleChannel string                                  `json:"module_channel"`
-	ModuleVersion string                                  `json:"module_version"`
-	Enabled       bool                                    `json:"enabled"`
-	Created       time.Time                               `json:"created"`
-	Updated       time.Time                               `json:"updated"`
-	Containers    map[string]Container                    `json:"containers"`
-	Volumes       map[string]string                       `json:"volumes"`        // {reference:name}
-	HostResources map[string]string                       `json:"host_resources"` // {reference:hostResourceId}
-	Secrets       map[string]Secret                       `json:"secrets"`
-	Configs       map[string]models_config.InterfaceValue `json:"configs"`
-	GlobalConfigs map[string]string                       `json:"global_configs"` // {reference:globalConfigId}
-	Files         map[string]string                       `json:"files"`          // {reference:data}
-	FileGroups    map[string]FileGroup                    `json:"file_groups"`
-	State         int                                     `json:"state"` // health state determined by container states
+	Id            string                    `json:"id"`
+	ModuleSource  string                    `json:"module_source"`
+	ModuleChannel string                    `json:"module_channel"`
+	ModuleVersion string                    `json:"module_version"`
+	Enabled       bool                      `json:"enabled"`
+	Created       time.Time                 `json:"created"`
+	Updated       time.Time                 `json:"updated"`
+	Containers    map[string]Container      `json:"containers"`
+	Volumes       map[string]string         `json:"volumes"`        // {reference:name}
+	HostResources map[string]string         `json:"host_resources"` // {reference:hostResourceId}
+	Secrets       map[string]Secret         `json:"secrets"`
+	Configs       map[string]InterfaceValue `json:"configs"`
+	GlobalConfigs map[string]string         `json:"global_configs"` // {reference:globalConfigId}
+	Files         map[string]string         `json:"files"`          // {reference:data}
+	FileGroups    map[string]FileGroup      `json:"file_groups"`
+	State         int                       `json:"state"` // health state determined by container states
 }
 
 type Container struct {

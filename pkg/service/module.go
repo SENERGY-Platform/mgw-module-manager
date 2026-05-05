@@ -29,7 +29,6 @@ import (
 	models_service2 "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
-	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
@@ -473,9 +472,9 @@ func getModule(module models_handler_modules.Module, deployment models_handler_d
 			Items: secret.Items,
 		}
 	}
-	configs := make(map[string]models_config.InterfaceValue)
+	configs := make(map[string]models_service2.InterfaceValue)
 	for reference, config := range deployment.Configs {
-		configs[reference] = models_config.InterfaceValue{
+		configs[reference] = models_service2.InterfaceValue{
 			DataType: config.DataType,
 			IsSlice:  config.IsSlice,
 			Value:    helper_configs.ValueToInterface(config.Value),
