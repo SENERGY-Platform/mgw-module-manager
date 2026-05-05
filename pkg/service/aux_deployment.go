@@ -26,7 +26,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	models_service2 "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
-	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
@@ -36,7 +35,7 @@ func (s *Service) GetAuxiliaryDeployment(
 	ctx context.Context,
 	deploymentId string,
 	auxDeploymentId string,
-) (models_handler_aux_deployments.AuxiliaryDeployment, error) {
+) (aux_deployments.AuxiliaryDeployment, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.auxDeploymentsHandler.GetDeployment(ctx, deploymentId, auxDeploymentId)
@@ -45,8 +44,8 @@ func (s *Service) GetAuxiliaryDeployment(
 func (s *Service) GetAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
-) (map[string]models_handler_aux_deployments.AuxiliaryDeployment, error) {
+	filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
+) (map[string]aux_deployments.AuxiliaryDeployment, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.auxDeploymentsHandler.GetDeployments(ctx, deploymentId, filter)
@@ -55,8 +54,8 @@ func (s *Service) GetAuxiliaryDeployments(
 func (s *Service) GetReducedAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
-) (map[string]models_handler_aux_deployments.AuxiliaryDeploymentReduced, error) {
+	filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
+) (map[string]aux_deployments.AuxiliaryDeploymentReduced, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.auxDeploymentsHandler.GetReducedDeployments(ctx, deploymentId, filter)
@@ -184,7 +183,7 @@ func (s *Service) UpdateAuxiliaryDeployment(
 func (s *Service) RecreateAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) (models_service2.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -250,7 +249,7 @@ func (s *Service) RecreateAuxiliaryDeployments(
 func (s *Service) DeleteAuxiliaryDeployments(
 	_ context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
 	allowAll bool,
 ) (models_service2.Job, error) {
 	s.mu.Lock()
@@ -296,7 +295,7 @@ func (s *Service) DeleteAuxiliaryDeployments(
 func (s *Service) EnableAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) ([]string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -306,7 +305,7 @@ func (s *Service) EnableAuxiliaryDeployments(
 func (s *Service) DisableAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) ([]string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -387,8 +386,8 @@ func (s *Service) recreateAuxDeployments(
 		module,
 		activeDeployment,
 		cacheDependencyDeployments,
-		models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState{
-			AuxiliaryDeploymentsFilter: models_handler_aux_deployments.AuxiliaryDeploymentsFilter{
+		aux_deployments.AuxiliaryDeploymentsFilterWithState{
+			AuxiliaryDeploymentsFilter: aux_deployments.AuxiliaryDeploymentsFilter{
 				Recreate: 1,
 			},
 		},

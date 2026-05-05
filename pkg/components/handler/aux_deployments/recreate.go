@@ -27,7 +27,6 @@ import (
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
@@ -38,7 +37,7 @@ func (h *Handler) RecreateDeployments(
 	module models_handler_modules.Module,
 	activeDeployment models_handler_deployments.Deployment,
 	dependencies map[string]models_handler_deployments.DeploymentReduced,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) ([]aux_deployments.BatchResult, error) {
 	mu := h.mutexes.Get(activeDeployment.Id)
 	mu.Lock()
@@ -154,7 +153,7 @@ func (h *Handler) recreateAuxiliaryDeployment(
 func (h *Handler) readAuxiliaryDeploymentsAndFilterByState(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) (map[string]models_handler_database.AuxiliaryDeployment, error) {
 	auxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, filter.AuxiliaryDeploymentsFilter)
 	if err != nil {

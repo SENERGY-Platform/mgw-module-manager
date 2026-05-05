@@ -21,7 +21,7 @@ import (
 	"maps"
 	"slices"
 
-	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
+	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 )
 
 func (h *Handler) EnableDeployments(

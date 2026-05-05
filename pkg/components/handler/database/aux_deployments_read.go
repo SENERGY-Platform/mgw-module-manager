@@ -23,9 +23,9 @@ import (
 	"strings"
 	"time"
 
+	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 

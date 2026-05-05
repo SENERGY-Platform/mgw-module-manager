@@ -22,13 +22,12 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
-	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 )
 
 func (h *Handler) DeleteDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
 	allowAll bool,
 ) ([]aux_deployments.BatchResult, error) {
 	if !allowAll && filterEmpty(filter) {
@@ -64,7 +63,7 @@ func (h *Handler) DeleteMutex(deploymentId string) {
 	h.mutexes.Delete(deploymentId)
 }
 
-func filterEmpty(filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState) bool {
+func filterEmpty(filter aux_deployments.AuxiliaryDeploymentsFilterWithState) bool {
 	switch {
 	case filter.State != "":
 		return false

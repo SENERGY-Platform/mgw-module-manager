@@ -22,10 +22,10 @@ import (
 	"path"
 
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 )
@@ -78,7 +78,7 @@ func getCewContainer(
 	image string,
 	containerAlias string,
 	containerName string,
-	runConfig models_handler_aux_deployments.AuxiliaryDeploymentRunConfig,
+	runConfig aux_deployments.AuxiliaryDeploymentRunConfig,
 	envVariables map[string]string,
 	mounts []models_external.CewMount,
 ) models_external.Container {
@@ -106,7 +106,7 @@ func getCewContainer(
 
 func newCewRunConfig(
 	auxServiceRunConfig models_external.ModuleLibRunConfig,
-	runConfig models_handler_aux_deployments.AuxiliaryDeploymentRunConfig,
+	runConfig aux_deployments.AuxiliaryDeploymentRunConfig,
 ) models_external.CewRunConfig {
 	rc := models_external.CewRunConfig{
 		RestartStrategy: models_external.CewRestartStrategyNever,

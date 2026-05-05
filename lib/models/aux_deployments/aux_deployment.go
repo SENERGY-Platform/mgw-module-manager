@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models_handler_aux_deployments
+package aux_deployments
 
 import (
 	"time"

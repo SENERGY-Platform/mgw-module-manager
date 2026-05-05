@@ -30,7 +30,6 @@ import (
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
@@ -348,7 +347,7 @@ func (s *Service) deleteAuxDeployments(
 	results, err := s.auxDeploymentsHandler.DeleteDeployments(
 		ctx,
 		deploymentId,
-		models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState{},
+		aux_deployments.AuxiliaryDeploymentsFilterWithState{},
 		true,
 	)
 	if err != nil {
