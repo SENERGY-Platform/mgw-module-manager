@@ -19,7 +19,7 @@ package models_handler_database
 import (
 	"time"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
+	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 )
 
 type AuxiliaryDeployment struct {
