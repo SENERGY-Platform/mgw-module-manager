@@ -27,11 +27,11 @@ import (
 	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
+	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
-	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
@@ -55,7 +55,7 @@ func (h *Handler) UpdateDeployments(
 	}
 	cache := cacheCollection{
 		HostResources: make(map[string]models_external.HostResource),
-		GlobalConfigs: make(map[string]models_handler_global_configs.Config),
+		GlobalConfigs: make(map[string]models_configs.Config),
 		SecretValues:  make(map[string]models_external.SecretValueVariant),
 	}
 	cache.Deployments, err = initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)

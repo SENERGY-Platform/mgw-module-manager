@@ -21,12 +21,11 @@ import (
 	"database/sql"
 
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 )
 
-func (h *Handler) CreateGlobalConfig(ctx context.Context, config models_handler_global_configs.Config) (err error) {
+func (h *Handler) CreateGlobalConfig(ctx context.Context, config models_configs.Config) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return
@@ -51,24 +50,24 @@ func (h *Handler) CreateGlobalConfig(ctx context.Context, config models_handler_
 	return
 }
 
-func (h *Handler) ReadGlobalConfig(ctx context.Context, id string) (models_handler_global_configs.Config, error) {
+func (h *Handler) ReadGlobalConfig(ctx context.Context, id string) (models_configs.Config, error) {
 	globalConfigs, err := h.ReadGlobalConfigs(ctx, []string{id})
 	if err != nil {
-		return models_handler_global_configs.Config{}, err
+		return models_configs.Config{}, err
 	}
 	if len(globalConfigs) == 0 {
-		return models_handler_global_configs.Config{}, models_error.NotFoundErr
+		return models_configs.Config{}, models_error.NotFoundErr
 	}
 	return globalConfigs[id], nil
 }
 
-func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_global_configs.Config, error) {
+func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_configs.Config, error) {
 	rows, err := h.queryConfigs(ctx, ids, "global_configs", "global_config_values", "id", "name")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	globalConfigs := make(map[string]models_handler_global_configs.Config)
+	globalConfigs := make(map[string]models_configs.Config)
 	for rows.Next() {
 		var id string
 		var isList bool
@@ -92,24 +91,24 @@ func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[stri
 		}
 		if isList {
 			switch dataType {
-			case models_config.StringType:
+			case models_configs.StringType:
 				config.StringSlice = append(config.StringSlice, vString.String)
-			case models_config.Int64Type:
+			case models_configs.Int64Type:
 				config.Int64Slice = append(config.Int64Slice, vInt.Int64)
-			case models_config.Float64Type:
+			case models_configs.Float64Type:
 				config.Float64Slice = append(config.Float64Slice, vFloat.Float64)
-			case models_config.BoolType:
+			case models_configs.BoolType:
 				config.BoolSlice = append(config.BoolSlice, vBool.Bool)
 			}
 		} else {
 			switch dataType {
-			case models_config.StringType:
+			case models_configs.StringType:
 				config.String = vString.String
-			case models_config.Int64Type:
+			case models_configs.Int64Type:
 				config.Int64 = vInt.Int64
-			case models_config.Float64Type:
+			case models_configs.Float64Type:
 				config.Float64 = vFloat.Float64
-			case models_config.BoolType:
+			case models_configs.BoolType:
 				config.Bool = vBool.Bool
 			}
 		}
@@ -118,7 +117,7 @@ func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[stri
 	return globalConfigs, nil
 }
 
-func (h *Handler) UpdateGlobalConfig(ctx context.Context, config models_handler_global_configs.Config) (err error) {
+func (h *Handler) UpdateGlobalConfig(ctx context.Context, config models_configs.Config) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return

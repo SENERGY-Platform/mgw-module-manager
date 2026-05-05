@@ -5,12 +5,11 @@ import (
 	"io/fs"
 
 	lib_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
-	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
+	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
 	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
-	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 )
@@ -124,12 +123,12 @@ type auxiliaryDeploymentsHandler interface {
 		ctx context.Context,
 		deploymentId string,
 		filterReferences []string,
-	) (map[string]aux_deployments.AuxiliaryDeploymentVolume, error)
+	) (map[string]models_aux_deployments.AuxiliaryDeploymentVolume, error)
 	GetVolumesWithMounts(
 		ctx context.Context,
 		deploymentId string,
 		filterReferences []string,
-	) (map[string]aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error)
+	) (map[string]models_aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error)
 	DeleteVolumes(
 		ctx context.Context,
 		deploymentId string,
@@ -145,10 +144,10 @@ type auxiliaryDeploymentsHandler interface {
 }
 
 type globalConfigsHandler interface {
-	CreateGlobalConfig(ctx context.Context, name string, value models_config.Value) (string, error)
-	ReadGlobalConfig(ctx context.Context, id string) (models_handler_global_configs.Config, error)
-	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_global_configs.Config, error)
-	UpdateGlobalConfig(ctx context.Context, config models_handler_global_configs.Config) error
+	CreateGlobalConfig(ctx context.Context, name string, value models_configs.Value) (string, error)
+	ReadGlobalConfig(ctx context.Context, id string) (models_configs.Config, error)
+	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_configs.Config, error)
+	UpdateGlobalConfig(ctx context.Context, config models_configs.Config) error
 	DeleteGlobalConfig(ctx context.Context, id string) error
 	DeleteGlobalConfigs(ctx context.Context, ids []string, allowAll bool) error
 }

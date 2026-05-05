@@ -19,14 +19,14 @@ package handler_global_configs
 import (
 	"context"
 
-	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
+	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 )
 
 type databaseHandler interface {
-	CreateGlobalConfig(ctx context.Context, config models_handler_global_configs.Config) error
-	ReadGlobalConfig(ctx context.Context, id string) (models_handler_global_configs.Config, error)
-	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_global_configs.Config, error)
-	UpdateGlobalConfig(ctx context.Context, config models_handler_global_configs.Config) error
+	CreateGlobalConfig(ctx context.Context, config models_configs.Config) error
+	ReadGlobalConfig(ctx context.Context, id string) (models_configs.Config, error)
+	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_configs.Config, error)
+	UpdateGlobalConfig(ctx context.Context, config models_configs.Config) error
 	DeleteGlobalConfig(ctx context.Context, id string) error
 	DeleteGlobalConfigs(ctx context.Context, ids []string) error
 }

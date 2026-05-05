@@ -17,10 +17,9 @@
 package handler_deployments
 
 import (
-	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 )
 
 const (
@@ -34,7 +33,7 @@ const (
 const dirPerm = 0770
 
 type defaultDataCollection struct {
-	Configs map[string]models_config.Value
+	Configs map[string]models_configs.Value
 	Files   map[string][]byte
 }
 type userDataCollection struct {
@@ -59,7 +58,7 @@ type fileGroupMount struct {
 
 type cacheCollection struct {
 	HostResources map[string]models_external.HostResource
-	GlobalConfigs map[string]models_handler_global_configs.Config
+	GlobalConfigs map[string]models_configs.Config
 	SecretValues  map[string]models_external.SecretValueVariant
 	Deployments   map[string]deploymentsCacheItem
 }

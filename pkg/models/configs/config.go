@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models_config
+package configs
 
 const (
 	StringType = iota
@@ -34,4 +34,10 @@ type Value struct {
 	Float64Slice []float64
 	Bool         bool
 	BoolSlice    []bool
+}
+
+type Config struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+	Value
 }

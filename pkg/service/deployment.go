@@ -29,7 +29,7 @@ import (
 	lib_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
@@ -371,7 +371,7 @@ func getUserInputs(
 			return nil, errors.New("duplicate module id " + userInput.ModuleId) // TODO
 		}
 		handlerModule := handlerModules[userInput.ModuleId]
-		configs := make(map[string]models_config.Value)
+		configs := make(map[string]models_configs.Value)
 		for reference, itfValue := range userInput.Configs {
 			value, err := helper_configs.GetValueWithValidation(itfValue, handlerModule.Configs[reference])
 			if err != nil {

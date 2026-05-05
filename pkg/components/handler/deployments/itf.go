@@ -19,9 +19,9 @@ package handler_deployments
 import (
 	"context"
 
+	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 )
 
 type databaseHandler interface {
@@ -73,7 +73,7 @@ type databaseHandler interface {
 		ctx context.Context,
 		deploymentIds []string,
 	) (map[string]map[string]models_handler_database.DeploymentFileGroup, error)
-	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_global_configs.Config, error)
+	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_configs.Config, error)
 	UpdateDeploymentsEnabledState(ctx context.Context, deploymentIds []string, state bool) error
 	UpdateDeploymentContainerNames(ctx context.Context, containers []models_handler_database.DeploymentContainer) error
 	UpdateDeployment(

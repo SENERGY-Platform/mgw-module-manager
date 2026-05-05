@@ -25,16 +25,15 @@ import (
 
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 )
 
 func (h *Handler) updateGlobalConfigsCache(
 	ctx context.Context,
 	userDataGlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig,
-	cacheGlobalConfigs map[string]models_handler_global_configs.Config,
+	cacheGlobalConfigs map[string]models_configs.Config,
 ) error {
 	selectedIds := helper_slices.CollectFunc(maps.Values(userDataGlobalConfigs), func(item models_handler_database.DeploymentGlobalConfig) string {
 		return item.Id
@@ -69,7 +68,7 @@ func (h *Handler) updateGlobalConfigsCache(
 
 func checkConfigs(
 	moduleConfigs models_external.ModuleLibConfigs,
-	configs map[string]models_config.Value,
+	configs map[string]models_configs.Value,
 ) error {
 	var errs []string
 	for reference, moduleConfig := range moduleConfigs {
@@ -85,12 +84,12 @@ func checkConfigs(
 }
 
 func mergeConfigs(
-	defaultConfigs map[string]models_config.Value,
+	defaultConfigs map[string]models_configs.Value,
 	userDataConfigs map[string]models_handler_database.DeploymentUserConfig,
 	userDataGlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig,
-	cacheGlobalConfigs map[string]models_handler_global_configs.Config,
-) map[string]models_config.Value {
-	configs := make(map[string]models_config.Value)
+	cacheGlobalConfigs map[string]models_configs.Config,
+) map[string]models_configs.Value {
+	configs := make(map[string]models_configs.Value)
 	maps.Copy(configs, defaultConfigs)
 	for reference, providedConfig := range userDataConfigs {
 		configs[reference] = providedConfig.Value
@@ -104,8 +103,8 @@ func mergeConfigs(
 	return configs
 }
 
-func getDefaultConfigs(moduleConfigs models_external.ModuleLibConfigs) (map[string]models_config.Value, error) {
-	configs := make(map[string]models_config.Value)
+func getDefaultConfigs(moduleConfigs models_external.ModuleLibConfigs) (map[string]models_configs.Value, error) {
+	configs := make(map[string]models_configs.Value)
 	var errs []string
 	for reference, moduleConfig := range moduleConfigs {
 		if moduleConfig.Default == nil {
@@ -146,8 +145,8 @@ func getSelectedGlobalConfigs(
 
 func getProvidedConfigs(
 	moduleConfigs models_external.ModuleLibConfigs,
-	defaultConfigs map[string]models_config.Value,
-	userInputConfigs map[string]models_config.Value,
+	defaultConfigs map[string]models_configs.Value,
+	userInputConfigs map[string]models_configs.Value,
 	deploymentId string,
 ) (map[string]models_handler_database.DeploymentUserConfig, error) {
 	configs := make(map[string]models_handler_database.DeploymentUserConfig)

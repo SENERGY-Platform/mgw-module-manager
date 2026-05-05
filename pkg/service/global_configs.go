@@ -21,7 +21,7 @@ import (
 
 	lib_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
-	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
+	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 )
 
 func (s *Service) CreateGlobalConfig(ctx context.Context, input lib_service.GlobalConfigInput) (string, error) {
@@ -51,11 +51,11 @@ func (s *Service) ReadGlobalConfigs(ctx context.Context, ids []string) (map[stri
 	if err != nil {
 		return nil, err
 	}
-	configs := make(map[string]lib_service.GlobalConfig)
+	globalConfigs := make(map[string]lib_service.GlobalConfig)
 	for id, tmpConfig := range tmp {
-		configs[id] = newGlobalConfig(tmpConfig)
+		globalConfigs[id] = newGlobalConfig(tmpConfig)
 	}
-	return configs, nil
+	return globalConfigs, nil
 }
 
 func (s *Service) UpdateGlobalConfig(ctx context.Context, config lib_service.GlobalConfig) error {
@@ -65,7 +65,7 @@ func (s *Service) UpdateGlobalConfig(ctx context.Context, config lib_service.Glo
 	if err != nil {
 		return err
 	}
-	return s.globalConfigsHandler.UpdateGlobalConfig(ctx, models_handler_global_configs.Config{
+	return s.globalConfigsHandler.UpdateGlobalConfig(ctx, models_configs.Config{
 		Id:    config.Id,
 		Name:  config.Name,
 		Value: value,
@@ -84,7 +84,7 @@ func (s *Service) DeleteGlobalConfigs(ctx context.Context, ids []string, allowAl
 	return s.globalConfigsHandler.DeleteGlobalConfigs(ctx, ids, allowAll)
 }
 
-func newGlobalConfig(config models_handler_global_configs.Config) lib_service.GlobalConfig {
+func newGlobalConfig(config models_configs.Config) lib_service.GlobalConfig {
 	return lib_service.GlobalConfig{
 		Id:   config.Id,
 		Name: config.Name,

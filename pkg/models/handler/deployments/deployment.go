@@ -18,7 +18,7 @@ package models_handler_deployments
 
 import (
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
-	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
@@ -62,7 +62,7 @@ type UserInput struct {
 	ModuleId      string
 	HostResources map[string]string                        // {ref:resourceID}
 	Secrets       map[string]string                        // {ref:secretID}
-	Configs       map[string]models_config.Value           // {ref:Config}
+	Configs       map[string]models_configs.Value          // {ref:Config}
 	GlobalConfigs map[string]string                        // {ref:configID}
 	Files         map[string][]byte                        // {ref:data}
 	FileGroups    map[string]map[string]FileGroupUserInput // {ref:{path:FileGroupUserInput}}

@@ -20,8 +20,7 @@ import (
 	"context"
 
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
-	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
+	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 )
 
 type Handler struct {
@@ -32,12 +31,12 @@ func New(databaseHandler databaseHandler) *Handler {
 	return &Handler{databaseHandler: databaseHandler}
 }
 
-func (h *Handler) CreateGlobalConfig(ctx context.Context, name string, value models_config.Value) (string, error) {
+func (h *Handler) CreateGlobalConfig(ctx context.Context, name string, value models_configs.Value) (string, error) {
 	id, err := helper_uuid.New()
 	if err != nil {
 		return "", err
 	}
-	err = h.databaseHandler.CreateGlobalConfig(ctx, models_handler_global_configs.Config{
+	err = h.databaseHandler.CreateGlobalConfig(ctx, models_configs.Config{
 		Id:    id,
 		Value: value,
 		Name:  name,
@@ -48,15 +47,15 @@ func (h *Handler) CreateGlobalConfig(ctx context.Context, name string, value mod
 	return id, nil
 }
 
-func (h *Handler) ReadGlobalConfig(ctx context.Context, id string) (models_handler_global_configs.Config, error) {
+func (h *Handler) ReadGlobalConfig(ctx context.Context, id string) (models_configs.Config, error) {
 	return h.databaseHandler.ReadGlobalConfig(ctx, id)
 }
 
-func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_handler_global_configs.Config, error) {
+func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_configs.Config, error) {
 	return h.databaseHandler.ReadGlobalConfigs(ctx, ids)
 }
 
-func (h *Handler) UpdateGlobalConfig(ctx context.Context, config models_handler_global_configs.Config) error {
+func (h *Handler) UpdateGlobalConfig(ctx context.Context, config models_configs.Config) error {
 	return h.databaseHandler.UpdateGlobalConfig(ctx, config)
 }
 

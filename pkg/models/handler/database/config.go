@@ -16,10 +16,10 @@
 
 package models_handler_database
 
-import models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+import models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 
 type GlobalConfig struct {
 	Id   string
 	Name string
-	models_config.Value
+	models_configs.Value
 }

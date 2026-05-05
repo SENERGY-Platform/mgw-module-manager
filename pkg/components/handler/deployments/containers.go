@@ -26,7 +26,7 @@ import (
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
-	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
@@ -43,7 +43,7 @@ func (h *Handler) createContainers(
 	userDataHostResources map[string]models_handler_database.DeploymentHostResource,
 	containers map[string]models_handler_database.DeploymentContainer,
 	volumes map[string]models_handler_database.DeploymentVolume,
-	configs map[string]models_config.Value,
+	configs map[string]models_configs.Value,
 	bindMounts bindMountDataCollection,
 	cacheSecretValues map[string]models_external.SecretValueVariant,
 	cacheDeployments map[string]deploymentsCacheItem,
@@ -447,7 +447,7 @@ func newCewRunConfig(serviceRunConfig models_external.ModuleLibRunConfig) models
 
 func configsToStrings(
 	moduleConfigs models_external.ModuleLibConfigs,
-	configs map[string]models_config.Value,
+	configs map[string]models_configs.Value,
 ) map[string]string {
 	configValues := make(map[string]string)
 	for reference, config := range configs {

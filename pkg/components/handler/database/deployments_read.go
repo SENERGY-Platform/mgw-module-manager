@@ -23,7 +23,7 @@ import (
 	"time"
 
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
@@ -291,24 +291,24 @@ func (h *Handler) ReadDeploymentsConfigs(ctx context.Context, deploymentIds []st
 		}
 		if isList {
 			switch dataType {
-			case models_config.StringType:
+			case models_configs.StringType:
 				config.StringSlice = append(config.StringSlice, vString.String)
-			case models_config.Int64Type:
+			case models_configs.Int64Type:
 				config.Int64Slice = append(config.Int64Slice, vInt.Int64)
-			case models_config.Float64Type:
+			case models_configs.Float64Type:
 				config.Float64Slice = append(config.Float64Slice, vFloat.Float64)
-			case models_config.BoolType:
+			case models_configs.BoolType:
 				config.BoolSlice = append(config.BoolSlice, vBool.Bool)
 			}
 		} else {
 			switch dataType {
-			case models_config.StringType:
+			case models_configs.StringType:
 				config.String = vString.String
-			case models_config.Int64Type:
+			case models_configs.Int64Type:
 				config.Int64 = vInt.Int64
-			case models_config.Float64Type:
+			case models_configs.Float64Type:
 				config.Float64 = vFloat.Float64
-			case models_config.BoolType:
+			case models_configs.BoolType:
 				config.Bool = vBool.Bool
 			}
 		}
