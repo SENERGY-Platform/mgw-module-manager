@@ -19,7 +19,7 @@ package handler_dep_advertisements
 import (
 	"context"
 
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	lib_models_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/lib/models/dep_advertisements"
 )
 
 type databaseHandler interface {
@@ -27,20 +27,20 @@ type databaseHandler interface {
 		ctx context.Context,
 		deploymentId string,
 		reference string,
-	) (models_handler_database.DeploymentAdvertisement, error)
+	) (lib_models_dep_advertisements.DeploymentAdvertisement, error)
 	ReadDeploymentAdvertisements(
 		ctx context.Context,
-		filter models_handler_database.DeploymentAdvertisementsFilter,
-	) (map[string]models_handler_database.DeploymentAdvertisement, error)
+		filter lib_models_dep_advertisements.DeploymentAdvertisementsFilter,
+	) (map[string]lib_models_dep_advertisements.DeploymentAdvertisement, error)
 	WriteDeploymentAdvertisements(
 		ctx context.Context,
 		deploymentId string,
-		advertisements []models_handler_database.DeploymentAdvertisement,
+		advertisements []lib_models_dep_advertisements.DeploymentAdvertisement,
 		incremental bool,
 	) error
 	DeleteDeploymentAdvertisements(
 		ctx context.Context,
 		deploymentId string,
-		filter models_handler_database.DeploymentAdvertisementsFilterReduced,
+		filter lib_models_dep_advertisements.DeploymentAdvertisementsFilterReduced,
 	) error
 }

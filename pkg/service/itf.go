@@ -157,12 +157,12 @@ type deploymentAdvertisementsHandler interface {
 		ctx context.Context,
 		deploymentId string,
 		reference string,
-	) (models_handler_database.DeploymentAdvertisement, error)
-	GetAdvertisementById(ctx context.Context, id string) (models_handler_database.DeploymentAdvertisement, error)
+	) (lib_models_dep_advertisements.DeploymentAdvertisement, error)
+	GetAdvertisementById(ctx context.Context, id string) (lib_models_dep_advertisements.DeploymentAdvertisement, error)
 	GetAdvertisements(
 		ctx context.Context,
-		filter models_handler_database.DeploymentAdvertisementsFilter,
-	) (map[string]models_handler_database.DeploymentAdvertisement, error)
+		filter lib_models_dep_advertisements.DeploymentAdvertisementsFilter,
+	) (map[string]lib_models_dep_advertisements.DeploymentAdvertisement, error)
 	PutAdvertisement(
 		ctx context.Context,
 		moduleId string,
@@ -180,7 +180,7 @@ type deploymentAdvertisementsHandler interface {
 	DeleteAdvertisements(
 		ctx context.Context,
 		deploymentId string,
-		filter models_handler_database.DeploymentAdvertisementsFilterReduced,
+		filter lib_models_dep_advertisements.DeploymentAdvertisementsFilterReduced,
 		allowAll bool,
 	) error
 }

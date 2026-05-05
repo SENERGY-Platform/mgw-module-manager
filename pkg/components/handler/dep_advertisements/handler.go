@@ -26,7 +26,6 @@ import (
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 type Handler struct {
@@ -41,27 +40,27 @@ func (h *Handler) GetAdvertisement(
 	ctx context.Context,
 	deploymentId string,
 	reference string,
-) (models_handler_database.DeploymentAdvertisement, error) {
+) (lib_models_dep_advertisements.DeploymentAdvertisement, error) {
 	return h.databaseHandler.ReadDeploymentAdvertisement(ctx, deploymentId, reference)
 }
 
-func (h *Handler) GetAdvertisementById(ctx context.Context, id string) (models_handler_database.DeploymentAdvertisement, error) {
-	advertisements, err := h.databaseHandler.ReadDeploymentAdvertisements(ctx, models_handler_database.DeploymentAdvertisementsFilter{
+func (h *Handler) GetAdvertisementById(ctx context.Context, id string) (lib_models_dep_advertisements.DeploymentAdvertisement, error) {
+	advertisements, err := h.databaseHandler.ReadDeploymentAdvertisements(ctx, lib_models_dep_advertisements.DeploymentAdvertisementsFilter{
 		Ids: []string{id},
 	})
 	if err != nil {
-		return models_handler_database.DeploymentAdvertisement{}, err
+		return lib_models_dep_advertisements.DeploymentAdvertisement{}, err
 	}
 	if len(advertisements) == 0 {
-		return models_handler_database.DeploymentAdvertisement{}, models_error.NotFoundErr
+		return lib_models_dep_advertisements.DeploymentAdvertisement{}, models_error.NotFoundErr
 	}
 	return advertisements[id], nil
 }
 
 func (h *Handler) GetAdvertisements(
 	ctx context.Context,
-	filter models_handler_database.DeploymentAdvertisementsFilter,
-) (map[string]models_handler_database.DeploymentAdvertisement, error) {
+	filter lib_models_dep_advertisements.DeploymentAdvertisementsFilter,
+) (map[string]lib_models_dep_advertisements.DeploymentAdvertisement, error) {
 	return h.databaseHandler.ReadDeploymentAdvertisements(ctx, filter)
 }
 
@@ -79,7 +78,7 @@ func (h *Handler) PutAdvertisement(
 	err = h.databaseHandler.WriteDeploymentAdvertisements(
 		ctx,
 		deploymentId,
-		[]models_handler_database.DeploymentAdvertisement{advertisement},
+		[]lib_models_dep_advertisements.DeploymentAdvertisement{advertisement},
 		true,
 	)
 	if err != nil {
@@ -96,7 +95,7 @@ func (h *Handler) PutAdvertisements(
 	incremental bool,
 ) (map[string]string, error) {
 	timestamp := helper_time.Now()
-	var advertisements []models_handler_database.DeploymentAdvertisement
+	var advertisements []lib_models_dep_advertisements.DeploymentAdvertisement
 	res := make(map[string]string)
 	for _, input := range inputs {
 		advertisement, err := newDatabaseAdvertisement(moduleId, deploymentId, timestamp, input.Reference, input.Items)
@@ -116,7 +115,7 @@ func (h *Handler) PutAdvertisements(
 func (h *Handler) DeleteAdvertisements(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_database.DeploymentAdvertisementsFilterReduced,
+	filter lib_models_dep_advertisements.DeploymentAdvertisementsFilterReduced,
 	allowAll bool,
 ) error {
 	if !allowAll && filterEmpty(filter) {
@@ -131,14 +130,14 @@ func newDatabaseAdvertisement(
 	timestamp time.Time,
 	reference string,
 	items map[string]string,
-) (models_handler_database.DeploymentAdvertisement, error) {
+) (lib_models_dep_advertisements.DeploymentAdvertisement, error) {
 	id, err := helper_uuid.New()
 	if err != nil {
-		return models_handler_database.DeploymentAdvertisement{}, err
+		return lib_models_dep_advertisements.DeploymentAdvertisement{}, err
 	}
 	originHash := sha256.New()
 	originHash.Write([]byte(deploymentId))
-	return models_handler_database.DeploymentAdvertisement{
+	return lib_models_dep_advertisements.DeploymentAdvertisement{
 		Id:        id,
 		ModuleId:  moduleId,
 		Origin:    hex.EncodeToString(originHash.Sum(nil)),
@@ -148,7 +147,7 @@ func newDatabaseAdvertisement(
 	}, nil
 }
 
-func filterEmpty(filter models_handler_database.DeploymentAdvertisementsFilterReduced) bool {
+func filterEmpty(filter lib_models_dep_advertisements.DeploymentAdvertisementsFilterReduced) bool {
 	switch {
 	case len(filter.References) > 0:
 		return false
