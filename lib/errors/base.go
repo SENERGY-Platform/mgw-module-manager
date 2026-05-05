@@ -16,6 +16,8 @@
 
 package lib_errors
 
+import "fmt"
+
 type iErrBase interface {
 	Error() string
 	Unwrap() error
@@ -25,11 +27,11 @@ func New[
 	T iErrBase,
 	PT interface {
 		*T
-		set(msg string, err error)
+		set(msg string, err error, args []interface{})
 	},
-](msg string) *T {
+](msg string, args ...interface{}) *T {
 	pt := PT(new(T))
-	pt.set(msg, nil)
+	pt.set(msg, nil, args)
 	return pt
 }
 
@@ -37,26 +39,45 @@ func Wrap[
 	T iErrBase,
 	PT interface {
 		*T
-		set(msg string, err error)
+		set(msg string, err error, args []interface{})
 	},
-](err error) *T {
+](err error, args ...interface{}) *T {
 	pt := PT(new(T))
-	pt.set("", err)
+	pt.set("", err, args)
 	return pt
 }
 
 type errBase struct {
-	msg string
-	err error
+	msg  string
+	err  error
+	args []interface{}
 }
 
 func (e errBase) Error() string {
 	if e.err != nil {
-		return e.err.Error()
+		return genErrString(e.err.Error(), e.args)
 	}
-	return e.msg
+	return genErrString(e.msg, e.args)
 }
 
 func (e errBase) Unwrap() error {
 	return e.err
+}
+
+func genErrString(msg string, args []interface{}) string {
+	if len(args) == 0 {
+		return msg
+	}
+	s := "msg=" + msg
+	isKey := true
+	for _, arg := range args {
+		if isKey {
+			s += fmt.Sprintf(" %v=", arg)
+			isKey = false
+		} else {
+			s += fmt.Sprintf("%v", arg)
+			isKey = true
+		}
+	}
+	return s
 }

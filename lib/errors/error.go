@@ -20,11 +20,12 @@ type ErrNotFound struct {
 	errBase
 }
 
-func (e *ErrNotFound) set(msg string, err error) {
+func (e *ErrNotFound) set(msg string, err error, args []interface{}) {
 	*e = ErrNotFound{
 		errBase{
-			msg: msg,
-			err: err,
+			msg:  msg,
+			err:  err,
+			args: args,
 		},
 	}
 }
