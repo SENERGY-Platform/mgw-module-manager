@@ -25,7 +25,7 @@ import (
 	"slices"
 	"strings"
 
-	lib_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
@@ -42,26 +42,26 @@ func (h *Handler) CreateDeployment(
 	module models_handler_modules.Module,
 	activeDeployment models_handler_deployments.Deployment,
 	dependencies map[string]models_handler_deployments.DeploymentReduced,
-	serviceInput lib_aux_deployments.ServiceInput,
-) (lib_aux_deployments.Result, error) {
+	serviceInput lib_models_aux_deployments.ServiceInput,
+) (lib_models_aux_deployments.Result, error) {
 	mu := h.mutexes.Get(activeDeployment.Id)
 	mu.Lock()
 	defer mu.Unlock()
 	auxService, ok := module.AuxServices[serviceInput.Reference]
 	if !ok {
-		return lib_aux_deployments.Result{}, errors.New("auxiliary service reference not found") // TODO
+		return lib_models_aux_deployments.Result{}, errors.New("auxiliary service reference not found") // TODO
 	}
 	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id, nil)
 	if err != nil {
-		return lib_aux_deployments.Result{}, err
+		return lib_models_aux_deployments.Result{}, err
 	}
 	err = validateImage(module.AuxImgSrc, serviceInput.Image)
 	if err != nil {
-		return lib_aux_deployments.Result{}, err
+		return lib_models_aux_deployments.Result{}, err
 	}
 	id, err := helper_uuid.New()
 	if err != nil {
-		return lib_aux_deployments.Result{}, err
+		return lib_models_aux_deployments.Result{}, err
 	}
 	newAuxDeployment, err := getAuxiliaryDeployment(
 		auxService.Name,
@@ -72,13 +72,13 @@ func (h *Handler) CreateDeployment(
 		serviceInput,
 	)
 	if err != nil {
-		return lib_aux_deployments.Result{}, err
+		return lib_models_aux_deployments.Result{}, err
 	}
 	newAuxDeployment.Created = helper_time.Now()
 	newAuxDeployment.Updated = newAuxDeployment.Created
 	deploymentConfigs, err := getDeploymentConfigs(module.Configs, auxService.Configs, activeDeployment.Configs)
 	if err != nil {
-		return lib_aux_deployments.Result{}, err
+		return lib_models_aux_deployments.Result{}, err
 	}
 	newAuxDeploymentVolumes := getNewVolumes(activeDeployment.Id, serviceInput.Volumes, auxDeploymentVolumes)
 	err = h.databaseHandler.CreateAuxiliaryDeploymentVolumes(
@@ -87,7 +87,7 @@ func (h *Handler) CreateDeployment(
 		slices.Collect(maps.Values(newAuxDeploymentVolumes)),
 	)
 	if err != nil {
-		return lib_aux_deployments.Result{}, err
+		return lib_models_aux_deployments.Result{}, err
 	}
 	maps.Copy(auxDeploymentVolumes, newAuxDeploymentVolumes)
 	volumeMounts := getVolumeMounts(newAuxDeployment.Id, serviceInput.Volumes, auxDeploymentVolumes)
@@ -99,7 +99,7 @@ func (h *Handler) CreateDeployment(
 		volumeMounts,
 	)
 	if err != nil {
-		return lib_aux_deployments.Result{}, err
+		return lib_models_aux_deployments.Result{}, err
 	}
 	defer func() {
 		if err != nil {
@@ -117,7 +117,7 @@ func (h *Handler) CreateDeployment(
 		auxDeploymentVolumes,
 	)
 	if err != nil {
-		return lib_aux_deployments.Result{}, err
+		return lib_models_aux_deployments.Result{}, err
 	}
 	err = h.createContainer(
 		ctx,
@@ -130,9 +130,9 @@ func (h *Handler) CreateDeployment(
 		volumeMounts,
 	)
 	if err != nil {
-		return lib_aux_deployments.Result{}, err
+		return lib_models_aux_deployments.Result{}, err
 	}
-	return lib_aux_deployments.Result{
+	return lib_models_aux_deployments.Result{
 		Id:             newAuxDeployment.Id,
 		ContainerAlias: newAuxDeployment.Container.Alias,
 	}, nil
@@ -165,7 +165,7 @@ func getAuxiliaryDeployment(
 	deploymentId string,
 	auxDeploymentId string,
 	containerAlias string,
-	serviceInput lib_aux_deployments.ServiceInput,
+	serviceInput lib_models_aux_deployments.ServiceInput,
 ) (aux_deployments.AuxiliaryDeployment, error) {
 	ctrName, err := helper_naming.NewContainerName(models_constants.AuxDeploymentAbbreviation)
 	if err != nil {
@@ -197,7 +197,7 @@ func getAuxiliaryDeployment(
 			Name:  ctrName,
 			Alias: containerAlias,
 		},
-		RunConfig: lib_aux_deployments.AuxiliaryDeploymentRunConfig{
+		RunConfig: lib_models_aux_deployments.AuxiliaryDeploymentRunConfig{
 			Command:   command,
 			PseudoTTY: pseudoTTY,
 		},

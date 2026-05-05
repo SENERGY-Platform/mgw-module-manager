@@ -21,7 +21,7 @@ import (
 	"maps"
 	"slices"
 
-	lib_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
@@ -37,8 +37,8 @@ func (h *Handler) RecreateDeployments(
 	module models_handler_modules.Module,
 	activeDeployment models_handler_deployments.Deployment,
 	dependencies map[string]models_handler_deployments.DeploymentReduced,
-	filter lib_aux_deployments.AuxiliaryDeploymentsFilterWithState,
-) ([]lib_aux_deployments.BatchResult, error) {
+	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+) ([]lib_models_aux_deployments.BatchResult, error) {
 	mu := h.mutexes.Get(activeDeployment.Id)
 	mu.Lock()
 	defer mu.Unlock()
@@ -64,9 +64,9 @@ func (h *Handler) RecreateDeployments(
 		return nil, err
 	}
 	cacheDeploymentConfigs := make(map[string]map[string]string)
-	var results []lib_aux_deployments.BatchResult
+	var results []lib_models_aux_deployments.BatchResult
 	for id, auxDep := range auxDeployments {
-		result := lib_aux_deployments.BatchResult{Id: id}
+		result := lib_models_aux_deployments.BatchResult{Id: id}
 		auxService, ok := module.AuxServices[auxDep.Reference]
 		if !ok {
 			result.ErrorResult = models_error.NewErrorResult("auxiliary service reference not found")
@@ -153,7 +153,7 @@ func (h *Handler) recreateAuxiliaryDeployment(
 func (h *Handler) readAuxiliaryDeploymentsAndFilterByState(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) (map[string]aux_deployments.AuxiliaryDeployment, error) {
 	auxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, filter.AuxiliaryDeploymentsFilter)
 	if err != nil {

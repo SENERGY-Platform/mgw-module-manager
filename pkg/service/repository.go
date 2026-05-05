@@ -7,8 +7,8 @@ import (
 	"slices"
 	"strings"
 
-	lib_results "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
-	lib_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
+	lib_models_results "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
+	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
@@ -17,41 +17,41 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 )
 
-func (s *Service) RefreshRepositories(_ context.Context) (lib_service.Job, error) {
+func (s *Service) RefreshRepositories(_ context.Context) (lib_models_service.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	_, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
 	if ok {
-		return lib_service.Job{}, errors.New("active job") // TODO
+		return lib_models_service.Job{}, errors.New("active job") // TODO
 	}
 	s.changeRequest = nil
 	job, err := s.jobsHandler.CreateSlotJob(repositoryJobSlotNum, "refresh repositories")
 	if err != nil {
-		return lib_service.Job{}, err
+		return lib_models_service.Job{}, err
 	}
 	go func() {
 		defer job.Done()
-		jobResult := lib_service.JobResult{JobId: job.Id}
+		jobResult := lib_models_service.JobResult{JobId: job.Id}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_results.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models_results.NewErrorResult(fmt.Sprintf("panic: %v", err))
 				s.setRefreshRepositoriesJobResult(job.Id, jobResult)
 			}
 		}()
 		err = s.repositoriesHandler.RefreshRepositories(job.Context())
 		if err != nil {
-			jobResult.ErrorResult = lib_results.NewErrorResult(err.Error())
+			jobResult.ErrorResult = lib_models_results.NewErrorResult(err.Error())
 		}
 		s.setRefreshRepositoriesJobResult(job.Id, jobResult)
 	}()
-	return lib_service.Job{
+	return lib_models_service.Job{
 		Id:          job.Id,
 		Description: job.Description,
 		Start:       job.Start,
 	}, nil
 }
 
-func (s *Service) RepoModules(ctx context.Context, filter lib_service.RepoModulesFilter) ([]lib_service.RepoModule, error) {
+func (s *Service) RepoModules(ctx context.Context, filter lib_models_service.RepoModulesFilter) ([]lib_models_service.RepoModule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	_, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
@@ -81,11 +81,11 @@ func (s *Service) RepoModules(ctx context.Context, filter lib_service.RepoModule
 	return handleInstalledMods(mods, installedMods, filter.Installed, filter.UpdateAvailable), nil
 }
 
-func (s *Service) repoModules(repos []models_handler_repositories.Repository, repoMods []models_handler_repositories.Module) ([]lib_service.RepoModule, error) {
+func (s *Service) repoModules(repos []models_handler_repositories.Repository, repoMods []models_handler_repositories.Module) ([]lib_models_service.RepoModule, error) {
 	reposTree := buildReposTree(repos)
-	var repoModules []lib_service.RepoModule
+	var repoModules []lib_models_service.RepoModule
 	for id, sources := range buildRepoModsTree(repoMods) {
-		repoModule := lib_service.RepoModule{Id: id}
+		repoModule := lib_models_service.RepoModule{Id: id}
 		var fErr error
 		for source, channels := range sources {
 			repo, ok := reposTree[source]
@@ -93,7 +93,7 @@ func (s *Service) repoModules(repos []models_handler_repositories.Repository, re
 				fErr = fmt.Errorf("repository '%s' not found", source)
 				break
 			}
-			repository := lib_service.Repository{
+			repository := lib_models_service.Repository{
 				Source:   source,
 				Priority: repo.Priority,
 			}
@@ -103,13 +103,13 @@ func (s *Service) repoModules(repos []models_handler_repositories.Repository, re
 					fErr = fmt.Errorf("channel '%s' not found", channel)
 					break
 				}
-				repository.Channels = append(repository.Channels, lib_service.Channel{
+				repository.Channels = append(repository.Channels, lib_models_service.Channel{
 					Name:     channel,
 					Priority: channelPrio,
 					Version:  repoMod.Version,
 				})
 			}
-			slices.SortStableFunc(repository.Channels, func(a, b lib_service.Channel) int {
+			slices.SortStableFunc(repository.Channels, func(a, b lib_models_service.Channel) int {
 				return b.Priority - a.Priority
 			})
 			if len(repository.Channels) == 0 {
@@ -126,18 +126,18 @@ func (s *Service) repoModules(repos []models_handler_repositories.Repository, re
 			logger.Error("invalid repository module", slog_attr.IdKey, id, slog_attr.ErrorKey, fErr)
 			continue
 		}
-		slices.SortStableFunc(repoModule.Repositories, func(a, b lib_service.Repository) int {
+		slices.SortStableFunc(repoModule.Repositories, func(a, b lib_models_service.Repository) int {
 			return b.Priority - a.Priority
 		})
 		repoModules = append(repoModules, repoModule)
 	}
-	slices.SortStableFunc(repoModules, func(a, b lib_service.RepoModule) int {
+	slices.SortStableFunc(repoModules, func(a, b lib_models_service.RepoModule) int {
 		return strings.Compare(a.Name, b.Name)
 	})
 	return repoModules, nil
 }
 
-func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_service.ChangeRequestItem, installedModsMap map[string]models_handler_modules.Module) (map[string]modWrapper, error) {
+func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models_service.ChangeRequestItem, installedModsMap map[string]models_handler_modules.Module) (map[string]modWrapper, error) {
 	// get module filesystem and modfile
 	mods := make(map[string]modWrapper)
 	for _, item := range reqItems {
@@ -236,7 +236,7 @@ func (s *Service) addRepoModDepsToMap(ctx context.Context, mod models_external.M
 	return nil
 }
 
-func newSourceFilters(repoFilters []lib_service.RepositoryFilter) []models_handler_repositories.SourceFilter {
+func newSourceFilters(repoFilters []lib_models_service.RepositoryFilter) []models_handler_repositories.SourceFilter {
 	var sourcesFilter []models_handler_repositories.SourceFilter
 	for _, repoFilter := range repoFilters {
 		sourcesFilter = append(sourcesFilter, models_handler_repositories.SourceFilter{
@@ -284,11 +284,11 @@ func buildReposTree(repos []models_handler_repositories.Repository) map[string]r
 	return reposTree
 }
 
-func handleInstalledMods(mods []lib_service.RepoModule, installedMods map[string]models_handler_modules.Module, filterInstalled, filterUpdateAvailable bool) []lib_service.RepoModule {
+func handleInstalledMods(mods []lib_models_service.RepoModule, installedMods map[string]models_handler_modules.Module, filterInstalled, filterUpdateAvailable bool) []lib_models_service.RepoModule {
 	if len(installedMods) == 0 {
 		return mods
 	}
-	var tmp []lib_service.RepoModule
+	var tmp []lib_models_service.RepoModule
 	for _, mod := range mods {
 		variant, ok := installedMods[mod.Id]
 		if ok {
@@ -296,8 +296,8 @@ func handleInstalledMods(mods []lib_service.RepoModule, installedMods map[string
 			if filterUpdateAvailable && nextVersion == "" {
 				continue
 			}
-			mod.Installed = &lib_service.InstalledModuleVariant{
-				ModuleVariant: lib_service.ModuleVariant{
+			mod.Installed = &lib_models_service.InstalledModuleVariant{
+				ModuleVariant: lib_models_service.ModuleVariant{
 					Source:  variant.Source,
 					Channel: variant.Channel,
 					Version: variant.Version,
@@ -317,7 +317,7 @@ func handleInstalledMods(mods []lib_service.RepoModule, installedMods map[string
 	return tmp
 }
 
-func getNextVersion(installed models_handler_modules.Module, repos []lib_service.Repository) string {
+func getNextVersion(installed models_handler_modules.Module, repos []lib_models_service.Repository) string {
 	for _, repo := range repos {
 		if repo.Source == installed.Source {
 			for _, channel := range repo.Channels {

@@ -19,7 +19,7 @@ package handler_aux_deployments
 import (
 	"context"
 
-	lib_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
@@ -33,7 +33,7 @@ type databaseHandler interface {
 	ReadAuxiliaryDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter lib_aux_deployments.AuxiliaryDeploymentsFilter,
+		filter lib_models_aux_deployments.AuxiliaryDeploymentsFilter,
 	) (map[string]aux_deployments.AuxiliaryDeployment, error)
 	ReadAuxiliaryDeploymentLabels(ctx context.Context, auxiliaryDeploymentId string) (map[string]string, error)
 	ReadAuxiliaryDeploymentsLabels(ctx context.Context, auxDeploymentsIds []string) (map[string]map[string]string, error)

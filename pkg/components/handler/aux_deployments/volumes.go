@@ -22,7 +22,7 @@ import (
 	"maps"
 	"strings"
 
-	lib_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
@@ -66,7 +66,7 @@ func (h *Handler) DeleteVolumes(
 	deploymentId string,
 	filterReferences []string,
 	allowAll bool,
-) ([]lib_aux_deployments.VolumeResult, error) {
+) ([]lib_models_aux_deployments.VolumeResult, error) {
 	if !allowAll && len(filterReferences) == 0 {
 		return nil, nil
 	}
@@ -84,7 +84,7 @@ func (h *Handler) DeleteUnusedVolumes(
 	ctx context.Context,
 	deploymentId string,
 	excludeReferences []string,
-) ([]lib_aux_deployments.VolumeResult, error) {
+) ([]lib_models_aux_deployments.VolumeResult, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.Lock()
 	defer mu.Unlock()
@@ -108,11 +108,11 @@ func (h *Handler) deleteVolumes(
 	ctx context.Context,
 	deploymentId string,
 	volumes map[string]aux_deployments.AuxiliaryDeploymentVolume,
-) ([]lib_aux_deployments.VolumeResult, error) {
+) ([]lib_models_aux_deployments.VolumeResult, error) {
 	var deleted []string
-	var results []lib_aux_deployments.VolumeResult
+	var results []lib_models_aux_deployments.VolumeResult
 	for reference, volume := range volumes {
-		result := lib_aux_deployments.VolumeResult{Reference: reference}
+		result := lib_models_aux_deployments.VolumeResult{Reference: reference}
 		err := h.containerEngineWrapperClient.RemoveVolume(ctx, volume.Name, false)
 		if err != nil {
 			result.ErrorResult = models_error.NewErrorResult(err.Error())

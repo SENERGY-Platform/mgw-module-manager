@@ -19,7 +19,7 @@ package service
 import (
 	"context"
 
-	lib_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
+	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
@@ -28,14 +28,14 @@ import (
 func (s *Service) QueryDeploymentAdvertisements(
 	ctx context.Context,
 	filter models_handler_database.DeploymentAdvertisementsFilter,
-) ([]lib_service.DeploymentAdvertisement, error) {
+) ([]lib_models_service.DeploymentAdvertisement, error) {
 	depAdvMap, err := s.depAdvertisementsHandler.GetAdvertisements(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
-	var depAdvs []lib_service.DeploymentAdvertisement
+	var depAdvs []lib_models_service.DeploymentAdvertisement
 	for _, depAdv := range depAdvMap {
-		depAdvs = append(depAdvs, lib_service.DeploymentAdvertisement{
+		depAdvs = append(depAdvs, lib_models_service.DeploymentAdvertisement{
 			Id:        depAdv.Id,
 			ModuleId:  depAdv.ModuleId,
 			Origin:    depAdv.Origin,
@@ -47,12 +47,12 @@ func (s *Service) QueryDeploymentAdvertisements(
 	return depAdvs, nil
 }
 
-func (s *Service) QueryDeploymentAdvertisement(ctx context.Context, id string) (lib_service.DeploymentAdvertisement, error) {
+func (s *Service) QueryDeploymentAdvertisement(ctx context.Context, id string) (lib_models_service.DeploymentAdvertisement, error) {
 	depAdv, err := s.depAdvertisementsHandler.GetAdvertisementById(ctx, id)
 	if err != nil {
-		return lib_service.DeploymentAdvertisement{}, err
+		return lib_models_service.DeploymentAdvertisement{}, err
 	}
-	return lib_service.DeploymentAdvertisement{
+	return lib_models_service.DeploymentAdvertisement{
 		Id:        depAdv.Id,
 		ModuleId:  depAdv.ModuleId,
 		Origin:    depAdv.Origin,

@@ -19,12 +19,12 @@ package service
 import (
 	"context"
 
-	lib_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
+	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 )
 
-func (s *Service) CreateGlobalConfig(ctx context.Context, input lib_service.GlobalConfigInput) (string, error) {
+func (s *Service) CreateGlobalConfig(ctx context.Context, input lib_models_service.GlobalConfigInput) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	value, err := helper_configs.GetValue(input.Value, input.DataType, input.IsSlice)
@@ -34,31 +34,31 @@ func (s *Service) CreateGlobalConfig(ctx context.Context, input lib_service.Glob
 	return s.globalConfigsHandler.CreateGlobalConfig(ctx, input.Name, value)
 }
 
-func (s *Service) ReadGlobalConfig(ctx context.Context, id string) (lib_service.GlobalConfig, error) {
+func (s *Service) ReadGlobalConfig(ctx context.Context, id string) (lib_models_service.GlobalConfig, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	config, err := s.globalConfigsHandler.ReadGlobalConfig(ctx, id)
 	if err != nil {
-		return lib_service.GlobalConfig{}, err
+		return lib_models_service.GlobalConfig{}, err
 	}
 	return newGlobalConfig(config), nil
 }
 
-func (s *Service) ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]lib_service.GlobalConfig, error) {
+func (s *Service) ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]lib_models_service.GlobalConfig, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	tmp, err := s.globalConfigsHandler.ReadGlobalConfigs(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
-	globalConfigs := make(map[string]lib_service.GlobalConfig)
+	globalConfigs := make(map[string]lib_models_service.GlobalConfig)
 	for id, tmpConfig := range tmp {
 		globalConfigs[id] = newGlobalConfig(tmpConfig)
 	}
 	return globalConfigs, nil
 }
 
-func (s *Service) UpdateGlobalConfig(ctx context.Context, config lib_service.GlobalConfig) error {
+func (s *Service) UpdateGlobalConfig(ctx context.Context, config lib_models_service.GlobalConfig) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	value, err := helper_configs.GetValue(config.Value, config.DataType, config.IsSlice)
@@ -84,11 +84,11 @@ func (s *Service) DeleteGlobalConfigs(ctx context.Context, ids []string, allowAl
 	return s.globalConfigsHandler.DeleteGlobalConfigs(ctx, ids, allowAll)
 }
 
-func newGlobalConfig(config models_configs.Config) lib_service.GlobalConfig {
-	return lib_service.GlobalConfig{
+func newGlobalConfig(config models_configs.Config) lib_models_service.GlobalConfig {
+	return lib_models_service.GlobalConfig{
 		Id:   config.Id,
 		Name: config.Name,
-		InterfaceValue: lib_service.InterfaceValue{
+		InterfaceValue: lib_models_service.InterfaceValue{
 			DataType: config.DataType,
 			IsSlice:  config.IsSlice,
 			Value:    helper_configs.ValueToInterface(config.Value),
