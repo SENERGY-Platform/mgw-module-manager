@@ -28,7 +28,7 @@ import (
 func (h *Handler) DeleteDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 	allowAll bool,
 ) ([]aux_deployments.BatchResult, error) {
 	if !allowAll && filterEmpty(filter) {
@@ -64,7 +64,7 @@ func (h *Handler) DeleteMutex(deploymentId string) {
 	h.mutexes.Delete(deploymentId)
 }
 
-func filterEmpty(filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter) bool {
+func filterEmpty(filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState) bool {
 	switch {
 	case filter.State != "":
 		return false

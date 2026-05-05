@@ -38,7 +38,7 @@ func (h *Handler) RecreateDeployments(
 	module models_handler_modules.Module,
 	activeDeployment models_handler_deployments.Deployment,
 	dependencies map[string]models_handler_deployments.DeploymentReduced,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) ([]aux_deployments.BatchResult, error) {
 	mu := h.mutexes.Get(activeDeployment.Id)
 	mu.Lock()
@@ -154,7 +154,7 @@ func (h *Handler) recreateAuxiliaryDeployment(
 func (h *Handler) readAuxiliaryDeploymentsAndFilterByState(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) (map[string]models_handler_database.AuxiliaryDeployment, error) {
 	auxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, filter.AuxiliaryDeploymentsFilter)
 	if err != nil {

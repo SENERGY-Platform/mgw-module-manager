@@ -25,6 +25,7 @@ import (
 
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
@@ -33,7 +34,7 @@ func (h *Handler) ReadAuxiliaryDeployment(
 	deploymentId string,
 	auxDeploymentId string,
 ) (models_handler_database.AuxiliaryDeployment, error) {
-	auxDeployments, err := h.ReadAuxiliaryDeployments(ctx, deploymentId, models_handler_database.AuxiliaryDeploymentsFilter{
+	auxDeployments, err := h.ReadAuxiliaryDeployments(ctx, deploymentId, models_handler_aux_deployments.AuxiliaryDeploymentsFilter{
 		Ids: []string{auxDeploymentId},
 	})
 	if err != nil {
@@ -48,7 +49,7 @@ func (h *Handler) ReadAuxiliaryDeployment(
 func (h *Handler) ReadAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_database.AuxiliaryDeploymentsFilter,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
 ) (map[string]models_handler_database.AuxiliaryDeployment, error) {
 	fc, val := genAuxiliaryDeploymentsFilter(deploymentId, filter)
 	rows, err := h.sqlDB.QueryContext(
@@ -356,7 +357,7 @@ func (h *Handler) ReadAuxDeploymentsByParent(ctx context.Context) (
 	return auxDepsByParent, nil
 }
 
-func genAuxiliaryDeploymentsFilter(deploymentId string, filter models_handler_database.AuxiliaryDeploymentsFilter) (string, []any) {
+func genAuxiliaryDeploymentsFilter(deploymentId string, filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter) (string, []any) {
 	var fc []string
 	var val []any
 	if deploymentId != "" {

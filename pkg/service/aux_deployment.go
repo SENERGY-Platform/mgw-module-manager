@@ -45,7 +45,7 @@ func (s *Service) GetAuxiliaryDeployment(
 func (s *Service) GetAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) (map[string]models_handler_aux_deployments.AuxiliaryDeployment, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -55,7 +55,7 @@ func (s *Service) GetAuxiliaryDeployments(
 func (s *Service) GetReducedAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) (map[string]models_handler_aux_deployments.AuxiliaryDeploymentReduced, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -184,7 +184,7 @@ func (s *Service) UpdateAuxiliaryDeployment(
 func (s *Service) RecreateAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) (models_service2.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -250,7 +250,7 @@ func (s *Service) RecreateAuxiliaryDeployments(
 func (s *Service) DeleteAuxiliaryDeployments(
 	_ context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 	allowAll bool,
 ) (models_service2.Job, error) {
 	s.mu.Lock()
@@ -296,7 +296,7 @@ func (s *Service) DeleteAuxiliaryDeployments(
 func (s *Service) EnableAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) ([]string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -306,7 +306,7 @@ func (s *Service) EnableAuxiliaryDeployments(
 func (s *Service) DisableAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) ([]string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -387,8 +387,8 @@ func (s *Service) recreateAuxDeployments(
 		module,
 		activeDeployment,
 		cacheDependencyDeployments,
-		models_handler_aux_deployments.AuxiliaryDeploymentsFilter{
-			AuxiliaryDeploymentsFilter: models_handler_database.AuxiliaryDeploymentsFilter{
+		models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState{
+			AuxiliaryDeploymentsFilter: models_handler_aux_deployments.AuxiliaryDeploymentsFilter{
 				Recreate: 1,
 			},
 		},

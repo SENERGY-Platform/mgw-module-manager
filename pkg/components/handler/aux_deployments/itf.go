@@ -20,6 +20,7 @@ import (
 	"context"
 
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
@@ -32,7 +33,7 @@ type databaseHandler interface {
 	ReadAuxiliaryDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter models_handler_database.AuxiliaryDeploymentsFilter,
+		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
 	) (map[string]models_handler_database.AuxiliaryDeployment, error)
 	ReadAuxiliaryDeploymentLabels(ctx context.Context, auxiliaryDeploymentId string) (map[string]string, error)
 	ReadAuxiliaryDeploymentsLabels(ctx context.Context, auxDeploymentsIds []string) (map[string]map[string]string, error)

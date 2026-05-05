@@ -18,21 +18,19 @@ package models_handler_aux_deployments
 
 import (
 	"time"
-
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 type AuxiliaryDeploymentBase struct {
-	Id           string                                               `json:"id"`
-	DeploymentId string                                               `json:"deployment_id"`
-	Reference    string                                               `json:"reference"`
-	Name         string                                               `json:"name"`
-	Image        string                                               `json:"image"`
-	Created      time.Time                                            `json:"created"`
-	Updated      time.Time                                            `json:"updated"`
-	Enabled      bool                                                 `json:"enabled"`
-	Recreate     bool                                                 `json:"recreate"`
-	RunConfig    models_handler_database.AuxiliaryDeploymentRunConfig `json:"run_config"`
+	Id           string                       `json:"id"`
+	DeploymentId string                       `json:"deployment_id"`
+	Reference    string                       `json:"reference"`
+	Name         string                       `json:"name"`
+	Image        string                       `json:"image"`
+	Created      time.Time                    `json:"created"`
+	Updated      time.Time                    `json:"updated"`
+	Enabled      bool                         `json:"enabled"`
+	Recreate     bool                         `json:"recreate"`
+	RunConfig    AuxiliaryDeploymentRunConfig `json:"run_config"`
 }
 
 type AuxiliaryDeployment struct {
@@ -61,7 +59,20 @@ type Container struct {
 	Health  string `json:"health"`   // docker container health
 }
 
-type AuxiliaryDeploymentsFilter struct {
-	models_handler_database.AuxiliaryDeploymentsFilter
+type AuxiliaryDeploymentRunConfig struct {
+	Command   []string `json:"command"`
+	PseudoTTY bool     `json:"pseudo_tty"`
+}
+
+type AuxiliaryDeploymentsFilterWithState struct {
+	AuxiliaryDeploymentsFilter
 	State string // docker container state
+}
+
+type AuxiliaryDeploymentsFilter struct {
+	Ids      []string
+	Labels   map[string]string
+	Image    string
+	Enabled  int
+	Recreate int
 }

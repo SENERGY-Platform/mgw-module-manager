@@ -27,7 +27,7 @@ import (
 func (h *Handler) EnableDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) ([]string, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.RLock()
@@ -47,7 +47,7 @@ func (h *Handler) EnableDeployments(
 func (h *Handler) DisableDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 ) ([]string, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.RLock()

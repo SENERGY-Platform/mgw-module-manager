@@ -32,6 +32,7 @@ import (
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_handler_aux_deployments2 "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
@@ -197,7 +198,7 @@ func getAuxiliaryDeployment(
 			Name:  ctrName,
 			Alias: containerAlias,
 		},
-		RunConfig: models_handler_database.AuxiliaryDeploymentRunConfig{
+		RunConfig: models_handler_aux_deployments2.AuxiliaryDeploymentRunConfig{
 			Command:   command,
 			PseudoTTY: pseudoTTY,
 		},

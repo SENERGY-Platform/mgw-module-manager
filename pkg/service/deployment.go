@@ -348,7 +348,7 @@ func (s *Service) deleteAuxDeployments(
 	results, err := s.auxDeploymentsHandler.DeleteDeployments(
 		ctx,
 		deploymentId,
-		models_handler_aux_deployments.AuxiliaryDeploymentsFilter{},
+		models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState{},
 		true,
 	)
 	if err != nil {

@@ -16,7 +16,11 @@
 
 package models_handler_database
 
-import "time"
+import (
+	"time"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
+)
 
 type AuxiliaryDeployment struct {
 	Id           string
@@ -29,7 +33,7 @@ type AuxiliaryDeployment struct {
 	Enabled      bool
 	Recreate     bool
 	Container    AuxiliaryDeploymentContainer
-	RunConfig    AuxiliaryDeploymentRunConfig
+	RunConfig    models_handler_aux_deployments.AuxiliaryDeploymentRunConfig
 }
 
 type AuxiliaryDeploymentContainer struct {
@@ -55,19 +59,6 @@ type AuxiliaryDeploymentVolumeMount struct {
 	Reference             string
 	AuxiliaryDeploymentId string
 	MountPath             string
-}
-
-type AuxiliaryDeploymentRunConfig struct {
-	Command   []string `json:"command"`
-	PseudoTTY bool     `json:"pseudo_tty"`
-}
-
-type AuxiliaryDeploymentsFilter struct {
-	Ids      []string
-	Labels   map[string]string
-	Image    string
-	Enabled  int
-	Recreate int
 }
 
 type AuxiliaryDeploymentParent struct {

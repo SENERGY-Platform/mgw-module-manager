@@ -75,12 +75,12 @@ type auxiliaryDeploymentsHandler interface {
 	GetDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 	) (map[string]models_handler_aux_deployments.AuxiliaryDeployment, error)
 	GetReducedDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 	) (map[string]models_handler_aux_deployments.AuxiliaryDeploymentReduced, error)
 	CreateDeployment(
 		ctx context.Context,
@@ -102,23 +102,23 @@ type auxiliaryDeploymentsHandler interface {
 		module models_handler_modules.Module,
 		activeDeployment models_handler_deployments.Deployment,
 		dependencies map[string]models_handler_deployments.DeploymentReduced,
-		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 	) ([]aux_deployments.BatchResult, error)
 	DeleteDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 		allowAll bool,
 	) ([]aux_deployments.BatchResult, error)
 	EnableDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 	) ([]string, error)
 	DisableDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
+		filter models_handler_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 	) ([]string, error)
 	GetVolumes(
 		ctx context.Context,
