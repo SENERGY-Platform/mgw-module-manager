@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models_handler_database
+package aux_deployments
 
 import (
 	"time"

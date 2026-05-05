@@ -4,7 +4,8 @@ import (
 	"context"
 	"io/fs"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
@@ -70,76 +71,76 @@ type auxiliaryDeploymentsHandler interface {
 		ctx context.Context,
 		deploymentId string,
 		auxDeploymentId string,
-	) (aux_deployments.AuxiliaryDeployment, error)
+	) (lib_aux_deployments.AuxiliaryDeployment, error)
 	GetDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
-	) (map[string]aux_deployments.AuxiliaryDeployment, error)
+		filter lib_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	) (map[string]lib_aux_deployments.AuxiliaryDeployment, error)
 	GetReducedDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
-	) (map[string]aux_deployments.AuxiliaryDeploymentReduced, error)
+		filter lib_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	) (map[string]lib_aux_deployments.AuxiliaryDeploymentReduced, error)
 	CreateDeployment(
 		ctx context.Context,
 		module models_handler_modules.Module,
 		activeDeployment models_handler_deployments.Deployment,
 		dependencies map[string]models_handler_deployments.DeploymentReduced,
-		serviceInput aux_deployments.ServiceInput,
-	) (aux_deployments.Result, error)
+		serviceInput lib_aux_deployments.ServiceInput,
+	) (lib_aux_deployments.Result, error)
 	UpdateDeployment(
 		ctx context.Context,
 		module models_handler_modules.Module,
 		activeDeployment models_handler_deployments.Deployment,
 		dependencies map[string]models_handler_deployments.DeploymentReduced,
 		auxDeploymentId string,
-		serviceInput aux_deployments.UpdateServiceInput,
+		serviceInput lib_aux_deployments.UpdateServiceInput,
 	) error
 	RecreateDeployments(
 		ctx context.Context,
 		module models_handler_modules.Module,
 		activeDeployment models_handler_deployments.Deployment,
 		dependencies map[string]models_handler_deployments.DeploymentReduced,
-		filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
-	) ([]aux_deployments.BatchResult, error)
+		filter lib_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	) ([]lib_aux_deployments.BatchResult, error)
 	DeleteDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
+		filter lib_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 		allowAll bool,
-	) ([]aux_deployments.BatchResult, error)
+	) ([]lib_aux_deployments.BatchResult, error)
 	EnableDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
+		filter lib_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 	) ([]string, error)
 	DisableDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter aux_deployments.AuxiliaryDeploymentsFilterWithState,
+		filter lib_aux_deployments.AuxiliaryDeploymentsFilterWithState,
 	) ([]string, error)
 	GetVolumes(
 		ctx context.Context,
 		deploymentId string,
 		filterReferences []string,
-	) (map[string]models_handler_database.AuxiliaryDeploymentVolume, error)
+	) (map[string]aux_deployments.AuxiliaryDeploymentVolume, error)
 	GetVolumesWithMounts(
 		ctx context.Context,
 		deploymentId string,
 		filterReferences []string,
-	) (map[string]models_handler_database.AuxiliaryDeploymentVolumeWithMounts, error)
+	) (map[string]aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error)
 	DeleteVolumes(
 		ctx context.Context,
 		deploymentId string,
 		filterReferences []string,
 		allowAll bool,
-	) ([]aux_deployments.VolumeResult, error)
+	) ([]lib_aux_deployments.VolumeResult, error)
 	DeleteUnusedVolumes(
 		ctx context.Context,
 		deploymentId string,
 		excludeReferences []string,
-	) ([]aux_deployments.VolumeResult, error)
+	) ([]lib_aux_deployments.VolumeResult, error)
 	DeleteMutex(deploymentId string)
 }
 

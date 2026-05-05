@@ -22,8 +22,8 @@ import (
 	"time"
 
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) RuntimeMonitor(ctx context.Context) {
@@ -97,7 +97,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 }
 
 func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
-	map[string]models_handler_database.AuxiliaryDeploymentParent,
+	map[string]aux_deployments.AuxiliaryDeploymentParent,
 	map[string]models_external.Container,
 	error,
 ) {
@@ -105,7 +105,7 @@ func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
 	if err != nil {
 		return nil, nil, err
 	}
-	tmp := make(map[string]models_handler_database.AuxiliaryDeployment)
+	tmp := make(map[string]aux_deployments.AuxiliaryDeployment)
 	for _, auxDeps := range auxDepsByParent {
 		maps.Copy(tmp, auxDeps.AuxiliaryDeployments)
 	}
@@ -141,11 +141,11 @@ func (h *Handler) stopContainers(
 }
 
 func (h *Handler) runtimeMonitorJobsFilter(
-	auxDepsByParent map[string]models_handler_database.AuxiliaryDeploymentParent,
-) map[string]models_handler_database.AuxiliaryDeploymentParent {
+	auxDepsByParent map[string]aux_deployments.AuxiliaryDeploymentParent,
+) map[string]aux_deployments.AuxiliaryDeploymentParent {
 	h.runtimeMonitorJobsMu.RLock()
 	defer h.runtimeMonitorJobsMu.RUnlock()
-	filteredDeployments := make(map[string]models_handler_database.AuxiliaryDeploymentParent)
+	filteredDeployments := make(map[string]aux_deployments.AuxiliaryDeploymentParent)
 	for deploymentId, auxDeps := range auxDepsByParent {
 		_, ok := h.runtimeMonitorJobs[deploymentId]
 		if !ok {

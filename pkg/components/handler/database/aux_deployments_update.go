@@ -20,15 +20,15 @@ import (
 	"context"
 	"database/sql"
 
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 )
 
 func (h *Handler) UpdateAuxiliaryDeployment(
 	ctx context.Context,
-	auxiliaryDeployment models_handler_database.AuxiliaryDeployment,
+	auxiliaryDeployment aux_deployments.AuxiliaryDeployment,
 	labels map[string]string,
 	configs map[string]string,
-	volumeMounts []models_handler_database.AuxiliaryDeploymentVolumeMount,
+	volumeMounts []aux_deployments.AuxiliaryDeploymentVolumeMount,
 ) error {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {

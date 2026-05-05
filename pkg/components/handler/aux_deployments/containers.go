@@ -22,8 +22,9 @@ import (
 	"path"
 
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
@@ -36,9 +37,9 @@ func (h *Handler) createContainer(
 	auxServiceReference string,
 	activeDeployment models_handler_deployments.Deployment,
 	dependencies map[string]models_handler_deployments.DeploymentReduced,
-	auxDeployment models_handler_database.AuxiliaryDeployment,
+	auxDeployment aux_deployments.AuxiliaryDeployment,
 	configs map[string]string,
-	volumeMounts []models_handler_database.AuxiliaryDeploymentVolumeMount,
+	volumeMounts []aux_deployments.AuxiliaryDeploymentVolumeMount,
 ) error {
 	envVariables := make(map[string]string)
 	maps.Copy(envVariables, configs)
@@ -78,7 +79,7 @@ func getCewContainer(
 	image string,
 	containerAlias string,
 	containerName string,
-	runConfig aux_deployments.AuxiliaryDeploymentRunConfig,
+	runConfig lib_aux_deployments.AuxiliaryDeploymentRunConfig,
 	envVariables map[string]string,
 	mounts []models_external.CewMount,
 ) models_external.Container {
@@ -106,7 +107,7 @@ func getCewContainer(
 
 func newCewRunConfig(
 	auxServiceRunConfig models_external.ModuleLibRunConfig,
-	runConfig aux_deployments.AuxiliaryDeploymentRunConfig,
+	runConfig lib_aux_deployments.AuxiliaryDeploymentRunConfig,
 ) models_external.CewRunConfig {
 	rc := models_external.CewRunConfig{
 		RestartStrategy: models_external.CewRestartStrategyNever,
@@ -158,7 +159,7 @@ func appendVolumeMounts(
 	mounts []models_external.CewMount,
 	auxServiceVolumes map[string]string,
 	deploymentVolumes map[string]models_handler_database.DeploymentVolume,
-	volumeMounts []models_handler_database.AuxiliaryDeploymentVolumeMount,
+	volumeMounts []aux_deployments.AuxiliaryDeploymentVolumeMount,
 ) []models_external.CewMount {
 	for mountPath, name := range auxServiceVolumes {
 		volume, ok := deploymentVolumes[name]
