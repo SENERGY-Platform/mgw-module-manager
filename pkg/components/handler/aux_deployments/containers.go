@@ -22,11 +22,11 @@ import (
 	"path"
 
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
+	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
+	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 )
 
 func (h *Handler) createContainer(

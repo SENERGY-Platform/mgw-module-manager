@@ -21,11 +21,11 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) GetDeployment(

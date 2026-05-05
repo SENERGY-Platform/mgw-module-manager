@@ -20,10 +20,10 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
+	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 )
 
 func (h *Handler) CreateGlobalConfig(ctx context.Context, config models_handler_global_configs.Config) (err error) {

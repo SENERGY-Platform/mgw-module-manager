@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
+	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 )
 
 type doneHandler interface {

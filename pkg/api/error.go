@@ -20,7 +20,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 )
 
 func getStatusCode(err error) int {

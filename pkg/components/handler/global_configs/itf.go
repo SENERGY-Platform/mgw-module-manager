@@ -19,7 +19,7 @@ package handler_global_configs
 import (
 	"context"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
+	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 )
 
 type databaseHandler interface {

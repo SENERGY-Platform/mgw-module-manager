@@ -25,8 +25,8 @@ import (
 	"strings"
 
 	module_lib_validation_configs "github.com/SENERGY-Platform/mgw-module-lib/validation/configs"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func ValueIsEqual(a, b models_config.Value) bool {

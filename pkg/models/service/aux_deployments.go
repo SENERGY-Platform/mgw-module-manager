@@ -17,8 +17,8 @@
 package models_service
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 )
 
 type ServiceInput struct {

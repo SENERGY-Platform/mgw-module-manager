@@ -20,9 +20,9 @@ import (
 	"context"
 	"slices"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+	handler_jobs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
 func (s *Service) Jobs(_ context.Context, filterIds []string) ([]models_service.Job, error) {

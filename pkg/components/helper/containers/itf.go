@@ -19,7 +19,7 @@ package helper_containers
 import (
 	"context"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 type containerEngineWrapperClient interface {

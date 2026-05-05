@@ -21,15 +21,15 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
+	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
+	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
+	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
 func (h *Handler) RecreateDeployments(

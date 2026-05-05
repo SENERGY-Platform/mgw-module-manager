@@ -20,7 +20,7 @@ import (
 	"log/slog"
 
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"

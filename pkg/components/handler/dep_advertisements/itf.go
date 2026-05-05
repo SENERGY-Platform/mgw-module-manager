@@ -19,7 +19,7 @@ package handler_dep_advertisements
 import (
 	"context"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 type databaseHandler interface {

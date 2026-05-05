@@ -22,10 +22,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) ReadDeployment(ctx context.Context, id string) (models_handler_database.Deployment, error) {

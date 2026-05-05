@@ -23,13 +23,13 @@ import (
 	"strings"
 
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
+	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
+	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
+	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) createContainers(

@@ -24,9 +24,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
 func (h *Handler) updateSecretValuesCache(

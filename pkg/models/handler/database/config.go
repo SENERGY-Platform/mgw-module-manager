@@ -16,7 +16,7 @@
 
 package models_handler_database
 
-import "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+import models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 
 type GlobalConfig struct {
 	Id   string

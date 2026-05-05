@@ -19,7 +19,7 @@ package handler_database
 import (
 	"context"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 )
 
 func (h *Handler) DeleteAuxiliaryDeployment(ctx context.Context, auxDeploymentId string) error {

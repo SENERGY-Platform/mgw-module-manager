@@ -19,9 +19,9 @@ package handler_deployments
 import (
 	"context"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 )
 
 type databaseHandler interface {

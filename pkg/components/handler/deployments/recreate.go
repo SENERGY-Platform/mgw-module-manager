@@ -23,13 +23,13 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
+	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
+	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
 func (h *Handler) RecreateDeployments(

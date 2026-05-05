@@ -16,7 +16,7 @@
 
 package models_service
 
-import "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+import models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 
 type GlobalConfigInput struct {
 	Name string `json:"name"`

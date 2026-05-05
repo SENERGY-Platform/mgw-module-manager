@@ -17,9 +17,9 @@
 package models_handler_deployments
 
 import (
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 const (

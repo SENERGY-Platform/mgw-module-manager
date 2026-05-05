@@ -19,8 +19,8 @@ package service
 import (
 	"sync"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
 type jobResults struct {

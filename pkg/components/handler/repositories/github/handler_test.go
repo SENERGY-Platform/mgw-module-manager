@@ -29,7 +29,7 @@ import (
 	"time"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
+	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 )
 
 func TestHandler_Init(t *testing.T) {

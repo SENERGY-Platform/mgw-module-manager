@@ -12,7 +12,7 @@ import (
 	"sync"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/archive"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
+	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 )
 
 const gitHubCom = "github.com"

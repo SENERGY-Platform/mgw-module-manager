@@ -20,7 +20,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) UpdateDeploymentsEnabledState(ctx context.Context, deploymentIds []string, state bool) (err error) {

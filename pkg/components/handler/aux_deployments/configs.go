@@ -21,9 +21,9 @@ import (
 	"maps"
 	"strings"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func getDeploymentConfigs(

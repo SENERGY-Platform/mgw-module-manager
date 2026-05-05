@@ -16,7 +16,7 @@
 
 package models_service
 
-import "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
+import models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 
 type UserInput struct {
 	ModuleId      string                                   `json:"module_id"`

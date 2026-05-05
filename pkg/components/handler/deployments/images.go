@@ -21,8 +21,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func (h *Handler) ensureContainerImages(ctx context.Context, moduleServices map[string]models_external.ModuleLibService) error {

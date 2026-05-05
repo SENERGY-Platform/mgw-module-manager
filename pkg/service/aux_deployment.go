@@ -23,12 +23,12 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
+	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
 func (s *Service) GetAuxiliaryDeployment(

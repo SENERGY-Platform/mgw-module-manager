@@ -20,7 +20,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 )
 
 func (h *Handler) DeleteDeployment(ctx context.Context, id string) error {

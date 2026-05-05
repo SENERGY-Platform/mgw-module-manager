@@ -19,9 +19,9 @@ package handler_global_configs
 import (
 	"context"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
+	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
+	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
 )
 
 type Handler struct {

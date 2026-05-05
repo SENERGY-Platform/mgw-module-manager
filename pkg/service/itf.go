@@ -4,14 +4,14 @@ import (
 	"context"
 	"io/fs"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
+	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_handler_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
+	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
+	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
+	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 )
 
 type repositoriesHandler interface {

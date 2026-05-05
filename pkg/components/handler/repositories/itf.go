@@ -4,7 +4,7 @@ import (
 	"context"
 	"io/fs"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
+	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 )
 
 type repositoryHandler interface {

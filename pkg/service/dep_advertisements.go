@@ -19,10 +19,10 @@ package service
 import (
 	"context"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_handler_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
+	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
 func (s *Service) QueryDeploymentAdvertisements(

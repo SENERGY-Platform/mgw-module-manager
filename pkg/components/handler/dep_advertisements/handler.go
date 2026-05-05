@@ -22,11 +22,11 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
+	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
+	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_handler_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
 )
 
 type Handler struct {

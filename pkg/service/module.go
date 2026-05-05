@@ -25,15 +25,15 @@ import (
 	"reflect"
 	"slices"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
+	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
+	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
+	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
+	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
 func (s *Service) Modules(ctx context.Context, filter models_service.ModulesFilter) ([]models_service.ModuleReduced, error) {

@@ -19,10 +19,10 @@ package service
 import (
 	"context"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
+	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/global_configs"
+	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
 func (s *Service) CreateGlobalConfig(ctx context.Context, input models_service.GlobalConfigInput) (string, error) {

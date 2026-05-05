@@ -23,7 +23,7 @@ import (
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func Stop(ctx context.Context, client containerEngineWrapperClient, containerId string, jobPollInterval time.Duration) error {

@@ -7,12 +7,12 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
+	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
+	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 )
 

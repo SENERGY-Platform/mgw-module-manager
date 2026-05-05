@@ -19,7 +19,7 @@ package models_service
 import (
 	"time"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 )
 
 type Job struct {

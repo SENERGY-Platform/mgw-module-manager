@@ -9,9 +9,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
+	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 )
 
 type Handler struct {

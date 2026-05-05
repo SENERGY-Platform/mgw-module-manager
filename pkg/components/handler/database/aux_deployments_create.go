@@ -21,7 +21,7 @@ import (
 	"database/sql"
 	"strings"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) CreateAuxiliaryDeployment(

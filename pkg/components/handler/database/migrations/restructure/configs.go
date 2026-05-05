@@ -24,7 +24,7 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
+	models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 )
 
 func createDepConfigTables(ctx context.Context, db *sql.DB) error {

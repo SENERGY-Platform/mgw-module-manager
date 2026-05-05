@@ -21,12 +21,12 @@ import (
 
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/aux_deployments"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/deployments"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"
+	handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/aux_deployments"
+	handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
+	handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/deployments"
+	handler_jobs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
+	handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
+	helper_sql_db "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"
 )
 
 type MGWConfig struct {

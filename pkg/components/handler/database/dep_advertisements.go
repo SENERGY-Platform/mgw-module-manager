@@ -22,8 +22,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 const selectDeploymentAdvertisementsStmt = `SELECT dep_advertisements.id, dep_advertisements.dep_id, dep_advertisements.mod_id, dep_advertisements.origin, dep_advertisements.ref, dep_advertisements.timestamp, dep_adv_items.item_key, dep_adv_items.item_value

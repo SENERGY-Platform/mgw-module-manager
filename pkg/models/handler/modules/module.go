@@ -20,7 +20,7 @@ import (
 	"io/fs"
 	"time"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 type Module struct {
