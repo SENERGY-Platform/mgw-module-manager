@@ -28,8 +28,8 @@ import (
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) createContainers(
@@ -39,10 +39,10 @@ func (h *Handler) createContainers(
 	deploymentId string,
 	deploymentDirName string,
 	deploymentFilesDirName string,
-	userDataSecrets map[string]models_handler_database.DeploymentSecret,
-	userDataHostResources map[string]models_handler_database.DeploymentHostResource,
-	containers map[string]models_handler_database.DeploymentContainer,
-	volumes map[string]models_handler_database.DeploymentVolume,
+	userDataSecrets map[string]models_deployments.DeploymentSecret,
+	userDataHostResources map[string]models_deployments.DeploymentHostResource,
+	containers map[string]models_deployments.ContainerBase,
+	volumes map[string]models_deployments.DeploymentVolume,
 	configs map[string]models_configs.Value,
 	bindMounts bindMountDataCollection,
 	cacheSecretValues map[string]models_external.SecretValueVariant,
@@ -94,7 +94,7 @@ func (h *Handler) createContainers(
 
 func (h *Handler) removeContainers(
 	ctx context.Context,
-	deploymentContainers map[string]models_handler_database.DeploymentContainer,
+	deploymentContainers map[string]models_deployments.ContainerBase,
 ) error {
 	var errs []string
 	for _, container := range deploymentContainers {
@@ -111,7 +111,7 @@ func (h *Handler) removeContainers(
 
 func (h *Handler) startContainers(
 	ctx context.Context,
-	deploymentContainers map[string]models_handler_database.DeploymentContainer,
+	deploymentContainers map[string]models_deployments.ContainerBase,
 ) error {
 	var errs []string
 	for _, container := range deploymentContainers {
@@ -128,7 +128,7 @@ func (h *Handler) startContainers(
 
 func (h *Handler) stopContainers(
 	ctx context.Context,
-	deploymentContainers map[string]models_handler_database.DeploymentContainer,
+	deploymentContainers map[string]models_deployments.ContainerBase,
 ) error {
 	var errs []string
 	for _, container := range deploymentContainers {
@@ -196,7 +196,7 @@ func setConfigEnvVariables(
 func setSecretValueEnvVariables(
 	envVariables map[string]string,
 	serviceSecretVars map[string]models_external.ModuleLibSecretTarget,
-	userDataSecrets map[string]models_handler_database.DeploymentSecret,
+	userDataSecrets map[string]models_deployments.DeploymentSecret,
 	cacheSecretValues map[string]models_external.SecretValueVariant,
 ) {
 	for envVarName, target := range serviceSecretVars {
@@ -215,7 +215,7 @@ func setSecretValueEnvVariables(
 func setInternalDependencyEnvVariables(
 	envVariables map[string]string,
 	serviceReferences map[string]models_external.ModuleLibSrvRefTarget,
-	deploymentContainers map[string]models_handler_database.DeploymentContainer,
+	deploymentContainers map[string]models_deployments.ContainerBase,
 ) {
 	for envVarName, target := range serviceReferences {
 		container, ok := deploymentContainers[target.Ref]
@@ -277,7 +277,7 @@ func appendTmpfsMounts(
 func appendVolumeMounts(
 	mounts []models_external.CewMount,
 	serviceVolumes map[string]string,
-	deploymentVolumes map[string]models_handler_database.DeploymentVolume,
+	deploymentVolumes map[string]models_deployments.DeploymentVolume,
 ) []models_external.CewMount {
 	for mountPath, name := range serviceVolumes {
 		volume, ok := deploymentVolumes[name]
@@ -295,7 +295,7 @@ func appendVolumeMounts(
 func appendApplicationMounts(
 	mounts []models_external.CewMount,
 	serviceHostResources map[string]models_external.ModuleLibHostResTarget,
-	userDataHostResources map[string]models_handler_database.DeploymentHostResource,
+	userDataHostResources map[string]models_deployments.DeploymentHostResource,
 	cacheHostResources map[string]models_external.HostResource,
 ) []models_external.CewMount {
 	for mountPath, srvHostResource := range serviceHostResources {
@@ -320,7 +320,7 @@ func appendApplicationMounts(
 func appendSecretMounts(
 	mounts []models_external.CewMount,
 	serviceSecretMounts map[string]models_external.ModuleLibSecretTarget,
-	userDataSecrets map[string]models_handler_database.DeploymentSecret,
+	userDataSecrets map[string]models_deployments.DeploymentSecret,
 	secretMounts map[string]models_external.SecretPathVariant,
 	hostPath string,
 ) []models_external.CewMount {
@@ -390,7 +390,7 @@ func appendFileGroupMounts(
 
 func getContainerDevices(
 	serviceHostResources map[string]models_external.ModuleLibHostResTarget,
-	userDataHostResources map[string]models_handler_database.DeploymentHostResource,
+	userDataHostResources map[string]models_deployments.DeploymentHostResource,
 	cacheHostResources map[string]models_external.HostResource,
 ) []models_external.CewDevice {
 	var devices []models_external.CewDevice

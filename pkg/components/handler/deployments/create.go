@@ -36,7 +36,6 @@ import (
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
@@ -206,8 +205,8 @@ func (h *Handler) getBindMounts(
 	ctx context.Context,
 	deploymentId,
 	deploymentFilesDirName string,
-	userDataFileGroups map[string]models_handler_database.DeploymentFileGroup,
-	userDataSecrets map[string]models_handler_database.DeploymentSecret,
+	userDataFileGroups map[string]models_deployments.DeploymentFileGroup,
+	userDataSecrets map[string]models_deployments.DeploymentSecret,
 	mergedFiles map[string][]byte,
 ) (bindMountDataCollection, error) {
 	var bindMounts bindMountDataCollection
@@ -243,13 +242,13 @@ func (h *Handler) filterSelectedModules(
 	ctx context.Context,
 	selectedModules map[string]models_handler_modules.Module,
 ) (map[string]models_handler_modules.Module, error) {
-	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_database.DeploymentsFilter{
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_deployments.DeploymentsFilter{
 		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
 	})
 	if err != nil {
 		return nil, err
 	}
-	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_handler_database.Deployment) string {
+	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_deployments.DeploymentBase) string {
 		return value.ModuleId
 	})
 	filteredModules := make(map[string]models_handler_modules.Module)
@@ -314,15 +313,15 @@ func getUserData(
 func getDeployment(
 	module models_handler_modules.Module,
 	deploymentId string,
-) (models_handler_database.Deployment, error) {
+) (models_deployments.DeploymentBase, error) {
 	if deploymentId == "" {
-		return models_handler_database.Deployment{}, errors.New("empty deployment id")
+		return models_deployments.DeploymentBase{}, errors.New("empty deployment id")
 	}
 	dirName, err := helper_uuid.New()
 	if err != nil {
-		return models_handler_database.Deployment{}, err
+		return models_deployments.DeploymentBase{}, err
 	}
-	return models_handler_database.Deployment{
+	return models_deployments.DeploymentBase{
 		Id:            deploymentId,
 		ModuleId:      module.ID,
 		ModuleSource:  module.Source,
@@ -359,10 +358,10 @@ func initDeploymentsCacheFromModules(modules map[string]models_handler_modules.M
 	return cache, nil
 }
 
-func getNewVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[string]models_handler_database.DeploymentVolume {
-	volumes := make(map[string]models_handler_database.DeploymentVolume)
+func getNewVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[string]models_deployments.DeploymentVolume {
+	volumes := make(map[string]models_deployments.DeploymentVolume)
 	for reference := range moduleVolumes {
-		volumes[reference] = models_handler_database.DeploymentVolume{
+		volumes[reference] = models_deployments.DeploymentVolume{
 			DeploymentId: deploymentId,
 			Reference:    reference,
 			Name:         helper_naming.NewVolumeName(models_constants.DeploymentAbbreviation, deploymentId, reference),
@@ -375,14 +374,14 @@ func getNewContainers(
 	moduleServices map[string]models_external.ModuleLibService,
 	cacheContainers map[string]containerCacheItem,
 	deploymentId string,
-) (map[string]models_handler_database.DeploymentContainer, error) {
-	containers := make(map[string]models_handler_database.DeploymentContainer)
+) (map[string]models_deployments.ContainerBase, error) {
+	containers := make(map[string]models_deployments.ContainerBase)
 	for reference := range moduleServices {
 		cacheItem, ok := cacheContainers[reference]
 		if !ok {
 			return nil, errors.New("missing container alias")
 		}
-		containers[reference] = models_handler_database.DeploymentContainer{
+		containers[reference] = models_deployments.ContainerBase{
 			Name:         cacheItem.Name,
 			DeploymentId: deploymentId,
 			Reference:    reference,

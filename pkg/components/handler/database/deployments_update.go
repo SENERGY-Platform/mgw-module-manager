@@ -20,7 +20,7 @@ import (
 	"context"
 	"database/sql"
 
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 )
 
 func (h *Handler) UpdateDeploymentsEnabledState(ctx context.Context, deploymentIds []string, state bool) (err error) {
@@ -57,15 +57,15 @@ func (h *Handler) UpdateDeploymentEnabledState(ctx context.Context, id string, s
 
 func (h *Handler) UpdateDeployment(
 	ctx context.Context,
-	deployment models_handler_database.Deployment,
-	hostResources []models_handler_database.DeploymentHostResource,
-	secrets []models_handler_database.DeploymentSecret,
-	userConfigs []models_handler_database.DeploymentUserConfig,
-	globalConfigs []models_handler_database.DeploymentGlobalConfig,
-	files []models_handler_database.DeploymentFile,
-	fileGroups []models_handler_database.DeploymentFileGroup,
-	volumes []models_handler_database.DeploymentVolume,
-	containers []models_handler_database.DeploymentContainer,
+	deployment models_deployments.DeploymentBase,
+	hostResources []models_deployments.DeploymentHostResource,
+	secrets []models_deployments.DeploymentSecret,
+	userConfigs []models_deployments.DeploymentUserConfig,
+	globalConfigs []models_deployments.DeploymentGlobalConfig,
+	files []models_deployments.DeploymentFile,
+	fileGroups []models_deployments.DeploymentFileGroup,
+	volumes []models_deployments.DeploymentVolume,
+	containers []models_deployments.ContainerBase,
 ) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
@@ -110,7 +110,7 @@ func (h *Handler) UpdateDeployment(
 	return
 }
 
-func (h *Handler) UpdateDeploymentContainerNames(ctx context.Context, containers []models_handler_database.DeploymentContainer) (err error) {
+func (h *Handler) UpdateDeploymentContainerNames(ctx context.Context, containers []models_deployments.ContainerBase) (err error) {
 	var db sqlDatabase = h.sqlDB
 	var tx *sql.Tx
 	if len(containers) > 0 {

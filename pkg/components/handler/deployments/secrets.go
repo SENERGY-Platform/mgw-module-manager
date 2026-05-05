@@ -25,14 +25,14 @@ import (
 	"strings"
 
 	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
 func (h *Handler) updateSecretValuesCache(
 	ctx context.Context,
-	userDataSecrets map[string]models_handler_database.DeploymentSecret,
+	userDataSecrets map[string]models_deployments.DeploymentSecret,
 	cacheSecretValues map[string]models_external.SecretValueVariant,
 ) error {
 	var errs []string
@@ -70,7 +70,7 @@ func (h *Handler) updateSecretValuesCache(
 func (h *Handler) createSecretMounts(
 	ctx context.Context,
 	deploymentId string,
-	userDataSecrets map[string]models_handler_database.DeploymentSecret,
+	userDataSecrets map[string]models_deployments.DeploymentSecret,
 ) (map[string]models_external.SecretPathVariant, error) {
 	secretMounts := make(map[string]models_external.SecretPathVariant)
 	var errs []string
@@ -121,8 +121,8 @@ func getSelectedSecrets(
 	module models_handler_modules.Module,
 	userInputSecrets map[string]string,
 	deploymentID string,
-) (map[string]models_handler_database.DeploymentSecret, error) {
-	secrets := make(map[string]models_handler_database.DeploymentSecret)
+) (map[string]models_deployments.DeploymentSecret, error) {
+	secrets := make(map[string]models_deployments.DeploymentSecret)
 	var errs []string
 	for reference, secret := range module.Secrets {
 		id, ok := userInputSecrets[reference]
@@ -132,7 +132,7 @@ func getSelectedSecrets(
 			}
 			continue
 		}
-		secrets[reference] = models_handler_database.DeploymentSecret{
+		secrets[reference] = models_deployments.DeploymentSecret{
 			Id:           id,
 			DeploymentId: deploymentID,
 			Reference:    reference,

@@ -26,8 +26,8 @@ import (
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
@@ -37,7 +37,7 @@ func (h *Handler) RecreateDeployments(
 ) ([]lib_models_service.DeploymentResult, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_database.DeploymentsFilter{
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_deployments.DeploymentsFilter{
 		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
 	})
 	if err != nil {
@@ -96,9 +96,9 @@ func (h *Handler) recreateDeployment(
 	userData userDataCollection,
 	deploymentId string,
 	cacheContainers map[string]containerCacheItem,
-	currentDeployment models_handler_database.Deployment,
-	currentContainers map[string]models_handler_database.DeploymentContainer,
-	currentVolumes map[string]models_handler_database.DeploymentVolume,
+	currentDeployment models_deployments.DeploymentBase,
+	currentContainers map[string]models_deployments.ContainerBase,
+	currentVolumes map[string]models_deployments.DeploymentVolume,
 	cache cacheCollection,
 ) error {
 	if currentDeployment.ModuleSource+currentDeployment.ModuleChannel+currentDeployment.ModuleVersion != module.Source+module.Channel+module.Version {
@@ -201,13 +201,13 @@ func (h *Handler) recreateDeployment(
 }
 
 func (h *Handler) getDeploymentsUserDataFromDB(ctx context.Context, deploymentIds []string) (map[string]userDataCollection, error) {
-	deploymentsHostResources, err := h.databaseHandler.ReadDeploymentsHostResources(ctx, models_handler_database.DeploymentsHostResourcesFilter{
+	deploymentsHostResources, err := h.databaseHandler.ReadDeploymentsHostResources(ctx, models_deployments.DeploymentsHostResourcesFilter{
 		DeploymentIds: deploymentIds,
 	})
 	if err != nil {
 		return nil, err
 	}
-	deploymentsSecrets, err := h.databaseHandler.ReadDeploymentsSecrets(ctx, models_handler_database.DeploymentsSecretsFilter{
+	deploymentsSecrets, err := h.databaseHandler.ReadDeploymentsSecrets(ctx, models_deployments.DeploymentsSecretsFilter{
 		DeploymentIds: deploymentIds,
 	})
 	if err != nil {
@@ -217,7 +217,7 @@ func (h *Handler) getDeploymentsUserDataFromDB(ctx context.Context, deploymentId
 	if err != nil {
 		return nil, err
 	}
-	deploymentsGlobalConfigs, err := h.databaseHandler.ReadDeploymentsGlobalConfigs(ctx, models_handler_database.DeploymentGlobalConfigsFilter{
+	deploymentsGlobalConfigs, err := h.databaseHandler.ReadDeploymentsGlobalConfigs(ctx, models_deployments.DeploymentGlobalConfigsFilter{
 		DeploymentIds: deploymentIds,
 	})
 	if err != nil {
@@ -246,8 +246,8 @@ func (h *Handler) getDeploymentsUserDataFromDB(ctx context.Context, deploymentId
 }
 
 func (h *Handler) getDeploymentsVolumesAndContainersFromDB(ctx context.Context, deploymentIds []string) (
-	map[string]map[string]models_handler_database.DeploymentVolume,
-	map[string]map[string]models_handler_database.DeploymentContainer,
+	map[string]map[string]models_deployments.DeploymentVolume,
+	map[string]map[string]models_deployments.ContainerBase,
 	error,
 ) {
 	deploymentsVolumes, err := h.databaseHandler.ReadDeploymentsVolumes(ctx, deploymentIds)
@@ -264,9 +264,9 @@ func (h *Handler) getDeploymentsVolumesAndContainersFromDB(ctx context.Context, 
 func (h *Handler) updateCaches(
 	ctx context.Context,
 	moduleDependencies map[string]string,
-	userDataHostResources map[string]models_handler_database.DeploymentHostResource,
-	userDataSecrets map[string]models_handler_database.DeploymentSecret,
-	userDataGlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig,
+	userDataHostResources map[string]models_deployments.DeploymentHostResource,
+	userDataSecrets map[string]models_deployments.DeploymentSecret,
+	userDataGlobalConfigs map[string]models_deployments.DeploymentGlobalConfig,
 	cache cacheCollection,
 ) error {
 	err := h.updateDeploymentsCache(ctx, moduleDependencies, cache.Deployments)
@@ -295,7 +295,7 @@ func (h *Handler) ensureDeploymentEnvironment(
 	deploymentId string,
 	deploymentDirName string,
 	deploymentFilesDirName string,
-	volumes map[string]models_handler_database.DeploymentVolume,
+	volumes map[string]models_deployments.DeploymentVolume,
 ) error {
 	err := h.ensureContainerImages(ctx, moduleServices)
 	if err != nil {
@@ -313,7 +313,7 @@ func (h *Handler) removeDeploymentEnvironment(
 	deploymentId string,
 	deploymentDirName string,
 	deploymentFilesDirName string,
-	deploymentContainers map[string]models_handler_database.DeploymentContainer,
+	deploymentContainers map[string]models_deployments.ContainerBase,
 ) error {
 	err := h.removeContainers(ctx, deploymentContainers)
 	if err != nil {
@@ -329,9 +329,9 @@ func (h *Handler) removeDeploymentEnvironment(
 func mergeDefaultAndUserData(
 	module models_handler_modules.Module,
 	defaultData defaultDataCollection,
-	userDataConfigs map[string]models_handler_database.DeploymentUserConfig,
-	userDataGlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig,
-	userDataFiles map[string]models_handler_database.DeploymentFile,
+	userDataConfigs map[string]models_deployments.DeploymentUserConfig,
+	userDataGlobalConfigs map[string]models_deployments.DeploymentGlobalConfig,
+	userDataFiles map[string]models_deployments.DeploymentFile,
 	cacheGlobalConfigs map[string]models_configs.Config,
 ) (map[string]models_configs.Value, map[string][]byte, error) {
 	mergedConfigs := mergeConfigs(defaultData.Configs, userDataConfigs, userDataGlobalConfigs, cacheGlobalConfigs)

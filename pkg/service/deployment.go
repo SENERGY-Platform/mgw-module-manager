@@ -31,7 +31,6 @@ import (
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
@@ -49,8 +48,8 @@ func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]
 	if err != nil {
 		return nil, err
 	}
-	handlerDeployments, err := s.deploymentsHandler.GetDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilter{
-		DeploymentsFilter: models_handler_database.DeploymentsFilter{
+	handlerDeployments, err := s.deploymentsHandler.GetDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilterWithState{
+		DeploymentsFilter: models_deployments.DeploymentsFilter{
 			ModuleIds: slices.Collect(maps.Keys(handlerModules)),
 		},
 	})
@@ -248,7 +247,7 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}
-	deploymentIds, err := s.deploymentsHandler.GetDeploymentIds(ctx, models_handler_database.DeploymentsFilter{
+	deploymentIds, err := s.deploymentsHandler.GetDeploymentIds(ctx, models_deployments.DeploymentsFilter{
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
@@ -279,8 +278,8 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]
 	}
 	deleteResults, err := s.deploymentsHandler.DeleteDeployments(
 		ctx,
-		models_deployments.DeploymentsFilter{
-			DeploymentsFilter: models_handler_database.DeploymentsFilter{
+		models_deployments.DeploymentsFilterWithState{
+			DeploymentsFilter: models_deployments.DeploymentsFilter{
 				Ids: toDelete,
 			},
 		},

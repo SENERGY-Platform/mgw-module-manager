@@ -26,16 +26,16 @@ import (
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) updateGlobalConfigsCache(
 	ctx context.Context,
-	userDataGlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig,
+	userDataGlobalConfigs map[string]models_deployments.DeploymentGlobalConfig,
 	cacheGlobalConfigs map[string]models_configs.Config,
 ) error {
-	selectedIds := helper_slices.CollectFunc(maps.Values(userDataGlobalConfigs), func(item models_handler_database.DeploymentGlobalConfig) string {
+	selectedIds := helper_slices.CollectFunc(maps.Values(userDataGlobalConfigs), func(item models_deployments.DeploymentGlobalConfig) string {
 		return item.Id
 	})
 	var idsNotInCache []string
@@ -85,8 +85,8 @@ func checkConfigs(
 
 func mergeConfigs(
 	defaultConfigs map[string]models_configs.Value,
-	userDataConfigs map[string]models_handler_database.DeploymentUserConfig,
-	userDataGlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig,
+	userDataConfigs map[string]models_deployments.DeploymentUserConfig,
+	userDataGlobalConfigs map[string]models_deployments.DeploymentGlobalConfig,
 	cacheGlobalConfigs map[string]models_configs.Config,
 ) map[string]models_configs.Value {
 	configs := make(map[string]models_configs.Value)
@@ -127,14 +127,14 @@ func getSelectedGlobalConfigs(
 	moduleConfigs models_external.ModuleLibConfigs,
 	userInputGlobalConfigs map[string]string,
 	deploymentId string,
-) map[string]models_handler_database.DeploymentGlobalConfig {
-	configs := make(map[string]models_handler_database.DeploymentGlobalConfig)
+) map[string]models_deployments.DeploymentGlobalConfig {
+	configs := make(map[string]models_deployments.DeploymentGlobalConfig)
 	for reference := range moduleConfigs {
 		id, ok := userInputGlobalConfigs[reference]
 		if !ok {
 			continue
 		}
-		configs[reference] = models_handler_database.DeploymentGlobalConfig{
+		configs[reference] = models_deployments.DeploymentGlobalConfig{
 			Id:           id,
 			DeploymentId: deploymentId,
 			Reference:    reference,
@@ -148,8 +148,8 @@ func getProvidedConfigs(
 	defaultConfigs map[string]models_configs.Value,
 	userInputConfigs map[string]models_configs.Value,
 	deploymentId string,
-) (map[string]models_handler_database.DeploymentUserConfig, error) {
-	configs := make(map[string]models_handler_database.DeploymentUserConfig)
+) (map[string]models_deployments.DeploymentUserConfig, error) {
+	configs := make(map[string]models_deployments.DeploymentUserConfig)
 	var errs []string
 	for reference := range moduleConfigs {
 		config, ok := userInputConfigs[reference]
@@ -160,7 +160,7 @@ func getProvidedConfigs(
 		if ok && helper_configs.ValueIsEqual(config, defaultConfig) {
 			continue
 		}
-		configs[reference] = models_handler_database.DeploymentUserConfig{
+		configs[reference] = models_deployments.DeploymentUserConfig{
 			DeploymentId: deploymentId,
 			Reference:    reference,
 			Id:           deploymentId + "_" + reference,

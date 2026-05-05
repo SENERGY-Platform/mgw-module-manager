@@ -22,14 +22,14 @@ import (
 	"strings"
 
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func getDeploymentConfigs(
 	moduleConfigs models_external.ModuleLibConfigs,
 	moduleAuxServiceConfigs map[string]string,
-	deploymentConfigs map[string]models_handler_database.DeploymentUserConfig,
+	deploymentConfigs map[string]models_deployments.DeploymentUserConfig,
 ) (map[string]string, error) {
 	configs := make(map[string]string)
 	var errs []string

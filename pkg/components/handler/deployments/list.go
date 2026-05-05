@@ -26,12 +26,11 @@ import (
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) GetReducedDeployments(
 	ctx context.Context,
-	filter models_deployments.DeploymentsFilter,
+	filter models_deployments.DeploymentsFilterWithState,
 ) (map[string]models_deployments.DeploymentReduced, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -40,7 +39,7 @@ func (h *Handler) GetReducedDeployments(
 
 func (h *Handler) GetReducedDeploymentsByModuleIds(
 	ctx context.Context,
-	filter models_deployments.DeploymentsFilter,
+	filter models_deployments.DeploymentsFilterWithState,
 ) (map[string]models_deployments.DeploymentReduced, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -59,8 +58,8 @@ func (h *Handler) GetDeployment(ctx context.Context, id string) (models_deployme
 	defer h.mu.RUnlock()
 	deployments, err := h.getDeployments(
 		ctx,
-		models_deployments.DeploymentsFilter{
-			DeploymentsFilter: models_handler_database.DeploymentsFilter{Ids: []string{id}},
+		models_deployments.DeploymentsFilterWithState{
+			DeploymentsFilter: models_deployments.DeploymentsFilter{Ids: []string{id}},
 		},
 	)
 	if err != nil {
@@ -77,8 +76,8 @@ func (h *Handler) GetDeploymentByModuleId(ctx context.Context, moduleId string) 
 	defer h.mu.RUnlock()
 	deployments, err := h.getDeployments(
 		ctx,
-		models_deployments.DeploymentsFilter{
-			DeploymentsFilter: models_handler_database.DeploymentsFilter{ModuleIds: []string{moduleId}},
+		models_deployments.DeploymentsFilterWithState{
+			DeploymentsFilter: models_deployments.DeploymentsFilter{ModuleIds: []string{moduleId}},
 		},
 	)
 	if err != nil {
@@ -95,7 +94,7 @@ func (h *Handler) GetDeploymentByModuleId(ctx context.Context, moduleId string) 
 
 func (h *Handler) GetDeploymentIds(
 	ctx context.Context,
-	filter models_handler_database.DeploymentsFilter,
+	filter models_deployments.DeploymentsFilter,
 ) (map[string]string, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -113,7 +112,7 @@ func (h *Handler) GetDeploymentIds(
 
 func (h *Handler) GetDeployments(
 	ctx context.Context,
-	filter models_deployments.DeploymentsFilter,
+	filter models_deployments.DeploymentsFilterWithState,
 ) (map[string]models_deployments.Deployment, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -122,7 +121,7 @@ func (h *Handler) GetDeployments(
 
 func (h *Handler) GetDeploymentsByModuleIds(
 	ctx context.Context,
-	filter models_deployments.DeploymentsFilter,
+	filter models_deployments.DeploymentsFilterWithState,
 ) (map[string]models_deployments.Deployment, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -138,7 +137,7 @@ func (h *Handler) GetDeploymentsByModuleIds(
 
 func (h *Handler) getDeploymentsReduced(
 	ctx context.Context,
-	filter models_deployments.DeploymentsFilter,
+	filter models_deployments.DeploymentsFilterWithState,
 ) (map[string]models_deployments.DeploymentReduced, error) {
 	stgDeps, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
@@ -157,8 +156,8 @@ func (h *Handler) getDeploymentsReduced(
 	for id, stgDep := range stgDeps {
 		deploymentContainers := deploymentsContainers[id]
 		deployment := models_deployments.DeploymentReduced{
-			Deployment: stgDep,
-			Containers: getContainers(deploymentContainers, cewContainersMap),
+			DeploymentBase: stgDep,
+			Containers:     getContainers(deploymentContainers, cewContainersMap),
 		}
 		if cewErr == nil && deployment.Enabled {
 			deployment.State = getDeploymentState(getContainersCombinedState(deploymentContainers, cewContainersMap))
@@ -173,7 +172,7 @@ func (h *Handler) getDeploymentsReduced(
 
 func (h *Handler) getDeployments(
 	ctx context.Context,
-	filter models_deployments.DeploymentsFilter,
+	filter models_deployments.DeploymentsFilterWithState,
 ) (map[string]models_deployments.Deployment, error) {
 	stgDeps, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
@@ -196,15 +195,15 @@ func (h *Handler) getDeployments(
 	for id, stgDep := range stgDeps {
 		deploymentContainers := deploymentsContainers[id]
 		deployment := models_deployments.Deployment{
-			Deployment:    stgDep,
-			Containers:    getContainers(deploymentContainers, cewContainersMap),
-			Volumes:       deploymentsVolumes[id],
-			HostResources: deploymentsUserData[id].HostResources,
-			Secrets:       deploymentsUserData[id].Secrets,
-			Configs:       deploymentsUserData[id].Configs,
-			GlobalConfigs: deploymentsUserData[id].GlobalConfigs,
-			Files:         deploymentsUserData[id].Files,
-			FileGroups:    deploymentsUserData[id].FileGroups,
+			DeploymentBase: stgDep,
+			Containers:     getContainers(deploymentContainers, cewContainersMap),
+			Volumes:        deploymentsVolumes[id],
+			HostResources:  deploymentsUserData[id].HostResources,
+			Secrets:        deploymentsUserData[id].Secrets,
+			Configs:        deploymentsUserData[id].Configs,
+			GlobalConfigs:  deploymentsUserData[id].GlobalConfigs,
+			Files:          deploymentsUserData[id].Files,
+			FileGroups:     deploymentsUserData[id].FileGroups,
 		}
 		if cewErr == nil && deployment.Enabled {
 			deployment.State = getDeploymentState(getContainersCombinedState(deploymentContainers, cewContainersMap))
@@ -219,11 +218,11 @@ func (h *Handler) getDeployments(
 
 func (h *Handler) getCewContainers(
 	ctx context.Context,
-	stgDepsContainers map[string]map[string]models_handler_database.DeploymentContainer,
+	stgDepsContainers map[string]map[string]models_deployments.ContainerBase,
 ) (map[string]models_external.Container, error) {
 	var ctrNames []string
 	for _, stgDepContainers := range stgDepsContainers {
-		ctrNames = append(ctrNames, helper_slices.CollectFunc(maps.Values(stgDepContainers), func(item models_handler_database.DeploymentContainer) string {
+		ctrNames = append(ctrNames, helper_slices.CollectFunc(maps.Values(stgDepContainers), func(item models_deployments.ContainerBase) string {
 			return item.Name
 		})...)
 	}
@@ -238,12 +237,12 @@ func (h *Handler) getCewContainers(
 }
 
 func getContainers(
-	stgDepContainers map[string]models_handler_database.DeploymentContainer,
+	stgDepContainers map[string]models_deployments.ContainerBase,
 	cewContainers map[string]models_external.Container,
 ) map[string]models_deployments.Container {
 	containers := make(map[string]models_deployments.Container)
 	for reference, stgDepContainer := range stgDepContainers {
-		container := models_deployments.Container{DeploymentContainer: stgDepContainer}
+		container := models_deployments.Container{ContainerBase: stgDepContainer}
 		cewContainer, ok := cewContainers[stgDepContainer.Name]
 		if ok {
 			container.ImageId = cewContainer.ImageID
@@ -267,7 +266,7 @@ func getDeploymentState(containersState int) int {
 }
 
 func getContainersCombinedState(
-	deploymentContainers map[string]models_handler_database.DeploymentContainer,
+	deploymentContainers map[string]models_deployments.ContainerBase,
 	existingContainers map[string]models_external.Container,
 ) int {
 	var runningCount int

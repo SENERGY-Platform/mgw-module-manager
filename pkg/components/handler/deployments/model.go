@@ -18,8 +18,8 @@ package handler_deployments
 
 import (
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 const (
@@ -37,12 +37,12 @@ type defaultDataCollection struct {
 	Files   map[string][]byte
 }
 type userDataCollection struct {
-	GlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig
-	HostResources map[string]models_handler_database.DeploymentHostResource
-	Secrets       map[string]models_handler_database.DeploymentSecret
-	Configs       map[string]models_handler_database.DeploymentUserConfig
-	Files         map[string]models_handler_database.DeploymentFile
-	FileGroups    map[string]models_handler_database.DeploymentFileGroup
+	GlobalConfigs map[string]models_deployments.DeploymentGlobalConfig
+	HostResources map[string]models_deployments.DeploymentHostResource
+	Secrets       map[string]models_deployments.DeploymentSecret
+	Configs       map[string]models_deployments.DeploymentUserConfig
+	Files         map[string]models_deployments.DeploymentFile
+	FileGroups    map[string]models_deployments.DeploymentFileGroup
 }
 
 type bindMountDataCollection struct {

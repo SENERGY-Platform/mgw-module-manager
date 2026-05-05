@@ -26,12 +26,12 @@ import (
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) ensureContainerVolumes(ctx context.Context,
-	volumes map[string]models_handler_database.DeploymentVolume,
+	volumes map[string]models_deployments.DeploymentVolume,
 	deploymentId string,
 ) error {
 	existingVolumes, err := h.getContainerVolumes(ctx, deploymentId)
@@ -63,7 +63,7 @@ func (h *Handler) ensureContainerVolumes(ctx context.Context,
 	return nil
 }
 
-func (h *Handler) createContainerVolume(ctx context.Context, volume models_handler_database.DeploymentVolume) error {
+func (h *Handler) createContainerVolume(ctx context.Context, volume models_deployments.DeploymentVolume) error {
 	_, err := h.containerEngineWrapperClient.CreateVolume(ctx, models_external.Volume{
 		Name: volume.Name,
 		Labels: map[string]string{
@@ -82,7 +82,7 @@ func (h *Handler) createContainerVolume(ctx context.Context, volume models_handl
 
 func (h *Handler) removeContainerVolumes(
 	ctx context.Context,
-	deploymentVolumes map[string]models_handler_database.DeploymentVolume,
+	deploymentVolumes map[string]models_deployments.DeploymentVolume,
 ) error {
 	var errs []string
 	for _, volume := range deploymentVolumes {

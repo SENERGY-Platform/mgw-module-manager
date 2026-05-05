@@ -17,8 +17,10 @@
 package deployments
 
 import (
+	"time"
+
+	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 const (
@@ -27,34 +29,128 @@ const (
 )
 
 type Deployment struct {
-	models_handler_database.Deployment
+	DeploymentBase
 	Containers    map[string]Container
-	Volumes       map[string]models_handler_database.DeploymentVolume
-	HostResources map[string]models_handler_database.DeploymentHostResource
-	Secrets       map[string]models_handler_database.DeploymentSecret
-	Configs       map[string]models_handler_database.DeploymentUserConfig
-	GlobalConfigs map[string]models_handler_database.DeploymentGlobalConfig
-	Files         map[string]models_handler_database.DeploymentFile
-	FileGroups    map[string]models_handler_database.DeploymentFileGroup
+	Volumes       map[string]DeploymentVolume
+	HostResources map[string]DeploymentHostResource
+	Secrets       map[string]DeploymentSecret
+	Configs       map[string]DeploymentUserConfig
+	GlobalConfigs map[string]DeploymentGlobalConfig
+	Files         map[string]DeploymentFile
+	FileGroups    map[string]DeploymentFileGroup
 	State         int // health state determined by container states
 }
 
 type DeploymentReduced struct {
-	models_handler_database.Deployment
+	DeploymentBase
 	Containers map[string]Container
 	State      int // health state determined by container states
 }
 
 type Container struct {
-	models_handler_database.DeploymentContainer
+	ContainerBase
 	ImageId string // docker image id
 	State   string // docker container state
 	Health  string // docker container health
 }
 
-type DeploymentsFilter struct {
-	models_handler_database.DeploymentsFilter
+type DeploymentsFilterWithState struct {
+	DeploymentsFilter
 	State int
+}
+
+type DeploymentBase struct {
+	Id            string
+	ModuleId      string
+	ModuleSource  string
+	ModuleChannel string
+	ModuleVersion string
+	DirName       string
+	FilesDirName  string
+	Enabled       bool
+	Created       time.Time
+	Updated       time.Time
+}
+
+type ContainerBase struct {
+	Name         string
+	DeploymentId string
+	Reference    string
+	Alias        string
+}
+
+type DeploymentVolume struct {
+	DeploymentId string
+	Reference    string
+	Name         string
+}
+
+type DeploymentHostResource struct {
+	Id           string
+	DeploymentId string
+	Reference    string
+}
+
+type DeploymentSecret struct {
+	Id           string
+	DeploymentId string
+	Reference    string
+	Items        []lib_models_service.DeploymentSecretItem
+}
+
+type DeploymentUserConfig struct {
+	Id           string
+	DeploymentId string
+	Reference    string
+	models_configs.Value
+}
+
+type DeploymentGlobalConfig struct {
+	Id           string
+	DeploymentId string
+	Reference    string
+}
+
+type DeploymentFile struct {
+	DeploymentId string
+	Reference    string
+	Data         []byte
+}
+
+type DeploymentFileGroup struct {
+	Id           string
+	DeploymentId string
+	Reference    string
+	Files        []DeploymentFileGroupFile
+}
+
+type DeploymentFileGroupFile struct {
+	Path   string
+	Format int
+	Data   []byte
+}
+
+type DeploymentsFilter struct {
+	Ids       []string
+	ModuleIds []string
+	Enabled   int
+}
+
+type DeploymentsHostResourcesFilter struct {
+	Ids           []string
+	DeploymentIds []string
+}
+
+type DeploymentsSecretsFilter struct {
+	Ids           []string
+	DeploymentIds []string
+	AsMount       int
+	AsEnv         int
+}
+
+type DeploymentGlobalConfigsFilter struct {
+	Ids           []string
+	DeploymentIds []string
 }
 
 type UserInput struct {

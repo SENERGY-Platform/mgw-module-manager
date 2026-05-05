@@ -31,7 +31,6 @@ import (
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 )
@@ -50,8 +49,8 @@ func (s *Service) Modules(ctx context.Context, filter lib_models_service.Modules
 	if err != nil {
 		return nil, err
 	}
-	deployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilter{
-		DeploymentsFilter: models_handler_database.DeploymentsFilter{
+	deployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilterWithState{
+		DeploymentsFilter: models_deployments.DeploymentsFilter{
 			ModuleIds: slices.Collect(maps.Keys(modules)),
 		},
 	})

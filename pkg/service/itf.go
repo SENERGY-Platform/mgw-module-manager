@@ -10,7 +10,6 @@ import (
 	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
 )
@@ -35,14 +34,14 @@ type deploymentsHandler interface {
 	GetDeployment(ctx context.Context, id string) (models_deployments.Deployment, error)
 	GetReducedDeploymentsByModuleIds(
 		ctx context.Context,
-		filter models_deployments.DeploymentsFilter,
+		filter models_deployments.DeploymentsFilterWithState,
 	) (map[string]models_deployments.DeploymentReduced, error)
 	GetDeploymentsByModuleIds(
 		ctx context.Context,
-		filter models_deployments.DeploymentsFilter,
+		filter models_deployments.DeploymentsFilterWithState,
 	) (map[string]models_deployments.Deployment, error)
 	GetDeploymentByModuleId(ctx context.Context, moduleId string) (models_deployments.Deployment, error)
-	GetDeploymentIds(ctx context.Context, filter models_handler_database.DeploymentsFilter) (map[string]string, error)
+	GetDeploymentIds(ctx context.Context, filter models_deployments.DeploymentsFilter) (map[string]string, error)
 	CreateDeployments(
 		ctx context.Context,
 		selectedModules map[string]models_handler_modules.Module,
@@ -59,7 +58,7 @@ type deploymentsHandler interface {
 	) ([]lib_models_service.DeploymentResult, error)
 	DeleteDeployments(
 		ctx context.Context,
-		filter models_deployments.DeploymentsFilter,
+		filter models_deployments.DeploymentsFilterWithState,
 		allowAll bool,
 	) ([]lib_models_service.DeploymentResult, error)
 	EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error)

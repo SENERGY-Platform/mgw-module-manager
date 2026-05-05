@@ -24,16 +24,16 @@ import (
 	"strings"
 
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) updateHostResourcesCache(
 	ctx context.Context,
-	userDataHostResources map[string]models_handler_database.DeploymentHostResource,
+	userDataHostResources map[string]models_deployments.DeploymentHostResource,
 	cacheHostResources map[string]models_external.HostResource,
 ) error {
-	selectedIds := helper_slices.CollectFunc(maps.Values(userDataHostResources), func(item models_handler_database.DeploymentHostResource) string {
+	selectedIds := helper_slices.CollectFunc(maps.Values(userDataHostResources), func(item models_deployments.DeploymentHostResource) string {
 		return item.Id
 	})
 	var idsNotInCache []string
@@ -64,8 +64,8 @@ func getSelectedHostResources(
 	moduleHostResources map[string]models_external.ModuleLibHostResource,
 	userInputHostResources map[string]string,
 	deploymentID string,
-) (map[string]models_handler_database.DeploymentHostResource, error) {
-	hostResources := make(map[string]models_handler_database.DeploymentHostResource)
+) (map[string]models_deployments.DeploymentHostResource, error) {
+	hostResources := make(map[string]models_deployments.DeploymentHostResource)
 	var errs []string
 	for reference, hostResource := range moduleHostResources {
 		id, ok := userInputHostResources[reference]
@@ -75,7 +75,7 @@ func getSelectedHostResources(
 			}
 			continue
 		}
-		hostResources[reference] = models_handler_database.DeploymentHostResource{
+		hostResources[reference] = models_deployments.DeploymentHostResource{
 			Id:           id,
 			DeploymentId: deploymentID,
 			Reference:    reference,

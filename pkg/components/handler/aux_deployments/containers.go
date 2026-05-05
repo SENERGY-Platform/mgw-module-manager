@@ -28,7 +28,6 @@ import (
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
 func (h *Handler) createContainer(
@@ -158,7 +157,7 @@ func appendTmpfsMounts(
 func appendVolumeMounts(
 	mounts []models_external.CewMount,
 	auxServiceVolumes map[string]string,
-	deploymentVolumes map[string]models_handler_database.DeploymentVolume,
+	deploymentVolumes map[string]models_deployments.DeploymentVolume,
 	volumeMounts []aux_deployments.AuxiliaryDeploymentVolumeMount,
 ) []models_external.CewMount {
 	for mountPath, name := range auxServiceVolumes {

@@ -21,13 +21,13 @@ import (
 	"maps"
 	"slices"
 
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 )
 
 func (h *Handler) EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_database.DeploymentsFilter{
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_deployments.DeploymentsFilter{
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
@@ -44,7 +44,7 @@ func (h *Handler) EnableDeployments(ctx context.Context, moduleIds []string) ([]
 func (h *Handler) DisableDeployments(ctx context.Context, moduleIds []string) ([]string, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_database.DeploymentsFilter{
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_deployments.DeploymentsFilter{
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
