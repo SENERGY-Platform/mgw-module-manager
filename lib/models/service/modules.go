@@ -19,12 +19,13 @@ package service
 import (
 	"time"
 
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 )
 
+type ModuleLibModule = module_lib.Module
+
 type Module struct {
-	models_external.ModuleLibModule
+	ModuleLibModule
 	Source     string     `json:"source"`
 	Channel    string     `json:"channel"`
 	Added      time.Time  `json:"added"`
@@ -62,7 +63,13 @@ type Container struct {
 
 type Secret struct {
 	Id    string `json:"id"`
-	Items []models_handler_database.DeploymentSecretItem
+	Items []DeploymentSecretItem
+}
+
+type DeploymentSecretItem struct {
+	Name    string `json:"name"`
+	AsMount bool   `json:"as_mount"`
+	AsEnv   bool   `json:"as_env"`
 }
 
 type FileGroup struct {

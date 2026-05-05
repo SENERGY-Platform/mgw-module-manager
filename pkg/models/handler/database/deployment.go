@@ -19,6 +19,7 @@ package models_handler_database
 import (
 	"time"
 
+	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 )
 
@@ -58,13 +59,7 @@ type DeploymentSecret struct {
 	Id           string
 	DeploymentId string
 	Reference    string
-	Items        []DeploymentSecretItem
-}
-
-type DeploymentSecretItem struct {
-	Name    string `json:"name"`
-	AsMount bool   `json:"as_mount"`
-	AsEnv   bool   `json:"as_env"`
+	Items        []lib_models_service.DeploymentSecretItem
 }
 
 type DeploymentUserConfig struct {
