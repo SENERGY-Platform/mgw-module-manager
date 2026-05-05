@@ -16,7 +16,7 @@
 
 package service
 
-import models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
+import models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 
 type UserInput struct {
 	ModuleId      string                                   `json:"module_id"`
@@ -35,8 +35,8 @@ type FileGroupUserInput struct {
 
 type JobResultDeployments struct {
 	JobResult
-	Results       []models_handler_deployments.Result `json:"results"`
-	ResultsErrNum int                                 `json:"results_err_num"`
+	Results       []DeploymentResult `json:"results"`
+	ResultsErrNum int                `json:"results_err_num"`
 }
 
 type JobResultUpdateDeployments struct {
@@ -46,11 +46,17 @@ type JobResultUpdateDeployments struct {
 }
 
 type JobResultUpdateDeploymentsResult struct {
-	models_handler_deployments.Result
+	DeploymentResult
 	AuxiliaryDeployments RecreateAuxiliaryDeploymentResult `json:"auxiliary_deployments"`
 }
 
 type DeleteDeploymentsResult struct {
-	models_handler_deployments.Result
+	DeploymentResult
 	AuxiliaryDeployments DeleteAuxiliaryDeploymentResult `json:"auxiliary_deployments"`
+}
+
+type DeploymentResult struct {
+	ModuleId string `json:"module_id"`
+	Id       string `json:"id"`
+	models_error.ErrorResult
 }

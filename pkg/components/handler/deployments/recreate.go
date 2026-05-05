@@ -24,17 +24,17 @@ import (
 	"slices"
 
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
+	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
 
 func (h *Handler) RecreateDeployments(
 	ctx context.Context,
 	selectedModules map[string]models_handler_modules.Module,
-) ([]models_handler_deployments.Result, error) {
+) ([]lib_models_service.DeploymentResult, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_handler_database.DeploymentsFilter{
@@ -61,9 +61,9 @@ func (h *Handler) RecreateDeployments(
 	if err != nil {
 		return nil, err
 	}
-	var results []models_handler_deployments.Result
+	var results []lib_models_service.DeploymentResult
 	for moduleId, module := range selectedModules {
-		result := models_handler_deployments.Result{ModuleId: moduleId}
+		result := lib_models_service.DeploymentResult{ModuleId: moduleId}
 		cacheItem, ok := cache.Deployments[moduleId]
 		if !ok {
 			result.ErrorResult = models_error.NewErrorResult("not installed")

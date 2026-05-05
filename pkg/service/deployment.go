@@ -162,7 +162,7 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 		}
 		cacheDependencyDeployments := make(map[string]models_handler_deployments.DeploymentReduced)
 		for _, updateDepResult := range updateDepResults {
-			result := lib_models_service.JobResultUpdateDeploymentsResult{Result: updateDepResult}
+			result := lib_models_service.JobResultUpdateDeploymentsResult{DeploymentResult: updateDepResult}
 			if !updateDepResult.HasError {
 				module, ok := handlerModules[updateDepResult.ModuleId]
 				if ok {
@@ -286,7 +286,7 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]
 		},
 		false,
 	)
-	deleteResultsMap := maps.Collect(helper_slices.AllFunc(deleteResults, func(item models_handler_deployments.Result) string {
+	deleteResultsMap := maps.Collect(helper_slices.AllFunc(deleteResults, func(item lib_models_service.DeploymentResult) string {
 		return item.Id
 	}))
 	var results []lib_models_service.DeleteDeploymentsResult
@@ -299,7 +299,7 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]
 			errResult = deleteResult.ErrorResult
 		}
 		results = append(results, lib_models_service.DeleteDeploymentsResult{
-			Result: models_handler_deployments.Result{
+			DeploymentResult: lib_models_service.DeploymentResult{
 				ModuleId:    moduleId,
 				Id:          id,
 				ErrorResult: errResult,

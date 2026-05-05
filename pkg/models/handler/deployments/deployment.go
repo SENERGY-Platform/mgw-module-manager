@@ -17,7 +17,6 @@
 package models_handler_deployments
 
 import (
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
@@ -71,10 +70,4 @@ type UserInput struct {
 type FileGroupUserInput struct {
 	Format int
 	Data   []byte
-}
-
-type Result struct {
-	ModuleId string `json:"module_id"`
-	Id       string `json:"id"`
-	models_error.ErrorResult
 }

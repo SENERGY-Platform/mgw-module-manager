@@ -23,7 +23,8 @@ import (
 	"slices"
 
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
+	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
+	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
@@ -33,7 +34,7 @@ func (h *Handler) DeleteDeployments(
 	ctx context.Context,
 	filter models_handler_deployments.DeploymentsFilter,
 	allowAll bool,
-) ([]models_handler_deployments.Result, error) {
+) ([]lib_models_service.DeploymentResult, error) {
 	if !allowAll && filterEmpty(filter) {
 		return nil, nil
 	}
@@ -47,9 +48,9 @@ func (h *Handler) DeleteDeployments(
 	if err != nil {
 		return nil, err
 	}
-	var results []models_handler_deployments.Result
+	var results []lib_models_service.DeploymentResult
 	for id, deployment := range deployments {
-		result := models_handler_deployments.Result{ModuleId: deployment.ModuleId, Id: deployment.Id}
+		result := lib_models_service.DeploymentResult{ModuleId: deployment.ModuleId, Id: deployment.Id}
 		err = h.deleteDeployment(
 			ctx,
 			deployment.Id,

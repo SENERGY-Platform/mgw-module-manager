@@ -6,6 +6,7 @@ import (
 
 	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	lib_models_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/lib/models/dep_advertisements"
+	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
@@ -46,21 +47,21 @@ type deploymentsHandler interface {
 		ctx context.Context,
 		selectedModules map[string]models_handler_modules.Module,
 		userInputs map[string]models_handler_deployments.UserInput,
-	) ([]models_handler_deployments.Result, error)
+	) ([]lib_models_service.DeploymentResult, error)
 	UpdateDeployments(
 		ctx context.Context,
 		selectedModules map[string]models_handler_modules.Module,
 		userInputs map[string]models_handler_deployments.UserInput,
-	) ([]models_handler_deployments.Result, error)
+	) ([]lib_models_service.DeploymentResult, error)
 	RecreateDeployments(
 		ctx context.Context,
 		selectedModules map[string]models_handler_modules.Module,
-	) ([]models_handler_deployments.Result, error)
+	) ([]lib_models_service.DeploymentResult, error)
 	DeleteDeployments(
 		ctx context.Context,
 		filter models_handler_deployments.DeploymentsFilter,
 		allowAll bool,
-	) ([]models_handler_deployments.Result, error)
+	) ([]lib_models_service.DeploymentResult, error)
 	EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error)
 	DisableDeployments(ctx context.Context, moduleIds []string) ([]string, error)
 }

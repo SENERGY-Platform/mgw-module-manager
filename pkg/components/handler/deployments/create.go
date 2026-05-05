@@ -26,6 +26,7 @@ import (
 	"slices"
 
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
+	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	helper_file_sys "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
 	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
@@ -43,7 +44,7 @@ func (h *Handler) CreateDeployments(
 	ctx context.Context,
 	selectedModules map[string]models_handler_modules.Module,
 	userInputs map[string]models_handler_deployments.UserInput,
-) ([]models_handler_deployments.Result, error) {
+) ([]lib_models_service.DeploymentResult, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	cache := cacheCollection{
@@ -60,9 +61,9 @@ func (h *Handler) CreateDeployments(
 	if err != nil {
 		return nil, err
 	}
-	var results []models_handler_deployments.Result
+	var results []lib_models_service.DeploymentResult
 	for moduleId, module := range selectedModules {
-		result := models_handler_deployments.Result{ModuleId: moduleId}
+		result := lib_models_service.DeploymentResult{ModuleId: moduleId}
 		cacheItem, ok := cache.Deployments[moduleId]
 		if !ok {
 			result.ErrorResult = models_error.NewErrorResult("not installed")
