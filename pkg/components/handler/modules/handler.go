@@ -260,14 +260,14 @@ func (h *Handler) modules(ctx context.Context, filter models_handler_modules.Mod
 	}
 	filter.Name = strings.ToLower(filter.Name)
 	modules := make(map[string]models_handler_modules.Module)
-	var errs []error
+	var errs []string
 	for _, stgMod := range stgMods {
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 		mod, ok := h.cacheGet(stgMod.Id)
 		if !ok {
 			mod, err = helper_modfile.GetModule(modFS)
 			if err != nil {
-				errs = append(errs, err)
+				errs = append(errs, err.Error())
 				logger.Error("getting module failed", slog_attr.IdKey, stgMod.Id, slog_attr.ErrorKey, err)
 				continue
 			}
@@ -287,7 +287,7 @@ func (h *Handler) modules(ctx context.Context, filter models_handler_modules.Mod
 	}
 	lenErrs := len(errs)
 	if lenErrs > 0 && lenErrs == len(stgMods) {
-		return nil, models_error.NewMultiError(errs)
+		return nil, errors.New(strings.Join(errs, "\n"))
 	}
 	return modules, nil
 }

@@ -33,14 +33,14 @@ func New(repositories []Repository) *Handler {
 func (h *Handler) InitRepositories(ctx context.Context) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	var errs []error
+	var errs []string
 	for source, repo := range h.repositories {
 		if err := repo.Handler.Init(); err != nil {
-			errs = append(errs, models_error.NewRepoErr(source, err))
+			errs = append(errs, fmt.Sprintf(source+": "+err.Error()))
 		}
 	}
 	if len(errs) > 0 {
-		return models_error.NewMultiError(errs)
+		return errors.New(strings.Join(errs, "\n"))
 	}
 	return h.updateVariantsMap(ctx)
 }
@@ -48,14 +48,14 @@ func (h *Handler) InitRepositories(ctx context.Context) error {
 func (h *Handler) RefreshRepositories(ctx context.Context) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	var errs []error
+	var errs []string
 	for source, repo := range h.repositories {
 		if err := repo.Handler.Refresh(ctx); err != nil {
-			errs = append(errs, models_error.NewRepoErr(source, err))
+			errs = append(errs, fmt.Sprintf(source+": "+err.Error()))
 		}
 	}
 	if len(errs) > 0 {
-		return models_error.NewMultiError(errs)
+		return errors.New(strings.Join(errs, "\n"))
 	}
 	return h.updateVariantsMap(ctx)
 }
@@ -131,12 +131,12 @@ func (h *Handler) ModuleFS(ctx context.Context, id, source, channel string) (fs.
 
 func (h *Handler) updateVariantsMap(ctx context.Context) error {
 	variantsMap := make(map[string]map[string]map[string]moduleWrapper)
-	var errs []error
+	var errs []string
 	for source, repo := range h.repositories {
 		for _, channel := range repo.Handler.Channels() {
 			fsMap, err := repo.Handler.FileSystemsMap(ctx, channel.Name)
 			if err != nil {
-				errs = append(errs, models_error.NewRepoModuleErr(source, channel.Name, err))
+				errs = append(errs, fmt.Sprintf("%s %s: %s", source, channel.Name, err.Error()))
 				continue
 			}
 			for ref, fSys := range fsMap {
@@ -145,7 +145,7 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 				}
 				mod, err := helper_modfile.GetModule(fSys)
 				if err != nil {
-					errs = append(errs, models_error.NewRepoModuleErr(source, channel.Name, err))
+					errs = append(errs, fmt.Sprintf("%s %s: %s", source, channel.Name, err.Error()))
 					continue
 				}
 				sources, ok := variantsMap[mod.ID]
@@ -175,7 +175,7 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 		}
 	}
 	if len(errs) > 0 {
-		return models_error.NewMultiError(errs)
+		return errors.New(strings.Join(errs, "\n"))
 	}
 	h.variantsMap = variantsMap
 	return nil
