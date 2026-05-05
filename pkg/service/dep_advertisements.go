@@ -19,23 +19,23 @@ package service
 import (
 	"context"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_handler_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
-	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
 func (s *Service) QueryDeploymentAdvertisements(
 	ctx context.Context,
 	filter models_handler_database.DeploymentAdvertisementsFilter,
-) ([]models_service.DeploymentAdvertisement, error) {
+) ([]service.DeploymentAdvertisement, error) {
 	depAdvMap, err := s.depAdvertisementsHandler.GetAdvertisements(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
-	var depAdvs []models_service.DeploymentAdvertisement
+	var depAdvs []service.DeploymentAdvertisement
 	for _, depAdv := range depAdvMap {
-		depAdvs = append(depAdvs, models_service.DeploymentAdvertisement{
+		depAdvs = append(depAdvs, service.DeploymentAdvertisement{
 			Id:        depAdv.Id,
 			ModuleId:  depAdv.ModuleId,
 			Origin:    depAdv.Origin,
@@ -47,12 +47,12 @@ func (s *Service) QueryDeploymentAdvertisements(
 	return depAdvs, nil
 }
 
-func (s *Service) QueryDeploymentAdvertisement(ctx context.Context, id string) (models_service.DeploymentAdvertisement, error) {
+func (s *Service) QueryDeploymentAdvertisement(ctx context.Context, id string) (service.DeploymentAdvertisement, error) {
 	depAdv, err := s.depAdvertisementsHandler.GetAdvertisementById(ctx, id)
 	if err != nil {
-		return models_service.DeploymentAdvertisement{}, err
+		return service.DeploymentAdvertisement{}, err
 	}
-	return models_service.DeploymentAdvertisement{
+	return service.DeploymentAdvertisement{
 		Id:        depAdv.Id,
 		ModuleId:  depAdv.ModuleId,
 		Origin:    depAdv.Origin,

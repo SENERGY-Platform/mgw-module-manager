@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models_service
+package service
 
 type RepoModule struct {
 	Id           string                  `json:"id"`

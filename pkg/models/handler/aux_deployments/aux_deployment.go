@@ -19,7 +19,7 @@ package models_handler_aux_deployments
 import (
 	"time"
 
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 

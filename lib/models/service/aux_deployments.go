@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package models_service
+package service
 
 import (
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 )
 

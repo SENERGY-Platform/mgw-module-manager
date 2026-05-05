@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models_service
+package service
 
 import (
 	"time"

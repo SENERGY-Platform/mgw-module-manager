@@ -3,8 +3,8 @@ package service
 import (
 	"sync"
 
+	models_service2 "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	handler_jobs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
-	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
 type Service struct {
@@ -38,13 +38,13 @@ func New(
 		depAdvertisementsHandler: depAdvertisementsHandler,
 		jobsHandler:              jobsHandler,
 		jobResults: jobResults{
-			deployments:         make(map[string]models_service.JobResultDeployments),
-			deploymentsUpdate:   make(map[string]models_service.JobResultUpdateDeployments),
-			moduleChange:        make(map[string]models_service.JobResultModulesChange),
-			refreshRepositories: make(map[string]models_service.JobResult),
-			auxDeploymentCreate: make(map[string]models_service.JobResultCreateAuxiliaryDeployment),
-			auxDeploymentUpdate: make(map[string]models_service.JobResult),
-			auxDeployment:       make(map[string]models_service.JobResultAuxiliaryDeployments),
+			deployments:         make(map[string]models_service2.JobResultDeployments),
+			deploymentsUpdate:   make(map[string]models_service2.JobResultUpdateDeployments),
+			moduleChange:        make(map[string]models_service2.JobResultModulesChange),
+			refreshRepositories: make(map[string]models_service2.JobResult),
+			auxDeploymentCreate: make(map[string]models_service2.JobResultCreateAuxiliaryDeployment),
+			auxDeploymentUpdate: make(map[string]models_service2.JobResult),
+			auxDeployment:       make(map[string]models_service2.JobResultAuxiliaryDeployments),
 		},
 	}
 }

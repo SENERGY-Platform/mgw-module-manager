@@ -4,8 +4,8 @@ import (
 	"io/fs"
 	"time"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
 const (
@@ -40,6 +40,6 @@ type modulesChangeRequest struct {
 }
 
 type changeItem struct {
-	Previous models_service.ModuleAbbreviated
+	Previous service.ModuleAbbreviated
 	Next     modWrapper
 }

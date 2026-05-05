@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 InfAI (CC SES)
+ * Copyright 2026 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
-package models_error
+package service
 
-import "errors"
+import models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
 
-var NotFoundErr = errors.New("not found")
-var DuplicateErr = errors.New("duplicate")
+type GlobalConfigInput struct {
+	Name string `json:"name"`
+	models_config.InterfaceValue
+}
+
+type GlobalConfig struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+	models_config.InterfaceValue
+}

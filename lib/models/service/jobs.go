@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package models_service
+package service
 
 import (
 	"time"
 
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 )
 
 type Job struct {

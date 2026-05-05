@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models_service
+package service
 
 import models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 

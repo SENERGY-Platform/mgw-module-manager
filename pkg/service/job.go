@@ -20,27 +20,27 @@ import (
 	"context"
 	"slices"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	handler_jobs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/service"
 )
 
-func (s *Service) Jobs(_ context.Context, filterIds []string) ([]models_service.Job, error) {
+func (s *Service) Jobs(_ context.Context, filterIds []string) ([]service.Job, error) {
 	handlerJobs := s.jobsHandler.Jobs(filterIds)
-	var jobs []models_service.Job
+	var jobs []service.Job
 	for _, handlerJob := range handlerJobs {
 		jobs = append(jobs, getJob(handlerJob))
 	}
-	slices.SortStableFunc(jobs, func(a, b models_service.Job) int {
+	slices.SortStableFunc(jobs, func(a, b service.Job) int {
 		return a.Start.Compare(b.Start)
 	})
 	return jobs, nil
 }
 
-func (s *Service) Job(_ context.Context, jobId string) (models_service.Job, error) {
+func (s *Service) Job(_ context.Context, jobId string) (service.Job, error) {
 	handlerJob, ok := s.jobsHandler.Job(jobId)
 	if !ok {
-		return models_service.Job{}, models_error.NotFoundErr
+		return service.Job{}, models_error.NotFoundErr
 	}
 	return getJob(handlerJob), nil
 }
@@ -62,8 +62,8 @@ func (s *Service) CancelJob(_ context.Context, jobId string) error {
 	return nil
 }
 
-func getJob(handlerJob *handler_jobs.Job) models_service.Job {
-	job := models_service.Job{
+func getJob(handlerJob *handler_jobs.Job) service.Job {
+	job := service.Job{
 		Id:          handlerJob.Id,
 		Description: handlerJob.Description,
 		Start:       handlerJob.Start,

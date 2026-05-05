@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package models_service
+package results
 
-import models_config "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/config"
-
-type GlobalConfigInput struct {
-	Name string `json:"name"`
-	models_config.InterfaceValue
+type ErrorResult struct {
+	HasError bool   `json:"has_error"`
+	ErrorMsg string `json:"error_msg"`
 }
 
-type GlobalConfig struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
-	models_config.InterfaceValue
+func NewErrorResult(msg string) ErrorResult {
+	return ErrorResult{
+		HasError: true,
+		ErrorMsg: msg,
+	}
 }
