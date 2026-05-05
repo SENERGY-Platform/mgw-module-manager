@@ -19,7 +19,6 @@ package models_handler_aux_deployments
 import (
 	"time"
 
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 )
 
@@ -65,42 +64,4 @@ type Container struct {
 type AuxiliaryDeploymentsFilter struct {
 	models_handler_database.AuxiliaryDeploymentsFilter
 	State string // docker container state
-}
-
-type ServiceInput struct {
-	Reference string                `json:"reference"`
-	Name      string                `json:"name"`
-	Image     string                `json:"image"`
-	PullImage bool                  `json:"pull_image"`
-	Labels    map[string]string     `json:"labels"`  // {name:value}
-	Configs   map[string]string     `json:"configs"` // {varName:value}
-	Volumes   map[string]string     `json:"volumes"` // {mntPath:reference}
-	RunConfig ServiceInputRunConfig `json:"run_config"`
-	Enabled   bool                  `json:"enabled"`
-	Recreate  bool                  `json:"recreate"` // recreate the auxiliary deployment if parent deployment gets updated
-}
-
-type UpdateServiceInput struct {
-	ServiceInput
-	Incremental bool `json:"incremental"`
-}
-
-type ServiceInputRunConfig struct {
-	Command   []string `json:"command"`
-	PseudoTTY int      `json:"pseudo_tty"`
-}
-
-type Result struct {
-	Id             string `json:"id"`
-	ContainerAlias string `json:"container_alias"`
-}
-
-type BatchResult struct {
-	Id string `json:"id"`
-	models_error.ErrorResult
-}
-
-type VolumeResult struct {
-	Reference string `json:"reference"`
-	models_error.ErrorResult
 }

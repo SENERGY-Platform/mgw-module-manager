@@ -23,6 +23,7 @@ import (
 	"maps"
 	"slices"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	models_service2 "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
@@ -337,7 +338,7 @@ func (s *Service) DeleteAuxiliaryDeploymentVolumes(
 	deploymentId string,
 	filterReferences []string,
 	allowAll bool,
-) ([]models_handler_aux_deployments.VolumeResult, error) {
+) ([]aux_deployments.VolumeResult, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.auxDeploymentsHandler.DeleteVolumes(ctx, deploymentId, filterReferences, allowAll)
@@ -347,7 +348,7 @@ func (s *Service) DeleteUnusedAuxiliaryDeploymentVolumes(
 	ctx context.Context,
 	deploymentId string,
 	excludeReferences []string,
-) ([]models_handler_aux_deployments.VolumeResult, error) {
+) ([]aux_deployments.VolumeResult, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.auxDeploymentsHandler.DeleteUnusedVolumes(ctx, deploymentId, excludeReferences)
@@ -358,7 +359,7 @@ func (s *Service) recreateAuxDeployments(
 	module models_handler_modules.Module,
 	deploymentId string,
 	cacheDependencyDeployments map[string]models_handler_deployments.DeploymentReduced,
-) ([]models_handler_aux_deployments.BatchResult, error) {
+) ([]aux_deployments.BatchResult, error) {
 	activeDeployment, err := s.deploymentsHandler.GetDeployment(ctx, deploymentId)
 	if err != nil {
 		return nil, err

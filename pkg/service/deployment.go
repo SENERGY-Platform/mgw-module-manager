@@ -24,6 +24,7 @@ import (
 	"maps"
 	"slices"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	models_service2 "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
@@ -343,7 +344,7 @@ func (s *Service) DisableDeployments(ctx context.Context, moduleIds []string) ([
 func (s *Service) deleteAuxDeployments(
 	ctx context.Context,
 	deploymentId string,
-) ([]models_handler_aux_deployments.BatchResult, []models_handler_aux_deployments.VolumeResult, error) {
+) ([]aux_deployments.BatchResult, []aux_deployments.VolumeResult, error) {
 	results, err := s.auxDeploymentsHandler.DeleteDeployments(
 		ctx,
 		deploymentId,

@@ -21,6 +21,7 @@ import (
 	"maps"
 	"slices"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
@@ -38,7 +39,7 @@ func (h *Handler) RecreateDeployments(
 	activeDeployment models_handler_deployments.Deployment,
 	dependencies map[string]models_handler_deployments.DeploymentReduced,
 	filter models_handler_aux_deployments.AuxiliaryDeploymentsFilter,
-) ([]models_handler_aux_deployments.BatchResult, error) {
+) ([]aux_deployments.BatchResult, error) {
 	mu := h.mutexes.Get(activeDeployment.Id)
 	mu.Lock()
 	defer mu.Unlock()
@@ -64,9 +65,9 @@ func (h *Handler) RecreateDeployments(
 		return nil, err
 	}
 	cacheDeploymentConfigs := make(map[string]map[string]string)
-	var results []models_handler_aux_deployments.BatchResult
+	var results []aux_deployments.BatchResult
 	for id, auxDep := range auxDeployments {
-		result := models_handler_aux_deployments.BatchResult{Id: id}
+		result := aux_deployments.BatchResult{Id: id}
 		auxService, ok := module.AuxServices[auxDep.Reference]
 		if !ok {
 			result.ErrorResult = models_error.NewErrorResult("auxiliary service reference not found")

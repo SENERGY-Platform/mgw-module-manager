@@ -22,9 +22,9 @@ import (
 	"maps"
 	"slices"
 
+	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
-	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )

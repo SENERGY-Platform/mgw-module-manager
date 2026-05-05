@@ -17,42 +17,42 @@
 package service
 
 import (
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
-	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/aux_deployments"
 )
 
 type ServiceInput struct {
 	DeploymentId string `json:"deployment_id"`
-	models_handler_aux_deployments.ServiceInput
+	aux_deployments.ServiceInput
 }
 
 type ServiceInputUpdate struct {
 	DeploymentId    string `json:"deployment_id"`
 	AuxDeploymentId string `json:"auxiliary_deployment_id"`
-	models_handler_aux_deployments.UpdateServiceInput
+	aux_deployments.UpdateServiceInput
 }
 
 type JobResultCreateAuxiliaryDeployment struct {
 	JobResult
-	models_handler_aux_deployments.Result
+	aux_deployments.Result
 }
 
 type JobResultAuxiliaryDeployments struct {
 	JobResult
-	Results       []models_handler_aux_deployments.BatchResult `json:"results"`
-	ResultsErrNum int                                          `json:"results_err_num"`
+	Results       []aux_deployments.BatchResult `json:"results"`
+	ResultsErrNum int                           `json:"results_err_num"`
 }
 
 type RecreateAuxiliaryDeploymentResult struct {
 	models_error.ErrorResult
-	Results       []models_handler_aux_deployments.BatchResult `json:"results"`
-	ResultsErrNum int                                          `json:"results_err_num"`
+	Results       []aux_deployments.BatchResult `json:"results"`
+	ResultsErrNum int                           `json:"results_err_num"`
 }
 
 type DeleteAuxiliaryDeploymentResult struct {
 	models_error.ErrorResult
-	Results             []models_handler_aux_deployments.BatchResult  `json:"results"`
-	ResultsErrNum       int                                           `json:"results_err_num"`
-	VolumeResults       []models_handler_aux_deployments.VolumeResult `json:"volume_results"`
-	VolumeResultsErrNum int                                           `json:"volume_results_err_num"`
+	Results             []aux_deployments.BatchResult  `json:"results"`
+	ResultsErrNum       int                            `json:"results_err_num"`
+	VolumeResults       []aux_deployments.VolumeResult `json:"volume_results"`
+	VolumeResultsErrNum int                            `json:"volume_results_err_num"`
 }
