@@ -42,8 +42,10 @@ func (s *Service) Modules(ctx context.Context, filter lib_models_service.Modules
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}
-	modules, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{
-		Ids:  filter.Ids,
+	modules, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{
+		ModulesFilter: models_module.ModulesFilter{
+			Ids: filter.Ids,
+		},
 		Name: filter.Name,
 	})
 	if err != nil {
@@ -107,7 +109,7 @@ func (s *Service) NewModulesChangeRequest(
 	if err != nil {
 		return lib_models_service.ModulesChangeRequest{}, err
 	}
-	installedMods, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{})
+	installedMods, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{})
 	if err != nil {
 		return lib_models_service.ModulesChangeRequest{}, err
 	}
@@ -193,7 +195,7 @@ func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (lib_mod
 }
 
 func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modulesChangeRequest, error) {
-	installedMods, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{})
+	installedMods, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{})
 	if err != nil {
 		return modulesChangeRequest{}, err
 	}

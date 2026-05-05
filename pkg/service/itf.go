@@ -10,19 +10,19 @@ import (
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repositories"
+	models_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repositories"
 )
 
 type repositoriesHandler interface {
 	RefreshRepositories(ctx context.Context) error
-	Repositories(ctx context.Context) ([]repositories.Repository, error)
-	Module(ctx context.Context, id, source, channel string) (repositories.Module, error)
-	Modules(ctx context.Context, filter repositories.ModulesFilter) ([]repositories.Module, error)
+	Repositories(ctx context.Context) ([]models_repositories.Repository, error)
+	Module(ctx context.Context, id, source, channel string) (models_repositories.Module, error)
+	Modules(ctx context.Context, filter models_repositories.ModulesFilter) ([]models_repositories.Module, error)
 	ModuleFS(ctx context.Context, id, source, channel string) (fs.FS, error)
 }
 
 type modulesHandler interface {
-	Modules(ctx context.Context, filter models_module.ModuleFilter) (map[string]models_module.Module, error)
+	Modules(ctx context.Context, filter models_module.ModulesFilterWithNameAndDep) (map[string]models_module.Module, error)
 	Module(ctx context.Context, id string) (models_module.Module, error)
 	Add(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Update(ctx context.Context, id, source, channel string, fSys fs.FS) error

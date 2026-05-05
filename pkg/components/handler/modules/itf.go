@@ -20,14 +20,14 @@ import (
 	"context"
 
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
+	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 )
 
 type databaseHandler interface {
-	Modules(ctx context.Context, filter models_handler_database.ModulesFilter) (map[string]models_handler_database.Module, error)
-	Module(ctx context.Context, id string) (models_handler_database.Module, error)
-	CreateModule(ctx context.Context, mod models_handler_database.Module) error
-	UpdateModule(ctx context.Context, mod models_handler_database.Module) error
+	Modules(ctx context.Context, filter models_handler_database.ModulesFilter) (map[string]models_handler_database.DatabaseModule, error)
+	Module(ctx context.Context, id string) (models_handler_database.DatabaseModule, error)
+	CreateModule(ctx context.Context, mod models_handler_database.DatabaseModule) error
+	UpdateModule(ctx context.Context, mod models_handler_database.DatabaseModule) error
 	DeleteModule(ctx context.Context, id string) error
 }
 

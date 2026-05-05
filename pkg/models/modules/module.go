@@ -32,10 +32,23 @@ type Module struct {
 	FileSystem fs.FS
 }
 
-type ModuleFilter struct {
-	Ids          []string
+type ModulesFilterWithNameAndDep struct {
+	ModulesFilter
 	Name         string
-	Source       string
-	Channel      string
 	Dependencies bool
+}
+
+type DatabaseModule struct {
+	Id      string
+	DirName string
+	Source  string
+	Channel string
+	Added   time.Time
+	Updated time.Time
+}
+
+type ModulesFilter struct {
+	Ids     []string
+	Source  string
+	Channel string
 }

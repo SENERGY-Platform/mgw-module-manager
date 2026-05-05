@@ -41,8 +41,10 @@ func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{
-		Ids:          moduleIds,
+	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{
+		ModulesFilter: models_module.ModulesFilter{
+			Ids: moduleIds,
+		},
 		Dependencies: true,
 	})
 	if err != nil {
@@ -70,10 +72,12 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []lib_models
 	if len(currentJobs) > 0 {
 		return lib_models_service.Job{}, errors.New("active jobs") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{
-		Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models_service.UserInput) string {
-			return item.ModuleId
-		}),
+	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{
+		ModulesFilter: models_module.ModulesFilter{
+			Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models_service.UserInput) string {
+				return item.ModuleId
+			}),
+		},
 		Dependencies: true,
 	})
 	if err != nil {
@@ -123,10 +127,12 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 	if len(currentJobs) > 0 {
 		return lib_models_service.Job{}, errors.New("active jobs") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{
-		Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models_service.UserInput) string {
-			return item.ModuleId
-		}),
+	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{
+		ModulesFilter: models_module.ModulesFilter{
+			Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models_service.UserInput) string {
+				return item.ModuleId
+			}),
+		},
 	})
 	if err != nil {
 		return lib_models_service.Job{}, err
@@ -201,8 +207,10 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 	if len(currentJobs) > 0 {
 		return lib_models_service.Job{}, errors.New("active jobs") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{
-		Ids: moduleIds,
+	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{
+		ModulesFilter: models_module.ModulesFilter{
+			Ids: moduleIds,
+		},
 	})
 	if err != nil {
 		return lib_models_service.Job{}, err
@@ -319,8 +327,10 @@ func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) ([]
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{
-		Ids:          moduleIds,
+	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{
+		ModulesFilter: models_module.ModulesFilter{
+			Ids: moduleIds,
+		},
 		Dependencies: true,
 	})
 	if err != nil {

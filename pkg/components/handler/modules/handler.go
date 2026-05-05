@@ -11,16 +11,15 @@ import (
 	"sync"
 
 	helper_file_sys "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
+	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
+	helper_url "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
+	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
-	"github.com/google/uuid"
 )
 
 type Handler struct {
@@ -45,7 +44,7 @@ func (h *Handler) Init() error {
 	return os.MkdirAll(h.config.WorkDirPath, 0775)
 }
 
-func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter) (map[string]models_module.Module, error) {
+func (h *Handler) Modules(ctx context.Context, filter models_module.ModulesFilterWithNameAndDep) (map[string]models_module.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	if filter.Dependencies && len(filter.Ids) > 0 {
@@ -62,7 +61,14 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter
 func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	modules, err := h.modules(ctx, models_module.ModuleFilter{Ids: []string{id}})
+	modules, err := h.modules(
+		ctx,
+		models_module.ModulesFilterWithNameAndDep{
+			ModulesFilter: models_module.ModulesFilter{
+				Ids: []string{id},
+			},
+		},
+	)
 	if err != nil {
 		return models_module.Module{}, err
 	}
@@ -221,7 +227,14 @@ func (h *Handler) Remove(ctx context.Context, id string) error {
 }
 
 func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, requiredModules map[string]models_module.Module) error {
-	modules, err := h.modules(ctx, models_module.ModuleFilter{Ids: ids})
+	modules, err := h.modules(
+		ctx,
+		models_module.ModulesFilterWithNameAndDep{
+			ModulesFilter: models_module.ModulesFilter{
+				Ids: ids,
+			},
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -249,8 +262,8 @@ func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, req
 	return nil
 }
 
-func (h *Handler) modules(ctx context.Context, filter models_module.ModuleFilter) (map[string]models_module.Module, error) {
-	stgMods, err := h.databaseHandler.Modules(ctx, models_handler_database.ModulesFilter{
+func (h *Handler) modules(ctx context.Context, filter models_module.ModulesFilterWithNameAndDep) (map[string]models_module.Module, error) {
+	stgMods, err := h.databaseHandler.Modules(ctx, models_module.ModulesFilter{
 		Ids:     filter.Ids,
 		Source:  filter.Source,
 		Channel: filter.Channel,
@@ -375,14 +388,14 @@ func imagesAsSet(services map[string]models_external.ModuleLibService) map[strin
 	return images
 }
 
-func newStgMod(id, source, channel string) (models_handler_database.Module, error) {
-	newUUID, err := uuid.NewUUID()
+func newStgMod(id, source, channel string) (models_module.DatabaseModule, error) {
+	dirName, err := helper_uuid.New()
 	if err != nil {
-		return models_handler_database.Module{}, err
+		return models_module.DatabaseModule{}, err
 	}
-	return models_handler_database.Module{
+	return models_module.DatabaseModule{
 		Id:      id,
-		DirName: newUUID.String(),
+		DirName: dirName,
 		Source:  source,
 		Channel: channel,
 	}, nil
