@@ -22,11 +22,11 @@ import (
 	"encoding/hex"
 	"time"
 
+	lib_models_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/lib/models/dep_advertisements"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
 )
 
 type Handler struct {
@@ -92,7 +92,7 @@ func (h *Handler) PutAdvertisements(
 	ctx context.Context,
 	moduleId string,
 	deploymentId string,
-	inputs []models_handler_dep_advertisements.DeploymentAdvertisementInput,
+	inputs []lib_models_dep_advertisements.DeploymentAdvertisementInput,
 	incremental bool,
 ) (map[string]string, error) {
 	timestamp := helper_time.Now()

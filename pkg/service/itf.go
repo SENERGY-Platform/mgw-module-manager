@@ -5,10 +5,10 @@ import (
 	"io/fs"
 
 	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_models_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/lib/models/dep_advertisements"
 	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
 	models_handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
@@ -174,7 +174,7 @@ type deploymentAdvertisementsHandler interface {
 		ctx context.Context,
 		moduleId string,
 		deploymentId string,
-		inputs []models_handler_dep_advertisements.DeploymentAdvertisementInput,
+		inputs []lib_models_dep_advertisements.DeploymentAdvertisementInput,
 		incremental bool,
 	) (map[string]string, error)
 	DeleteAdvertisements(

@@ -19,10 +19,10 @@ package service
 import (
 	"context"
 
+	lib_models_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/lib/models/dep_advertisements"
 	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/dep_advertisements"
 )
 
 func (s *Service) QueryDeploymentAdvertisements(
@@ -117,7 +117,7 @@ func (s *Service) PutDeploymentAdvertisement(
 func (s *Service) PutDeploymentAdvertisements(
 	ctx context.Context,
 	deploymentId string,
-	inputs []models_handler_dep_advertisements.DeploymentAdvertisementInput,
+	inputs []lib_models_dep_advertisements.DeploymentAdvertisementInput,
 	incremental bool,
 ) (map[string]string, error) {
 	deployment, err := s.deploymentsHandler.GetDeployment(ctx, deploymentId)

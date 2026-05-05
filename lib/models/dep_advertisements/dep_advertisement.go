@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models_handler_dep_advertisements
+package dep_advertisements
 
 type DeploymentAdvertisementInput struct {
 	Reference string
