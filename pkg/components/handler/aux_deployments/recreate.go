@@ -29,12 +29,12 @@ import (
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 )
 
 func (h *Handler) RecreateDeployments(
 	ctx context.Context,
-	module models_handler_modules.Module,
+	module models_module.Module,
 	activeDeployment models_deployments.Deployment,
 	dependencies map[string]models_deployments.DeploymentReduced,
 	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,

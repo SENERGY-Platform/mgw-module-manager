@@ -31,8 +31,8 @@ import (
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
+	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 )
 
 func (s *Service) Modules(ctx context.Context, filter lib_models_service.ModulesFilter) ([]lib_models_service.ModuleReduced, error) {
@@ -42,7 +42,7 @@ func (s *Service) Modules(ctx context.Context, filter lib_models_service.Modules
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}
-	modules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
+	modules, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{
 		Ids:  filter.Ids,
 		Name: filter.Name,
 	})
@@ -107,7 +107,7 @@ func (s *Service) NewModulesChangeRequest(
 	if err != nil {
 		return lib_models_service.ModulesChangeRequest{}, err
 	}
-	installedMods, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{})
+	installedMods, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{})
 	if err != nil {
 		return lib_models_service.ModulesChangeRequest{}, err
 	}
@@ -193,7 +193,7 @@ func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (lib_mod
 }
 
 func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modulesChangeRequest, error) {
-	installedMods, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{})
+	installedMods, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{})
 	if err != nil {
 		return modulesChangeRequest{}, err
 	}
@@ -306,7 +306,7 @@ func validateReqItems(reqItems []lib_models_service.ChangeRequestItem) ([]lib_mo
 
 func newModulesChangeRequest(
 	selectedRepoMods map[string]modWrapper,
-	installedModsMap map[string]models_handler_modules.Module,
+	installedModsMap map[string]models_module.Module,
 	toRemoveMods []string,
 ) modulesChangeRequest {
 	var install []modWrapper
@@ -352,7 +352,7 @@ func newModulesChangeRequest(
 	}
 }
 
-func equalMods(repoMod modWrapper, installedMod models_handler_modules.Module) bool {
+func equalMods(repoMod modWrapper, installedMod models_module.Module) bool {
 	return repoMod.Mod.ID == installedMod.ID &&
 		repoMod.Source == installedMod.Source &&
 		repoMod.Channel == installedMod.Channel &&
@@ -392,7 +392,7 @@ func modWrapperToServiceModuleAbbreviated(w modWrapper) lib_models_service.Modul
 }
 
 func getModulesReduced(
-	handlerModules map[string]models_handler_modules.Module,
+	handlerModules map[string]models_module.Module,
 	handlerDeployments map[string]models_deployments.DeploymentReduced,
 	filter lib_models_service.ModulesFilter) []lib_models_service.ModuleReduced {
 	var modules []lib_models_service.ModuleReduced
@@ -445,7 +445,7 @@ func getModulesReduced(
 	return modules
 }
 
-func getModule(module models_handler_modules.Module, deployment models_deployments.Deployment) lib_models_service.Module {
+func getModule(module models_module.Module, deployment models_deployments.Deployment) lib_models_service.Module {
 	containers := make(map[string]lib_models_service.Container)
 	for reference, container := range deployment.Containers {
 		containers[reference] = lib_models_service.Container{

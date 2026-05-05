@@ -27,7 +27,7 @@ import (
 	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 )
 
 func (h *Handler) updateSecretValuesCache(
@@ -118,7 +118,7 @@ func (h *Handler) removeSecretMounts(ctx context.Context, deploymentId string) e
 }
 
 func getSelectedSecrets(
-	module models_handler_modules.Module,
+	module models_module.Module,
 	userInputSecrets map[string]string,
 	deploymentID string,
 ) (map[string]models_deployments.DeploymentSecret, error) {

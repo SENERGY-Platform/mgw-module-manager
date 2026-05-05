@@ -12,8 +12,8 @@ import (
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
+	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 )
 
@@ -74,7 +74,7 @@ func (s *Service) RepoModules(ctx context.Context, filter lib_models_service.Rep
 	if err != nil {
 		return nil, err
 	}
-	installedMods, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{})
+	installedMods, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{})
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (s *Service) repoModules(repos []models_handler_repositories.Repository, re
 	return repoModules, nil
 }
 
-func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models_service.ChangeRequestItem, installedModsMap map[string]models_handler_modules.Module) (map[string]modWrapper, error) {
+func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models_service.ChangeRequestItem, installedModsMap map[string]models_module.Module) (map[string]modWrapper, error) {
 	// get module filesystem and modfile
 	mods := make(map[string]modWrapper)
 	for _, item := range reqItems {
@@ -284,7 +284,7 @@ func buildReposTree(repos []models_handler_repositories.Repository) map[string]r
 	return reposTree
 }
 
-func handleInstalledMods(mods []lib_models_service.RepoModule, installedMods map[string]models_handler_modules.Module, filterInstalled, filterUpdateAvailable bool) []lib_models_service.RepoModule {
+func handleInstalledMods(mods []lib_models_service.RepoModule, installedMods map[string]models_module.Module, filterInstalled, filterUpdateAvailable bool) []lib_models_service.RepoModule {
 	if len(installedMods) == 0 {
 		return mods
 	}
@@ -317,7 +317,7 @@ func handleInstalledMods(mods []lib_models_service.RepoModule, installedMods map
 	return tmp
 }
 
-func getNextVersion(installed models_handler_modules.Module, repos []lib_models_service.Repository) string {
+func getNextVersion(installed models_module.Module, repos []lib_models_service.Repository) string {
 	for _, repo := range repos {
 		if repo.Source == installed.Source {
 			for _, channel := range repo.Channels {

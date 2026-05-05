@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models_handler_modules
+package modules
 
 import (
 	"io/fs"

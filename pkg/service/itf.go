@@ -9,8 +9,8 @@ import (
 	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 	models_handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/repositories"
+	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 )
 
 type repositoriesHandler interface {
@@ -22,8 +22,8 @@ type repositoriesHandler interface {
 }
 
 type modulesHandler interface {
-	Modules(ctx context.Context, filter models_handler_modules.ModuleFilter) (map[string]models_handler_modules.Module, error)
-	Module(ctx context.Context, id string) (models_handler_modules.Module, error)
+	Modules(ctx context.Context, filter models_module.ModuleFilter) (map[string]models_module.Module, error)
+	Module(ctx context.Context, id string) (models_module.Module, error)
 	Add(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Update(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Remove(ctx context.Context, id string) error
@@ -43,17 +43,17 @@ type deploymentsHandler interface {
 	GetDeploymentIds(ctx context.Context, filter models_deployments.DeploymentsFilter) (map[string]string, error)
 	CreateDeployments(
 		ctx context.Context,
-		selectedModules map[string]models_handler_modules.Module,
+		selectedModules map[string]models_module.Module,
 		userInputs map[string]models_deployments.UserInput,
 	) ([]lib_models_service.DeploymentResult, error)
 	UpdateDeployments(
 		ctx context.Context,
-		selectedModules map[string]models_handler_modules.Module,
+		selectedModules map[string]models_module.Module,
 		userInputs map[string]models_deployments.UserInput,
 	) ([]lib_models_service.DeploymentResult, error)
 	RecreateDeployments(
 		ctx context.Context,
-		selectedModules map[string]models_handler_modules.Module,
+		selectedModules map[string]models_module.Module,
 	) ([]lib_models_service.DeploymentResult, error)
 	DeleteDeployments(
 		ctx context.Context,
@@ -82,14 +82,14 @@ type auxiliaryDeploymentsHandler interface {
 	) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentReduced, error)
 	CreateDeployment(
 		ctx context.Context,
-		module models_handler_modules.Module,
+		module models_module.Module,
 		activeDeployment models_deployments.Deployment,
 		dependencies map[string]models_deployments.DeploymentReduced,
 		serviceInput lib_models_aux_deployments.ServiceInput,
 	) (lib_models_aux_deployments.Result, error)
 	UpdateDeployment(
 		ctx context.Context,
-		module models_handler_modules.Module,
+		module models_module.Module,
 		activeDeployment models_deployments.Deployment,
 		dependencies map[string]models_deployments.DeploymentReduced,
 		auxDeploymentId string,
@@ -97,7 +97,7 @@ type auxiliaryDeploymentsHandler interface {
 	) error
 	RecreateDeployments(
 		ctx context.Context,
-		module models_handler_modules.Module,
+		module models_module.Module,
 		activeDeployment models_deployments.Deployment,
 		dependencies map[string]models_deployments.DeploymentReduced,
 		filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,

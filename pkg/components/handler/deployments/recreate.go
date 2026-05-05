@@ -28,12 +28,12 @@ import (
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 )
 
 func (h *Handler) RecreateDeployments(
 	ctx context.Context,
-	selectedModules map[string]models_handler_modules.Module,
+	selectedModules map[string]models_module.Module,
 ) ([]lib_models_service.DeploymentResult, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -92,7 +92,7 @@ func (h *Handler) RecreateDeployments(
 
 func (h *Handler) recreateDeployment(
 	ctx context.Context,
-	module models_handler_modules.Module,
+	module models_module.Module,
 	userData userDataCollection,
 	deploymentId string,
 	cacheContainers map[string]containerCacheItem,
@@ -327,7 +327,7 @@ func (h *Handler) removeDeploymentEnvironment(
 }
 
 func mergeDefaultAndUserData(
-	module models_handler_modules.Module,
+	module models_module.Module,
 	defaultData defaultDataCollection,
 	userDataConfigs map[string]models_deployments.DeploymentUserConfig,
 	userDataGlobalConfigs map[string]models_deployments.DeploymentGlobalConfig,

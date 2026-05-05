@@ -31,7 +31,7 @@ import (
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 )
 
 func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]lib_models_service.Module, error) {
@@ -41,7 +41,7 @@ func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
+	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{
 		Ids:          moduleIds,
 		Dependencies: true,
 	})
@@ -70,7 +70,7 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []lib_models
 	if len(currentJobs) > 0 {
 		return lib_models_service.Job{}, errors.New("active jobs") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
+	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{
 		Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models_service.UserInput) string {
 			return item.ModuleId
 		}),
@@ -123,7 +123,7 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 	if len(currentJobs) > 0 {
 		return lib_models_service.Job{}, errors.New("active jobs") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
+	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{
 		Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models_service.UserInput) string {
 			return item.ModuleId
 		}),
@@ -201,7 +201,7 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 	if len(currentJobs) > 0 {
 		return lib_models_service.Job{}, errors.New("active jobs") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
+	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{
 		Ids: moduleIds,
 	})
 	if err != nil {
@@ -319,7 +319,7 @@ func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) ([]
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_handler_modules.ModuleFilter{
+	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModuleFilter{
 		Ids:          moduleIds,
 		Dependencies: true,
 	})
@@ -361,7 +361,7 @@ func (s *Service) deleteAuxDeployments(
 
 func getUserInputs(
 	userInputs []lib_models_service.UserInput,
-	handlerModules map[string]models_handler_modules.Module,
+	handlerModules map[string]models_module.Module,
 ) (map[string]models_deployments.UserInput, error) {
 	userInputsMap := make(map[string]models_deployments.UserInput)
 	for _, userInput := range userInputs {

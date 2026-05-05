@@ -32,12 +32,12 @@ import (
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 )
 
 func (h *Handler) UpdateDeployments(
 	ctx context.Context,
-	selectedModules map[string]models_handler_modules.Module,
+	selectedModules map[string]models_module.Module,
 	userInputs map[string]models_deployments.UserInput,
 ) ([]lib_models_service.DeploymentResult, error) {
 	h.mu.Lock()
@@ -93,7 +93,7 @@ func (h *Handler) UpdateDeployments(
 
 func (h *Handler) updateDeployment(
 	ctx context.Context,
-	module models_handler_modules.Module,
+	module models_module.Module,
 	userInput models_deployments.UserInput,
 	deploymentId string,
 	cacheContainers map[string]containerCacheItem,
@@ -225,7 +225,7 @@ func (h *Handler) updateDeployment(
 }
 
 func initDeploymentsCacheFromModulesAndDeployments(
-	modules map[string]models_handler_modules.Module,
+	modules map[string]models_module.Module,
 	deployments map[string]models_deployments.DeploymentBase,
 	deploymentsContainers map[string]map[string]models_deployments.ContainerBase,
 ) (map[string]deploymentsCacheItem, error) {

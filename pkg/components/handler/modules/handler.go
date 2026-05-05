@@ -18,7 +18,7 @@ import (
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/database"
-	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
 	"github.com/google/uuid"
 )
@@ -45,11 +45,11 @@ func (h *Handler) Init() error {
 	return os.MkdirAll(h.config.WorkDirPath, 0775)
 }
 
-func (h *Handler) Modules(ctx context.Context, filter models_handler_modules.ModuleFilter) (map[string]models_handler_modules.Module, error) {
+func (h *Handler) Modules(ctx context.Context, filter models_module.ModuleFilter) (map[string]models_module.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	if filter.Dependencies && len(filter.Ids) > 0 {
-		requiredModules := make(map[string]models_handler_modules.Module)
+		requiredModules := make(map[string]models_module.Module)
 		err := h.modulesWithDependencies(ctx, filter.Ids, requiredModules)
 		if err != nil {
 			return nil, err
@@ -59,15 +59,15 @@ func (h *Handler) Modules(ctx context.Context, filter models_handler_modules.Mod
 	return h.modules(ctx, filter)
 }
 
-func (h *Handler) Module(ctx context.Context, id string) (models_handler_modules.Module, error) {
+func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	modules, err := h.modules(ctx, models_handler_modules.ModuleFilter{Ids: []string{id}})
+	modules, err := h.modules(ctx, models_module.ModuleFilter{Ids: []string{id}})
 	if err != nil {
-		return models_handler_modules.Module{}, err
+		return models_module.Module{}, err
 	}
 	if len(modules) == 0 {
-		return models_handler_modules.Module{}, models_error.NotFoundErr
+		return models_module.Module{}, models_error.NotFoundErr
 	}
 	return modules[id], nil
 }
@@ -220,8 +220,8 @@ func (h *Handler) Remove(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, requiredModules map[string]models_handler_modules.Module) error {
-	modules, err := h.modules(ctx, models_handler_modules.ModuleFilter{Ids: ids})
+func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, requiredModules map[string]models_module.Module) error {
+	modules, err := h.modules(ctx, models_module.ModuleFilter{Ids: ids})
 	if err != nil {
 		return err
 	}
@@ -249,7 +249,7 @@ func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, req
 	return nil
 }
 
-func (h *Handler) modules(ctx context.Context, filter models_handler_modules.ModuleFilter) (map[string]models_handler_modules.Module, error) {
+func (h *Handler) modules(ctx context.Context, filter models_module.ModuleFilter) (map[string]models_module.Module, error) {
 	stgMods, err := h.databaseHandler.Modules(ctx, models_handler_database.ModulesFilter{
 		Ids:     filter.Ids,
 		Source:  filter.Source,
@@ -259,7 +259,7 @@ func (h *Handler) modules(ctx context.Context, filter models_handler_modules.Mod
 		return nil, err
 	}
 	filter.Name = strings.ToLower(filter.Name)
-	modules := make(map[string]models_handler_modules.Module)
+	modules := make(map[string]models_module.Module)
 	var errs []string
 	for _, stgMod := range stgMods {
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
@@ -276,7 +276,7 @@ func (h *Handler) modules(ctx context.Context, filter models_handler_modules.Mod
 		if !strings.Contains(strings.ToLower(mod.Name), filter.Name) { // empty string = true
 			continue
 		}
-		modules[mod.ID] = models_handler_modules.Module{
+		modules[mod.ID] = models_module.Module{
 			ModuleLibModule: mod,
 			Source:          stgMod.Source,
 			Channel:         stgMod.Channel,

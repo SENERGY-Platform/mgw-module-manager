@@ -36,12 +36,12 @@ import (
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 )
 
 func (h *Handler) CreateDeployments(
 	ctx context.Context,
-	selectedModules map[string]models_handler_modules.Module,
+	selectedModules map[string]models_module.Module,
 	userInputs map[string]models_deployments.UserInput,
 ) ([]lib_models_service.DeploymentResult, error) {
 	h.mu.Lock()
@@ -88,7 +88,7 @@ func (h *Handler) CreateDeployments(
 
 func (h *Handler) createDeployment(
 	ctx context.Context,
-	module models_handler_modules.Module,
+	module models_module.Module,
 	userInput models_deployments.UserInput,
 	deploymentId string,
 	cacheContainers map[string]containerCacheItem,
@@ -240,8 +240,8 @@ func (h *Handler) createDeploymentDirs(moduleFileSystem fs.FS, deploymentDirName
 
 func (h *Handler) filterSelectedModules(
 	ctx context.Context,
-	selectedModules map[string]models_handler_modules.Module,
-) (map[string]models_handler_modules.Module, error) {
+	selectedModules map[string]models_module.Module,
+) (map[string]models_module.Module, error) {
 	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_deployments.DeploymentsFilter{
 		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
 	})
@@ -251,7 +251,7 @@ func (h *Handler) filterSelectedModules(
 	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_deployments.DeploymentBase) string {
 		return value.ModuleId
 	})
-	filteredModules := make(map[string]models_handler_modules.Module)
+	filteredModules := make(map[string]models_module.Module)
 	for moduleId, module := range selectedModules {
 		_, ok := deployments[moduleId]
 		if !ok {
@@ -270,7 +270,7 @@ func createDeploymentDir(moduleFileSystem fs.FS, workDirPath, deploymentDirName 
 	return helper_file_sys.CopyAll(moduleFileSystem, dirPath)
 }
 
-func getDefaultData(module models_handler_modules.Module) (defaultDataCollection, error) {
+func getDefaultData(module models_module.Module) (defaultDataCollection, error) {
 	var data defaultDataCollection
 	var err error
 	data.Files, err = getDefaultFiles(module.Files, module.FileSystem)
@@ -285,7 +285,7 @@ func getDefaultData(module models_handler_modules.Module) (defaultDataCollection
 }
 
 func getUserData(
-	module models_handler_modules.Module,
+	module models_module.Module,
 	defaultData defaultDataCollection,
 	userInput models_deployments.UserInput,
 	deploymentId string,
@@ -311,7 +311,7 @@ func getUserData(
 }
 
 func getDeployment(
-	module models_handler_modules.Module,
+	module models_module.Module,
 	deploymentId string,
 ) (models_deployments.DeploymentBase, error) {
 	if deploymentId == "" {
@@ -332,7 +332,7 @@ func getDeployment(
 	}, nil
 }
 
-func initDeploymentsCacheFromModules(modules map[string]models_handler_modules.Module) (map[string]deploymentsCacheItem, error) {
+func initDeploymentsCacheFromModules(modules map[string]models_module.Module) (map[string]deploymentsCacheItem, error) {
 	cache := make(map[string]deploymentsCacheItem)
 	for moduleId, module := range modules {
 		id, err := helper_uuid.New()

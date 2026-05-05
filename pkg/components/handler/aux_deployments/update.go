@@ -26,12 +26,12 @@ import (
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 )
 
 func (h *Handler) UpdateDeployment(
 	ctx context.Context,
-	module models_handler_modules.Module,
+	module models_module.Module,
 	activeDeployment models_deployments.Deployment,
 	dependencies map[string]models_deployments.DeploymentReduced,
 	auxDeploymentId string,

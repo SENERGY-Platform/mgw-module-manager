@@ -27,7 +27,7 @@ import (
 	lib_models_results "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
+	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 )
 
 func (s *Service) GetAuxiliaryDeployment(
@@ -354,7 +354,7 @@ func (s *Service) DeleteUnusedAuxiliaryDeploymentVolumes(
 
 func (s *Service) recreateAuxDeployments(
 	ctx context.Context,
-	module models_handler_modules.Module,
+	module models_module.Module,
 	deploymentId string,
 	cacheDependencyDeployments map[string]models_deployments.DeploymentReduced,
 ) ([]lib_models_aux_deployments.BatchResult, error) {
