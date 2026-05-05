@@ -19,7 +19,7 @@ package aux_deployments
 import (
 	"time"
 
-	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 )
 
 type AuxiliaryDeployment struct {
@@ -33,24 +33,12 @@ type AuxiliaryDeployment struct {
 	Enabled      bool
 	Recreate     bool
 	Container    AuxiliaryDeploymentContainer
-	RunConfig    models_handler_aux_deployments.AuxiliaryDeploymentRunConfig
+	RunConfig    lib_models_aux_deployments.AuxiliaryDeploymentRunConfig
 }
 
 type AuxiliaryDeploymentContainer struct {
 	Name  string
 	Alias string
-}
-
-type AuxiliaryDeploymentVolume struct {
-	Id           string
-	DeploymentId string
-	Reference    string
-	Name         string
-}
-
-type AuxiliaryDeploymentVolumeWithMounts struct {
-	AuxiliaryDeploymentVolume
-	MountedBy []string
 }
 
 type AuxiliaryDeploymentVolumeMount struct {

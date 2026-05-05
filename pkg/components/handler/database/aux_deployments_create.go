@@ -21,15 +21,16 @@ import (
 	"database/sql"
 	"strings"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
+	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 )
 
 func (h *Handler) CreateAuxiliaryDeployment(
 	ctx context.Context,
-	auxiliaryDeployment aux_deployments.AuxiliaryDeployment,
+	auxiliaryDeployment models_aux_deployments.AuxiliaryDeployment,
 	labels map[string]string,
 	configs map[string]string,
-	volumeMounts []aux_deployments.AuxiliaryDeploymentVolumeMount,
+	volumeMounts []models_aux_deployments.AuxiliaryDeploymentVolumeMount,
 ) error {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
@@ -65,7 +66,7 @@ func (h *Handler) CreateAuxiliaryDeployment(
 func (h *Handler) CreateAuxiliaryDeploymentVolumes(
 	ctx context.Context,
 	deploymentId string,
-	volumes []aux_deployments.AuxiliaryDeploymentVolume,
+	volumes []lib_models_aux_deployments.AuxiliaryDeploymentVolume,
 ) error {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
@@ -94,7 +95,7 @@ func (h *Handler) createAuxiliaryDeploymentAssets(
 	auxDeploymentId string,
 	labels map[string]string,
 	configs map[string]string,
-	volumeMounts []aux_deployments.AuxiliaryDeploymentVolumeMount,
+	volumeMounts []models_aux_deployments.AuxiliaryDeploymentVolumeMount,
 ) error {
 	var err error
 	for name, value := range labels {

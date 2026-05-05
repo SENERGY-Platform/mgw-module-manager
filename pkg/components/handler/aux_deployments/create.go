@@ -143,7 +143,7 @@ func (h *Handler) ensureAuxDeploymentEnvironment(
 	deploymentId string,
 	imageName string,
 	forceImagePull bool,
-	volumes map[string]models_aux_deployments.AuxiliaryDeploymentVolume,
+	volumes map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume,
 ) error {
 	err := helper_containers.EnsureImage(
 		ctx,

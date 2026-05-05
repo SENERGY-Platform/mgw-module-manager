@@ -26,7 +26,7 @@ import (
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
+	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
@@ -35,7 +35,7 @@ func (h *Handler) GetVolumes(
 	ctx context.Context,
 	deploymentId string,
 	filterReferences []string,
-) (map[string]aux_deployments.AuxiliaryDeploymentVolume, error) {
+) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.RLock()
 	defer mu.RUnlock()
@@ -50,7 +50,7 @@ func (h *Handler) GetVolumesWithMounts(
 	ctx context.Context,
 	deploymentId string,
 	filterReferences []string,
-) (map[string]aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error) {
+) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.RLock()
 	defer mu.RUnlock()
@@ -95,7 +95,7 @@ func (h *Handler) DeleteUnusedVolumes(
 	for _, reference := range excludeReferences {
 		delete(volumesWithMounts, reference)
 	}
-	volumes := make(map[string]aux_deployments.AuxiliaryDeploymentVolume)
+	volumes := make(map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume)
 	for reference, volume := range volumesWithMounts {
 		if len(volume.MountedBy) == 0 {
 			volumes[reference] = volume.AuxiliaryDeploymentVolume
@@ -107,7 +107,7 @@ func (h *Handler) DeleteUnusedVolumes(
 func (h *Handler) deleteVolumes(
 	ctx context.Context,
 	deploymentId string,
-	volumes map[string]aux_deployments.AuxiliaryDeploymentVolume,
+	volumes map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume,
 ) ([]lib_models_aux_deployments.VolumeResult, error) {
 	var deleted []string
 	var results []lib_models_aux_deployments.VolumeResult
@@ -130,7 +130,7 @@ func (h *Handler) deleteVolumes(
 
 func (h *Handler) ensureContainerVolumes(
 	ctx context.Context,
-	volumes map[string]aux_deployments.AuxiliaryDeploymentVolume,
+	volumes map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume,
 	deploymentId string,
 ) error {
 	existingVolumes, err := h.getContainerVolumes(ctx, deploymentId)
@@ -153,7 +153,7 @@ func (h *Handler) ensureContainerVolumes(
 	return nil
 }
 
-func (h *Handler) createContainerVolume(ctx context.Context, volume aux_deployments.AuxiliaryDeploymentVolume) error {
+func (h *Handler) createContainerVolume(ctx context.Context, volume lib_models_aux_deployments.AuxiliaryDeploymentVolume) error {
 	_, err := h.containerEngineWrapperClient.CreateVolume(ctx, models_external.Volume{
 		Name: volume.Name,
 		Labels: map[string]string{
@@ -173,7 +173,7 @@ func (h *Handler) createContainerVolume(ctx context.Context, volume aux_deployme
 
 func (h *Handler) removeContainerVolumes(
 	ctx context.Context,
-	deploymentVolumes map[string]aux_deployments.AuxiliaryDeploymentVolume,
+	deploymentVolumes map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume,
 ) error {
 	var errs []string
 	for _, volume := range deploymentVolumes {
@@ -220,15 +220,15 @@ func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) 
 func getNewVolumes(
 	deploymentId string,
 	serviceInputVolumes map[string]string, // {mntPath:reference}
-	auxiliaryDeploymentVolumes map[string]aux_deployments.AuxiliaryDeploymentVolume,
-) map[string]aux_deployments.AuxiliaryDeploymentVolume {
-	volumes := make(map[string]aux_deployments.AuxiliaryDeploymentVolume)
+	auxiliaryDeploymentVolumes map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume,
+) map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume {
+	volumes := make(map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume)
 	for _, reference := range serviceInputVolumes {
 		_, ok := auxiliaryDeploymentVolumes[reference]
 		if ok {
 			continue
 		}
-		volume := aux_deployments.AuxiliaryDeploymentVolume{
+		volume := lib_models_aux_deployments.AuxiliaryDeploymentVolume{
 			Id:           deploymentId + "_" + reference,
 			DeploymentId: deploymentId,
 			Reference:    reference,
@@ -242,12 +242,12 @@ func getNewVolumes(
 func getVolumeMounts(
 	auxDeploymentId string,
 	serviceInputVolumes map[string]string, // {mntPath:reference}
-	auxiliaryDeploymentVolumes map[string]aux_deployments.AuxiliaryDeploymentVolume,
-) []aux_deployments.AuxiliaryDeploymentVolumeMount {
-	var volumeMounts []aux_deployments.AuxiliaryDeploymentVolumeMount
+	auxiliaryDeploymentVolumes map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume,
+) []models_aux_deployments.AuxiliaryDeploymentVolumeMount {
+	var volumeMounts []models_aux_deployments.AuxiliaryDeploymentVolumeMount
 	for mountPath, reference := range serviceInputVolumes {
 		volume := auxiliaryDeploymentVolumes[reference]
-		volumeMounts = append(volumeMounts, aux_deployments.AuxiliaryDeploymentVolumeMount{
+		volumeMounts = append(volumeMounts, models_aux_deployments.AuxiliaryDeploymentVolumeMount{
 			VolumeId:              volume.Id,
 			VolumeName:            volume.Name,
 			Reference:             volume.Reference,

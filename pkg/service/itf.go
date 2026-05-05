@@ -7,7 +7,6 @@ import (
 	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	lib_models_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/lib/models/dep_advertisements"
 	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
-	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
@@ -123,12 +122,12 @@ type auxiliaryDeploymentsHandler interface {
 		ctx context.Context,
 		deploymentId string,
 		filterReferences []string,
-	) (map[string]models_aux_deployments.AuxiliaryDeploymentVolume, error)
+	) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume, error)
 	GetVolumesWithMounts(
 		ctx context.Context,
 		deploymentId string,
 		filterReferences []string,
-	) (map[string]models_aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error)
+	) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error)
 	DeleteVolumes(
 		ctx context.Context,
 		deploymentId string,

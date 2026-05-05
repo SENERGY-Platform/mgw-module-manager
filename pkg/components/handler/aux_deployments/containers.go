@@ -24,7 +24,7 @@ import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
+	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
@@ -36,9 +36,9 @@ func (h *Handler) createContainer(
 	auxServiceReference string,
 	activeDeployment models_deployments.Deployment,
 	dependencies map[string]models_deployments.DeploymentReduced,
-	auxDeployment aux_deployments.AuxiliaryDeployment,
+	auxDeployment models_aux_deployments.AuxiliaryDeployment,
 	configs map[string]string,
-	volumeMounts []aux_deployments.AuxiliaryDeploymentVolumeMount,
+	volumeMounts []models_aux_deployments.AuxiliaryDeploymentVolumeMount,
 ) error {
 	envVariables := make(map[string]string)
 	maps.Copy(envVariables, configs)
@@ -158,7 +158,7 @@ func appendVolumeMounts(
 	mounts []models_external.CewMount,
 	auxServiceVolumes map[string]string,
 	deploymentVolumes map[string]models_deployments.DeploymentVolume,
-	volumeMounts []aux_deployments.AuxiliaryDeploymentVolumeMount,
+	volumeMounts []models_aux_deployments.AuxiliaryDeploymentVolumeMount,
 ) []models_external.CewMount {
 	for mountPath, name := range auxServiceVolumes {
 		volume, ok := deploymentVolumes[name]

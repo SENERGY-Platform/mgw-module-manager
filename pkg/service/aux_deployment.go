@@ -26,7 +26,6 @@ import (
 	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	lib_models_results "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
-	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/handler/modules"
 )
@@ -316,7 +315,7 @@ func (s *Service) GetAuxiliaryDeploymentVolumes(
 	ctx context.Context,
 	deploymentId string,
 	filterReferences []string,
-) (map[string]models_aux_deployments.AuxiliaryDeploymentVolume, error) {
+) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.auxDeploymentsHandler.GetVolumes(ctx, deploymentId, filterReferences)
@@ -326,7 +325,7 @@ func (s *Service) GetAuxiliaryDeploymentVolumesWithMounts(
 	ctx context.Context,
 	deploymentId string,
 	filterReferences []string,
-) (map[string]models_aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error) {
+) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.auxDeploymentsHandler.GetVolumesWithMounts(ctx, deploymentId, filterReferences)

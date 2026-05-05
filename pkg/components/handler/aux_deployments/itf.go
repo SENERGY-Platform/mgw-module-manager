@@ -20,7 +20,7 @@ import (
 	"context"
 
 	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
+	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -29,12 +29,12 @@ type databaseHandler interface {
 		ctx context.Context,
 		deploymentId string,
 		auxDeploymentId string,
-	) (aux_deployments.AuxiliaryDeployment, error)
+	) (models_aux_deployments.AuxiliaryDeployment, error)
 	ReadAuxiliaryDeployments(
 		ctx context.Context,
 		deploymentId string,
 		filter lib_models_aux_deployments.AuxiliaryDeploymentsFilter,
-	) (map[string]aux_deployments.AuxiliaryDeployment, error)
+	) (map[string]models_aux_deployments.AuxiliaryDeployment, error)
 	ReadAuxiliaryDeploymentLabels(ctx context.Context, auxiliaryDeploymentId string) (map[string]string, error)
 	ReadAuxiliaryDeploymentsLabels(ctx context.Context, auxDeploymentsIds []string) (map[string]map[string]string, error)
 	ReadAuxiliaryDeploymentConfigs(ctx context.Context, auxiliaryDeploymentId string) (map[string]string, error)
@@ -42,43 +42,43 @@ type databaseHandler interface {
 	ReadAuxiliaryDeploymentVolumeMounts(
 		ctx context.Context,
 		auxiliaryDeploymentId string,
-	) ([]aux_deployments.AuxiliaryDeploymentVolumeMount, error)
+	) ([]models_aux_deployments.AuxiliaryDeploymentVolumeMount, error)
 	ReadAuxiliaryDeploymentsVolumeMounts(
 		ctx context.Context,
 		auxiliaryDeploymentsIds []string,
-	) (map[string][]aux_deployments.AuxiliaryDeploymentVolumeMount, error)
+	) (map[string][]models_aux_deployments.AuxiliaryDeploymentVolumeMount, error)
 	ReadAuxiliaryDeploymentVolumes(
 		ctx context.Context,
 		deploymentId string,
 		refFilter []string,
-	) (map[string]aux_deployments.AuxiliaryDeploymentVolume, error)
+	) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume, error)
 	ReadAuxiliaryDeploymentVolumesWithMounts(
 		ctx context.Context,
 		deploymentId string,
 		refFilter []string,
-	) (map[string]aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error)
+	) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error)
 	ReadAuxDeploymentsByParent(ctx context.Context) (
-		map[string]aux_deployments.AuxiliaryDeploymentParent,
+		map[string]models_aux_deployments.AuxiliaryDeploymentParent,
 		error,
 	)
 	CreateAuxiliaryDeploymentVolumes(
 		ctx context.Context,
 		deploymentId string,
-		volumes []aux_deployments.AuxiliaryDeploymentVolume,
+		volumes []lib_models_aux_deployments.AuxiliaryDeploymentVolume,
 	) error
 	CreateAuxiliaryDeployment(
 		ctx context.Context,
-		auxiliaryDeployment aux_deployments.AuxiliaryDeployment,
+		auxiliaryDeployment models_aux_deployments.AuxiliaryDeployment,
 		labels map[string]string,
 		configs map[string]string,
-		volumeMounts []aux_deployments.AuxiliaryDeploymentVolumeMount,
+		volumeMounts []models_aux_deployments.AuxiliaryDeploymentVolumeMount,
 	) error
 	UpdateAuxiliaryDeployment(
 		ctx context.Context,
-		auxiliaryDeployment aux_deployments.AuxiliaryDeployment,
+		auxiliaryDeployment models_aux_deployments.AuxiliaryDeployment,
 		labels map[string]string,
 		configs map[string]string,
-		volumeMounts []aux_deployments.AuxiliaryDeploymentVolumeMount,
+		volumeMounts []models_aux_deployments.AuxiliaryDeploymentVolumeMount,
 	) error
 	UpdateAuxiliaryDeploymentContainerName(ctx context.Context, auxDeploymentId, name string) error
 	UpdateAuxiliaryDeploymentsEnabledState(ctx context.Context, auxDeploymentIds []string, state bool) error

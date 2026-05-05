@@ -64,6 +64,18 @@ type AuxiliaryDeploymentRunConfig struct {
 	PseudoTTY bool     `json:"pseudo_tty"`
 }
 
+type AuxiliaryDeploymentVolume struct {
+	Id           string `json:"id"`
+	DeploymentId string `json:"deployment_id"`
+	Reference    string `json:"reference"`
+	Name         string `json:"name"`
+}
+
+type AuxiliaryDeploymentVolumeWithMounts struct {
+	AuxiliaryDeploymentVolume
+	MountedBy []string `json:"mounted_by"`
+}
+
 type AuxiliaryDeploymentsFilterWithState struct {
 	AuxiliaryDeploymentsFilter
 	State string // docker container state

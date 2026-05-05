@@ -23,7 +23,7 @@ import (
 
 	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
+	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
@@ -103,10 +103,10 @@ func (h *Handler) GetReducedDeployments(
 
 func (h *Handler) getCewContainers(
 	ctx context.Context,
-	auxDeployments map[string]aux_deployments.AuxiliaryDeployment,
+	auxDeployments map[string]models_aux_deployments.AuxiliaryDeployment,
 ) (map[string]models_external.Container, error) {
 	cewContainers, err := h.containerEngineWrapperClient.GetContainers(ctx, models_external.ContainersFilter{
-		Names: helper_slices.CollectFunc(maps.Values(auxDeployments), func(item aux_deployments.AuxiliaryDeployment) string {
+		Names: helper_slices.CollectFunc(maps.Values(auxDeployments), func(item models_aux_deployments.AuxiliaryDeployment) string {
 			return item.Container.Name
 		}),
 	})
@@ -120,10 +120,10 @@ func (h *Handler) getCewContainers(
 }
 
 func getAuxiliaryDeployments(
-	dbAuxDeployments map[string]aux_deployments.AuxiliaryDeployment,
+	dbAuxDeployments map[string]models_aux_deployments.AuxiliaryDeployment,
 	dbAuxDepLabels map[string]map[string]string,
 	dbAuxDepConfigs map[string]map[string]string,
-	dbAuxDepVolumeMounts map[string][]aux_deployments.AuxiliaryDeploymentVolumeMount,
+	dbAuxDepVolumeMounts map[string][]models_aux_deployments.AuxiliaryDeploymentVolumeMount,
 	cewContainers map[string]models_external.Container,
 ) map[string]lib_models_aux_deployments.AuxiliaryDeployment {
 	auxDeployments := make(map[string]lib_models_aux_deployments.AuxiliaryDeployment)
@@ -141,7 +141,7 @@ func getAuxiliaryDeployments(
 }
 
 func getReducedAuxiliaryDeployments(
-	dbAuxDeployments map[string]aux_deployments.AuxiliaryDeployment,
+	dbAuxDeployments map[string]models_aux_deployments.AuxiliaryDeployment,
 	cewContainers map[string]models_external.Container,
 ) map[string]lib_models_aux_deployments.AuxiliaryDeploymentReduced {
 	auxDeployments := make(map[string]lib_models_aux_deployments.AuxiliaryDeploymentReduced)
@@ -155,7 +155,7 @@ func getReducedAuxiliaryDeployments(
 	return auxDeployments
 }
 
-func getVolumes(mounts []aux_deployments.AuxiliaryDeploymentVolumeMount) []lib_models_aux_deployments.Volume {
+func getVolumes(mounts []models_aux_deployments.AuxiliaryDeploymentVolumeMount) []lib_models_aux_deployments.Volume {
 	var volumes []lib_models_aux_deployments.Volume
 	for _, mount := range mounts {
 		volumes = append(volumes, lib_models_aux_deployments.Volume{
@@ -166,7 +166,7 @@ func getVolumes(mounts []aux_deployments.AuxiliaryDeploymentVolumeMount) []lib_m
 	return volumes
 }
 
-func getContainer(dbContainer aux_deployments.AuxiliaryDeploymentContainer, cewContainer models_external.Container) lib_models_aux_deployments.Container {
+func getContainer(dbContainer models_aux_deployments.AuxiliaryDeploymentContainer, cewContainer models_external.Container) lib_models_aux_deployments.Container {
 	ctrInfo := lib_models_aux_deployments.Container{
 		Name:    dbContainer.Name,
 		Alias:   dbContainer.Alias,
@@ -179,7 +179,7 @@ func getContainer(dbContainer aux_deployments.AuxiliaryDeploymentContainer, cewC
 	return ctrInfo
 }
 
-func newAuxiliaryDeploymentBase(dbAuxDep aux_deployments.AuxiliaryDeployment) lib_models_aux_deployments.AuxiliaryDeploymentBase {
+func newAuxiliaryDeploymentBase(dbAuxDep models_aux_deployments.AuxiliaryDeployment) lib_models_aux_deployments.AuxiliaryDeploymentBase {
 	return lib_models_aux_deployments.AuxiliaryDeploymentBase{
 		Id:           dbAuxDep.Id,
 		DeploymentId: dbAuxDep.DeploymentId,
