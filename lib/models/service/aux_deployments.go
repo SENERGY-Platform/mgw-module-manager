@@ -18,7 +18,7 @@ package service
 
 import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 )
 
 type ServiceInput struct {
@@ -44,13 +44,13 @@ type JobResultAuxiliaryDeployments struct {
 }
 
 type RecreateAuxiliaryDeploymentResult struct {
-	models_error.ErrorResult
+	results.ErrorResult
 	Results       []aux_deployments.BatchResult `json:"results"`
 	ResultsErrNum int                           `json:"results_err_num"`
 }
 
 type DeleteAuxiliaryDeploymentResult struct {
-	models_error.ErrorResult
+	results.ErrorResult
 	Results             []aux_deployments.BatchResult  `json:"results"`
 	ResultsErrNum       int                            `json:"results_err_num"`
 	VolumeResults       []aux_deployments.VolumeResult `json:"volume_results"`

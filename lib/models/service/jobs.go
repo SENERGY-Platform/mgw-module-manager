@@ -19,7 +19,7 @@ package service
 import (
 	"time"
 
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
 )
 
 type Job struct {
@@ -31,5 +31,5 @@ type Job struct {
 
 type JobResult struct {
 	JobId string `json:"job_id"`
-	models_error.ErrorResult
+	results.ErrorResult
 }
