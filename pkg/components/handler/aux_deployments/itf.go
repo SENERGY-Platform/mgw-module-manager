@@ -21,6 +21,7 @@ import (
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 type databaseHandler interface {
@@ -87,17 +88,17 @@ type databaseHandler interface {
 }
 
 type containerEngineWrapperClient interface {
-	GetContainers(ctx context.Context, filter pkg_models.CewContainersFilter) ([]pkg_models.CewContainer, error)
-	CreateContainer(ctx context.Context, container pkg_models.CewContainer) (id string, err error)
+	GetContainers(ctx context.Context, filter external_models.CewContainersFilter) ([]external_models.CewContainer, error)
+	CreateContainer(ctx context.Context, container external_models.CewContainer) (id string, err error)
 	StartContainer(ctx context.Context, id string) error
 	StopContainer(ctx context.Context, id string) (jobId string, err error)
 	RestartContainer(ctx context.Context, id string) (jobId string, err error)
 	RemoveContainer(ctx context.Context, id string, force bool) error
-	GetImage(ctx context.Context, id string) (pkg_models.CewImage, error)
+	GetImage(ctx context.Context, id string) (external_models.CewImage, error)
 	AddImage(ctx context.Context, img string) (jobId string, err error)
-	GetVolumes(ctx context.Context, filter pkg_models.CewVolumesFilter) ([]pkg_models.CewVolume, error)
-	CreateVolume(ctx context.Context, vol pkg_models.CewVolume) (string, error)
+	GetVolumes(ctx context.Context, filter external_models.CewVolumesFilter) ([]external_models.CewVolume, error)
+	CreateVolume(ctx context.Context, vol external_models.CewVolume) (string, error)
 	RemoveVolume(ctx context.Context, id string, force bool) error
-	GetJob(ctx context.Context, id string) (pkg_models.JobLibJob, error)
+	GetJob(ctx context.Context, id string) (external_models.JobLibJob, error)
 	CancelJob(ctx context.Context, id string) error
 }

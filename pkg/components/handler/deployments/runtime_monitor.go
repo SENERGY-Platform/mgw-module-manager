@@ -23,6 +23,7 @@ import (
 	"time"
 
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func (h *Handler) RuntimeMonitor(ctx context.Context) {
@@ -72,7 +73,7 @@ func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
 	map[string]pkg_models.DeploymentBase,
 	map[string]map[string]pkg_models.DeploymentContainerBase,
 	map[string]map[string]pkg_models.DeploymentSecret,
-	map[string]pkg_models.CewContainer,
+	map[string]external_models.CewContainer,
 	error,
 ) {
 	h.mu.RLock()
@@ -143,7 +144,7 @@ func (h *Handler) loadDeploymentMountSecrets(
 			if item.AsEnv {
 				continue
 			}
-			req := pkg_models.SmSecretVariantRequest{
+			req := external_models.SmSecretVariantRequest{
 				ID:        secret.Id,
 				Item:      nil,
 				Reference: deploymentId,

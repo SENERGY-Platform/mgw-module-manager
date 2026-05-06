@@ -17,13 +17,14 @@ import (
 	helper_url "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 type Handler struct {
 	databaseHandler              databaseHandler
 	containerEngineWrapperClient containerEngineWrapperClient
 	config                       Config
-	cache                        map[string]pkg_models.ModuleLibModule
+	cache                        map[string]external_models.ModuleLibModule
 	cacheMU                      sync.RWMutex
 	mu                           sync.RWMutex
 }
@@ -32,7 +33,7 @@ func New(databaseHandler databaseHandler, containerEngineWrapperClient container
 	return &Handler{
 		databaseHandler:              databaseHandler,
 		containerEngineWrapperClient: containerEngineWrapperClient,
-		cache:                        make(map[string]pkg_models.ModuleLibModule),
+		cache:                        make(map[string]external_models.ModuleLibModule),
 		config:                       config,
 	}
 }
@@ -302,14 +303,14 @@ func (h *Handler) modules(ctx context.Context, filter pkg_models.ModulesFilterWi
 	return modules, nil
 }
 
-func (h *Handler) cacheGet(id string) (pkg_models.ModuleLibModule, bool) {
+func (h *Handler) cacheGet(id string) (external_models.ModuleLibModule, bool) {
 	h.cacheMU.RLock()
 	defer h.cacheMU.RUnlock()
 	mod, ok := h.cache[id]
 	return mod, ok
 }
 
-func (h *Handler) cacheSet(id string, mod pkg_models.ModuleLibModule) {
+func (h *Handler) cacheSet(id string, mod external_models.ModuleLibModule) {
 	h.cacheMU.Lock()
 	defer h.cacheMU.Unlock()
 	h.cache[id] = mod
@@ -326,7 +327,7 @@ func (h *Handler) pullImages(ctx context.Context, images map[string]struct{}) (m
 	for image := range images {
 		_, err := h.containerEngineWrapperClient.GetImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 		if err != nil {
-			var notFoundErr *pkg_models.CewNotFoundErr
+			var notFoundErr *external_models.CewNotFoundErr
 			if !errors.As(err, &notFoundErr) {
 				return newImages, err
 			}
@@ -353,7 +354,7 @@ func (h *Handler) removeImages(ctx context.Context, images map[string]struct{}) 
 	for image := range images {
 		err := h.containerEngineWrapperClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 		if err != nil {
-			var notFoundErr *pkg_models.CewNotFoundErr
+			var notFoundErr *external_models.CewNotFoundErr
 			if !errors.As(err, &notFoundErr) {
 				return err
 			}
@@ -367,7 +368,7 @@ func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages map[
 		if _, ok := newImages[image]; !ok {
 			err := h.containerEngineWrapperClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 			if err != nil {
-				var notFoundErr *pkg_models.CewNotFoundErr
+				var notFoundErr *external_models.CewNotFoundErr
 				if !errors.As(err, &notFoundErr) {
 					return err
 				}
@@ -377,7 +378,7 @@ func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages map[
 	return nil
 }
 
-func imagesAsSet(services map[string]pkg_models.ModuleLibService) map[string]struct{} {
+func imagesAsSet(services map[string]external_models.ModuleLibService) map[string]struct{} {
 	images := make(map[string]struct{})
 	for _, service := range services {
 		images[service.Image] = struct{}{}

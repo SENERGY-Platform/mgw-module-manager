@@ -25,6 +25,7 @@ import (
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func (h *Handler) RecreateDeployments(
@@ -49,9 +50,9 @@ func (h *Handler) RecreateDeployments(
 		return nil, err
 	}
 	cache := cacheCollection{
-		HostResources: make(map[string]pkg_models.HmHostResource),
+		HostResources: make(map[string]external_models.HmHostResource),
 		GlobalConfigs: make(map[string]pkg_models.Config),
-		SecretValues:  make(map[string]pkg_models.SmSecretValueVariant),
+		SecretValues:  make(map[string]external_models.SmSecretValueVariant),
 	}
 	cache.Deployments, err = initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
 	if err != nil {
@@ -286,7 +287,7 @@ func (h *Handler) updateCaches(
 
 func (h *Handler) ensureDeploymentEnvironment(
 	ctx context.Context,
-	moduleServices map[string]pkg_models.ModuleLibService,
+	moduleServices map[string]external_models.ModuleLibService,
 	moduleFileSystem fs.FS,
 	deploymentId string,
 	deploymentDirName string,

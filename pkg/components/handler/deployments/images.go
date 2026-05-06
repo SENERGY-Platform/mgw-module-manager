@@ -22,10 +22,10 @@ import (
 	"strings"
 
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
-	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
-func (h *Handler) ensureContainerImages(ctx context.Context, moduleServices map[string]pkg_models.ModuleLibService) error {
+func (h *Handler) ensureContainerImages(ctx context.Context, moduleServices map[string]external_models.ModuleLibService) error {
 	imageNames := make(map[string]struct{})
 	for _, service := range moduleServices {
 		imageNames[service.Image] = struct{}{}

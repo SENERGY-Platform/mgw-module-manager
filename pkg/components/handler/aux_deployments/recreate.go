@@ -25,6 +25,7 @@ import (
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func (h *Handler) RecreateDeployments(
@@ -97,7 +98,7 @@ func (h *Handler) RecreateDeployments(
 
 func (h *Handler) recreateAuxiliaryDeployment(
 	ctx context.Context,
-	auxService pkg_models.ModuleLibAuxService,
+	auxService external_models.ModuleLibAuxService,
 	activeDeployment pkg_models.Deployment,
 	dependencies map[string]pkg_models.DeploymentReduced,
 	deploymentConfigs map[string]string,

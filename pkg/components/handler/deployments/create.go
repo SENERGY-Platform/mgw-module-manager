@@ -32,6 +32,7 @@ import (
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func (h *Handler) CreateDeployments(
@@ -42,9 +43,9 @@ func (h *Handler) CreateDeployments(
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	cache := cacheCollection{
-		HostResources: make(map[string]pkg_models.HmHostResource),
+		HostResources: make(map[string]external_models.HmHostResource),
 		GlobalConfigs: make(map[string]pkg_models.Config),
-		SecretValues:  make(map[string]pkg_models.SmSecretValueVariant),
+		SecretValues:  make(map[string]external_models.SmSecretValueVariant),
 	}
 	var err error
 	selectedModules, err = h.filterSelectedModules(ctx, selectedModules)
@@ -366,7 +367,7 @@ func getNewVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[s
 }
 
 func getNewContainers(
-	moduleServices map[string]pkg_models.ModuleLibService,
+	moduleServices map[string]external_models.ModuleLibService,
 	cacheContainers map[string]containerCacheItem,
 	deploymentId string,
 ) (map[string]pkg_models.DeploymentContainerBase, error) {

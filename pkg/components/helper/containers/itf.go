@@ -19,16 +19,16 @@ package containers
 import (
 	"context"
 
-	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 type containerEngineWrapperClient interface {
 	StopContainer(ctx context.Context, id string) (jobId string, err error)
 	RestartContainer(ctx context.Context, id string) (jobId string, err error)
 	RemoveContainer(ctx context.Context, id string, force bool) error
-	GetImage(ctx context.Context, id string) (pkg_models.CewImage, error)
+	GetImage(ctx context.Context, id string) (external_models.CewImage, error)
 	AddImage(ctx context.Context, img string) (jobId string, err error)
 	RemoveVolume(ctx context.Context, id string, force bool) error
-	GetJob(ctx context.Context, id string) (pkg_models.JobLibJob, error)
+	GetJob(ctx context.Context, id string) (external_models.JobLibJob, error)
 	CancelJob(ctx context.Context, id string) error
 }

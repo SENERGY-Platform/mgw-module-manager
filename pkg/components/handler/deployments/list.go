@@ -24,6 +24,7 @@ import (
 	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func (h *Handler) GetReducedDeployments(
@@ -217,18 +218,18 @@ func (h *Handler) getDeployments(
 func (h *Handler) getCewContainers(
 	ctx context.Context,
 	stgDepsContainers map[string]map[string]pkg_models.DeploymentContainerBase,
-) (map[string]pkg_models.CewContainer, error) {
+) (map[string]external_models.CewContainer, error) {
 	var ctrNames []string
 	for _, stgDepContainers := range stgDepsContainers {
 		ctrNames = append(ctrNames, helper_slices.CollectFunc(maps.Values(stgDepContainers), func(item pkg_models.DeploymentContainerBase) string {
 			return item.Name
 		})...)
 	}
-	cewContainers, err := h.containerEngineWrapperClient.GetContainers(ctx, pkg_models.CewContainersFilter{Names: ctrNames})
+	cewContainers, err := h.containerEngineWrapperClient.GetContainers(ctx, external_models.CewContainersFilter{Names: ctrNames})
 	if err != nil {
 		return nil, err
 	}
-	cewContainersMap := maps.Collect(helper_slices.AllFunc(cewContainers, func(item pkg_models.CewContainer) string {
+	cewContainersMap := maps.Collect(helper_slices.AllFunc(cewContainers, func(item external_models.CewContainer) string {
 		return item.Name
 	}))
 	return cewContainersMap, nil
@@ -236,7 +237,7 @@ func (h *Handler) getCewContainers(
 
 func getContainers(
 	stgDepContainers map[string]pkg_models.DeploymentContainerBase,
-	cewContainers map[string]pkg_models.CewContainer,
+	cewContainers map[string]external_models.CewContainer,
 ) map[string]pkg_models.DeploymentContainer {
 	containers := make(map[string]pkg_models.DeploymentContainer)
 	for reference, stgDepContainer := range stgDepContainers {
@@ -265,7 +266,7 @@ func getDeploymentState(containersState int) int {
 
 func getContainersCombinedState(
 	deploymentContainers map[string]pkg_models.DeploymentContainerBase,
-	existingContainers map[string]pkg_models.CewContainer,
+	existingContainers map[string]external_models.CewContainer,
 ) int {
 	var runningCount int
 	var unhealthyCount int
@@ -274,10 +275,10 @@ func getContainersCombinedState(
 		if !ok {
 			return containersStateBroken
 		}
-		if existingContainer.State == pkg_models.CewRunningState {
+		if existingContainer.State == external_models.CewRunningState {
 			runningCount++
 		}
-		if existingContainer.Health != nil && *existingContainer.Health == pkg_models.CewUnhealthyState {
+		if existingContainer.Health != nil && *existingContainer.Health == external_models.CewUnhealthyState {
 			unhealthyCount++
 		}
 	}

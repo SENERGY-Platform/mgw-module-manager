@@ -16,7 +16,10 @@
 
 package deployments
 
-import pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+import (
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+)
 
 const (
 	containersStateStopped   = iota + 1 // no running containers
@@ -42,7 +45,7 @@ type userDataCollection struct {
 }
 
 type bindMountDataCollection struct {
-	Secrets    map[string]pkg_models.SmSecretPathVariant
+	Secrets    map[string]external_models.SmSecretPathVariant
 	Files      map[string]string
 	FileGroups map[string][]fileGroupMount
 }
@@ -53,9 +56,9 @@ type fileGroupMount struct {
 }
 
 type cacheCollection struct {
-	HostResources map[string]pkg_models.HmHostResource
+	HostResources map[string]external_models.HmHostResource
 	GlobalConfigs map[string]pkg_models.Config
-	SecretValues  map[string]pkg_models.SmSecretValueVariant
+	SecretValues  map[string]external_models.SmSecretValueVariant
 	Deployments   map[string]deploymentsCacheItem
 }
 

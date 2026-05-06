@@ -29,9 +29,10 @@ import (
 
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
-func getDefaultFiles(moduleFiles map[string]pkg_models.ModuleLibFile, moduleFileSystem fs.FS) (map[string][]byte, error) {
+func getDefaultFiles(moduleFiles map[string]external_models.ModuleLibFile, moduleFileSystem fs.FS) (map[string][]byte, error) {
 	files := make(map[string][]byte)
 	var errs []string
 	for reference, file := range moduleFiles {
@@ -60,7 +61,7 @@ func fileToBytes(fSys fs.FS, path string) ([]byte, error) {
 }
 
 func getProvidedFiles(
-	moduleFiles map[string]pkg_models.ModuleLibFile,
+	moduleFiles map[string]external_models.ModuleLibFile,
 	defaultDataFiles map[string][]byte,
 	userInputsFiles map[string][]byte,
 	deploymentId string,
@@ -97,7 +98,7 @@ func mergeFiles(
 }
 
 func checkFiles(
-	moduleFiles map[string]pkg_models.ModuleLibFile,
+	moduleFiles map[string]external_models.ModuleLibFile,
 	files map[string][]byte,
 ) error {
 	var errs []string

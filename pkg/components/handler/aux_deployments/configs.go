@@ -23,10 +23,11 @@ import (
 
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func getDeploymentConfigs(
-	moduleConfigs pkg_models.ModuleLibConfigs,
+	moduleConfigs external_models.ModuleLibConfigs,
 	moduleAuxServiceConfigs map[string]string,
 	deploymentConfigs map[string]pkg_models.DeploymentUserConfig,
 ) (map[string]string, error) {

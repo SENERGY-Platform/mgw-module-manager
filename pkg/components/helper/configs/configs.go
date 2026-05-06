@@ -26,6 +26,7 @@ import (
 
 	module_lib_validation_configs "github.com/SENERGY-Platform/mgw-module-lib/validation/configs"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func ValueIsEqual(a, b pkg_models.Value) bool {
@@ -140,7 +141,7 @@ func GetValue(val any, dataType int, isSlice bool) (pkg_models.Value, error) {
 	return config, nil
 }
 
-func GetValueWithValidation(val any, moduleConfig pkg_models.ModuleLibConfigValue) (pkg_models.Value, error) {
+func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfigValue) (pkg_models.Value, error) {
 	config := pkg_models.Value{
 		IsSlice: moduleConfig.IsSlice,
 	}
@@ -150,7 +151,7 @@ func GetValueWithValidation(val any, moduleConfig pkg_models.ModuleLibConfigValu
 			return pkg_models.Value{}, fmt.Errorf("invalid data type '%T'", val) // TODO
 		}
 		switch moduleConfig.DataType {
-		case pkg_models.ModuleLibStringType:
+		case external_models.ModuleLibStringType:
 			config.DataType = pkg_models.DataTypeString
 			for _, item := range anySlice {
 				v, err := toString(item)
@@ -163,7 +164,7 @@ func GetValueWithValidation(val any, moduleConfig pkg_models.ModuleLibConfigValu
 				}
 				config.StringSlice = append(config.StringSlice, v)
 			}
-		case pkg_models.ModuleLibBoolType:
+		case external_models.ModuleLibBoolType:
 			config.DataType = pkg_models.DataTypeBool
 			for _, item := range anySlice {
 				v, err := toBool(item)
@@ -176,7 +177,7 @@ func GetValueWithValidation(val any, moduleConfig pkg_models.ModuleLibConfigValu
 				}
 				config.BoolSlice = append(config.BoolSlice, v)
 			}
-		case pkg_models.ModuleLibInt64Type:
+		case external_models.ModuleLibInt64Type:
 			config.DataType = pkg_models.DataTypeInt64
 			for _, item := range anySlice {
 				v, err := toInt64(item)
@@ -189,7 +190,7 @@ func GetValueWithValidation(val any, moduleConfig pkg_models.ModuleLibConfigValu
 				}
 				config.Int64Slice = append(config.Int64Slice, v)
 			}
-		case pkg_models.ModuleLibFloat64Type:
+		case external_models.ModuleLibFloat64Type:
 			config.DataType = pkg_models.DataTypeFloat64
 			for _, item := range anySlice {
 				v, err := toFloat64(item)
@@ -207,7 +208,7 @@ func GetValueWithValidation(val any, moduleConfig pkg_models.ModuleLibConfigValu
 		}
 	} else {
 		switch moduleConfig.DataType {
-		case pkg_models.ModuleLibStringType:
+		case external_models.ModuleLibStringType:
 			config.DataType = pkg_models.DataTypeString
 			v, err := toString(val)
 			if err != nil {
@@ -218,7 +219,7 @@ func GetValueWithValidation(val any, moduleConfig pkg_models.ModuleLibConfigValu
 			if err != nil {
 				return pkg_models.Value{}, err
 			}
-		case pkg_models.ModuleLibBoolType:
+		case external_models.ModuleLibBoolType:
 			config.DataType = pkg_models.DataTypeBool
 			v, err := toBool(val)
 			if err != nil {
@@ -229,7 +230,7 @@ func GetValueWithValidation(val any, moduleConfig pkg_models.ModuleLibConfigValu
 			if err != nil {
 				return pkg_models.Value{}, err
 			}
-		case pkg_models.ModuleLibInt64Type:
+		case external_models.ModuleLibInt64Type:
 			config.DataType = pkg_models.DataTypeInt64
 			v, err := toInt64(val)
 			if err != nil {
@@ -240,7 +241,7 @@ func GetValueWithValidation(val any, moduleConfig pkg_models.ModuleLibConfigValu
 			if err != nil {
 				return pkg_models.Value{}, err
 			}
-		case pkg_models.ModuleLibFloat64Type:
+		case external_models.ModuleLibFloat64Type:
 			config.DataType = pkg_models.DataTypeFloat64
 			v, err := toFloat64(val)
 			if err != nil {
@@ -319,7 +320,7 @@ func SliceValueToString(config pkg_models.Value, delimiter string) string {
 	return strings.Join(values, delimiter)
 }
 
-func validateValue[T comparable](val T, moduleConfig pkg_models.ModuleLibConfigValue) error {
+func validateValue[T comparable](val T, moduleConfig external_models.ModuleLibConfigValue) error {
 	err := module_lib_validation_configs.ValidateValue(moduleConfig.Type, moduleConfig.TypeOpt, val)
 	if err != nil {
 		return err

@@ -25,12 +25,13 @@ import (
 
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func (h *Handler) updateHostResourcesCache(
 	ctx context.Context,
 	userDataHostResources map[string]pkg_models.DeploymentHostResource,
-	cacheHostResources map[string]pkg_models.HmHostResource,
+	cacheHostResources map[string]external_models.HmHostResource,
 ) error {
 	selectedIds := helper_slices.CollectFunc(maps.Values(userDataHostResources), func(item pkg_models.DeploymentHostResource) string {
 		return item.Id
@@ -60,7 +61,7 @@ func (h *Handler) updateHostResourcesCache(
 }
 
 func getSelectedHostResources(
-	moduleHostResources map[string]pkg_models.ModuleLibHostResource,
+	moduleHostResources map[string]external_models.ModuleLibHostResource,
 	userInputHostResources map[string]string,
 	deploymentID string,
 ) (map[string]pkg_models.DeploymentHostResource, error) {

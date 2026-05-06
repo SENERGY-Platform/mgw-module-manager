@@ -20,6 +20,7 @@ import (
 	"context"
 
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 type databaseHandler interface {
@@ -31,9 +32,9 @@ type databaseHandler interface {
 }
 
 type containerEngineWrapperClient interface {
-	GetImage(ctx context.Context, id string) (pkg_models.CewImage, error)
+	GetImage(ctx context.Context, id string) (external_models.CewImage, error)
 	AddImage(ctx context.Context, img string) (jobId string, err error)
 	RemoveImage(ctx context.Context, id string) error
-	GetJob(ctx context.Context, id string) (pkg_models.JobLibJob, error)
+	GetJob(ctx context.Context, id string) (external_models.JobLibJob, error)
 	CancelJob(ctx context.Context, id string) error
 }

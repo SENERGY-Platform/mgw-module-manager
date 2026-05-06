@@ -10,6 +10,7 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func (s *Service) RefreshRepositories(_ context.Context) (lib_models.Job, error) {
@@ -202,7 +203,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models.C
 	return mods, nil
 }
 
-func (s *Service) addRepoModDepsToMap(ctx context.Context, mod pkg_models.ModuleLibModule, source, channel string, deps map[string]modWrapper, skipNotFound bool) error {
+func (s *Service) addRepoModDepsToMap(ctx context.Context, mod external_models.ModuleLibModule, source, channel string, deps map[string]modWrapper, skipNotFound bool) error {
 	for depId := range mod.Dependencies {
 		if _, ok := deps[depId]; !ok {
 			depFS, err := s.repositoriesHandler.ModuleFS(ctx, depId, source, channel)

@@ -25,6 +25,7 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func (h *Handler) DeleteDeployments(
@@ -88,7 +89,7 @@ func (h *Handler) deleteDeployment(
 }
 
 func (h *Handler) removeHttpEndpoints(ctx context.Context, deploymentId string) error {
-	jobId, err := h.coreManagerClient.RemoveEndpoints(ctx, pkg_models.CmEndpointFiler{Ref: deploymentId}, false)
+	jobId, err := h.coreManagerClient.RemoveEndpoints(ctx, external_models.CmEndpointFiler{Ref: deploymentId}, false)
 	if err != nil {
 		return err
 	}

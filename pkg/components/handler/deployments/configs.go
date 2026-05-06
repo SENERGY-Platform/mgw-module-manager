@@ -26,6 +26,7 @@ import (
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func (h *Handler) updateGlobalConfigsCache(
@@ -65,7 +66,7 @@ func (h *Handler) updateGlobalConfigsCache(
 }
 
 func checkConfigs(
-	moduleConfigs pkg_models.ModuleLibConfigs,
+	moduleConfigs external_models.ModuleLibConfigs,
 	configs map[string]pkg_models.Value,
 ) error {
 	var errs []string
@@ -101,7 +102,7 @@ func mergeConfigs(
 	return configs
 }
 
-func getDefaultConfigs(moduleConfigs pkg_models.ModuleLibConfigs) (map[string]pkg_models.Value, error) {
+func getDefaultConfigs(moduleConfigs external_models.ModuleLibConfigs) (map[string]pkg_models.Value, error) {
 	configs := make(map[string]pkg_models.Value)
 	var errs []string
 	for reference, moduleConfig := range moduleConfigs {
@@ -122,7 +123,7 @@ func getDefaultConfigs(moduleConfigs pkg_models.ModuleLibConfigs) (map[string]pk
 }
 
 func getSelectedGlobalConfigs(
-	moduleConfigs pkg_models.ModuleLibConfigs,
+	moduleConfigs external_models.ModuleLibConfigs,
 	userInputGlobalConfigs map[string]string,
 	deploymentId string,
 ) map[string]pkg_models.DeploymentGlobalConfig {
@@ -142,7 +143,7 @@ func getSelectedGlobalConfigs(
 }
 
 func getProvidedConfigs(
-	moduleConfigs pkg_models.ModuleLibConfigs,
+	moduleConfigs external_models.ModuleLibConfigs,
 	defaultConfigs map[string]pkg_models.Value,
 	userInputConfigs map[string]pkg_models.Value,
 	deploymentId string,

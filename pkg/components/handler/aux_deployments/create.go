@@ -31,6 +31,7 @@ import (
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func (h *Handler) CreateDeployment(
@@ -157,7 +158,7 @@ func (h *Handler) ensureAuxDeploymentEnvironment(
 
 func getAuxiliaryDeployment(
 	moduleAuxServiceName string,
-	moduleAuxServiceRunConfig pkg_models.ModuleLibRunConfig,
+	moduleAuxServiceRunConfig external_models.ModuleLibRunConfig,
 	deploymentId string,
 	auxDeploymentId string,
 	containerAlias string,

@@ -23,6 +23,7 @@ import (
 
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 func (h *Handler) RuntimeMonitor(ctx context.Context) {
@@ -52,7 +53,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 			var toStop []string
 			for _, auxDep := range parent.AuxiliaryDeployments {
 				container, ok := cewContainersMap[auxDep.Container.Name]
-				if !ok || container.State == pkg_models.CewRemovingState {
+				if !ok || container.State == external_models.CewRemovingState {
 					continue
 				}
 				if auxDep.Enabled {
@@ -77,7 +78,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 			var toStop []string
 			for _, auxDep := range parent.AuxiliaryDeployments {
 				container, ok := cewContainersMap[auxDep.Container.Name]
-				if !ok || container.State == pkg_models.CewRemovingState {
+				if !ok || container.State == external_models.CewRemovingState {
 					continue
 				}
 				if getContainerState(container.State) > 0 {
@@ -97,7 +98,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 
 func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
 	map[string]pkg_models.AuxiliaryDeploymentParent,
-	map[string]pkg_models.CewContainer,
+	map[string]external_models.CewContainer,
 	error,
 ) {
 	auxDepsByParent, err := h.databaseHandler.ReadAuxDeploymentsByParent(ctx)
@@ -168,17 +169,17 @@ func (h *Handler) runtimeMonitorJobsRemove(id string) {
 
 func getContainerState(state string) int {
 	switch state {
-	case pkg_models.CewInitState:
+	case external_models.CewInitState:
 		return -1
-	case pkg_models.CewStoppedState:
+	case external_models.CewStoppedState:
 		return -1
-	case pkg_models.CewDeadState:
+	case external_models.CewDeadState:
 		return -1
-	case pkg_models.CewRunningState:
+	case external_models.CewRunningState:
 		return 1
-	case pkg_models.CewPausedState:
+	case external_models.CewPausedState:
 		return 1
-	case pkg_models.CewRestartingState:
+	case external_models.CewRestartingState:
 		return 1
 	}
 	return 0
