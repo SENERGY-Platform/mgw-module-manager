@@ -32,7 +32,6 @@ func getStatusCode(err error) int {
 			return http.StatusBadRequest
 		case *lib_errors.ErrActiveJob:
 			return http.StatusServiceUnavailable
-
 		}
 		err = errors.Unwrap(err)
 		if err == nil {
