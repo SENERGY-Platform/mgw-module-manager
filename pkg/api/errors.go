@@ -28,7 +28,7 @@ func getStatusCode(err error) int {
 		switch err.(type) {
 		case *lib_errors.ErrNotFound:
 			return http.StatusNotFound
-		case *lib_errors.ErrDuplicate:
+		case *lib_errors.ErrConflict:
 			return http.StatusConflict
 		}
 		err = errors.Unwrap(err)

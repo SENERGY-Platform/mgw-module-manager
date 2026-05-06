@@ -30,12 +30,12 @@ func (e *ErrNotFound) set(msg string, err error, args []interface{}) {
 	}
 }
 
-type ErrDuplicate struct {
+type ErrConflict struct {
 	errBase
 }
 
-func (e *ErrDuplicate) set(msg string, err error, args []interface{}) {
-	*e = ErrDuplicate{
+func (e *ErrConflict) set(msg string, err error, args []interface{}) {
+	*e = ErrConflict{
 		errBase{
 			msg:  msg,
 			err:  err,
