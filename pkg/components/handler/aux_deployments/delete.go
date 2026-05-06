@@ -19,17 +19,16 @@ package aux_deployments
 import (
 	"context"
 
-	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 )
 
 func (h *Handler) DeleteDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	filter lib_models.AuxiliaryDeploymentsFilterWithState,
 	allowAll bool,
-) ([]lib_models_aux_deployments.BatchResult, error) {
+) ([]lib_models.AuxiliaryDeploymentBatchResult, error) {
 	if !allowAll && filterEmpty(filter) {
 		return nil, nil
 	}
@@ -41,12 +40,12 @@ func (h *Handler) DeleteDeployments(
 		return nil, err
 	}
 	var deleted []string
-	var results []lib_models_aux_deployments.BatchResult
+	var results []lib_models.AuxiliaryDeploymentBatchResult
 	for id, auxDep := range auxDeployments {
-		result := lib_models_aux_deployments.BatchResult{Id: id}
+		result := lib_models.AuxiliaryDeploymentBatchResult{Id: id}
 		err = helper_containers.Remove(ctx, h.containerEngineWrapperClient, auxDep.Container.Name)
 		if err != nil {
-			result.ErrorResult = models_error.NewErrorResult(err.Error())
+			result.ErrorResult = lib_models.NewErrorResult(err.Error())
 		} else {
 			deleted = append(deleted, id)
 		}
@@ -63,7 +62,7 @@ func (h *Handler) DeleteMutex(deploymentId string) {
 	h.mutexes.Delete(deploymentId)
 }
 
-func filterEmpty(filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState) bool {
+func filterEmpty(filter lib_models.AuxiliaryDeploymentsFilterWithState) bool {
 	switch {
 	case filter.State != "":
 		return false

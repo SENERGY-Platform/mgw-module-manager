@@ -22,7 +22,7 @@ import (
 	"encoding/hex"
 	"time"
 
-	lib_models_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/lib/models/dep_advertisements"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
@@ -40,27 +40,27 @@ func (h *Handler) GetAdvertisement(
 	ctx context.Context,
 	deploymentId string,
 	reference string,
-) (lib_models_dep_advertisements.DeploymentAdvertisement, error) {
+) (lib_models.DeploymentAdvertisement, error) {
 	return h.databaseHandler.ReadDeploymentAdvertisement(ctx, deploymentId, reference)
 }
 
-func (h *Handler) GetAdvertisementById(ctx context.Context, id string) (lib_models_dep_advertisements.DeploymentAdvertisement, error) {
-	advertisements, err := h.databaseHandler.ReadDeploymentAdvertisements(ctx, lib_models_dep_advertisements.DeploymentAdvertisementsFilter{
+func (h *Handler) GetAdvertisementById(ctx context.Context, id string) (lib_models.DeploymentAdvertisement, error) {
+	advertisements, err := h.databaseHandler.ReadDeploymentAdvertisements(ctx, lib_models.DeploymentAdvertisementsFilter{
 		Ids: []string{id},
 	})
 	if err != nil {
-		return lib_models_dep_advertisements.DeploymentAdvertisement{}, err
+		return lib_models.DeploymentAdvertisement{}, err
 	}
 	if len(advertisements) == 0 {
-		return lib_models_dep_advertisements.DeploymentAdvertisement{}, models_error.NotFoundErr
+		return lib_models.DeploymentAdvertisement{}, models_error.NotFoundErr
 	}
 	return advertisements[id], nil
 }
 
 func (h *Handler) GetAdvertisements(
 	ctx context.Context,
-	filter lib_models_dep_advertisements.DeploymentAdvertisementsFilter,
-) (map[string]lib_models_dep_advertisements.DeploymentAdvertisement, error) {
+	filter lib_models.DeploymentAdvertisementsFilter,
+) (map[string]lib_models.DeploymentAdvertisement, error) {
 	return h.databaseHandler.ReadDeploymentAdvertisements(ctx, filter)
 }
 
@@ -78,7 +78,7 @@ func (h *Handler) PutAdvertisement(
 	err = h.databaseHandler.WriteDeploymentAdvertisements(
 		ctx,
 		deploymentId,
-		[]lib_models_dep_advertisements.DeploymentAdvertisement{advertisement},
+		[]lib_models.DeploymentAdvertisement{advertisement},
 		true,
 	)
 	if err != nil {
@@ -91,11 +91,11 @@ func (h *Handler) PutAdvertisements(
 	ctx context.Context,
 	moduleId string,
 	deploymentId string,
-	inputs []lib_models_dep_advertisements.DeploymentAdvertisementInput,
+	inputs []lib_models.DeploymentAdvertisementInput,
 	incremental bool,
 ) (map[string]string, error) {
 	timestamp := helper_time.Now()
-	var advertisements []lib_models_dep_advertisements.DeploymentAdvertisement
+	var advertisements []lib_models.DeploymentAdvertisement
 	res := make(map[string]string)
 	for _, input := range inputs {
 		advertisement, err := newDatabaseAdvertisement(moduleId, deploymentId, timestamp, input.Reference, input.Items)
@@ -115,7 +115,7 @@ func (h *Handler) PutAdvertisements(
 func (h *Handler) DeleteAdvertisements(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_dep_advertisements.DeploymentAdvertisementsFilterReduced,
+	filter lib_models.DeploymentAdvertisementsFilterReduced,
 	allowAll bool,
 ) error {
 	if !allowAll && filterEmpty(filter) {
@@ -130,14 +130,14 @@ func newDatabaseAdvertisement(
 	timestamp time.Time,
 	reference string,
 	items map[string]string,
-) (lib_models_dep_advertisements.DeploymentAdvertisement, error) {
+) (lib_models.DeploymentAdvertisement, error) {
 	id, err := helper_uuid.New()
 	if err != nil {
-		return lib_models_dep_advertisements.DeploymentAdvertisement{}, err
+		return lib_models.DeploymentAdvertisement{}, err
 	}
 	originHash := sha256.New()
 	originHash.Write([]byte(deploymentId))
-	return lib_models_dep_advertisements.DeploymentAdvertisement{
+	return lib_models.DeploymentAdvertisement{
 		Id:        id,
 		ModuleId:  moduleId,
 		Origin:    hex.EncodeToString(originHash.Sum(nil)),
@@ -147,7 +147,7 @@ func newDatabaseAdvertisement(
 	}, nil
 }
 
-func filterEmpty(filter lib_models_dep_advertisements.DeploymentAdvertisementsFilterReduced) bool {
+func filterEmpty(filter lib_models.DeploymentAdvertisementsFilterReduced) bool {
 	switch {
 	case len(filter.References) > 0:
 		return false

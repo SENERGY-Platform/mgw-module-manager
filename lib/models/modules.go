@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package service
+package models
 
 import (
 	"time"
 
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
+)
+
+const (
+	ChangeActionInstall = "install"
+	ChangeActionChange  = "change"
+	ChangeActionRemove  = "remove"
 )
 
 type ModuleLibModule = module_lib.Module
@@ -32,55 +38,6 @@ type Module struct {
 	Updated    time.Time  `json:"updated"`
 	IsDeployed bool       `json:"is_deployed"`
 	Deployment Deployment `json:"deployment"`
-}
-
-type Deployment struct {
-	Id            string                    `json:"id"`
-	ModuleSource  string                    `json:"module_source"`
-	ModuleChannel string                    `json:"module_channel"`
-	ModuleVersion string                    `json:"module_version"`
-	Enabled       bool                      `json:"enabled"`
-	Created       time.Time                 `json:"created"`
-	Updated       time.Time                 `json:"updated"`
-	Containers    map[string]Container      `json:"containers"`
-	Volumes       map[string]string         `json:"volumes"`        // {reference:name}
-	HostResources map[string]string         `json:"host_resources"` // {reference:hostResourceId}
-	Secrets       map[string]Secret         `json:"secrets"`
-	Configs       map[string]InterfaceValue `json:"configs"`
-	GlobalConfigs map[string]string         `json:"global_configs"` // {reference:globalConfigId}
-	Files         map[string]string         `json:"files"`          // {reference:data}
-	FileGroups    map[string]FileGroup      `json:"file_groups"`
-	State         int                       `json:"state"` // health state determined by container states
-}
-
-type Container struct {
-	Name    string `json:"name"`
-	Alias   string `json:"alias"`
-	ImageId string `json:"image_id"` // docker image id
-	State   string `json:"state"`    // docker container state
-	Health  string `json:"health"`   // docker container health
-}
-
-type Secret struct {
-	Id    string `json:"id"`
-	Items []DeploymentSecretItem
-}
-
-type DeploymentSecretItem struct {
-	Name    string `json:"name"`
-	AsMount bool   `json:"as_mount"`
-	AsEnv   bool   `json:"as_env"`
-}
-
-type FileGroup struct {
-	Id    string          `json:"id"`
-	Files []FileGroupFile `json:"files"`
-}
-
-type FileGroupFile struct {
-	Path   string `json:"path"`
-	Format int    `json:"format"`
-	Data   string `json:"data"`
 }
 
 type ModuleReduced struct {
@@ -146,12 +103,6 @@ type ModuleAbbreviated struct {
 	ModuleVariant
 }
 
-const (
-	ChangeActionInstall = "install"
-	ChangeActionChange  = "change"
-	ChangeActionRemove  = "remove"
-)
-
 type ChangeReportItem struct {
 	Id     string `json:"id"`
 	Action string `json:"action"`
@@ -167,7 +118,7 @@ type ModulesChangeReport struct {
 	Failed  []ChangeReportErrItem `json:"failed"`
 }
 
-type JobResultModulesChange struct {
+type ModulesChangeJobResult struct {
 	JobResult
 	ModulesChangeReport
 }

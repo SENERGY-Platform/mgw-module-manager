@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package service
+package models
 
 type RepoModule struct {
-	Id           string                  `json:"id"`
-	Name         string                  `json:"name"`
-	Desc         string                  `json:"description"`
-	Version      string                  `json:"version"`
-	Repositories []Repository            `json:"repositories"`
-	Installed    *InstalledModuleVariant `json:"installed"`
+	Id               string                 `json:"id"`
+	Name             string                 `json:"name"`
+	Desc             string                 `json:"description"`
+	Version          string                 `json:"version"`
+	Repositories     []Repository           `json:"repositories"`
+	IsInstalled      bool                   `json:"is_installed"`
+	InstalledVariant InstalledModuleVariant `json:"installed_variant"`
 }
 
 type InstalledModuleVariant struct {
@@ -44,12 +45,12 @@ type RepositoryFilter struct {
 }
 
 type Repository struct {
-	Source   string    `json:"source"`
-	Priority int       `json:"priority"`
-	Channels []Channel `json:"channels"`
+	Source   string              `json:"source"`
+	Priority int                 `json:"priority"`
+	Channels []RepositoryChannel `json:"channels"`
 }
 
-type Channel struct {
+type RepositoryChannel struct {
 	Name     string `json:"name"`
 	Priority int    `json:"priority"`
 	Version  string `json:"version"`

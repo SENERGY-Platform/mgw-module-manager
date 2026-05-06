@@ -25,8 +25,7 @@ import (
 	"reflect"
 	"slices"
 
-	lib_models_results "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
-	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
@@ -35,7 +34,7 @@ import (
 	models_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repositories"
 )
 
-func (s *Service) Modules(ctx context.Context, filter lib_models_service.ModulesFilter) ([]lib_models_service.ModuleReduced, error) {
+func (s *Service) Modules(ctx context.Context, filter lib_models.ModulesFilter) ([]lib_models.ModuleReduced, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	_, ok := s.jobsHandler.CurrentSlotJob(moduleJobSlotNum)
@@ -62,22 +61,22 @@ func (s *Service) Modules(ctx context.Context, filter lib_models_service.Modules
 	return getModulesReduced(modules, deployments, filter), nil
 }
 
-func (s *Service) Module(ctx context.Context, id string) (lib_models_service.Module, error) {
+func (s *Service) Module(ctx context.Context, id string) (lib_models.Module, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	_, ok := s.jobsHandler.CurrentSlotJob(moduleJobSlotNum)
 	if ok {
-		return lib_models_service.Module{}, errors.New("active job") // TODO
+		return lib_models.Module{}, errors.New("active job") // TODO
 	}
 	handlerModule, err := s.modulesHandler.Module(ctx, id)
 	if err != nil {
-		return lib_models_service.Module{}, err
+		return lib_models.Module{}, err
 	}
 	ok = true
 	handlerDeployment, err := s.deploymentsHandler.GetDeploymentByModuleId(ctx, id)
 	if err != nil {
 		if !errors.Is(err, models_error.NotFoundErr) {
-			return lib_models_service.Module{}, err
+			return lib_models.Module{}, err
 		}
 		ok = false
 	}
@@ -86,36 +85,36 @@ func (s *Service) Module(ctx context.Context, id string) (lib_models_service.Mod
 	return module, nil
 }
 
-func (s *Service) ModulesChangeRequest(_ context.Context) (lib_models_service.ModulesChangeRequest, error) {
+func (s *Service) ModulesChangeRequest(_ context.Context) (lib_models.ModulesChangeRequest, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	if s.changeRequest == nil {
-		return lib_models_service.ModulesChangeRequest{}, models_error.NotFoundErr
+		return lib_models.ModulesChangeRequest{}, models_error.NotFoundErr
 	}
 	return transformModulesChangeRequest(*s.changeRequest), nil
 }
 
 func (s *Service) NewModulesChangeRequest(
 	ctx context.Context,
-	reqItems []lib_models_service.ChangeRequestItem,
-) (lib_models_service.ModulesChangeRequest, error) {
+	reqItems []lib_models.ChangeRequestItem,
+) (lib_models.ModulesChangeRequest, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{moduleJobSlotNum, repositoryJobSlotNum})
 	if len(currentJobs) > 0 {
-		return lib_models_service.ModulesChangeRequest{}, errors.New("active jobs") // TODO
+		return lib_models.ModulesChangeRequest{}, errors.New("active jobs") // TODO
 	}
 	reqItems, err := validateReqItems(reqItems)
 	if err != nil {
-		return lib_models_service.ModulesChangeRequest{}, err
+		return lib_models.ModulesChangeRequest{}, err
 	}
 	installedMods, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{})
 	if err != nil {
-		return lib_models_service.ModulesChangeRequest{}, err
+		return lib_models.ModulesChangeRequest{}, err
 	}
 	selectedRepoMods, err := s.selectRepoModules(ctx, reqItems, installedMods)
 	if err != nil {
-		return lib_models_service.ModulesChangeRequest{}, err
+		return lib_models.ModulesChangeRequest{}, err
 	}
 	var toRemoveMods []string
 	for _, item := range reqItems {
@@ -128,35 +127,35 @@ func (s *Service) NewModulesChangeRequest(
 	return transformModulesChangeRequest(changeRequest), nil
 }
 
-func (s *Service) ExecModulesChangeRequest(_ context.Context) (lib_models_service.Job, error) {
+func (s *Service) ExecModulesChangeRequest(_ context.Context) (lib_models.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.changeRequest == nil {
-		return lib_models_service.Job{}, models_error.NotFoundErr
+		return lib_models.Job{}, models_error.NotFoundErr
 	}
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{moduleJobSlotNum, repositoryJobSlotNum, deploymentJobSlotNum})
 	if len(currentJobs) > 0 {
-		return lib_models_service.Job{}, errors.New("active jobs") // TODO
+		return lib_models.Job{}, errors.New("active jobs") // TODO
 	}
 	job, err := s.jobsHandler.CreateSlotJob(moduleJobSlotNum, "execute modules change")
 	if err != nil {
-		return lib_models_service.Job{}, err
+		return lib_models.Job{}, err
 	}
 	go func() {
 		defer job.Done()
-		jobResult := lib_models_service.JobResultModulesChange{
-			JobResult: lib_models_service.JobResult{JobId: job.Id},
+		jobResult := lib_models.ModulesChangeJobResult{
+			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models_results.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic: %v", err))
 				s.setModuleChangeJobResult(job.Id, jobResult)
 			}
 		}()
 		jobResult.ModulesChangeReport = s.execModulesChangeRequest(job.Context())
 		s.setModuleChangeJobResult(job.Id, jobResult)
 	}()
-	return lib_models_service.Job{
+	return lib_models.Job{
 		Id:          job.Id,
 		Description: job.Description,
 		Start:       job.Start,
@@ -183,12 +182,12 @@ func (s *Service) ModulesAvailableUpdates(ctx context.Context) (int, error) {
 	return len(changeRequest.Change), nil
 }
 
-func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (lib_models_service.ModulesChangeRequest, error) {
+func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (lib_models.ModulesChangeRequest, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	changeRequest, err := s.newModulesUpdateAllChangeRequest(ctx)
 	if err != nil {
-		return lib_models_service.ModulesChangeRequest{}, err
+		return lib_models.ModulesChangeRequest{}, err
 	}
 	s.changeRequest = &changeRequest
 	return transformModulesChangeRequest(changeRequest), nil
@@ -209,14 +208,14 @@ func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modules
 	if len(repoMods) == 0 {
 		return modulesChangeRequest{}, nil
 	}
-	var reqItems []lib_models_service.ChangeRequestItem
+	var reqItems []lib_models.ChangeRequestItem
 	for _, repoMod := range repoMods {
 		installedMod, ok := installedMods[repoMod.Id]
 		if !ok {
 			continue
 		}
 		if installedMod.Source == repoMod.Source && installedMod.Channel == repoMod.Channel && installedMod.Version != repoMod.Version {
-			reqItems = append(reqItems, lib_models_service.ChangeRequestItem{
+			reqItems = append(reqItems, lib_models.ChangeRequestItem{
 				Id:      installedMod.ID,
 				Source:  installedMod.Source,
 				Channel: installedMod.Channel,
@@ -230,20 +229,20 @@ func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modules
 	return newModulesChangeRequest(selectedRepoMods, installedMods, nil), nil
 }
 
-func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models_service.ModulesChangeReport {
+func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.ModulesChangeReport {
 	defer func() {
 		s.changeRequest = nil
 	}()
-	var success []lib_models_service.ChangeReportItem
-	var failed []lib_models_service.ChangeReportErrItem
+	var success []lib_models.ChangeReportItem
+	var failed []lib_models.ChangeReportErrItem
 	for _, id := range s.changeRequest.Remove {
-		cri := lib_models_service.ChangeReportItem{
+		cri := lib_models.ChangeReportItem{
 			Id:     id,
-			Action: lib_models_service.ChangeActionRemove,
+			Action: lib_models.ChangeActionRemove,
 		}
 		err := s.modulesHandler.Remove(ctx, id)
 		if err != nil {
-			failed = append(failed, lib_models_service.ChangeReportErrItem{
+			failed = append(failed, lib_models.ChangeReportErrItem{
 				ChangeReportItem: cri,
 				Error:            err.Error(),
 			})
@@ -252,13 +251,13 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models_servi
 		success = append(success, cri)
 	}
 	for _, repoMod := range s.changeRequest.Install {
-		cri := lib_models_service.ChangeReportItem{
+		cri := lib_models.ChangeReportItem{
 			Id:     repoMod.Mod.ID,
-			Action: lib_models_service.ChangeActionInstall,
+			Action: lib_models.ChangeActionInstall,
 		}
 		err := s.modulesHandler.Add(ctx, repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.FS)
 		if err != nil {
-			failed = append(failed, lib_models_service.ChangeReportErrItem{
+			failed = append(failed, lib_models.ChangeReportErrItem{
 				ChangeReportItem: cri,
 				Error:            err.Error(),
 			})
@@ -267,13 +266,13 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models_servi
 		success = append(success, cri)
 	}
 	for _, item := range s.changeRequest.Change {
-		cri := lib_models_service.ChangeReportItem{
+		cri := lib_models.ChangeReportItem{
 			Id:     item.Next.Mod.ID,
-			Action: lib_models_service.ChangeActionChange,
+			Action: lib_models.ChangeActionChange,
 		}
 		err := s.modulesHandler.Update(ctx, item.Next.Mod.ID, item.Next.Source, item.Next.Channel, item.Next.FS)
 		if err != nil {
-			failed = append(failed, lib_models_service.ChangeReportErrItem{
+			failed = append(failed, lib_models.ChangeReportErrItem{
 				ChangeReportItem: cri,
 				Error:            err.Error(),
 			})
@@ -281,15 +280,15 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models_servi
 		}
 		success = append(success, cri)
 	}
-	return lib_models_service.ModulesChangeReport{
+	return lib_models.ModulesChangeReport{
 		Success: success,
 		Failed:  failed,
 	}
 }
 
-func validateReqItems(reqItems []lib_models_service.ChangeRequestItem) ([]lib_models_service.ChangeRequestItem, error) {
-	var validatedItems []lib_models_service.ChangeRequestItem
-	tmpMap := make(map[string]lib_models_service.ChangeRequestItem)
+func validateReqItems(reqItems []lib_models.ChangeRequestItem) ([]lib_models.ChangeRequestItem, error) {
+	var validatedItems []lib_models.ChangeRequestItem
+	tmpMap := make(map[string]lib_models.ChangeRequestItem)
 	for _, item := range reqItems {
 		if (item.Update && item.Remove) || (!(item.Update || item.Remove) && item.Source+item.Channel == "") {
 			return nil, fmt.Errorf("ivalid change request for '%s'", item.Id)
@@ -321,11 +320,11 @@ func newModulesChangeRequest(
 				continue
 			}
 			change = append(change, changeItem{
-				Previous: lib_models_service.ModuleAbbreviated{
+				Previous: lib_models.ModuleAbbreviated{
 					Id:   installedMod.ID,
 					Name: installedMod.Name,
 					Desc: installedMod.Description,
-					ModuleVariant: lib_models_service.ModuleVariant{
+					ModuleVariant: lib_models.ModuleVariant{
 						Source:  installedMod.Source,
 						Channel: installedMod.Channel,
 						Version: installedMod.Version,
@@ -361,15 +360,15 @@ func equalMods(repoMod modWrapper, installedMod models_module.Module) bool {
 		repoMod.Mod.Version == installedMod.Version
 }
 
-func transformModulesChangeRequest(req modulesChangeRequest) lib_models_service.ModulesChangeRequest {
-	mcr := lib_models_service.ModulesChangeRequest{
+func transformModulesChangeRequest(req modulesChangeRequest) lib_models.ModulesChangeRequest {
+	mcr := lib_models.ModulesChangeRequest{
 		Created: req.Created,
 	}
 	for _, mod := range req.Install {
 		mcr.Install = append(mcr.Install, modWrapperToServiceModuleAbbreviated(mod))
 	}
 	for _, item := range req.Change {
-		mcr.Change = append(mcr.Change, [2]lib_models_service.ModuleAbbreviated{
+		mcr.Change = append(mcr.Change, [2]lib_models.ModuleAbbreviated{
 			item.Previous,
 			modWrapperToServiceModuleAbbreviated(item.Next),
 		})
@@ -380,12 +379,12 @@ func transformModulesChangeRequest(req modulesChangeRequest) lib_models_service.
 	return mcr
 }
 
-func modWrapperToServiceModuleAbbreviated(w modWrapper) lib_models_service.ModuleAbbreviated {
-	return lib_models_service.ModuleAbbreviated{
+func modWrapperToServiceModuleAbbreviated(w modWrapper) lib_models.ModuleAbbreviated {
+	return lib_models.ModuleAbbreviated{
 		Id:   w.Mod.ID,
 		Name: w.Mod.Name,
 		Desc: w.Mod.Description,
-		ModuleVariant: lib_models_service.ModuleVariant{
+		ModuleVariant: lib_models.ModuleVariant{
 			Source:  w.Source,
 			Channel: w.Channel,
 			Version: w.Mod.Version,
@@ -396,8 +395,8 @@ func modWrapperToServiceModuleAbbreviated(w modWrapper) lib_models_service.Modul
 func getModulesReduced(
 	handlerModules map[string]models_module.Module,
 	handlerDeployments map[string]models_deployments.DeploymentReduced,
-	filter lib_models_service.ModulesFilter) []lib_models_service.ModuleReduced {
-	var modules []lib_models_service.ModuleReduced
+	filter lib_models.ModulesFilter) []lib_models.ModuleReduced {
+	var modules []lib_models.ModuleReduced
 	for moduleId, module := range handlerModules {
 		deployment, ok := handlerDeployments[moduleId]
 		if ok {
@@ -421,7 +420,7 @@ func getModulesReduced(
 			continue
 		}
 		// TODO implement tags filter
-		modules = append(modules, lib_models_service.ModuleReduced{
+		modules = append(modules, lib_models.ModuleReduced{
 			Id:          moduleId,
 			Source:      module.Source,
 			Channel:     module.Channel,
@@ -432,7 +431,7 @@ func getModulesReduced(
 			License:     module.License,
 			Author:      module.Author,
 			IsDeployed:  ok,
-			Deployment: lib_models_service.DeploymentReduced{
+			Deployment: lib_models.DeploymentReduced{
 				Id:            deployment.Id,
 				ModuleSource:  deployment.ModuleSource,
 				ModuleChannel: deployment.ModuleChannel,
@@ -447,10 +446,10 @@ func getModulesReduced(
 	return modules
 }
 
-func getModule(module models_module.Module, deployment models_deployments.Deployment) lib_models_service.Module {
-	containers := make(map[string]lib_models_service.Container)
+func getModule(module models_module.Module, deployment models_deployments.Deployment) lib_models.Module {
+	containers := make(map[string]lib_models.Container)
 	for reference, container := range deployment.Containers {
-		containers[reference] = lib_models_service.Container{
+		containers[reference] = lib_models.Container{
 			Name:    container.Name,
 			Alias:   container.Alias,
 			ImageId: container.ImageId,
@@ -466,16 +465,16 @@ func getModule(module models_module.Module, deployment models_deployments.Deploy
 	for reference, resource := range deployment.HostResources {
 		hostResources[reference] = resource.Id
 	}
-	secrets := make(map[string]lib_models_service.Secret)
+	secrets := make(map[string]lib_models.DeploymentSecret)
 	for reference, secret := range deployment.Secrets {
-		secrets[reference] = lib_models_service.Secret{
+		secrets[reference] = lib_models.DeploymentSecret{
 			Id:    secret.Id,
 			Items: secret.Items,
 		}
 	}
-	configs := make(map[string]lib_models_service.InterfaceValue)
+	configs := make(map[string]lib_models.InterfaceValue)
 	for reference, config := range deployment.Configs {
-		configs[reference] = lib_models_service.InterfaceValue{
+		configs[reference] = lib_models.InterfaceValue{
 			DataType: config.DataType,
 			IsSlice:  config.IsSlice,
 			Value:    helper_configs.ValueToInterface(config.Value),
@@ -489,28 +488,28 @@ func getModule(module models_module.Module, deployment models_deployments.Deploy
 	for reference, file := range deployment.Files {
 		files[reference] = base64.StdEncoding.EncodeToString(file.Data)
 	}
-	fileGroups := make(map[string]lib_models_service.FileGroup)
+	fileGroups := make(map[string]lib_models.DeploymentFileGroup)
 	for reference, fileGroup := range deployment.FileGroups {
-		var fileGroupFiles []lib_models_service.FileGroupFile
+		var fileGroupFiles []lib_models.DeploymentFileGroupFile
 		for _, file := range fileGroup.Files {
-			fileGroupFiles = append(fileGroupFiles, lib_models_service.FileGroupFile{
+			fileGroupFiles = append(fileGroupFiles, lib_models.DeploymentFileGroupFile{
 				Path:   file.Path,
 				Format: file.Format,
 				Data:   base64.StdEncoding.EncodeToString(file.Data),
 			})
 		}
-		fileGroups[reference] = lib_models_service.FileGroup{
+		fileGroups[reference] = lib_models.DeploymentFileGroup{
 			Id:    fileGroup.Id,
 			Files: fileGroupFiles,
 		}
 	}
-	return lib_models_service.Module{
+	return lib_models.Module{
 		ModuleLibModule: module.ModuleLibModule,
 		Source:          module.Source,
 		Channel:         module.Channel,
 		Added:           module.Added,
 		Updated:         module.Updated,
-		Deployment: lib_models_service.Deployment{
+		Deployment: lib_models.Deployment{
 			Id:            deployment.Id,
 			ModuleSource:  deployment.ModuleSource,
 			ModuleChannel: deployment.ModuleChannel,

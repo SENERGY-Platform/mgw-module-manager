@@ -14,33 +14,20 @@
  * limitations under the License.
  */
 
-package dep_advertisements
+package models
 
-import "time"
+import (
+	"time"
+)
 
-type DeploymentAdvertisement struct {
-	Id           string
-	DeploymentId string
-	ModuleId     string
-	Origin       string
-	Reference    string
-	Timestamp    time.Time
-	Items        map[string]string
-}
-type DeploymentAdvertisementsFilter struct {
-	DeploymentId string
-	Ids          []string
-	ModuleIds    []string
-	Origins      []string
-	References   []string
+type Job struct {
+	Id          string    `json:"id"`
+	Description string    `json:"description"`
+	Start       time.Time `json:"start"`
+	End         time.Time `json:"end"`
 }
 
-type DeploymentAdvertisementsFilterReduced struct {
-	Ids        []string
-	References []string
-}
-
-type DeploymentAdvertisementInput struct {
-	Reference string
-	Items     map[string]string
+type JobResult struct {
+	JobId string `json:"job_id"`
+	ErrorResult
 }

@@ -24,7 +24,7 @@ import (
 	"slices"
 	"strings"
 
-	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
@@ -148,8 +148,8 @@ func getSelectedSecrets(
 func getSecretItems(
 	reference string,
 	moduleServices map[string]models_external.ModuleLibService,
-) []lib_models_service.DeploymentSecretItem {
-	items := make(map[string]lib_models_service.DeploymentSecretItem)
+) []lib_models.DeploymentSecretItem {
+	items := make(map[string]lib_models.DeploymentSecretItem)
 	for _, moduleService := range moduleServices {
 		for _, target := range moduleService.SecretVars {
 			if target.Ref == reference {

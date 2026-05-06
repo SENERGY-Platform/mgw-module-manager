@@ -21,13 +21,13 @@ import (
 	"maps"
 	"slices"
 
-	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 )
 
 func (h *Handler) EnableDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	filter lib_models.AuxiliaryDeploymentsFilterWithState,
 ) ([]string, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.RLock()
@@ -47,7 +47,7 @@ func (h *Handler) EnableDeployments(
 func (h *Handler) DisableDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	filter lib_models.AuxiliaryDeploymentsFilterWithState,
 ) ([]string, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.RLock()

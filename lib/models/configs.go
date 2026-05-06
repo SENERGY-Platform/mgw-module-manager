@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package service
+package models
 
 type GlobalConfigInput struct {
 	Name string `json:"name"`

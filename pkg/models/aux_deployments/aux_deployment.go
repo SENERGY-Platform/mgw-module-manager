@@ -19,7 +19,7 @@ package aux_deployments
 import (
 	"time"
 
-	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 )
 
 type AuxiliaryDeployment struct {
@@ -33,7 +33,7 @@ type AuxiliaryDeployment struct {
 	Enabled      bool
 	Recreate     bool
 	Container    AuxiliaryDeploymentContainer
-	RunConfig    lib_models_aux_deployments.AuxiliaryDeploymentRunConfig
+	RunConfig    lib_models.AuxiliaryDeploymentRunConfig
 }
 
 type AuxiliaryDeploymentContainer struct {

@@ -22,7 +22,7 @@ import (
 	"maps"
 	"slices"
 
-	models_handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
@@ -35,7 +35,7 @@ func (h *Handler) UpdateDeployment(
 	activeDeployment models_deployments.Deployment,
 	dependencies map[string]models_deployments.DeploymentReduced,
 	auxDeploymentId string,
-	serviceInput models_handler_aux_deployments.UpdateServiceInput,
+	serviceInput lib_models.AuxiliaryDeploymentUpdateInputBase,
 ) error {
 	mu := h.mutexes.Get(activeDeployment.Id)
 	mu.Lock()
@@ -82,7 +82,7 @@ func (h *Handler) UpdateDeployment(
 		activeDeployment.Id,
 		currentAuxDeployment.Id,
 		currentAuxDeployment.Container.Alias,
-		serviceInput.ServiceInput,
+		serviceInput.AuxiliaryDeploymentInputBase,
 	)
 	if err != nil {
 		return err

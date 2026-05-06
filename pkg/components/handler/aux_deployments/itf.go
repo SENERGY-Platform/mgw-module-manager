@@ -19,7 +19,7 @@ package aux_deployments
 import (
 	"context"
 
-	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
@@ -33,7 +33,7 @@ type databaseHandler interface {
 	ReadAuxiliaryDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter lib_models_aux_deployments.AuxiliaryDeploymentsFilter,
+		filter lib_models.AuxiliaryDeploymentsFilter,
 	) (map[string]models_aux_deployments.AuxiliaryDeployment, error)
 	ReadAuxiliaryDeploymentLabels(ctx context.Context, auxiliaryDeploymentId string) (map[string]string, error)
 	ReadAuxiliaryDeploymentsLabels(ctx context.Context, auxDeploymentsIds []string) (map[string]map[string]string, error)
@@ -51,12 +51,12 @@ type databaseHandler interface {
 		ctx context.Context,
 		deploymentId string,
 		refFilter []string,
-	) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume, error)
+	) (map[string]lib_models.AuxiliaryDeploymentVolume, error)
 	ReadAuxiliaryDeploymentVolumesWithMounts(
 		ctx context.Context,
 		deploymentId string,
 		refFilter []string,
-	) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error)
+	) (map[string]lib_models.AuxiliaryDeploymentVolumeWithMounts, error)
 	ReadAuxDeploymentsByParent(ctx context.Context) (
 		map[string]models_aux_deployments.AuxiliaryDeploymentParent,
 		error,
@@ -64,7 +64,7 @@ type databaseHandler interface {
 	CreateAuxiliaryDeploymentVolumes(
 		ctx context.Context,
 		deploymentId string,
-		volumes []lib_models_aux_deployments.AuxiliaryDeploymentVolume,
+		volumes []lib_models.AuxiliaryDeploymentVolume,
 	) error
 	CreateAuxiliaryDeployment(
 		ctx context.Context,

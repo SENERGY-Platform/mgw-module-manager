@@ -21,7 +21,7 @@ import (
 	"maps"
 	"slices"
 
-	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
@@ -32,20 +32,20 @@ func (h *Handler) GetDeployment(
 	ctx context.Context,
 	deploymentId string,
 	auxDeploymentId string,
-) (lib_models_aux_deployments.AuxiliaryDeployment, error) {
+) (lib_models.AuxiliaryDeployment, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.RLock()
 	defer mu.RUnlock()
-	auxDeployments, err := h.GetDeployments(ctx, deploymentId, lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState{
-		AuxiliaryDeploymentsFilter: lib_models_aux_deployments.AuxiliaryDeploymentsFilter{
+	auxDeployments, err := h.GetDeployments(ctx, deploymentId, lib_models.AuxiliaryDeploymentsFilterWithState{
+		AuxiliaryDeploymentsFilter: lib_models.AuxiliaryDeploymentsFilter{
 			Ids: []string{auxDeploymentId},
 		},
 	})
 	if err != nil {
-		return lib_models_aux_deployments.AuxiliaryDeployment{}, err
+		return lib_models.AuxiliaryDeployment{}, err
 	}
 	if len(auxDeployments) == 0 {
-		return lib_models_aux_deployments.AuxiliaryDeployment{}, models_error.NotFoundErr
+		return lib_models.AuxiliaryDeployment{}, models_error.NotFoundErr
 	}
 	return auxDeployments[auxDeploymentId], nil
 }
@@ -53,8 +53,8 @@ func (h *Handler) GetDeployment(
 func (h *Handler) GetDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
-) (map[string]lib_models_aux_deployments.AuxiliaryDeployment, error) {
+	filter lib_models.AuxiliaryDeploymentsFilterWithState,
+) (map[string]lib_models.AuxiliaryDeployment, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.RLock()
 	defer mu.RUnlock()
@@ -85,8 +85,8 @@ func (h *Handler) GetDeployments(
 func (h *Handler) GetReducedDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
-) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentReduced, error) {
+	filter lib_models.AuxiliaryDeploymentsFilterWithState,
+) (map[string]lib_models.AuxiliaryDeploymentReduced, error) {
 	mu := h.mutexes.Get(deploymentId)
 	mu.RLock()
 	defer mu.RUnlock()
@@ -125,11 +125,11 @@ func getAuxiliaryDeployments(
 	dbAuxDepConfigs map[string]map[string]string,
 	dbAuxDepVolumeMounts map[string][]models_aux_deployments.AuxiliaryDeploymentVolumeMount,
 	cewContainers map[string]models_external.Container,
-) map[string]lib_models_aux_deployments.AuxiliaryDeployment {
-	auxDeployments := make(map[string]lib_models_aux_deployments.AuxiliaryDeployment)
+) map[string]lib_models.AuxiliaryDeployment {
+	auxDeployments := make(map[string]lib_models.AuxiliaryDeployment)
 	for id, dbAuxDep := range dbAuxDeployments {
 		cewContainer := cewContainers[dbAuxDep.Container.Name]
-		auxDeployments[id] = lib_models_aux_deployments.AuxiliaryDeployment{
+		auxDeployments[id] = lib_models.AuxiliaryDeployment{
 			AuxiliaryDeploymentBase: newAuxiliaryDeploymentBase(dbAuxDep),
 			Labels:                  dbAuxDepLabels[id],
 			Configs:                 dbAuxDepConfigs[id],
@@ -143,11 +143,11 @@ func getAuxiliaryDeployments(
 func getReducedAuxiliaryDeployments(
 	dbAuxDeployments map[string]models_aux_deployments.AuxiliaryDeployment,
 	cewContainers map[string]models_external.Container,
-) map[string]lib_models_aux_deployments.AuxiliaryDeploymentReduced {
-	auxDeployments := make(map[string]lib_models_aux_deployments.AuxiliaryDeploymentReduced)
+) map[string]lib_models.AuxiliaryDeploymentReduced {
+	auxDeployments := make(map[string]lib_models.AuxiliaryDeploymentReduced)
 	for id, dbAuxDep := range dbAuxDeployments {
 		cewContainer := cewContainers[dbAuxDep.Container.Name]
-		auxDeployments[id] = lib_models_aux_deployments.AuxiliaryDeploymentReduced{
+		auxDeployments[id] = lib_models.AuxiliaryDeploymentReduced{
 			AuxiliaryDeploymentBase: newAuxiliaryDeploymentBase(dbAuxDep),
 			Container:               getContainer(dbAuxDep.Container, cewContainer),
 		}
@@ -155,10 +155,10 @@ func getReducedAuxiliaryDeployments(
 	return auxDeployments
 }
 
-func getVolumes(mounts []models_aux_deployments.AuxiliaryDeploymentVolumeMount) []lib_models_aux_deployments.Volume {
-	var volumes []lib_models_aux_deployments.Volume
+func getVolumes(mounts []models_aux_deployments.AuxiliaryDeploymentVolumeMount) []lib_models.AuxiliaryDeploymentVolumeMount {
+	var volumes []lib_models.AuxiliaryDeploymentVolumeMount
 	for _, mount := range mounts {
-		volumes = append(volumes, lib_models_aux_deployments.Volume{
+		volumes = append(volumes, lib_models.AuxiliaryDeploymentVolumeMount{
 			Reference: mount.Reference,
 			MountPath: mount.MountPath,
 		})
@@ -166,8 +166,8 @@ func getVolumes(mounts []models_aux_deployments.AuxiliaryDeploymentVolumeMount) 
 	return volumes
 }
 
-func getContainer(dbContainer models_aux_deployments.AuxiliaryDeploymentContainer, cewContainer models_external.Container) lib_models_aux_deployments.Container {
-	ctrInfo := lib_models_aux_deployments.Container{
+func getContainer(dbContainer models_aux_deployments.AuxiliaryDeploymentContainer, cewContainer models_external.Container) lib_models.Container {
+	ctrInfo := lib_models.Container{
 		Name:    dbContainer.Name,
 		Alias:   dbContainer.Alias,
 		ImageId: cewContainer.ImageID,
@@ -179,8 +179,8 @@ func getContainer(dbContainer models_aux_deployments.AuxiliaryDeploymentContaine
 	return ctrInfo
 }
 
-func newAuxiliaryDeploymentBase(dbAuxDep models_aux_deployments.AuxiliaryDeployment) lib_models_aux_deployments.AuxiliaryDeploymentBase {
-	return lib_models_aux_deployments.AuxiliaryDeploymentBase{
+func newAuxiliaryDeploymentBase(dbAuxDep models_aux_deployments.AuxiliaryDeployment) lib_models.AuxiliaryDeploymentBase {
+	return lib_models.AuxiliaryDeploymentBase{
 		Id:           dbAuxDep.Id,
 		DeploymentId: dbAuxDep.DeploymentId,
 		Reference:    dbAuxDep.Reference,

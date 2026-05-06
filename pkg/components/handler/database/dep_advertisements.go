@@ -22,7 +22,7 @@ import (
 	"strings"
 	"time"
 
-	lib_models_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/lib/models/dep_advertisements"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 )
 
@@ -35,7 +35,7 @@ func (h *Handler) ReadDeploymentAdvertisement(
 	ctx context.Context,
 	deploymentId string,
 	reference string,
-) (lib_models_dep_advertisements.DeploymentAdvertisement, error) {
+) (lib_models.DeploymentAdvertisement, error) {
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
 		selectDeploymentAdvertisementsStmt+" WHERE dep_id = ? AND ref = ?;",
@@ -43,21 +43,21 @@ func (h *Handler) ReadDeploymentAdvertisement(
 		reference,
 	)
 	if err != nil {
-		return lib_models_dep_advertisements.DeploymentAdvertisement{}, err
+		return lib_models.DeploymentAdvertisement{}, err
 	}
 	defer rows.Close()
-	var depAdv lib_models_dep_advertisements.DeploymentAdvertisement
+	var depAdv lib_models.DeploymentAdvertisement
 	for rows.Next() {
 		var ts []uint8
 		var itemKey string
 		var itemValue sql.NullString
 		err = rows.Scan(&depAdv.Id, &depAdv.DeploymentId, &depAdv.ModuleId, &depAdv.Origin, &depAdv.Reference, &ts, &itemKey, &itemValue)
 		if err != nil {
-			return lib_models_dep_advertisements.DeploymentAdvertisement{}, err
+			return lib_models.DeploymentAdvertisement{}, err
 		}
 		if depAdv.Timestamp.IsZero() {
 			if depAdv.Timestamp, err = time.Parse(timeLayout, string(ts)); err != nil {
-				return lib_models_dep_advertisements.DeploymentAdvertisement{}, err
+				return lib_models.DeploymentAdvertisement{}, err
 			}
 		}
 		if depAdv.Items == nil {
@@ -66,15 +66,15 @@ func (h *Handler) ReadDeploymentAdvertisement(
 		depAdv.Items[itemKey] = itemValue.String
 	}
 	if err = rows.Err(); err != nil {
-		return lib_models_dep_advertisements.DeploymentAdvertisement{}, err
+		return lib_models.DeploymentAdvertisement{}, err
 	}
 	return depAdv, nil
 }
 
 func (h *Handler) ReadDeploymentAdvertisements(
 	ctx context.Context,
-	filter lib_models_dep_advertisements.DeploymentAdvertisementsFilter,
-) (map[string]lib_models_dep_advertisements.DeploymentAdvertisement, error) {
+	filter lib_models.DeploymentAdvertisementsFilter,
+) (map[string]lib_models.DeploymentAdvertisement, error) {
 	fc, val := genDeploymentAdvertisementsFilter(filter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -85,7 +85,7 @@ func (h *Handler) ReadDeploymentAdvertisements(
 		return nil, err
 	}
 	defer rows.Close()
-	depAdvs := make(map[string]lib_models_dep_advertisements.DeploymentAdvertisement)
+	depAdvs := make(map[string]lib_models.DeploymentAdvertisement)
 	for rows.Next() {
 		var id string
 		var depId string
@@ -123,7 +123,7 @@ func (h *Handler) ReadDeploymentAdvertisements(
 func (h *Handler) WriteDeploymentAdvertisements(
 	ctx context.Context,
 	deploymentId string,
-	advertisements []lib_models_dep_advertisements.DeploymentAdvertisement,
+	advertisements []lib_models.DeploymentAdvertisement,
 	incremental bool,
 ) error {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
@@ -164,7 +164,7 @@ func (h *Handler) WriteDeploymentAdvertisements(
 func (h *Handler) DeleteDeploymentAdvertisements(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_dep_advertisements.DeploymentAdvertisementsFilterReduced,
+	filter lib_models.DeploymentAdvertisementsFilterReduced,
 ) error {
 	fc, val := genDeleteDeploymentAdvertisementsFilter(deploymentId, filter)
 	_, err := h.sqlDB.ExecContext(
@@ -182,7 +182,7 @@ func (h *Handler) insertDeploymentAdvertisement(
 	ctx context.Context,
 	tx *sql.Tx,
 	deploymentId string,
-	advertisement lib_models_dep_advertisements.DeploymentAdvertisement,
+	advertisement lib_models.DeploymentAdvertisement,
 ) error {
 	_, err := tx.ExecContext(
 		ctx,
@@ -211,7 +211,7 @@ func (h *Handler) insertDeploymentAdvertisement(
 	return nil
 }
 
-func genDeploymentAdvertisementsFilter(filter lib_models_dep_advertisements.DeploymentAdvertisementsFilter) (string, []any) {
+func genDeploymentAdvertisementsFilter(filter lib_models.DeploymentAdvertisementsFilter) (string, []any) {
 	var fc []string
 	var val []any
 	if filter.DeploymentId != "" {
@@ -252,7 +252,7 @@ func genDeploymentAdvertisementsFilter(filter lib_models_dep_advertisements.Depl
 	return "", nil
 }
 
-func genDeleteDeploymentAdvertisementsFilter(deploymentId string, filter lib_models_dep_advertisements.DeploymentAdvertisementsFilterReduced) (string, []any) {
+func genDeleteDeploymentAdvertisementsFilter(deploymentId string, filter lib_models.DeploymentAdvertisementsFilterReduced) (string, []any) {
 	var fc []string
 	var val []any
 	if deploymentId != "" {

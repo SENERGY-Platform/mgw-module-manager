@@ -23,8 +23,7 @@ import (
 	"maps"
 	"slices"
 
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
-	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
@@ -34,7 +33,7 @@ import (
 func (h *Handler) RecreateDeployments(
 	ctx context.Context,
 	selectedModules map[string]models_module.Module,
-) ([]lib_models_service.DeploymentResult, error) {
+) ([]lib_models.DeploymentResult, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_deployments.DeploymentsFilter{
@@ -61,12 +60,12 @@ func (h *Handler) RecreateDeployments(
 	if err != nil {
 		return nil, err
 	}
-	var results []lib_models_service.DeploymentResult
+	var results []lib_models.DeploymentResult
 	for moduleId, module := range selectedModules {
-		result := lib_models_service.DeploymentResult{ModuleId: moduleId}
+		result := lib_models.DeploymentResult{ModuleId: moduleId}
 		cacheItem, ok := cache.Deployments[moduleId]
 		if !ok {
-			result.ErrorResult = models_error.NewErrorResult("not installed")
+			result.ErrorResult = lib_models.NewErrorResult("not installed")
 			results = append(results, result)
 			continue
 		}
@@ -83,7 +82,7 @@ func (h *Handler) RecreateDeployments(
 			cache,
 		)
 		if err != nil {
-			result.ErrorResult = models_error.NewErrorResult(err.Error())
+			result.ErrorResult = lib_models.NewErrorResult(err.Error())
 		}
 		results = append(results, result)
 	}

@@ -23,9 +23,7 @@ import (
 	"maps"
 	"slices"
 
-	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
-	lib_models_results "github.com/SENERGY-Platform/mgw-module-manager/lib/models/results"
-	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
 )
@@ -34,7 +32,7 @@ func (s *Service) GetAuxiliaryDeployment(
 	ctx context.Context,
 	deploymentId string,
 	auxDeploymentId string,
-) (lib_models_aux_deployments.AuxiliaryDeployment, error) {
+) (lib_models.AuxiliaryDeployment, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.auxDeploymentsHandler.GetDeployment(ctx, deploymentId, auxDeploymentId)
@@ -43,8 +41,8 @@ func (s *Service) GetAuxiliaryDeployment(
 func (s *Service) GetAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
-) (map[string]lib_models_aux_deployments.AuxiliaryDeployment, error) {
+	filter lib_models.AuxiliaryDeploymentsFilterWithState,
+) (map[string]lib_models.AuxiliaryDeployment, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.auxDeploymentsHandler.GetDeployments(ctx, deploymentId, filter)
@@ -53,8 +51,8 @@ func (s *Service) GetAuxiliaryDeployments(
 func (s *Service) GetReducedAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
-) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentReduced, error) {
+	filter lib_models.AuxiliaryDeploymentsFilterWithState,
+) (map[string]lib_models.AuxiliaryDeploymentReduced, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.auxDeploymentsHandler.GetReducedDeployments(ctx, deploymentId, filter)
@@ -62,21 +60,21 @@ func (s *Service) GetReducedAuxiliaryDeployments(
 
 func (s *Service) CreateAuxiliaryDeployment(
 	ctx context.Context,
-	serviceInput lib_models_service.ServiceInput,
-) (lib_models_service.Job, error) {
+	serviceInput lib_models.AuxiliaryDeploymentInput,
+) (lib_models.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
 	if len(currentJobs) > 0 {
-		return lib_models_service.Job{}, errors.New("active jobs") // TODO
+		return lib_models.Job{}, errors.New("active jobs") // TODO
 	}
 	activeDeployment, err := s.deploymentsHandler.GetDeployment(ctx, serviceInput.DeploymentId)
 	if err != nil {
-		return lib_models_service.Job{}, err
+		return lib_models.Job{}, err
 	}
 	module, err := s.modulesHandler.Module(ctx, activeDeployment.ModuleId)
 	if err != nil {
-		return lib_models_service.Job{}, err
+		return lib_models.Job{}, err
 	}
 	dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilterWithState{
 		DeploymentsFilter: models_deployments.DeploymentsFilter{
@@ -84,36 +82,36 @@ func (s *Service) CreateAuxiliaryDeployment(
 		},
 	})
 	if err != nil {
-		return lib_models_service.Job{}, err
+		return lib_models.Job{}, err
 	}
 	job, err := s.jobsHandler.CreateJob("create auxiliary deployment")
 	if err != nil {
-		return lib_models_service.Job{}, err
+		return lib_models.Job{}, err
 	}
 	go func() {
 		defer job.Done()
-		jobResult := lib_models_service.JobResultCreateAuxiliaryDeployment{
-			JobResult: lib_models_service.JobResult{JobId: job.Id},
+		jobResult := lib_models.AuxiliaryDeploymentCreateJobResult{
+			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models_results.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic: %v", err))
 				s.setCreateAuxiliaryDeploymentJobResult(job.Id, jobResult)
 			}
 		}()
-		jobResult.Result, err = s.auxDeploymentsHandler.CreateDeployment(
+		jobResult.AuxiliaryDeploymentResult, err = s.auxDeploymentsHandler.CreateDeployment(
 			job.Context(),
 			module,
 			activeDeployment,
 			dependencyDeployments,
-			serviceInput.ServiceInput,
+			serviceInput.AuxiliaryDeploymentInputBase,
 		)
 		if err != nil {
-			jobResult.ErrorResult = lib_models_results.NewErrorResult(err.Error())
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
 		}
 		s.setCreateAuxiliaryDeploymentJobResult(job.Id, jobResult)
 	}()
-	return lib_models_service.Job{
+	return lib_models.Job{
 		Id:          job.Id,
 		Description: job.Description,
 		Start:       job.Start,
@@ -122,21 +120,21 @@ func (s *Service) CreateAuxiliaryDeployment(
 
 func (s *Service) UpdateAuxiliaryDeployment(
 	ctx context.Context,
-	serviceInput lib_models_service.ServiceInputUpdate,
-) (lib_models_service.Job, error) {
+	serviceInput lib_models.AuxiliaryDeploymentUpdateInput,
+) (lib_models.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
 	if len(currentJobs) > 0 {
-		return lib_models_service.Job{}, errors.New("active jobs") // TODO
+		return lib_models.Job{}, errors.New("active jobs") // TODO
 	}
 	activeDeployment, err := s.deploymentsHandler.GetDeployment(ctx, serviceInput.DeploymentId)
 	if err != nil {
-		return lib_models_service.Job{}, err
+		return lib_models.Job{}, err
 	}
 	module, err := s.modulesHandler.Module(ctx, activeDeployment.ModuleId)
 	if err != nil {
-		return lib_models_service.Job{}, err
+		return lib_models.Job{}, err
 	}
 	dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilterWithState{
 		DeploymentsFilter: models_deployments.DeploymentsFilter{
@@ -144,18 +142,18 @@ func (s *Service) UpdateAuxiliaryDeployment(
 		},
 	})
 	if err != nil {
-		return lib_models_service.Job{}, err
+		return lib_models.Job{}, err
 	}
 	job, err := s.jobsHandler.CreateJob("update auxiliary deployment")
 	if err != nil {
-		return lib_models_service.Job{}, err
+		return lib_models.Job{}, err
 	}
 	go func() {
 		defer job.Done()
-		jobResult := lib_models_service.JobResult{JobId: job.Id}
+		jobResult := lib_models.JobResult{JobId: job.Id}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models_results.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic: %v", err))
 				s.setUpdateAuxiliaryDeploymentJobResult(job.Id, jobResult)
 			}
 		}()
@@ -165,14 +163,14 @@ func (s *Service) UpdateAuxiliaryDeployment(
 			activeDeployment,
 			dependencyDeployments,
 			serviceInput.AuxDeploymentId,
-			serviceInput.UpdateServiceInput,
+			serviceInput.AuxiliaryDeploymentUpdateInputBase,
 		)
 		if err != nil {
-			jobResult.ErrorResult = lib_models_results.NewErrorResult(err.Error())
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
 		}
 		s.setUpdateAuxiliaryDeploymentJobResult(job.Id, jobResult)
 	}()
-	return lib_models_service.Job{
+	return lib_models.Job{
 		Id:          job.Id,
 		Description: job.Description,
 		Start:       job.Start,
@@ -182,21 +180,21 @@ func (s *Service) UpdateAuxiliaryDeployment(
 func (s *Service) RecreateAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
-) (lib_models_service.Job, error) {
+	filter lib_models.AuxiliaryDeploymentsFilterWithState,
+) (lib_models.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
 	if len(currentJobs) > 0 {
-		return lib_models_service.Job{}, errors.New("active jobs") // TODO
+		return lib_models.Job{}, errors.New("active jobs") // TODO
 	}
 	activeDeployment, err := s.deploymentsHandler.GetDeployment(ctx, deploymentId)
 	if err != nil {
-		return lib_models_service.Job{}, err
+		return lib_models.Job{}, err
 	}
 	module, err := s.modulesHandler.Module(ctx, activeDeployment.ModuleId)
 	if err != nil {
-		return lib_models_service.Job{}, err
+		return lib_models.Job{}, err
 	}
 	dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilterWithState{
 		DeploymentsFilter: models_deployments.DeploymentsFilter{
@@ -204,20 +202,20 @@ func (s *Service) RecreateAuxiliaryDeployments(
 		},
 	})
 	if err != nil {
-		return lib_models_service.Job{}, err
+		return lib_models.Job{}, err
 	}
 	job, err := s.jobsHandler.CreateJob("recreate auxiliary deployments")
 	if err != nil {
-		return lib_models_service.Job{}, err
+		return lib_models.Job{}, err
 	}
 	go func() {
 		defer job.Done()
-		jobResult := lib_models_service.JobResultAuxiliaryDeployments{
-			JobResult: lib_models_service.JobResult{JobId: job.Id},
+		jobResult := lib_models.AuxiliaryDeploymentJobResult{
+			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models_results.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic: %v", err))
 				s.setAuxiliaryDeploymentsJobResult(job.Id, jobResult)
 			}
 		}()
@@ -229,7 +227,7 @@ func (s *Service) RecreateAuxiliaryDeployments(
 			filter,
 		)
 		if err != nil {
-			jobResult.ErrorResult = lib_models_results.NewErrorResult(err.Error())
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
 		}
 		for _, res := range jobResult.Results {
 			if res.HasError {
@@ -238,7 +236,7 @@ func (s *Service) RecreateAuxiliaryDeployments(
 		}
 		s.setAuxiliaryDeploymentsJobResult(job.Id, jobResult)
 	}()
-	return lib_models_service.Job{
+	return lib_models.Job{
 		Id:          job.Id,
 		Description: job.Description,
 		Start:       job.Start,
@@ -248,23 +246,23 @@ func (s *Service) RecreateAuxiliaryDeployments(
 func (s *Service) DeleteAuxiliaryDeployments(
 	_ context.Context,
 	deploymentId string,
-	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	filter lib_models.AuxiliaryDeploymentsFilterWithState,
 	allowAll bool,
-) (lib_models_service.Job, error) {
+) (lib_models.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	job, err := s.jobsHandler.CreateJob("delete auxiliary deployments")
 	if err != nil {
-		return lib_models_service.Job{}, err
+		return lib_models.Job{}, err
 	}
 	go func() {
 		defer job.Done()
-		jobResult := lib_models_service.JobResultAuxiliaryDeployments{
-			JobResult: lib_models_service.JobResult{JobId: job.Id},
+		jobResult := lib_models.AuxiliaryDeploymentJobResult{
+			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models_results.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic: %v", err))
 				s.setAuxiliaryDeploymentsJobResult(job.Id, jobResult)
 			}
 		}()
@@ -275,7 +273,7 @@ func (s *Service) DeleteAuxiliaryDeployments(
 			allowAll,
 		)
 		if err != nil {
-			jobResult.ErrorResult = lib_models_results.NewErrorResult(err.Error())
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
 		}
 		for _, res := range jobResult.Results {
 			if res.HasError {
@@ -284,7 +282,7 @@ func (s *Service) DeleteAuxiliaryDeployments(
 		}
 		s.setAuxiliaryDeploymentsJobResult(job.Id, jobResult)
 	}()
-	return lib_models_service.Job{
+	return lib_models.Job{
 		Id:          job.Id,
 		Description: job.Description,
 		Start:       job.Start,
@@ -294,7 +292,7 @@ func (s *Service) DeleteAuxiliaryDeployments(
 func (s *Service) EnableAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	filter lib_models.AuxiliaryDeploymentsFilterWithState,
 ) ([]string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -304,7 +302,7 @@ func (s *Service) EnableAuxiliaryDeployments(
 func (s *Service) DisableAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+	filter lib_models.AuxiliaryDeploymentsFilterWithState,
 ) ([]string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -315,7 +313,7 @@ func (s *Service) GetAuxiliaryDeploymentVolumes(
 	ctx context.Context,
 	deploymentId string,
 	filterReferences []string,
-) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume, error) {
+) (map[string]lib_models.AuxiliaryDeploymentVolume, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.auxDeploymentsHandler.GetVolumes(ctx, deploymentId, filterReferences)
@@ -325,7 +323,7 @@ func (s *Service) GetAuxiliaryDeploymentVolumesWithMounts(
 	ctx context.Context,
 	deploymentId string,
 	filterReferences []string,
-) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error) {
+) (map[string]lib_models.AuxiliaryDeploymentVolumeWithMounts, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.auxDeploymentsHandler.GetVolumesWithMounts(ctx, deploymentId, filterReferences)
@@ -336,7 +334,7 @@ func (s *Service) DeleteAuxiliaryDeploymentVolumes(
 	deploymentId string,
 	filterReferences []string,
 	allowAll bool,
-) ([]lib_models_aux_deployments.VolumeResult, error) {
+) ([]lib_models.AuxiliaryDeploymentVolumeResult, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.auxDeploymentsHandler.DeleteVolumes(ctx, deploymentId, filterReferences, allowAll)
@@ -346,7 +344,7 @@ func (s *Service) DeleteUnusedAuxiliaryDeploymentVolumes(
 	ctx context.Context,
 	deploymentId string,
 	excludeReferences []string,
-) ([]lib_models_aux_deployments.VolumeResult, error) {
+) ([]lib_models.AuxiliaryDeploymentVolumeResult, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.auxDeploymentsHandler.DeleteUnusedVolumes(ctx, deploymentId, excludeReferences)
@@ -357,7 +355,7 @@ func (s *Service) recreateAuxDeployments(
 	module models_module.Module,
 	deploymentId string,
 	cacheDependencyDeployments map[string]models_deployments.DeploymentReduced,
-) ([]lib_models_aux_deployments.BatchResult, error) {
+) ([]lib_models.AuxiliaryDeploymentBatchResult, error) {
 	activeDeployment, err := s.deploymentsHandler.GetDeployment(ctx, deploymentId)
 	if err != nil {
 		return nil, err
@@ -385,8 +383,8 @@ func (s *Service) recreateAuxDeployments(
 		module,
 		activeDeployment,
 		cacheDependencyDeployments,
-		lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState{
-			AuxiliaryDeploymentsFilter: lib_models_aux_deployments.AuxiliaryDeploymentsFilter{
+		lib_models.AuxiliaryDeploymentsFilterWithState{
+			AuxiliaryDeploymentsFilter: lib_models.AuxiliaryDeploymentsFilter{
 				Recreate: 1,
 			},
 		},

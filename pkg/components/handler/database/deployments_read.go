@@ -22,7 +22,7 @@ import (
 	"strings"
 	"time"
 
-	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
@@ -222,7 +222,7 @@ func (h *Handler) ReadDeploymentsSecrets(ctx context.Context, filter models_depl
 		var depId string
 		var ref string
 		var secId string
-		var item lib_models_service.DeploymentSecretItem
+		var item lib_models.DeploymentSecretItem
 		err = rows.Scan(&depId, &ref, &secId, &item.Name, &item.AsMount, &item.AsEnv)
 		if err != nil {
 			return nil, err

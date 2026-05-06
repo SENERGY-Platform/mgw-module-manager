@@ -19,7 +19,7 @@ package deployments
 import (
 	"time"
 
-	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 )
 
@@ -95,7 +95,7 @@ type DeploymentSecret struct {
 	Id           string
 	DeploymentId string
 	Reference    string
-	Items        []lib_models_service.DeploymentSecretItem
+	Items        []lib_models.DeploymentSecretItem
 }
 
 type DeploymentUserConfig struct {

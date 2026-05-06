@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
@@ -34,7 +34,7 @@ func (h *Handler) ReadAuxiliaryDeployment(
 	deploymentId string,
 	auxDeploymentId string,
 ) (models_aux_deployments.AuxiliaryDeployment, error) {
-	auxDeployments, err := h.ReadAuxiliaryDeployments(ctx, deploymentId, lib_models_aux_deployments.AuxiliaryDeploymentsFilter{
+	auxDeployments, err := h.ReadAuxiliaryDeployments(ctx, deploymentId, lib_models.AuxiliaryDeploymentsFilter{
 		Ids: []string{auxDeploymentId},
 	})
 	if err != nil {
@@ -49,7 +49,7 @@ func (h *Handler) ReadAuxiliaryDeployment(
 func (h *Handler) ReadAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_aux_deployments.AuxiliaryDeploymentsFilter,
+	filter lib_models.AuxiliaryDeploymentsFilter,
 ) (map[string]models_aux_deployments.AuxiliaryDeployment, error) {
 	fc, val := genAuxiliaryDeploymentsFilter(deploymentId, filter)
 	rows, err := h.sqlDB.QueryContext(
@@ -191,7 +191,7 @@ func (h *Handler) ReadAuxiliaryDeploymentVolumes(
 	ctx context.Context,
 	deploymentId string,
 	refFilter []string,
-) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume, error) {
+) (map[string]lib_models.AuxiliaryDeploymentVolume, error) {
 	fc, val := genAuxiliaryDeploymentVolumesFilter(deploymentId, refFilter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -202,9 +202,9 @@ func (h *Handler) ReadAuxiliaryDeploymentVolumes(
 		return nil, err
 	}
 	defer rows.Close()
-	auxDepVolumes := make(map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume)
+	auxDepVolumes := make(map[string]lib_models.AuxiliaryDeploymentVolume)
 	for rows.Next() {
-		var volume lib_models_aux_deployments.AuxiliaryDeploymentVolume
+		var volume lib_models.AuxiliaryDeploymentVolume
 		err = rows.Scan(&volume.Id, &volume.DeploymentId, &volume.Reference, &volume.Name)
 		if err != nil {
 			return nil, err
@@ -223,7 +223,7 @@ func (h *Handler) ReadAuxiliaryDeploymentVolumesWithMounts(
 	ctx context.Context,
 	deploymentId string,
 	refFilter []string,
-) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error) {
+) (map[string]lib_models.AuxiliaryDeploymentVolumeWithMounts, error) {
 	fc, val := genAuxiliaryDeploymentVolumesFilter(deploymentId, refFilter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -234,7 +234,7 @@ func (h *Handler) ReadAuxiliaryDeploymentVolumesWithMounts(
 		return nil, err
 	}
 	defer rows.Close()
-	auxDepVolumes := make(map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolumeWithMounts)
+	auxDepVolumes := make(map[string]lib_models.AuxiliaryDeploymentVolumeWithMounts)
 	for rows.Next() {
 		var id string
 		var depId string
@@ -357,7 +357,7 @@ func (h *Handler) ReadAuxDeploymentsByParent(ctx context.Context) (
 	return auxDepsByParent, nil
 }
 
-func genAuxiliaryDeploymentsFilter(deploymentId string, filter lib_models_aux_deployments.AuxiliaryDeploymentsFilter) (string, []any) {
+func genAuxiliaryDeploymentsFilter(deploymentId string, filter lib_models.AuxiliaryDeploymentsFilter) (string, []any) {
 	var fc []string
 	var val []any
 	if deploymentId != "" {

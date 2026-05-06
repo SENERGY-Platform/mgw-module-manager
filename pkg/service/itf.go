@@ -4,9 +4,7 @@ import (
 	"context"
 	"io/fs"
 
-	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
-	lib_models_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/lib/models/dep_advertisements"
-	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
 	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
@@ -45,21 +43,21 @@ type deploymentsHandler interface {
 		ctx context.Context,
 		selectedModules map[string]models_module.Module,
 		userInputs map[string]models_deployments.UserInput,
-	) ([]lib_models_service.DeploymentResult, error)
+	) ([]lib_models.DeploymentResult, error)
 	UpdateDeployments(
 		ctx context.Context,
 		selectedModules map[string]models_module.Module,
 		userInputs map[string]models_deployments.UserInput,
-	) ([]lib_models_service.DeploymentResult, error)
+	) ([]lib_models.DeploymentResult, error)
 	RecreateDeployments(
 		ctx context.Context,
 		selectedModules map[string]models_module.Module,
-	) ([]lib_models_service.DeploymentResult, error)
+	) ([]lib_models.DeploymentResult, error)
 	DeleteDeployments(
 		ctx context.Context,
 		filter models_deployments.DeploymentsFilterWithState,
 		allowAll bool,
-	) ([]lib_models_service.DeploymentResult, error)
+	) ([]lib_models.DeploymentResult, error)
 	EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error)
 	DisableDeployments(ctx context.Context, moduleIds []string) ([]string, error)
 }
@@ -69,76 +67,76 @@ type auxiliaryDeploymentsHandler interface {
 		ctx context.Context,
 		deploymentId string,
 		auxDeploymentId string,
-	) (lib_models_aux_deployments.AuxiliaryDeployment, error)
+	) (lib_models.AuxiliaryDeployment, error)
 	GetDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
-	) (map[string]lib_models_aux_deployments.AuxiliaryDeployment, error)
+		filter lib_models.AuxiliaryDeploymentsFilterWithState,
+	) (map[string]lib_models.AuxiliaryDeployment, error)
 	GetReducedDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
-	) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentReduced, error)
+		filter lib_models.AuxiliaryDeploymentsFilterWithState,
+	) (map[string]lib_models.AuxiliaryDeploymentReduced, error)
 	CreateDeployment(
 		ctx context.Context,
 		module models_module.Module,
 		activeDeployment models_deployments.Deployment,
 		dependencies map[string]models_deployments.DeploymentReduced,
-		serviceInput lib_models_aux_deployments.ServiceInput,
-	) (lib_models_aux_deployments.Result, error)
+		serviceInput lib_models.AuxiliaryDeploymentInputBase,
+	) (lib_models.AuxiliaryDeploymentResult, error)
 	UpdateDeployment(
 		ctx context.Context,
 		module models_module.Module,
 		activeDeployment models_deployments.Deployment,
 		dependencies map[string]models_deployments.DeploymentReduced,
 		auxDeploymentId string,
-		serviceInput lib_models_aux_deployments.UpdateServiceInput,
+		serviceInput lib_models.AuxiliaryDeploymentUpdateInputBase,
 	) error
 	RecreateDeployments(
 		ctx context.Context,
 		module models_module.Module,
 		activeDeployment models_deployments.Deployment,
 		dependencies map[string]models_deployments.DeploymentReduced,
-		filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
-	) ([]lib_models_aux_deployments.BatchResult, error)
+		filter lib_models.AuxiliaryDeploymentsFilterWithState,
+	) ([]lib_models.AuxiliaryDeploymentBatchResult, error)
 	DeleteDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+		filter lib_models.AuxiliaryDeploymentsFilterWithState,
 		allowAll bool,
-	) ([]lib_models_aux_deployments.BatchResult, error)
+	) ([]lib_models.AuxiliaryDeploymentBatchResult, error)
 	EnableDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+		filter lib_models.AuxiliaryDeploymentsFilterWithState,
 	) ([]string, error)
 	DisableDeployments(
 		ctx context.Context,
 		deploymentId string,
-		filter lib_models_aux_deployments.AuxiliaryDeploymentsFilterWithState,
+		filter lib_models.AuxiliaryDeploymentsFilterWithState,
 	) ([]string, error)
 	GetVolumes(
 		ctx context.Context,
 		deploymentId string,
 		filterReferences []string,
-	) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolume, error)
+	) (map[string]lib_models.AuxiliaryDeploymentVolume, error)
 	GetVolumesWithMounts(
 		ctx context.Context,
 		deploymentId string,
 		filterReferences []string,
-	) (map[string]lib_models_aux_deployments.AuxiliaryDeploymentVolumeWithMounts, error)
+	) (map[string]lib_models.AuxiliaryDeploymentVolumeWithMounts, error)
 	DeleteVolumes(
 		ctx context.Context,
 		deploymentId string,
 		filterReferences []string,
 		allowAll bool,
-	) ([]lib_models_aux_deployments.VolumeResult, error)
+	) ([]lib_models.AuxiliaryDeploymentVolumeResult, error)
 	DeleteUnusedVolumes(
 		ctx context.Context,
 		deploymentId string,
 		excludeReferences []string,
-	) ([]lib_models_aux_deployments.VolumeResult, error)
+	) ([]lib_models.AuxiliaryDeploymentVolumeResult, error)
 	DeleteMutex(deploymentId string)
 }
 
@@ -156,12 +154,12 @@ type deploymentAdvertisementsHandler interface {
 		ctx context.Context,
 		deploymentId string,
 		reference string,
-	) (lib_models_dep_advertisements.DeploymentAdvertisement, error)
-	GetAdvertisementById(ctx context.Context, id string) (lib_models_dep_advertisements.DeploymentAdvertisement, error)
+	) (lib_models.DeploymentAdvertisement, error)
+	GetAdvertisementById(ctx context.Context, id string) (lib_models.DeploymentAdvertisement, error)
 	GetAdvertisements(
 		ctx context.Context,
-		filter lib_models_dep_advertisements.DeploymentAdvertisementsFilter,
-	) (map[string]lib_models_dep_advertisements.DeploymentAdvertisement, error)
+		filter lib_models.DeploymentAdvertisementsFilter,
+	) (map[string]lib_models.DeploymentAdvertisement, error)
 	PutAdvertisement(
 		ctx context.Context,
 		moduleId string,
@@ -173,13 +171,13 @@ type deploymentAdvertisementsHandler interface {
 		ctx context.Context,
 		moduleId string,
 		deploymentId string,
-		inputs []lib_models_dep_advertisements.DeploymentAdvertisementInput,
+		inputs []lib_models.DeploymentAdvertisementInput,
 		incremental bool,
 	) (map[string]string, error)
 	DeleteAdvertisements(
 		ctx context.Context,
 		deploymentId string,
-		filter lib_models_dep_advertisements.DeploymentAdvertisementsFilterReduced,
+		filter lib_models.DeploymentAdvertisementsFilterReduced,
 		allowAll bool,
 	) error
 }

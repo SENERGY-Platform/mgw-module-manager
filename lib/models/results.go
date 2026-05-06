@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package service
+package models
 
-import "time"
+type ErrorResult struct {
+	HasError bool   `json:"has_error"`
+	ErrorMsg string `json:"error_msg"`
+}
 
-type DeploymentAdvertisement struct {
-	Id        string
-	ModuleId  string
-	Origin    string
-	Reference string
-	Timestamp time.Time
-	Items     map[string]string
+func NewErrorResult(msg string) ErrorResult {
+	return ErrorResult{
+		HasError: true,
+		ErrorMsg: msg,
+	}
 }

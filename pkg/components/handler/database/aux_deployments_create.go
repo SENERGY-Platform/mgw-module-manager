@@ -21,7 +21,7 @@ import (
 	"database/sql"
 	"strings"
 
-	lib_models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/lib/models/aux_deployments"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
 )
 
@@ -66,7 +66,7 @@ func (h *Handler) CreateAuxiliaryDeployment(
 func (h *Handler) CreateAuxiliaryDeploymentVolumes(
 	ctx context.Context,
 	deploymentId string,
-	volumes []lib_models_aux_deployments.AuxiliaryDeploymentVolume,
+	volumes []lib_models.AuxiliaryDeploymentVolume,
 ) error {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {

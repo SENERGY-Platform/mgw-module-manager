@@ -19,22 +19,21 @@ package service
 import (
 	"context"
 
-	lib_models_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/lib/models/dep_advertisements"
-	lib_models_service "github.com/SENERGY-Platform/mgw-module-manager/lib/models/service"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
 )
 
 func (s *Service) QueryDeploymentAdvertisements(
 	ctx context.Context,
-	filter lib_models_dep_advertisements.DeploymentAdvertisementsFilter,
-) ([]lib_models_service.DeploymentAdvertisement, error) {
+	filter lib_models.DeploymentAdvertisementsFilter,
+) ([]lib_models.DeploymentAdvertisementReduced, error) {
 	depAdvMap, err := s.depAdvertisementsHandler.GetAdvertisements(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
-	var depAdvs []lib_models_service.DeploymentAdvertisement
+	var depAdvs []lib_models.DeploymentAdvertisementReduced
 	for _, depAdv := range depAdvMap {
-		depAdvs = append(depAdvs, lib_models_service.DeploymentAdvertisement{
+		depAdvs = append(depAdvs, lib_models.DeploymentAdvertisementReduced{
 			Id:        depAdv.Id,
 			ModuleId:  depAdv.ModuleId,
 			Origin:    depAdv.Origin,
@@ -46,12 +45,12 @@ func (s *Service) QueryDeploymentAdvertisements(
 	return depAdvs, nil
 }
 
-func (s *Service) QueryDeploymentAdvertisement(ctx context.Context, id string) (lib_models_service.DeploymentAdvertisement, error) {
+func (s *Service) QueryDeploymentAdvertisement(ctx context.Context, id string) (lib_models.DeploymentAdvertisementReduced, error) {
 	depAdv, err := s.depAdvertisementsHandler.GetAdvertisementById(ctx, id)
 	if err != nil {
-		return lib_models_service.DeploymentAdvertisement{}, err
+		return lib_models.DeploymentAdvertisementReduced{}, err
 	}
-	return lib_models_service.DeploymentAdvertisement{
+	return lib_models.DeploymentAdvertisementReduced{
 		Id:        depAdv.Id,
 		ModuleId:  depAdv.ModuleId,
 		Origin:    depAdv.Origin,
@@ -65,9 +64,9 @@ func (s *Service) GetDeploymentAdvertisement(
 	ctx context.Context,
 	deploymentId string,
 	reference string,
-) (lib_models_dep_advertisements.DeploymentAdvertisement, error) {
+) (lib_models.DeploymentAdvertisement, error) {
 	if deploymentId == "" {
-		return lib_models_dep_advertisements.DeploymentAdvertisement{}, models_error.NotFoundErr
+		return lib_models.DeploymentAdvertisement{}, models_error.NotFoundErr
 	}
 	return s.depAdvertisementsHandler.GetAdvertisement(ctx, deploymentId, reference)
 }
@@ -75,19 +74,19 @@ func (s *Service) GetDeploymentAdvertisement(
 func (s *Service) GetDeploymentAdvertisementById(
 	ctx context.Context,
 	id string,
-) (lib_models_dep_advertisements.DeploymentAdvertisement, error) {
+) (lib_models.DeploymentAdvertisement, error) {
 	return s.depAdvertisementsHandler.GetAdvertisementById(ctx, id)
 }
 
 func (s *Service) GetDeploymentAdvertisements(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_dep_advertisements.DeploymentAdvertisementsFilterReduced,
-) (map[string]lib_models_dep_advertisements.DeploymentAdvertisement, error) {
+	filter lib_models.DeploymentAdvertisementsFilterReduced,
+) (map[string]lib_models.DeploymentAdvertisement, error) {
 	if deploymentId == "" {
 		return nil, models_error.NotFoundErr
 	}
-	return s.depAdvertisementsHandler.GetAdvertisements(ctx, lib_models_dep_advertisements.DeploymentAdvertisementsFilter{
+	return s.depAdvertisementsHandler.GetAdvertisements(ctx, lib_models.DeploymentAdvertisementsFilter{
 		DeploymentId: deploymentId,
 		Ids:          filter.Ids,
 		References:   filter.References,
@@ -116,7 +115,7 @@ func (s *Service) PutDeploymentAdvertisement(
 func (s *Service) PutDeploymentAdvertisements(
 	ctx context.Context,
 	deploymentId string,
-	inputs []lib_models_dep_advertisements.DeploymentAdvertisementInput,
+	inputs []lib_models.DeploymentAdvertisementInput,
 	incremental bool,
 ) (map[string]string, error) {
 	deployment, err := s.deploymentsHandler.GetDeployment(ctx, deploymentId)
@@ -135,7 +134,7 @@ func (s *Service) PutDeploymentAdvertisements(
 func (s *Service) DeleteDeploymentAdvertisements(
 	ctx context.Context,
 	deploymentId string,
-	filter lib_models_dep_advertisements.DeploymentAdvertisementsFilterReduced,
+	filter lib_models.DeploymentAdvertisementsFilterReduced,
 	allowAll bool,
 ) error {
 	if deploymentId == "" {
