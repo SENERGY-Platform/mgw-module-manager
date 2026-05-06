@@ -151,7 +151,7 @@ func (h *Handler) ensureContainerVolumes(
 }
 
 func (h *Handler) createContainerVolume(ctx context.Context, volume lib_models.AuxiliaryDeploymentVolume) error {
-	_, err := h.containerEngineWrapperClient.CreateVolume(ctx, pkg_models.Volume{
+	_, err := h.containerEngineWrapperClient.CreateVolume(ctx, pkg_models.CewVolume{
 		Name: volume.Name,
 		Labels: map[string]string{
 			pkg_models.LabelCoreId:                helper_naming.CoreId,
@@ -188,7 +188,7 @@ func (h *Handler) removeContainerVolumes(
 func (h *Handler) removeContainerVolume(ctx context.Context, name string) error {
 	err := h.containerEngineWrapperClient.RemoveVolume(ctx, name, false)
 	if err != nil {
-		var notFoundErr *pkg_models.CEWNotFoundErr
+		var notFoundErr *pkg_models.CewNotFoundErr
 		if !errors.As(err, &notFoundErr) {
 			return err
 		}
@@ -196,8 +196,8 @@ func (h *Handler) removeContainerVolume(ctx context.Context, name string) error 
 	return nil
 }
 
-func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) (map[string]pkg_models.Volume, error) {
-	volumes, err := h.containerEngineWrapperClient.GetVolumes(ctx, pkg_models.VolumesFilter{
+func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) (map[string]pkg_models.CewVolume, error) {
+	volumes, err := h.containerEngineWrapperClient.GetVolumes(ctx, pkg_models.CewVolumesFilter{
 		Labels: map[string]string{
 			pkg_models.LabelCoreId:       helper_naming.CoreId,
 			pkg_models.LabelManagerId:    helper_naming.ManagerId,
@@ -208,7 +208,7 @@ func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) 
 	if err != nil {
 		return nil, err
 	}
-	volumesMap := maps.Collect(helper_slices.AllFunc(volumes, func(item pkg_models.Volume) string {
+	volumesMap := maps.Collect(helper_slices.AllFunc(volumes, func(item pkg_models.CewVolume) string {
 		return item.Name
 	}))
 	return volumesMap, nil

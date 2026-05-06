@@ -31,7 +31,7 @@ import (
 func (h *Handler) updateSecretValuesCache(
 	ctx context.Context,
 	userDataSecrets map[string]pkg_models.DeploymentSecret,
-	cacheSecretValues map[string]pkg_models.SecretValueVariant,
+	cacheSecretValues map[string]pkg_models.SmSecretValueVariant,
 ) error {
 	var errs []string
 	for _, secret := range userDataSecrets {
@@ -47,7 +47,7 @@ func (h *Handler) updateSecretValuesCache(
 			_, ok := cacheSecretValues[cacheKey]
 			if !ok {
 				var err error
-				valueVariant, err, _ := h.secretManagerClient.GetValueVariant(ctx, pkg_models.SecretVariantRequest{
+				valueVariant, err, _ := h.secretManagerClient.GetValueVariant(ctx, pkg_models.SmSecretVariantRequest{
 					ID:   secret.Id,
 					Item: reqItem,
 				})
@@ -69,8 +69,8 @@ func (h *Handler) createSecretMounts(
 	ctx context.Context,
 	deploymentId string,
 	userDataSecrets map[string]pkg_models.DeploymentSecret,
-) (map[string]pkg_models.SecretPathVariant, error) {
-	secretMounts := make(map[string]pkg_models.SecretPathVariant)
+) (map[string]pkg_models.SmSecretPathVariant, error) {
+	secretMounts := make(map[string]pkg_models.SmSecretPathVariant)
 	var errs []string
 	for _, secret := range userDataSecrets {
 		for _, secretItem := range secret.Items {
@@ -84,7 +84,7 @@ func (h *Handler) createSecretMounts(
 			}
 			_, ok := secretMounts[key]
 			if !ok {
-				pathVariant, err, _ := h.secretManagerClient.InitPathVariant(ctx, pkg_models.SecretVariantRequest{
+				pathVariant, err, _ := h.secretManagerClient.InitPathVariant(ctx, pkg_models.SmSecretVariantRequest{
 					ID:        secret.Id,
 					Item:      reqItem,
 					Reference: deploymentId,

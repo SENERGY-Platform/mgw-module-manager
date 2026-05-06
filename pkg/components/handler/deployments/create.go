@@ -42,9 +42,9 @@ func (h *Handler) CreateDeployments(
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	cache := cacheCollection{
-		HostResources: make(map[string]pkg_models.HostResource),
+		HostResources: make(map[string]pkg_models.HmHostResource),
 		GlobalConfigs: make(map[string]pkg_models.Config),
-		SecretValues:  make(map[string]pkg_models.SecretValueVariant),
+		SecretValues:  make(map[string]pkg_models.SmSecretValueVariant),
 	}
 	var err error
 	selectedModules, err = h.filterSelectedModules(ctx, selectedModules)

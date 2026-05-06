@@ -26,9 +26,9 @@ type containerEngineWrapperClient interface {
 	StopContainer(ctx context.Context, id string) (jobId string, err error)
 	RestartContainer(ctx context.Context, id string) (jobId string, err error)
 	RemoveContainer(ctx context.Context, id string, force bool) error
-	GetImage(ctx context.Context, id string) (pkg_models.Image, error)
+	GetImage(ctx context.Context, id string) (pkg_models.CewImage, error)
 	AddImage(ctx context.Context, img string) (jobId string, err error)
 	RemoveVolume(ctx context.Context, id string, force bool) error
-	GetJob(ctx context.Context, id string) (pkg_models.Job, error)
+	GetJob(ctx context.Context, id string) (pkg_models.JobLibJob, error)
 	CancelJob(ctx context.Context, id string) error
 }

@@ -59,7 +59,7 @@ func Restart(ctx context.Context, client containerEngineWrapperClient, container
 func Remove(ctx context.Context, client containerEngineWrapperClient, containerId string) error {
 	err := client.RemoveContainer(ctx, containerId, true)
 	if err != nil {
-		var notFoundErr *pkg_models.CEWNotFoundErr
+		var notFoundErr *pkg_models.CewNotFoundErr
 		if !errors.As(err, &notFoundErr) {
 			return err
 		}
@@ -78,7 +78,7 @@ func EnsureImage(
 	if !forcePull {
 		_, err := client.GetImage(ctx, helper_url.EscapePath(imageName, pathEscapeDepth))
 		if err != nil {
-			var notFoundErr *pkg_models.CEWNotFoundErr
+			var notFoundErr *pkg_models.CewNotFoundErr
 			if !errors.As(err, &notFoundErr) {
 				return err
 			}
@@ -103,7 +103,7 @@ func EnsureImage(
 func RemoveVolume(ctx context.Context, client containerEngineWrapperClient, name string) error {
 	err := client.RemoveVolume(ctx, name, false)
 	if err != nil {
-		var notFoundErr *pkg_models.CEWNotFoundErr
+		var notFoundErr *pkg_models.CewNotFoundErr
 		if !errors.As(err, &notFoundErr) {
 			return err
 		}

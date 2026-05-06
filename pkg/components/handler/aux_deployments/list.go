@@ -102,8 +102,8 @@ func (h *Handler) GetReducedDeployments(
 func (h *Handler) getCewContainers(
 	ctx context.Context,
 	auxDeployments map[string]pkg_models.AuxiliaryDeployment,
-) (map[string]pkg_models.Container, error) {
-	cewContainers, err := h.containerEngineWrapperClient.GetContainers(ctx, pkg_models.ContainersFilter{
+) (map[string]pkg_models.CewContainer, error) {
+	cewContainers, err := h.containerEngineWrapperClient.GetContainers(ctx, pkg_models.CewContainersFilter{
 		Names: helper_slices.CollectFunc(maps.Values(auxDeployments), func(item pkg_models.AuxiliaryDeployment) string {
 			return item.Container.Name
 		}),
@@ -111,7 +111,7 @@ func (h *Handler) getCewContainers(
 	if err != nil {
 		return nil, err
 	}
-	cewContainersMap := maps.Collect(helper_slices.AllFunc(cewContainers, func(item pkg_models.Container) string {
+	cewContainersMap := maps.Collect(helper_slices.AllFunc(cewContainers, func(item pkg_models.CewContainer) string {
 		return item.Name
 	}))
 	return cewContainersMap, nil
@@ -122,7 +122,7 @@ func getAuxiliaryDeployments(
 	dbAuxDepLabels map[string]map[string]string,
 	dbAuxDepConfigs map[string]map[string]string,
 	dbAuxDepVolumeMounts map[string][]pkg_models.AuxiliaryDeploymentVolumeMount,
-	cewContainers map[string]pkg_models.Container,
+	cewContainers map[string]pkg_models.CewContainer,
 ) map[string]lib_models.AuxiliaryDeployment {
 	auxDeployments := make(map[string]lib_models.AuxiliaryDeployment)
 	for id, dbAuxDep := range dbAuxDeployments {
@@ -140,7 +140,7 @@ func getAuxiliaryDeployments(
 
 func getReducedAuxiliaryDeployments(
 	dbAuxDeployments map[string]pkg_models.AuxiliaryDeployment,
-	cewContainers map[string]pkg_models.Container,
+	cewContainers map[string]pkg_models.CewContainer,
 ) map[string]lib_models.AuxiliaryDeploymentReduced {
 	auxDeployments := make(map[string]lib_models.AuxiliaryDeploymentReduced)
 	for id, dbAuxDep := range dbAuxDeployments {
@@ -164,7 +164,7 @@ func getVolumes(mounts []pkg_models.AuxiliaryDeploymentVolumeMount) []lib_models
 	return volumes
 }
 
-func getContainer(dbContainer pkg_models.AuxiliaryDeploymentContainer, cewContainer pkg_models.Container) lib_models.Container {
+func getContainer(dbContainer pkg_models.AuxiliaryDeploymentContainer, cewContainer pkg_models.CewContainer) lib_models.Container {
 	ctrInfo := lib_models.Container{
 		Name:    dbContainer.Name,
 		Alias:   dbContainer.Alias,

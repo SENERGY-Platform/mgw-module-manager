@@ -326,7 +326,7 @@ func (h *Handler) pullImages(ctx context.Context, images map[string]struct{}) (m
 	for image := range images {
 		_, err := h.containerEngineWrapperClient.GetImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 		if err != nil {
-			var notFoundErr *pkg_models.CEWNotFoundErr
+			var notFoundErr *pkg_models.CewNotFoundErr
 			if !errors.As(err, &notFoundErr) {
 				return newImages, err
 			}
@@ -353,7 +353,7 @@ func (h *Handler) removeImages(ctx context.Context, images map[string]struct{}) 
 	for image := range images {
 		err := h.containerEngineWrapperClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 		if err != nil {
-			var notFoundErr *pkg_models.CEWNotFoundErr
+			var notFoundErr *pkg_models.CewNotFoundErr
 			if !errors.As(err, &notFoundErr) {
 				return err
 			}
@@ -367,7 +367,7 @@ func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages map[
 		if _, ok := newImages[image]; !ok {
 			err := h.containerEngineWrapperClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 			if err != nil {
-				var notFoundErr *pkg_models.CEWNotFoundErr
+				var notFoundErr *pkg_models.CewNotFoundErr
 				if !errors.As(err, &notFoundErr) {
 					return err
 				}

@@ -42,9 +42,9 @@ func (h *Handler) createContainers(
 	volumes map[string]pkg_models.DeploymentVolume,
 	configs map[string]pkg_models.Value,
 	bindMounts bindMountDataCollection,
-	cacheSecretValues map[string]pkg_models.SecretValueVariant,
+	cacheSecretValues map[string]pkg_models.SmSecretValueVariant,
 	cacheDeployments map[string]deploymentsCacheItem,
-	cacheHostResources map[string]pkg_models.HostResource,
+	cacheHostResources map[string]pkg_models.HmHostResource,
 ) error {
 	var errs []string
 	for reference, service := range moduleServices {
@@ -152,8 +152,8 @@ func getCewContainer(
 	envVariables map[string]string,
 	mounts []pkg_models.CewMount,
 	devices []pkg_models.CewDevice,
-) (pkg_models.Container, error) {
-	return pkg_models.Container{
+) (pkg_models.CewContainer, error) {
+	return pkg_models.CewContainer{
 		Name:    containerName,
 		Image:   serviceImage,
 		EnvVars: envVariables,
@@ -194,7 +194,7 @@ func setSecretValueEnvVariables(
 	envVariables map[string]string,
 	serviceSecretVars map[string]pkg_models.ModuleLibSecretTarget,
 	userDataSecrets map[string]pkg_models.DeploymentSecret,
-	cacheSecretValues map[string]pkg_models.SecretValueVariant,
+	cacheSecretValues map[string]pkg_models.SmSecretValueVariant,
 ) {
 	for envVarName, target := range serviceSecretVars {
 		selectedSecret, ok := userDataSecrets[target.Ref]
@@ -293,7 +293,7 @@ func appendApplicationMounts(
 	mounts []pkg_models.CewMount,
 	serviceHostResources map[string]pkg_models.ModuleLibHostResTarget,
 	userDataHostResources map[string]pkg_models.DeploymentHostResource,
-	cacheHostResources map[string]pkg_models.HostResource,
+	cacheHostResources map[string]pkg_models.HmHostResource,
 ) []pkg_models.CewMount {
 	for mountPath, srvHostResource := range serviceHostResources {
 		tmp, ok := userDataHostResources[srvHostResource.Ref]
@@ -301,7 +301,7 @@ func appendApplicationMounts(
 			continue
 		}
 		hostResource, ok := cacheHostResources[tmp.Id]
-		if !ok || hostResource.Type == pkg_models.HostResourceTypeDevice {
+		if !ok || hostResource.Type == pkg_models.HmHostResourceTypeDevice {
 			continue
 		}
 		mounts = append(mounts, pkg_models.CewMount{
@@ -318,7 +318,7 @@ func appendSecretMounts(
 	mounts []pkg_models.CewMount,
 	serviceSecretMounts map[string]pkg_models.ModuleLibSecretTarget,
 	userDataSecrets map[string]pkg_models.DeploymentSecret,
-	secretMounts map[string]pkg_models.SecretPathVariant,
+	secretMounts map[string]pkg_models.SmSecretPathVariant,
 	hostPath string,
 ) []pkg_models.CewMount {
 	for mountPath, target := range serviceSecretMounts {
@@ -388,7 +388,7 @@ func appendFileGroupMounts(
 func getContainerDevices(
 	serviceHostResources map[string]pkg_models.ModuleLibHostResTarget,
 	userDataHostResources map[string]pkg_models.DeploymentHostResource,
-	cacheHostResources map[string]pkg_models.HostResource,
+	cacheHostResources map[string]pkg_models.HmHostResource,
 ) []pkg_models.CewDevice {
 	var devices []pkg_models.CewDevice
 	for mountPath, srvHostResource := range serviceHostResources {
@@ -397,7 +397,7 @@ func getContainerDevices(
 			continue
 		}
 		hostResource, ok := cacheHostResources[tmp.Id]
-		if !ok || hostResource.Type == pkg_models.HostResourceTypeApp {
+		if !ok || hostResource.Type == pkg_models.HmHostResourceTypeApp {
 			continue
 		}
 		devices = append(devices, pkg_models.CewDevice{

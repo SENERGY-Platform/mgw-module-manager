@@ -49,9 +49,9 @@ func (h *Handler) RecreateDeployments(
 		return nil, err
 	}
 	cache := cacheCollection{
-		HostResources: make(map[string]pkg_models.HostResource),
+		HostResources: make(map[string]pkg_models.HmHostResource),
 		GlobalConfigs: make(map[string]pkg_models.Config),
-		SecretValues:  make(map[string]pkg_models.SecretValueVariant),
+		SecretValues:  make(map[string]pkg_models.SmSecretValueVariant),
 	}
 	cache.Deployments, err = initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
 	if err != nil {

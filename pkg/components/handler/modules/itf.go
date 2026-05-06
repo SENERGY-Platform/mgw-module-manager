@@ -31,9 +31,9 @@ type databaseHandler interface {
 }
 
 type containerEngineWrapperClient interface {
-	GetImage(ctx context.Context, id string) (pkg_models.Image, error)
+	GetImage(ctx context.Context, id string) (pkg_models.CewImage, error)
 	AddImage(ctx context.Context, img string) (jobId string, err error)
 	RemoveImage(ctx context.Context, id string) error
-	GetJob(ctx context.Context, id string) (pkg_models.Job, error)
+	GetJob(ctx context.Context, id string) (pkg_models.JobLibJob, error)
 	CancelJob(ctx context.Context, id string) error
 }

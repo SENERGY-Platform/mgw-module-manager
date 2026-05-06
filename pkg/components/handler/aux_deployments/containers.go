@@ -78,8 +78,8 @@ func getCewContainer(
 	runConfig lib_models.AuxiliaryDeploymentRunConfig,
 	envVariables map[string]string,
 	mounts []pkg_models.CewMount,
-) pkg_models.Container {
-	return pkg_models.Container{
+) pkg_models.CewContainer {
+	return pkg_models.CewContainer{
 		Name:    containerName,
 		Image:   image,
 		EnvVars: envVariables,

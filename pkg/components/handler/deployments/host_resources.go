@@ -30,7 +30,7 @@ import (
 func (h *Handler) updateHostResourcesCache(
 	ctx context.Context,
 	userDataHostResources map[string]pkg_models.DeploymentHostResource,
-	cacheHostResources map[string]pkg_models.HostResource,
+	cacheHostResources map[string]pkg_models.HmHostResource,
 ) error {
 	selectedIds := helper_slices.CollectFunc(maps.Values(userDataHostResources), func(item pkg_models.DeploymentHostResource) string {
 		return item.Id

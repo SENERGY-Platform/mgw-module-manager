@@ -49,13 +49,13 @@ const (
 	ModuleLibStringType  = module_lib.StringType
 )
 
-type Container = cew_model.Container
-type ContainersFilter = cew_model.ContainerFilter
-type Volume = cew_model.Volume
-type VolumesFilter = cew_model.VolumeFilter
-type Image = cew_model.Image
-type ImagesFilter = cew_model.ImageFilter
-type CEWNotFoundErr = cew_model.NotFoundError
+type CewContainer = cew_model.Container
+type CewContainersFilter = cew_model.ContainerFilter
+type CewVolume = cew_model.Volume
+type CewVolumesFilter = cew_model.VolumeFilter
+type CewImage = cew_model.Image
+type CewImagesFilter = cew_model.ImageFilter
+type CewNotFoundErr = cew_model.NotFoundError
 type CewRunConfig = cew_model.RunConfig
 type CewContainerNetwork = cew_model.ContainerNet
 type CewPort = cew_model.Port
@@ -80,18 +80,18 @@ const (
 	CewMountTypeTmpfs       = cew_model.TmpfsMount
 )
 
-type Job = job_hdl_lib.Job
+type JobLibJob = job_hdl_lib.Job
 
-type HostResource = hm_model.HostResource
+type HmHostResource = hm_model.HostResource
 
 const (
-	HostResourceTypeApp    = hm_model.Application
-	HostResourceTypeDevice = hm_model.SerialDevice
+	HmHostResourceTypeApp    = hm_model.Application
+	HmHostResourceTypeDevice = hm_model.SerialDevice
 )
 
-type SecretVariantRequest = sm_model.SecretVariantRequest
-type SecretPathVariant = sm_model.SecretPathVariant
-type SecretValueVariant = sm_model.SecretValueVariant
+type SmSecretVariantRequest = sm_model.SecretVariantRequest
+type SmSecretPathVariant = sm_model.SecretPathVariant
+type SmSecretValueVariant = sm_model.SecretValueVariant
 
 type CmEndpointBase = cm_model.EndpointBase
 type CmEndpointFiler = cm_model.EndpointFilter

@@ -217,18 +217,18 @@ func (h *Handler) getDeployments(
 func (h *Handler) getCewContainers(
 	ctx context.Context,
 	stgDepsContainers map[string]map[string]pkg_models.DeploymentContainerBase,
-) (map[string]pkg_models.Container, error) {
+) (map[string]pkg_models.CewContainer, error) {
 	var ctrNames []string
 	for _, stgDepContainers := range stgDepsContainers {
 		ctrNames = append(ctrNames, helper_slices.CollectFunc(maps.Values(stgDepContainers), func(item pkg_models.DeploymentContainerBase) string {
 			return item.Name
 		})...)
 	}
-	cewContainers, err := h.containerEngineWrapperClient.GetContainers(ctx, pkg_models.ContainersFilter{Names: ctrNames})
+	cewContainers, err := h.containerEngineWrapperClient.GetContainers(ctx, pkg_models.CewContainersFilter{Names: ctrNames})
 	if err != nil {
 		return nil, err
 	}
-	cewContainersMap := maps.Collect(helper_slices.AllFunc(cewContainers, func(item pkg_models.Container) string {
+	cewContainersMap := maps.Collect(helper_slices.AllFunc(cewContainers, func(item pkg_models.CewContainer) string {
 		return item.Name
 	}))
 	return cewContainersMap, nil
@@ -236,7 +236,7 @@ func (h *Handler) getCewContainers(
 
 func getContainers(
 	stgDepContainers map[string]pkg_models.DeploymentContainerBase,
-	cewContainers map[string]pkg_models.Container,
+	cewContainers map[string]pkg_models.CewContainer,
 ) map[string]pkg_models.DeploymentContainer {
 	containers := make(map[string]pkg_models.DeploymentContainer)
 	for reference, stgDepContainer := range stgDepContainers {
@@ -265,7 +265,7 @@ func getDeploymentState(containersState int) int {
 
 func getContainersCombinedState(
 	deploymentContainers map[string]pkg_models.DeploymentContainerBase,
-	existingContainers map[string]pkg_models.Container,
+	existingContainers map[string]pkg_models.CewContainer,
 ) int {
 	var runningCount int
 	var unhealthyCount int

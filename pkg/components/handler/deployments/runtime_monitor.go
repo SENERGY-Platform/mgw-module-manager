@@ -72,7 +72,7 @@ func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
 	map[string]pkg_models.DeploymentBase,
 	map[string]map[string]pkg_models.DeploymentContainerBase,
 	map[string]map[string]pkg_models.DeploymentSecret,
-	map[string]pkg_models.Container,
+	map[string]pkg_models.CewContainer,
 	error,
 ) {
 	h.mu.RLock()
@@ -143,7 +143,7 @@ func (h *Handler) loadDeploymentMountSecrets(
 			if item.AsEnv {
 				continue
 			}
-			req := pkg_models.SecretVariantRequest{
+			req := pkg_models.SmSecretVariantRequest{
 				ID:        secret.Id,
 				Item:      nil,
 				Reference: deploymentId,

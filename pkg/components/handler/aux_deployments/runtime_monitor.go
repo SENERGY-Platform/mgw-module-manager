@@ -97,7 +97,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 
 func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
 	map[string]pkg_models.AuxiliaryDeploymentParent,
-	map[string]pkg_models.Container,
+	map[string]pkg_models.CewContainer,
 	error,
 ) {
 	auxDepsByParent, err := h.databaseHandler.ReadAuxDeploymentsByParent(ctx)

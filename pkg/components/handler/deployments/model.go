@@ -42,7 +42,7 @@ type userDataCollection struct {
 }
 
 type bindMountDataCollection struct {
-	Secrets    map[string]pkg_models.SecretPathVariant
+	Secrets    map[string]pkg_models.SmSecretPathVariant
 	Files      map[string]string
 	FileGroups map[string][]fileGroupMount
 }
@@ -53,9 +53,9 @@ type fileGroupMount struct {
 }
 
 type cacheCollection struct {
-	HostResources map[string]pkg_models.HostResource
+	HostResources map[string]pkg_models.HmHostResource
 	GlobalConfigs map[string]pkg_models.Config
-	SecretValues  map[string]pkg_models.SecretValueVariant
+	SecretValues  map[string]pkg_models.SmSecretValueVariant
 	Deployments   map[string]deploymentsCacheItem
 }
 

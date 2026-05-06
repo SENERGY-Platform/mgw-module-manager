@@ -87,17 +87,17 @@ type databaseHandler interface {
 }
 
 type containerEngineWrapperClient interface {
-	GetContainers(ctx context.Context, filter pkg_models.ContainersFilter) ([]pkg_models.Container, error)
-	CreateContainer(ctx context.Context, container pkg_models.Container) (id string, err error)
+	GetContainers(ctx context.Context, filter pkg_models.CewContainersFilter) ([]pkg_models.CewContainer, error)
+	CreateContainer(ctx context.Context, container pkg_models.CewContainer) (id string, err error)
 	StartContainer(ctx context.Context, id string) error
 	StopContainer(ctx context.Context, id string) (jobId string, err error)
 	RestartContainer(ctx context.Context, id string) (jobId string, err error)
 	RemoveContainer(ctx context.Context, id string, force bool) error
-	GetImage(ctx context.Context, id string) (pkg_models.Image, error)
+	GetImage(ctx context.Context, id string) (pkg_models.CewImage, error)
 	AddImage(ctx context.Context, img string) (jobId string, err error)
-	GetVolumes(ctx context.Context, filter pkg_models.VolumesFilter) ([]pkg_models.Volume, error)
-	CreateVolume(ctx context.Context, vol pkg_models.Volume) (string, error)
+	GetVolumes(ctx context.Context, filter pkg_models.CewVolumesFilter) ([]pkg_models.CewVolume, error)
+	CreateVolume(ctx context.Context, vol pkg_models.CewVolume) (string, error)
 	RemoveVolume(ctx context.Context, id string, force bool) error
-	GetJob(ctx context.Context, id string) (pkg_models.Job, error)
+	GetJob(ctx context.Context, id string) (pkg_models.JobLibJob, error)
 	CancelJob(ctx context.Context, id string) error
 }
