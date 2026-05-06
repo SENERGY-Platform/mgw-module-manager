@@ -21,3 +21,14 @@ const (
 	ModuleChangeActionChange  = "change"
 	ModuleChangeActionRemove  = "remove"
 )
+
+const (
+	DeploymentStateHealthy = iota + 1
+	DeploymentStateUnhealthy
+)
+
+const (
+	HttpHeaderRequestId = "X-Request-Id"
+	HttpHeaderApiVer    = "X-Api-Version"
+	HttpHeaderSrvName   = "X-Service-Name"
+)

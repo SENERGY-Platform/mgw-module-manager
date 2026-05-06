@@ -21,7 +21,7 @@ import (
 
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
 	sb_slog_attributes "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/models/constants"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
@@ -54,10 +54,10 @@ func New(service serviceItf, infoHdl infoHandler, logger *slog.Logger, accessLog
 	}
 	middleware = append(middleware,
 		gin_mw.StaticHeaderHandler(map[string]string{
-			constants.HeaderApiVer:  infoHdl.Version(),
-			constants.HeaderSrvName: infoHdl.Name(),
+			lib_constants.HttpHeaderApiVer:  infoHdl.Version(),
+			lib_constants.HttpHeaderSrvName: infoHdl.Name(),
 		}),
-		requestid.New(requestid.WithCustomHeaderStrKey(constants.HeaderRequestId)),
+		requestid.New(requestid.WithCustomHeaderStrKey(lib_constants.HttpHeaderRequestId)),
 		gin_mw.ErrorHandler(getStatusCode, ", "),
 		gin_mw.StructRecoveryHandler(logger, gin_mw.DefaultRecoveryFunc),
 	)

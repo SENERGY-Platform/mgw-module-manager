@@ -42,20 +42,8 @@ const (
 )
 
 const (
-	HeaderRequestId = "X-Request-Id"
-	HeaderApiVer    = "X-Api-Version"
-	HeaderSrvName   = "X-Service-Name"
-	HeaderAuth      = "Authorization"
-)
-
-const (
 	ValueDataTypeString = iota
 	ValueDataTypeInt64
 	ValueDataTypeFloat64
 	ValueDataTypeBool
-)
-
-const (
-	DeploymentStateHealthy = iota + 1
-	DeploymentStateUnhealthy
 )
