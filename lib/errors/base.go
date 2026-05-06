@@ -88,7 +88,7 @@ func genErrString(msg string, args []interface{}) string {
 			s += fmt.Sprintf(" %v=", arg)
 			isKey = false
 		} else {
-			s += fmt.Sprintf("%v", arg)
+			s += fmt.Sprintf("%+v", arg)
 			isKey = true
 		}
 	}
