@@ -16,7 +16,10 @@
 
 package lib_errors
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type iErrBase interface {
 	error
@@ -45,6 +48,16 @@ func Wrap[
 	pt := PT(new(T))
 	pt.set("", err, args)
 	return pt
+}
+
+func IsOf[
+	T error,
+	PT interface {
+		*T
+	},
+](err error) bool {
+	pt := PT(new(T))
+	return errors.As(err, &pt)
 }
 
 type errBase struct {
