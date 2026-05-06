@@ -30,6 +30,8 @@ func getStatusCode(err error) int {
 			return http.StatusNotFound
 		case *lib_errors.ErrExists:
 			return http.StatusBadRequest
+		case *lib_errors.ErrInvalidInput:
+			return http.StatusBadRequest
 		case *lib_errors.ErrActiveJob:
 			return http.StatusServiceUnavailable
 		}

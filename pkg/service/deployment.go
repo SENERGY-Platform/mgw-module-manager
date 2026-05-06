@@ -19,7 +19,6 @@ package service
 import (
 	"context"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -399,7 +398,7 @@ func getUserInputs(
 	for _, userInput := range userInputs {
 		_, ok := userInputsMap[userInput.ModuleId]
 		if ok {
-			return nil, errors.New("duplicate module id " + userInput.ModuleId) // TODO
+			return nil, lib_errors.New[lib_errors.ErrInvalidInput]("duplicate entry", attr_keys.Id, userInput.ModuleId)
 		}
 		handlerModule := handlerModules[userInput.ModuleId]
 		configs := make(map[string]pkg_models.Value)

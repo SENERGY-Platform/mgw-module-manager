@@ -57,3 +57,17 @@ func (e *ErrActiveJob) set(msg string, err error, args []interface{}) {
 		},
 	}
 }
+
+type ErrInvalidInput struct {
+	errBase
+}
+
+func (e *ErrInvalidInput) set(msg string, err error, args []interface{}) {
+	*e = ErrInvalidInput{
+		errBase{
+			msg:  msg,
+			err:  err,
+			args: args,
+		},
+	}
+}
