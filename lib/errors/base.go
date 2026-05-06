@@ -81,14 +81,18 @@ func genErrString(msg string, args []interface{}) string {
 	if len(args) == 0 {
 		return msg
 	}
-	s := "msg=" + msg
+	s := fmt.Sprintf("msg='%s'", msg)
 	isKey := true
 	for _, arg := range args {
 		if isKey {
 			s += fmt.Sprintf(" %v=", arg)
 			isKey = false
 		} else {
-			s += fmt.Sprintf("%+v", arg)
+			if v, ok := arg.(string); ok {
+				s += fmt.Sprintf("'%s'", v)
+			} else {
+				s += fmt.Sprintf("%+v", arg)
+			}
 			isKey = true
 		}
 	}
