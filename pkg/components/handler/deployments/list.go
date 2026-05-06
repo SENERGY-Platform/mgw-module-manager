@@ -87,7 +87,7 @@ func (h *Handler) GetDeploymentByModuleId(ctx context.Context, moduleId string) 
 		return pkg_models.Deployment{}, err
 	}
 	if len(deployments) == 0 {
-		return pkg_models.Deployment{}, lib_errors.New[lib_errors.ErrNotFound]("module not deployed", attr_keys.Id, moduleId)
+		return pkg_models.Deployment{}, lib_errors.New[lib_errors.ErrNotFound]("deployment not found", attr_keys.ModuleId, moduleId)
 	}
 	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value pkg_models.Deployment) string {
 		return value.ModuleId

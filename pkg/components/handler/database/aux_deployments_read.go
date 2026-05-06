@@ -44,7 +44,9 @@ func (h *Handler) ReadAuxiliaryDeployment(
 	if len(auxDeploymentId) == 0 {
 		return pkg_models.AuxiliaryDeployment{}, lib_errors.New[lib_errors.ErrNotFound](
 			"auxiliary deployment not found",
-			attr_keys.Id,
+			attr_keys.DeploymentId,
+			deploymentId,
+			attr_keys.AuxDeploymentId,
 			auxDeploymentId,
 		)
 	}

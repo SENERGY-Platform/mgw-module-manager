@@ -185,13 +185,13 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 func (h *Handler) getModuleVariant(id, source, channel string) (moduleWrapper, error) {
 	sources, ok := h.variantsMap[id]
 	if !ok {
-		return moduleWrapper{}, lib_errors.New[lib_errors.ErrNotFound]("module not found", attr_keys.Id, id)
+		return moduleWrapper{}, lib_errors.New[lib_errors.ErrNotFound]("module not found", attr_keys.ModuleId, id)
 	}
 	channels, ok := sources[source]
 	if !ok {
 		return moduleWrapper{}, lib_errors.New[lib_errors.ErrNotFound](
 			"source not found",
-			attr_keys.Id,
+			attr_keys.ModuleId,
 			id,
 			attr_keys.Source,
 			source,
@@ -201,7 +201,7 @@ func (h *Handler) getModuleVariant(id, source, channel string) (moduleWrapper, e
 	if !ok {
 		return moduleWrapper{}, lib_errors.New[lib_errors.ErrNotFound](
 			"channel not found",
-			attr_keys.Id,
+			attr_keys.ModuleId,
 			id,
 			attr_keys.Source,
 			source,

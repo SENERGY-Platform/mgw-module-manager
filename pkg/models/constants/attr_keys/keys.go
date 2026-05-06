@@ -19,18 +19,22 @@ package attr_keys
 import "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
 
 const (
-	RequestId    = "request_id"
-	StackTrace   = "stack_trace"
-	Id           = "id"
-	Source       = "source"
-	Channel      = "channel"
-	DirName      = "dir_name"
-	Signal       = "signal"
-	Version      = "version"
-	ConfigValues = "config_values"
-	Component    = "component"
-	Description  = "description"
-	Error        = attributes.ErrorKey
-	Method       = attributes.MethodKey
-	Path         = attributes.PathKey
+	RequestId       = "request_id"
+	StackTrace      = "stack_trace"
+	Id              = "id"
+	ModuleId        = "module_id"
+	DeploymentId    = "deployment_id"
+	AuxDeploymentId = "auxiliary_deployment_id"
+	Filter          = "filter"
+	Source          = "source"
+	Channel         = "channel"
+	DirName         = "dir_name"
+	Signal          = "signal"
+	Version         = "version"
+	ConfigValues    = "config_values"
+	Component       = "component"
+	Description     = "description"
+	Error           = attributes.ErrorKey
+	Method          = attributes.MethodKey
+	Path            = attributes.PathKey
 )
