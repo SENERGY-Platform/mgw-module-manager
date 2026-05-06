@@ -25,17 +25,15 @@ import (
 
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) updateGlobalConfigsCache(
 	ctx context.Context,
-	userDataGlobalConfigs map[string]models_deployments.DeploymentGlobalConfig,
-	cacheGlobalConfigs map[string]models_configs.Config,
+	userDataGlobalConfigs map[string]pkg_models.DeploymentGlobalConfig,
+	cacheGlobalConfigs map[string]pkg_models.Config,
 ) error {
-	selectedIds := helper_slices.CollectFunc(maps.Values(userDataGlobalConfigs), func(item models_deployments.DeploymentGlobalConfig) string {
+	selectedIds := helper_slices.CollectFunc(maps.Values(userDataGlobalConfigs), func(item pkg_models.DeploymentGlobalConfig) string {
 		return item.Id
 	})
 	var idsNotInCache []string
@@ -67,8 +65,8 @@ func (h *Handler) updateGlobalConfigsCache(
 }
 
 func checkConfigs(
-	moduleConfigs models_external.ModuleLibConfigs,
-	configs map[string]models_configs.Value,
+	moduleConfigs pkg_models.ModuleLibConfigs,
+	configs map[string]pkg_models.Value,
 ) error {
 	var errs []string
 	for reference, moduleConfig := range moduleConfigs {
@@ -84,12 +82,12 @@ func checkConfigs(
 }
 
 func mergeConfigs(
-	defaultConfigs map[string]models_configs.Value,
-	userDataConfigs map[string]models_deployments.DeploymentUserConfig,
-	userDataGlobalConfigs map[string]models_deployments.DeploymentGlobalConfig,
-	cacheGlobalConfigs map[string]models_configs.Config,
-) map[string]models_configs.Value {
-	configs := make(map[string]models_configs.Value)
+	defaultConfigs map[string]pkg_models.Value,
+	userDataConfigs map[string]pkg_models.DeploymentUserConfig,
+	userDataGlobalConfigs map[string]pkg_models.DeploymentGlobalConfig,
+	cacheGlobalConfigs map[string]pkg_models.Config,
+) map[string]pkg_models.Value {
+	configs := make(map[string]pkg_models.Value)
 	maps.Copy(configs, defaultConfigs)
 	for reference, providedConfig := range userDataConfigs {
 		configs[reference] = providedConfig.Value
@@ -103,8 +101,8 @@ func mergeConfigs(
 	return configs
 }
 
-func getDefaultConfigs(moduleConfigs models_external.ModuleLibConfigs) (map[string]models_configs.Value, error) {
-	configs := make(map[string]models_configs.Value)
+func getDefaultConfigs(moduleConfigs pkg_models.ModuleLibConfigs) (map[string]pkg_models.Value, error) {
+	configs := make(map[string]pkg_models.Value)
 	var errs []string
 	for reference, moduleConfig := range moduleConfigs {
 		if moduleConfig.Default == nil {
@@ -124,17 +122,17 @@ func getDefaultConfigs(moduleConfigs models_external.ModuleLibConfigs) (map[stri
 }
 
 func getSelectedGlobalConfigs(
-	moduleConfigs models_external.ModuleLibConfigs,
+	moduleConfigs pkg_models.ModuleLibConfigs,
 	userInputGlobalConfigs map[string]string,
 	deploymentId string,
-) map[string]models_deployments.DeploymentGlobalConfig {
-	configs := make(map[string]models_deployments.DeploymentGlobalConfig)
+) map[string]pkg_models.DeploymentGlobalConfig {
+	configs := make(map[string]pkg_models.DeploymentGlobalConfig)
 	for reference := range moduleConfigs {
 		id, ok := userInputGlobalConfigs[reference]
 		if !ok {
 			continue
 		}
-		configs[reference] = models_deployments.DeploymentGlobalConfig{
+		configs[reference] = pkg_models.DeploymentGlobalConfig{
 			Id:           id,
 			DeploymentId: deploymentId,
 			Reference:    reference,
@@ -144,12 +142,12 @@ func getSelectedGlobalConfigs(
 }
 
 func getProvidedConfigs(
-	moduleConfigs models_external.ModuleLibConfigs,
-	defaultConfigs map[string]models_configs.Value,
-	userInputConfigs map[string]models_configs.Value,
+	moduleConfigs pkg_models.ModuleLibConfigs,
+	defaultConfigs map[string]pkg_models.Value,
+	userInputConfigs map[string]pkg_models.Value,
 	deploymentId string,
-) (map[string]models_deployments.DeploymentUserConfig, error) {
-	configs := make(map[string]models_deployments.DeploymentUserConfig)
+) (map[string]pkg_models.DeploymentUserConfig, error) {
+	configs := make(map[string]pkg_models.DeploymentUserConfig)
 	var errs []string
 	for reference := range moduleConfigs {
 		config, ok := userInputConfigs[reference]
@@ -160,7 +158,7 @@ func getProvidedConfigs(
 		if ok && helper_configs.ValueIsEqual(config, defaultConfig) {
 			continue
 		}
-		configs[reference] = models_deployments.DeploymentUserConfig{
+		configs[reference] = pkg_models.DeploymentUserConfig{
 			DeploymentId: deploymentId,
 			Reference:    reference,
 			Id:           deploymentId + "_" + reference,

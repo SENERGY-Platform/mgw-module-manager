@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 InfAI (CC SES)
+ * Copyright 2026 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package deployments
+package models
 
 import (
 	"time"
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
-	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
 )
 
 const (
-	StateHealthy = iota + 1
-	StateUnhealthy
+	DeploymentStateHealthy = iota + 1
+	DeploymentStateUnhealthy
 )
 
 type Deployment struct {
 	DeploymentBase
-	Containers    map[string]Container
+	Containers    map[string]DeploymentContainer
 	Volumes       map[string]DeploymentVolume
 	HostResources map[string]DeploymentHostResource
 	Secrets       map[string]DeploymentSecret
@@ -43,12 +42,12 @@ type Deployment struct {
 
 type DeploymentReduced struct {
 	DeploymentBase
-	Containers map[string]Container
+	Containers map[string]DeploymentContainer
 	State      int // health state determined by container states
 }
 
-type Container struct {
-	ContainerBase
+type DeploymentContainer struct {
+	DeploymentContainerBase
 	ImageId string // docker image id
 	State   string // docker container state
 	Health  string // docker container health
@@ -72,7 +71,7 @@ type DeploymentBase struct {
 	Updated       time.Time
 }
 
-type ContainerBase struct {
+type DeploymentContainerBase struct {
 	Name         string
 	DeploymentId string
 	Reference    string
@@ -102,7 +101,7 @@ type DeploymentUserConfig struct {
 	Id           string
 	DeploymentId string
 	Reference    string
-	models_configs.Value
+	Value
 }
 
 type DeploymentGlobalConfig struct {
@@ -153,17 +152,17 @@ type DeploymentGlobalConfigsFilter struct {
 	DeploymentIds []string
 }
 
-type UserInput struct {
+type DeploymentUserInput struct {
 	ModuleId      string
-	HostResources map[string]string                        // {ref:resourceID}
-	Secrets       map[string]string                        // {ref:secretID}
-	Configs       map[string]models_configs.Value          // {ref:Config}
-	GlobalConfigs map[string]string                        // {ref:configID}
-	Files         map[string][]byte                        // {ref:data}
-	FileGroups    map[string]map[string]FileGroupUserInput // {ref:{path:FileGroupUserInput}}
+	HostResources map[string]string                                  // {ref:resourceID}
+	Secrets       map[string]string                                  // {ref:secretID}
+	Configs       map[string]Value                                   // {ref:Config}
+	GlobalConfigs map[string]string                                  // {ref:configID}
+	Files         map[string][]byte                                  // {ref:data}
+	FileGroups    map[string]map[string]DeploymentFileGroupUserInput // {ref:{path:FileGroupUserInput}}
 }
 
-type FileGroupUserInput struct {
+type DeploymentFileGroupUserInput struct {
 	Format int
 	Data   []byte
 }

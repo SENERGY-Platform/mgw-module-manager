@@ -27,9 +27,7 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]lib_models.Module, error) {
@@ -39,8 +37,8 @@ func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{
-		ModulesFilter: models_module.ModulesFilter{
+	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
+		ModulesFilter: pkg_models.ModulesFilter{
 			Ids: moduleIds,
 		},
 		Dependencies: true,
@@ -48,8 +46,8 @@ func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]
 	if err != nil {
 		return nil, err
 	}
-	handlerDeployments, err := s.deploymentsHandler.GetDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilterWithState{
-		DeploymentsFilter: models_deployments.DeploymentsFilter{
+	handlerDeployments, err := s.deploymentsHandler.GetDeploymentsByModuleIds(ctx, pkg_models.DeploymentsFilterWithState{
+		DeploymentsFilter: pkg_models.DeploymentsFilter{
 			ModuleIds: slices.Collect(maps.Keys(handlerModules)),
 		},
 	})
@@ -57,7 +55,7 @@ func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]
 	for id, handlerModule := range handlerModules {
 		_, ok := handlerDeployments[id]
 		if !ok {
-			modules = append(modules, getModule(handlerModule, models_deployments.Deployment{}))
+			modules = append(modules, getModule(handlerModule, pkg_models.Deployment{}))
 		}
 	}
 	return modules, nil
@@ -70,8 +68,8 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []lib_models
 	if len(currentJobs) > 0 {
 		return lib_models.Job{}, errors.New("active jobs") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{
-		ModulesFilter: models_module.ModulesFilter{
+	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
+		ModulesFilter: pkg_models.ModulesFilter{
 			Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models.DeploymentUserInput) string {
 				return item.ModuleId
 			}),
@@ -125,8 +123,8 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 	if len(currentJobs) > 0 {
 		return lib_models.Job{}, errors.New("active jobs") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{
-		ModulesFilter: models_module.ModulesFilter{
+	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
+		ModulesFilter: pkg_models.ModulesFilter{
 			Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models.DeploymentUserInput) string {
 				return item.ModuleId
 			}),
@@ -163,7 +161,7 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 				jobResult.ResultsErrNum++
 			}
 		}
-		cacheDependencyDeployments := make(map[string]models_deployments.DeploymentReduced)
+		cacheDependencyDeployments := make(map[string]pkg_models.DeploymentReduced)
 		for _, updateDepResult := range updateDepResults {
 			result := lib_models.DeploymentUpdateResult{DeploymentResult: updateDepResult}
 			if !updateDepResult.HasError {
@@ -205,8 +203,8 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 	if len(currentJobs) > 0 {
 		return lib_models.Job{}, errors.New("active jobs") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{
-		ModulesFilter: models_module.ModulesFilter{
+	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
+		ModulesFilter: pkg_models.ModulesFilter{
 			Ids: moduleIds,
 		},
 	})
@@ -253,7 +251,7 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}
-	deploymentIds, err := s.deploymentsHandler.GetDeploymentIds(ctx, models_deployments.DeploymentsFilter{
+	deploymentIds, err := s.deploymentsHandler.GetDeploymentIds(ctx, pkg_models.DeploymentsFilter{
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
@@ -284,8 +282,8 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]
 	}
 	deleteResults, err := s.deploymentsHandler.DeleteDeployments(
 		ctx,
-		models_deployments.DeploymentsFilterWithState{
-			DeploymentsFilter: models_deployments.DeploymentsFilter{
+		pkg_models.DeploymentsFilterWithState{
+			DeploymentsFilter: pkg_models.DeploymentsFilter{
 				Ids: toDelete,
 			},
 		},
@@ -325,8 +323,8 @@ func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) ([]
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{
-		ModulesFilter: models_module.ModulesFilter{
+	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
+		ModulesFilter: pkg_models.ModulesFilter{
 			Ids: moduleIds,
 		},
 		Dependencies: true,
@@ -369,16 +367,16 @@ func (s *Service) deleteAuxDeployments(
 
 func getUserInputs(
 	userInputs []lib_models.DeploymentUserInput,
-	handlerModules map[string]models_module.Module,
-) (map[string]models_deployments.UserInput, error) {
-	userInputsMap := make(map[string]models_deployments.UserInput)
+	handlerModules map[string]pkg_models.Module,
+) (map[string]pkg_models.DeploymentUserInput, error) {
+	userInputsMap := make(map[string]pkg_models.DeploymentUserInput)
 	for _, userInput := range userInputs {
 		_, ok := userInputsMap[userInput.ModuleId]
 		if ok {
 			return nil, errors.New("duplicate module id " + userInput.ModuleId) // TODO
 		}
 		handlerModule := handlerModules[userInput.ModuleId]
-		configs := make(map[string]models_configs.Value)
+		configs := make(map[string]pkg_models.Value)
 		for reference, itfValue := range userInput.Configs {
 			value, err := helper_configs.GetValueWithValidation(itfValue, handlerModule.Configs[reference])
 			if err != nil {
@@ -394,22 +392,22 @@ func getUserInputs(
 			}
 			files[reference] = data
 		}
-		fileGroups := make(map[string]map[string]models_deployments.FileGroupUserInput)
+		fileGroups := make(map[string]map[string]pkg_models.DeploymentFileGroupUserInput)
 		for reference, items := range userInput.FileGroups {
-			depItems := make(map[string]models_deployments.FileGroupUserInput)
+			depItems := make(map[string]pkg_models.DeploymentFileGroupUserInput)
 			for path, item := range items {
 				data, err := base64.StdEncoding.DecodeString(item.Data)
 				if err != nil {
 					return nil, err
 				}
-				depItems[path] = models_deployments.FileGroupUserInput{
+				depItems[path] = pkg_models.DeploymentFileGroupUserInput{
 					Format: item.Format,
 					Data:   data,
 				}
 			}
 			fileGroups[reference] = depItems
 		}
-		userInputsMap[userInput.ModuleId] = models_deployments.UserInput{
+		userInputsMap[userInput.ModuleId] = pkg_models.DeploymentUserInput{
 			ModuleId:      userInput.ModuleId,
 			HostResources: userInput.HostResources,
 			Secrets:       userInput.Secrets,

@@ -25,13 +25,11 @@ import (
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) ensureContainerVolumes(ctx context.Context,
-	volumes map[string]models_deployments.DeploymentVolume,
+	volumes map[string]pkg_models.DeploymentVolume,
 	deploymentId string,
 ) error {
 	existingVolumes, err := h.getContainerVolumes(ctx, deploymentId)
@@ -63,15 +61,15 @@ func (h *Handler) ensureContainerVolumes(ctx context.Context,
 	return nil
 }
 
-func (h *Handler) createContainerVolume(ctx context.Context, volume models_deployments.DeploymentVolume) error {
-	_, err := h.containerEngineWrapperClient.CreateVolume(ctx, models_external.Volume{
+func (h *Handler) createContainerVolume(ctx context.Context, volume pkg_models.DeploymentVolume) error {
+	_, err := h.containerEngineWrapperClient.CreateVolume(ctx, pkg_models.Volume{
 		Name: volume.Name,
 		Labels: map[string]string{
-			models_constants.LabelCoreId:          helper_naming.CoreId,
-			models_constants.LabelManagerId:       helper_naming.ManagerId,
-			models_constants.LabelVolumeType:      models_constants.DeploymentAbbreviation,
-			models_constants.LabelDeploymentId:    volume.DeploymentId,
-			models_constants.LabelVolumeReference: volume.Reference,
+			pkg_models.LabelCoreId:          helper_naming.CoreId,
+			pkg_models.LabelManagerId:       helper_naming.ManagerId,
+			pkg_models.LabelVolumeType:      pkg_models.DeploymentAbbreviation,
+			pkg_models.LabelDeploymentId:    volume.DeploymentId,
+			pkg_models.LabelVolumeReference: volume.Reference,
 		},
 	})
 	if err != nil {
@@ -82,7 +80,7 @@ func (h *Handler) createContainerVolume(ctx context.Context, volume models_deplo
 
 func (h *Handler) removeContainerVolumes(
 	ctx context.Context,
-	deploymentVolumes map[string]models_deployments.DeploymentVolume,
+	deploymentVolumes map[string]pkg_models.DeploymentVolume,
 ) error {
 	var errs []string
 	for _, volume := range deploymentVolumes {
@@ -97,19 +95,19 @@ func (h *Handler) removeContainerVolumes(
 	return nil
 }
 
-func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) (map[string]models_external.Volume, error) {
-	volumes, err := h.containerEngineWrapperClient.GetVolumes(ctx, models_external.VolumesFilter{
+func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) (map[string]pkg_models.Volume, error) {
+	volumes, err := h.containerEngineWrapperClient.GetVolumes(ctx, pkg_models.VolumesFilter{
 		Labels: map[string]string{
-			models_constants.LabelCoreId:       helper_naming.CoreId,
-			models_constants.LabelManagerId:    helper_naming.ManagerId,
-			models_constants.LabelVolumeType:   models_constants.DeploymentAbbreviation,
-			models_constants.LabelDeploymentId: deploymentId,
+			pkg_models.LabelCoreId:       helper_naming.CoreId,
+			pkg_models.LabelManagerId:    helper_naming.ManagerId,
+			pkg_models.LabelVolumeType:   pkg_models.DeploymentAbbreviation,
+			pkg_models.LabelDeploymentId: deploymentId,
 		},
 	})
 	if err != nil {
 		return nil, err
 	}
-	volumesMap := maps.Collect(helper_slices.AllFunc(volumes, func(item models_external.Volume) string {
+	volumesMap := maps.Collect(helper_slices.AllFunc(volumes, func(item pkg_models.Volume) string {
 		return item.Name
 	}))
 	return volumesMap, nil

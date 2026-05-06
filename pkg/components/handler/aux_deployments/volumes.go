@@ -25,9 +25,7 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
-	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) GetVolumes(
@@ -153,15 +151,15 @@ func (h *Handler) ensureContainerVolumes(
 }
 
 func (h *Handler) createContainerVolume(ctx context.Context, volume lib_models.AuxiliaryDeploymentVolume) error {
-	_, err := h.containerEngineWrapperClient.CreateVolume(ctx, models_external.Volume{
+	_, err := h.containerEngineWrapperClient.CreateVolume(ctx, pkg_models.Volume{
 		Name: volume.Name,
 		Labels: map[string]string{
-			models_constants.LabelCoreId:                helper_naming.CoreId,
-			models_constants.LabelManagerId:             helper_naming.ManagerId,
-			models_constants.LabelVolumeType:            models_constants.AuxDeploymentAbbreviation,
-			models_constants.LabelDeploymentId:          volume.DeploymentId,
-			models_constants.LabelVolumeReference:       volume.Reference,
-			models_constants.LabelAuxDeploymentVolumeId: volume.Id,
+			pkg_models.LabelCoreId:                helper_naming.CoreId,
+			pkg_models.LabelManagerId:             helper_naming.ManagerId,
+			pkg_models.LabelVolumeType:            pkg_models.AuxDeploymentAbbreviation,
+			pkg_models.LabelDeploymentId:          volume.DeploymentId,
+			pkg_models.LabelVolumeReference:       volume.Reference,
+			pkg_models.LabelAuxDeploymentVolumeId: volume.Id,
 		},
 	})
 	if err != nil {
@@ -190,7 +188,7 @@ func (h *Handler) removeContainerVolumes(
 func (h *Handler) removeContainerVolume(ctx context.Context, name string) error {
 	err := h.containerEngineWrapperClient.RemoveVolume(ctx, name, false)
 	if err != nil {
-		var notFoundErr *models_external.CEWNotFoundErr
+		var notFoundErr *pkg_models.CEWNotFoundErr
 		if !errors.As(err, &notFoundErr) {
 			return err
 		}
@@ -198,19 +196,19 @@ func (h *Handler) removeContainerVolume(ctx context.Context, name string) error 
 	return nil
 }
 
-func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) (map[string]models_external.Volume, error) {
-	volumes, err := h.containerEngineWrapperClient.GetVolumes(ctx, models_external.VolumesFilter{
+func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) (map[string]pkg_models.Volume, error) {
+	volumes, err := h.containerEngineWrapperClient.GetVolumes(ctx, pkg_models.VolumesFilter{
 		Labels: map[string]string{
-			models_constants.LabelCoreId:       helper_naming.CoreId,
-			models_constants.LabelManagerId:    helper_naming.ManagerId,
-			models_constants.LabelVolumeType:   models_constants.AuxDeploymentAbbreviation,
-			models_constants.LabelDeploymentId: deploymentId,
+			pkg_models.LabelCoreId:       helper_naming.CoreId,
+			pkg_models.LabelManagerId:    helper_naming.ManagerId,
+			pkg_models.LabelVolumeType:   pkg_models.AuxDeploymentAbbreviation,
+			pkg_models.LabelDeploymentId: deploymentId,
 		},
 	})
 	if err != nil {
 		return nil, err
 	}
-	volumesMap := maps.Collect(helper_slices.AllFunc(volumes, func(item models_external.Volume) string {
+	volumesMap := maps.Collect(helper_slices.AllFunc(volumes, func(item pkg_models.Volume) string {
 		return item.Name
 	}))
 	return volumesMap, nil
@@ -242,11 +240,11 @@ func getVolumeMounts(
 	auxDeploymentId string,
 	serviceInputVolumes map[string]string, // {mntPath:reference}
 	auxiliaryDeploymentVolumes map[string]lib_models.AuxiliaryDeploymentVolume,
-) []models_aux_deployments.AuxiliaryDeploymentVolumeMount {
-	var volumeMounts []models_aux_deployments.AuxiliaryDeploymentVolumeMount
+) []pkg_models.AuxiliaryDeploymentVolumeMount {
+	var volumeMounts []pkg_models.AuxiliaryDeploymentVolumeMount
 	for mountPath, reference := range serviceInputVolumes {
 		volume := auxiliaryDeploymentVolumes[reference]
-		volumeMounts = append(volumeMounts, models_aux_deployments.AuxiliaryDeploymentVolumeMount{
+		volumeMounts = append(volumeMounts, pkg_models.AuxiliaryDeploymentVolumeMount{
 			VolumeId:              volume.Id,
 			VolumeName:            volume.Name,
 			Reference:             volume.Reference,

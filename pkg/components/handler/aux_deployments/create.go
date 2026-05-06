@@ -30,18 +30,14 @@ import (
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
-	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
-	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) CreateDeployment(
 	ctx context.Context,
-	module models_module.Module,
-	activeDeployment models_deployments.Deployment,
-	dependencies map[string]models_deployments.DeploymentReduced,
+	module pkg_models.Module,
+	activeDeployment pkg_models.Deployment,
+	dependencies map[string]pkg_models.DeploymentReduced,
 	serviceInput lib_models.AuxiliaryDeploymentInputBase,
 ) (lib_models.AuxiliaryDeploymentResult, error) {
 	mu := h.mutexes.Get(activeDeployment.Id)
@@ -161,15 +157,15 @@ func (h *Handler) ensureAuxDeploymentEnvironment(
 
 func getAuxiliaryDeployment(
 	moduleAuxServiceName string,
-	moduleAuxServiceRunConfig models_external.ModuleLibRunConfig,
+	moduleAuxServiceRunConfig pkg_models.ModuleLibRunConfig,
 	deploymentId string,
 	auxDeploymentId string,
 	containerAlias string,
 	serviceInput lib_models.AuxiliaryDeploymentInputBase,
-) (models_aux_deployments.AuxiliaryDeployment, error) {
-	ctrName, err := helper_naming.NewContainerName(models_constants.AuxDeploymentAbbreviation)
+) (pkg_models.AuxiliaryDeployment, error) {
+	ctrName, err := helper_naming.NewContainerName(pkg_models.AuxDeploymentAbbreviation)
 	if err != nil {
-		return models_aux_deployments.AuxiliaryDeployment{}, err
+		return pkg_models.AuxiliaryDeployment{}, err
 	}
 	name := moduleAuxServiceName
 	if serviceInput.Name != "" {
@@ -186,14 +182,14 @@ func getAuxiliaryDeployment(
 	if serviceInput.RunConfig.PseudoTTY > 0 {
 		pseudoTTY = true
 	}
-	return models_aux_deployments.AuxiliaryDeployment{
+	return pkg_models.AuxiliaryDeployment{
 		Id:           auxDeploymentId,
 		DeploymentId: deploymentId,
 		Reference:    serviceInput.Reference,
 		Name:         name,
 		Image:        serviceInput.Image,
 		Enabled:      serviceInput.Enabled,
-		Container: models_aux_deployments.AuxiliaryDeploymentContainer{
+		Container: pkg_models.AuxiliaryDeploymentContainer{
 			Name:  ctrName,
 			Alias: containerAlias,
 		},

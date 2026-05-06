@@ -20,20 +20,20 @@ import (
 	"context"
 	"database/sql"
 
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) CreateDeployment(
 	ctx context.Context,
-	deployment models_deployments.DeploymentBase,
-	hostResources []models_deployments.DeploymentHostResource,
-	secrets []models_deployments.DeploymentSecret,
-	userConfigs []models_deployments.DeploymentUserConfig,
-	globalConfigs []models_deployments.DeploymentGlobalConfig,
-	files []models_deployments.DeploymentFile,
-	fileGroups []models_deployments.DeploymentFileGroup,
-	volumes []models_deployments.DeploymentVolume,
-	containers []models_deployments.ContainerBase,
+	deployment pkg_models.DeploymentBase,
+	hostResources []pkg_models.DeploymentHostResource,
+	secrets []pkg_models.DeploymentSecret,
+	userConfigs []pkg_models.DeploymentUserConfig,
+	globalConfigs []pkg_models.DeploymentGlobalConfig,
+	files []pkg_models.DeploymentFile,
+	fileGroups []pkg_models.DeploymentFileGroup,
+	volumes []pkg_models.DeploymentVolume,
+	containers []pkg_models.DeploymentContainerBase,
 ) (err error) {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
@@ -81,14 +81,14 @@ func (h *Handler) createDeploymentResourcesAndConfigs(
 	ctx context.Context,
 	tx *sql.Tx,
 	deploymentId string,
-	hostResources []models_deployments.DeploymentHostResource,
-	secrets []models_deployments.DeploymentSecret,
-	userConfigs []models_deployments.DeploymentUserConfig,
-	globalConfigs []models_deployments.DeploymentGlobalConfig,
-	files []models_deployments.DeploymentFile,
-	fileGroups []models_deployments.DeploymentFileGroup,
-	volumes []models_deployments.DeploymentVolume,
-	containers []models_deployments.ContainerBase,
+	hostResources []pkg_models.DeploymentHostResource,
+	secrets []pkg_models.DeploymentSecret,
+	userConfigs []pkg_models.DeploymentUserConfig,
+	globalConfigs []pkg_models.DeploymentGlobalConfig,
+	files []pkg_models.DeploymentFile,
+	fileGroups []pkg_models.DeploymentFileGroup,
+	volumes []pkg_models.DeploymentVolume,
+	containers []pkg_models.DeploymentContainerBase,
 ) (err error) {
 	for _, hostResource := range hostResources {
 		_, err = tx.ExecContext(
@@ -205,7 +205,7 @@ func (h *Handler) createDeploymentResourcesAndConfigs(
 	return
 }
 
-func createFileGroupFiles(ctx context.Context, tx *sql.Tx, groupId string, files []models_deployments.DeploymentFileGroupFile) (err error) {
+func createFileGroupFiles(ctx context.Context, tx *sql.Tx, groupId string, files []pkg_models.DeploymentFileGroupFile) (err error) {
 	for _, file := range files {
 		_, err = tx.ExecContext(
 			ctx,

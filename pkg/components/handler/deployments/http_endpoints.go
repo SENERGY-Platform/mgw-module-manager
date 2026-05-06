@@ -20,19 +20,17 @@ import (
 	"context"
 	"errors"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
-	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) createHttpEndpoints(
 	ctx context.Context,
-	moduleServices map[string]models_external.ModuleLibService,
+	moduleServices map[string]pkg_models.ModuleLibService,
 	moduleId string,
-	deploymentContainers map[string]models_deployments.ContainerBase,
+	deploymentContainers map[string]pkg_models.DeploymentContainerBase,
 ) error {
-	var endpoints []models_external.CmEndpointBase
+	var endpoints []pkg_models.CmEndpointBase
 	for reference, service := range moduleServices {
 		container := deploymentContainers[reference]
 		for externalPath, endpoint := range service.HttpEndpoints {
@@ -46,7 +44,7 @@ func (h *Handler) createHttpEndpoints(
 	if err != nil {
 		return err
 	}
-	job, err := job.Await(ctx, h.coreManagerClient, jobId, h.config.JobPollInterval)
+	job, err := helper_job.Await(ctx, h.coreManagerClient, jobId, h.config.JobPollInterval)
 	if err != nil {
 		return err
 	}
@@ -59,29 +57,29 @@ func (h *Handler) createHttpEndpoints(
 func newCmEndpointBase(
 	containerReference string,
 	containerAlias string,
-	serviceEndpoint models_external.ModuleLibHttpEndpoint,
+	serviceEndpoint pkg_models.ModuleLibHttpEndpoint,
 	moduleId,
 	externalPath string,
-) models_external.CmEndpointBase {
-	return models_external.CmEndpointBase{
+) pkg_models.CmEndpointBase {
+	return pkg_models.CmEndpointBase{
 		Ref:     containerReference,
 		Host:    containerAlias,
 		Port:    &serviceEndpoint.Port, // TODO unnecessary pointer
 		IntPath: serviceEndpoint.Path,
 		ExtPath: externalPath,
-		ProxyConf: models_external.CmProxyConfig{
+		ProxyConf: pkg_models.CmProxyConfig{
 			Headers:     serviceEndpoint.ProxyConf.Headers,
 			WebSocket:   serviceEndpoint.ProxyConf.WebSocket,
 			ReadTimeout: serviceEndpoint.ProxyConf.ReadTimeout,
 		},
-		StringSub: models_external.CmStringSub{
+		StringSub: pkg_models.CmStringSub{
 			ReplaceOnce: serviceEndpoint.StringSub.ReplaceOnce,
 			MimeTypes:   serviceEndpoint.StringSub.MimeTypes,
 			Filters:     serviceEndpoint.StringSub.Filters,
 		},
 		Labels: map[string]string{
-			models_constants.LabelHttpEndpointModuleId:         moduleId,
-			models_constants.LabelHttpEndpointServiceReference: containerReference,
+			pkg_models.LabelHttpEndpointModuleId:         moduleId,
+			pkg_models.LabelHttpEndpointServiceReference: containerReference,
 		},
 	}
 }

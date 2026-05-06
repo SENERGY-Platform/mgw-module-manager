@@ -16,11 +16,7 @@
 
 package deployments
 
-import (
-	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-)
+import pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 
 const (
 	containersStateStopped   = iota + 1 // no running containers
@@ -33,20 +29,20 @@ const (
 const dirPerm = 0770
 
 type defaultDataCollection struct {
-	Configs map[string]models_configs.Value
+	Configs map[string]pkg_models.Value
 	Files   map[string][]byte
 }
 type userDataCollection struct {
-	GlobalConfigs map[string]models_deployments.DeploymentGlobalConfig
-	HostResources map[string]models_deployments.DeploymentHostResource
-	Secrets       map[string]models_deployments.DeploymentSecret
-	Configs       map[string]models_deployments.DeploymentUserConfig
-	Files         map[string]models_deployments.DeploymentFile
-	FileGroups    map[string]models_deployments.DeploymentFileGroup
+	GlobalConfigs map[string]pkg_models.DeploymentGlobalConfig
+	HostResources map[string]pkg_models.DeploymentHostResource
+	Secrets       map[string]pkg_models.DeploymentSecret
+	Configs       map[string]pkg_models.DeploymentUserConfig
+	Files         map[string]pkg_models.DeploymentFile
+	FileGroups    map[string]pkg_models.DeploymentFileGroup
 }
 
 type bindMountDataCollection struct {
-	Secrets    map[string]models_external.SecretPathVariant
+	Secrets    map[string]pkg_models.SecretPathVariant
 	Files      map[string]string
 	FileGroups map[string][]fileGroupMount
 }
@@ -57,9 +53,9 @@ type fileGroupMount struct {
 }
 
 type cacheCollection struct {
-	HostResources map[string]models_external.HostResource
-	GlobalConfigs map[string]models_configs.Config
-	SecretValues  map[string]models_external.SecretValueVariant
+	HostResources map[string]pkg_models.HostResource
+	GlobalConfigs map[string]pkg_models.Config
+	SecretValues  map[string]pkg_models.SecretValueVariant
 	Deployments   map[string]deploymentsCacheItem
 }
 

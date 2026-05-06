@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 InfAI (CC SES)
+ * Copyright 2026 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,39 +14,39 @@
  * limitations under the License.
  */
 
-package repositories
+package models
 
 type Repository struct {
 	Source   string
 	Priority int
-	Channels []Channel
+	Channels []RepositoryChannel
 }
 
-type Channel struct {
+type RepositoryChannel struct {
 	Name     string
 	Priority int
 }
 
-type ModuleBase struct {
+type RepositoryModuleBase struct {
 	Id      string `json:"id"`
 	Source  string `json:"source"`
 	Channel string `json:"channel"`
 }
 
-type Module struct {
-	ModuleBase
+type RepositoryModule struct {
+	RepositoryModuleBase
 	Name    string `json:"name"`
 	Desc    string `json:"description"`
 	Version string `json:"version"`
 }
 
-type ModulesFilter struct {
+type RepositoryModulesFilter struct {
 	Ids     []string
 	Name    string
-	Sources []SourceFilter
+	Sources []RepositorySourceFilter
 }
 
-type SourceFilter struct {
+type RepositorySourceFilter struct {
 	Name     string
 	Channels []string
 }

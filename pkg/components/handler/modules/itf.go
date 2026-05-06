@@ -19,22 +19,21 @@ package modules
 import (
 	"context"
 
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 type databaseHandler interface {
-	Modules(ctx context.Context, filter models_handler_database.ModulesFilter) (map[string]models_handler_database.DatabaseModule, error)
-	Module(ctx context.Context, id string) (models_handler_database.DatabaseModule, error)
-	CreateModule(ctx context.Context, mod models_handler_database.DatabaseModule) error
-	UpdateModule(ctx context.Context, mod models_handler_database.DatabaseModule) error
+	Modules(ctx context.Context, filter pkg_models.ModulesFilter) (map[string]pkg_models.DatabaseModule, error)
+	Module(ctx context.Context, id string) (pkg_models.DatabaseModule, error)
+	CreateModule(ctx context.Context, mod pkg_models.DatabaseModule) error
+	UpdateModule(ctx context.Context, mod pkg_models.DatabaseModule) error
 	DeleteModule(ctx context.Context, id string) error
 }
 
 type containerEngineWrapperClient interface {
-	GetImage(ctx context.Context, id string) (models_external.Image, error)
+	GetImage(ctx context.Context, id string) (pkg_models.Image, error)
 	AddImage(ctx context.Context, img string) (jobId string, err error)
 	RemoveImage(ctx context.Context, id string) error
-	GetJob(ctx context.Context, id string) (models_external.Job, error)
+	GetJob(ctx context.Context, id string) (pkg_models.Job, error)
 	CancelJob(ctx context.Context, id string) error
 }

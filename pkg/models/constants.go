@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package constants
+package models
 
 const (
 	EnvVariableDeploymentId    = "MGW_DID"

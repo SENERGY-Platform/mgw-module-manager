@@ -24,16 +24,15 @@ import (
 	"strings"
 
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) updateHostResourcesCache(
 	ctx context.Context,
-	userDataHostResources map[string]models_deployments.DeploymentHostResource,
-	cacheHostResources map[string]models_external.HostResource,
+	userDataHostResources map[string]pkg_models.DeploymentHostResource,
+	cacheHostResources map[string]pkg_models.HostResource,
 ) error {
-	selectedIds := helper_slices.CollectFunc(maps.Values(userDataHostResources), func(item models_deployments.DeploymentHostResource) string {
+	selectedIds := helper_slices.CollectFunc(maps.Values(userDataHostResources), func(item pkg_models.DeploymentHostResource) string {
 		return item.Id
 	})
 	var idsNotInCache []string
@@ -61,11 +60,11 @@ func (h *Handler) updateHostResourcesCache(
 }
 
 func getSelectedHostResources(
-	moduleHostResources map[string]models_external.ModuleLibHostResource,
+	moduleHostResources map[string]pkg_models.ModuleLibHostResource,
 	userInputHostResources map[string]string,
 	deploymentID string,
-) (map[string]models_deployments.DeploymentHostResource, error) {
-	hostResources := make(map[string]models_deployments.DeploymentHostResource)
+) (map[string]pkg_models.DeploymentHostResource, error) {
+	hostResources := make(map[string]pkg_models.DeploymentHostResource)
 	var errs []string
 	for reference, hostResource := range moduleHostResources {
 		id, ok := userInputHostResources[reference]
@@ -75,7 +74,7 @@ func getSelectedHostResources(
 			}
 			continue
 		}
-		hostResources[reference] = models_deployments.DeploymentHostResource{
+		hostResources[reference] = pkg_models.DeploymentHostResource{
 			Id:           id,
 			DeploymentId: deploymentID,
 			Reference:    reference,

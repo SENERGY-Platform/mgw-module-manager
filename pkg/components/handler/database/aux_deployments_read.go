@@ -25,23 +25,22 @@ import (
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) ReadAuxiliaryDeployment(
 	ctx context.Context,
 	deploymentId string,
 	auxDeploymentId string,
-) (models_aux_deployments.AuxiliaryDeployment, error) {
+) (pkg_models.AuxiliaryDeployment, error) {
 	auxDeployments, err := h.ReadAuxiliaryDeployments(ctx, deploymentId, lib_models.AuxiliaryDeploymentsFilter{
 		Ids: []string{auxDeploymentId},
 	})
 	if err != nil {
-		return models_aux_deployments.AuxiliaryDeployment{}, err
+		return pkg_models.AuxiliaryDeployment{}, err
 	}
 	if len(auxDeploymentId) == 0 {
-		return models_aux_deployments.AuxiliaryDeployment{}, models_error.NotFoundErr
+		return pkg_models.AuxiliaryDeployment{}, pkg_models.NotFoundErr
 	}
 	return auxDeployments[auxDeploymentId], nil
 }
@@ -50,7 +49,7 @@ func (h *Handler) ReadAuxiliaryDeployments(
 	ctx context.Context,
 	deploymentId string,
 	filter lib_models.AuxiliaryDeploymentsFilter,
-) (map[string]models_aux_deployments.AuxiliaryDeployment, error) {
+) (map[string]pkg_models.AuxiliaryDeployment, error) {
 	fc, val := genAuxiliaryDeploymentsFilter(deploymentId, filter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,
@@ -61,9 +60,9 @@ func (h *Handler) ReadAuxiliaryDeployments(
 		return nil, err
 	}
 	defer rows.Close()
-	auxDeps := make(map[string]models_aux_deployments.AuxiliaryDeployment)
+	auxDeps := make(map[string]pkg_models.AuxiliaryDeployment)
 	for rows.Next() {
-		var auxDep models_aux_deployments.AuxiliaryDeployment
+		var auxDep pkg_models.AuxiliaryDeployment
 		var ct, ut []uint8
 		var command sql.NullString
 		var pseudoTTY sql.NullBool
@@ -261,7 +260,7 @@ func (h *Handler) ReadAuxiliaryDeploymentVolumesWithMounts(
 func (h *Handler) ReadAuxiliaryDeploymentVolumeMounts(
 	ctx context.Context,
 	auxiliaryDeploymentId string,
-) ([]models_aux_deployments.AuxiliaryDeploymentVolumeMount, error) {
+) ([]pkg_models.AuxiliaryDeploymentVolumeMount, error) {
 	auxDepsVolumeMounts, err := h.ReadAuxiliaryDeploymentsVolumeMounts(ctx, []string{auxiliaryDeploymentId})
 	if err != nil {
 		return nil, err
@@ -277,7 +276,7 @@ ON aux_dep_volume_mounts.vol_id = aux_dep_volumes.id`
 func (h *Handler) ReadAuxiliaryDeploymentsVolumeMounts(
 	ctx context.Context,
 	auxiliaryDeploymentsIds []string,
-) (map[string][]models_aux_deployments.AuxiliaryDeploymentVolumeMount, error) {
+) (map[string][]pkg_models.AuxiliaryDeploymentVolumeMount, error) {
 	var rows *sql.Rows
 	var err error
 	if len(auxiliaryDeploymentsIds) > 0 {
@@ -293,9 +292,9 @@ func (h *Handler) ReadAuxiliaryDeploymentsVolumeMounts(
 		return nil, err
 	}
 	defer rows.Close()
-	auxDepsVolumeMounts := make(map[string][]models_aux_deployments.AuxiliaryDeploymentVolumeMount)
+	auxDepsVolumeMounts := make(map[string][]pkg_models.AuxiliaryDeploymentVolumeMount)
 	for rows.Next() {
-		var mount models_aux_deployments.AuxiliaryDeploymentVolumeMount
+		var mount pkg_models.AuxiliaryDeploymentVolumeMount
 		err = rows.Scan(&mount.AuxiliaryDeploymentId, &mount.VolumeId, &mount.VolumeName, &mount.Reference, &mount.MountPath)
 		if err != nil {
 			return nil, err
@@ -315,7 +314,7 @@ FROM aux_deployments
 LEFT JOIN deployments ON aux_deployments.dep_id = deployments.id`
 
 func (h *Handler) ReadAuxDeploymentsByParent(ctx context.Context) (
-	map[string]models_aux_deployments.AuxiliaryDeploymentParent,
+	map[string]pkg_models.AuxiliaryDeploymentParent,
 	error,
 ) {
 	rows, err := h.sqlDB.QueryContext(
@@ -326,11 +325,11 @@ func (h *Handler) ReadAuxDeploymentsByParent(ctx context.Context) (
 		return nil, err
 	}
 	defer rows.Close()
-	auxDepsByParent := make(map[string]models_aux_deployments.AuxiliaryDeploymentParent)
+	auxDepsByParent := make(map[string]pkg_models.AuxiliaryDeploymentParent)
 	for rows.Next() {
 		var parentId string
 		var parentEnabled bool
-		var auxDep models_aux_deployments.AuxiliaryDeployment
+		var auxDep pkg_models.AuxiliaryDeployment
 		err = rows.Scan(
 			&parentId,
 			&parentEnabled,
@@ -346,7 +345,7 @@ func (h *Handler) ReadAuxDeploymentsByParent(ctx context.Context) (
 		if !ok {
 			auxDepParent.Id = parentId
 			auxDepParent.Enabled = parentEnabled
-			auxDepParent.AuxiliaryDeployments = make(map[string]models_aux_deployments.AuxiliaryDeployment)
+			auxDepParent.AuxiliaryDeployments = make(map[string]pkg_models.AuxiliaryDeployment)
 			auxDepsByParent[parentId] = auxDepParent
 		}
 		auxDepParent.AuxiliaryDeployments[auxDep.Id] = auxDep

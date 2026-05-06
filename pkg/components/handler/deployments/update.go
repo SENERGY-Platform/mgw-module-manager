@@ -27,21 +27,17 @@ import (
 	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
-	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
-	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) UpdateDeployments(
 	ctx context.Context,
-	selectedModules map[string]models_module.Module,
-	userInputs map[string]models_deployments.UserInput,
+	selectedModules map[string]pkg_models.Module,
+	userInputs map[string]pkg_models.DeploymentUserInput,
 ) ([]lib_models.DeploymentResult, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_deployments.DeploymentsFilter{
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, pkg_models.DeploymentsFilter{
 		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
 	})
 	if err != nil {
@@ -53,9 +49,9 @@ func (h *Handler) UpdateDeployments(
 		return nil, err
 	}
 	cache := cacheCollection{
-		HostResources: make(map[string]models_external.HostResource),
-		GlobalConfigs: make(map[string]models_configs.Config),
-		SecretValues:  make(map[string]models_external.SecretValueVariant),
+		HostResources: make(map[string]pkg_models.HostResource),
+		GlobalConfigs: make(map[string]pkg_models.Config),
+		SecretValues:  make(map[string]pkg_models.SecretValueVariant),
 	}
 	cache.Deployments, err = initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
 	if err != nil {
@@ -92,13 +88,13 @@ func (h *Handler) UpdateDeployments(
 
 func (h *Handler) updateDeployment(
 	ctx context.Context,
-	module models_module.Module,
-	userInput models_deployments.UserInput,
+	module pkg_models.Module,
+	userInput pkg_models.DeploymentUserInput,
 	deploymentId string,
 	cacheContainers map[string]containerCacheItem,
-	currentDeployment models_deployments.DeploymentBase,
-	currentContainers map[string]models_deployments.ContainerBase,
-	currentVolumes map[string]models_deployments.DeploymentVolume,
+	currentDeployment pkg_models.DeploymentBase,
+	currentContainers map[string]pkg_models.DeploymentContainerBase,
+	currentVolumes map[string]pkg_models.DeploymentVolume,
 	cache cacheCollection,
 ) error {
 	newDeployment, err := getDeployment(module, deploymentId)
@@ -224,12 +220,12 @@ func (h *Handler) updateDeployment(
 }
 
 func initDeploymentsCacheFromModulesAndDeployments(
-	modules map[string]models_module.Module,
-	deployments map[string]models_deployments.DeploymentBase,
-	deploymentsContainers map[string]map[string]models_deployments.ContainerBase,
+	modules map[string]pkg_models.Module,
+	deployments map[string]pkg_models.DeploymentBase,
+	deploymentsContainers map[string]map[string]pkg_models.DeploymentContainerBase,
 ) (map[string]deploymentsCacheItem, error) {
 	cache := make(map[string]deploymentsCacheItem)
-	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_deployments.DeploymentBase) string {
+	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value pkg_models.DeploymentBase) string {
 		return value.ModuleId
 	})
 	for moduleId, module := range modules {
@@ -240,7 +236,7 @@ func initDeploymentsCacheFromModulesAndDeployments(
 		containers := make(map[string]containerCacheItem)
 		for reference := range module.Services {
 			existingContainer := deploymentsContainers[deployment.Id][reference]
-			name, err := helper_naming.NewContainerName(models_constants.DeploymentAbbreviation)
+			name, err := helper_naming.NewContainerName(pkg_models.DeploymentAbbreviation)
 			if err != nil {
 				return nil, err
 			}
@@ -275,17 +271,17 @@ func removeDeploymentDir(workDirPath, deploymentDirName string) error {
 
 func updateVolumes(
 	moduleVolumes map[string]struct{},
-	deploymentVolumes map[string]models_deployments.DeploymentVolume,
+	deploymentVolumes map[string]pkg_models.DeploymentVolume,
 	deploymentId string,
-) map[string]models_deployments.DeploymentVolume {
-	volumes := make(map[string]models_deployments.DeploymentVolume)
+) map[string]pkg_models.DeploymentVolume {
+	volumes := make(map[string]pkg_models.DeploymentVolume)
 	for reference := range moduleVolumes {
 		volume := deploymentVolumes[reference]
 		name := volume.Name
 		if name == "" {
-			name = helper_naming.NewVolumeName(models_constants.DeploymentAbbreviation, deploymentId, reference)
+			name = helper_naming.NewVolumeName(pkg_models.DeploymentAbbreviation, deploymentId, reference)
 		}
-		volumes[reference] = models_deployments.DeploymentVolume{
+		volumes[reference] = pkg_models.DeploymentVolume{
 			DeploymentId: deploymentId,
 			Reference:    reference,
 			Name:         name,

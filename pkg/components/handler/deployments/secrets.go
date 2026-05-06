@@ -25,15 +25,13 @@ import (
 	"strings"
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) updateSecretValuesCache(
 	ctx context.Context,
-	userDataSecrets map[string]models_deployments.DeploymentSecret,
-	cacheSecretValues map[string]models_external.SecretValueVariant,
+	userDataSecrets map[string]pkg_models.DeploymentSecret,
+	cacheSecretValues map[string]pkg_models.SecretValueVariant,
 ) error {
 	var errs []string
 	for _, secret := range userDataSecrets {
@@ -49,7 +47,7 @@ func (h *Handler) updateSecretValuesCache(
 			_, ok := cacheSecretValues[cacheKey]
 			if !ok {
 				var err error
-				valueVariant, err, _ := h.secretManagerClient.GetValueVariant(ctx, models_external.SecretVariantRequest{
+				valueVariant, err, _ := h.secretManagerClient.GetValueVariant(ctx, pkg_models.SecretVariantRequest{
 					ID:   secret.Id,
 					Item: reqItem,
 				})
@@ -70,9 +68,9 @@ func (h *Handler) updateSecretValuesCache(
 func (h *Handler) createSecretMounts(
 	ctx context.Context,
 	deploymentId string,
-	userDataSecrets map[string]models_deployments.DeploymentSecret,
-) (map[string]models_external.SecretPathVariant, error) {
-	secretMounts := make(map[string]models_external.SecretPathVariant)
+	userDataSecrets map[string]pkg_models.DeploymentSecret,
+) (map[string]pkg_models.SecretPathVariant, error) {
+	secretMounts := make(map[string]pkg_models.SecretPathVariant)
 	var errs []string
 	for _, secret := range userDataSecrets {
 		for _, secretItem := range secret.Items {
@@ -86,7 +84,7 @@ func (h *Handler) createSecretMounts(
 			}
 			_, ok := secretMounts[key]
 			if !ok {
-				pathVariant, err, _ := h.secretManagerClient.InitPathVariant(ctx, models_external.SecretVariantRequest{
+				pathVariant, err, _ := h.secretManagerClient.InitPathVariant(ctx, pkg_models.SecretVariantRequest{
 					ID:        secret.Id,
 					Item:      reqItem,
 					Reference: deploymentId,
@@ -118,11 +116,11 @@ func (h *Handler) removeSecretMounts(ctx context.Context, deploymentId string) e
 }
 
 func getSelectedSecrets(
-	module models_module.Module,
+	module pkg_models.Module,
 	userInputSecrets map[string]string,
 	deploymentID string,
-) (map[string]models_deployments.DeploymentSecret, error) {
-	secrets := make(map[string]models_deployments.DeploymentSecret)
+) (map[string]pkg_models.DeploymentSecret, error) {
+	secrets := make(map[string]pkg_models.DeploymentSecret)
 	var errs []string
 	for reference, secret := range module.Secrets {
 		id, ok := userInputSecrets[reference]
@@ -132,7 +130,7 @@ func getSelectedSecrets(
 			}
 			continue
 		}
-		secrets[reference] = models_deployments.DeploymentSecret{
+		secrets[reference] = pkg_models.DeploymentSecret{
 			Id:           id,
 			DeploymentId: deploymentID,
 			Reference:    reference,
@@ -147,7 +145,7 @@ func getSelectedSecrets(
 
 func getSecretItems(
 	reference string,
-	moduleServices map[string]models_external.ModuleLibService,
+	moduleServices map[string]pkg_models.ModuleLibService,
 ) []lib_models.DeploymentSecretItem {
 	items := make(map[string]lib_models.DeploymentSecretItem)
 	for _, moduleService := range moduleServices {

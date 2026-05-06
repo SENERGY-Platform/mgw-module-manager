@@ -19,109 +19,107 @@ package deployments
 import (
 	"context"
 
-	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 type databaseHandler interface {
 	CreateDeployment(
 		ctx context.Context,
-		deployment models_deployments.DeploymentBase,
-		hostResources []models_deployments.DeploymentHostResource,
-		secrets []models_deployments.DeploymentSecret,
-		userConfigs []models_deployments.DeploymentUserConfig,
-		globalConfigs []models_deployments.DeploymentGlobalConfig,
-		files []models_deployments.DeploymentFile,
-		fileGroups []models_deployments.DeploymentFileGroup,
-		volumes []models_deployments.DeploymentVolume,
-		containers []models_deployments.ContainerBase,
+		deployment pkg_models.DeploymentBase,
+		hostResources []pkg_models.DeploymentHostResource,
+		secrets []pkg_models.DeploymentSecret,
+		userConfigs []pkg_models.DeploymentUserConfig,
+		globalConfigs []pkg_models.DeploymentGlobalConfig,
+		files []pkg_models.DeploymentFile,
+		fileGroups []pkg_models.DeploymentFileGroup,
+		volumes []pkg_models.DeploymentVolume,
+		containers []pkg_models.DeploymentContainerBase,
 	) error
 	ReadDeployments(
 		ctx context.Context,
-		filter models_deployments.DeploymentsFilter,
-	) (map[string]models_deployments.DeploymentBase, error)
+		filter pkg_models.DeploymentsFilter,
+	) (map[string]pkg_models.DeploymentBase, error)
 	ReadDeploymentsContainers(
 		ctx context.Context,
 		deploymentIds []string,
-	) (map[string]map[string]models_deployments.ContainerBase, error)
+	) (map[string]map[string]pkg_models.DeploymentContainerBase, error)
 	ReadDeploymentsVolumes(
 		ctx context.Context,
 		deploymentIds []string,
-	) (map[string]map[string]models_deployments.DeploymentVolume, error)
+	) (map[string]map[string]pkg_models.DeploymentVolume, error)
 	ReadDeploymentsHostResources(
 		ctx context.Context,
-		filter models_deployments.DeploymentsHostResourcesFilter,
-	) (map[string]map[string]models_deployments.DeploymentHostResource, error)
+		filter pkg_models.DeploymentsHostResourcesFilter,
+	) (map[string]map[string]pkg_models.DeploymentHostResource, error)
 	ReadDeploymentsSecrets(
 		ctx context.Context,
-		filter models_deployments.DeploymentsSecretsFilter,
-	) (map[string]map[string]models_deployments.DeploymentSecret, error)
+		filter pkg_models.DeploymentsSecretsFilter,
+	) (map[string]map[string]pkg_models.DeploymentSecret, error)
 	ReadDeploymentsConfigs(
 		ctx context.Context,
 		deploymentIds []string,
-	) (map[string]map[string]models_deployments.DeploymentUserConfig, error)
+	) (map[string]map[string]pkg_models.DeploymentUserConfig, error)
 	ReadDeploymentsGlobalConfigs(
 		ctx context.Context,
-		filter models_deployments.DeploymentGlobalConfigsFilter,
-	) (map[string]map[string]models_deployments.DeploymentGlobalConfig, error)
+		filter pkg_models.DeploymentGlobalConfigsFilter,
+	) (map[string]map[string]pkg_models.DeploymentGlobalConfig, error)
 	ReadDeploymentsFiles(
 		ctx context.Context,
 		deploymentIds []string,
-	) (map[string]map[string]models_deployments.DeploymentFile, error)
+	) (map[string]map[string]pkg_models.DeploymentFile, error)
 	ReadDeploymentsFileGroups(
 		ctx context.Context,
 		deploymentIds []string,
-	) (map[string]map[string]models_deployments.DeploymentFileGroup, error)
-	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_configs.Config, error)
+	) (map[string]map[string]pkg_models.DeploymentFileGroup, error)
+	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]pkg_models.Config, error)
 	UpdateDeploymentsEnabledState(ctx context.Context, deploymentIds []string, state bool) error
-	UpdateDeploymentContainerNames(ctx context.Context, containers []models_deployments.ContainerBase) error
+	UpdateDeploymentContainerNames(ctx context.Context, containers []pkg_models.DeploymentContainerBase) error
 	UpdateDeployment(
 		ctx context.Context,
-		deployment models_deployments.DeploymentBase,
-		hostResources []models_deployments.DeploymentHostResource,
-		secrets []models_deployments.DeploymentSecret,
-		userConfigs []models_deployments.DeploymentUserConfig,
-		globalConfigs []models_deployments.DeploymentGlobalConfig,
-		files []models_deployments.DeploymentFile,
-		fileGroups []models_deployments.DeploymentFileGroup,
-		volumes []models_deployments.DeploymentVolume,
-		containers []models_deployments.ContainerBase,
+		deployment pkg_models.DeploymentBase,
+		hostResources []pkg_models.DeploymentHostResource,
+		secrets []pkg_models.DeploymentSecret,
+		userConfigs []pkg_models.DeploymentUserConfig,
+		globalConfigs []pkg_models.DeploymentGlobalConfig,
+		files []pkg_models.DeploymentFile,
+		fileGroups []pkg_models.DeploymentFileGroup,
+		volumes []pkg_models.DeploymentVolume,
+		containers []pkg_models.DeploymentContainerBase,
 	) (err error)
 	DeleteDeployment(ctx context.Context, id string) error
 }
 
 type containerEngineWrapperClient interface {
-	GetContainers(ctx context.Context, filter models_external.ContainersFilter) ([]models_external.Container, error)
-	CreateContainer(ctx context.Context, container models_external.Container) (id string, err error)
+	GetContainers(ctx context.Context, filter pkg_models.ContainersFilter) ([]pkg_models.Container, error)
+	CreateContainer(ctx context.Context, container pkg_models.Container) (id string, err error)
 	StartContainer(ctx context.Context, id string) error
 	StopContainer(ctx context.Context, id string) (jobId string, err error)
 	RestartContainer(ctx context.Context, id string) (jobId string, err error)
 	RemoveContainer(ctx context.Context, id string, force bool) error
-	GetImage(ctx context.Context, id string) (models_external.Image, error)
+	GetImage(ctx context.Context, id string) (pkg_models.Image, error)
 	AddImage(ctx context.Context, img string) (jobId string, err error)
-	GetVolumes(ctx context.Context, filter models_external.VolumesFilter) ([]models_external.Volume, error)
-	CreateVolume(ctx context.Context, vol models_external.Volume) (string, error)
+	GetVolumes(ctx context.Context, filter pkg_models.VolumesFilter) ([]pkg_models.Volume, error)
+	CreateVolume(ctx context.Context, vol pkg_models.Volume) (string, error)
 	RemoveVolume(ctx context.Context, id string, force bool) error
-	GetJob(ctx context.Context, id string) (models_external.Job, error)
+	GetJob(ctx context.Context, id string) (pkg_models.Job, error)
 	CancelJob(ctx context.Context, id string) error
 }
 
 type hostManagerClient interface {
-	GetHostResource(ctx context.Context, id string) (models_external.HostResource, error)
+	GetHostResource(ctx context.Context, id string) (pkg_models.HostResource, error)
 }
 
 type secretManagerClient interface {
-	InitPathVariant(ctx context.Context, secretRequest models_external.SecretVariantRequest) (variant models_external.SecretPathVariant, err error, errCode int)
-	LoadPathVariant(ctx context.Context, secretRequest models_external.SecretVariantRequest) (err error, errCode int)
-	UnloadPathVariant(ctx context.Context, secretRequest models_external.SecretVariantRequest) (err error, errCode int)
+	InitPathVariant(ctx context.Context, secretRequest pkg_models.SecretVariantRequest) (variant pkg_models.SecretPathVariant, err error, errCode int)
+	LoadPathVariant(ctx context.Context, secretRequest pkg_models.SecretVariantRequest) (err error, errCode int)
+	UnloadPathVariant(ctx context.Context, secretRequest pkg_models.SecretVariantRequest) (err error, errCode int)
 	CleanPathVariants(ctx context.Context, ref string) (err error, errCode int)
-	GetValueVariant(ctx context.Context, secretRequest models_external.SecretVariantRequest) (variant models_external.SecretValueVariant, err error, errCode int)
+	GetValueVariant(ctx context.Context, secretRequest pkg_models.SecretVariantRequest) (variant pkg_models.SecretValueVariant, err error, errCode int)
 }
 
 type coreManagerClient interface {
-	SetEndpoints(ctx context.Context, endpoints []models_external.CmEndpointBase) (string, error)
-	RemoveEndpoints(ctx context.Context, filter models_external.CmEndpointFiler, restrictStd bool) (string, error)
-	GetJob(ctx context.Context, id string) (models_external.Job, error)
+	SetEndpoints(ctx context.Context, endpoints []pkg_models.CmEndpointBase) (string, error)
+	RemoveEndpoints(ctx context.Context, filter pkg_models.CmEndpointFiler, restrictStd bool) (string, error)
+	GetJob(ctx context.Context, id string) (pkg_models.Job, error)
 	CancelJob(ctx context.Context, id string) error
 }

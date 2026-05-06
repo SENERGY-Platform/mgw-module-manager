@@ -23,15 +23,13 @@ import (
 
 	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) GetReducedDeployments(
 	ctx context.Context,
-	filter models_deployments.DeploymentsFilterWithState,
-) (map[string]models_deployments.DeploymentReduced, error) {
+	filter pkg_models.DeploymentsFilterWithState,
+) (map[string]pkg_models.DeploymentReduced, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	return h.getDeploymentsReduced(ctx, filter)
@@ -39,54 +37,54 @@ func (h *Handler) GetReducedDeployments(
 
 func (h *Handler) GetReducedDeploymentsByModuleIds(
 	ctx context.Context,
-	filter models_deployments.DeploymentsFilterWithState,
-) (map[string]models_deployments.DeploymentReduced, error) {
+	filter pkg_models.DeploymentsFilterWithState,
+) (map[string]pkg_models.DeploymentReduced, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	deployments, err := h.getDeploymentsReduced(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
-	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_deployments.DeploymentReduced) string {
+	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value pkg_models.DeploymentReduced) string {
 		return value.ModuleId
 	})
 	return deployments, nil
 }
 
-func (h *Handler) GetDeployment(ctx context.Context, id string) (models_deployments.Deployment, error) {
+func (h *Handler) GetDeployment(ctx context.Context, id string) (pkg_models.Deployment, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	deployments, err := h.getDeployments(
 		ctx,
-		models_deployments.DeploymentsFilterWithState{
-			DeploymentsFilter: models_deployments.DeploymentsFilter{Ids: []string{id}},
+		pkg_models.DeploymentsFilterWithState{
+			DeploymentsFilter: pkg_models.DeploymentsFilter{Ids: []string{id}},
 		},
 	)
 	if err != nil {
-		return models_deployments.Deployment{}, err
+		return pkg_models.Deployment{}, err
 	}
 	if len(deployments) == 0 {
-		return models_deployments.Deployment{}, models_error.NotFoundErr
+		return pkg_models.Deployment{}, pkg_models.NotFoundErr
 	}
 	return deployments[id], nil
 }
 
-func (h *Handler) GetDeploymentByModuleId(ctx context.Context, moduleId string) (models_deployments.Deployment, error) {
+func (h *Handler) GetDeploymentByModuleId(ctx context.Context, moduleId string) (pkg_models.Deployment, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	deployments, err := h.getDeployments(
 		ctx,
-		models_deployments.DeploymentsFilterWithState{
-			DeploymentsFilter: models_deployments.DeploymentsFilter{ModuleIds: []string{moduleId}},
+		pkg_models.DeploymentsFilterWithState{
+			DeploymentsFilter: pkg_models.DeploymentsFilter{ModuleIds: []string{moduleId}},
 		},
 	)
 	if err != nil {
-		return models_deployments.Deployment{}, err
+		return pkg_models.Deployment{}, err
 	}
 	if len(deployments) == 0 {
-		return models_deployments.Deployment{}, models_error.NotFoundErr
+		return pkg_models.Deployment{}, pkg_models.NotFoundErr
 	}
-	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_deployments.Deployment) string {
+	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value pkg_models.Deployment) string {
 		return value.ModuleId
 	})
 	return deployments[moduleId], nil
@@ -94,7 +92,7 @@ func (h *Handler) GetDeploymentByModuleId(ctx context.Context, moduleId string) 
 
 func (h *Handler) GetDeploymentIds(
 	ctx context.Context,
-	filter models_deployments.DeploymentsFilter,
+	filter pkg_models.DeploymentsFilter,
 ) (map[string]string, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -112,8 +110,8 @@ func (h *Handler) GetDeploymentIds(
 
 func (h *Handler) GetDeployments(
 	ctx context.Context,
-	filter models_deployments.DeploymentsFilterWithState,
-) (map[string]models_deployments.Deployment, error) {
+	filter pkg_models.DeploymentsFilterWithState,
+) (map[string]pkg_models.Deployment, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	return h.getDeployments(ctx, filter)
@@ -121,15 +119,15 @@ func (h *Handler) GetDeployments(
 
 func (h *Handler) GetDeploymentsByModuleIds(
 	ctx context.Context,
-	filter models_deployments.DeploymentsFilterWithState,
-) (map[string]models_deployments.Deployment, error) {
+	filter pkg_models.DeploymentsFilterWithState,
+) (map[string]pkg_models.Deployment, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	deployments, err := h.getDeployments(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
-	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_deployments.Deployment) string {
+	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value pkg_models.Deployment) string {
 		return value.ModuleId
 	})
 	return deployments, nil
@@ -137,8 +135,8 @@ func (h *Handler) GetDeploymentsByModuleIds(
 
 func (h *Handler) getDeploymentsReduced(
 	ctx context.Context,
-	filter models_deployments.DeploymentsFilterWithState,
-) (map[string]models_deployments.DeploymentReduced, error) {
+	filter pkg_models.DeploymentsFilterWithState,
+) (map[string]pkg_models.DeploymentReduced, error) {
 	stgDeps, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
 		return nil, err
@@ -152,10 +150,10 @@ func (h *Handler) getDeploymentsReduced(
 	if cewErr != nil {
 		logger.Error("error getting containers") // TODO
 	}
-	deployments := make(map[string]models_deployments.DeploymentReduced)
+	deployments := make(map[string]pkg_models.DeploymentReduced)
 	for id, stgDep := range stgDeps {
 		deploymentContainers := deploymentsContainers[id]
-		deployment := models_deployments.DeploymentReduced{
+		deployment := pkg_models.DeploymentReduced{
 			DeploymentBase: stgDep,
 			Containers:     getContainers(deploymentContainers, cewContainersMap),
 		}
@@ -172,8 +170,8 @@ func (h *Handler) getDeploymentsReduced(
 
 func (h *Handler) getDeployments(
 	ctx context.Context,
-	filter models_deployments.DeploymentsFilterWithState,
-) (map[string]models_deployments.Deployment, error) {
+	filter pkg_models.DeploymentsFilterWithState,
+) (map[string]pkg_models.Deployment, error) {
 	stgDeps, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
 		return nil, err
@@ -191,10 +189,10 @@ func (h *Handler) getDeployments(
 	if cewErr != nil {
 		logger.Error("error getting containers") // TODO
 	}
-	deployments := make(map[string]models_deployments.Deployment)
+	deployments := make(map[string]pkg_models.Deployment)
 	for id, stgDep := range stgDeps {
 		deploymentContainers := deploymentsContainers[id]
-		deployment := models_deployments.Deployment{
+		deployment := pkg_models.Deployment{
 			DeploymentBase: stgDep,
 			Containers:     getContainers(deploymentContainers, cewContainersMap),
 			Volumes:        deploymentsVolumes[id],
@@ -218,31 +216,31 @@ func (h *Handler) getDeployments(
 
 func (h *Handler) getCewContainers(
 	ctx context.Context,
-	stgDepsContainers map[string]map[string]models_deployments.ContainerBase,
-) (map[string]models_external.Container, error) {
+	stgDepsContainers map[string]map[string]pkg_models.DeploymentContainerBase,
+) (map[string]pkg_models.Container, error) {
 	var ctrNames []string
 	for _, stgDepContainers := range stgDepsContainers {
-		ctrNames = append(ctrNames, helper_slices.CollectFunc(maps.Values(stgDepContainers), func(item models_deployments.ContainerBase) string {
+		ctrNames = append(ctrNames, helper_slices.CollectFunc(maps.Values(stgDepContainers), func(item pkg_models.DeploymentContainerBase) string {
 			return item.Name
 		})...)
 	}
-	cewContainers, err := h.containerEngineWrapperClient.GetContainers(ctx, models_external.ContainersFilter{Names: ctrNames})
+	cewContainers, err := h.containerEngineWrapperClient.GetContainers(ctx, pkg_models.ContainersFilter{Names: ctrNames})
 	if err != nil {
 		return nil, err
 	}
-	cewContainersMap := maps.Collect(helper_slices.AllFunc(cewContainers, func(item models_external.Container) string {
+	cewContainersMap := maps.Collect(helper_slices.AllFunc(cewContainers, func(item pkg_models.Container) string {
 		return item.Name
 	}))
 	return cewContainersMap, nil
 }
 
 func getContainers(
-	stgDepContainers map[string]models_deployments.ContainerBase,
-	cewContainers map[string]models_external.Container,
-) map[string]models_deployments.Container {
-	containers := make(map[string]models_deployments.Container)
+	stgDepContainers map[string]pkg_models.DeploymentContainerBase,
+	cewContainers map[string]pkg_models.Container,
+) map[string]pkg_models.DeploymentContainer {
+	containers := make(map[string]pkg_models.DeploymentContainer)
 	for reference, stgDepContainer := range stgDepContainers {
-		container := models_deployments.Container{ContainerBase: stgDepContainer}
+		container := pkg_models.DeploymentContainer{DeploymentContainerBase: stgDepContainer}
 		cewContainer, ok := cewContainers[stgDepContainer.Name]
 		if ok {
 			container.ImageId = cewContainer.ImageID
@@ -260,14 +258,14 @@ func getContainers(
 
 func getDeploymentState(containersState int) int {
 	if containersState == containersStateRunning {
-		return models_deployments.StateHealthy
+		return pkg_models.DeploymentStateHealthy
 	}
-	return models_deployments.StateUnhealthy
+	return pkg_models.DeploymentStateUnhealthy
 }
 
 func getContainersCombinedState(
-	deploymentContainers map[string]models_deployments.ContainerBase,
-	existingContainers map[string]models_external.Container,
+	deploymentContainers map[string]pkg_models.DeploymentContainerBase,
+	existingContainers map[string]pkg_models.Container,
 ) int {
 	var runningCount int
 	var unhealthyCount int
@@ -276,10 +274,10 @@ func getContainersCombinedState(
 		if !ok {
 			return containersStateBroken
 		}
-		if existingContainer.State == models_external.CewRunningState {
+		if existingContainer.State == pkg_models.CewRunningState {
 			runningCount++
 		}
-		if existingContainer.Health != nil && *existingContainer.Health == models_external.CewUnhealthyState {
+		if existingContainer.Health != nil && *existingContainer.Health == pkg_models.CewUnhealthyState {
 			unhealthyCount++
 		}
 	}

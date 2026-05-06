@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package configs
+package models
 
 const (
-	StringType = iota
-	Int64Type
-	Float64Type
-	BoolType
+	DataTypeString = iota
+	DataTypeInt64
+	DataTypeFloat64
+	DataTypeBool
 )
 
 type Value struct {

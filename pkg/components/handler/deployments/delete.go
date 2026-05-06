@@ -24,13 +24,12 @@ import (
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) DeleteDeployments(
 	ctx context.Context,
-	filter models_deployments.DeploymentsFilterWithState,
+	filter pkg_models.DeploymentsFilterWithState,
 	allowAll bool,
 ) ([]lib_models.DeploymentResult, error) {
 	if !allowAll && filterEmpty(filter) {
@@ -70,8 +69,8 @@ func (h *Handler) deleteDeployment(
 	deploymentId string,
 	deploymentDirName string,
 	deploymentFilesDirName string,
-	containers map[string]models_deployments.ContainerBase,
-	volumes map[string]models_deployments.DeploymentVolume,
+	containers map[string]pkg_models.DeploymentContainerBase,
+	volumes map[string]pkg_models.DeploymentVolume,
 ) error {
 	err := h.removeDeploymentEnvironment(ctx, deploymentId, deploymentDirName, deploymentFilesDirName, containers)
 	if err != nil {
@@ -89,7 +88,7 @@ func (h *Handler) deleteDeployment(
 }
 
 func (h *Handler) removeHttpEndpoints(ctx context.Context, deploymentId string) error {
-	jobId, err := h.coreManagerClient.RemoveEndpoints(ctx, models_external.CmEndpointFiler{Ref: deploymentId}, false)
+	jobId, err := h.coreManagerClient.RemoveEndpoints(ctx, pkg_models.CmEndpointFiler{Ref: deploymentId}, false)
 	if err != nil {
 		return err
 	}
@@ -103,7 +102,7 @@ func (h *Handler) removeHttpEndpoints(ctx context.Context, deploymentId string) 
 	return nil
 }
 
-func filterEmpty(filter models_deployments.DeploymentsFilterWithState) bool {
+func filterEmpty(filter pkg_models.DeploymentsFilterWithState) bool {
 	switch {
 	case len(filter.Ids) > 0:
 		return false

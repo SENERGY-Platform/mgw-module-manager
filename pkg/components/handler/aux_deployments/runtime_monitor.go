@@ -22,8 +22,7 @@ import (
 	"time"
 
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
-	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) RuntimeMonitor(ctx context.Context) {
@@ -53,7 +52,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 			var toStop []string
 			for _, auxDep := range parent.AuxiliaryDeployments {
 				container, ok := cewContainersMap[auxDep.Container.Name]
-				if !ok || container.State == models_external.CewRemovingState {
+				if !ok || container.State == pkg_models.CewRemovingState {
 					continue
 				}
 				if auxDep.Enabled {
@@ -78,7 +77,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 			var toStop []string
 			for _, auxDep := range parent.AuxiliaryDeployments {
 				container, ok := cewContainersMap[auxDep.Container.Name]
-				if !ok || container.State == models_external.CewRemovingState {
+				if !ok || container.State == pkg_models.CewRemovingState {
 					continue
 				}
 				if getContainerState(container.State) > 0 {
@@ -97,15 +96,15 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 }
 
 func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
-	map[string]models_aux_deployments.AuxiliaryDeploymentParent,
-	map[string]models_external.Container,
+	map[string]pkg_models.AuxiliaryDeploymentParent,
+	map[string]pkg_models.Container,
 	error,
 ) {
 	auxDepsByParent, err := h.databaseHandler.ReadAuxDeploymentsByParent(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
-	tmp := make(map[string]models_aux_deployments.AuxiliaryDeployment)
+	tmp := make(map[string]pkg_models.AuxiliaryDeployment)
 	for _, auxDeps := range auxDepsByParent {
 		maps.Copy(tmp, auxDeps.AuxiliaryDeployments)
 	}
@@ -141,11 +140,11 @@ func (h *Handler) stopContainers(
 }
 
 func (h *Handler) runtimeMonitorJobsFilter(
-	auxDepsByParent map[string]models_aux_deployments.AuxiliaryDeploymentParent,
-) map[string]models_aux_deployments.AuxiliaryDeploymentParent {
+	auxDepsByParent map[string]pkg_models.AuxiliaryDeploymentParent,
+) map[string]pkg_models.AuxiliaryDeploymentParent {
 	h.runtimeMonitorJobsMu.RLock()
 	defer h.runtimeMonitorJobsMu.RUnlock()
-	filteredDeployments := make(map[string]models_aux_deployments.AuxiliaryDeploymentParent)
+	filteredDeployments := make(map[string]pkg_models.AuxiliaryDeploymentParent)
 	for deploymentId, auxDeps := range auxDepsByParent {
 		_, ok := h.runtimeMonitorJobs[deploymentId]
 		if !ok {
@@ -169,17 +168,17 @@ func (h *Handler) runtimeMonitorJobsRemove(id string) {
 
 func getContainerState(state string) int {
 	switch state {
-	case models_external.CewInitState:
+	case pkg_models.CewInitState:
 		return -1
-	case models_external.CewStoppedState:
+	case pkg_models.CewStoppedState:
 		return -1
-	case models_external.CewDeadState:
+	case pkg_models.CewDeadState:
 		return -1
-	case models_external.CewRunningState:
+	case pkg_models.CewRunningState:
 		return 1
-	case models_external.CewPausedState:
+	case pkg_models.CewPausedState:
 		return 1
-	case models_external.CewRestartingState:
+	case pkg_models.CewRestartingState:
 		return 1
 	}
 	return 0

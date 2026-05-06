@@ -25,7 +25,7 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 type Handler struct {
@@ -52,7 +52,7 @@ func (h *Handler) GetAdvertisementById(ctx context.Context, id string) (lib_mode
 		return lib_models.DeploymentAdvertisement{}, err
 	}
 	if len(advertisements) == 0 {
-		return lib_models.DeploymentAdvertisement{}, models_error.NotFoundErr
+		return lib_models.DeploymentAdvertisement{}, pkg_models.NotFoundErr
 	}
 	return advertisements[id], nil
 }

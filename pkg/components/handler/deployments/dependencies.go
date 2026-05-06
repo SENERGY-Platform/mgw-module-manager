@@ -24,7 +24,7 @@ import (
 	"slices"
 	"strings"
 
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) updateDeploymentsCache(
@@ -41,7 +41,7 @@ func (h *Handler) updateDeploymentsCache(
 	if len(idsNotInCache) == 0 {
 		return nil
 	}
-	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_deployments.DeploymentsFilter{ModuleIds: idsNotInCache})
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, pkg_models.DeploymentsFilter{ModuleIds: idsNotInCache})
 	if err != nil {
 		return err
 	}

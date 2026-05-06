@@ -21,9 +21,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
+	helper_url "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func Stop(ctx context.Context, client containerEngineWrapperClient, containerId string, jobPollInterval time.Duration) error {
@@ -31,7 +31,7 @@ func Stop(ctx context.Context, client containerEngineWrapperClient, containerId 
 	if err != nil {
 		return err
 	}
-	job, err := job.Await(ctx, client, jobId, jobPollInterval)
+	job, err := helper_job.Await(ctx, client, jobId, jobPollInterval)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func Restart(ctx context.Context, client containerEngineWrapperClient, container
 	if err != nil {
 		return err
 	}
-	job, err := job.Await(ctx, client, jobId, jobPollInterval)
+	job, err := helper_job.Await(ctx, client, jobId, jobPollInterval)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func Restart(ctx context.Context, client containerEngineWrapperClient, container
 func Remove(ctx context.Context, client containerEngineWrapperClient, containerId string) error {
 	err := client.RemoveContainer(ctx, containerId, true)
 	if err != nil {
-		var notFoundErr *models_external.CEWNotFoundErr
+		var notFoundErr *pkg_models.CEWNotFoundErr
 		if !errors.As(err, &notFoundErr) {
 			return err
 		}
@@ -76,9 +76,9 @@ func EnsureImage(
 	jobPollInterval time.Duration,
 ) error {
 	if !forcePull {
-		_, err := client.GetImage(ctx, url.EscapePath(imageName, pathEscapeDepth))
+		_, err := client.GetImage(ctx, helper_url.EscapePath(imageName, pathEscapeDepth))
 		if err != nil {
-			var notFoundErr *models_external.CEWNotFoundErr
+			var notFoundErr *pkg_models.CEWNotFoundErr
 			if !errors.As(err, &notFoundErr) {
 				return err
 			}
@@ -90,7 +90,7 @@ func EnsureImage(
 	if err != nil {
 		return err
 	}
-	job, err := job.Await(ctx, client, jobId, jobPollInterval)
+	job, err := helper_job.Await(ctx, client, jobId, jobPollInterval)
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func EnsureImage(
 func RemoveVolume(ctx context.Context, client containerEngineWrapperClient, name string) error {
 	err := client.RemoveVolume(ctx, name, false)
 	if err != nil {
-		var notFoundErr *models_external.CEWNotFoundErr
+		var notFoundErr *pkg_models.CEWNotFoundErr
 		if !errors.As(err, &notFoundErr) {
 			return err
 		}

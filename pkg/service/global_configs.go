@@ -21,7 +21,7 @@ import (
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
-	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (s *Service) CreateGlobalConfig(ctx context.Context, input lib_models.GlobalConfigInput) (string, error) {
@@ -65,7 +65,7 @@ func (s *Service) UpdateGlobalConfig(ctx context.Context, config lib_models.Glob
 	if err != nil {
 		return err
 	}
-	return s.globalConfigsHandler.UpdateGlobalConfig(ctx, models_configs.Config{
+	return s.globalConfigsHandler.UpdateGlobalConfig(ctx, pkg_models.Config{
 		Id:    config.Id,
 		Name:  config.Name,
 		Value: value,
@@ -84,7 +84,7 @@ func (s *Service) DeleteGlobalConfigs(ctx context.Context, ids []string, allowAl
 	return s.globalConfigsHandler.DeleteGlobalConfigs(ctx, ids, allowAll)
 }
 
-func newGlobalConfig(config models_configs.Config) lib_models.GlobalConfig {
+func newGlobalConfig(config pkg_models.Config) lib_models.GlobalConfig {
 	return lib_models.GlobalConfig{
 		Id:   config.Id,
 		Name: config.Name,

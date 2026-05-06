@@ -5,57 +5,54 @@ import (
 	"io/fs"
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
-	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
-	models_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repositories"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 type repositoriesHandler interface {
 	RefreshRepositories(ctx context.Context) error
-	Repositories(ctx context.Context) ([]models_repositories.Repository, error)
-	Module(ctx context.Context, id, source, channel string) (models_repositories.Module, error)
-	Modules(ctx context.Context, filter models_repositories.ModulesFilter) ([]models_repositories.Module, error)
+	Repositories(ctx context.Context) ([]pkg_models.Repository, error)
+	Module(ctx context.Context, id, source, channel string) (pkg_models.RepositoryModule, error)
+	Modules(ctx context.Context, filter pkg_models.RepositoryModulesFilter) ([]pkg_models.RepositoryModule, error)
 	ModuleFS(ctx context.Context, id, source, channel string) (fs.FS, error)
 }
 
 type modulesHandler interface {
-	Modules(ctx context.Context, filter models_module.ModulesFilterWithNameAndDep) (map[string]models_module.Module, error)
-	Module(ctx context.Context, id string) (models_module.Module, error)
+	Modules(ctx context.Context, filter pkg_models.ModulesFilterWithNameAndDep) (map[string]pkg_models.Module, error)
+	Module(ctx context.Context, id string) (pkg_models.Module, error)
 	Add(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Update(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Remove(ctx context.Context, id string) error
 }
 
 type deploymentsHandler interface {
-	GetDeployment(ctx context.Context, id string) (models_deployments.Deployment, error)
+	GetDeployment(ctx context.Context, id string) (pkg_models.Deployment, error)
 	GetReducedDeploymentsByModuleIds(
 		ctx context.Context,
-		filter models_deployments.DeploymentsFilterWithState,
-	) (map[string]models_deployments.DeploymentReduced, error)
+		filter pkg_models.DeploymentsFilterWithState,
+	) (map[string]pkg_models.DeploymentReduced, error)
 	GetDeploymentsByModuleIds(
 		ctx context.Context,
-		filter models_deployments.DeploymentsFilterWithState,
-	) (map[string]models_deployments.Deployment, error)
-	GetDeploymentByModuleId(ctx context.Context, moduleId string) (models_deployments.Deployment, error)
-	GetDeploymentIds(ctx context.Context, filter models_deployments.DeploymentsFilter) (map[string]string, error)
+		filter pkg_models.DeploymentsFilterWithState,
+	) (map[string]pkg_models.Deployment, error)
+	GetDeploymentByModuleId(ctx context.Context, moduleId string) (pkg_models.Deployment, error)
+	GetDeploymentIds(ctx context.Context, filter pkg_models.DeploymentsFilter) (map[string]string, error)
 	CreateDeployments(
 		ctx context.Context,
-		selectedModules map[string]models_module.Module,
-		userInputs map[string]models_deployments.UserInput,
+		selectedModules map[string]pkg_models.Module,
+		userInputs map[string]pkg_models.DeploymentUserInput,
 	) ([]lib_models.DeploymentResult, error)
 	UpdateDeployments(
 		ctx context.Context,
-		selectedModules map[string]models_module.Module,
-		userInputs map[string]models_deployments.UserInput,
+		selectedModules map[string]pkg_models.Module,
+		userInputs map[string]pkg_models.DeploymentUserInput,
 	) ([]lib_models.DeploymentResult, error)
 	RecreateDeployments(
 		ctx context.Context,
-		selectedModules map[string]models_module.Module,
+		selectedModules map[string]pkg_models.Module,
 	) ([]lib_models.DeploymentResult, error)
 	DeleteDeployments(
 		ctx context.Context,
-		filter models_deployments.DeploymentsFilterWithState,
+		filter pkg_models.DeploymentsFilterWithState,
 		allowAll bool,
 	) ([]lib_models.DeploymentResult, error)
 	EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error)
@@ -80,24 +77,24 @@ type auxiliaryDeploymentsHandler interface {
 	) (map[string]lib_models.AuxiliaryDeploymentReduced, error)
 	CreateDeployment(
 		ctx context.Context,
-		module models_module.Module,
-		activeDeployment models_deployments.Deployment,
-		dependencies map[string]models_deployments.DeploymentReduced,
+		module pkg_models.Module,
+		activeDeployment pkg_models.Deployment,
+		dependencies map[string]pkg_models.DeploymentReduced,
 		serviceInput lib_models.AuxiliaryDeploymentInputBase,
 	) (lib_models.AuxiliaryDeploymentResult, error)
 	UpdateDeployment(
 		ctx context.Context,
-		module models_module.Module,
-		activeDeployment models_deployments.Deployment,
-		dependencies map[string]models_deployments.DeploymentReduced,
+		module pkg_models.Module,
+		activeDeployment pkg_models.Deployment,
+		dependencies map[string]pkg_models.DeploymentReduced,
 		auxDeploymentId string,
 		serviceInput lib_models.AuxiliaryDeploymentUpdateInputBase,
 	) error
 	RecreateDeployments(
 		ctx context.Context,
-		module models_module.Module,
-		activeDeployment models_deployments.Deployment,
-		dependencies map[string]models_deployments.DeploymentReduced,
+		module pkg_models.Module,
+		activeDeployment pkg_models.Deployment,
+		dependencies map[string]pkg_models.DeploymentReduced,
 		filter lib_models.AuxiliaryDeploymentsFilterWithState,
 	) ([]lib_models.AuxiliaryDeploymentBatchResult, error)
 	DeleteDeployments(
@@ -141,10 +138,10 @@ type auxiliaryDeploymentsHandler interface {
 }
 
 type globalConfigsHandler interface {
-	CreateGlobalConfig(ctx context.Context, name string, value models_configs.Value) (string, error)
-	ReadGlobalConfig(ctx context.Context, id string) (models_configs.Config, error)
-	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]models_configs.Config, error)
-	UpdateGlobalConfig(ctx context.Context, config models_configs.Config) error
+	CreateGlobalConfig(ctx context.Context, name string, value pkg_models.Value) (string, error)
+	ReadGlobalConfig(ctx context.Context, id string) (pkg_models.Config, error)
+	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]pkg_models.Config, error)
+	UpdateGlobalConfig(ctx context.Context, config pkg_models.Config) error
 	DeleteGlobalConfig(ctx context.Context, id string) error
 	DeleteGlobalConfigs(ctx context.Context, ids []string, allowAll bool) error
 }

@@ -22,7 +22,7 @@ import (
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	handler_jobs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (s *Service) Jobs(_ context.Context, filterIds []string) ([]lib_models.Job, error) {
@@ -40,7 +40,7 @@ func (s *Service) Jobs(_ context.Context, filterIds []string) ([]lib_models.Job,
 func (s *Service) Job(_ context.Context, jobId string) (lib_models.Job, error) {
 	handlerJob, ok := s.jobsHandler.Job(jobId)
 	if !ok {
-		return lib_models.Job{}, models_error.NotFoundErr
+		return lib_models.Job{}, pkg_models.NotFoundErr
 	}
 	return getJob(handlerJob), nil
 }
@@ -56,7 +56,7 @@ func (s *Service) CancelJobs(_ context.Context, jobIds []string) error {
 func (s *Service) CancelJob(_ context.Context, jobId string) error {
 	handlerJob, ok := s.jobsHandler.Job(jobId)
 	if !ok {
-		return models_error.NotFoundErr
+		return pkg_models.NotFoundErr
 	}
 	handlerJob.Cancel()
 	return nil

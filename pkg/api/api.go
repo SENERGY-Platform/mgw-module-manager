@@ -20,8 +20,7 @@ import (
 	"log/slog"
 
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
-	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 )
@@ -43,8 +42,8 @@ func New(service serviceItf, infoHdl infoHandler, logger *slog.Logger, accessLog
 		middleware = append(
 			middleware,
 			gin_mw.StructLoggerHandler(
-				logger.With(slog_attr.LogRecordTypeKey, slog_attr.HttpAccessLogRecordTypeVal),
-				slog_attr.Provider,
+				logger.With(pkg_models.LogRecordTypeKey, pkg_models.HttpAccessLogRecordTypeVal),
+				pkg_models.Provider,
 				nil,
 				nil,
 				requestIdGenerator,
@@ -53,10 +52,10 @@ func New(service serviceItf, infoHdl infoHandler, logger *slog.Logger, accessLog
 	}
 	middleware = append(middleware,
 		gin_mw.StaticHeaderHandler(map[string]string{
-			models_constants.HeaderApiVer:  infoHdl.Version(),
-			models_constants.HeaderSrvName: infoHdl.Name(),
+			pkg_models.HeaderApiVer:  infoHdl.Version(),
+			pkg_models.HeaderSrvName: infoHdl.Name(),
 		}),
-		requestid.New(requestid.WithCustomHeaderStrKey(models_constants.HeaderRequestId)),
+		requestid.New(requestid.WithCustomHeaderStrKey(pkg_models.HeaderRequestId)),
 		gin_mw.ErrorHandler(getStatusCode, ", "),
 		gin_mw.StructRecoveryHandler(logger, gin_mw.DefaultRecoveryFunc),
 	)
@@ -72,7 +71,7 @@ func New(service serviceItf, infoHdl infoHandler, logger *slog.Logger, accessLog
 		return nil, err
 	}
 	for _, route := range setRoutes {
-		logger.Debug("http route", slog_attr.MethodKey, route[0], slog_attr.PathKey, route[1])
+		logger.Debug("http route", pkg_models.MethodKey, route[0], pkg_models.PathKey, route[1])
 	}
 	return a, nil
 }
@@ -82,5 +81,5 @@ func (a *Api) Handler() *gin.Engine {
 }
 
 func requestIdGenerator(gc *gin.Context) (string, any) {
-	return slog_attr.RequestIdKey, requestid.Get(gc)
+	return pkg_models.RequestIdKey, requestid.Get(gc)
 }

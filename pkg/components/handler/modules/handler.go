@@ -16,17 +16,14 @@ import (
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_url "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 type Handler struct {
 	databaseHandler              databaseHandler
 	containerEngineWrapperClient containerEngineWrapperClient
 	config                       Config
-	cache                        map[string]models_external.ModuleLibModule
+	cache                        map[string]pkg_models.ModuleLibModule
 	cacheMU                      sync.RWMutex
 	mu                           sync.RWMutex
 }
@@ -35,7 +32,7 @@ func New(databaseHandler databaseHandler, containerEngineWrapperClient container
 	return &Handler{
 		databaseHandler:              databaseHandler,
 		containerEngineWrapperClient: containerEngineWrapperClient,
-		cache:                        make(map[string]models_external.ModuleLibModule),
+		cache:                        make(map[string]pkg_models.ModuleLibModule),
 		config:                       config,
 	}
 }
@@ -44,11 +41,11 @@ func (h *Handler) Init() error {
 	return os.MkdirAll(h.config.WorkDirPath, 0775)
 }
 
-func (h *Handler) Modules(ctx context.Context, filter models_module.ModulesFilterWithNameAndDep) (map[string]models_module.Module, error) {
+func (h *Handler) Modules(ctx context.Context, filter pkg_models.ModulesFilterWithNameAndDep) (map[string]pkg_models.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	if filter.Dependencies && len(filter.Ids) > 0 {
-		requiredModules := make(map[string]models_module.Module)
+		requiredModules := make(map[string]pkg_models.Module)
 		err := h.modulesWithDependencies(ctx, filter.Ids, requiredModules)
 		if err != nil {
 			return nil, err
@@ -58,22 +55,22 @@ func (h *Handler) Modules(ctx context.Context, filter models_module.ModulesFilte
 	return h.modules(ctx, filter)
 }
 
-func (h *Handler) Module(ctx context.Context, id string) (models_module.Module, error) {
+func (h *Handler) Module(ctx context.Context, id string) (pkg_models.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	modules, err := h.modules(
 		ctx,
-		models_module.ModulesFilterWithNameAndDep{
-			ModulesFilter: models_module.ModulesFilter{
+		pkg_models.ModulesFilterWithNameAndDep{
+			ModulesFilter: pkg_models.ModulesFilter{
 				Ids: []string{id},
 			},
 		},
 	)
 	if err != nil {
-		return models_module.Module{}, err
+		return pkg_models.Module{}, err
 	}
 	if len(modules) == 0 {
-		return models_module.Module{}, models_error.NotFoundErr
+		return pkg_models.Module{}, pkg_models.NotFoundErr
 	}
 	return modules[id], nil
 }
@@ -83,11 +80,11 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 	defer h.mu.Unlock()
 	_, err := h.databaseHandler.Module(ctx, id)
 	if err != nil {
-		if !errors.Is(err, models_error.NotFoundErr) {
+		if !errors.Is(err, pkg_models.NotFoundErr) {
 			return err
 		}
 	} else {
-		return models_error.DuplicateErr
+		return pkg_models.DuplicateErr
 	}
 	stgMod, err := newStgMod(id, source, channel)
 	if err != nil {
@@ -103,7 +100,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("removing dir failed", slog_attr.DirNameKey, stgMod.DirName, slog_attr.IdKey, id, slog_attr.ErrorKey, e)
+				logger.Error("removing dir failed", pkg_models.DirNameKey, stgMod.DirName, pkg_models.IdKey, id, pkg_models.ErrorKey, e)
 			}
 		}
 	}()
@@ -122,7 +119,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				logger.Error("removing images failed", slog_attr.IdKey, id, slog_attr.ErrorKey, e)
+				logger.Error("removing images failed", pkg_models.IdKey, id, pkg_models.ErrorKey, e)
 			}
 		}
 	}()
@@ -161,7 +158,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("removing dir failed", slog_attr.DirNameKey, stgModNew.DirName, slog_attr.IdKey, id, slog_attr.ErrorKey, e)
+				logger.Error("removing dir failed", pkg_models.DirNameKey, stgModNew.DirName, pkg_models.IdKey, id, pkg_models.ErrorKey, e)
 			}
 		}
 	}()
@@ -180,7 +177,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				logger.Error("removing new images failed", slog_attr.IdKey, id, slog_attr.ErrorKey, e)
+				logger.Error("removing new images failed", pkg_models.IdKey, id, pkg_models.ErrorKey, e)
 			}
 		}
 	}()
@@ -189,10 +186,10 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	}
 	h.cacheSet(id, newMod)
 	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, stgModOld.DirName)); e != nil {
-		logger.Error("removing dir failed", slog_attr.DirNameKey, stgModOld.DirName, slog_attr.IdKey, id, slog_attr.ErrorKey, e)
+		logger.Error("removing dir failed", pkg_models.DirNameKey, stgModOld.DirName, pkg_models.IdKey, id, pkg_models.ErrorKey, e)
 	}
 	if e := h.removeOldImages(ctx, imagesAsSet(oldMod.Services), imagesAsSet(newMod.Services)); e != nil {
-		logger.Error("removing images failed", slog_attr.IdKey, id, slog_attr.ErrorKey, e)
+		logger.Error("removing images failed", pkg_models.IdKey, id, pkg_models.ErrorKey, e)
 	}
 	return nil
 }
@@ -226,11 +223,11 @@ func (h *Handler) Remove(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, requiredModules map[string]models_module.Module) error {
+func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, requiredModules map[string]pkg_models.Module) error {
 	modules, err := h.modules(
 		ctx,
-		models_module.ModulesFilterWithNameAndDep{
-			ModulesFilter: models_module.ModulesFilter{
+		pkg_models.ModulesFilterWithNameAndDep{
+			ModulesFilter: pkg_models.ModulesFilter{
 				Ids: ids,
 			},
 		},
@@ -262,8 +259,8 @@ func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, req
 	return nil
 }
 
-func (h *Handler) modules(ctx context.Context, filter models_module.ModulesFilterWithNameAndDep) (map[string]models_module.Module, error) {
-	stgMods, err := h.databaseHandler.Modules(ctx, models_module.ModulesFilter{
+func (h *Handler) modules(ctx context.Context, filter pkg_models.ModulesFilterWithNameAndDep) (map[string]pkg_models.Module, error) {
+	stgMods, err := h.databaseHandler.Modules(ctx, pkg_models.ModulesFilter{
 		Ids:     filter.Ids,
 		Source:  filter.Source,
 		Channel: filter.Channel,
@@ -272,7 +269,7 @@ func (h *Handler) modules(ctx context.Context, filter models_module.ModulesFilte
 		return nil, err
 	}
 	filter.Name = strings.ToLower(filter.Name)
-	modules := make(map[string]models_module.Module)
+	modules := make(map[string]pkg_models.Module)
 	var errs []string
 	for _, stgMod := range stgMods {
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
@@ -281,7 +278,7 @@ func (h *Handler) modules(ctx context.Context, filter models_module.ModulesFilte
 			mod, err = helper_modfile.GetModule(modFS)
 			if err != nil {
 				errs = append(errs, err.Error())
-				logger.Error("getting module failed", slog_attr.IdKey, stgMod.Id, slog_attr.ErrorKey, err)
+				logger.Error("getting module failed", pkg_models.IdKey, stgMod.Id, pkg_models.ErrorKey, err)
 				continue
 			}
 			h.cacheSet(stgMod.Id, mod)
@@ -289,7 +286,7 @@ func (h *Handler) modules(ctx context.Context, filter models_module.ModulesFilte
 		if !strings.Contains(strings.ToLower(mod.Name), filter.Name) { // empty string = true
 			continue
 		}
-		modules[mod.ID] = models_module.Module{
+		modules[mod.ID] = pkg_models.Module{
 			ModuleLibModule: mod,
 			Source:          stgMod.Source,
 			Channel:         stgMod.Channel,
@@ -305,14 +302,14 @@ func (h *Handler) modules(ctx context.Context, filter models_module.ModulesFilte
 	return modules, nil
 }
 
-func (h *Handler) cacheGet(id string) (models_external.ModuleLibModule, bool) {
+func (h *Handler) cacheGet(id string) (pkg_models.ModuleLibModule, bool) {
 	h.cacheMU.RLock()
 	defer h.cacheMU.RUnlock()
 	mod, ok := h.cache[id]
 	return mod, ok
 }
 
-func (h *Handler) cacheSet(id string, mod models_external.ModuleLibModule) {
+func (h *Handler) cacheSet(id string, mod pkg_models.ModuleLibModule) {
 	h.cacheMU.Lock()
 	defer h.cacheMU.Unlock()
 	h.cache[id] = mod
@@ -329,7 +326,7 @@ func (h *Handler) pullImages(ctx context.Context, images map[string]struct{}) (m
 	for image := range images {
 		_, err := h.containerEngineWrapperClient.GetImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 		if err != nil {
-			var notFoundErr *models_external.CEWNotFoundErr
+			var notFoundErr *pkg_models.CEWNotFoundErr
 			if !errors.As(err, &notFoundErr) {
 				return newImages, err
 			}
@@ -356,7 +353,7 @@ func (h *Handler) removeImages(ctx context.Context, images map[string]struct{}) 
 	for image := range images {
 		err := h.containerEngineWrapperClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 		if err != nil {
-			var notFoundErr *models_external.CEWNotFoundErr
+			var notFoundErr *pkg_models.CEWNotFoundErr
 			if !errors.As(err, &notFoundErr) {
 				return err
 			}
@@ -370,7 +367,7 @@ func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages map[
 		if _, ok := newImages[image]; !ok {
 			err := h.containerEngineWrapperClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 			if err != nil {
-				var notFoundErr *models_external.CEWNotFoundErr
+				var notFoundErr *pkg_models.CEWNotFoundErr
 				if !errors.As(err, &notFoundErr) {
 					return err
 				}
@@ -380,7 +377,7 @@ func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages map[
 	return nil
 }
 
-func imagesAsSet(services map[string]models_external.ModuleLibService) map[string]struct{} {
+func imagesAsSet(services map[string]pkg_models.ModuleLibService) map[string]struct{} {
 	images := make(map[string]struct{})
 	for _, service := range services {
 		images[service.Image] = struct{}{}
@@ -388,12 +385,12 @@ func imagesAsSet(services map[string]models_external.ModuleLibService) map[strin
 	return images
 }
 
-func newStgMod(id, source, channel string) (models_module.DatabaseModule, error) {
+func newStgMod(id, source, channel string) (pkg_models.DatabaseModule, error) {
 	dirName, err := helper_uuid.New()
 	if err != nil {
-		return models_module.DatabaseModule{}, err
+		return pkg_models.DatabaseModule{}, err
 	}
-	return models_module.DatabaseModule{
+	return pkg_models.DatabaseModule{
 		Id:      id,
 		DirName: dirName,
 		Source:  source,

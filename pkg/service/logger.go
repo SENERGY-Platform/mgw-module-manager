@@ -19,11 +19,11 @@ package service
 import (
 	"log/slog"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 var logger *slog.Logger
 
 func InitLogger(sl *slog.Logger) {
-	logger = sl.With(slog_attr.ComponentKey, "service")
+	logger = sl.With(pkg_models.ComponentKey, "service")
 }

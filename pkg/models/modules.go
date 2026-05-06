@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 InfAI (CC SES)
+ * Copyright 2026 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package modules
+package models
 
 import (
 	"io/fs"
 	"time"
-
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
 type Module struct {
-	models_external.ModuleLibModule
+	ModuleLibModule
 	Source     string
 	Channel    string
 	Added      time.Time

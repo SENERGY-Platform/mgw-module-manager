@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 InfAI (CC SES)
+ * Copyright 2026 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package slog_attr
+package models
 
 import "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 InfAI (CC SES)
+ * Copyright 2026 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package external
+package models
 
 import (
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"

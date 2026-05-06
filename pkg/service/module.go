@@ -28,10 +28,7 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
-	models_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repositories"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (s *Service) Modules(ctx context.Context, filter lib_models.ModulesFilter) ([]lib_models.ModuleReduced, error) {
@@ -41,8 +38,8 @@ func (s *Service) Modules(ctx context.Context, filter lib_models.ModulesFilter) 
 	if ok {
 		return nil, errors.New("active job") // TODO
 	}
-	modules, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{
-		ModulesFilter: models_module.ModulesFilter{
+	modules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
+		ModulesFilter: pkg_models.ModulesFilter{
 			Ids: filter.Ids,
 		},
 		Name: filter.Name,
@@ -50,8 +47,8 @@ func (s *Service) Modules(ctx context.Context, filter lib_models.ModulesFilter) 
 	if err != nil {
 		return nil, err
 	}
-	deployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, models_deployments.DeploymentsFilterWithState{
-		DeploymentsFilter: models_deployments.DeploymentsFilter{
+	deployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, pkg_models.DeploymentsFilterWithState{
+		DeploymentsFilter: pkg_models.DeploymentsFilter{
 			ModuleIds: slices.Collect(maps.Keys(modules)),
 		},
 	})
@@ -75,7 +72,7 @@ func (s *Service) Module(ctx context.Context, id string) (lib_models.Module, err
 	ok = true
 	handlerDeployment, err := s.deploymentsHandler.GetDeploymentByModuleId(ctx, id)
 	if err != nil {
-		if !errors.Is(err, models_error.NotFoundErr) {
+		if !errors.Is(err, pkg_models.NotFoundErr) {
 			return lib_models.Module{}, err
 		}
 		ok = false
@@ -89,7 +86,7 @@ func (s *Service) ModulesChangeRequest(_ context.Context) (lib_models.ModulesCha
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	if s.changeRequest == nil {
-		return lib_models.ModulesChangeRequest{}, models_error.NotFoundErr
+		return lib_models.ModulesChangeRequest{}, pkg_models.NotFoundErr
 	}
 	return transformModulesChangeRequest(*s.changeRequest), nil
 }
@@ -108,7 +105,7 @@ func (s *Service) NewModulesChangeRequest(
 	if err != nil {
 		return lib_models.ModulesChangeRequest{}, err
 	}
-	installedMods, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{})
+	installedMods, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{})
 	if err != nil {
 		return lib_models.ModulesChangeRequest{}, err
 	}
@@ -131,7 +128,7 @@ func (s *Service) ExecModulesChangeRequest(_ context.Context) (lib_models.Job, e
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.changeRequest == nil {
-		return lib_models.Job{}, models_error.NotFoundErr
+		return lib_models.Job{}, pkg_models.NotFoundErr
 	}
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{moduleJobSlotNum, repositoryJobSlotNum, deploymentJobSlotNum})
 	if len(currentJobs) > 0 {
@@ -166,7 +163,7 @@ func (s *Service) CancelModulesChangeRequest(_ context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.changeRequest == nil {
-		return models_error.NotFoundErr
+		return pkg_models.NotFoundErr
 	}
 	s.changeRequest = nil
 	return nil
@@ -194,14 +191,14 @@ func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (lib_mod
 }
 
 func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modulesChangeRequest, error) {
-	installedMods, err := s.modulesHandler.Modules(ctx, models_module.ModulesFilterWithNameAndDep{})
+	installedMods, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{})
 	if err != nil {
 		return modulesChangeRequest{}, err
 	}
 	if len(installedMods) == 0 {
 		return modulesChangeRequest{}, nil
 	}
-	repoMods, err := s.repositoriesHandler.Modules(ctx, models_repositories.ModulesFilter{Ids: slices.Collect(maps.Keys(installedMods))})
+	repoMods, err := s.repositoriesHandler.Modules(ctx, pkg_models.RepositoryModulesFilter{Ids: slices.Collect(maps.Keys(installedMods))})
 	if err != nil {
 		return modulesChangeRequest{}, err
 	}
@@ -307,7 +304,7 @@ func validateReqItems(reqItems []lib_models.ChangeRequestItem) ([]lib_models.Cha
 
 func newModulesChangeRequest(
 	selectedRepoMods map[string]modWrapper,
-	installedModsMap map[string]models_module.Module,
+	installedModsMap map[string]pkg_models.Module,
 	toRemoveMods []string,
 ) modulesChangeRequest {
 	var install []modWrapper
@@ -353,7 +350,7 @@ func newModulesChangeRequest(
 	}
 }
 
-func equalMods(repoMod modWrapper, installedMod models_module.Module) bool {
+func equalMods(repoMod modWrapper, installedMod pkg_models.Module) bool {
 	return repoMod.Mod.ID == installedMod.ID &&
 		repoMod.Source == installedMod.Source &&
 		repoMod.Channel == installedMod.Channel &&
@@ -393,8 +390,8 @@ func modWrapperToServiceModuleAbbreviated(w modWrapper) lib_models.ModuleAbbrevi
 }
 
 func getModulesReduced(
-	handlerModules map[string]models_module.Module,
-	handlerDeployments map[string]models_deployments.DeploymentReduced,
+	handlerModules map[string]pkg_models.Module,
+	handlerDeployments map[string]pkg_models.DeploymentReduced,
 	filter lib_models.ModulesFilter) []lib_models.ModuleReduced {
 	var modules []lib_models.ModuleReduced
 	for moduleId, module := range handlerModules {
@@ -446,7 +443,7 @@ func getModulesReduced(
 	return modules
 }
 
-func getModule(module models_module.Module, deployment models_deployments.Deployment) lib_models.Module {
+func getModule(module pkg_models.Module, deployment pkg_models.Deployment) lib_models.Module {
 	containers := make(map[string]lib_models.Container)
 	for reference, container := range deployment.Containers {
 		containers[reference] = lib_models.Container{

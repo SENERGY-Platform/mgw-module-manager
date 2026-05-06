@@ -24,7 +24,7 @@ import (
 	"maps"
 	"slices"
 
-	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func createDepConfigTables(ctx context.Context, db *sql.DB) error {
@@ -214,16 +214,16 @@ func queryConfigs(ctx context.Context, db *sql.DB) ([]config, error) {
 		}
 		if vString.Valid {
 			c.Val = vString.String
-			c.DT = models_configs.StringType
+			c.DT = pkg_models.DataTypeString
 		} else if vInt.Valid {
 			c.Val = vInt.Int64
-			c.DT = models_configs.Int64Type
+			c.DT = pkg_models.DataTypeInt64
 		} else if vFloat.Valid {
 			c.Val = vFloat.Float64
-			c.DT = models_configs.Float64Type
+			c.DT = pkg_models.DataTypeFloat64
 		} else if vBool.Valid {
 			c.Val = vBool.Bool
-			c.DT = models_configs.BoolType
+			c.DT = pkg_models.DataTypeBool
 		}
 		configs = append(configs, c)
 	}
@@ -261,16 +261,16 @@ func queryListConfigs(ctx context.Context, db *sql.DB) ([]listConfig, error) {
 		var dt int
 		if vString.Valid {
 			lc.Vals = append(lc.Vals, vString.String)
-			dt = models_configs.StringType
+			dt = pkg_models.DataTypeString
 		} else if vInt.Valid {
 			lc.Vals = append(lc.Vals, vInt.Int64)
-			dt = models_configs.Int64Type
+			dt = pkg_models.DataTypeInt64
 		} else if vFloat.Valid {
 			lc.Vals = append(lc.Vals, vFloat.Float64)
-			dt = models_configs.Float64Type
+			dt = pkg_models.DataTypeFloat64
 		} else if vBool.Valid {
 			lc.Vals = append(lc.Vals, vBool.Bool)
-			dt = models_configs.BoolType
+			dt = pkg_models.DataTypeBool
 		}
 		if !ok {
 			lc.DT = dt
@@ -290,13 +290,13 @@ func queryListConfigs(ctx context.Context, db *sql.DB) ([]listConfig, error) {
 
 func getColName(dt int) string {
 	switch dt {
-	case models_configs.StringType:
+	case pkg_models.DataTypeString:
 		return "v_string"
-	case models_configs.Int64Type:
+	case pkg_models.DataTypeInt64:
 		return "v_int"
-	case models_configs.Float64Type:
+	case pkg_models.DataTypeFloat64:
 		return "v_float"
-	case models_configs.BoolType:
+	case pkg_models.DataTypeBool:
 		return "v_bool"
 	}
 	return ""

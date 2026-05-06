@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
-	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) queryConfigs(ctx context.Context, ids []string, t1, t2 string, filterIdCol string, t1Cols ...string) (*sql.Rows, error) {
@@ -62,7 +62,7 @@ func genSelectConfigsStmt(t1, t2 string, t1Cols ...string) string {
 	return fmt.Sprintf(stmt, "")
 }
 
-func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, id string, value models_configs.Value) error {
+func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, id string, value pkg_models.Value) error {
 	if value.IsSlice {
 		colName, itfValues := getListInterfaceValsAndCol(value)
 		stmt := fmt.Sprintf("INSERT INTO %s (c_id, %s, ord) VALUES (?, ?, ?)", tableName, colName)
@@ -88,36 +88,36 @@ func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, id st
 	return nil
 }
 
-func getInterfaceValAndCol(v models_configs.Value) (colName string, value interface{}) {
+func getInterfaceValAndCol(v pkg_models.Value) (colName string, value interface{}) {
 	switch v.DataType {
-	case models_configs.StringType:
+	case pkg_models.DataTypeString:
 		colName = "v_string"
 		value = v.String
-	case models_configs.Int64Type:
+	case pkg_models.DataTypeInt64:
 		colName = "v_int"
 		value = v.Int64
-	case models_configs.Float64Type:
+	case pkg_models.DataTypeFloat64:
 		colName = "v_float"
 		value = v.Float64
-	case models_configs.BoolType:
+	case pkg_models.DataTypeBool:
 		colName = "v_bool"
 		value = v.Bool
 	}
 	return
 }
 
-func getListInterfaceValsAndCol(v models_configs.Value) (colName string, values []interface{}) {
+func getListInterfaceValsAndCol(v pkg_models.Value) (colName string, values []interface{}) {
 	switch v.DataType {
-	case models_configs.StringType:
+	case pkg_models.DataTypeString:
 		colName = "v_string"
 		values = helper_slices.ToAny(v.StringSlice)
-	case models_configs.Int64Type:
+	case pkg_models.DataTypeInt64:
 		colName = "v_int"
 		values = helper_slices.ToAny(v.Int64Slice)
-	case models_configs.Float64Type:
+	case pkg_models.DataTypeFloat64:
 		colName = "v_float"
 		values = helper_slices.ToAny(v.Float64Slice)
-	case models_configs.BoolType:
+	case pkg_models.DataTypeBool:
 		colName = "v_bool"
 		values = helper_slices.ToAny(v.BoolSlice)
 	}

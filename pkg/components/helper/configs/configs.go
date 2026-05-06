@@ -25,11 +25,10 @@ import (
 	"strings"
 
 	module_lib_validation_configs "github.com/SENERGY-Platform/mgw-module-lib/validation/configs"
-	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
-func ValueIsEqual(a, b models_configs.Value) bool {
+func ValueIsEqual(a, b pkg_models.Value) bool {
 	if a.DataType != b.DataType {
 		return false
 	}
@@ -38,245 +37,245 @@ func ValueIsEqual(a, b models_configs.Value) bool {
 	}
 	if a.IsSlice {
 		switch a.DataType {
-		case models_configs.StringType:
+		case pkg_models.DataTypeString:
 			return slices.Equal(a.StringSlice, b.StringSlice)
-		case models_configs.Int64Type:
+		case pkg_models.DataTypeInt64:
 			return slices.Equal(a.Int64Slice, b.Int64Slice)
-		case models_configs.Float64Type:
+		case pkg_models.DataTypeFloat64:
 			return slices.Equal(a.Float64Slice, b.Float64Slice)
-		case models_configs.BoolType:
+		case pkg_models.DataTypeBool:
 			return slices.Equal(a.BoolSlice, b.BoolSlice)
 		}
 	} else {
 		switch a.DataType {
-		case models_configs.StringType:
+		case pkg_models.DataTypeString:
 			return a.String == b.String
-		case models_configs.Int64Type:
+		case pkg_models.DataTypeInt64:
 			return a.Int64 == b.Int64
-		case models_configs.Float64Type:
+		case pkg_models.DataTypeFloat64:
 			return a.Float64 == b.Float64
-		case models_configs.BoolType:
+		case pkg_models.DataTypeBool:
 			return a.Bool == b.Bool
 		}
 	}
 	return false
 }
 
-func GetValue(val any, dataType int, isSlice bool) (models_configs.Value, error) {
-	config := models_configs.Value{
+func GetValue(val any, dataType int, isSlice bool) (pkg_models.Value, error) {
+	config := pkg_models.Value{
 		DataType: dataType,
 		IsSlice:  isSlice,
 	}
 	if isSlice {
 		anySlice, ok := val.([]any)
 		if !ok {
-			return models_configs.Value{}, fmt.Errorf("invalid data type '%T'", val) // TODO
+			return pkg_models.Value{}, fmt.Errorf("invalid data type '%T'", val) // TODO
 		}
 		switch dataType {
-		case models_configs.StringType:
+		case pkg_models.DataTypeString:
 			for _, item := range anySlice {
 				v, err := toString(item)
 				if err != nil {
-					return models_configs.Value{}, err
+					return pkg_models.Value{}, err
 				}
 				config.StringSlice = append(config.StringSlice, v)
 			}
-		case models_configs.BoolType:
+		case pkg_models.DataTypeBool:
 			for _, item := range anySlice {
 				v, err := toBool(item)
 				if err != nil {
-					return models_configs.Value{}, err
+					return pkg_models.Value{}, err
 				}
 				config.BoolSlice = append(config.BoolSlice, v)
 			}
-		case models_configs.Int64Type:
+		case pkg_models.DataTypeInt64:
 			for _, item := range anySlice {
 				v, err := toInt64(item)
 				if err != nil {
-					return models_configs.Value{}, err
+					return pkg_models.Value{}, err
 				}
 				config.Int64Slice = append(config.Int64Slice, v)
 			}
-		case models_configs.Float64Type:
+		case pkg_models.DataTypeFloat64:
 			for _, item := range anySlice {
 				v, err := toFloat64(item)
 				if err != nil {
-					return models_configs.Value{}, err
+					return pkg_models.Value{}, err
 				}
 				config.Float64Slice = append(config.Float64Slice, v)
 			}
 		default:
-			return models_configs.Value{}, fmt.Errorf("unknown data type '%s'", dataType) // TODO
+			return pkg_models.Value{}, fmt.Errorf("unknown data type '%s'", dataType) // TODO
 		}
 	} else {
 		switch dataType {
-		case models_configs.StringType:
+		case pkg_models.DataTypeString:
 			v, err := toString(val)
 			if err != nil {
-				return models_configs.Value{}, err
+				return pkg_models.Value{}, err
 			}
 			config.String = v
-		case models_configs.BoolType:
+		case pkg_models.DataTypeBool:
 			v, err := toBool(val)
 			if err != nil {
-				return models_configs.Value{}, err
+				return pkg_models.Value{}, err
 			}
 			config.Bool = v
-		case models_configs.Int64Type:
+		case pkg_models.DataTypeInt64:
 			v, err := toInt64(val)
 			if err != nil {
-				return models_configs.Value{}, err
+				return pkg_models.Value{}, err
 			}
 			config.Int64 = v
-		case models_configs.Float64Type:
+		case pkg_models.DataTypeFloat64:
 			v, err := toFloat64(val)
 			if err != nil {
-				return models_configs.Value{}, err
+				return pkg_models.Value{}, err
 			}
 			config.Float64 = v
 		default:
-			return models_configs.Value{}, fmt.Errorf("unknown data type '%s'", dataType) // TODO
+			return pkg_models.Value{}, fmt.Errorf("unknown data type '%s'", dataType) // TODO
 		}
 	}
 	return config, nil
 }
 
-func GetValueWithValidation(val any, moduleConfig models_external.ModuleLibConfigValue) (models_configs.Value, error) {
-	config := models_configs.Value{
+func GetValueWithValidation(val any, moduleConfig pkg_models.ModuleLibConfigValue) (pkg_models.Value, error) {
+	config := pkg_models.Value{
 		IsSlice: moduleConfig.IsSlice,
 	}
 	if moduleConfig.IsSlice {
 		anySlice, ok := val.([]any)
 		if !ok {
-			return models_configs.Value{}, fmt.Errorf("invalid data type '%T'", val) // TODO
+			return pkg_models.Value{}, fmt.Errorf("invalid data type '%T'", val) // TODO
 		}
 		switch moduleConfig.DataType {
-		case models_external.ModuleLibStringType:
-			config.DataType = models_configs.StringType
+		case pkg_models.ModuleLibStringType:
+			config.DataType = pkg_models.DataTypeString
 			for _, item := range anySlice {
 				v, err := toString(item)
 				if err != nil {
-					return models_configs.Value{}, err
+					return pkg_models.Value{}, err
 				}
 				err = validateValue(v, moduleConfig)
 				if err != nil {
-					return models_configs.Value{}, err
+					return pkg_models.Value{}, err
 				}
 				config.StringSlice = append(config.StringSlice, v)
 			}
-		case models_external.ModuleLibBoolType:
-			config.DataType = models_configs.BoolType
+		case pkg_models.ModuleLibBoolType:
+			config.DataType = pkg_models.DataTypeBool
 			for _, item := range anySlice {
 				v, err := toBool(item)
 				if err != nil {
-					return models_configs.Value{}, err
+					return pkg_models.Value{}, err
 				}
 				err = validateValue(v, moduleConfig)
 				if err != nil {
-					return models_configs.Value{}, err
+					return pkg_models.Value{}, err
 				}
 				config.BoolSlice = append(config.BoolSlice, v)
 			}
-		case models_external.ModuleLibInt64Type:
-			config.DataType = models_configs.Int64Type
+		case pkg_models.ModuleLibInt64Type:
+			config.DataType = pkg_models.DataTypeInt64
 			for _, item := range anySlice {
 				v, err := toInt64(item)
 				if err != nil {
-					return models_configs.Value{}, err
+					return pkg_models.Value{}, err
 				}
 				err = validateValue(v, moduleConfig)
 				if err != nil {
-					return models_configs.Value{}, err
+					return pkg_models.Value{}, err
 				}
 				config.Int64Slice = append(config.Int64Slice, v)
 			}
-		case models_external.ModuleLibFloat64Type:
-			config.DataType = models_configs.Float64Type
+		case pkg_models.ModuleLibFloat64Type:
+			config.DataType = pkg_models.DataTypeFloat64
 			for _, item := range anySlice {
 				v, err := toFloat64(item)
 				if err != nil {
-					return models_configs.Value{}, err
+					return pkg_models.Value{}, err
 				}
 				err = validateValue(v, moduleConfig)
 				if err != nil {
-					return models_configs.Value{}, err
+					return pkg_models.Value{}, err
 				}
 				config.Float64Slice = append(config.Float64Slice, v)
 			}
 		default:
-			return models_configs.Value{}, fmt.Errorf("unknown data type '%s'", moduleConfig.DataType) // TODO
+			return pkg_models.Value{}, fmt.Errorf("unknown data type '%s'", moduleConfig.DataType) // TODO
 		}
 	} else {
 		switch moduleConfig.DataType {
-		case models_external.ModuleLibStringType:
-			config.DataType = models_configs.StringType
+		case pkg_models.ModuleLibStringType:
+			config.DataType = pkg_models.DataTypeString
 			v, err := toString(val)
 			if err != nil {
-				return models_configs.Value{}, err
+				return pkg_models.Value{}, err
 			}
 			config.String = v
 			err = validateValue(v, moduleConfig)
 			if err != nil {
-				return models_configs.Value{}, err
+				return pkg_models.Value{}, err
 			}
-		case models_external.ModuleLibBoolType:
-			config.DataType = models_configs.BoolType
+		case pkg_models.ModuleLibBoolType:
+			config.DataType = pkg_models.DataTypeBool
 			v, err := toBool(val)
 			if err != nil {
-				return models_configs.Value{}, err
+				return pkg_models.Value{}, err
 			}
 			config.Bool = v
 			err = validateValue(v, moduleConfig)
 			if err != nil {
-				return models_configs.Value{}, err
+				return pkg_models.Value{}, err
 			}
-		case models_external.ModuleLibInt64Type:
-			config.DataType = models_configs.Int64Type
+		case pkg_models.ModuleLibInt64Type:
+			config.DataType = pkg_models.DataTypeInt64
 			v, err := toInt64(val)
 			if err != nil {
-				return models_configs.Value{}, err
+				return pkg_models.Value{}, err
 			}
 			config.Int64 = v
 			err = validateValue(v, moduleConfig)
 			if err != nil {
-				return models_configs.Value{}, err
+				return pkg_models.Value{}, err
 			}
-		case models_external.ModuleLibFloat64Type:
-			config.DataType = models_configs.Float64Type
+		case pkg_models.ModuleLibFloat64Type:
+			config.DataType = pkg_models.DataTypeFloat64
 			v, err := toFloat64(val)
 			if err != nil {
-				return models_configs.Value{}, err
+				return pkg_models.Value{}, err
 			}
 			config.Float64 = v
 			err = validateValue(v, moduleConfig)
 			if err != nil {
-				return models_configs.Value{}, err
+				return pkg_models.Value{}, err
 			}
 		default:
-			return models_configs.Value{}, fmt.Errorf("unknown data type '%s'", moduleConfig.DataType) // TODO
+			return pkg_models.Value{}, fmt.Errorf("unknown data type '%s'", moduleConfig.DataType) // TODO
 		}
 	}
 	return config, nil
 }
 
-func ValueToInterface(config models_configs.Value) (v interface{}) {
+func ValueToInterface(config pkg_models.Value) (v interface{}) {
 	switch config.DataType {
-	case models_configs.StringType:
+	case pkg_models.DataTypeString:
 		if config.IsSlice {
 			return config.StringSlice
 		}
 		return config.String
-	case models_configs.Int64Type:
+	case pkg_models.DataTypeInt64:
 		if config.IsSlice {
 			return config.Int64Slice
 		}
 		return config.Int64
-	case models_configs.Float64Type:
+	case pkg_models.DataTypeFloat64:
 		if config.IsSlice {
 			return config.Float64Slice
 		}
 		return config.Float64
-	case models_configs.BoolType:
+	case pkg_models.DataTypeBool:
 		if config.IsSlice {
 			return config.BoolSlice
 		}
@@ -285,34 +284,34 @@ func ValueToInterface(config models_configs.Value) (v interface{}) {
 	return
 }
 
-func ValueToString(config models_configs.Value) string {
+func ValueToString(config pkg_models.Value) string {
 	switch config.DataType {
-	case models_configs.StringType:
+	case pkg_models.DataTypeString:
 		return config.String
-	case models_configs.Int64Type:
+	case pkg_models.DataTypeInt64:
 		return strconv.FormatInt(config.Int64, 10)
-	case models_configs.Float64Type:
+	case pkg_models.DataTypeFloat64:
 		return strconv.FormatFloat(config.Float64, 'f', -1, 64)
-	case models_configs.BoolType:
+	case pkg_models.DataTypeBool:
 		return strconv.FormatBool(config.Bool)
 	}
 	return ""
 }
 
-func SliceValueToString(config models_configs.Value, delimiter string) string {
+func SliceValueToString(config pkg_models.Value, delimiter string) string {
 	var values []string
 	switch config.DataType {
-	case models_configs.StringType:
+	case pkg_models.DataTypeString:
 		values = config.StringSlice
-	case models_configs.Int64Type:
+	case pkg_models.DataTypeInt64:
 		for _, i := range config.Int64Slice {
 			values = append(values, strconv.FormatInt(i, 10))
 		}
-	case models_configs.Float64Type:
+	case pkg_models.DataTypeFloat64:
 		for _, f := range config.Float64Slice {
 			values = append(values, strconv.FormatFloat(f, 'f', -1, 64))
 		}
-	case models_configs.BoolType:
+	case pkg_models.DataTypeBool:
 		for _, b := range config.BoolSlice {
 			values = append(values, strconv.FormatBool(b))
 		}
@@ -320,7 +319,7 @@ func SliceValueToString(config models_configs.Value, delimiter string) string {
 	return strings.Join(values, delimiter)
 }
 
-func validateValue[T comparable](val T, moduleConfig models_external.ModuleLibConfigValue) error {
+func validateValue[T comparable](val T, moduleConfig pkg_models.ModuleLibConfigValue) error {
 	err := module_lib_validation_configs.ValidateValue(moduleConfig.Type, moduleConfig.TypeOpt, val)
 	if err != nil {
 		return err

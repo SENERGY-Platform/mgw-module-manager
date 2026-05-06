@@ -24,18 +24,14 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
-	models_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/aux_deployments"
-	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) RecreateDeployments(
 	ctx context.Context,
-	module models_module.Module,
-	activeDeployment models_deployments.Deployment,
-	dependencies map[string]models_deployments.DeploymentReduced,
+	module pkg_models.Module,
+	activeDeployment pkg_models.Deployment,
+	dependencies map[string]pkg_models.DeploymentReduced,
 	filter lib_models.AuxiliaryDeploymentsFilterWithState,
 ) ([]lib_models.AuxiliaryDeploymentBatchResult, error) {
 	mu := h.mutexes.Get(activeDeployment.Id)
@@ -101,15 +97,15 @@ func (h *Handler) RecreateDeployments(
 
 func (h *Handler) recreateAuxiliaryDeployment(
 	ctx context.Context,
-	auxService models_external.ModuleLibAuxService,
-	activeDeployment models_deployments.Deployment,
-	dependencies map[string]models_deployments.DeploymentReduced,
+	auxService pkg_models.ModuleLibAuxService,
+	activeDeployment pkg_models.Deployment,
+	dependencies map[string]pkg_models.DeploymentReduced,
 	deploymentConfigs map[string]string,
-	currentAuxDeployment models_aux_deployments.AuxiliaryDeployment,
+	currentAuxDeployment pkg_models.AuxiliaryDeployment,
 	configs map[string]string,
-	volumeMounts []models_aux_deployments.AuxiliaryDeploymentVolumeMount,
+	volumeMounts []pkg_models.AuxiliaryDeploymentVolumeMount,
 ) error {
-	ctrName, err := helper_naming.NewContainerName(models_constants.AuxDeploymentAbbreviation)
+	ctrName, err := helper_naming.NewContainerName(pkg_models.AuxDeploymentAbbreviation)
 	if err != nil {
 		return err
 	}
@@ -153,7 +149,7 @@ func (h *Handler) readAuxiliaryDeploymentsAndFilterByState(
 	ctx context.Context,
 	deploymentId string,
 	filter lib_models.AuxiliaryDeploymentsFilterWithState,
-) (map[string]models_aux_deployments.AuxiliaryDeployment, error) {
+) (map[string]pkg_models.AuxiliaryDeployment, error) {
 	auxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, filter.AuxiliaryDeploymentsFilter)
 	if err != nil {
 		return nil, err
@@ -163,7 +159,7 @@ func (h *Handler) readAuxiliaryDeploymentsAndFilterByState(
 		if err != nil {
 			return nil, err
 		}
-		tmp := make(map[string]models_aux_deployments.AuxiliaryDeployment)
+		tmp := make(map[string]pkg_models.AuxiliaryDeployment)
 		for id, auxDep := range auxDeployments {
 			cewContainer := cewContainers[auxDep.Container.Name]
 			if cewContainer.State == filter.State {

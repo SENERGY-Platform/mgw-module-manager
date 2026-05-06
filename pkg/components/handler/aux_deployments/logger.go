@@ -19,11 +19,11 @@ package aux_deployments
 import (
 	"log/slog"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/slog_attr"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 var logger *slog.Logger
 
 func InitLogger(sl *slog.Logger) {
-	logger = sl.With(slog_attr.ComponentKey, "handler-auxiliary-deployments")
+	logger = sl.With(pkg_models.ComponentKey, "handler-auxiliary-deployments")
 }

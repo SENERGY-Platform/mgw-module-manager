@@ -24,19 +24,16 @@ import (
 	"slices"
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
-	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) RecreateDeployments(
 	ctx context.Context,
-	selectedModules map[string]models_module.Module,
+	selectedModules map[string]pkg_models.Module,
 ) ([]lib_models.DeploymentResult, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_deployments.DeploymentsFilter{
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, pkg_models.DeploymentsFilter{
 		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
 	})
 	if err != nil {
@@ -52,9 +49,9 @@ func (h *Handler) RecreateDeployments(
 		return nil, err
 	}
 	cache := cacheCollection{
-		HostResources: make(map[string]models_external.HostResource),
-		GlobalConfigs: make(map[string]models_configs.Config),
-		SecretValues:  make(map[string]models_external.SecretValueVariant),
+		HostResources: make(map[string]pkg_models.HostResource),
+		GlobalConfigs: make(map[string]pkg_models.Config),
+		SecretValues:  make(map[string]pkg_models.SecretValueVariant),
 	}
 	cache.Deployments, err = initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
 	if err != nil {
@@ -91,13 +88,13 @@ func (h *Handler) RecreateDeployments(
 
 func (h *Handler) recreateDeployment(
 	ctx context.Context,
-	module models_module.Module,
+	module pkg_models.Module,
 	userData userDataCollection,
 	deploymentId string,
 	cacheContainers map[string]containerCacheItem,
-	currentDeployment models_deployments.DeploymentBase,
-	currentContainers map[string]models_deployments.ContainerBase,
-	currentVolumes map[string]models_deployments.DeploymentVolume,
+	currentDeployment pkg_models.DeploymentBase,
+	currentContainers map[string]pkg_models.DeploymentContainerBase,
+	currentVolumes map[string]pkg_models.DeploymentVolume,
 	cache cacheCollection,
 ) error {
 	if currentDeployment.ModuleSource+currentDeployment.ModuleChannel+currentDeployment.ModuleVersion != module.Source+module.Channel+module.Version {
@@ -200,13 +197,13 @@ func (h *Handler) recreateDeployment(
 }
 
 func (h *Handler) getDeploymentsUserDataFromDB(ctx context.Context, deploymentIds []string) (map[string]userDataCollection, error) {
-	deploymentsHostResources, err := h.databaseHandler.ReadDeploymentsHostResources(ctx, models_deployments.DeploymentsHostResourcesFilter{
+	deploymentsHostResources, err := h.databaseHandler.ReadDeploymentsHostResources(ctx, pkg_models.DeploymentsHostResourcesFilter{
 		DeploymentIds: deploymentIds,
 	})
 	if err != nil {
 		return nil, err
 	}
-	deploymentsSecrets, err := h.databaseHandler.ReadDeploymentsSecrets(ctx, models_deployments.DeploymentsSecretsFilter{
+	deploymentsSecrets, err := h.databaseHandler.ReadDeploymentsSecrets(ctx, pkg_models.DeploymentsSecretsFilter{
 		DeploymentIds: deploymentIds,
 	})
 	if err != nil {
@@ -216,7 +213,7 @@ func (h *Handler) getDeploymentsUserDataFromDB(ctx context.Context, deploymentId
 	if err != nil {
 		return nil, err
 	}
-	deploymentsGlobalConfigs, err := h.databaseHandler.ReadDeploymentsGlobalConfigs(ctx, models_deployments.DeploymentGlobalConfigsFilter{
+	deploymentsGlobalConfigs, err := h.databaseHandler.ReadDeploymentsGlobalConfigs(ctx, pkg_models.DeploymentGlobalConfigsFilter{
 		DeploymentIds: deploymentIds,
 	})
 	if err != nil {
@@ -245,8 +242,8 @@ func (h *Handler) getDeploymentsUserDataFromDB(ctx context.Context, deploymentId
 }
 
 func (h *Handler) getDeploymentsVolumesAndContainersFromDB(ctx context.Context, deploymentIds []string) (
-	map[string]map[string]models_deployments.DeploymentVolume,
-	map[string]map[string]models_deployments.ContainerBase,
+	map[string]map[string]pkg_models.DeploymentVolume,
+	map[string]map[string]pkg_models.DeploymentContainerBase,
 	error,
 ) {
 	deploymentsVolumes, err := h.databaseHandler.ReadDeploymentsVolumes(ctx, deploymentIds)
@@ -263,9 +260,9 @@ func (h *Handler) getDeploymentsVolumesAndContainersFromDB(ctx context.Context, 
 func (h *Handler) updateCaches(
 	ctx context.Context,
 	moduleDependencies map[string]string,
-	userDataHostResources map[string]models_deployments.DeploymentHostResource,
-	userDataSecrets map[string]models_deployments.DeploymentSecret,
-	userDataGlobalConfigs map[string]models_deployments.DeploymentGlobalConfig,
+	userDataHostResources map[string]pkg_models.DeploymentHostResource,
+	userDataSecrets map[string]pkg_models.DeploymentSecret,
+	userDataGlobalConfigs map[string]pkg_models.DeploymentGlobalConfig,
 	cache cacheCollection,
 ) error {
 	err := h.updateDeploymentsCache(ctx, moduleDependencies, cache.Deployments)
@@ -289,12 +286,12 @@ func (h *Handler) updateCaches(
 
 func (h *Handler) ensureDeploymentEnvironment(
 	ctx context.Context,
-	moduleServices map[string]models_external.ModuleLibService,
+	moduleServices map[string]pkg_models.ModuleLibService,
 	moduleFileSystem fs.FS,
 	deploymentId string,
 	deploymentDirName string,
 	deploymentFilesDirName string,
-	volumes map[string]models_deployments.DeploymentVolume,
+	volumes map[string]pkg_models.DeploymentVolume,
 ) error {
 	err := h.ensureContainerImages(ctx, moduleServices)
 	if err != nil {
@@ -312,7 +309,7 @@ func (h *Handler) removeDeploymentEnvironment(
 	deploymentId string,
 	deploymentDirName string,
 	deploymentFilesDirName string,
-	deploymentContainers map[string]models_deployments.ContainerBase,
+	deploymentContainers map[string]pkg_models.DeploymentContainerBase,
 ) error {
 	err := h.removeContainers(ctx, deploymentContainers)
 	if err != nil {
@@ -326,13 +323,13 @@ func (h *Handler) removeDeploymentEnvironment(
 }
 
 func mergeDefaultAndUserData(
-	module models_module.Module,
+	module pkg_models.Module,
 	defaultData defaultDataCollection,
-	userDataConfigs map[string]models_deployments.DeploymentUserConfig,
-	userDataGlobalConfigs map[string]models_deployments.DeploymentGlobalConfig,
-	userDataFiles map[string]models_deployments.DeploymentFile,
-	cacheGlobalConfigs map[string]models_configs.Config,
-) (map[string]models_configs.Value, map[string][]byte, error) {
+	userDataConfigs map[string]pkg_models.DeploymentUserConfig,
+	userDataGlobalConfigs map[string]pkg_models.DeploymentGlobalConfig,
+	userDataFiles map[string]pkg_models.DeploymentFile,
+	cacheGlobalConfigs map[string]pkg_models.Config,
+) (map[string]pkg_models.Value, map[string][]byte, error) {
 	mergedConfigs := mergeConfigs(defaultData.Configs, userDataConfigs, userDataGlobalConfigs, cacheGlobalConfigs)
 	err := checkConfigs(module.Configs, mergedConfigs)
 	if err != nil {

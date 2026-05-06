@@ -25,15 +25,14 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) UpdateDeployment(
 	ctx context.Context,
-	module models_module.Module,
-	activeDeployment models_deployments.Deployment,
-	dependencies map[string]models_deployments.DeploymentReduced,
+	module pkg_models.Module,
+	activeDeployment pkg_models.Deployment,
+	dependencies map[string]pkg_models.DeploymentReduced,
 	auxDeploymentId string,
 	serviceInput lib_models.AuxiliaryDeploymentUpdateInputBase,
 ) error {

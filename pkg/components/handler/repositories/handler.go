@@ -10,8 +10,7 @@ import (
 	"sync"
 
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
-	models_error "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/error"
-	models_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/repositories"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 type Handler struct {
@@ -60,12 +59,12 @@ func (h *Handler) RefreshRepositories(ctx context.Context) error {
 	return h.updateVariantsMap(ctx)
 }
 
-func (h *Handler) Repositories(_ context.Context) ([]models_repositories.Repository, error) {
+func (h *Handler) Repositories(_ context.Context) ([]pkg_models.Repository, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	var repos []models_repositories.Repository
+	var repos []pkg_models.Repository
 	for source, repo := range h.repositories {
-		repos = append(repos, models_repositories.Repository{
+		repos = append(repos, pkg_models.Repository{
 			Source:   source,
 			Priority: repo.Priority,
 			Channels: repo.Handler.Channels(),
@@ -74,14 +73,14 @@ func (h *Handler) Repositories(_ context.Context) ([]models_repositories.Reposit
 	return repos, nil
 }
 
-func (h *Handler) Modules(_ context.Context, filter models_repositories.ModulesFilter) ([]models_repositories.Module, error) {
+func (h *Handler) Modules(_ context.Context, filter pkg_models.RepositoryModulesFilter) ([]pkg_models.RepositoryModule, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	filterById := len(filter.Ids) > 0
 	filterBySource := len(filter.Sources) > 0
 	filter.Name = strings.ToLower(filter.Name)
 	sourceFilterMap := newSourceFilterMap(filter.Sources)
-	var variants []models_repositories.Module
+	var variants []pkg_models.RepositoryModule
 	for modId, sources := range h.variantsMap {
 		if filterById && !slices.Contains(filter.Ids, modId) {
 			continue
@@ -91,24 +90,24 @@ func (h *Handler) Modules(_ context.Context, filter models_repositories.ModulesF
 				if filterBySource && !filterSources(source, channel, sourceFilterMap) {
 					continue
 				}
-				if !strings.Contains(strings.ToLower(variant.Module.Name), filter.Name) { // empty string = true
+				if !strings.Contains(strings.ToLower(variant.RepositoryModule.Name), filter.Name) { // empty string = true
 					continue
 				}
-				variants = append(variants, variant.Module)
+				variants = append(variants, variant.RepositoryModule)
 			}
 		}
 	}
 	return variants, nil
 }
 
-func (h *Handler) Module(_ context.Context, id, source, channel string) (models_repositories.Module, error) {
+func (h *Handler) Module(_ context.Context, id, source, channel string) (pkg_models.RepositoryModule, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	variant, err := h.getModuleVariant(id, source, channel)
 	if err != nil {
-		return models_repositories.Module{}, err
+		return pkg_models.RepositoryModule{}, err
 	}
-	return variant.Module, nil
+	return variant.RepositoryModule, nil
 }
 
 func (h *Handler) ModuleFS(ctx context.Context, id, source, channel string) (fs.FS, error) {
@@ -159,8 +158,8 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 					sources[source] = channels
 				}
 				channels[channel.Name] = moduleWrapper{
-					Module: models_repositories.Module{
-						ModuleBase: models_repositories.ModuleBase{
+					RepositoryModule: pkg_models.RepositoryModule{
+						RepositoryModuleBase: pkg_models.RepositoryModuleBase{
 							Id:      mod.ID,
 							Source:  source,
 							Channel: channel.Name,
@@ -184,20 +183,20 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 func (h *Handler) getModuleVariant(id, source, channel string) (moduleWrapper, error) {
 	sources, ok := h.variantsMap[id]
 	if !ok {
-		return moduleWrapper{}, fmt.Errorf("module '%s' %w", id, models_error.NotFoundErr)
+		return moduleWrapper{}, fmt.Errorf("module '%s' %w", id, pkg_models.NotFoundErr)
 	}
 	channels, ok := sources[source]
 	if !ok {
-		return moduleWrapper{}, fmt.Errorf("source '%s' %w", source, models_error.NotFoundErr)
+		return moduleWrapper{}, fmt.Errorf("source '%s' %w", source, pkg_models.NotFoundErr)
 	}
 	variant, ok := channels[channel]
 	if !ok {
-		return moduleWrapper{}, fmt.Errorf("channel '%s' %w", channel, models_error.NotFoundErr)
+		return moduleWrapper{}, fmt.Errorf("channel '%s' %w", channel, pkg_models.NotFoundErr)
 	}
 	return variant, nil
 }
 
-func newSourceFilterMap(sourceFilters []models_repositories.SourceFilter) map[string]map[string]struct{} {
+func newSourceFilterMap(sourceFilters []pkg_models.RepositorySourceFilter) map[string]map[string]struct{} {
 	sourceFilterMap := make(map[string]map[string]struct{})
 	for _, sourceFilter := range sourceFilters {
 		channels, ok := sourceFilterMap[sourceFilter.Name]

@@ -31,24 +31,20 @@ import (
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
-	models_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/configs"
-	models_constants "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
-	models_module "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/modules"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) CreateDeployments(
 	ctx context.Context,
-	selectedModules map[string]models_module.Module,
-	userInputs map[string]models_deployments.UserInput,
+	selectedModules map[string]pkg_models.Module,
+	userInputs map[string]pkg_models.DeploymentUserInput,
 ) ([]lib_models.DeploymentResult, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	cache := cacheCollection{
-		HostResources: make(map[string]models_external.HostResource),
-		GlobalConfigs: make(map[string]models_configs.Config),
-		SecretValues:  make(map[string]models_external.SecretValueVariant),
+		HostResources: make(map[string]pkg_models.HostResource),
+		GlobalConfigs: make(map[string]pkg_models.Config),
+		SecretValues:  make(map[string]pkg_models.SecretValueVariant),
 	}
 	var err error
 	selectedModules, err = h.filterSelectedModules(ctx, selectedModules)
@@ -87,8 +83,8 @@ func (h *Handler) CreateDeployments(
 
 func (h *Handler) createDeployment(
 	ctx context.Context,
-	module models_module.Module,
-	userInput models_deployments.UserInput,
+	module pkg_models.Module,
+	userInput pkg_models.DeploymentUserInput,
 	deploymentId string,
 	cacheContainers map[string]containerCacheItem,
 	cache cacheCollection,
@@ -204,8 +200,8 @@ func (h *Handler) getBindMounts(
 	ctx context.Context,
 	deploymentId,
 	deploymentFilesDirName string,
-	userDataFileGroups map[string]models_deployments.DeploymentFileGroup,
-	userDataSecrets map[string]models_deployments.DeploymentSecret,
+	userDataFileGroups map[string]pkg_models.DeploymentFileGroup,
+	userDataSecrets map[string]pkg_models.DeploymentSecret,
 	mergedFiles map[string][]byte,
 ) (bindMountDataCollection, error) {
 	var bindMounts bindMountDataCollection
@@ -239,18 +235,18 @@ func (h *Handler) createDeploymentDirs(moduleFileSystem fs.FS, deploymentDirName
 
 func (h *Handler) filterSelectedModules(
 	ctx context.Context,
-	selectedModules map[string]models_module.Module,
-) (map[string]models_module.Module, error) {
-	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_deployments.DeploymentsFilter{
+	selectedModules map[string]pkg_models.Module,
+) (map[string]pkg_models.Module, error) {
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, pkg_models.DeploymentsFilter{
 		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
 	})
 	if err != nil {
 		return nil, err
 	}
-	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value models_deployments.DeploymentBase) string {
+	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value pkg_models.DeploymentBase) string {
 		return value.ModuleId
 	})
-	filteredModules := make(map[string]models_module.Module)
+	filteredModules := make(map[string]pkg_models.Module)
 	for moduleId, module := range selectedModules {
 		_, ok := deployments[moduleId]
 		if !ok {
@@ -269,7 +265,7 @@ func createDeploymentDir(moduleFileSystem fs.FS, workDirPath, deploymentDirName 
 	return helper_file_sys.CopyAll(moduleFileSystem, dirPath)
 }
 
-func getDefaultData(module models_module.Module) (defaultDataCollection, error) {
+func getDefaultData(module pkg_models.Module) (defaultDataCollection, error) {
 	var data defaultDataCollection
 	var err error
 	data.Files, err = getDefaultFiles(module.Files, module.FileSystem)
@@ -284,9 +280,9 @@ func getDefaultData(module models_module.Module) (defaultDataCollection, error) 
 }
 
 func getUserData(
-	module models_module.Module,
+	module pkg_models.Module,
 	defaultData defaultDataCollection,
-	userInput models_deployments.UserInput,
+	userInput pkg_models.DeploymentUserInput,
 	deploymentId string,
 ) (userDataCollection, error) {
 	var data userDataCollection
@@ -310,17 +306,17 @@ func getUserData(
 }
 
 func getDeployment(
-	module models_module.Module,
+	module pkg_models.Module,
 	deploymentId string,
-) (models_deployments.DeploymentBase, error) {
+) (pkg_models.DeploymentBase, error) {
 	if deploymentId == "" {
-		return models_deployments.DeploymentBase{}, errors.New("empty deployment id")
+		return pkg_models.DeploymentBase{}, errors.New("empty deployment id")
 	}
 	dirName, err := helper_uuid.New()
 	if err != nil {
-		return models_deployments.DeploymentBase{}, err
+		return pkg_models.DeploymentBase{}, err
 	}
-	return models_deployments.DeploymentBase{
+	return pkg_models.DeploymentBase{
 		Id:            deploymentId,
 		ModuleId:      module.ID,
 		ModuleSource:  module.Source,
@@ -331,7 +327,7 @@ func getDeployment(
 	}, nil
 }
 
-func initDeploymentsCacheFromModules(modules map[string]models_module.Module) (map[string]deploymentsCacheItem, error) {
+func initDeploymentsCacheFromModules(modules map[string]pkg_models.Module) (map[string]deploymentsCacheItem, error) {
 	cache := make(map[string]deploymentsCacheItem)
 	for moduleId, module := range modules {
 		id, err := helper_uuid.New()
@@ -340,7 +336,7 @@ func initDeploymentsCacheFromModules(modules map[string]models_module.Module) (m
 		}
 		containers := make(map[string]containerCacheItem)
 		for reference := range module.Services {
-			name, err := helper_naming.NewContainerName(models_constants.DeploymentAbbreviation)
+			name, err := helper_naming.NewContainerName(pkg_models.DeploymentAbbreviation)
 			if err != nil {
 				return nil, err
 			}
@@ -357,30 +353,30 @@ func initDeploymentsCacheFromModules(modules map[string]models_module.Module) (m
 	return cache, nil
 }
 
-func getNewVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[string]models_deployments.DeploymentVolume {
-	volumes := make(map[string]models_deployments.DeploymentVolume)
+func getNewVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[string]pkg_models.DeploymentVolume {
+	volumes := make(map[string]pkg_models.DeploymentVolume)
 	for reference := range moduleVolumes {
-		volumes[reference] = models_deployments.DeploymentVolume{
+		volumes[reference] = pkg_models.DeploymentVolume{
 			DeploymentId: deploymentId,
 			Reference:    reference,
-			Name:         helper_naming.NewVolumeName(models_constants.DeploymentAbbreviation, deploymentId, reference),
+			Name:         helper_naming.NewVolumeName(pkg_models.DeploymentAbbreviation, deploymentId, reference),
 		}
 	}
 	return volumes
 }
 
 func getNewContainers(
-	moduleServices map[string]models_external.ModuleLibService,
+	moduleServices map[string]pkg_models.ModuleLibService,
 	cacheContainers map[string]containerCacheItem,
 	deploymentId string,
-) (map[string]models_deployments.ContainerBase, error) {
-	containers := make(map[string]models_deployments.ContainerBase)
+) (map[string]pkg_models.DeploymentContainerBase, error) {
+	containers := make(map[string]pkg_models.DeploymentContainerBase)
 	for reference := range moduleServices {
 		cacheItem, ok := cacheContainers[reference]
 		if !ok {
 			return nil, errors.New("missing container alias")
 		}
-		containers[reference] = models_deployments.ContainerBase{
+		containers[reference] = pkg_models.DeploymentContainerBase{
 			Name:         cacheItem.Name,
 			DeploymentId: deploymentId,
 			Reference:    reference,

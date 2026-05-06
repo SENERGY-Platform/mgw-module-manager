@@ -22,8 +22,7 @@ import (
 	"slices"
 	"time"
 
-	models_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/deployments"
-	models_external "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func (h *Handler) RuntimeMonitor(ctx context.Context) {
@@ -70,15 +69,15 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 }
 
 func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
-	map[string]models_deployments.DeploymentBase,
-	map[string]map[string]models_deployments.ContainerBase,
-	map[string]map[string]models_deployments.DeploymentSecret,
-	map[string]models_external.Container,
+	map[string]pkg_models.DeploymentBase,
+	map[string]map[string]pkg_models.DeploymentContainerBase,
+	map[string]map[string]pkg_models.DeploymentSecret,
+	map[string]pkg_models.Container,
 	error,
 ) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	deployments, err := h.databaseHandler.ReadDeployments(ctx, models_deployments.DeploymentsFilter{})
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, pkg_models.DeploymentsFilter{})
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -92,7 +91,7 @@ func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
 			enabledDeploymentIds = append(enabledDeploymentIds, id)
 		}
 	}
-	deploymentsMountSecrets, err := h.databaseHandler.ReadDeploymentsSecrets(ctx, models_deployments.DeploymentsSecretsFilter{
+	deploymentsMountSecrets, err := h.databaseHandler.ReadDeploymentsSecrets(ctx, pkg_models.DeploymentsSecretsFilter{
 		DeploymentIds: enabledDeploymentIds,
 		AsMount:       1,
 	})
@@ -109,8 +108,8 @@ func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
 func (h *Handler) startDeployment(
 	ctx context.Context,
 	deploymentId string,
-	deploymentContainers map[string]models_deployments.ContainerBase,
-	deploymentMountSecrets map[string]models_deployments.DeploymentSecret,
+	deploymentContainers map[string]pkg_models.DeploymentContainerBase,
+	deploymentMountSecrets map[string]pkg_models.DeploymentSecret,
 ) {
 	var err error
 	defer func() {
@@ -137,14 +136,14 @@ func (h *Handler) startDeployment(
 func (h *Handler) loadDeploymentMountSecrets(
 	ctx context.Context,
 	deploymentId string,
-	deploymentMountSecrets map[string]models_deployments.DeploymentSecret,
+	deploymentMountSecrets map[string]pkg_models.DeploymentSecret,
 ) error {
 	for _, secret := range deploymentMountSecrets {
 		for _, item := range secret.Items {
 			if item.AsEnv {
 				continue
 			}
-			req := models_external.SecretVariantRequest{
+			req := pkg_models.SecretVariantRequest{
 				ID:        secret.Id,
 				Item:      nil,
 				Reference: deploymentId,
@@ -164,7 +163,7 @@ func (h *Handler) loadDeploymentMountSecrets(
 func (h *Handler) stopDeployment(
 	ctx context.Context,
 	deploymentId string,
-	deploymentContainers map[string]models_deployments.ContainerBase,
+	deploymentContainers map[string]pkg_models.DeploymentContainerBase,
 	hasMountSecrets bool,
 ) {
 	defer h.runtimeMonitorJobsRemove(deploymentId)
@@ -180,10 +179,10 @@ func (h *Handler) stopDeployment(
 	}
 }
 
-func (h *Handler) runtimeMonitorJobsFilter(deployments map[string]models_deployments.DeploymentBase) map[string]models_deployments.DeploymentBase {
+func (h *Handler) runtimeMonitorJobsFilter(deployments map[string]pkg_models.DeploymentBase) map[string]pkg_models.DeploymentBase {
 	h.runtimeMonitorJobsMu.RLock()
 	defer h.runtimeMonitorJobsMu.RUnlock()
-	filteredDeployments := make(map[string]models_deployments.DeploymentBase)
+	filteredDeployments := make(map[string]pkg_models.DeploymentBase)
 	for id, deployment := range deployments {
 		_, ok := h.runtimeMonitorJobs[id]
 		if !ok {
