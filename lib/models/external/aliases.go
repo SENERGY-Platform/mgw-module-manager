@@ -16,6 +16,22 @@
 
 package external
 
-import module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
+import (
+	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
+)
+
+const (
+	CewInitState       = cew_model.InitState
+	CewRunningState    = cew_model.RunningState
+	CewPausedState     = cew_model.PausedState
+	CewRestartingState = cew_model.RestartingState
+	CewRemovingState   = cew_model.RemovingState
+	CewStoppedState    = cew_model.StoppedState
+	CewDeadState       = cew_model.DeadState
+	CewHealthyState    = cew_model.HealthyState
+	CewUnhealthyState  = cew_model.UnhealthyState
+	CewTransitionState = cew_model.TransitionState
+)
 
 type ModuleLibModule = module_lib.Module

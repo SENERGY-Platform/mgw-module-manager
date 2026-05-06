@@ -22,6 +22,7 @@ import (
 	"slices"
 
 	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/models/constants"
+	lib_external "github.com/SENERGY-Platform/mgw-module-manager/lib/models/external"
 	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
@@ -276,10 +277,10 @@ func getContainersCombinedState(
 		if !ok {
 			return containersStateBroken
 		}
-		if existingContainer.State == external_models.CewRunningState {
+		if existingContainer.State == lib_external.CewRunningState {
 			runningCount++
 		}
-		if existingContainer.Health != nil && *existingContainer.Health == external_models.CewUnhealthyState {
+		if existingContainer.Health != nil && *existingContainer.Health == lib_external.CewUnhealthyState {
 			unhealthyCount++
 		}
 	}
