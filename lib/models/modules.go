@@ -19,7 +19,7 @@ package models
 import (
 	"time"
 
-	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models/external"
 )
 
 const (
@@ -28,10 +28,8 @@ const (
 	ChangeActionRemove  = "remove"
 )
 
-type ModuleLibModule = module_lib.Module
-
 type Module struct {
-	ModuleLibModule
+	external_models.ModuleLibModule
 	Source     string     `json:"source"`
 	Channel    string     `json:"channel"`
 	Added      time.Time  `json:"added"`
