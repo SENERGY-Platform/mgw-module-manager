@@ -22,7 +22,7 @@ import (
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
 	sb_slog_attributes "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
 	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/models/constants"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 )
@@ -73,7 +73,7 @@ func New(service serviceItf, infoHdl infoHandler, logger *slog.Logger, accessLog
 		return nil, err
 	}
 	for _, route := range setRoutes {
-		logger.Debug("http route", slog_keys.Method, route[0], slog_keys.Path, route[1])
+		logger.Debug("http route", attr_keys.Method, route[0], attr_keys.Path, route[1])
 	}
 	return a, nil
 }
@@ -83,5 +83,5 @@ func (a *Api) Handler() *gin.Engine {
 }
 
 func requestIdGenerator(gc *gin.Context) (string, any) {
-	return slog_keys.RequestId, requestid.Get(gc)
+	return attr_keys.RequestId, requestid.Get(gc)
 }

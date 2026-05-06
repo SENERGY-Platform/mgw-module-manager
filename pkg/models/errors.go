@@ -19,4 +19,3 @@ package models
 import "errors"
 
 var NotFoundErr = errors.New("not found")
-var DuplicateErr = errors.New("duplicate")

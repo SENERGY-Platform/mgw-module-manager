@@ -22,7 +22,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
 )
 
 func Wait(ctx context.Context, logger *slog.Logger, signals ...os.Signal) {
@@ -32,7 +32,7 @@ func Wait(ctx context.Context, logger *slog.Logger, signals ...os.Signal) {
 	}
 	select {
 	case sig := <-ch:
-		logger.Warn("caught os signal", slog_keys.Signal, sig.String())
+		logger.Warn("caught os signal", attr_keys.Signal, sig.String())
 		break
 	case <-ctx.Done():
 		break

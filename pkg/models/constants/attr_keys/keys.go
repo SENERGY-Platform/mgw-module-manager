@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package slog_keys
+package attr_keys
 
 import "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
 
