@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	helper_file_sys "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
@@ -86,7 +87,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 			return err
 		}
 	} else {
-		return pkg_models.DuplicateErr
+		return lib_errors.New[lib_errors.ErrDuplicate]("module exists", attr_keys.Id, id)
 	}
 	stgMod, err := newStgMod(id, source, channel)
 	if err != nil {

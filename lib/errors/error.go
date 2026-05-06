@@ -29,3 +29,17 @@ func (e *ErrNotFound) set(msg string, err error, args []interface{}) {
 		},
 	}
 }
+
+type ErrDuplicate struct {
+	errBase
+}
+
+func (e *ErrDuplicate) set(msg string, err error, args []interface{}) {
+	*e = ErrDuplicate{
+		errBase{
+			msg:  msg,
+			err:  err,
+			args: args,
+		},
+	}
+}
