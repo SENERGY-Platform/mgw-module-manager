@@ -73,7 +73,7 @@ func (h *Handler) Module(ctx context.Context, id string) (pkg_models.Module, err
 		return pkg_models.Module{}, err
 	}
 	if len(modules) == 0 {
-		return pkg_models.Module{}, pkg_models.NotFoundErr
+		return pkg_models.Module{}, lib_errors.New[lib_errors.ErrNotFound]("module not found", attr_keys.Id, id)
 	}
 	return modules[id], nil
 }
@@ -83,7 +83,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 	defer h.mu.Unlock()
 	_, err := h.databaseHandler.Module(ctx, id)
 	if err != nil {
-		if !errors.Is(err, pkg_models.NotFoundErr) {
+		if !lib_errors.IsOf[lib_errors.ErrNotFound](err) {
 			return err
 		}
 	} else {

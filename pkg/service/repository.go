@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
@@ -209,7 +210,7 @@ func (s *Service) addRepoModDepsToMap(ctx context.Context, mod external_models.M
 		if _, ok := deps[depId]; !ok {
 			depFS, err := s.repositoriesHandler.ModuleFS(ctx, depId, source, channel)
 			if err != nil {
-				if errors.Is(err, pkg_models.NotFoundErr) && skipNotFound {
+				if lib_errors.IsOf[lib_errors.ErrNotFound](err) && skipNotFound {
 					continue
 				}
 				return err

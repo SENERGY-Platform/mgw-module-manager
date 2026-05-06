@@ -30,6 +30,7 @@ import (
 	"time"
 
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
@@ -685,7 +686,7 @@ func (m *storageHandlerMock) Module(_ context.Context, id string) (pkg_models.Da
 	}
 	mod, ok := m.Mods[id]
 	if !ok {
-		return pkg_models.DatabaseModule{}, pkg_models.NotFoundErr
+		return pkg_models.DatabaseModule{}, lib_errors.New[lib_errors.ErrNotFound]("not found")
 	}
 	return mod, nil
 }
@@ -708,7 +709,7 @@ func (m *storageHandlerMock) UpdateModule(_ context.Context, mod pkg_models.Data
 	}
 	_, ok := m.Mods[mod.Id]
 	if !ok {
-		return pkg_models.NotFoundErr
+		return lib_errors.New[lib_errors.ErrNotFound]("not found")
 	}
 	m.Mods[mod.Id] = mod
 	return nil
@@ -720,7 +721,7 @@ func (m *storageHandlerMock) DeleteModule(_ context.Context, id string) error {
 	}
 	_, ok := m.Mods[id]
 	if !ok {
-		return pkg_models.NotFoundErr
+		return nil
 	}
 	delete(m.Mods, id)
 	return nil

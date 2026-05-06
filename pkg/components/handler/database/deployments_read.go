@@ -22,10 +22,12 @@ import (
 	"strings"
 	"time"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
 )
 
 func (h *Handler) ReadDeployment(ctx context.Context, id string) (pkg_models.DeploymentBase, error) {
@@ -34,7 +36,11 @@ func (h *Handler) ReadDeployment(ctx context.Context, id string) (pkg_models.Dep
 		return pkg_models.DeploymentBase{}, err
 	}
 	if len(deployments) == 0 {
-		return pkg_models.DeploymentBase{}, pkg_models.NotFoundErr
+		return pkg_models.DeploymentBase{}, lib_errors.New[lib_errors.ErrNotFound](
+			"deployment not found",
+			attr_keys.Id,
+			id,
+		)
 	}
 	return deployments[id], nil
 }

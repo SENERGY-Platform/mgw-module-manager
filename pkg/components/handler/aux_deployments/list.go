@@ -21,9 +21,11 @@ import (
 	"maps"
 	"slices"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -44,7 +46,11 @@ func (h *Handler) GetDeployment(
 		return lib_models.AuxiliaryDeployment{}, err
 	}
 	if len(auxDeployments) == 0 {
-		return lib_models.AuxiliaryDeployment{}, pkg_models.NotFoundErr
+		return lib_models.AuxiliaryDeployment{}, lib_errors.New[lib_errors.ErrNotFound](
+			"auxiliary deployment not found",
+			attr_keys.Id,
+			auxDeploymentId,
+		)
 	}
 	return auxDeployments[auxDeploymentId], nil
 }

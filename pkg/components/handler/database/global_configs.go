@@ -20,9 +20,11 @@ import (
 	"context"
 	"database/sql"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
 )
 
 func (h *Handler) CreateGlobalConfig(ctx context.Context, config pkg_models.Config) (err error) {
@@ -56,7 +58,11 @@ func (h *Handler) ReadGlobalConfig(ctx context.Context, id string) (pkg_models.C
 		return pkg_models.Config{}, err
 	}
 	if len(globalConfigs) == 0 {
-		return pkg_models.Config{}, pkg_models.NotFoundErr
+		return pkg_models.Config{}, lib_errors.New[lib_errors.ErrNotFound](
+			"global config not found",
+			attr_keys.Id,
+			id,
+		)
 	}
 	return globalConfigs[id], nil
 }

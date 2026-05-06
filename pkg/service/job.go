@@ -20,9 +20,10 @@ import (
 	"context"
 	"slices"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	handler_jobs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
-	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
 )
 
 func (s *Service) Jobs(_ context.Context, filterIds []string) ([]lib_models.Job, error) {
@@ -37,26 +38,26 @@ func (s *Service) Jobs(_ context.Context, filterIds []string) ([]lib_models.Job,
 	return jobs, nil
 }
 
-func (s *Service) Job(_ context.Context, jobId string) (lib_models.Job, error) {
-	handlerJob, ok := s.jobsHandler.Job(jobId)
+func (s *Service) Job(_ context.Context, id string) (lib_models.Job, error) {
+	handlerJob, ok := s.jobsHandler.Job(id)
 	if !ok {
-		return lib_models.Job{}, pkg_models.NotFoundErr
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrNotFound]("job not found", attr_keys.Id, id)
 	}
 	return getJob(handlerJob), nil
 }
 
-func (s *Service) CancelJobs(_ context.Context, jobIds []string) error {
-	handlerJobs := s.jobsHandler.Jobs(jobIds)
+func (s *Service) CancelJobs(_ context.Context, ids []string) error {
+	handlerJobs := s.jobsHandler.Jobs(ids)
 	for _, handlerJob := range handlerJobs {
 		handlerJob.Cancel()
 	}
 	return nil
 }
 
-func (s *Service) CancelJob(_ context.Context, jobId string) error {
-	handlerJob, ok := s.jobsHandler.Job(jobId)
+func (s *Service) CancelJob(_ context.Context, id string) error {
+	handlerJob, ok := s.jobsHandler.Job(id)
 	if !ok {
-		return pkg_models.NotFoundErr
+		return lib_errors.New[lib_errors.ErrNotFound]("job not found", attr_keys.Id, id)
 	}
 	handlerJob.Cancel()
 	return nil

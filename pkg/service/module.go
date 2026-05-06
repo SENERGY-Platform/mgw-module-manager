@@ -25,6 +25,7 @@ import (
 	"reflect"
 	"slices"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/models/constants"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
@@ -73,7 +74,7 @@ func (s *Service) Module(ctx context.Context, id string) (lib_models.Module, err
 	ok = true
 	handlerDeployment, err := s.deploymentsHandler.GetDeploymentByModuleId(ctx, id)
 	if err != nil {
-		if !errors.Is(err, pkg_models.NotFoundErr) {
+		if !lib_errors.IsOf[lib_errors.ErrNotFound](err) {
 			return lib_models.Module{}, err
 		}
 		ok = false
@@ -87,7 +88,7 @@ func (s *Service) ModulesChangeRequest(_ context.Context) (lib_models.ModulesCha
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	if s.changeRequest == nil {
-		return lib_models.ModulesChangeRequest{}, pkg_models.NotFoundErr
+		return lib_models.ModulesChangeRequest{}, lib_errors.New[lib_errors.ErrNotFound]("no module change request available")
 	}
 	return transformModulesChangeRequest(*s.changeRequest), nil
 }
@@ -129,7 +130,7 @@ func (s *Service) ExecModulesChangeRequest(_ context.Context) (lib_models.Job, e
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.changeRequest == nil {
-		return lib_models.Job{}, pkg_models.NotFoundErr
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrNotFound]("no module change request available")
 	}
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{moduleJobSlotNum, repositoryJobSlotNum, deploymentJobSlotNum})
 	if len(currentJobs) > 0 {
@@ -164,7 +165,7 @@ func (s *Service) CancelModulesChangeRequest(_ context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.changeRequest == nil {
-		return pkg_models.NotFoundErr
+		return lib_errors.New[lib_errors.ErrNotFound]("no module change request available")
 	}
 	s.changeRequest = nil
 	return nil

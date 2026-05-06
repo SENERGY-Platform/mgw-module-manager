@@ -9,8 +9,10 @@ import (
 	"strings"
 	"sync"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
 )
 
 type Handler struct {
@@ -183,15 +185,29 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 func (h *Handler) getModuleVariant(id, source, channel string) (moduleWrapper, error) {
 	sources, ok := h.variantsMap[id]
 	if !ok {
-		return moduleWrapper{}, fmt.Errorf("module '%s' %w", id, pkg_models.NotFoundErr)
+		return moduleWrapper{}, lib_errors.New[lib_errors.ErrNotFound]("module not found", attr_keys.Id, id)
 	}
 	channels, ok := sources[source]
 	if !ok {
-		return moduleWrapper{}, fmt.Errorf("source '%s' %w", source, pkg_models.NotFoundErr)
+		return moduleWrapper{}, lib_errors.New[lib_errors.ErrNotFound](
+			"source not found",
+			attr_keys.Id,
+			id,
+			attr_keys.Source,
+			source,
+		)
 	}
 	variant, ok := channels[channel]
 	if !ok {
-		return moduleWrapper{}, fmt.Errorf("channel '%s' %w", channel, pkg_models.NotFoundErr)
+		return moduleWrapper{}, lib_errors.New[lib_errors.ErrNotFound](
+			"channel not found",
+			attr_keys.Id,
+			id,
+			attr_keys.Source,
+			source,
+			attr_keys.Channel,
+			channel,
+		)
 	}
 	return variant, nil
 }

@@ -21,8 +21,10 @@ import (
 	"strings"
 	"time"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
 )
 
 func (h *Handler) Module(ctx context.Context, id string) (pkg_models.DatabaseModule, error) {
@@ -31,7 +33,7 @@ func (h *Handler) Module(ctx context.Context, id string) (pkg_models.DatabaseMod
 		return pkg_models.DatabaseModule{}, err
 	}
 	if len(modules) == 0 {
-		return pkg_models.DatabaseModule{}, pkg_models.NotFoundErr
+		return pkg_models.DatabaseModule{}, lib_errors.New[lib_errors.ErrNotFound]("module not found", attr_keys.Id, id)
 	}
 	return modules[id], nil
 }

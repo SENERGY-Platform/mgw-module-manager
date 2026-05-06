@@ -22,6 +22,8 @@ const (
 	RequestId    = "request_id"
 	StackTrace   = "stack_trace"
 	Id           = "id"
+	Source       = "source"
+	Channel      = "channel"
 	DirName      = "dir_name"
 	Signal       = "signal"
 	Version      = "version"

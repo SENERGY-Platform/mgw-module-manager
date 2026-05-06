@@ -21,11 +21,13 @@ import (
 	"maps"
 	"slices"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/models/constants"
 	lib_external "github.com/SENERGY-Platform/mgw-module-manager/lib/models/external"
 	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -67,7 +69,7 @@ func (h *Handler) GetDeployment(ctx context.Context, id string) (pkg_models.Depl
 		return pkg_models.Deployment{}, err
 	}
 	if len(deployments) == 0 {
-		return pkg_models.Deployment{}, pkg_models.NotFoundErr
+		return pkg_models.Deployment{}, lib_errors.New[lib_errors.ErrNotFound]("deployment not found", attr_keys.Id, id)
 	}
 	return deployments[id], nil
 }
@@ -85,7 +87,7 @@ func (h *Handler) GetDeploymentByModuleId(ctx context.Context, moduleId string) 
 		return pkg_models.Deployment{}, err
 	}
 	if len(deployments) == 0 {
-		return pkg_models.Deployment{}, pkg_models.NotFoundErr
+		return pkg_models.Deployment{}, lib_errors.New[lib_errors.ErrNotFound]("module not deployed", attr_keys.Id, moduleId)
 	}
 	deployments = helper_maps.CollectFunc(maps.Values(deployments), func(value pkg_models.Deployment) string {
 		return value.ModuleId
