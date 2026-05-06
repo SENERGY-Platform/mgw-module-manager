@@ -24,18 +24,26 @@ import (
 	"maps"
 	"slices"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
 )
 
 func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]lib_models.Module, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	_, ok := s.jobsHandler.CurrentSlotJob(moduleJobSlotNum)
+	currentJob, ok := s.jobsHandler.CurrentSlotJob(moduleJobSlotNum)
 	if ok {
-		return nil, errors.New("active job") // TODO
+		return nil, lib_errors.New[lib_errors.ErrActiveJob](
+			"active job",
+			attr_keys.Id,
+			currentJob.Id,
+			attr_keys.Description,
+			currentJob.Description,
+		)
 	}
 	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
 		ModulesFilter: pkg_models.ModulesFilter{
@@ -66,7 +74,7 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []lib_models
 	defer s.mu.Unlock()
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
 	if len(currentJobs) > 0 {
-		return lib_models.Job{}, errors.New("active jobs") // TODO
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob]("active jobs", currentJobsToAttributes(currentJobs)...)
 	}
 	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
 		ModulesFilter: pkg_models.ModulesFilter{
@@ -121,7 +129,7 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 	defer s.mu.Unlock()
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
 	if len(currentJobs) > 0 {
-		return lib_models.Job{}, errors.New("active jobs") // TODO
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob]("active jobs", currentJobsToAttributes(currentJobs)...)
 	}
 	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
 		ModulesFilter: pkg_models.ModulesFilter{
@@ -201,7 +209,7 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 	defer s.mu.Unlock()
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
 	if len(currentJobs) > 0 {
-		return lib_models.Job{}, errors.New("active jobs") // TODO
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob]("active jobs", currentJobsToAttributes(currentJobs)...)
 	}
 	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
 		ModulesFilter: pkg_models.ModulesFilter{
@@ -247,9 +255,15 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]lib_models.DeploymentDeleteResult, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	_, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
+	currentJob, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
 	if ok {
-		return nil, errors.New("active job") // TODO
+		return nil, lib_errors.New[lib_errors.ErrActiveJob](
+			"active job",
+			attr_keys.Id,
+			currentJob.Id,
+			attr_keys.Description,
+			currentJob.Description,
+		)
 	}
 	deploymentIds, err := s.deploymentsHandler.GetDeploymentIds(ctx, pkg_models.DeploymentsFilter{
 		ModuleIds: moduleIds,
@@ -319,9 +333,15 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]
 func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	_, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
+	currentJob, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
 	if ok {
-		return nil, errors.New("active job") // TODO
+		return nil, lib_errors.New[lib_errors.ErrActiveJob](
+			"active job",
+			attr_keys.Id,
+			currentJob.Id,
+			attr_keys.Description,
+			currentJob.Description,
+		)
 	}
 	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
 		ModulesFilter: pkg_models.ModulesFilter{
@@ -338,9 +358,15 @@ func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) ([]
 func (s *Service) DisableDeployments(ctx context.Context, moduleIds []string) ([]string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	_, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
+	currentJob, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
 	if ok {
-		return nil, errors.New("active job") // TODO
+		return nil, lib_errors.New[lib_errors.ErrActiveJob](
+			"active job",
+			attr_keys.Id,
+			currentJob.Id,
+			attr_keys.Description,
+			currentJob.Description,
+		)
 	}
 	return s.deploymentsHandler.DisableDeployments(ctx, moduleIds)
 }

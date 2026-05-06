@@ -29,6 +29,7 @@ const (
 	Version      = "version"
 	ConfigValues = "config_values"
 	Component    = "component"
+	Description  = "description"
 	Error        = attributes.ErrorKey
 	Method       = attributes.MethodKey
 	Path         = attributes.PathKey

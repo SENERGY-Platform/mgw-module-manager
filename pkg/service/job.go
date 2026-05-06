@@ -72,3 +72,11 @@ func getJob(handlerJob *handler_jobs.Job) lib_models.Job {
 	}
 	return job
 }
+
+func currentJobsToAttributes(jobs map[int]*handler_jobs.Job) []interface{} {
+	var attr []interface{}
+	for _, job := range jobs {
+		attr = append(attr, attr_keys.Id, job.Id, attr_keys.Description, job.Description)
+	}
+	return attr
+}

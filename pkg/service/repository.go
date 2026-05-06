@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -18,9 +17,15 @@ import (
 func (s *Service) RefreshRepositories(_ context.Context) (lib_models.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	_, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
+	currentJob, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
 	if ok {
-		return lib_models.Job{}, errors.New("active job") // TODO
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](
+			"active job",
+			attr_keys.Id,
+			currentJob.Id,
+			attr_keys.Description,
+			currentJob.Description,
+		)
 	}
 	s.changeRequest = nil
 	job, err := s.jobsHandler.CreateSlotJob(repositoryJobSlotNum, "refresh repositories")
@@ -52,9 +57,15 @@ func (s *Service) RefreshRepositories(_ context.Context) (lib_models.Job, error)
 func (s *Service) RepoModules(ctx context.Context, filter lib_models.RepoModulesFilter) ([]lib_models.RepoModule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	_, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
+	currentJob, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
 	if ok {
-		return nil, errors.New("active job") // TODO
+		return nil, lib_errors.New[lib_errors.ErrActiveJob](
+			"active job",
+			attr_keys.Id,
+			currentJob.Id,
+			attr_keys.Description,
+			currentJob.Description,
+		)
 	}
 	repos, err := s.repositoriesHandler.Repositories(ctx)
 	if err != nil {
