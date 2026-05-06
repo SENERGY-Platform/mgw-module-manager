@@ -19,7 +19,7 @@ package lib_errors
 import "fmt"
 
 type iErrBase interface {
-	Error() string
+	error
 	Unwrap() error
 }
 
