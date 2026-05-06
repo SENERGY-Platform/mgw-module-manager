@@ -28,8 +28,11 @@ func getStatusCode(err error) int {
 		switch err.(type) {
 		case *lib_errors.ErrNotFound:
 			return http.StatusNotFound
-		case *lib_errors.ErrConflict:
-			return http.StatusConflict
+		case *lib_errors.ErrExists:
+			return http.StatusBadRequest
+		case *lib_errors.ErrActiveJob:
+			return http.StatusServiceUnavailable
+
 		}
 		err = errors.Unwrap(err)
 		if err == nil {

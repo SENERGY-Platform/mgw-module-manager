@@ -87,7 +87,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 			return err
 		}
 	} else {
-		return lib_errors.New[lib_errors.ErrConflict]("module exists", attr_keys.Id, id)
+		return lib_errors.New[lib_errors.ErrExists]("module exists", attr_keys.Id, id)
 	}
 	stgMod, err := newStgMod(id, source, channel)
 	if err != nil {

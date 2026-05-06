@@ -30,12 +30,26 @@ func (e *ErrNotFound) set(msg string, err error, args []interface{}) {
 	}
 }
 
-type ErrConflict struct {
+type ErrExists struct {
 	errBase
 }
 
-func (e *ErrConflict) set(msg string, err error, args []interface{}) {
-	*e = ErrConflict{
+func (e *ErrExists) set(msg string, err error, args []interface{}) {
+	*e = ErrExists{
+		errBase{
+			msg:  msg,
+			err:  err,
+			args: args,
+		},
+	}
+}
+
+type ErrActiveJob struct {
+	errBase
+}
+
+func (e *ErrActiveJob) set(msg string, err error, args []interface{}) {
+	*e = ErrActiveJob{
 		errBase{
 			msg:  msg,
 			err:  err,
