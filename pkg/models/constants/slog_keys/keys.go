@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package models
+package slog_keys
 
 import "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
 
 const (
-	ErrorKey                   = attributes.ErrorKey
-	RequestIdKey               = "request_id"
-	StackTraceKey              = "stack_trace"
-	IdKey                      = "id"
-	DirNameKey                 = "dir_name"
-	SignalKey                  = "signal"
-	VersionKey                 = "version"
-	ConfigValuesKey            = "config_values"
-	ComponentKey               = "component"
-	LogRecordTypeKey           = attributes.LogRecordTypeKey
-	HttpAccessLogRecordTypeVal = attributes.HttpAccessLogRecordTypeVal
-	MethodKey                  = attributes.MethodKey
-	PathKey                    = attributes.PathKey
+	RequestId    = "request_id"
+	StackTrace   = "stack_trace"
+	Id           = "id"
+	DirName      = "dir_name"
+	Signal       = "signal"
+	Version      = "version"
+	ConfigValues = "config_values"
+	Component    = "component"
+	Error        = attributes.ErrorKey
+	Method       = attributes.MethodKey
+	Path         = attributes.PathKey
 )
-
-var Provider = attributes.Provider

@@ -25,6 +25,7 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -42,9 +43,9 @@ func (h *Handler) createContainer(
 	maps.Copy(envVariables, configs)
 	setInternalDependencyEnvVariables(envVariables, moduleAuxService.SrvReferences, activeDeployment.Containers)
 	setExternalDependencyEnvVariables(envVariables, moduleAuxService.ExtDependencies, dependencies)
-	envVariables[pkg_models.EnvVariableCoreId] = helper_naming.CoreId
-	envVariables[pkg_models.EnvVariableDeploymentId] = activeDeployment.Id
-	envVariables[pkg_models.EnvVariableAuxDeploymentId] = auxDeployment.Id
+	envVariables[constants.EnvVariableCoreId] = helper_naming.CoreId
+	envVariables[constants.EnvVariableDeploymentId] = activeDeployment.Id
+	envVariables[constants.EnvVariableAuxDeploymentId] = auxDeployment.Id
 	var mounts []external_models.CewMount
 	mounts = appendIncludeMounts(mounts, moduleAuxService.BindMounts, activeDeployment.DirName, h.config.HostWorkDirPath)
 	mounts = appendTmpfsMounts(mounts, moduleAuxService.Tmpfs)
@@ -85,11 +86,11 @@ func getCewContainer(
 		Image:   image,
 		EnvVars: envVariables,
 		Labels: map[string]string{
-			pkg_models.LabelCoreId:                 helper_naming.CoreId,
-			pkg_models.LabelManagerId:              helper_naming.ManagerId,
-			pkg_models.LabelDeploymentId:           deploymentId,
-			pkg_models.LabelAuxDeploymentId:        auxDeploymentId,
-			pkg_models.LabelAuxDeploymentReference: auxServiceReference,
+			constants.LabelCoreId:                 helper_naming.CoreId,
+			constants.LabelManagerId:              helper_naming.ManagerId,
+			constants.LabelDeploymentId:           deploymentId,
+			constants.LabelAuxDeploymentId:        auxDeploymentId,
+			constants.LabelAuxDeploymentReference: auxServiceReference,
 		},
 		Mounts: mounts,
 		Networks: []external_models.CewContainerNetwork{

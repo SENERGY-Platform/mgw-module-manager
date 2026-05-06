@@ -22,11 +22,6 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 )
 
-const (
-	DeploymentStateHealthy = iota + 1
-	DeploymentStateUnhealthy
-)
-
 type Deployment struct {
 	DeploymentBase
 	Containers    map[string]DeploymentContainer

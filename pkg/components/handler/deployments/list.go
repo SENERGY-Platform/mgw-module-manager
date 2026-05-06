@@ -24,6 +24,7 @@ import (
 	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -259,9 +260,9 @@ func getContainers(
 
 func getDeploymentState(containersState int) int {
 	if containersState == containersStateRunning {
-		return pkg_models.DeploymentStateHealthy
+		return constants.DeploymentStateHealthy
 	}
-	return pkg_models.DeploymentStateUnhealthy
+	return constants.DeploymentStateUnhealthy
 }
 
 func getContainersCombinedState(

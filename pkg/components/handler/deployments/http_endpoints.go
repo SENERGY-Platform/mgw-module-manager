@@ -22,6 +22,7 @@ import (
 
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -79,8 +80,8 @@ func newCmEndpointBase(
 			Filters:     serviceEndpoint.StringSub.Filters,
 		},
 		Labels: map[string]string{
-			pkg_models.LabelHttpEndpointModuleId:         moduleId,
-			pkg_models.LabelHttpEndpointServiceReference: containerReference,
+			constants.LabelHttpEndpointModuleId:         moduleId,
+			constants.LabelHttpEndpointServiceReference: containerReference,
 		},
 	}
 }

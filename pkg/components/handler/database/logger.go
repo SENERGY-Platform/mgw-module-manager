@@ -19,11 +19,11 @@ package database
 import (
 	"log/slog"
 
-	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 var logger *slog.Logger
 
 func InitLogger(sl *slog.Logger) {
-	logger = sl.With(pkg_models.ComponentKey, "handler-database")
+	logger = sl.With(slog_keys.Component, "handler-database")
 }

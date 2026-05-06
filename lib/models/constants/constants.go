@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 InfAI (CC SES)
+ * Copyright 2026 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package deployments
+package constants
 
-import (
-	"log/slog"
-
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
+const (
+	ModuleChangeActionInstall = "install"
+	ModuleChangeActionChange  = "change"
+	ModuleChangeActionRemove  = "remove"
 )
-
-var logger *slog.Logger
-
-func InitLogger(sl *slog.Logger) {
-	logger = sl.With(slog_keys.Component, "handler-deployments")
-}

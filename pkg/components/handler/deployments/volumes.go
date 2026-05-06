@@ -26,6 +26,7 @@ import (
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -66,11 +67,11 @@ func (h *Handler) createContainerVolume(ctx context.Context, volume pkg_models.D
 	_, err := h.containerEngineWrapperClient.CreateVolume(ctx, external_models.CewVolume{
 		Name: volume.Name,
 		Labels: map[string]string{
-			pkg_models.LabelCoreId:          helper_naming.CoreId,
-			pkg_models.LabelManagerId:       helper_naming.ManagerId,
-			pkg_models.LabelVolumeType:      pkg_models.DeploymentAbbreviation,
-			pkg_models.LabelDeploymentId:    volume.DeploymentId,
-			pkg_models.LabelVolumeReference: volume.Reference,
+			constants.LabelCoreId:          helper_naming.CoreId,
+			constants.LabelManagerId:       helper_naming.ManagerId,
+			constants.LabelVolumeType:      constants.DeploymentAbbreviation,
+			constants.LabelDeploymentId:    volume.DeploymentId,
+			constants.LabelVolumeReference: volume.Reference,
 		},
 	})
 	if err != nil {
@@ -99,10 +100,10 @@ func (h *Handler) removeContainerVolumes(
 func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) (map[string]external_models.CewVolume, error) {
 	volumes, err := h.containerEngineWrapperClient.GetVolumes(ctx, external_models.CewVolumesFilter{
 		Labels: map[string]string{
-			pkg_models.LabelCoreId:       helper_naming.CoreId,
-			pkg_models.LabelManagerId:    helper_naming.ManagerId,
-			pkg_models.LabelVolumeType:   pkg_models.DeploymentAbbreviation,
-			pkg_models.LabelDeploymentId: deploymentId,
+			constants.LabelCoreId:       helper_naming.CoreId,
+			constants.LabelManagerId:    helper_naming.ManagerId,
+			constants.LabelVolumeType:   constants.DeploymentAbbreviation,
+			constants.LabelDeploymentId: deploymentId,
 		},
 	})
 	if err != nil {

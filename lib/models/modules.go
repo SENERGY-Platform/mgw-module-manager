@@ -22,12 +22,6 @@ import (
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models/external"
 )
 
-const (
-	ChangeActionInstall = "install"
-	ChangeActionChange  = "change"
-	ChangeActionRemove  = "remove"
-)
-
 type Module struct {
 	external_models.ModuleLibModule
 	Source     string     `json:"source"`

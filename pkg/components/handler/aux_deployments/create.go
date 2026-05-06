@@ -31,6 +31,7 @@ import (
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -164,7 +165,7 @@ func getAuxiliaryDeployment(
 	containerAlias string,
 	serviceInput lib_models.AuxiliaryDeploymentInputBase,
 ) (pkg_models.AuxiliaryDeployment, error) {
-	ctrName, err := helper_naming.NewContainerName(pkg_models.AuxDeploymentAbbreviation)
+	ctrName, err := helper_naming.NewContainerName(constants.AuxDeploymentAbbreviation)
 	if err != nil {
 		return pkg_models.AuxiliaryDeployment{}, err
 	}

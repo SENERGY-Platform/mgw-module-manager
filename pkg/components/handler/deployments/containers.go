@@ -27,6 +27,7 @@ import (
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -54,8 +55,8 @@ func (h *Handler) createContainers(
 		setSecretValueEnvVariables(envVariables, service.SecretVars, userDataSecrets, cacheSecretValues)
 		setInternalDependencyEnvVariables(envVariables, service.SrvReferences, containers)
 		setExternalDependencyEnvVariables(envVariables, service.ExtDependencies, cacheDeployments)
-		envVariables[pkg_models.EnvVariableCoreId] = helper_naming.CoreId
-		envVariables[pkg_models.EnvVariableDeploymentId] = deploymentId
+		envVariables[constants.EnvVariableCoreId] = helper_naming.CoreId
+		envVariables[constants.EnvVariableDeploymentId] = deploymentId
 		var mounts []external_models.CewMount
 		mounts = appendIncludeMounts(mounts, service.BindMounts, deploymentDirName, h.config.HostWorkDirPath)
 		mounts = appendTmpfsMounts(mounts, service.Tmpfs)
@@ -159,10 +160,10 @@ func getCewContainer(
 		Image:   serviceImage,
 		EnvVars: envVariables,
 		Labels: map[string]string{
-			pkg_models.LabelCoreId:           helper_naming.CoreId,
-			pkg_models.LabelManagerId:        helper_naming.ManagerId,
-			pkg_models.LabelDeploymentId:     deploymentId,
-			pkg_models.LabelServiceReference: serviceReference,
+			constants.LabelCoreId:           helper_naming.CoreId,
+			constants.LabelManagerId:        helper_naming.ManagerId,
+			constants.LabelDeploymentId:     deploymentId,
+			constants.LabelServiceReference: serviceReference,
 		},
 		Mounts:            mounts,
 		Devices:           devices,

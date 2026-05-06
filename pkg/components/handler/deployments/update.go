@@ -28,6 +28,7 @@ import (
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -237,7 +238,7 @@ func initDeploymentsCacheFromModulesAndDeployments(
 		containers := make(map[string]containerCacheItem)
 		for reference := range module.Services {
 			existingContainer := deploymentsContainers[deployment.Id][reference]
-			name, err := helper_naming.NewContainerName(pkg_models.DeploymentAbbreviation)
+			name, err := helper_naming.NewContainerName(constants.DeploymentAbbreviation)
 			if err != nil {
 				return nil, err
 			}
@@ -280,7 +281,7 @@ func updateVolumes(
 		volume := deploymentVolumes[reference]
 		name := volume.Name
 		if name == "" {
-			name = helper_naming.NewVolumeName(pkg_models.DeploymentAbbreviation, deploymentId, reference)
+			name = helper_naming.NewVolumeName(constants.DeploymentAbbreviation, deploymentId, reference)
 		}
 		volumes[reference] = pkg_models.DeploymentVolume{
 			DeploymentId: deploymentId,

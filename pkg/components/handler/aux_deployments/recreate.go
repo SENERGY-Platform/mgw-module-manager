@@ -25,6 +25,7 @@ import (
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -106,7 +107,7 @@ func (h *Handler) recreateAuxiliaryDeployment(
 	configs map[string]string,
 	volumeMounts []pkg_models.AuxiliaryDeploymentVolumeMount,
 ) error {
-	ctrName, err := helper_naming.NewContainerName(pkg_models.AuxDeploymentAbbreviation)
+	ctrName, err := helper_naming.NewContainerName(constants.AuxDeploymentAbbreviation)
 	if err != nil {
 		return err
 	}

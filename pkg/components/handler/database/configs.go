@@ -24,6 +24,7 @@ import (
 
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 )
 
 func (h *Handler) queryConfigs(ctx context.Context, ids []string, t1, t2 string, filterIdCol string, t1Cols ...string) (*sql.Rows, error) {
@@ -90,16 +91,16 @@ func createConfigValues(ctx context.Context, tx *sql.Tx, tableName string, id st
 
 func getInterfaceValAndCol(v pkg_models.Value) (colName string, value interface{}) {
 	switch v.DataType {
-	case pkg_models.DataTypeString:
+	case constants.ValueDataTypeString:
 		colName = "v_string"
 		value = v.String
-	case pkg_models.DataTypeInt64:
+	case constants.ValueDataTypeInt64:
 		colName = "v_int"
 		value = v.Int64
-	case pkg_models.DataTypeFloat64:
+	case constants.ValueDataTypeFloat64:
 		colName = "v_float"
 		value = v.Float64
-	case pkg_models.DataTypeBool:
+	case constants.ValueDataTypeBool:
 		colName = "v_bool"
 		value = v.Bool
 	}
@@ -108,16 +109,16 @@ func getInterfaceValAndCol(v pkg_models.Value) (colName string, value interface{
 
 func getListInterfaceValsAndCol(v pkg_models.Value) (colName string, values []interface{}) {
 	switch v.DataType {
-	case pkg_models.DataTypeString:
+	case constants.ValueDataTypeString:
 		colName = "v_string"
 		values = helper_slices.ToAny(v.StringSlice)
-	case pkg_models.DataTypeInt64:
+	case constants.ValueDataTypeInt64:
 		colName = "v_int"
 		values = helper_slices.ToAny(v.Int64Slice)
-	case pkg_models.DataTypeFloat64:
+	case constants.ValueDataTypeFloat64:
 		colName = "v_float"
 		values = helper_slices.ToAny(v.Float64Slice)
-	case pkg_models.DataTypeBool:
+	case constants.ValueDataTypeBool:
 		colName = "v_bool"
 		values = helper_slices.ToAny(v.BoolSlice)
 	}

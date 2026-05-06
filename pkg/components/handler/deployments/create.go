@@ -32,6 +32,7 @@ import (
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -337,7 +338,7 @@ func initDeploymentsCacheFromModules(modules map[string]pkg_models.Module) (map[
 		}
 		containers := make(map[string]containerCacheItem)
 		for reference := range module.Services {
-			name, err := helper_naming.NewContainerName(pkg_models.DeploymentAbbreviation)
+			name, err := helper_naming.NewContainerName(constants.DeploymentAbbreviation)
 			if err != nil {
 				return nil, err
 			}
@@ -360,7 +361,7 @@ func getNewVolumes(moduleVolumes map[string]struct{}, deploymentId string) map[s
 		volumes[reference] = pkg_models.DeploymentVolume{
 			DeploymentId: deploymentId,
 			Reference:    reference,
-			Name:         helper_naming.NewVolumeName(pkg_models.DeploymentAbbreviation, deploymentId, reference),
+			Name:         helper_naming.NewVolumeName(constants.DeploymentAbbreviation, deploymentId, reference),
 		}
 	}
 	return volumes

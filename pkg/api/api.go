@@ -20,7 +20,9 @@ import (
 	"log/slog"
 
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
-	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	sb_slog_attributes "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 )
@@ -42,8 +44,8 @@ func New(service serviceItf, infoHdl infoHandler, logger *slog.Logger, accessLog
 		middleware = append(
 			middleware,
 			gin_mw.StructLoggerHandler(
-				logger.With(pkg_models.LogRecordTypeKey, pkg_models.HttpAccessLogRecordTypeVal),
-				pkg_models.Provider,
+				logger.With(sb_slog_attributes.LogRecordTypeKey, sb_slog_attributes.HttpAccessLogRecordTypeVal),
+				sb_slog_attributes.Provider,
 				nil,
 				nil,
 				requestIdGenerator,
@@ -52,10 +54,10 @@ func New(service serviceItf, infoHdl infoHandler, logger *slog.Logger, accessLog
 	}
 	middleware = append(middleware,
 		gin_mw.StaticHeaderHandler(map[string]string{
-			pkg_models.HeaderApiVer:  infoHdl.Version(),
-			pkg_models.HeaderSrvName: infoHdl.Name(),
+			constants.HeaderApiVer:  infoHdl.Version(),
+			constants.HeaderSrvName: infoHdl.Name(),
 		}),
-		requestid.New(requestid.WithCustomHeaderStrKey(pkg_models.HeaderRequestId)),
+		requestid.New(requestid.WithCustomHeaderStrKey(constants.HeaderRequestId)),
 		gin_mw.ErrorHandler(getStatusCode, ", "),
 		gin_mw.StructRecoveryHandler(logger, gin_mw.DefaultRecoveryFunc),
 	)
@@ -71,7 +73,7 @@ func New(service serviceItf, infoHdl infoHandler, logger *slog.Logger, accessLog
 		return nil, err
 	}
 	for _, route := range setRoutes {
-		logger.Debug("http route", pkg_models.MethodKey, route[0], pkg_models.PathKey, route[1])
+		logger.Debug("http route", slog_keys.Method, route[0], slog_keys.Path, route[1])
 	}
 	return a, nil
 }
@@ -81,5 +83,5 @@ func (a *Api) Handler() *gin.Engine {
 }
 
 func requestIdGenerator(gc *gin.Context) (string, any) {
-	return pkg_models.RequestIdKey, requestid.Get(gc)
+	return slog_keys.RequestId, requestid.Get(gc)
 }

@@ -16,13 +16,6 @@
 
 package models
 
-const (
-	DataTypeString = iota
-	DataTypeInt64
-	DataTypeFloat64
-	DataTypeBool
-)
-
 type Value struct {
 	DataType     int
 	IsSlice      bool

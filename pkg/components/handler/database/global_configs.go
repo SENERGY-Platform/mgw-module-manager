@@ -22,6 +22,7 @@ import (
 
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 )
 
 func (h *Handler) CreateGlobalConfig(ctx context.Context, config pkg_models.Config) (err error) {
@@ -90,24 +91,24 @@ func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[stri
 		}
 		if isList {
 			switch dataType {
-			case pkg_models.DataTypeString:
+			case constants.ValueDataTypeString:
 				config.StringSlice = append(config.StringSlice, vString.String)
-			case pkg_models.DataTypeInt64:
+			case constants.ValueDataTypeInt64:
 				config.Int64Slice = append(config.Int64Slice, vInt.Int64)
-			case pkg_models.DataTypeFloat64:
+			case constants.ValueDataTypeFloat64:
 				config.Float64Slice = append(config.Float64Slice, vFloat.Float64)
-			case pkg_models.DataTypeBool:
+			case constants.ValueDataTypeBool:
 				config.BoolSlice = append(config.BoolSlice, vBool.Bool)
 			}
 		} else {
 			switch dataType {
-			case pkg_models.DataTypeString:
+			case constants.ValueDataTypeString:
 				config.String = vString.String
-			case pkg_models.DataTypeInt64:
+			case constants.ValueDataTypeInt64:
 				config.Int64 = vInt.Int64
-			case pkg_models.DataTypeFloat64:
+			case constants.ValueDataTypeFloat64:
 				config.Float64 = vFloat.Float64
-			case pkg_models.DataTypeBool:
+			case constants.ValueDataTypeBool:
 				config.Bool = vBool.Bool
 			}
 		}

@@ -36,7 +36,7 @@ import (
 	helper_sql_db "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/configuration"
-	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
 )
@@ -66,9 +66,9 @@ func main() {
 
 	logger.Info(
 		"starting service",
-		pkg_models.VersionKey,
+		slog_keys.Version,
 		serviceInfoHandler.Version(),
-		pkg_models.ConfigValuesKey,
+		slog_keys.ConfigValues,
 		sb_config_hdl.StructToMap(config, true),
 	)
 
@@ -76,7 +76,7 @@ func main() {
 
 	mySQLConnector, err := handler_database.NewConnector(config.Database.MySQL)
 	if err != nil {
-		logger.Error("creating mysql connector failed", pkg_models.ErrorKey, err)
+		logger.Error("creating mysql connector failed", slog_keys.Error, err)
 		ec = 1
 		return
 	}
@@ -87,7 +87,7 @@ func main() {
 	migration_db_restructure.InitLogger(logger)
 	err = databaseHandler.Migrate(ctx, migration_db_restructure.Migration, migration_db_init.Migration)
 	if err != nil {
-		logger.Error("database migration failed", pkg_models.ErrorKey, err)
+		logger.Error("database migration failed", slog_keys.Error, err)
 		ec = 1
 		return
 	}
@@ -175,7 +175,7 @@ func main() {
 		config.HttpAccessLog,
 	)
 	if err != nil {
-		logger.Error("creating http engine failed", pkg_models.ErrorKey, err)
+		logger.Error("creating http engine failed", slog_keys.Error, err)
 		ec = 1
 		return
 	}
@@ -183,28 +183,28 @@ func main() {
 	httpServer := &http.Server{Handler: httpApi.Handler()}
 	serverListener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
-		logger.Error("creating server listener failed", pkg_models.ErrorKey, err)
+		logger.Error("creating server listener failed", slog_keys.Error, err)
 		ec = 1
 		return
 	}
 
 	err = repositoriesHandler.InitRepositories(ctx)
 	if err != nil {
-		logger.Error("initializing module repositories failed", pkg_models.ErrorKey, err)
+		logger.Error("initializing module repositories failed", slog_keys.Error, err)
 		ec = 1
 		return
 	}
 
 	err = modulesHdl.Init()
 	if err != nil {
-		logger.Error("initializing modules handler failed", pkg_models.ErrorKey, err)
+		logger.Error("initializing modules handler failed", slog_keys.Error, err)
 		ec = 1
 		return
 	}
 
 	err = deploymentsHandler.Init()
 	if err != nil {
-		logger.Error("initializing deployments handler failed", pkg_models.ErrorKey, err)
+		logger.Error("initializing deployments handler failed", slog_keys.Error, err)
 		ec = 1
 		return
 	}
@@ -240,7 +240,7 @@ func main() {
 	go func() {
 		logger.Info("starting http server")
 		if err := httpServer.Serve(serverListener); !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("starting server failed", pkg_models.ErrorKey, err)
+			logger.Error("starting server failed", slog_keys.Error, err)
 			ec = 1
 		}
 		cf()
@@ -254,7 +254,7 @@ func main() {
 		ctxWt, cf2 := context.WithTimeout(context.Background(), time.Second*5)
 		defer cf2()
 		if err := httpServer.Shutdown(ctxWt); err != nil {
-			logger.Error("stopping server failed", pkg_models.ErrorKey, err)
+			logger.Error("stopping server failed", slog_keys.Error, err)
 			ec = 1
 		} else {
 			logger.Info("http server stopped")

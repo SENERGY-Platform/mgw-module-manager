@@ -26,6 +26,7 @@ import (
 
 	module_lib_validation_configs "github.com/SENERGY-Platform/mgw-module-lib/validation/configs"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -38,24 +39,24 @@ func ValueIsEqual(a, b pkg_models.Value) bool {
 	}
 	if a.IsSlice {
 		switch a.DataType {
-		case pkg_models.DataTypeString:
+		case constants.ValueDataTypeString:
 			return slices.Equal(a.StringSlice, b.StringSlice)
-		case pkg_models.DataTypeInt64:
+		case constants.ValueDataTypeInt64:
 			return slices.Equal(a.Int64Slice, b.Int64Slice)
-		case pkg_models.DataTypeFloat64:
+		case constants.ValueDataTypeFloat64:
 			return slices.Equal(a.Float64Slice, b.Float64Slice)
-		case pkg_models.DataTypeBool:
+		case constants.ValueDataTypeBool:
 			return slices.Equal(a.BoolSlice, b.BoolSlice)
 		}
 	} else {
 		switch a.DataType {
-		case pkg_models.DataTypeString:
+		case constants.ValueDataTypeString:
 			return a.String == b.String
-		case pkg_models.DataTypeInt64:
+		case constants.ValueDataTypeInt64:
 			return a.Int64 == b.Int64
-		case pkg_models.DataTypeFloat64:
+		case constants.ValueDataTypeFloat64:
 			return a.Float64 == b.Float64
-		case pkg_models.DataTypeBool:
+		case constants.ValueDataTypeBool:
 			return a.Bool == b.Bool
 		}
 	}
@@ -73,7 +74,7 @@ func GetValue(val any, dataType int, isSlice bool) (pkg_models.Value, error) {
 			return pkg_models.Value{}, fmt.Errorf("invalid data type '%T'", val) // TODO
 		}
 		switch dataType {
-		case pkg_models.DataTypeString:
+		case constants.ValueDataTypeString:
 			for _, item := range anySlice {
 				v, err := toString(item)
 				if err != nil {
@@ -81,7 +82,7 @@ func GetValue(val any, dataType int, isSlice bool) (pkg_models.Value, error) {
 				}
 				config.StringSlice = append(config.StringSlice, v)
 			}
-		case pkg_models.DataTypeBool:
+		case constants.ValueDataTypeBool:
 			for _, item := range anySlice {
 				v, err := toBool(item)
 				if err != nil {
@@ -89,7 +90,7 @@ func GetValue(val any, dataType int, isSlice bool) (pkg_models.Value, error) {
 				}
 				config.BoolSlice = append(config.BoolSlice, v)
 			}
-		case pkg_models.DataTypeInt64:
+		case constants.ValueDataTypeInt64:
 			for _, item := range anySlice {
 				v, err := toInt64(item)
 				if err != nil {
@@ -97,7 +98,7 @@ func GetValue(val any, dataType int, isSlice bool) (pkg_models.Value, error) {
 				}
 				config.Int64Slice = append(config.Int64Slice, v)
 			}
-		case pkg_models.DataTypeFloat64:
+		case constants.ValueDataTypeFloat64:
 			for _, item := range anySlice {
 				v, err := toFloat64(item)
 				if err != nil {
@@ -110,25 +111,25 @@ func GetValue(val any, dataType int, isSlice bool) (pkg_models.Value, error) {
 		}
 	} else {
 		switch dataType {
-		case pkg_models.DataTypeString:
+		case constants.ValueDataTypeString:
 			v, err := toString(val)
 			if err != nil {
 				return pkg_models.Value{}, err
 			}
 			config.String = v
-		case pkg_models.DataTypeBool:
+		case constants.ValueDataTypeBool:
 			v, err := toBool(val)
 			if err != nil {
 				return pkg_models.Value{}, err
 			}
 			config.Bool = v
-		case pkg_models.DataTypeInt64:
+		case constants.ValueDataTypeInt64:
 			v, err := toInt64(val)
 			if err != nil {
 				return pkg_models.Value{}, err
 			}
 			config.Int64 = v
-		case pkg_models.DataTypeFloat64:
+		case constants.ValueDataTypeFloat64:
 			v, err := toFloat64(val)
 			if err != nil {
 				return pkg_models.Value{}, err
@@ -152,7 +153,7 @@ func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfi
 		}
 		switch moduleConfig.DataType {
 		case external_models.ModuleLibStringType:
-			config.DataType = pkg_models.DataTypeString
+			config.DataType = constants.ValueDataTypeString
 			for _, item := range anySlice {
 				v, err := toString(item)
 				if err != nil {
@@ -165,7 +166,7 @@ func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfi
 				config.StringSlice = append(config.StringSlice, v)
 			}
 		case external_models.ModuleLibBoolType:
-			config.DataType = pkg_models.DataTypeBool
+			config.DataType = constants.ValueDataTypeBool
 			for _, item := range anySlice {
 				v, err := toBool(item)
 				if err != nil {
@@ -178,7 +179,7 @@ func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfi
 				config.BoolSlice = append(config.BoolSlice, v)
 			}
 		case external_models.ModuleLibInt64Type:
-			config.DataType = pkg_models.DataTypeInt64
+			config.DataType = constants.ValueDataTypeInt64
 			for _, item := range anySlice {
 				v, err := toInt64(item)
 				if err != nil {
@@ -191,7 +192,7 @@ func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfi
 				config.Int64Slice = append(config.Int64Slice, v)
 			}
 		case external_models.ModuleLibFloat64Type:
-			config.DataType = pkg_models.DataTypeFloat64
+			config.DataType = constants.ValueDataTypeFloat64
 			for _, item := range anySlice {
 				v, err := toFloat64(item)
 				if err != nil {
@@ -209,7 +210,7 @@ func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfi
 	} else {
 		switch moduleConfig.DataType {
 		case external_models.ModuleLibStringType:
-			config.DataType = pkg_models.DataTypeString
+			config.DataType = constants.ValueDataTypeString
 			v, err := toString(val)
 			if err != nil {
 				return pkg_models.Value{}, err
@@ -220,7 +221,7 @@ func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfi
 				return pkg_models.Value{}, err
 			}
 		case external_models.ModuleLibBoolType:
-			config.DataType = pkg_models.DataTypeBool
+			config.DataType = constants.ValueDataTypeBool
 			v, err := toBool(val)
 			if err != nil {
 				return pkg_models.Value{}, err
@@ -231,7 +232,7 @@ func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfi
 				return pkg_models.Value{}, err
 			}
 		case external_models.ModuleLibInt64Type:
-			config.DataType = pkg_models.DataTypeInt64
+			config.DataType = constants.ValueDataTypeInt64
 			v, err := toInt64(val)
 			if err != nil {
 				return pkg_models.Value{}, err
@@ -242,7 +243,7 @@ func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfi
 				return pkg_models.Value{}, err
 			}
 		case external_models.ModuleLibFloat64Type:
-			config.DataType = pkg_models.DataTypeFloat64
+			config.DataType = constants.ValueDataTypeFloat64
 			v, err := toFloat64(val)
 			if err != nil {
 				return pkg_models.Value{}, err
@@ -261,22 +262,22 @@ func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfi
 
 func ValueToInterface(config pkg_models.Value) (v interface{}) {
 	switch config.DataType {
-	case pkg_models.DataTypeString:
+	case constants.ValueDataTypeString:
 		if config.IsSlice {
 			return config.StringSlice
 		}
 		return config.String
-	case pkg_models.DataTypeInt64:
+	case constants.ValueDataTypeInt64:
 		if config.IsSlice {
 			return config.Int64Slice
 		}
 		return config.Int64
-	case pkg_models.DataTypeFloat64:
+	case constants.ValueDataTypeFloat64:
 		if config.IsSlice {
 			return config.Float64Slice
 		}
 		return config.Float64
-	case pkg_models.DataTypeBool:
+	case constants.ValueDataTypeBool:
 		if config.IsSlice {
 			return config.BoolSlice
 		}
@@ -287,13 +288,13 @@ func ValueToInterface(config pkg_models.Value) (v interface{}) {
 
 func ValueToString(config pkg_models.Value) string {
 	switch config.DataType {
-	case pkg_models.DataTypeString:
+	case constants.ValueDataTypeString:
 		return config.String
-	case pkg_models.DataTypeInt64:
+	case constants.ValueDataTypeInt64:
 		return strconv.FormatInt(config.Int64, 10)
-	case pkg_models.DataTypeFloat64:
+	case constants.ValueDataTypeFloat64:
 		return strconv.FormatFloat(config.Float64, 'f', -1, 64)
-	case pkg_models.DataTypeBool:
+	case constants.ValueDataTypeBool:
 		return strconv.FormatBool(config.Bool)
 	}
 	return ""
@@ -302,17 +303,17 @@ func ValueToString(config pkg_models.Value) string {
 func SliceValueToString(config pkg_models.Value, delimiter string) string {
 	var values []string
 	switch config.DataType {
-	case pkg_models.DataTypeString:
+	case constants.ValueDataTypeString:
 		values = config.StringSlice
-	case pkg_models.DataTypeInt64:
+	case constants.ValueDataTypeInt64:
 		for _, i := range config.Int64Slice {
 			values = append(values, strconv.FormatInt(i, 10))
 		}
-	case pkg_models.DataTypeFloat64:
+	case constants.ValueDataTypeFloat64:
 		for _, f := range config.Float64Slice {
 			values = append(values, strconv.FormatFloat(f, 'f', -1, 64))
 		}
-	case pkg_models.DataTypeBool:
+	case constants.ValueDataTypeBool:
 		for _, b := range config.BoolSlice {
 			values = append(values, strconv.FormatBool(b))
 		}

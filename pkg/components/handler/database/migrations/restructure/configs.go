@@ -24,7 +24,7 @@ import (
 	"maps"
 	"slices"
 
-	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 )
 
 func createDepConfigTables(ctx context.Context, db *sql.DB) error {
@@ -214,16 +214,16 @@ func queryConfigs(ctx context.Context, db *sql.DB) ([]config, error) {
 		}
 		if vString.Valid {
 			c.Val = vString.String
-			c.DT = pkg_models.DataTypeString
+			c.DT = constants.ValueDataTypeString
 		} else if vInt.Valid {
 			c.Val = vInt.Int64
-			c.DT = pkg_models.DataTypeInt64
+			c.DT = constants.ValueDataTypeInt64
 		} else if vFloat.Valid {
 			c.Val = vFloat.Float64
-			c.DT = pkg_models.DataTypeFloat64
+			c.DT = constants.ValueDataTypeFloat64
 		} else if vBool.Valid {
 			c.Val = vBool.Bool
-			c.DT = pkg_models.DataTypeBool
+			c.DT = constants.ValueDataTypeBool
 		}
 		configs = append(configs, c)
 	}
@@ -261,16 +261,16 @@ func queryListConfigs(ctx context.Context, db *sql.DB) ([]listConfig, error) {
 		var dt int
 		if vString.Valid {
 			lc.Vals = append(lc.Vals, vString.String)
-			dt = pkg_models.DataTypeString
+			dt = constants.ValueDataTypeString
 		} else if vInt.Valid {
 			lc.Vals = append(lc.Vals, vInt.Int64)
-			dt = pkg_models.DataTypeInt64
+			dt = constants.ValueDataTypeInt64
 		} else if vFloat.Valid {
 			lc.Vals = append(lc.Vals, vFloat.Float64)
-			dt = pkg_models.DataTypeFloat64
+			dt = constants.ValueDataTypeFloat64
 		} else if vBool.Valid {
 			lc.Vals = append(lc.Vals, vBool.Bool)
-			dt = pkg_models.DataTypeBool
+			dt = constants.ValueDataTypeBool
 		}
 		if !ok {
 			lc.DT = dt
@@ -290,13 +290,13 @@ func queryListConfigs(ctx context.Context, db *sql.DB) ([]listConfig, error) {
 
 func getColName(dt int) string {
 	switch dt {
-	case pkg_models.DataTypeString:
+	case constants.ValueDataTypeString:
 		return "v_string"
-	case pkg_models.DataTypeInt64:
+	case constants.ValueDataTypeInt64:
 		return "v_int"
-	case pkg_models.DataTypeFloat64:
+	case constants.ValueDataTypeFloat64:
 		return "v_float"
-	case pkg_models.DataTypeBool:
+	case constants.ValueDataTypeBool:
 		return "v_bool"
 	}
 	return ""

@@ -17,6 +17,7 @@ import (
 	helper_url "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/url"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -101,7 +102,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("removing dir failed", pkg_models.DirNameKey, stgMod.DirName, pkg_models.IdKey, id, pkg_models.ErrorKey, e)
+				logger.Error("removing dir failed", slog_keys.DirName, stgMod.DirName, slog_keys.Id, id, slog_keys.Error, e)
 			}
 		}
 	}()
@@ -120,7 +121,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				logger.Error("removing images failed", pkg_models.IdKey, id, pkg_models.ErrorKey, e)
+				logger.Error("removing images failed", slog_keys.Id, id, slog_keys.Error, e)
 			}
 		}
 	}()
@@ -159,7 +160,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("removing dir failed", pkg_models.DirNameKey, stgModNew.DirName, pkg_models.IdKey, id, pkg_models.ErrorKey, e)
+				logger.Error("removing dir failed", slog_keys.DirName, stgModNew.DirName, slog_keys.Id, id, slog_keys.Error, e)
 			}
 		}
 	}()
@@ -178,7 +179,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				logger.Error("removing new images failed", pkg_models.IdKey, id, pkg_models.ErrorKey, e)
+				logger.Error("removing new images failed", slog_keys.Id, id, slog_keys.Error, e)
 			}
 		}
 	}()
@@ -187,10 +188,10 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	}
 	h.cacheSet(id, newMod)
 	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, stgModOld.DirName)); e != nil {
-		logger.Error("removing dir failed", pkg_models.DirNameKey, stgModOld.DirName, pkg_models.IdKey, id, pkg_models.ErrorKey, e)
+		logger.Error("removing dir failed", slog_keys.DirName, stgModOld.DirName, slog_keys.Id, id, slog_keys.Error, e)
 	}
 	if e := h.removeOldImages(ctx, imagesAsSet(oldMod.Services), imagesAsSet(newMod.Services)); e != nil {
-		logger.Error("removing images failed", pkg_models.IdKey, id, pkg_models.ErrorKey, e)
+		logger.Error("removing images failed", slog_keys.Id, id, slog_keys.Error, e)
 	}
 	return nil
 }
@@ -279,7 +280,7 @@ func (h *Handler) modules(ctx context.Context, filter pkg_models.ModulesFilterWi
 			mod, err = helper_modfile.GetModule(modFS)
 			if err != nil {
 				errs = append(errs, err.Error())
-				logger.Error("getting module failed", pkg_models.IdKey, stgMod.Id, pkg_models.ErrorKey, err)
+				logger.Error("getting module failed", slog_keys.Id, stgMod.Id, slog_keys.Error, err)
 				continue
 			}
 			h.cacheSet(stgMod.Id, mod)
