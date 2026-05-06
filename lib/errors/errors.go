@@ -71,3 +71,17 @@ func (e *ErrInvalidInput) set(msg string, err error, args []interface{}) {
 		},
 	}
 }
+
+type ErrDatabase struct {
+	errBase
+}
+
+func (e *ErrDatabase) set(msg string, err error, args []interface{}) {
+	*e = ErrDatabase{
+		errBase{
+			msg:  msg,
+			err:  err,
+			args: args,
+		},
+	}
+}
