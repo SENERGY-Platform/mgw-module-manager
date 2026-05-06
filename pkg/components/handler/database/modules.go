@@ -86,31 +86,17 @@ func (h *Handler) CreateModule(ctx context.Context, mod pkg_models.DatabaseModul
 }
 
 func (h *Handler) UpdateModule(ctx context.Context, mod pkg_models.DatabaseModule) error {
-	res, err := h.sqlDB.ExecContext(ctx, "UPDATE modules SET dir = ?, source = ?, channel = ?, updated = ? WHERE id = ?;", mod.DirName, mod.Source, mod.Channel, mod.Updated, mod.Id)
+	_, err := h.sqlDB.ExecContext(ctx, "UPDATE modules SET dir = ?, source = ?, channel = ?, updated = ? WHERE id = ?;", mod.DirName, mod.Source, mod.Channel, mod.Updated, mod.Id)
 	if err != nil {
 		return err
-	}
-	n, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if n == 0 {
-		return pkg_models.NotFoundErr
 	}
 	return nil
 }
 
 func (h *Handler) DeleteModule(ctx context.Context, id string) error {
-	res, err := h.sqlDB.ExecContext(ctx, "DELETE FROM modules WHERE id = ?;", id)
+	_, err := h.sqlDB.ExecContext(ctx, "DELETE FROM modules WHERE id = ?;", id)
 	if err != nil {
 		return err
-	}
-	n, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if n == 0 {
-		return pkg_models.NotFoundErr
 	}
 	return nil
 }
