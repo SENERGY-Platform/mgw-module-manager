@@ -210,7 +210,7 @@ func (s *Service) addRepoModDepsToMap(
 		if _, ok := deps[depId]; !ok {
 			depFS, err := s.repositoriesHandler.ModuleFS(ctx, depId, source, channel)
 			if err != nil {
-				if lib_errors.IsOf[lib_errors.ErrNotFound](err) && skipNotFound {
+				if errors.Is(err, handler_repositories.ErrNotFound) && skipNotFound {
 					continue
 				}
 				return err

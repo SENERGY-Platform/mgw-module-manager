@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	helper_archive "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/archive"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
@@ -75,7 +76,7 @@ func (h *Handler) FileSystemsMap(ctx context.Context, channelName string) (map[s
 	defer h.mu.RUnlock()
 	channel, ok := h.channels[channelName]
 	if !ok {
-		return nil, errors.New("channel does not exist")
+		return nil, errors.New("channel not found")
 	}
 	repo, err := readRepoFile(h.wrkPath)
 	if err != nil {
@@ -105,7 +106,7 @@ func (h *Handler) FileSystem(ctx context.Context, channelName, fsRef string) (fs
 	defer h.mu.RUnlock()
 	channel, ok := h.channels[channelName]
 	if !ok {
-		return nil, errors.New("channel does not exist")
+		return nil, errors.New("channel not found")
 	}
 	repo, err := readRepoFile(h.wrkPath)
 	if err != nil {
@@ -123,7 +124,7 @@ func (h *Handler) FileSystem(ctx context.Context, channelName, fsRef string) (fs
 			return os.DirFS(path.Join(h.wrkPath, repo.Path, channel.Name, entry.Name())), nil
 		}
 	}
-	return nil, errors.New("reference does not exist")
+	return nil, errors.New("reference not found")
 }
 
 func (h *Handler) Refresh(ctx context.Context) error {
@@ -157,7 +158,7 @@ func (h *Handler) Refresh(ctx context.Context) error {
 	newRepo.Path = path.Join(newRepo.GitCommit.Sha, rootDir)
 	if err = writeRepoFile(h.wrkPath, newRepo); err != nil {
 		if e := os.RemoveAll(path.Join(h.wrkPath, newRepo.GitCommit.Sha)); e != nil {
-			return errors.Join(err, e)
+			return helper_errors.Join(err, e)
 		}
 		return err
 	}

@@ -2,12 +2,12 @@ package github
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"os"
 	"path"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 )
 
 const (
@@ -58,7 +58,7 @@ func writeRepoFile(pth string, mr repoFile) error {
 		file.Close()
 		if err != nil && rfBkPath != "" {
 			if e := copyFile(rfBkPath, rfPath); e != nil {
-				err = errors.Join(err, e)
+				err = helper_errors.Join(err, e)
 			}
 		}
 	}()

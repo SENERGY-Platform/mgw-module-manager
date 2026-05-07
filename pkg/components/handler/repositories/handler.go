@@ -10,8 +10,11 @@ import (
 	"sync"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
+	"github.com/bytedance/gopkg/util/logger"
 )
 
 type Handler struct {
@@ -33,14 +36,16 @@ func New(repositories []Repository) *Handler {
 func (h *Handler) InitRepositories(ctx context.Context) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	var errs []string
+	var errs []error
 	for source, repo := range h.repositories {
-		if err := repo.Handler.Init(); err != nil {
-			errs = append(errs, fmt.Sprintf(source+": "+err.Error()))
+		err := repo.Handler.Init()
+		if err != nil {
+			logger.Error("initialize repository", slog_keys.Error, err.Error(), slog_keys.Source, source)
+			errs = append(errs, err)
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
+		return helper_errors.Join(errs...)
 	}
 	return h.updateVariantsMap(ctx)
 }
@@ -48,14 +53,15 @@ func (h *Handler) InitRepositories(ctx context.Context) error {
 func (h *Handler) RefreshRepositories(ctx context.Context) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	var errs []string
+	var errs []error
 	for source, repo := range h.repositories {
 		if err := repo.Handler.Refresh(ctx); err != nil {
-			errs = append(errs, fmt.Sprintf(source+": "+err.Error()))
+			logger.Error("refresh repository", slog_keys.Error, err.Error(), slog_keys.Source, source)
+			errs = append(errs, err)
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
+		return helper_errors.Join(errs...)
 	}
 	return h.updateVariantsMap(ctx)
 }
@@ -106,7 +112,7 @@ func (h *Handler) Module(_ context.Context, id, source, channel string) (pkg_mod
 	defer h.mu.RUnlock()
 	variant, err := h.getModuleVariant(id, source, channel)
 	if err != nil {
-		return pkg_models.RepositoryModule{}, err
+		return pkg_models.RepositoryModule{}, lib_errors.Wrap[lib_errors.ErrNotFound](err)
 	}
 	return variant.RepositoryModule, nil
 }
@@ -120,7 +126,7 @@ func (h *Handler) ModuleFS(ctx context.Context, id, source, channel string) (fs.
 	}
 	repo, ok := h.repositories[variant.Source]
 	if !ok {
-		return nil, errors.New("repo handler not found")
+		return nil, errors.New("repository handler not found")
 	}
 	fSys, err := repo.Handler.FileSystem(ctx, variant.Channel, variant.FSysRef)
 	if err != nil {
@@ -131,12 +137,18 @@ func (h *Handler) ModuleFS(ctx context.Context, id, source, channel string) (fs.
 
 func (h *Handler) updateVariantsMap(ctx context.Context) error {
 	variantsMap := make(map[string]map[string]map[string]moduleWrapper)
-	var errs []string
+	var errs []error
 	for source, repo := range h.repositories {
 		for _, channel := range repo.Handler.Channels() {
 			fsMap, err := repo.Handler.FileSystemsMap(ctx, channel.Name)
 			if err != nil {
-				errs = append(errs, fmt.Sprintf("%s %s: %s", source, channel.Name, err.Error()))
+				logger.Error(
+					"build fs map",
+					slog_keys.Error, err.Error(),
+					slog_keys.Source, source,
+					slog_keys.Channel, channel.Name,
+				)
+				errs = append(errs, err)
 				continue
 			}
 			for ref, fSys := range fsMap {
@@ -145,7 +157,13 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 				}
 				mod, err := helper_modfile.GetModule(fSys)
 				if err != nil {
-					errs = append(errs, fmt.Sprintf("%s %s: %s", source, channel.Name, err.Error()))
+					logger.Error(
+						"get module",
+						slog_keys.Error, err.Error(),
+						slog_keys.Source, source,
+						slog_keys.Channel, channel.Name,
+					)
+					errs = append(errs, err)
 					continue
 				}
 				sources, ok := variantsMap[mod.ID]
@@ -175,7 +193,7 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
+		return helper_errors.Join(errs...)
 	}
 	h.variantsMap = variantsMap
 	return nil
@@ -184,15 +202,15 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 func (h *Handler) getModuleVariant(id, source, channel string) (moduleWrapper, error) {
 	sources, ok := h.variantsMap[id]
 	if !ok {
-		return moduleWrapper{}, lib_errors.New[lib_errors.ErrNotFound]("module not found")
+		return moduleWrapper{}, fmt.Errorf("module '%s' %w", id, ErrNotFound)
 	}
 	channels, ok := sources[source]
 	if !ok {
-		return moduleWrapper{}, lib_errors.New[lib_errors.ErrNotFound]("source not found")
+		return moduleWrapper{}, fmt.Errorf("source '%s' %w", source, ErrNotFound)
 	}
 	variant, ok := channels[channel]
 	if !ok {
-		return moduleWrapper{}, lib_errors.New[lib_errors.ErrNotFound]("channel not found")
+		return moduleWrapper{}, fmt.Errorf("channel '%s' %w", channel, ErrNotFound)
 	}
 	return variant, nil
 }
