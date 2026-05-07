@@ -3,14 +3,16 @@ package modules
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io/fs"
+	"maps"
 	"os"
 	"path"
+	"slices"
 	"strings"
 	"sync"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_file_sys "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/file_sys"
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
@@ -44,7 +46,11 @@ func (h *Handler) Init() error {
 	return os.MkdirAll(h.config.WorkDirPath, 0775)
 }
 
-func (h *Handler) GetModules(ctx context.Context, filter pkg_models.ModulesFilterWithName, dependencies bool) (map[string]pkg_models.Module, error) {
+func (h *Handler) GetModules(
+	ctx context.Context,
+	filter pkg_models.ModulesFilterWithName,
+	dependencies bool,
+) (map[string]pkg_models.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	if dependencies && len(filter.Ids) > 0 {
@@ -115,7 +121,7 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 		err = errors.New("id mismatch")
 		return err
 	}
-	newImages, err := h.pullImages(ctx, imagesAsSet(mod.Services))
+	newImages, err := h.pullImages(ctx, getModuleServiceImages(mod.Services))
 	if err != nil {
 		return err
 	}
@@ -173,7 +179,7 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 		err = errors.New("id mismatch")
 		return err
 	}
-	newImages, err := h.pullImages(ctx, imagesAsSet(newMod.Services))
+	newImages, err := h.pullImages(ctx, getModuleServiceImages(newMod.Services))
 	if err != nil {
 		return err
 	}
@@ -191,7 +197,7 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, stgModOld.DirName)); e != nil {
 		logger.Error("removing dir failed", slog_keys.DirName, stgModOld.DirName, slog_keys.Id, id, slog_keys.Error, e)
 	}
-	if e := h.removeOldImages(ctx, imagesAsSet(oldMod.Services), imagesAsSet(newMod.Services)); e != nil {
+	if e := h.removeOldImages(ctx, getModuleServiceImages(oldMod.Services), getModuleServiceImages(newMod.Services)); e != nil {
 		logger.Error("removing images failed", slog_keys.Id, id, slog_keys.Error, e)
 	}
 	return nil
@@ -216,7 +222,7 @@ func (h *Handler) RemoveModule(ctx context.Context, id string) error {
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
-	if err = h.removeImages(ctx, imagesAsSet(mod.Services)); err != nil {
+	if err = h.removeImages(ctx, getModuleServiceImages(mod.Services)); err != nil {
 		return err
 	}
 	if err = h.databaseHandler.DeleteModule(ctx, id); err != nil {
@@ -226,12 +232,12 @@ func (h *Handler) RemoveModule(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *Handler) getModulesWithDependencies(ctx context.Context, ids []string, modulesWithDependencies map[string]pkg_models.Module) error {
+func (h *Handler) getModulesWithDependencies(ctx context.Context, filterIds []string, modulesWithDependencies map[string]pkg_models.Module) error {
 	modules, err := h.getModules(
 		ctx,
 		pkg_models.ModulesFilterWithName{
 			ModulesFilter: pkg_models.ModulesFilter{
-				Ids: ids,
+				Ids: filterIds,
 			},
 		},
 	)
@@ -322,9 +328,9 @@ func (h *Handler) cacheDel(id string) {
 	delete(h.cache, id)
 }
 
-func (h *Handler) pullImages(ctx context.Context, images map[string]struct{}) (map[string]struct{}, error) {
-	newImages := make(map[string]struct{})
-	for image := range images {
+func (h *Handler) pullImages(ctx context.Context, images []string) ([]string, error) {
+	var newImages []string
+	for _, image := range images {
 		_, err := h.containerEngineWrapperClient.GetImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 		if err != nil {
 			var notFoundErr *external_models.CewNotFoundErr
@@ -334,24 +340,32 @@ func (h *Handler) pullImages(ctx context.Context, images map[string]struct{}) (m
 		} else {
 			continue
 		}
-		jobId, err := h.containerEngineWrapperClient.AddImage(ctx, image)
+		err = h.pullImage(ctx, image)
 		if err != nil {
 			return newImages, err
 		}
-		job, err := helper_job.Await(ctx, h.containerEngineWrapperClient, jobId, h.config.JobPollInterval)
-		if err != nil {
-			return newImages, err
-		}
-		if job.Error != nil {
-			return newImages, fmt.Errorf("%v", job.Error)
-		}
-		newImages[image] = struct{}{}
+		newImages = append(newImages, image)
 	}
 	return newImages, nil
 }
 
-func (h *Handler) removeImages(ctx context.Context, images map[string]struct{}) error {
-	for image := range images {
+func (h *Handler) pullImage(ctx context.Context, image string) error {
+	jobId, err := h.containerEngineWrapperClient.AddImage(ctx, image)
+	if err != nil {
+		return err
+	}
+	job, err := helper_job.Await(ctx, h.containerEngineWrapperClient, jobId, h.config.JobPollInterval)
+	if err != nil {
+		return err
+	}
+	if job.Error != nil {
+		return errors.New(job.Error.Message)
+	}
+	return nil
+}
+
+func (h *Handler) removeImages(ctx context.Context, images []string) error {
+	for _, image := range images {
 		err := h.containerEngineWrapperClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 		if err != nil {
 			var notFoundErr *external_models.CewNotFoundErr
@@ -363,9 +377,9 @@ func (h *Handler) removeImages(ctx context.Context, images map[string]struct{}) 
 	return nil
 }
 
-func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages map[string]struct{}) error {
-	for image := range oldImages {
-		if _, ok := newImages[image]; !ok {
+func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages []string) error {
+	for _, image := range oldImages {
+		if !slices.Contains(newImages, image) {
 			err := h.containerEngineWrapperClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 			if err != nil {
 				var notFoundErr *external_models.CewNotFoundErr
@@ -378,12 +392,12 @@ func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages map[
 	return nil
 }
 
-func imagesAsSet(services map[string]external_models.ModuleLibService) map[string]struct{} {
+func getModuleServiceImages(services map[string]external_models.ModuleLibService) []string {
 	images := make(map[string]struct{})
 	for _, service := range services {
 		images[service.Image] = struct{}{}
 	}
-	return images
+	return slices.Collect(maps.Keys(images))
 }
 
 func newStgMod(id, source, channel string) (pkg_models.DatabaseModule, error) {
