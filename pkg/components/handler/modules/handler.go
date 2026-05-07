@@ -109,7 +109,7 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("removing dir failed", slog_keys.DirName, stgMod.DirName, slog_keys.Id, id, slog_keys.Error, e)
+				logger.Error("remove dir", slog_keys.Error, e, slog_keys.DirName, stgMod.DirName, slog_keys.ModuleId, id)
 			}
 		}
 	}()
@@ -118,7 +118,7 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 		return err
 	}
 	if id != mod.ID {
-		err = errors.New("id mismatch")
+		err = errors.New("module id mismatch")
 		return err
 	}
 	newImages, err := h.pullImages(ctx, getModuleServiceImages(mod.Services))
@@ -128,7 +128,7 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				logger.Error("removing images failed", slog_keys.Id, id, slog_keys.Error, e)
+				logger.Error("remove images", slog_keys.Error, e, slog_keys.ModuleId, id)
 			}
 		}
 	}()
@@ -167,7 +167,7 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("removing dir failed", slog_keys.DirName, stgModNew.DirName, slog_keys.Id, id, slog_keys.Error, e)
+				logger.Error("remove dir", slog_keys.Error, e, slog_keys.DirName, stgModNew.DirName, slog_keys.ModuleId, id)
 			}
 		}
 	}()
@@ -176,7 +176,7 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 		return err
 	}
 	if id != newMod.ID {
-		err = errors.New("id mismatch")
+		err = errors.New("module id mismatch")
 		return err
 	}
 	newImages, err := h.pullImages(ctx, getModuleServiceImages(newMod.Services))
@@ -186,19 +186,20 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				logger.Error("removing new images failed", slog_keys.Id, id, slog_keys.Error, e)
+				logger.Error("remove new images", slog_keys.Error, e, slog_keys.ModuleId, id)
 			}
 		}
 	}()
-	if err = h.databaseHandler.UpdateModule(ctx, stgModNew); err != nil {
+	err = h.databaseHandler.UpdateModule(ctx, stgModNew)
+	if err != nil {
 		return err
 	}
 	h.cacheSet(id, newMod)
 	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, stgModOld.DirName)); e != nil {
-		logger.Error("removing dir failed", slog_keys.DirName, stgModOld.DirName, slog_keys.Id, id, slog_keys.Error, e)
+		logger.Error("remove old dir", id, slog_keys.Error, e, slog_keys.DirName, stgModOld.DirName, slog_keys.ModuleId)
 	}
 	if e := h.removeOldImages(ctx, getModuleServiceImages(oldMod.Services), getModuleServiceImages(newMod.Services)); e != nil {
-		logger.Error("removing images failed", slog_keys.Id, id, slog_keys.Error, e)
+		logger.Error("remove old images", slog_keys.Error, e, slog_keys.ModuleId, id)
 	}
 	return nil
 }
@@ -208,6 +209,9 @@ func (h *Handler) RemoveModule(ctx context.Context, id string) error {
 	defer h.mu.Unlock()
 	stgMod, err := h.databaseHandler.Module(ctx, id)
 	if err != nil {
+		if lib_errors.IsOf[lib_errors.ErrNotFound](err) {
+			return nil
+		}
 		return err
 	}
 	mod, ok := h.cacheGet(id)
@@ -277,15 +281,15 @@ func (h *Handler) getModules(ctx context.Context, filter pkg_models.ModulesFilte
 	}
 	filter.Name = strings.ToLower(filter.Name)
 	modules := make(map[string]pkg_models.Module)
-	var errs []string
+	var errs []error
 	for _, stgMod := range stgMods {
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 		mod, ok := h.cacheGet(stgMod.Id)
 		if !ok {
 			mod, err = helper_modfile.GetModule(modFS)
 			if err != nil {
-				errs = append(errs, err.Error())
-				logger.Error("getting module failed", slog_keys.Id, stgMod.Id, slog_keys.Error, err)
+				errs = append(errs, err)
+				logger.Error("get module", slog_keys.Error, err, slog_keys.Id, stgMod.Id)
 				continue
 			}
 			h.cacheSet(stgMod.Id, mod)
@@ -304,7 +308,7 @@ func (h *Handler) getModules(ctx context.Context, filter pkg_models.ModulesFilte
 	}
 	lenErrs := len(errs)
 	if lenErrs > 0 && lenErrs == len(stgMods) {
-		return nil, errors.New(strings.Join(errs, "\n"))
+		return nil, helper_errors.Join(errs...)
 	}
 	return modules, nil
 }
