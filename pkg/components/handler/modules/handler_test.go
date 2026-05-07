@@ -66,7 +66,7 @@ func TestHandler_Modules(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	mods, err := h.Modules(context.Background(), pkg_models.ModulesFilterWithNameAndDep{})
+	mods, err := h.Modules(context.Background(), pkg_models.ModulesFilterWithName{}, false)
 	if err != nil {
 		t.Error(err)
 	}

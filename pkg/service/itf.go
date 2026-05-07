@@ -17,7 +17,7 @@ type repositoriesHandler interface {
 }
 
 type modulesHandler interface {
-	Modules(ctx context.Context, filter pkg_models.ModulesFilterWithNameAndDep) (map[string]pkg_models.Module, error)
+	Modules(ctx context.Context, filter pkg_models.ModulesFilterWithName, dependencies bool) (map[string]pkg_models.Module, error)
 	Module(ctx context.Context, id string) (pkg_models.Module, error)
 	Add(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	Update(ctx context.Context, id, source, channel string, fSys fs.FS) error

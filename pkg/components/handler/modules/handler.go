@@ -44,16 +44,16 @@ func (h *Handler) Init() error {
 	return os.MkdirAll(h.config.WorkDirPath, 0775)
 }
 
-func (h *Handler) Modules(ctx context.Context, filter pkg_models.ModulesFilterWithNameAndDep) (map[string]pkg_models.Module, error) {
+func (h *Handler) Modules(ctx context.Context, filter pkg_models.ModulesFilterWithName, dependencies bool) (map[string]pkg_models.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	if filter.Dependencies && len(filter.Ids) > 0 {
-		requiredModules := make(map[string]pkg_models.Module)
-		err := h.modulesWithDependencies(ctx, filter.Ids, requiredModules)
+	if dependencies && len(filter.Ids) > 0 {
+		modulesWithDependencies := make(map[string]pkg_models.Module)
+		err := h.modulesWithDependencies(ctx, filter.Ids, modulesWithDependencies)
 		if err != nil {
 			return nil, err
 		}
-		return requiredModules, nil
+		return modulesWithDependencies, nil
 	}
 	return h.modules(ctx, filter)
 }
@@ -63,7 +63,7 @@ func (h *Handler) Module(ctx context.Context, id string) (pkg_models.Module, err
 	defer h.mu.RUnlock()
 	modules, err := h.modules(
 		ctx,
-		pkg_models.ModulesFilterWithNameAndDep{
+		pkg_models.ModulesFilterWithName{
 			ModulesFilter: pkg_models.ModulesFilter{
 				Ids: []string{id},
 			},
@@ -226,10 +226,10 @@ func (h *Handler) Remove(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, requiredModules map[string]pkg_models.Module) error {
+func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, modulesWithDependencies map[string]pkg_models.Module) error {
 	modules, err := h.modules(
 		ctx,
-		pkg_models.ModulesFilterWithNameAndDep{
+		pkg_models.ModulesFilterWithName{
 			ModulesFilter: pkg_models.ModulesFilter{
 				Ids: ids,
 			},
@@ -238,22 +238,20 @@ func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, req
 	if err != nil {
 		return err
 	}
-	for _, id := range ids {
-		module, ok := modules[id]
+	for id, module := range modules {
+		_, ok := modulesWithDependencies[id]
 		if !ok {
-			return fmt.Errorf("module %s not found", id) // TODO
-		}
-		if _, ok := requiredModules[id]; !ok {
-			requiredModules[id] = module
+			modulesWithDependencies[id] = module
 		}
 		if len(module.Dependencies) > 0 {
 			var dependencyIds []string
 			for dependencyId := range module.Dependencies {
-				if _, ok := requiredModules[dependencyId]; !ok {
+				_, ok := modulesWithDependencies[dependencyId]
+				if !ok {
 					dependencyIds = append(dependencyIds, dependencyId)
 				}
 			}
-			err = h.modulesWithDependencies(ctx, dependencyIds, requiredModules)
+			err = h.modulesWithDependencies(ctx, dependencyIds, modulesWithDependencies)
 			if err != nil {
 				return err
 			}
@@ -262,7 +260,7 @@ func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, req
 	return nil
 }
 
-func (h *Handler) modules(ctx context.Context, filter pkg_models.ModulesFilterWithNameAndDep) (map[string]pkg_models.Module, error) {
+func (h *Handler) modules(ctx context.Context, filter pkg_models.ModulesFilterWithName) (map[string]pkg_models.Module, error) {
 	stgMods, err := h.databaseHandler.Modules(ctx, pkg_models.ModulesFilter{
 		Ids:     filter.Ids,
 		Source:  filter.Source,

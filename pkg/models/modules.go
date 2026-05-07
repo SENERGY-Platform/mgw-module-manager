@@ -32,10 +32,9 @@ type Module struct {
 	FileSystem fs.FS
 }
 
-type ModulesFilterWithNameAndDep struct {
+type ModulesFilterWithName struct {
 	ModulesFilter
-	Name         string
-	Dependencies bool
+	Name string
 }
 
 type DatabaseModule struct {

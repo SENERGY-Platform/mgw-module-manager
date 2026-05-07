@@ -37,12 +37,15 @@ func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]
 	if ok {
 		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
-		ModulesFilter: pkg_models.ModulesFilter{
-			Ids: moduleIds,
+	handlerModules, err := s.modulesHandler.Modules(
+		ctx,
+		pkg_models.ModulesFilterWithName{
+			ModulesFilter: pkg_models.ModulesFilter{
+				Ids: moduleIds,
+			},
 		},
-		Dependencies: true,
-	})
+		true,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -68,14 +71,17 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []lib_models
 	if len(currentJobs) > 0 {
 		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
-		ModulesFilter: pkg_models.ModulesFilter{
-			Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models.DeploymentUserInput) string {
-				return item.ModuleId
-			}),
+	handlerModules, err := s.modulesHandler.Modules(
+		ctx,
+		pkg_models.ModulesFilterWithName{
+			ModulesFilter: pkg_models.ModulesFilter{
+				Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models.DeploymentUserInput) string {
+					return item.ModuleId
+				}),
+			},
 		},
-		Dependencies: true,
-	})
+		true,
+	)
 	if err != nil {
 		return lib_models.Job{}, err
 	}
@@ -123,13 +129,17 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 	if len(currentJobs) > 0 {
 		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
-		ModulesFilter: pkg_models.ModulesFilter{
-			Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models.DeploymentUserInput) string {
-				return item.ModuleId
-			}),
+	handlerModules, err := s.modulesHandler.Modules(
+		ctx,
+		pkg_models.ModulesFilterWithName{
+			ModulesFilter: pkg_models.ModulesFilter{
+				Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models.DeploymentUserInput) string {
+					return item.ModuleId
+				}),
+			},
 		},
-	})
+		false,
+	)
 	if err != nil {
 		return lib_models.Job{}, err
 	}
@@ -203,11 +213,15 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 	if len(currentJobs) > 0 {
 		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
-		ModulesFilter: pkg_models.ModulesFilter{
-			Ids: moduleIds,
+	handlerModules, err := s.modulesHandler.Modules(
+		ctx,
+		pkg_models.ModulesFilterWithName{
+			ModulesFilter: pkg_models.ModulesFilter{
+				Ids: moduleIds,
+			},
 		},
-	})
+		false,
+	)
 	if err != nil {
 		return lib_models.Job{}, err
 	}
@@ -323,12 +337,15 @@ func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) ([]
 	if ok {
 		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
-	handlerModules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
-		ModulesFilter: pkg_models.ModulesFilter{
-			Ids: moduleIds,
+	handlerModules, err := s.modulesHandler.Modules(
+		ctx,
+		pkg_models.ModulesFilterWithName{
+			ModulesFilter: pkg_models.ModulesFilter{
+				Ids: moduleIds,
+			},
 		},
-		Dependencies: true,
-	})
+		true,
+	)
 	if err != nil {
 		return nil, err
 	}

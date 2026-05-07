@@ -68,7 +68,7 @@ func (s *Service) RepoModules(ctx context.Context, filter lib_models.RepoModules
 	if err != nil {
 		return nil, err
 	}
-	installedMods, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{})
+	installedMods, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithName{}, false)
 	if err != nil {
 		return nil, err
 	}

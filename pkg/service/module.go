@@ -39,12 +39,16 @@ func (s *Service) Modules(ctx context.Context, filter lib_models.ModulesFilter) 
 	if ok {
 		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
-	modules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
-		ModulesFilter: pkg_models.ModulesFilter{
-			Ids: filter.Ids,
+	modules, err := s.modulesHandler.Modules(
+		ctx,
+		pkg_models.ModulesFilterWithName{
+			ModulesFilter: pkg_models.ModulesFilter{
+				Ids: filter.Ids,
+			},
+			Name: filter.Name,
 		},
-		Name: filter.Name,
-	})
+		false,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +110,7 @@ func (s *Service) NewModulesChangeRequest(
 	if err != nil {
 		return lib_models.ModulesChangeRequest{}, err
 	}
-	installedMods, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{})
+	installedMods, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithName{}, false)
 	if err != nil {
 		return lib_models.ModulesChangeRequest{}, err
 	}
@@ -192,7 +196,7 @@ func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (lib_mod
 }
 
 func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modulesChangeRequest, error) {
-	installedMods, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{})
+	installedMods, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithName{}, false)
 	if err != nil {
 		return modulesChangeRequest{}, err
 	}
