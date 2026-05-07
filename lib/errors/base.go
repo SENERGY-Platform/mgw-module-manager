@@ -20,16 +20,6 @@ import (
 	"errors"
 )
 
-type iErrBase interface {
-	error
-	Unwrap() error
-}
-
-type iErrBasePtr[T iErrBase] interface {
-	*T
-	set(msg string, err error)
-}
-
 func New[T iErrBase, PT iErrBasePtr[T]](msg string) *T {
 	pt := PT(new(T))
 	pt.set(msg, nil)
@@ -50,6 +40,16 @@ func IsOf[
 ](err error) bool {
 	pt := PT(new(T))
 	return errors.As(err, &pt)
+}
+
+type iErrBase interface {
+	error
+	Unwrap() error
+}
+
+type iErrBasePtr[T iErrBase] interface {
+	*T
+	set(msg string, err error)
 }
 
 type errBase struct {
