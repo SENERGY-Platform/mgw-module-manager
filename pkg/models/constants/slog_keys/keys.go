@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package attr_keys
+package slog_keys
 
 import "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
 
@@ -25,6 +25,7 @@ const (
 	ModuleId        = "module_id"
 	DeploymentId    = "deployment_id"
 	AuxDeploymentId = "auxiliary_deployment_id"
+	Reference       = "reference"
 	Filter          = "filter"
 	Source          = "source"
 	Channel         = "channel"

@@ -10,7 +10,7 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -120,7 +120,7 @@ func (s *Service) repoModules(repos []pkg_models.Repository, repoMods []pkg_mode
 			repoModule.Repositories = append(repoModule.Repositories, repository)
 		}
 		if fErr != nil {
-			logger.Error("invalid repository module", attr_keys.Id, id, attr_keys.Error, fErr)
+			logger.Error("invalid repository module", slog_keys.Id, id, slog_keys.Error, fErr)
 			continue
 		}
 		slices.SortStableFunc(repoModule.Repositories, func(a, b lib_models.Repository) int {
