@@ -94,7 +94,7 @@ func (s *Service) CreateAuxiliaryDeployment(
 		}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
 				s.setCreateAuxiliaryDeploymentJobResult(job.Id, jobResult)
 			}
 		}()
@@ -152,7 +152,7 @@ func (s *Service) UpdateAuxiliaryDeployment(
 		jobResult := lib_models.JobResult{JobId: job.Id}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
 				s.setUpdateAuxiliaryDeploymentJobResult(job.Id, jobResult)
 			}
 		}()
@@ -214,7 +214,7 @@ func (s *Service) RecreateAuxiliaryDeployments(
 		}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
 				s.setAuxiliaryDeploymentsJobResult(job.Id, jobResult)
 			}
 		}()
@@ -261,7 +261,7 @@ func (s *Service) DeleteAuxiliaryDeployments(
 		}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
 				s.setAuxiliaryDeploymentsJobResult(job.Id, jobResult)
 			}
 		}()

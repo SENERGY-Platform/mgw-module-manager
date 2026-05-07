@@ -94,7 +94,7 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []lib_models
 		}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
 				s.setDeploymentsJobResult(job.Id, jobResult)
 			}
 		}()
@@ -148,7 +148,7 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 		}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
 				s.setUpdateDeploymentsJobResult(job.Id, jobResult)
 			}
 		}()
@@ -222,7 +222,7 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 		}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
 				s.setDeploymentsJobResult(job.Id, jobResult)
 			}
 		}()

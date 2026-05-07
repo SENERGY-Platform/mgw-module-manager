@@ -146,7 +146,7 @@ func (s *Service) ExecModulesChangeRequest(_ context.Context) (lib_models.Job, e
 		}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
 				s.setModuleChangeJobResult(job.Id, jobResult)
 			}
 		}()

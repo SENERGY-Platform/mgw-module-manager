@@ -31,7 +31,7 @@ func (s *Service) RefreshRepositories(_ context.Context) (lib_models.Job, error)
 		jobResult := lib_models.JobResult{JobId: job.Id}
 		defer func() {
 			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic: %v", err))
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
 				s.setRefreshRepositoriesJobResult(job.Id, jobResult)
 			}
 		}()
