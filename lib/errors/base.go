@@ -25,11 +25,11 @@ func New[
 	PT interface {
 		*T
 		error
-		init(msg string, err error)
+		setMsg(msg string)
 	},
 ](msg string) *T {
 	pt := PT(new(T))
-	pt.init(msg, nil)
+	pt.setMsg(msg)
 	return pt
 }
 
@@ -38,11 +38,11 @@ func Wrap[
 	PT interface {
 		*T
 		error
-		init(msg string, err error)
+		setErr(err error)
 	},
 ](err error) *T {
 	pt := PT(new(T))
-	pt.init("", err)
+	pt.setErr(err)
 	return pt
 }
 
@@ -82,9 +82,10 @@ func (e *errBase) Unwrap() error {
 	return e.err
 }
 
-func (e *errBase) init(msg string, err error) {
-	*e = errBase{
-		msg: msg,
-		err: err,
-	}
+func (e *errBase) setMsg(msg string) {
+	e.msg = msg
+}
+
+func (e *errBase) setErr(err error) {
+	e.err = err
 }
