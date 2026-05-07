@@ -20,7 +20,7 @@ type ErrNotFound struct {
 	errBase
 }
 
-func (e *ErrNotFound) set(msg string, err error) {
+func (e *ErrNotFound) init(msg string, err error) {
 	if msg == "" {
 		msg = "not found"
 	}
@@ -31,7 +31,7 @@ type ErrExists struct {
 	errBase
 }
 
-func (e *ErrExists) set(msg string, err error) {
+func (e *ErrExists) init(msg string, err error) {
 	if msg == "" {
 		msg = "exists"
 	}
@@ -42,7 +42,7 @@ type ErrActiveJob struct {
 	errBase
 }
 
-func (e *ErrActiveJob) set(msg string, err error) {
+func (e *ErrActiveJob) init(msg string, err error) {
 	if msg == "" {
 		msg = "active job"
 	}
@@ -53,7 +53,7 @@ type ErrInvalidInput struct {
 	errBase
 }
 
-func (e *ErrInvalidInput) set(msg string, err error) {
+func (e *ErrInvalidInput) init(msg string, err error) {
 	if msg == "" {
 		msg = "invalid input"
 	}

@@ -16,19 +16,29 @@
 
 package lib_errors
 
-import (
-	"errors"
-)
+import "errors"
 
-func New[T iErrBase, PT iErrBasePtr[T]](msg string) *T {
+func New[
+	T error,
+	PT interface {
+		*T
+		init(msg string, err error)
+	},
+](msg string) *T {
 	pt := PT(new(T))
-	pt.set(msg, nil)
+	pt.init(msg, nil)
 	return pt
 }
 
-func Wrap[T iErrBase, PT iErrBasePtr[T]](err error) *T {
+func Wrap[
+	T error,
+	PT interface {
+		*T
+		init(msg string, err error)
+	},
+](err error) *T {
 	pt := PT(new(T))
-	pt.set("", err)
+	pt.init("", err)
 	return pt
 }
 
@@ -38,18 +48,17 @@ func IsOf[
 		*T
 	},
 ](err error) bool {
-	pt := PT(new(T))
-	return errors.As(err, &pt)
-}
-
-type iErrBase interface {
-	error
-	Unwrap() error
-}
-
-type iErrBasePtr[T iErrBase] interface {
-	*T
-	set(msg string, err error)
+	for {
+		_, ok := err.(PT)
+		if ok {
+			return true
+		}
+		err = errors.Unwrap(err)
+		if err == nil {
+			break
+		}
+	}
+	return false
 }
 
 type errBase struct {
