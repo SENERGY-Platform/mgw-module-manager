@@ -16,12 +16,15 @@
 
 package lib_errors
 
-import "errors"
+import (
+	"errors"
+)
 
 func New[
-	T error,
+	T any,
 	PT interface {
 		*T
+		error
 		init(msg string, err error)
 	},
 ](msg string) *T {
@@ -31,9 +34,10 @@ func New[
 }
 
 func Wrap[
-	T error,
+	T any,
 	PT interface {
 		*T
+		error
 		init(msg string, err error)
 	},
 ](err error) *T {
@@ -43,9 +47,10 @@ func Wrap[
 }
 
 func IsOf[
-	T error,
+	T any,
 	PT interface {
 		*T
+		error
 	},
 ](err error) bool {
 	for {
@@ -66,13 +71,20 @@ type errBase struct {
 	err error
 }
 
-func (e errBase) Error() string {
+func (e *errBase) Error() string {
 	if e.err == nil {
 		return e.msg
 	}
 	return e.err.Error()
 }
 
-func (e errBase) Unwrap() error {
+func (e *errBase) Unwrap() error {
 	return e.err
+}
+
+func (e *errBase) init(msg string, err error) {
+	*e = errBase{
+		msg: msg,
+		err: err,
+	}
 }

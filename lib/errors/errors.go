@@ -20,42 +20,14 @@ type ErrNotFound struct {
 	errBase
 }
 
-func (e *ErrNotFound) init(msg string, err error) {
-	if msg == "" {
-		msg = "not found"
-	}
-	*e = ErrNotFound{errBase{msg: msg, err: err}}
-}
-
 type ErrExists struct {
 	errBase
-}
-
-func (e *ErrExists) init(msg string, err error) {
-	if msg == "" {
-		msg = "exists"
-	}
-	*e = ErrExists{errBase{msg: msg, err: err}}
 }
 
 type ErrActiveJob struct {
 	errBase
 }
 
-func (e *ErrActiveJob) init(msg string, err error) {
-	if msg == "" {
-		msg = "active job"
-	}
-	*e = ErrActiveJob{errBase{msg: msg, err: err}}
-}
-
 type ErrInvalidInput struct {
 	errBase
-}
-
-func (e *ErrInvalidInput) init(msg string, err error) {
-	if msg == "" {
-		msg = "invalid input"
-	}
-	*e = ErrInvalidInput{errBase{msg: msg, err: err}}
 }
