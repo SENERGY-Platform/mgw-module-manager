@@ -65,7 +65,7 @@ func main() {
 	logger := struct_logger.New(config.Logger, os.Stderr, "", serviceInfoHandler.Name())
 
 	logger.Info(
-		"starting service",
+		"start service",
 		slog_keys.Version,
 		serviceInfoHandler.Version(),
 		slog_keys.ConfigValues,
@@ -76,7 +76,7 @@ func main() {
 
 	mySQLConnector, err := handler_database.NewConnector(config.Database.MySQL)
 	if err != nil {
-		logger.Error("creating mysql connector failed", slog_keys.Error, err)
+		logger.Error("create mysql connector", slog_keys.Error, err)
 		ec = 1
 		return
 	}
@@ -87,7 +87,7 @@ func main() {
 	migration_db_restructure.InitLogger(logger)
 	err = databaseHandler.Migrate(ctx, migration_db_restructure.Migration, migration_db_init.Migration)
 	if err != nil {
-		logger.Error("database migration failed", slog_keys.Error, err)
+		logger.Error("database migration", slog_keys.Error, err)
 		ec = 1
 		return
 	}
@@ -175,7 +175,7 @@ func main() {
 		config.HttpAccessLog,
 	)
 	if err != nil {
-		logger.Error("creating http engine failed", slog_keys.Error, err)
+		logger.Error("create http engine", slog_keys.Error, err)
 		ec = 1
 		return
 	}
@@ -183,28 +183,28 @@ func main() {
 	httpServer := &http.Server{Handler: httpApi.Handler()}
 	serverListener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
-		logger.Error("creating server listener failed", slog_keys.Error, err)
+		logger.Error("create server listener", slog_keys.Error, err)
 		ec = 1
 		return
 	}
 
 	err = repositoriesHandler.InitRepositories(ctx)
 	if err != nil {
-		logger.Error("initializing module repositories failed", slog_keys.Error, err)
+		logger.Error("initialize repositories", slog_keys.Error, err)
 		ec = 1
 		return
 	}
 
 	err = modulesHdl.Init()
 	if err != nil {
-		logger.Error("initializing modules handler failed", slog_keys.Error, err)
+		logger.Error("initialize modules handler", slog_keys.Error, err)
 		ec = 1
 		return
 	}
 
 	err = deploymentsHandler.Init()
 	if err != nil {
-		logger.Error("initializing deployments handler failed", slog_keys.Error, err)
+		logger.Error("initialize deployments handler", slog_keys.Error, err)
 		ec = 1
 		return
 	}
@@ -238,9 +238,9 @@ func main() {
 	}()
 
 	go func() {
-		logger.Info("starting http server")
+		logger.Info("start http server")
 		if err := httpServer.Serve(serverListener); !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("starting server failed", slog_keys.Error, err)
+			logger.Error("start server", slog_keys.Error, err)
 			ec = 1
 		}
 		cf()
@@ -250,11 +250,11 @@ func main() {
 	go func() {
 		defer wg.Done()
 		<-ctx.Done()
-		logger.Info("stopping http server")
+		logger.Info("stop http server")
 		ctxWt, cf2 := context.WithTimeout(context.Background(), time.Second*5)
 		defer cf2()
 		if err := httpServer.Shutdown(ctxWt); err != nil {
-			logger.Error("stopping server failed", slog_keys.Error, err)
+			logger.Error("stop http server", slog_keys.Error, err)
 			ec = 1
 		} else {
 			logger.Info("http server stopped")
