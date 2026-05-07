@@ -198,7 +198,14 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models.C
 	return mods, nil
 }
 
-func (s *Service) addRepoModDepsToMap(ctx context.Context, mod external_models.ModuleLibModule, source, channel string, deps map[string]modWrapper, skipNotFound bool) error {
+func (s *Service) addRepoModDepsToMap(
+	ctx context.Context,
+	mod external_models.ModuleLibModule,
+	source string,
+	channel string,
+	deps map[string]modWrapper,
+	skipNotFound bool,
+) error {
 	for depId := range mod.Dependencies {
 		if _, ok := deps[depId]; !ok {
 			depFS, err := s.repositoriesHandler.ModuleFS(ctx, depId, source, channel)
