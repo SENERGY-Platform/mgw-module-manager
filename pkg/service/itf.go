@@ -10,9 +10,9 @@ import (
 
 type repositoriesHandler interface {
 	RefreshRepositories(ctx context.Context) error
-	Repositories(ctx context.Context) ([]pkg_models.Repository, error)
+	Repositories(ctx context.Context) []pkg_models.Repository
 	Module(ctx context.Context, id, source, channel string) (pkg_models.RepositoryModule, error)
-	Modules(ctx context.Context, filter pkg_models.RepositoryModulesFilter) ([]pkg_models.RepositoryModule, error)
+	Modules(ctx context.Context, filter pkg_models.RepositoryModulesFilter) []pkg_models.RepositoryModule
 	ModuleFS(ctx context.Context, id, source, channel string) (fs.FS, error)
 }
 

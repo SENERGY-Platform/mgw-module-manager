@@ -60,7 +60,7 @@ func (h *Handler) RefreshRepositories(ctx context.Context) error {
 	return h.updateVariantsMap(ctx)
 }
 
-func (h *Handler) Repositories(_ context.Context) ([]pkg_models.Repository, error) {
+func (h *Handler) Repositories(_ context.Context) []pkg_models.Repository {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	var repos []pkg_models.Repository
@@ -71,10 +71,10 @@ func (h *Handler) Repositories(_ context.Context) ([]pkg_models.Repository, erro
 			Channels: repo.Handler.Channels(),
 		})
 	}
-	return repos, nil
+	return repos
 }
 
-func (h *Handler) Modules(_ context.Context, filter pkg_models.RepositoryModulesFilter) ([]pkg_models.RepositoryModule, error) {
+func (h *Handler) Modules(_ context.Context, filter pkg_models.RepositoryModulesFilter) []pkg_models.RepositoryModule {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	filterById := len(filter.Ids) > 0
@@ -98,7 +98,7 @@ func (h *Handler) Modules(_ context.Context, filter pkg_models.RepositoryModules
 			}
 		}
 	}
-	return variants, nil
+	return variants
 }
 
 func (h *Handler) Module(_ context.Context, id, source, channel string) (pkg_models.RepositoryModule, error) {
