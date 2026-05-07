@@ -74,16 +74,14 @@ func getJob(handlerJob *handler_jobs.Job) lib_models.Job {
 }
 
 func activeJobErrMsg(j *handler_jobs.Job) string {
-	return fmt.Sprintf("active job:\n%s (id=%s)", j.Description, j.Id)
+	return fmt.Sprintf("active job\n%s (id=%s)", j.Description, j.Id)
 }
 
 func activeJobsErrMsg(jobs map[int]*handler_jobs.Job) string {
 	msg := "active job"
 	lenJobs := len(jobs)
-	if lenJobs < 2 {
-		msg += ":"
-	} else {
-		msg += "s:"
+	if lenJobs > 1 {
+		msg += "s"
 	}
 	for i, j := range jobs {
 		if i == 0 {
