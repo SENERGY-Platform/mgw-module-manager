@@ -14,7 +14,6 @@ import (
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
-	"github.com/bytedance/gopkg/util/logger"
 )
 
 type Handler struct {
