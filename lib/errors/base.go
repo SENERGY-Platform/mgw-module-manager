@@ -20,23 +20,23 @@ import (
 	"errors"
 )
 
-type iBaseErr interface {
+type iErrBase interface {
 	error
 	Unwrap() error
 }
 
-type iBaseErrPtr[T iBaseErr] interface {
+type iErrBasePtr[T iErrBase] interface {
 	*T
 	set(msg string, err error)
 }
 
-func New[T iBaseErr, PT iBaseErrPtr[T]](msg string) *T {
+func New[T iErrBase, PT iErrBasePtr[T]](msg string) *T {
 	pt := PT(new(T))
 	pt.set(msg, nil)
 	return pt
 }
 
-func Wrap[T iBaseErr, PT iBaseErrPtr[T]](err error) *T {
+func Wrap[T iErrBase, PT iErrBasePtr[T]](err error) *T {
 	pt := PT(new(T))
 	pt.set("", err)
 	return pt
@@ -52,18 +52,18 @@ func IsOf[
 	return errors.As(err, &pt)
 }
 
-type baseErr struct {
+type errBase struct {
 	msg string
 	err error
 }
 
-func (e baseErr) Error() string {
+func (e errBase) Error() string {
 	if e.err == nil {
 		return e.msg
 	}
 	return e.err.Error()
 }
 
-func (e baseErr) Unwrap() error {
+func (e errBase) Unwrap() error {
 	return e.err
 }

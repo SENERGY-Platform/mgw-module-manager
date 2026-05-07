@@ -17,45 +17,45 @@
 package lib_errors
 
 type ErrNotFound struct {
-	baseErr
+	errBase
 }
 
 func (e *ErrNotFound) set(msg string, err error) {
 	if msg == "" {
 		msg = "not found"
 	}
-	*e = ErrNotFound{baseErr{msg: msg, err: err}}
+	*e = ErrNotFound{errBase{msg: msg, err: err}}
 }
 
 type ErrExists struct {
-	baseErr
+	errBase
 }
 
 func (e *ErrExists) set(msg string, err error) {
 	if msg == "" {
 		msg = "exists"
 	}
-	*e = ErrExists{baseErr{msg: msg, err: err}}
+	*e = ErrExists{errBase{msg: msg, err: err}}
 }
 
 type ErrActiveJob struct {
-	baseErr
+	errBase
 }
 
 func (e *ErrActiveJob) set(msg string, err error) {
 	if msg == "" {
 		msg = "active job"
 	}
-	*e = ErrActiveJob{baseErr{msg: msg, err: err}}
+	*e = ErrActiveJob{errBase{msg: msg, err: err}}
 }
 
 type ErrInvalidInput struct {
-	baseErr
+	errBase
 }
 
 func (e *ErrInvalidInput) set(msg string, err error) {
 	if msg == "" {
 		msg = "invalid input"
 	}
-	*e = ErrInvalidInput{baseErr{msg: msg, err: err}}
+	*e = ErrInvalidInput{errBase{msg: msg, err: err}}
 }
