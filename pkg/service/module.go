@@ -30,7 +30,6 @@ import (
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
 )
 
 func (s *Service) Modules(ctx context.Context, filter lib_models.ModulesFilter) ([]lib_models.ModuleReduced, error) {
@@ -38,13 +37,7 @@ func (s *Service) Modules(ctx context.Context, filter lib_models.ModulesFilter) 
 	defer s.mu.RUnlock()
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(moduleJobSlotNum)
 	if ok {
-		return nil, lib_errors.New[lib_errors.ErrActiveJob](
-			"active job",
-			attr_keys.Id,
-			currentJob.Id,
-			attr_keys.Description,
-			currentJob.Description,
-		)
+		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
 	modules, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithNameAndDep{
 		ModulesFilter: pkg_models.ModulesFilter{
@@ -71,13 +64,7 @@ func (s *Service) Module(ctx context.Context, id string) (lib_models.Module, err
 	defer s.mu.RUnlock()
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(moduleJobSlotNum)
 	if ok {
-		return lib_models.Module{}, lib_errors.New[lib_errors.ErrActiveJob](
-			"active job",
-			attr_keys.Id,
-			currentJob.Id,
-			attr_keys.Description,
-			currentJob.Description,
-		)
+		return lib_models.Module{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
 	handlerModule, err := s.modulesHandler.Module(ctx, id)
 	if err != nil {
@@ -113,10 +100,7 @@ func (s *Service) NewModulesChangeRequest(
 	defer s.mu.Unlock()
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{moduleJobSlotNum, repositoryJobSlotNum})
 	if len(currentJobs) > 0 {
-		return lib_models.ModulesChangeRequest{}, lib_errors.New[lib_errors.ErrActiveJob](
-			"active jobs",
-			currentJobsToAttributes(currentJobs)...,
-		)
+		return lib_models.ModulesChangeRequest{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
 	reqItems, err := validateReqItems(reqItems)
 	if err != nil {
@@ -149,7 +133,7 @@ func (s *Service) ExecModulesChangeRequest(_ context.Context) (lib_models.Job, e
 	}
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{moduleJobSlotNum, repositoryJobSlotNum, deploymentJobSlotNum})
 	if len(currentJobs) > 0 {
-		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob]("active jobs", currentJobsToAttributes(currentJobs)...)
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob]("active jobs")
 	}
 	job, err := s.jobsHandler.CreateSlotJob(moduleJobSlotNum, "execute modules change")
 	if err != nil {

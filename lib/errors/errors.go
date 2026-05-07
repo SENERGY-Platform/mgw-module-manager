@@ -17,71 +17,45 @@
 package lib_errors
 
 type ErrNotFound struct {
-	errBase
+	baseErr
 }
 
-func (e *ErrNotFound) set(msg string, err error, args []interface{}) {
-	*e = ErrNotFound{
-		errBase{
-			msg:  msg,
-			err:  err,
-			args: args,
-		},
+func (e *ErrNotFound) set(msg string, err error) {
+	if msg == "" {
+		msg = "not found"
 	}
+	*e = ErrNotFound{baseErr{msg: msg, err: err}}
 }
 
 type ErrExists struct {
-	errBase
+	baseErr
 }
 
-func (e *ErrExists) set(msg string, err error, args []interface{}) {
-	*e = ErrExists{
-		errBase{
-			msg:  msg,
-			err:  err,
-			args: args,
-		},
+func (e *ErrExists) set(msg string, err error) {
+	if msg == "" {
+		msg = "exists"
 	}
+	*e = ErrExists{baseErr{msg: msg, err: err}}
 }
 
 type ErrActiveJob struct {
-	errBase
+	baseErr
 }
 
-func (e *ErrActiveJob) set(msg string, err error, args []interface{}) {
-	*e = ErrActiveJob{
-		errBase{
-			msg:  msg,
-			err:  err,
-			args: args,
-		},
+func (e *ErrActiveJob) set(msg string, err error) {
+	if msg == "" {
+		msg = "active job"
 	}
+	*e = ErrActiveJob{baseErr{msg: msg, err: err}}
 }
 
 type ErrInvalidInput struct {
-	errBase
+	baseErr
 }
 
-func (e *ErrInvalidInput) set(msg string, err error, args []interface{}) {
-	*e = ErrInvalidInput{
-		errBase{
-			msg:  msg,
-			err:  err,
-			args: args,
-		},
+func (e *ErrInvalidInput) set(msg string, err error) {
+	if msg == "" {
+		msg = "invalid input"
 	}
-}
-
-type ErrDatabase struct {
-	errBase
-}
-
-func (e *ErrDatabase) set(msg string, err error, args []interface{}) {
-	*e = ErrDatabase{
-		errBase{
-			msg:  msg,
-			err:  err,
-			args: args,
-		},
-	}
+	*e = ErrInvalidInput{baseErr{msg: msg, err: err}}
 }

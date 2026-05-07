@@ -27,7 +27,6 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
 )
 
 func (h *Handler) ReadAuxiliaryDeployment(
@@ -42,13 +41,7 @@ func (h *Handler) ReadAuxiliaryDeployment(
 		return pkg_models.AuxiliaryDeployment{}, err
 	}
 	if len(auxDeploymentId) == 0 {
-		return pkg_models.AuxiliaryDeployment{}, lib_errors.New[lib_errors.ErrNotFound](
-			"auxiliary deployment not found",
-			attr_keys.DeploymentId,
-			deploymentId,
-			attr_keys.AuxDeploymentId,
-			auxDeploymentId,
-		)
+		return pkg_models.AuxiliaryDeployment{}, lib_errors.New[lib_errors.ErrNotFound]("auxiliary deployment not found")
 	}
 	return auxDeployments[auxDeploymentId], nil
 }

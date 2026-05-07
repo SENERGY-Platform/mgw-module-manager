@@ -21,7 +21,6 @@ import (
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
 )
 
 type jobResults struct {
@@ -46,11 +45,7 @@ func (s *Service) GetDeploymentsJobResult(jobId string) (lib_models.DeploymentJo
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.deployments[jobId]
 	if !ok {
-		return lib_models.DeploymentJobResult{}, lib_errors.New[lib_errors.ErrNotFound](
-			"job result not found",
-			attr_keys.Id,
-			jobId,
-		)
+		return lib_models.DeploymentJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
 	}
 	return res, nil
 }
@@ -66,11 +61,7 @@ func (s *Service) GetUpdateDeploymentsJobResult(jobId string) (lib_models.Deploy
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.deploymentsUpdate[jobId]
 	if !ok {
-		return lib_models.DeploymentUpdateJobResult{}, lib_errors.New[lib_errors.ErrNotFound](
-			"job result not found",
-			attr_keys.Id,
-			jobId,
-		)
+		return lib_models.DeploymentUpdateJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
 	}
 	return res, nil
 }
@@ -86,11 +77,7 @@ func (s *Service) GetModuleChangeJobResult(jobId string) (lib_models.ModulesChan
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.moduleChange[jobId]
 	if !ok {
-		return lib_models.ModulesChangeJobResult{}, lib_errors.New[lib_errors.ErrNotFound](
-			"job result not found",
-			attr_keys.Id,
-			jobId,
-		)
+		return lib_models.ModulesChangeJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
 	}
 	return res, nil
 }
@@ -106,11 +93,7 @@ func (s *Service) GetRefreshRepositoriesJobResult(jobId string) (lib_models.JobR
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.refreshRepositories[jobId]
 	if !ok {
-		return lib_models.JobResult{}, lib_errors.New[lib_errors.ErrNotFound](
-			"job result not found",
-			attr_keys.Id,
-			jobId,
-		)
+		return lib_models.JobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
 	}
 	return res, nil
 }
@@ -126,11 +109,7 @@ func (s *Service) GetCreateAuxiliaryDeploymentJobResult(jobId string) (lib_model
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.auxDeploymentCreate[jobId]
 	if !ok {
-		return lib_models.AuxiliaryDeploymentCreateJobResult{}, lib_errors.New[lib_errors.ErrNotFound](
-			"job result not found",
-			attr_keys.Id,
-			jobId,
-		)
+		return lib_models.AuxiliaryDeploymentCreateJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
 	}
 	return res, nil
 }
@@ -146,11 +125,7 @@ func (s *Service) GetUpdateAuxiliaryDeploymentJobResult(jobId string) (lib_model
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.auxDeploymentUpdate[jobId]
 	if !ok {
-		return lib_models.JobResult{}, lib_errors.New[lib_errors.ErrNotFound](
-			"job result not found",
-			attr_keys.Id,
-			jobId,
-		)
+		return lib_models.JobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
 	}
 	return res, nil
 }
@@ -166,11 +141,7 @@ func (s *Service) GetAuxiliaryDeploymentsJobResult(jobId string) (lib_models.Aux
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.auxDeployment[jobId]
 	if !ok {
-		return lib_models.AuxiliaryDeploymentJobResult{}, lib_errors.New[lib_errors.ErrNotFound](
-			"job result not found",
-			attr_keys.Id,
-			jobId,
-		)
+		return lib_models.AuxiliaryDeploymentJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
 	}
 	return res, nil
 }

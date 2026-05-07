@@ -18,12 +18,12 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"slices"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	handler_jobs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/attr_keys"
 )
 
 func (s *Service) Jobs(_ context.Context, filterIds []string) ([]lib_models.Job, error) {
@@ -41,7 +41,7 @@ func (s *Service) Jobs(_ context.Context, filterIds []string) ([]lib_models.Job,
 func (s *Service) Job(_ context.Context, id string) (lib_models.Job, error) {
 	handlerJob, ok := s.jobsHandler.Job(id)
 	if !ok {
-		return lib_models.Job{}, lib_errors.New[lib_errors.ErrNotFound]("job not found", attr_keys.Id, id)
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrNotFound]("")
 	}
 	return getJob(handlerJob), nil
 }
@@ -57,7 +57,7 @@ func (s *Service) CancelJobs(_ context.Context, ids []string) error {
 func (s *Service) CancelJob(_ context.Context, id string) error {
 	handlerJob, ok := s.jobsHandler.Job(id)
 	if !ok {
-		return lib_errors.New[lib_errors.ErrNotFound]("job not found", attr_keys.Id, id)
+		return lib_errors.New[lib_errors.ErrNotFound]("")
 	}
 	handlerJob.Cancel()
 	return nil
@@ -73,10 +73,26 @@ func getJob(handlerJob *handler_jobs.Job) lib_models.Job {
 	return job
 }
 
-func currentJobsToAttributes(jobs map[int]*handler_jobs.Job) []interface{} {
-	var attr []interface{}
-	for _, job := range jobs {
-		attr = append(attr, attr_keys.Id, job.Id, attr_keys.Description, job.Description)
+func activeJobErrMsg(j *handler_jobs.Job) string {
+	return fmt.Sprintf("active job:\n%s (id=%s)", j.Description, j.Id)
+}
+
+func activeJobsErrMsg(jobs map[int]*handler_jobs.Job) string {
+	msg := "active job"
+	lenJobs := len(jobs)
+	if lenJobs < 2 {
+		msg += ":"
+	} else {
+		msg += "s:"
 	}
-	return attr
+	for i, j := range jobs {
+		if i == 0 {
+			msg += "\n"
+		}
+		msg += fmt.Sprintf("%s (id=%s)", j.Description, j.Id)
+		if i < lenJobs-1 {
+			msg += "\n"
+		}
+	}
+	return msg
 }

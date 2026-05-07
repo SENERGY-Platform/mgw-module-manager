@@ -73,7 +73,7 @@ func (h *Handler) Module(ctx context.Context, id string) (pkg_models.Module, err
 		return pkg_models.Module{}, err
 	}
 	if len(modules) == 0 {
-		return pkg_models.Module{}, lib_errors.New[lib_errors.ErrNotFound]("module not found", attr_keys.Id, id)
+		return pkg_models.Module{}, lib_errors.New[lib_errors.ErrNotFound]("module not found")
 	}
 	return modules[id], nil
 }
@@ -87,7 +87,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 			return err
 		}
 	} else {
-		return lib_errors.New[lib_errors.ErrExists]("module exists", attr_keys.Id, id)
+		return lib_errors.New[lib_errors.ErrExists]("module already exists")
 	}
 	stgMod, err := newStgMod(id, source, channel)
 	if err != nil {

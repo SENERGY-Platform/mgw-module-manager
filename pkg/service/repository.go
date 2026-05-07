@@ -19,13 +19,7 @@ func (s *Service) RefreshRepositories(_ context.Context) (lib_models.Job, error)
 	defer s.mu.Unlock()
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
 	if ok {
-		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](
-			"active job",
-			attr_keys.Id,
-			currentJob.Id,
-			attr_keys.Description,
-			currentJob.Description,
-		)
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
 	s.changeRequest = nil
 	job, err := s.jobsHandler.CreateSlotJob(repositoryJobSlotNum, "refresh repositories")
@@ -59,13 +53,7 @@ func (s *Service) RepoModules(ctx context.Context, filter lib_models.RepoModules
 	defer s.mu.RUnlock()
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
 	if ok {
-		return nil, lib_errors.New[lib_errors.ErrActiveJob](
-			"active job",
-			attr_keys.Id,
-			currentJob.Id,
-			attr_keys.Description,
-			currentJob.Description,
-		)
+		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
 	repos, err := s.repositoriesHandler.Repositories(ctx)
 	if err != nil {

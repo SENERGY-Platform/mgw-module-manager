@@ -18,35 +18,27 @@ package lib_errors
 
 import (
 	"errors"
-	"fmt"
 )
 
-type iErrBase interface {
+type iBaseErr interface {
 	error
 	Unwrap() error
 }
 
-func New[
-	T iErrBase,
-	PT interface {
-		*T
-		set(msg string, err error, args []interface{})
-	},
-](msg string, args ...interface{}) *T {
+type iBaseErrPtr[T iBaseErr] interface {
+	*T
+	set(msg string, err error)
+}
+
+func New[T iBaseErr, PT iBaseErrPtr[T]](msg string) *T {
 	pt := PT(new(T))
-	pt.set(msg, nil, args)
+	pt.set(msg, nil)
 	return pt
 }
 
-func Wrap[
-	T iErrBase,
-	PT interface {
-		*T
-		set(msg string, err error, args []interface{})
-	},
-](err error, args ...interface{}) *T {
+func Wrap[T iBaseErr, PT iBaseErrPtr[T]](err error) *T {
 	pt := PT(new(T))
-	pt.set("", err, args)
+	pt.set("", err)
 	return pt
 }
 
@@ -60,41 +52,18 @@ func IsOf[
 	return errors.As(err, &pt)
 }
 
-type errBase struct {
-	msg  string
-	err  error
-	args []interface{}
+type baseErr struct {
+	msg string
+	err error
 }
 
-func (e errBase) Error() string {
-	if e.err != nil {
-		return genErrString(e.err.Error(), e.args)
+func (e baseErr) Error() string {
+	if e.err == nil {
+		return e.msg
 	}
-	return genErrString(e.msg, e.args)
+	return e.err.Error()
 }
 
-func (e errBase) Unwrap() error {
+func (e baseErr) Unwrap() error {
 	return e.err
-}
-
-func genErrString(msg string, args []interface{}) string {
-	if len(args) == 0 {
-		return msg
-	}
-	s := fmt.Sprintf("msg='%s'", msg)
-	isKey := true
-	for _, arg := range args {
-		if isKey {
-			s += fmt.Sprintf(" %v=", arg)
-			isKey = false
-		} else {
-			if v, ok := arg.(string); ok {
-				s += fmt.Sprintf("'%s'", v)
-			} else {
-				s += fmt.Sprintf("%+v", arg)
-			}
-			isKey = true
-		}
-	}
-	return s
 }

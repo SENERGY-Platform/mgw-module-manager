@@ -65,7 +65,7 @@ func (s *Service) CreateAuxiliaryDeployment(
 	defer s.mu.Unlock()
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
 	if len(currentJobs) > 0 {
-		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob]("active jobs", currentJobsToAttributes(currentJobs)...)
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
 	activeDeployment, err := s.deploymentsHandler.GetDeployment(ctx, serviceInput.DeploymentId)
 	if err != nil {
@@ -125,7 +125,7 @@ func (s *Service) UpdateAuxiliaryDeployment(
 	defer s.mu.Unlock()
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
 	if len(currentJobs) > 0 {
-		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob]("active jobs", currentJobsToAttributes(currentJobs)...)
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
 	activeDeployment, err := s.deploymentsHandler.GetDeployment(ctx, serviceInput.DeploymentId)
 	if err != nil {
@@ -185,7 +185,7 @@ func (s *Service) RecreateAuxiliaryDeployments(
 	defer s.mu.Unlock()
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
 	if len(currentJobs) > 0 {
-		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob]("active jobs", currentJobsToAttributes(currentJobs)...)
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
 	activeDeployment, err := s.deploymentsHandler.GetDeployment(ctx, deploymentId)
 	if err != nil {
