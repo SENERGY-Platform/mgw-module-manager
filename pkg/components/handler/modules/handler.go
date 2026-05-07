@@ -44,24 +44,24 @@ func (h *Handler) Init() error {
 	return os.MkdirAll(h.config.WorkDirPath, 0775)
 }
 
-func (h *Handler) Modules(ctx context.Context, filter pkg_models.ModulesFilterWithName, dependencies bool) (map[string]pkg_models.Module, error) {
+func (h *Handler) GetModules(ctx context.Context, filter pkg_models.ModulesFilterWithName, dependencies bool) (map[string]pkg_models.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	if dependencies && len(filter.Ids) > 0 {
 		modulesWithDependencies := make(map[string]pkg_models.Module)
-		err := h.modulesWithDependencies(ctx, filter.Ids, modulesWithDependencies)
+		err := h.getModulesWithDependencies(ctx, filter.Ids, modulesWithDependencies)
 		if err != nil {
 			return nil, err
 		}
 		return modulesWithDependencies, nil
 	}
-	return h.modules(ctx, filter)
+	return h.getModules(ctx, filter)
 }
 
-func (h *Handler) Module(ctx context.Context, id string) (pkg_models.Module, error) {
+func (h *Handler) GetModule(ctx context.Context, id string) (pkg_models.Module, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	modules, err := h.modules(
+	modules, err := h.getModules(
 		ctx,
 		pkg_models.ModulesFilterWithName{
 			ModulesFilter: pkg_models.ModulesFilter{
@@ -78,7 +78,7 @@ func (h *Handler) Module(ctx context.Context, id string) (pkg_models.Module, err
 	return modules[id], nil
 }
 
-func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.FS) error {
+func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSys fs.FS) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	_, err := h.databaseHandler.Module(ctx, id)
@@ -133,7 +133,7 @@ func (h *Handler) Add(ctx context.Context, id, source, channel string, fSys fs.F
 	return nil
 }
 
-func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys fs.FS) error {
+func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, fSys fs.FS) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	stgModOld, err := h.databaseHandler.Module(ctx, id)
@@ -197,7 +197,7 @@ func (h *Handler) Update(ctx context.Context, id, source, channel string, fSys f
 	return nil
 }
 
-func (h *Handler) Remove(ctx context.Context, id string) error {
+func (h *Handler) RemoveModule(ctx context.Context, id string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	stgMod, err := h.databaseHandler.Module(ctx, id)
@@ -226,8 +226,8 @@ func (h *Handler) Remove(ctx context.Context, id string) error {
 	return nil
 }
 
-func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, modulesWithDependencies map[string]pkg_models.Module) error {
-	modules, err := h.modules(
+func (h *Handler) getModulesWithDependencies(ctx context.Context, ids []string, modulesWithDependencies map[string]pkg_models.Module) error {
+	modules, err := h.getModules(
 		ctx,
 		pkg_models.ModulesFilterWithName{
 			ModulesFilter: pkg_models.ModulesFilter{
@@ -251,7 +251,7 @@ func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, mod
 					dependencyIds = append(dependencyIds, dependencyId)
 				}
 			}
-			err = h.modulesWithDependencies(ctx, dependencyIds, modulesWithDependencies)
+			err = h.getModulesWithDependencies(ctx, dependencyIds, modulesWithDependencies)
 			if err != nil {
 				return err
 			}
@@ -260,7 +260,7 @@ func (h *Handler) modulesWithDependencies(ctx context.Context, ids []string, mod
 	return nil
 }
 
-func (h *Handler) modules(ctx context.Context, filter pkg_models.ModulesFilterWithName) (map[string]pkg_models.Module, error) {
+func (h *Handler) getModules(ctx context.Context, filter pkg_models.ModulesFilterWithName) (map[string]pkg_models.Module, error) {
 	stgMods, err := h.databaseHandler.Modules(ctx, pkg_models.ModulesFilter{
 		Ids:     filter.Ids,
 		Source:  filter.Source,

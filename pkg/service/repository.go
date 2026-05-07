@@ -58,8 +58,8 @@ func (s *Service) RepoModules(ctx context.Context, filter lib_models.RepoModules
 		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
 	mods, err := s.repoModules(
-		s.repositoriesHandler.Repositories(ctx),
-		s.repositoriesHandler.Modules(ctx, pkg_models.RepositoryModulesFilter{
+		s.repositoriesHandler.GetRepositories(ctx),
+		s.repositoriesHandler.GetModules(ctx, pkg_models.RepositoryModulesFilter{
 			Ids:     filter.Ids,
 			Name:    filter.Name,
 			Sources: newSourceFilters(filter.Repositories),
@@ -68,7 +68,7 @@ func (s *Service) RepoModules(ctx context.Context, filter lib_models.RepoModules
 	if err != nil {
 		return nil, err
 	}
-	installedMods, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithName{}, false)
+	installedMods, err := s.modulesHandler.GetModules(ctx, pkg_models.ModulesFilterWithName{}, false)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models.C
 			item.Channel = installedMod.Channel
 			installedVer = installedMod.Version
 		}
-		modFS, err := s.repositoriesHandler.ModuleFS(ctx, item.Id, item.Source, item.Channel)
+		modFS, err := s.repositoriesHandler.GetModuleFS(ctx, item.Id, item.Source, item.Channel)
 		if err != nil {
 			return nil, err
 		}
@@ -169,7 +169,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models.C
 		}
 	}
 	// get repo with the highest priority
-	modRepos := s.repositoriesHandler.Repositories(ctx)
+	modRepos := s.repositoriesHandler.GetRepositories(ctx)
 	highestPrioRepo := selectByPriority(modRepos, func(item pkg_models.Repository, lastPrio int) (int, bool) {
 		return item.Priority, item.Priority >= lastPrio
 	})
@@ -208,7 +208,7 @@ func (s *Service) addRepoModDepsToMap(
 ) error {
 	for depId := range mod.Dependencies {
 		if _, ok := deps[depId]; !ok {
-			depFS, err := s.repositoriesHandler.ModuleFS(ctx, depId, source, channel)
+			depFS, err := s.repositoriesHandler.GetModuleFS(ctx, depId, source, channel)
 			if err != nil {
 				if errors.Is(err, handler_repositories.ErrNotFound) && skipNotFound {
 					continue

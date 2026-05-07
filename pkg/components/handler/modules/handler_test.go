@@ -66,7 +66,7 @@ func TestHandler_Modules(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	mods, err := h.Modules(context.Background(), pkg_models.ModulesFilterWithName{}, false)
+	mods, err := h.GetModules(context.Background(), pkg_models.ModulesFilterWithName{}, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -118,7 +118,7 @@ func TestHandler_Module(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	mod, err := h.Module(context.Background(), "github.com/org/repo")
+	mod, err := h.GetModule(context.Background(), "github.com/org/repo")
 	if err != nil {
 		t.Error(err)
 	}
@@ -132,7 +132,7 @@ func TestHandler_Module(t *testing.T) {
 	}
 	t.Run("error", func(t *testing.T) {
 		t.Run("does not exist", func(t *testing.T) {
-			_, err = h.Module(context.Background(), "test")
+			_, err = h.GetModule(context.Background(), "test")
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -141,7 +141,7 @@ func TestHandler_Module(t *testing.T) {
 			bk := h.cache
 			h.config.WorkDirPath = ""
 			h.cache = make(map[string]module_lib.Module)
-			_, err = h.Module(context.Background(), "github.com/org/repo")
+			_, err = h.GetModule(context.Background(), "github.com/org/repo")
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -150,7 +150,7 @@ func TestHandler_Module(t *testing.T) {
 		t.Run("storage", func(t *testing.T) {
 			testErr := errors.New("test error")
 			stgHdlMock.Err = testErr
-			_, err = h.Module(context.Background(), "github.com/org/repo")
+			_, err = h.GetModule(context.Background(), "github.com/org/repo")
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -173,7 +173,7 @@ func TestHandler_Add(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Run("success", func(t *testing.T) {
-		err = h.Add(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS("./test/test_mod"))
+		err = h.AddModule(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS("./test/test_mod"))
 		if err != nil {
 			t.Error(err)
 		}
@@ -203,7 +203,7 @@ func TestHandler_Add(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
 		t.Run("source err", func(t *testing.T) {
 			stgHdlMock.Mods = make(map[string]pkg_models.DatabaseModule)
-			err = h.Add(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS(""))
+			err = h.AddModule(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS(""))
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -212,7 +212,7 @@ func TestHandler_Add(t *testing.T) {
 			testErr := errors.New("test error")
 			stgHdlMock.Err = testErr
 			stgHdlMock.Mods = make(map[string]pkg_models.DatabaseModule)
-			err = h.Add(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS("./test/test_mod"))
+			err = h.AddModule(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS("./test/test_mod"))
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -233,7 +233,7 @@ func TestHandler_Add(t *testing.T) {
 					Updated: timestamp,
 				},
 			}
-			err = h.Add(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS("./test/test_mod"))
+			err = h.AddModule(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS("./test/test_mod"))
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -242,7 +242,7 @@ func TestHandler_Add(t *testing.T) {
 			testErr := errors.New("test error")
 			cewCltMock.GetImageErr = testErr
 			stgHdlMock.Mods = make(map[string]pkg_models.DatabaseModule)
-			err = h.Add(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS("./test/test_mod"))
+			err = h.AddModule(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS("./test/test_mod"))
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -256,7 +256,7 @@ func TestHandler_Add(t *testing.T) {
 			cewCltMock.AddImageErr = testErr
 			cewCltMock.Images = make(map[string]external_models.CewImage)
 			stgHdlMock.Mods = make(map[string]pkg_models.DatabaseModule)
-			err = h.Add(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS("./test/test_mod"))
+			err = h.AddModule(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS("./test/test_mod"))
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -270,7 +270,7 @@ func TestHandler_Add(t *testing.T) {
 			cewCltMock.GetJobErr = testErr
 			cewCltMock.Images = make(map[string]external_models.CewImage)
 			stgHdlMock.Mods = make(map[string]pkg_models.DatabaseModule)
-			err = h.Add(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS("./test/test_mod"))
+			err = h.AddModule(context.Background(), "github.com/org/repo", "test_source", "test_channel", os.DirFS("./test/test_mod"))
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -308,7 +308,7 @@ func TestHandler_Update(t *testing.T) {
 	}
 	t.Run("success", func(t *testing.T) {
 		populateTestDir(t, workDir)
-		err = h.Update(context.Background(), "github.com/org/repo", "test_source2", "test_channel2", os.DirFS("./test/test_mod_2"))
+		err = h.UpdateModule(context.Background(), "github.com/org/repo", "test_source2", "test_channel2", os.DirFS("./test/test_mod_2"))
 		if err != nil {
 			t.Error(err)
 		}
@@ -364,7 +364,7 @@ func TestHandler_Update(t *testing.T) {
 					Updated: timestamp,
 				},
 			}
-			err = h.Update(context.Background(), "github.com/org/repo", "test_source2", "test_channel2", os.DirFS(""))
+			err = h.UpdateModule(context.Background(), "github.com/org/repo", "test_source2", "test_channel2", os.DirFS(""))
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -382,7 +382,7 @@ func TestHandler_Update(t *testing.T) {
 					Updated: timestamp,
 				},
 			}
-			err = h.Update(context.Background(), "github.com/org/repo", "test_source2", "test_channel2", os.DirFS("./test/test_mod"))
+			err = h.UpdateModule(context.Background(), "github.com/org/repo", "test_source2", "test_channel2", os.DirFS("./test/test_mod"))
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -402,7 +402,7 @@ func TestHandler_Update(t *testing.T) {
 					Updated: timestamp,
 				},
 			}
-			err = h.Update(context.Background(), "test", "test_source2", "test_channel2", os.DirFS("./test/test_mod"))
+			err = h.UpdateModule(context.Background(), "test", "test_source2", "test_channel2", os.DirFS("./test/test_mod"))
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -420,7 +420,7 @@ func TestHandler_Update(t *testing.T) {
 					Updated: timestamp,
 				},
 			}
-			err = h.Update(context.Background(), "github.com/org/repo", "test_source2", "test_channel2", os.DirFS("./test/test_mod_2"))
+			err = h.UpdateModule(context.Background(), "github.com/org/repo", "test_source2", "test_channel2", os.DirFS("./test/test_mod_2"))
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -443,7 +443,7 @@ func TestHandler_Update(t *testing.T) {
 					Updated: timestamp,
 				},
 			}
-			err = h.Update(context.Background(), "github.com/org/repo", "test_source2", "test_channel2", os.DirFS("./test/test_mod_2"))
+			err = h.UpdateModule(context.Background(), "github.com/org/repo", "test_source2", "test_channel2", os.DirFS("./test/test_mod_2"))
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -466,7 +466,7 @@ func TestHandler_Update(t *testing.T) {
 					Updated: timestamp,
 				},
 			}
-			err = h.Update(context.Background(), "github.com/org/repo", "test_source2", "test_channel2", os.DirFS("./test/test_mod_2"))
+			err = h.UpdateModule(context.Background(), "github.com/org/repo", "test_source2", "test_channel2", os.DirFS("./test/test_mod_2"))
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -502,7 +502,7 @@ func TestHandler_Delete(t *testing.T) {
 				},
 			}
 			cewCltMock.Images["ghcr.io/org/repo:test"] = external_models.CewImage{}
-			err = h.Remove(context.Background(), "github.com/org/repo")
+			err = h.RemoveModule(context.Background(), "github.com/org/repo")
 			if err != nil {
 				t.Error(err)
 			}
@@ -531,7 +531,7 @@ func TestHandler_Delete(t *testing.T) {
 			}
 			cewCltMock.Images["ghcr.io/org/repo:test"] = external_models.CewImage{}
 			h.cache["github.com/org/repo"] = module_lib.Module{Services: map[string]module_lib.Service{"test": {Image: "ghcr.io/org/repo:test"}}}
-			err = h.Remove(context.Background(), "github.com/org/repo")
+			err = h.RemoveModule(context.Background(), "github.com/org/repo")
 			if err != nil {
 				t.Error(err)
 			}
@@ -563,7 +563,7 @@ func TestHandler_Delete(t *testing.T) {
 				},
 			}
 			cewCltMock.Images = make(map[string]external_models.CewImage)
-			err = h.Remove(context.Background(), "github.com/org/repo")
+			err = h.RemoveModule(context.Background(), "github.com/org/repo")
 			if err != nil {
 				t.Error(err)
 			}
@@ -591,7 +591,7 @@ func TestHandler_Delete(t *testing.T) {
 			cewCltMock.Images["ghcr.io/org/repo:test"] = external_models.CewImage{}
 			testErr := errors.New("test error")
 			stgHdlMock.Err = testErr
-			err = h.Remove(context.Background(), "github.com/org/repo")
+			err = h.RemoveModule(context.Background(), "github.com/org/repo")
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -609,7 +609,7 @@ func TestHandler_Delete(t *testing.T) {
 				},
 			}
 			cewCltMock.Images["ghcr.io/org/repo:test"] = external_models.CewImage{}
-			err = h.Remove(context.Background(), "test")
+			err = h.RemoveModule(context.Background(), "test")
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -625,7 +625,7 @@ func TestHandler_Delete(t *testing.T) {
 			testErr := errors.New("test error")
 			cewCltMock.RemoveImageErr = testErr
 			cewCltMock.Images["ghcr.io/org/repo:test"] = external_models.CewImage{}
-			err = h.Remove(context.Background(), "github.com/org/repo")
+			err = h.RemoveModule(context.Background(), "github.com/org/repo")
 			if err == nil {
 				t.Error("expected error")
 			}

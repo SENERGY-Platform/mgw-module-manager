@@ -39,7 +39,7 @@ func (s *Service) Modules(ctx context.Context, filter lib_models.ModulesFilter) 
 	if ok {
 		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
-	modules, err := s.modulesHandler.Modules(
+	modules, err := s.modulesHandler.GetModules(
 		ctx,
 		pkg_models.ModulesFilterWithName{
 			ModulesFilter: pkg_models.ModulesFilter{
@@ -70,7 +70,7 @@ func (s *Service) Module(ctx context.Context, id string) (lib_models.Module, err
 	if ok {
 		return lib_models.Module{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
-	handlerModule, err := s.modulesHandler.Module(ctx, id)
+	handlerModule, err := s.modulesHandler.GetModule(ctx, id)
 	if err != nil {
 		return lib_models.Module{}, err
 	}
@@ -110,7 +110,7 @@ func (s *Service) NewModulesChangeRequest(
 	if err != nil {
 		return lib_models.ModulesChangeRequest{}, err
 	}
-	installedMods, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithName{}, false)
+	installedMods, err := s.modulesHandler.GetModules(ctx, pkg_models.ModulesFilterWithName{}, false)
 	if err != nil {
 		return lib_models.ModulesChangeRequest{}, err
 	}
@@ -196,14 +196,14 @@ func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (lib_mod
 }
 
 func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modulesChangeRequest, error) {
-	installedMods, err := s.modulesHandler.Modules(ctx, pkg_models.ModulesFilterWithName{}, false)
+	installedMods, err := s.modulesHandler.GetModules(ctx, pkg_models.ModulesFilterWithName{}, false)
 	if err != nil {
 		return modulesChangeRequest{}, err
 	}
 	if len(installedMods) == 0 {
 		return modulesChangeRequest{}, nil
 	}
-	repoMods := s.repositoriesHandler.Modules(ctx, pkg_models.RepositoryModulesFilter{Ids: slices.Collect(maps.Keys(installedMods))})
+	repoMods := s.repositoriesHandler.GetModules(ctx, pkg_models.RepositoryModulesFilter{Ids: slices.Collect(maps.Keys(installedMods))})
 	if len(repoMods) == 0 {
 		return modulesChangeRequest{}, nil
 	}
@@ -239,7 +239,7 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.Modul
 			Id:     id,
 			Action: lib_constants.ModuleChangeActionRemove,
 		}
-		err := s.modulesHandler.Remove(ctx, id)
+		err := s.modulesHandler.RemoveModule(ctx, id)
 		if err != nil {
 			failed = append(failed, lib_models.ChangeReportErrItem{
 				ChangeReportItem: cri,
@@ -254,7 +254,7 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.Modul
 			Id:     repoMod.Mod.ID,
 			Action: lib_constants.ModuleChangeActionInstall,
 		}
-		err := s.modulesHandler.Add(ctx, repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.FS)
+		err := s.modulesHandler.AddModule(ctx, repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.FS)
 		if err != nil {
 			failed = append(failed, lib_models.ChangeReportErrItem{
 				ChangeReportItem: cri,
@@ -269,7 +269,7 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.Modul
 			Id:     item.Next.Mod.ID,
 			Action: lib_constants.ModuleChangeActionChange,
 		}
-		err := s.modulesHandler.Update(ctx, item.Next.Mod.ID, item.Next.Source, item.Next.Channel, item.Next.FS)
+		err := s.modulesHandler.UpdateModule(ctx, item.Next.Mod.ID, item.Next.Source, item.Next.Channel, item.Next.FS)
 		if err != nil {
 			failed = append(failed, lib_models.ChangeReportErrItem{
 				ChangeReportItem: cri,

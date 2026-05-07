@@ -71,7 +71,7 @@ func (s *Service) CreateAuxiliaryDeployment(
 	if err != nil {
 		return lib_models.Job{}, err
 	}
-	module, err := s.modulesHandler.Module(ctx, activeDeployment.ModuleId)
+	module, err := s.modulesHandler.GetModule(ctx, activeDeployment.ModuleId)
 	if err != nil {
 		return lib_models.Job{}, err
 	}
@@ -131,7 +131,7 @@ func (s *Service) UpdateAuxiliaryDeployment(
 	if err != nil {
 		return lib_models.Job{}, err
 	}
-	module, err := s.modulesHandler.Module(ctx, activeDeployment.ModuleId)
+	module, err := s.modulesHandler.GetModule(ctx, activeDeployment.ModuleId)
 	if err != nil {
 		return lib_models.Job{}, err
 	}
@@ -191,7 +191,7 @@ func (s *Service) RecreateAuxiliaryDeployments(
 	if err != nil {
 		return lib_models.Job{}, err
 	}
-	module, err := s.modulesHandler.Module(ctx, activeDeployment.ModuleId)
+	module, err := s.modulesHandler.GetModule(ctx, activeDeployment.ModuleId)
 	if err != nil {
 		return lib_models.Job{}, err
 	}

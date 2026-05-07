@@ -66,7 +66,7 @@ func (h *Handler) RefreshRepositories(ctx context.Context) error {
 	return h.updateVariantsMap(ctx)
 }
 
-func (h *Handler) Repositories(_ context.Context) []pkg_models.Repository {
+func (h *Handler) GetRepositories(_ context.Context) []pkg_models.Repository {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	var repos []pkg_models.Repository
@@ -80,7 +80,7 @@ func (h *Handler) Repositories(_ context.Context) []pkg_models.Repository {
 	return repos
 }
 
-func (h *Handler) Modules(_ context.Context, filter pkg_models.RepositoryModulesFilter) []pkg_models.RepositoryModule {
+func (h *Handler) GetModules(_ context.Context, filter pkg_models.RepositoryModulesFilter) []pkg_models.RepositoryModule {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	filterById := len(filter.Ids) > 0
@@ -107,7 +107,7 @@ func (h *Handler) Modules(_ context.Context, filter pkg_models.RepositoryModules
 	return variants
 }
 
-func (h *Handler) Module(_ context.Context, id, source, channel string) (pkg_models.RepositoryModule, error) {
+func (h *Handler) GetModule(_ context.Context, id, source, channel string) (pkg_models.RepositoryModule, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	variant, err := h.getModuleVariant(id, source, channel)
@@ -117,7 +117,7 @@ func (h *Handler) Module(_ context.Context, id, source, channel string) (pkg_mod
 	return variant.RepositoryModule, nil
 }
 
-func (h *Handler) ModuleFS(ctx context.Context, id, source, channel string) (fs.FS, error) {
+func (h *Handler) GetModuleFS(ctx context.Context, id, source, channel string) (fs.FS, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	variant, err := h.getModuleVariant(id, source, channel)

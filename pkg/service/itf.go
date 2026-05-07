@@ -10,18 +10,18 @@ import (
 
 type repositoriesHandler interface {
 	RefreshRepositories(ctx context.Context) error
-	Repositories(ctx context.Context) []pkg_models.Repository
-	Module(ctx context.Context, id, source, channel string) (pkg_models.RepositoryModule, error)
-	Modules(ctx context.Context, filter pkg_models.RepositoryModulesFilter) []pkg_models.RepositoryModule
-	ModuleFS(ctx context.Context, id, source, channel string) (fs.FS, error)
+	GetRepositories(ctx context.Context) []pkg_models.Repository
+	GetModule(ctx context.Context, id, source, channel string) (pkg_models.RepositoryModule, error)
+	GetModules(ctx context.Context, filter pkg_models.RepositoryModulesFilter) []pkg_models.RepositoryModule
+	GetModuleFS(ctx context.Context, id, source, channel string) (fs.FS, error)
 }
 
 type modulesHandler interface {
-	Modules(ctx context.Context, filter pkg_models.ModulesFilterWithName, dependencies bool) (map[string]pkg_models.Module, error)
-	Module(ctx context.Context, id string) (pkg_models.Module, error)
-	Add(ctx context.Context, id, source, channel string, fSys fs.FS) error
-	Update(ctx context.Context, id, source, channel string, fSys fs.FS) error
-	Remove(ctx context.Context, id string) error
+	GetModules(ctx context.Context, filter pkg_models.ModulesFilterWithName, dependencies bool) (map[string]pkg_models.Module, error)
+	GetModule(ctx context.Context, id string) (pkg_models.Module, error)
+	AddModule(ctx context.Context, id, source, channel string, fSys fs.FS) error
+	UpdateModule(ctx context.Context, id, source, channel string, fSys fs.FS) error
+	RemoveModule(ctx context.Context, id string) error
 }
 
 type deploymentsHandler interface {

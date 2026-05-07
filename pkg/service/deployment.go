@@ -37,7 +37,7 @@ func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]
 	if ok {
 		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
-	handlerModules, err := s.modulesHandler.Modules(
+	handlerModules, err := s.modulesHandler.GetModules(
 		ctx,
 		pkg_models.ModulesFilterWithName{
 			ModulesFilter: pkg_models.ModulesFilter{
@@ -71,7 +71,7 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []lib_models
 	if len(currentJobs) > 0 {
 		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
-	handlerModules, err := s.modulesHandler.Modules(
+	handlerModules, err := s.modulesHandler.GetModules(
 		ctx,
 		pkg_models.ModulesFilterWithName{
 			ModulesFilter: pkg_models.ModulesFilter{
@@ -129,7 +129,7 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 	if len(currentJobs) > 0 {
 		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
-	handlerModules, err := s.modulesHandler.Modules(
+	handlerModules, err := s.modulesHandler.GetModules(
 		ctx,
 		pkg_models.ModulesFilterWithName{
 			ModulesFilter: pkg_models.ModulesFilter{
@@ -213,7 +213,7 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 	if len(currentJobs) > 0 {
 		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
-	handlerModules, err := s.modulesHandler.Modules(
+	handlerModules, err := s.modulesHandler.GetModules(
 		ctx,
 		pkg_models.ModulesFilterWithName{
 			ModulesFilter: pkg_models.ModulesFilter{
@@ -337,7 +337,7 @@ func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) ([]
 	if ok {
 		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
-	handlerModules, err := s.modulesHandler.Modules(
+	handlerModules, err := s.modulesHandler.GetModules(
 		ctx,
 		pkg_models.ModulesFilterWithName{
 			ModulesFilter: pkg_models.ModulesFilter{
