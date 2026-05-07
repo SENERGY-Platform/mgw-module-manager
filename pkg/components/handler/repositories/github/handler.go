@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path"
+	"slices"
 	"strings"
 	"sync"
 
@@ -92,7 +93,7 @@ func (h *Handler) FileSystemsMap(ctx context.Context, channelName string) (map[s
 		if ctx.Err() != nil {
 			return nil, ctx.Err()
 		}
-		if entry.IsDir() && !inSlice(commonBlacklist, entry.Name()) && !inSlice(channel.Blacklist, entry.Name()) {
+		if entry.IsDir() && !slices.Contains(commonBlacklist, entry.Name()) && !slices.Contains(channel.Blacklist, entry.Name()) {
 			fsMap[entry.Name()] = os.DirFS(path.Join(h.wrkPath, repo.Path, channel.Name, entry.Name()))
 		}
 	}
@@ -167,13 +168,4 @@ func (h *Handler) Refresh(ctx context.Context) error {
 		}
 	}
 	return nil
-}
-
-func inSlice(sl []string, c string) bool {
-	for _, v := range sl {
-		if v == c {
-			return true
-		}
-	}
-	return false
 }
