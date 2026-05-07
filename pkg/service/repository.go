@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
+	handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
@@ -55,19 +57,14 @@ func (s *Service) RepoModules(ctx context.Context, filter lib_models.RepoModules
 	if ok {
 		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
-	repos, err := s.repositoriesHandler.Repositories(ctx)
-	if err != nil {
-		return nil, err
-	}
-	repoMods, err := s.repositoriesHandler.Modules(ctx, pkg_models.RepositoryModulesFilter{
-		Ids:     filter.Ids,
-		Name:    filter.Name,
-		Sources: newSourceFilters(filter.Repositories),
-	})
-	if err != nil {
-		return nil, err
-	}
-	mods, err := s.repoModules(repos, repoMods)
+	mods, err := s.repoModules(
+		s.repositoriesHandler.Repositories(ctx),
+		s.repositoriesHandler.Modules(ctx, pkg_models.RepositoryModulesFilter{
+			Ids:     filter.Ids,
+			Name:    filter.Name,
+			Sources: newSourceFilters(filter.Repositories),
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -172,10 +169,7 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models.C
 		}
 	}
 	// get repo with the highest priority
-	modRepos, err := s.repositoriesHandler.Repositories(ctx)
-	if err != nil {
-		return nil, err
-	}
+	modRepos := s.repositoriesHandler.Repositories(ctx)
 	highestPrioRepo := selectByPriority(modRepos, func(item pkg_models.Repository, lastPrio int) (int, bool) {
 		return item.Priority, item.Priority >= lastPrio
 	})
@@ -185,13 +179,13 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models.C
 	deps := make(map[string]modWrapper)
 	// select dependencies from main source and channel
 	for _, wrapper := range mods {
-		if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, highestPrioRepo.Source, highestPrioChannel.Name, deps, true); err != nil {
+		if err := s.addRepoModDepsToMap(ctx, wrapper.Mod, highestPrioRepo.Source, highestPrioChannel.Name, deps, true); err != nil {
 			return nil, err
 		}
 	}
 	// select dependencies only available in origin repo and channel
 	for _, wrapper := range mods {
-		if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, wrapper.Channel, deps, false); err != nil {
+		if err := s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, wrapper.Channel, deps, false); err != nil {
 			return nil, err
 		}
 	}
