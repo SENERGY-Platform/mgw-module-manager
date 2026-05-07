@@ -128,19 +128,6 @@ func (h *Handler) FileSystem(ctx context.Context, channelName, fsRef string) (fs
 func (h *Handler) Refresh(ctx context.Context) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	var errs []error
-	for _, channel := range h.channels {
-		if err := h.refresh(ctx, channel); err != nil {
-			errs = append(errs, err)
-		}
-	}
-	if len(errs) > 0 {
-		return errors.Join(errs...)
-	}
-	return nil
-}
-
-func (h *Handler) refresh(ctx context.Context, channel Channel) error {
 	oldRepo, err := readRepoFile(h.wrkPath)
 	if err != nil {
 		return err
