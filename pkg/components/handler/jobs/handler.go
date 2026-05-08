@@ -18,13 +18,15 @@ package jobs
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"maps"
 	"sync"
 	"time"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 type Config struct {
@@ -66,15 +68,16 @@ func (h *Handler) CreateJob(description string) (*Job, error) {
 		cancelFunc:  cf,
 	}
 	h.jobMap[id] = job
+	logger.Debug("create job", slog_keys.JobId, id, slog_keys.Description, description)
 	return job, nil
 }
 
 func (h *Handler) CreateSlotJob(slotNum int, description string) (*Job, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	_, ok := h.jobSlots[slotNum]
+	j, ok := h.jobSlots[slotNum]
 	if ok {
-		return nil, errors.New("job exists") // TODO
+		return nil, lib_errors.New[lib_errors.ErrActiveJob](fmt.Sprintf("active job: %s (%s)", j.Description, j.Id))
 	}
 	id, err := helper_uuid.New()
 	if err != nil {
@@ -94,6 +97,7 @@ func (h *Handler) CreateSlotJob(slotNum int, description string) (*Job, error) {
 	}
 	h.jobSlots[slotNum] = job
 	h.jobMap[id] = job
+	logger.Debug("create slot job", slog_keys.JobSlot, slotNum, slog_keys.JobId, id, slog_keys.Description, description)
 	return job, nil
 }
 
