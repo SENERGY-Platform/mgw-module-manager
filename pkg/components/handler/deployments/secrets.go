@@ -22,9 +22,9 @@ import (
 	"fmt"
 	"maps"
 	"slices"
-	"strings"
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
@@ -34,7 +34,7 @@ func (h *Handler) updateSecretValuesCache(
 	userDataSecrets map[string]pkg_models.DeploymentSecret,
 	cacheSecretValues map[string]external_models.SmSecretValueVariant,
 ) error {
-	var errs []string
+	var errs []error
 	for _, secret := range userDataSecrets {
 		for _, secretItem := range secret.Items {
 			if secretItem.AsMount {
@@ -53,7 +53,7 @@ func (h *Handler) updateSecretValuesCache(
 					Item: reqItem,
 				})
 				if err != nil {
-					errs = append(errs, err.Error())
+					errs = append(errs, fmt.Errorf("'%s' %w", secret.Id, err))
 					continue
 				}
 				cacheSecretValues[cacheKey] = valueVariant
@@ -61,7 +61,7 @@ func (h *Handler) updateSecretValuesCache(
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }
@@ -72,7 +72,7 @@ func (h *Handler) createSecretMounts(
 	userDataSecrets map[string]pkg_models.DeploymentSecret,
 ) (map[string]external_models.SmSecretPathVariant, error) {
 	secretMounts := make(map[string]external_models.SmSecretPathVariant)
-	var errs []string
+	var errs []error
 	for _, secret := range userDataSecrets {
 		for _, secretItem := range secret.Items {
 			if secretItem.AsEnv {
@@ -91,7 +91,7 @@ func (h *Handler) createSecretMounts(
 					Reference: deploymentId,
 				})
 				if err != nil {
-					errs = append(errs, err.Error())
+					errs = append(errs, fmt.Errorf("'%s' %w", secret.Id, err))
 					continue
 				}
 				secretMounts[key] = pathVariant
@@ -101,9 +101,9 @@ func (h *Handler) createSecretMounts(
 	if len(errs) > 0 {
 		err := h.removeSecretMounts(ctx, deploymentId)
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 		}
-		return nil, errors.New(strings.Join(errs, "\n")) // TODO
+		return nil, helper_errors.Join(errs...)
 	}
 	return secretMounts, nil
 }
@@ -122,12 +122,12 @@ func getSelectedSecrets(
 	deploymentID string,
 ) (map[string]pkg_models.DeploymentSecret, error) {
 	secrets := make(map[string]pkg_models.DeploymentSecret)
-	var errs []string
+	var errs []error
 	for reference, secret := range module.Secrets {
 		id, ok := userInputSecrets[reference]
 		if !ok {
 			if secret.Required {
-				errs = append(errs, fmt.Sprintf("secret %s required", reference))
+				errs = append(errs, errors.New(fmt.Sprintf("'%s' required", reference)))
 			}
 			continue
 		}
@@ -139,7 +139,7 @@ func getSelectedSecrets(
 		}
 	}
 	if len(errs) > 0 {
-		return nil, errors.New(strings.Join(errs, "\n")) // TODO
+		return nil, helper_errors.Join(errs...)
 	}
 	return secrets, nil
 }

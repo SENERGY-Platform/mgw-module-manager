@@ -21,8 +21,8 @@ import (
 	"errors"
 	"fmt"
 	"maps"
-	"strings"
 
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
@@ -45,17 +45,17 @@ func (h *Handler) updateHostResourcesCache(
 	if len(idsNotInCache) == 0 {
 		return nil
 	}
-	var errs []string
+	var errs []error
 	for _, id := range idsNotInCache {
 		hostResource, err := h.hostManagerClient.GetHostResource(ctx, id)
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, fmt.Errorf("'%s' %w", id, err))
 			continue
 		}
 		cacheHostResources[hostResource.ID] = hostResource
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }
@@ -66,12 +66,12 @@ func getSelectedHostResources(
 	deploymentID string,
 ) (map[string]pkg_models.DeploymentHostResource, error) {
 	hostResources := make(map[string]pkg_models.DeploymentHostResource)
-	var errs []string
+	var errs []error
 	for reference, hostResource := range moduleHostResources {
 		id, ok := userInputHostResources[reference]
 		if !ok {
 			if hostResource.Required {
-				errs = append(errs, fmt.Sprintf("missing required host resource '%s'", reference))
+				errs = append(errs, errors.New(fmt.Sprintf("'%s' required", reference)))
 			}
 			continue
 		}

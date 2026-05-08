@@ -25,8 +25,8 @@ import (
 	"maps"
 	"os"
 	"path"
-	"strings"
 
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
@@ -34,19 +34,19 @@ import (
 
 func getDefaultFiles(moduleFiles map[string]external_models.ModuleLibFile, moduleFileSystem fs.FS) (map[string][]byte, error) {
 	files := make(map[string][]byte)
-	var errs []string
+	var errs []error
 	for reference, file := range moduleFiles {
 		if file.Source != "" {
 			b, err := fileToBytes(moduleFileSystem, file.Source)
 			if err != nil {
-				errs = append(errs, err.Error())
+				errs = append(errs, fmt.Errorf("'%s' %w", reference, err))
 				continue
 			}
 			files[reference] = b
 		}
 	}
 	if len(errs) > 0 {
-		return nil, errors.New(strings.Join(errs, "\n")) // TODO
+		return nil, helper_errors.Join(errs...)
 	}
 	return files, nil
 }
@@ -101,15 +101,15 @@ func checkFiles(
 	moduleFiles map[string]external_models.ModuleLibFile,
 	files map[string][]byte,
 ) error {
-	var errs []string
+	var errs []error
 	for reference, moduleFile := range moduleFiles {
 		_, ok := files[reference]
 		if !ok && moduleFile.Required {
-			errs = append(errs, fmt.Sprintf("file %s required", reference))
+			errs = append(errs, errors.New(fmt.Sprintf("'%s' required", reference)))
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }

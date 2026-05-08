@@ -18,10 +18,10 @@ package deployments
 
 import (
 	"context"
-	"errors"
-	"strings"
+	"fmt"
 
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -30,7 +30,7 @@ func (h *Handler) ensureContainerImages(ctx context.Context, moduleServices map[
 	for _, service := range moduleServices {
 		imageNames[service.Image] = struct{}{}
 	}
-	var errs []string
+	var errs []error
 	for imageName := range imageNames {
 		err := helper_containers.EnsureImage(
 			ctx,
@@ -41,11 +41,11 @@ func (h *Handler) ensureContainerImages(ctx context.Context, moduleServices map[
 			h.config.JobPollInterval,
 		)
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, fmt.Errorf("'%s' %w", imageName, err))
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }

@@ -27,6 +27,7 @@ import (
 	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -104,7 +105,6 @@ func (h *Handler) GetDeploymentIds(
 	if err != nil {
 		return nil, err
 	}
-
 	ids := make(map[string]string)
 	for id, deployment := range deployments {
 		ids[id] = deployment.ModuleId
@@ -152,7 +152,7 @@ func (h *Handler) getDeploymentsReduced(
 	}
 	cewContainersMap, cewErr := h.getCewContainers(ctx, deploymentsContainers)
 	if cewErr != nil {
-		logger.Error("error getting containers") // TODO
+		logger.Warn("get containers", slog_keys.Filter, filter, slog_keys.Error, cewErr)
 	}
 	deployments := make(map[string]pkg_models.DeploymentReduced)
 	for id, stgDep := range stgDeps {
@@ -191,7 +191,7 @@ func (h *Handler) getDeployments(
 	}
 	cewContainersMap, cewErr := h.getCewContainers(ctx, deploymentsContainers)
 	if cewErr != nil {
-		logger.Error("error getting containers") // TODO
+		logger.Warn("get containers", slog_keys.Filter, filter, slog_keys.Error, cewErr)
 	}
 	deployments := make(map[string]pkg_models.Deployment)
 	for id, stgDep := range stgDeps {
@@ -253,7 +253,12 @@ func getContainers(
 				container.Health = *cewContainer.Health
 			}
 		} else {
-			logger.Error("missing container") // TODO
+			logger.Warn(
+				"container not found",
+				slog_keys.DeploymentId, stgDepContainer.DeploymentId,
+				slog_keys.Reference, stgDepContainer.Reference,
+				slog_keys.ContainerName, stgDepContainer.Name,
+			)
 		}
 		containers[reference] = container
 	}

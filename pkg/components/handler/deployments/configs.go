@@ -21,9 +21,9 @@ import (
 	"errors"
 	"fmt"
 	"maps"
-	"strings"
 
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
@@ -53,14 +53,14 @@ func (h *Handler) updateGlobalConfigsCache(
 	for id, globalConfig := range globalConfigs {
 		cacheGlobalConfigs[id] = globalConfig
 	}
-	var errs []string
+	var errs []error
 	for _, id := range idsNotInCache {
 		if _, ok := cacheGlobalConfigs[id]; !ok {
-			errs = append(errs, fmt.Sprintf("global config %s not found", id))
+			errs = append(errs, errors.New(fmt.Sprintf("'%s' not found", id)))
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }
@@ -69,15 +69,15 @@ func checkConfigs(
 	moduleConfigs external_models.ModuleLibConfigs,
 	configs map[string]pkg_models.Value,
 ) error {
-	var errs []string
+	var errs []error
 	for reference, moduleConfig := range moduleConfigs {
 		_, ok := configs[reference]
 		if !ok && moduleConfig.Required {
-			errs = append(errs, fmt.Sprintf("config %s required", reference))
+			errs = append(errs, errors.New(fmt.Sprintf("'%s' required", reference)))
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }
@@ -104,20 +104,20 @@ func mergeConfigs(
 
 func getDefaultConfigs(moduleConfigs external_models.ModuleLibConfigs) (map[string]pkg_models.Value, error) {
 	configs := make(map[string]pkg_models.Value)
-	var errs []string
+	var errs []error
 	for reference, moduleConfig := range moduleConfigs {
 		if moduleConfig.Default == nil {
 			continue
 		}
 		value, err := helper_configs.GetValueWithValidation(moduleConfig.Default, moduleConfig)
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, fmt.Errorf("'%s' %w", reference, err))
 			continue
 		}
 		configs[reference] = value
 	}
 	if len(errs) > 0 {
-		return nil, errors.New(strings.Join(errs, "\n")) // TODO
+		return nil, helper_errors.Join(errs...)
 	}
 	return configs, nil
 }

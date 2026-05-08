@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"maps"
 	"slices"
-	"strings"
 
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
@@ -62,14 +62,14 @@ func (h *Handler) updateDeploymentsCache(
 			Containers:   containers,
 		}
 	}
-	var errs []string
+	var errs []error
 	for _, id := range idsNotInCache {
 		if _, ok := cacheDeployments[id]; !ok {
-			errs = append(errs, fmt.Sprintf("dependency %v not found", id))
+			errs = append(errs, errors.New(fmt.Sprintf("'%s' not found", id)))
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }

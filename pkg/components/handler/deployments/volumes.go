@@ -18,11 +18,11 @@ package deployments
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"maps"
-	"strings"
 
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
@@ -38,13 +38,13 @@ func (h *Handler) ensureContainerVolumes(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	var errs []string
+	var errs []error
 	for name := range existingVolumes {
 		_, ok := volumes[name]
 		if !ok {
 			err = helper_containers.RemoveVolume(ctx, h.containerEngineWrapperClient, name)
 			if err != nil {
-				errs = append(errs, err.Error())
+				errs = append(errs, fmt.Errorf("'%s' %w", name, err))
 			}
 		}
 	}
@@ -53,12 +53,12 @@ func (h *Handler) ensureContainerVolumes(ctx context.Context,
 		if !ok {
 			err = h.createContainerVolume(ctx, volume)
 			if err != nil {
-				errs = append(errs, err.Error())
+				errs = append(errs, fmt.Errorf("'%s' %w", volume.Reference, err))
 			}
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }
@@ -84,15 +84,15 @@ func (h *Handler) removeContainerVolumes(
 	ctx context.Context,
 	deploymentVolumes map[string]pkg_models.DeploymentVolume,
 ) error {
-	var errs []string
+	var errs []error
 	for _, volume := range deploymentVolumes {
 		err := helper_containers.RemoveVolume(ctx, h.containerEngineWrapperClient, volume.Name)
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, fmt.Errorf("'%s' %w", volume.Name, err))
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }

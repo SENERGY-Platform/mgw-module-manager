@@ -18,13 +18,13 @@ package deployments
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"path"
-	"strings"
 
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
@@ -48,7 +48,7 @@ func (h *Handler) createContainers(
 	cacheDeployments map[string]deploymentsCacheItem,
 	cacheHostResources map[string]external_models.HmHostResource,
 ) error {
-	var errs []string
+	var errs []error
 	for reference, service := range moduleServices {
 		envVariables := make(map[string]string)
 		setConfigEnvVariables(envVariables, service.Configs, configsToStrings(moduleConfigs, configs))
@@ -81,12 +81,12 @@ func (h *Handler) createContainers(
 		)
 		_, err = h.containerEngineWrapperClient.CreateContainer(ctx, cewContainer)
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, fmt.Errorf("'%s' %w", reference, err))
 			continue
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }
@@ -95,15 +95,15 @@ func (h *Handler) removeContainers(
 	ctx context.Context,
 	deploymentContainers map[string]pkg_models.DeploymentContainerBase,
 ) error {
-	var errs []string
+	var errs []error
 	for _, container := range deploymentContainers {
 		err := helper_containers.Remove(ctx, h.containerEngineWrapperClient, container.Name)
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, fmt.Errorf("'%s' %w", container.Name, err))
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }
@@ -112,15 +112,15 @@ func (h *Handler) startContainers(
 	ctx context.Context,
 	deploymentContainers map[string]pkg_models.DeploymentContainerBase,
 ) error {
-	var errs []string
+	var errs []error
 	for _, container := range deploymentContainers {
 		err := h.containerEngineWrapperClient.StartContainer(ctx, container.Name)
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, fmt.Errorf("'%s' %w", container.Name, err))
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }
@@ -129,15 +129,15 @@ func (h *Handler) stopContainers(
 	ctx context.Context,
 	deploymentContainers map[string]pkg_models.DeploymentContainerBase,
 ) error {
-	var errs []string
+	var errs []error
 	for _, container := range deploymentContainers {
 		err := helper_containers.Stop(ctx, h.containerEngineWrapperClient, container.Name, h.config.JobPollInterval)
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, fmt.Errorf("'%s' %w", container.Name, err))
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }
