@@ -97,6 +97,7 @@ func main() {
 		config.GitHubModulesRepoHandler.BaseUrl,
 	)
 
+	handler_repositories.InitLogger(logger)
 	repositoriesHandler := handler_repositories.New(
 		[]handler_repositories.Repository{
 			{
@@ -153,6 +154,7 @@ func main() {
 		config.AuxDeploymentsHandler,
 	)
 
+	handler_jobs.InitLogger(logger)
 	jobsHandler := handler_jobs.New(ctx, config.JobsHandler)
 
 	service.InitLogger(logger)
