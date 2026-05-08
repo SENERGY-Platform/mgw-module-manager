@@ -59,14 +59,11 @@ func (h *Handler) CreateDeployments(
 	}
 	var results []lib_models.DeploymentResult
 	for moduleId, module := range selectedModules {
-		result := lib_models.DeploymentResult{ModuleId: moduleId}
-		cacheItem, ok := cache.Deployments[moduleId]
-		if !ok {
-			result.ErrorResult = lib_models.NewErrorResult("not installed")
-			results = append(results, result)
-			continue
+		cacheItem := cache.Deployments[moduleId]
+		result := lib_models.DeploymentResult{
+			ModuleId: moduleId,
+			Id:       cacheItem.DeploymentId,
 		}
-		result.Id = cacheItem.DeploymentId
 		err = h.createDeployment(
 			ctx,
 			module,
