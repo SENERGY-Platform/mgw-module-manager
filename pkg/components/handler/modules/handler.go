@@ -58,7 +58,7 @@ func (h *Handler) GetModules(
 		modulesWithDependencies := make(map[string]pkg_models.Module)
 		err := h.getModulesWithDependencies(ctx, filter.Ids, modulesWithDependencies)
 		if err != nil {
-			return nil, fmt.Errorf("get modules: %w", err)
+			return nil, err
 		}
 		return modulesWithDependencies, nil
 	}
@@ -80,7 +80,7 @@ func (h *Handler) GetModule(ctx context.Context, id string) (pkg_models.Module, 
 		return pkg_models.Module{}, err
 	}
 	if len(modules) == 0 {
-		return pkg_models.Module{}, lib_errors.Newf[lib_errors.ErrNotFound]("get module (%s): not found", id)
+		return pkg_models.Module{}, lib_errors.New[lib_errors.ErrNotFound]("not found")
 	}
 	return modules[id], nil
 }
@@ -97,21 +97,21 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 	_, err := h.databaseHandler.Module(ctx, id)
 	if err != nil {
 		if !lib_errors.IsOf[lib_errors.ErrNotFound](err) {
-			return fmt.Errorf("add module (%s): %w", id, err)
+			return err
 		}
 	} else {
-		return lib_errors.Newf[lib_errors.ErrExists]("add module (%s): already exists", id)
+		return lib_errors.New[lib_errors.ErrExists]("module already exists")
 	}
 	stgMod, err := newStgMod(id, source, channel)
 	if err != nil {
-		return fmt.Errorf("add module (%s): %w", id, err)
+		return err
 	}
 	timestamp := helper_time.Now()
 	stgMod.Added = timestamp
 	stgMod.Updated = timestamp
 	dstPath := path.Join(h.config.WorkDirPath, stgMod.DirName)
 	if err = helper_file_sys.CopyAll(fSys, dstPath); err != nil {
-		return fmt.Errorf("add module, copy file system (%s): %w", id, err)
+		return err
 	}
 	defer func() {
 		if err != nil {
@@ -122,15 +122,15 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 	}()
 	mod, err := helper_modfile.GetModule(os.DirFS(dstPath))
 	if err != nil {
-		return fmt.Errorf("add module (%s): %w", id, err)
+		return err
 	}
 	if id != mod.ID {
-		err = errors.New(fmt.Sprintf("add module (%s): provided id does not match modfile id", id))
+		err = errors.New("provided id does not match modfile id")
 		return err
 	}
 	newImages, err := h.pullImages(ctx, getModuleServiceImages(mod.Services))
 	if err != nil {
-		return fmt.Errorf("add module, pull images (%s): %w", id, err)
+		return err
 	}
 	defer func() {
 		if err != nil {
@@ -139,8 +139,9 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 			}
 		}
 	}()
-	if err = h.databaseHandler.CreateModule(ctx, stgMod); err != nil {
-		return fmt.Errorf("add module (%s): %w", id, err)
+	err = h.databaseHandler.CreateModule(ctx, stgMod)
+	if err != nil {
+		return err
 	}
 	h.cacheSet(id, mod)
 	logger.Info(
@@ -164,25 +165,25 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 	)
 	stgModOld, err := h.databaseHandler.Module(ctx, id)
 	if err != nil {
-		return fmt.Errorf("update module (%s): %w", id, err)
+		return err
 	}
 	oldMod, ok := h.cacheGet(id)
 	if !ok {
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgModOld.DirName))
 		oldMod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
-			return fmt.Errorf("update module, get old module (%s): %w", id, err)
+			return err
 		}
 	}
 	stgModNew, err := newStgMod(id, source, channel)
 	if err != nil {
-		return fmt.Errorf("update module (%s): %w", id, err)
+		return err
 	}
 	stgModNew.Added = stgModOld.Added
 	stgModNew.Updated = helper_time.Now()
 	dstPath := path.Join(h.config.WorkDirPath, stgModNew.DirName)
 	if err = helper_file_sys.CopyAll(fSys, dstPath); err != nil {
-		return fmt.Errorf("update module, copy file system (%s): %w", id, err)
+		return err
 	}
 	defer func() {
 		if err != nil {
@@ -193,15 +194,15 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 	}()
 	newMod, err := helper_modfile.GetModule(os.DirFS(dstPath))
 	if err != nil {
-		return fmt.Errorf("update module (%s): %w", id, err)
+		return err
 	}
 	if id != newMod.ID {
-		err = errors.New(fmt.Sprintf("update module (%s): provided id does not match modfile id", id))
+		err = errors.New("provided id does not match modfile id")
 		return err
 	}
 	newImages, err := h.pullImages(ctx, getModuleServiceImages(newMod.Services))
 	if err != nil {
-		return fmt.Errorf("update module, pull images (%s): %w", id, err)
+		return err
 	}
 	defer func() {
 		if err != nil {
@@ -212,7 +213,7 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 	}()
 	err = h.databaseHandler.UpdateModule(ctx, stgModNew)
 	if err != nil {
-		return fmt.Errorf("update module (%s): %w", id, err)
+		return err
 	}
 	h.cacheSet(id, newMod)
 	logger.Info(
@@ -243,25 +244,25 @@ func (h *Handler) RemoveModule(ctx context.Context, id string) error {
 		if lib_errors.IsOf[lib_errors.ErrNotFound](err) {
 			return nil
 		}
-		return fmt.Errorf("remove module (%s): %w", id, err)
+		return err
 	}
 	mod, ok := h.cacheGet(id)
 	if !ok {
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 		mod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
-			return fmt.Errorf("remove module (%s): %w", id, err)
+			return err
 		}
 	}
 	err = os.RemoveAll(path.Join(h.config.WorkDirPath, stgMod.DirName))
 	if err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("remove module, remove file system (%s): %w", id, err)
+		return err
 	}
 	if err = h.removeImages(ctx, getModuleServiceImages(mod.Services)); err != nil {
-		return fmt.Errorf("remove module, remove images (%s): %w", id, err)
+		return err
 	}
 	if err = h.databaseHandler.DeleteModule(ctx, id); err != nil {
-		return fmt.Errorf("remove module (%s): %w", id, err)
+		return err
 	}
 	h.cacheDel(id)
 	logger.Info("remove module", slog_keys.ModuleId, id)

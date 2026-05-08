@@ -3,7 +3,6 @@ package repositories
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io/fs"
 	"slices"
 	"strings"
@@ -46,7 +45,7 @@ func (h *Handler) InitRepositories(ctx context.Context) error {
 		logger.Info("initialize repository", slog_keys.Source, source)
 	}
 	if len(errs) > 0 {
-		return fmt.Errorf("initialize repositores: %w", helper_errors.Join(errs...))
+		return helper_errors.Join(errs...)
 	}
 	return h.updateVariantsMap(ctx)
 }
@@ -65,7 +64,7 @@ func (h *Handler) RefreshRepositories(ctx context.Context) error {
 		logger.Info("refresh repository", slog_keys.Source, source)
 	}
 	if len(errs) > 0 {
-		return fmt.Errorf("refresh repositores: %w", helper_errors.Join(errs...))
+		return helper_errors.Join(errs...)
 	}
 	return h.updateVariantsMap(ctx)
 }
@@ -116,9 +115,7 @@ func (h *Handler) GetModule(_ context.Context, id, source, channel string) (pkg_
 	defer h.mu.RUnlock()
 	variant, err := h.getModuleVariant(id, source, channel)
 	if err != nil {
-		return pkg_models.RepositoryModule{}, lib_errors.Wrapf[lib_errors.ErrNotFound](
-			"get module ('%s', '%s', '%s'): %w", source, channel, id, err,
-		)
+		return pkg_models.RepositoryModule{}, lib_errors.Wrap[lib_errors.ErrNotFound](err)
 	}
 	return variant.RepositoryModule, nil
 }
@@ -128,15 +125,11 @@ func (h *Handler) GetModuleFS(ctx context.Context, id, source, channel string) (
 	defer h.mu.RUnlock()
 	variant, err := h.getModuleVariant(id, source, channel)
 	if err != nil {
-		return nil, lib_errors.Wrapf[lib_errors.ErrNotFound](
-			"get module file system ('%s', '%s', '%s'): %w", source, channel, id, err,
-		)
+		return nil, lib_errors.Wrap[lib_errors.ErrNotFound](err)
 	}
 	repo, ok := h.repositories[variant.Source]
 	if !ok {
-		return nil, errors.New(
-			fmt.Sprintf("get module file system ('%s', '%s', '%s'): repository handler not found", source, channel, id),
-		)
+		return nil, errors.New("repository handler not found")
 	}
 	fSys, err := repo.Handler.FileSystem(ctx, variant.Channel, variant.FSysRef)
 	if err != nil {
@@ -158,7 +151,7 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 					slog_keys.Channel, channel.Name,
 					slog_keys.Error, err.Error(),
 				)
-				errs = append(errs, fmt.Errorf("update tree, get file systems ('%s', '%s'): %w", source, channel.Name, err))
+				errs = append(errs, err)
 				continue
 			}
 			for ref, fSys := range fsMap {
@@ -171,7 +164,7 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 						slog_keys.Reference, ref,
 						slog_keys.Error, err.Error(),
 					)
-					errs = append(errs, fmt.Errorf("update tree, get module ('%s', '%s', '%s'): %w", source, channel.Name, ref, err))
+					errs = append(errs, err)
 					continue
 				}
 				sources, ok := variantsMap[mod.ID]
