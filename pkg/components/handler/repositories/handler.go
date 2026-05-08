@@ -46,7 +46,7 @@ func (h *Handler) InitRepositories(ctx context.Context) error {
 		logger.Info("initialize repository", slog_keys.Source, source)
 	}
 	if len(errs) > 0 {
-		return helper_errors.Join(errs...)
+		return fmt.Errorf("initialize repositores: %w", helper_errors.Join(errs...))
 	}
 	return h.updateVariantsMap(ctx)
 }
@@ -56,7 +56,8 @@ func (h *Handler) RefreshRepositories(ctx context.Context) error {
 	defer h.mu.Unlock()
 	var errs []error
 	for source, repo := range h.repositories {
-		if err := repo.Handler.Refresh(ctx); err != nil {
+		err := repo.Handler.Refresh(ctx)
+		if err != nil {
 			logger.Error("refresh repository", slog_keys.Source, source, slog_keys.Error, err.Error())
 			errs = append(errs, err)
 			continue
@@ -64,7 +65,7 @@ func (h *Handler) RefreshRepositories(ctx context.Context) error {
 		logger.Info("refresh repository", slog_keys.Source, source)
 	}
 	if len(errs) > 0 {
-		return helper_errors.Join(errs...)
+		return fmt.Errorf("refresh repositores: %w", helper_errors.Join(errs...))
 	}
 	return h.updateVariantsMap(ctx)
 }
@@ -115,7 +116,9 @@ func (h *Handler) GetModule(_ context.Context, id, source, channel string) (pkg_
 	defer h.mu.RUnlock()
 	variant, err := h.getModuleVariant(id, source, channel)
 	if err != nil {
-		return pkg_models.RepositoryModule{}, lib_errors.Wrap[lib_errors.ErrNotFound](err)
+		return pkg_models.RepositoryModule{}, lib_errors.Wrapf[lib_errors.ErrNotFound](
+			"get module ('%s', '%s', '%s'): %w", source, channel, id, err,
+		)
 	}
 	return variant.RepositoryModule, nil
 }
@@ -125,12 +128,15 @@ func (h *Handler) GetModuleFS(ctx context.Context, id, source, channel string) (
 	defer h.mu.RUnlock()
 	variant, err := h.getModuleVariant(id, source, channel)
 	if err != nil {
-		return nil, err
+		return nil, lib_errors.Wrapf[lib_errors.ErrNotFound](
+			"get module file system ('%s', '%s', '%s'): %w", source, channel, id, err,
+		)
 	}
 	repo, ok := h.repositories[variant.Source]
 	if !ok {
-		logger.Error("repository handler not found", slog_keys.Source, source)
-		return nil, errors.New("repository handler not found")
+		return nil, errors.New(
+			fmt.Sprintf("get module file system ('%s', '%s', '%s'): repository handler not found", source, channel, id),
+		)
 	}
 	fSys, err := repo.Handler.FileSystem(ctx, variant.Channel, variant.FSysRef)
 	if err != nil {
@@ -147,24 +153,25 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 			fsMap, err := repo.Handler.FileSystemsMap(ctx, channel.Name)
 			if err != nil {
 				logger.Error(
-					"update variants map: get fs map",
+					"update tree, get file systems",
 					slog_keys.Source, source,
 					slog_keys.Channel, channel.Name,
 					slog_keys.Error, err.Error(),
 				)
-				errs = append(errs, err)
+				errs = append(errs, fmt.Errorf("update tree, get file systems ('%s', '%s'): %w", source, channel.Name, err))
 				continue
 			}
 			for ref, fSys := range fsMap {
 				mod, err := helper_modfile.GetModule(fSys)
 				if err != nil {
 					logger.Error(
-						"update variants map: get module",
+						"update tree, get module",
 						slog_keys.Source, source,
 						slog_keys.Channel, channel.Name,
+						slog_keys.Reference, ref,
 						slog_keys.Error, err.Error(),
 					)
-					errs = append(errs, err)
+					errs = append(errs, fmt.Errorf("update tree, get module ('%s', '%s', '%s'): %w", source, channel.Name, ref, err))
 					continue
 				}
 				sources, ok := variantsMap[mod.ID]
@@ -191,9 +198,10 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 					FSysRef: ref,
 				}
 				logger.Debug(
-					"update variants map",
+					"update tree, add",
 					slog_keys.Source, source,
 					slog_keys.Channel, channel.Name,
+					slog_keys.Reference, ref,
 					slog_keys.ModuleId, mod.ID,
 					slog_keys.Version, mod.Version,
 				)
@@ -210,15 +218,15 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 func (h *Handler) getModuleVariant(id, source, channel string) (moduleWrapper, error) {
 	sources, ok := h.variantsMap[id]
 	if !ok {
-		return moduleWrapper{}, fmt.Errorf("module '%s' %w", id, ErrNotFound)
+		return moduleWrapper{}, errors.New("module not found")
 	}
 	channels, ok := sources[source]
 	if !ok {
-		return moduleWrapper{}, fmt.Errorf("source '%s' %w", source, ErrNotFound)
+		return moduleWrapper{}, errors.New("source not found")
 	}
 	variant, ok := channels[channel]
 	if !ok {
-		return moduleWrapper{}, fmt.Errorf("channel '%s' %w", channel, ErrNotFound)
+		return moduleWrapper{}, errors.New("channel not found")
 	}
 	return variant, nil
 }

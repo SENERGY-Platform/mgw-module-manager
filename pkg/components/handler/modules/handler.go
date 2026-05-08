@@ -58,7 +58,7 @@ func (h *Handler) GetModules(
 		modulesWithDependencies := make(map[string]pkg_models.Module)
 		err := h.getModulesWithDependencies(ctx, filter.Ids, modulesWithDependencies)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("get modules: %w", err)
 		}
 		return modulesWithDependencies, nil
 	}
@@ -80,7 +80,7 @@ func (h *Handler) GetModule(ctx context.Context, id string) (pkg_models.Module, 
 		return pkg_models.Module{}, err
 	}
 	if len(modules) == 0 {
-		return pkg_models.Module{}, lib_errors.New[lib_errors.ErrNotFound]("module not found")
+		return pkg_models.Module{}, lib_errors.Newf[lib_errors.ErrNotFound]("get module (%s): not found", id)
 	}
 	return modules[id], nil
 }
@@ -97,50 +97,50 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 	_, err := h.databaseHandler.Module(ctx, id)
 	if err != nil {
 		if !lib_errors.IsOf[lib_errors.ErrNotFound](err) {
-			return err
+			return fmt.Errorf("add module (%s): %w", id, err)
 		}
 	} else {
-		return lib_errors.New[lib_errors.ErrExists]("module already exists")
+		return lib_errors.Newf[lib_errors.ErrExists]("add module (%s): already exists", id)
 	}
 	stgMod, err := newStgMod(id, source, channel)
 	if err != nil {
-		return err
+		return fmt.Errorf("add module (%s): %w", id, err)
 	}
 	timestamp := helper_time.Now()
 	stgMod.Added = timestamp
 	stgMod.Updated = timestamp
 	dstPath := path.Join(h.config.WorkDirPath, stgMod.DirName)
 	if err = helper_file_sys.CopyAll(fSys, dstPath); err != nil {
-		return err
+		return fmt.Errorf("add module, copy file system (%s): %w", id, err)
 	}
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("remove dir", slog_keys.ModuleId, id, slog_keys.DirName, stgMod.DirName, slog_keys.Error, e)
+				logger.Error("add module, remove file system", slog_keys.ModuleId, id, slog_keys.DirName, stgMod.DirName, slog_keys.Error, e)
 			}
 		}
 	}()
 	mod, err := helper_modfile.GetModule(os.DirFS(dstPath))
 	if err != nil {
-		return err
+		return fmt.Errorf("add module (%s): %w", id, err)
 	}
 	if id != mod.ID {
-		err = errors.New("module id mismatch")
+		err = errors.New(fmt.Sprintf("add module (%s): provided id does not match modfile id", id))
 		return err
 	}
 	newImages, err := h.pullImages(ctx, getModuleServiceImages(mod.Services))
 	if err != nil {
-		return err
+		return fmt.Errorf("add module, pull images (%s): %w", id, err)
 	}
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				logger.Error("remove images", slog_keys.ModuleId, id, slog_keys.Error, e)
+				logger.Error("add module, remove images", slog_keys.ModuleId, id, slog_keys.Error, e)
 			}
 		}
 	}()
 	if err = h.databaseHandler.CreateModule(ctx, stgMod); err != nil {
-		return err
+		return fmt.Errorf("add module (%s): %w", id, err)
 	}
 	h.cacheSet(id, mod)
 	logger.Info(
@@ -164,55 +164,55 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 	)
 	stgModOld, err := h.databaseHandler.Module(ctx, id)
 	if err != nil {
-		return err
+		return fmt.Errorf("update module (%s): %w", id, err)
 	}
 	oldMod, ok := h.cacheGet(id)
 	if !ok {
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgModOld.DirName))
 		oldMod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
-			return err
+			return fmt.Errorf("update module, get old module (%s): %w", id, err)
 		}
 	}
 	stgModNew, err := newStgMod(id, source, channel)
 	if err != nil {
-		return err
+		return fmt.Errorf("update module (%s): %w", id, err)
 	}
 	stgModNew.Added = stgModOld.Added
 	stgModNew.Updated = helper_time.Now()
 	dstPath := path.Join(h.config.WorkDirPath, stgModNew.DirName)
 	if err = helper_file_sys.CopyAll(fSys, dstPath); err != nil {
-		return err
+		return fmt.Errorf("update module, copy file system (%s): %w", id, err)
 	}
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("remove dir", slog_keys.ModuleId, id, slog_keys.DirName, stgModNew.DirName, slog_keys.Error, e)
+				logger.Error("update module, remove file system", slog_keys.ModuleId, id, slog_keys.DirName, stgModNew.DirName, slog_keys.Error, e)
 			}
 		}
 	}()
 	newMod, err := helper_modfile.GetModule(os.DirFS(dstPath))
 	if err != nil {
-		return err
+		return fmt.Errorf("update module (%s): %w", id, err)
 	}
 	if id != newMod.ID {
-		err = errors.New("module id mismatch")
+		err = errors.New(fmt.Sprintf("update module (%s): provided id does not match modfile id", id))
 		return err
 	}
 	newImages, err := h.pullImages(ctx, getModuleServiceImages(newMod.Services))
 	if err != nil {
-		return err
+		return fmt.Errorf("update module, pull images (%s): %w", id, err)
 	}
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				logger.Error("remove new images", slog_keys.ModuleId, id, slog_keys.Error, e)
+				logger.Error("update module, remove new images", slog_keys.ModuleId, id, slog_keys.Error, e)
 			}
 		}
 	}()
 	err = h.databaseHandler.UpdateModule(ctx, stgModNew)
 	if err != nil {
-		return err
+		return fmt.Errorf("update module (%s): %w", id, err)
 	}
 	h.cacheSet(id, newMod)
 	logger.Info(
@@ -223,10 +223,10 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 		slog_keys.Version, fmt.Sprintf("%s -> %s", oldMod.Version, newMod.Version),
 	)
 	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, stgModOld.DirName)); e != nil {
-		logger.Error("remove old dir", slog_keys.ModuleId, id, slog_keys.DirName, stgModOld.DirName, slog_keys.Error, e)
+		logger.Error("update module, remove old file system", slog_keys.ModuleId, id, slog_keys.DirName, stgModOld.DirName, slog_keys.Error, e)
 	}
 	if e := h.removeOldImages(ctx, getModuleServiceImages(oldMod.Services), getModuleServiceImages(newMod.Services)); e != nil {
-		logger.Error("remove old images", slog_keys.ModuleId, id, slog_keys.Error, e)
+		logger.Error("update module, remove old images", slog_keys.ModuleId, id, slog_keys.Error, e)
 	}
 	return nil
 }
@@ -243,25 +243,25 @@ func (h *Handler) RemoveModule(ctx context.Context, id string) error {
 		if lib_errors.IsOf[lib_errors.ErrNotFound](err) {
 			return nil
 		}
-		return err
+		return fmt.Errorf("remove module (%s): %w", id, err)
 	}
 	mod, ok := h.cacheGet(id)
 	if !ok {
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 		mod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
-			return err
+			return fmt.Errorf("remove module (%s): %w", id, err)
 		}
 	}
 	err = os.RemoveAll(path.Join(h.config.WorkDirPath, stgMod.DirName))
 	if err != nil && !os.IsNotExist(err) {
-		return err
+		return fmt.Errorf("remove module, remove file system (%s): %w", id, err)
 	}
 	if err = h.removeImages(ctx, getModuleServiceImages(mod.Services)); err != nil {
-		return err
+		return fmt.Errorf("remove module, remove images (%s): %w", id, err)
 	}
 	if err = h.databaseHandler.DeleteModule(ctx, id); err != nil {
-		return err
+		return fmt.Errorf("remove module (%s): %w", id, err)
 	}
 	h.cacheDel(id)
 	logger.Info("remove module", slog_keys.ModuleId, id)
@@ -366,6 +366,7 @@ func (h *Handler) cacheDel(id string) {
 
 func (h *Handler) pullImages(ctx context.Context, images []string) ([]string, error) {
 	var newImages []string
+	var errs []error
 	for _, image := range images {
 		_, err := h.containerEngineWrapperClient.GetImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 		if err != nil {
@@ -378,9 +379,12 @@ func (h *Handler) pullImages(ctx context.Context, images []string) ([]string, er
 		}
 		err = h.pullImage(ctx, image)
 		if err != nil {
-			return newImages, err
+			errs = append(errs, err)
 		}
 		newImages = append(newImages, image)
+	}
+	if len(errs) > 0 {
+		return newImages, helper_errors.Join(errs...)
 	}
 	return newImages, nil
 }
@@ -401,29 +405,37 @@ func (h *Handler) pullImage(ctx context.Context, image string) error {
 }
 
 func (h *Handler) removeImages(ctx context.Context, images []string) error {
+	var errs []error
 	for _, image := range images {
 		err := h.containerEngineWrapperClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 		if err != nil {
 			var notFoundErr *external_models.CewNotFoundErr
 			if !errors.As(err, &notFoundErr) {
-				return err
+				errs = append(errs, err)
 			}
 		}
+	}
+	if len(errs) > 0 {
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }
 
 func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages []string) error {
+	var errs []error
 	for _, image := range oldImages {
 		if !slices.Contains(newImages, image) {
 			err := h.containerEngineWrapperClient.RemoveImage(ctx, helper_url.EscapePath(image, h.config.PathEscapeDepth))
 			if err != nil {
 				var notFoundErr *external_models.CewNotFoundErr
 				if !errors.As(err, &notFoundErr) {
-					return err
+					errs = append(errs, err)
 				}
 			}
 		}
+	}
+	if len(errs) > 0 {
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }
