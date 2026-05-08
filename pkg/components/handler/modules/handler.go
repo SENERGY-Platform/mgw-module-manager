@@ -3,6 +3,7 @@ package modules
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"maps"
 	"os"
@@ -87,6 +88,12 @@ func (h *Handler) GetModule(ctx context.Context, id string) (pkg_models.Module, 
 func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSys fs.FS) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
+	logger.Debug(
+		"begin add module",
+		slog_keys.Source, source,
+		slog_keys.Channel, channel,
+		slog_keys.ModuleId, id,
+	)
 	_, err := h.databaseHandler.Module(ctx, id)
 	if err != nil {
 		if !lib_errors.IsOf[lib_errors.ErrNotFound](err) {
@@ -109,7 +116,7 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("remove dir", slog_keys.Error, e, slog_keys.DirName, stgMod.DirName, slog_keys.ModuleId, id)
+				logger.Error("remove dir", slog_keys.ModuleId, id, slog_keys.DirName, stgMod.DirName, slog_keys.Error, e)
 			}
 		}
 	}()
@@ -128,7 +135,7 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				logger.Error("remove images", slog_keys.Error, e, slog_keys.ModuleId, id)
+				logger.Error("remove images", slog_keys.ModuleId, id, slog_keys.Error, e)
 			}
 		}
 	}()
@@ -136,12 +143,25 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 		return err
 	}
 	h.cacheSet(id, mod)
+	logger.Info(
+		"add module",
+		slog_keys.Source, source,
+		slog_keys.Channel, channel,
+		slog_keys.ModuleId, id,
+		slog_keys.Version, mod.Version,
+	)
 	return nil
 }
 
 func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, fSys fs.FS) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
+	logger.Debug(
+		"begin update module",
+		slog_keys.Source, source,
+		slog_keys.Channel, channel,
+		slog_keys.ModuleId, id,
+	)
 	stgModOld, err := h.databaseHandler.Module(ctx, id)
 	if err != nil {
 		return err
@@ -167,7 +187,7 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("remove dir", slog_keys.Error, e, slog_keys.DirName, stgModNew.DirName, slog_keys.ModuleId, id)
+				logger.Error("remove dir", slog_keys.ModuleId, id, slog_keys.DirName, stgModNew.DirName, slog_keys.Error, e)
 			}
 		}
 	}()
@@ -186,7 +206,7 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				logger.Error("remove new images", slog_keys.Error, e, slog_keys.ModuleId, id)
+				logger.Error("remove new images", slog_keys.ModuleId, id, slog_keys.Error, e)
 			}
 		}
 	}()
@@ -195,11 +215,18 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 		return err
 	}
 	h.cacheSet(id, newMod)
+	logger.Info(
+		"update module",
+		slog_keys.Source, fmt.Sprintf("%s -> %s", stgModOld.Source, source),
+		slog_keys.Channel, fmt.Sprintf("%s -> %s", stgModOld.Channel, channel),
+		slog_keys.ModuleId, id,
+		slog_keys.Version, fmt.Sprintf("%s -> %s", oldMod.Version, newMod.Version),
+	)
 	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, stgModOld.DirName)); e != nil {
-		logger.Error("remove old dir", id, slog_keys.Error, e, slog_keys.DirName, stgModOld.DirName, slog_keys.ModuleId)
+		logger.Error("remove old dir", slog_keys.ModuleId, id, slog_keys.DirName, stgModOld.DirName, slog_keys.Error, e)
 	}
 	if e := h.removeOldImages(ctx, getModuleServiceImages(oldMod.Services), getModuleServiceImages(newMod.Services)); e != nil {
-		logger.Error("remove old images", slog_keys.Error, e, slog_keys.ModuleId, id)
+		logger.Error("remove old images", slog_keys.ModuleId, id, slog_keys.Error, e)
 	}
 	return nil
 }
@@ -207,6 +234,10 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 func (h *Handler) RemoveModule(ctx context.Context, id string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
+	logger.Debug(
+		"begin remove module",
+		slog_keys.ModuleId, id,
+	)
 	stgMod, err := h.databaseHandler.Module(ctx, id)
 	if err != nil {
 		if lib_errors.IsOf[lib_errors.ErrNotFound](err) {
@@ -233,6 +264,7 @@ func (h *Handler) RemoveModule(ctx context.Context, id string) error {
 		return err
 	}
 	h.cacheDel(id)
+	logger.Info("remove module", slog_keys.ModuleId, id)
 	return nil
 }
 
@@ -289,7 +321,7 @@ func (h *Handler) getModules(ctx context.Context, filter pkg_models.ModulesFilte
 			mod, err = helper_modfile.GetModule(modFS)
 			if err != nil {
 				errs = append(errs, err)
-				logger.Error("get module", slog_keys.Error, err, slog_keys.Id, stgMod.Id)
+				logger.Error("get module", slog_keys.ModuleId, stgMod.Id, slog_keys.Error, err)
 				continue
 			}
 			h.cacheSet(stgMod.Id, mod)

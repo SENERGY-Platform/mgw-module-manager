@@ -117,7 +117,7 @@ func (s *Service) repoModules(repos []pkg_models.Repository, repoMods []pkg_mode
 			repoModule.Repositories = append(repoModule.Repositories, repository)
 		}
 		if fErr != nil {
-			logger.Error("invalid repository module", slog_keys.Id, id, slog_keys.Error, fErr)
+			logger.Error("invalid repository module", slog_keys.ModuleId, id, slog_keys.Error, fErr)
 			continue
 		}
 		slices.SortStableFunc(repoModule.Repositories, func(a, b lib_models.Repository) int {
