@@ -39,9 +39,11 @@ func (h *Handler) InitRepositories(ctx context.Context) error {
 	for source, repo := range h.repositories {
 		err := repo.Handler.Init()
 		if err != nil {
-			logger.Error("initialize repository", slog_keys.Error, err.Error(), slog_keys.Source, source)
+			logger.Error("initialize repository", slog_keys.Source, source, slog_keys.Error, err.Error())
 			errs = append(errs, err)
+			continue
 		}
+		logger.Info("initialize repository", slog_keys.Source, source)
 	}
 	if len(errs) > 0 {
 		return helper_errors.Join(errs...)
@@ -55,9 +57,11 @@ func (h *Handler) RefreshRepositories(ctx context.Context) error {
 	var errs []error
 	for source, repo := range h.repositories {
 		if err := repo.Handler.Refresh(ctx); err != nil {
-			logger.Error("refresh repository", slog_keys.Error, err.Error(), slog_keys.Source, source)
+			logger.Error("refresh repository", slog_keys.Source, source, slog_keys.Error, err.Error())
 			errs = append(errs, err)
+			continue
 		}
+		logger.Info("refresh repository", slog_keys.Source, source)
 	}
 	if len(errs) > 0 {
 		return helper_errors.Join(errs...)
@@ -125,6 +129,7 @@ func (h *Handler) GetModuleFS(ctx context.Context, id, source, channel string) (
 	}
 	repo, ok := h.repositories[variant.Source]
 	if !ok {
+		logger.Error("repository handler not found", slog_keys.Source, source)
 		return nil, errors.New("repository handler not found")
 	}
 	fSys, err := repo.Handler.FileSystem(ctx, variant.Channel, variant.FSysRef)
@@ -142,7 +147,7 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 			fsMap, err := repo.Handler.FileSystemsMap(ctx, channel.Name)
 			if err != nil {
 				logger.Error(
-					"build fs map",
+					"update variants map: get fs map",
 					slog_keys.Error, err.Error(),
 					slog_keys.Source, source,
 					slog_keys.Channel, channel.Name,
@@ -151,13 +156,10 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 				continue
 			}
 			for ref, fSys := range fsMap {
-				if ctx.Err() != nil {
-					return ctx.Err()
-				}
 				mod, err := helper_modfile.GetModule(fSys)
 				if err != nil {
 					logger.Error(
-						"get module",
+						"update variants map: get module",
 						slog_keys.Error, err.Error(),
 						slog_keys.Source, source,
 						slog_keys.Channel, channel.Name,
@@ -188,6 +190,13 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 					},
 					FSysRef: ref,
 				}
+				logger.Debug(
+					"update variants map",
+					slog_keys.Source, source,
+					slog_keys.Channel, channel.Name,
+					slog_keys.ModuleId, mod.ID,
+					slog_keys.Version, mod.Version,
+				)
 			}
 		}
 	}

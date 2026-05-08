@@ -71,7 +71,7 @@ func (h *Handler) Channels() []pkg_models.RepositoryChannel {
 	return channels
 }
 
-func (h *Handler) FileSystemsMap(ctx context.Context, channelName string) (map[string]fs.FS, error) {
+func (h *Handler) FileSystemsMap(_ context.Context, channelName string) (map[string]fs.FS, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	channel, ok := h.channels[channelName]
@@ -91,9 +91,6 @@ func (h *Handler) FileSystemsMap(ctx context.Context, channelName string) (map[s
 	}
 	fsMap := make(map[string]fs.FS)
 	for _, entry := range dirEntries {
-		if ctx.Err() != nil {
-			return nil, ctx.Err()
-		}
 		if entry.IsDir() && !slices.Contains(commonBlacklist, entry.Name()) && !slices.Contains(channel.Blacklist, entry.Name()) {
 			fsMap[entry.Name()] = os.DirFS(path.Join(h.wrkPath, repo.Path, channel.Name, entry.Name()))
 		}
@@ -101,7 +98,7 @@ func (h *Handler) FileSystemsMap(ctx context.Context, channelName string) (map[s
 	return fsMap, nil
 }
 
-func (h *Handler) FileSystem(ctx context.Context, channelName, fsRef string) (fs.FS, error) {
+func (h *Handler) FileSystem(_ context.Context, channelName, fsRef string) (fs.FS, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	channel, ok := h.channels[channelName]
@@ -117,9 +114,6 @@ func (h *Handler) FileSystem(ctx context.Context, channelName, fsRef string) (fs
 		return nil, err
 	}
 	for _, entry := range dirEntries {
-		if ctx.Err() != nil {
-			return nil, ctx.Err()
-		}
 		if entry.IsDir() && entry.Name() == fsRef {
 			return os.DirFS(path.Join(h.wrkPath, repo.Path, channel.Name, entry.Name())), nil
 		}
