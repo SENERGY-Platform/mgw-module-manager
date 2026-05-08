@@ -2,14 +2,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"slices"
 	"strings"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
-	handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
@@ -210,7 +208,7 @@ func (s *Service) addRepoModDepsToMap(
 		if _, ok := deps[depId]; !ok {
 			depFS, err := s.repositoriesHandler.GetModuleFS(ctx, depId, source, channel)
 			if err != nil {
-				if errors.Is(err, handler_repositories.ErrNotFound) && skipNotFound {
+				if lib_errors.IsOf[lib_errors.ErrNotFound](err) && skipNotFound {
 					continue
 				}
 				return err
