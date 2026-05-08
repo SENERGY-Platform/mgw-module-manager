@@ -148,9 +148,9 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 			if err != nil {
 				logger.Error(
 					"update variants map: get fs map",
-					slog_keys.Error, err.Error(),
 					slog_keys.Source, source,
 					slog_keys.Channel, channel.Name,
+					slog_keys.Error, err.Error(),
 				)
 				errs = append(errs, err)
 				continue
@@ -160,9 +160,9 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 				if err != nil {
 					logger.Error(
 						"update variants map: get module",
-						slog_keys.Error, err.Error(),
 						slog_keys.Source, source,
 						slog_keys.Channel, channel.Name,
+						slog_keys.Error, err.Error(),
 					)
 					errs = append(errs, err)
 					continue
