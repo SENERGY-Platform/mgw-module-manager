@@ -147,9 +147,8 @@ func getProvidedConfigs(
 	defaultConfigs map[string]pkg_models.Value,
 	userInputConfigs map[string]pkg_models.Value,
 	deploymentId string,
-) (map[string]pkg_models.DeploymentUserConfig, error) {
+) map[string]pkg_models.DeploymentUserConfig {
 	configs := make(map[string]pkg_models.DeploymentUserConfig)
-	var errs []string
 	for reference := range moduleConfigs {
 		config, ok := userInputConfigs[reference]
 		if !ok {
@@ -166,8 +165,5 @@ func getProvidedConfigs(
 			Value:        config,
 		}
 	}
-	if len(errs) > 0 {
-		return nil, errors.New(strings.Join(errs, "\n")) // TODO
-	}
-	return configs, nil
+	return configs
 }

@@ -298,10 +298,7 @@ func getUserData(
 	if err != nil {
 		return userDataCollection{}, err
 	}
-	data.Configs, err = getProvidedConfigs(module.Configs, defaultData.Configs, userInput.Configs, deploymentId)
-	if err != nil {
-		return userDataCollection{}, err
-	}
+	data.Configs = getProvidedConfigs(module.Configs, defaultData.Configs, userInput.Configs, deploymentId)
 	data.Files = getProvidedFiles(module.Files, defaultData.Files, userInput.Files, deploymentId)
 	data.FileGroups = getProvidedFileGroups(module.FileGroups, userInput.FileGroups, deploymentId)
 	return data, nil
