@@ -41,21 +41,6 @@ func Stop(ctx context.Context, client containerEngineWrapperClient, containerId 
 	return nil
 }
 
-func Restart(ctx context.Context, client containerEngineWrapperClient, containerId string, jobPollInterval time.Duration) error {
-	jobId, err := client.RestartContainer(ctx, containerId)
-	if err != nil {
-		return err
-	}
-	job, err := helper_job.Await(ctx, client, jobId, jobPollInterval)
-	if err != nil {
-		return err
-	}
-	if job.Error != nil {
-		return errors.New(job.Error.Message)
-	}
-	return nil
-}
-
 func Remove(ctx context.Context, client containerEngineWrapperClient, containerId string) error {
 	err := client.RemoveContainer(ctx, containerId, true)
 	if err != nil {
