@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"strings"
 
 	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
@@ -66,12 +67,12 @@ func getSelectedHostResources(
 	deploymentID string,
 ) (map[string]pkg_models.DeploymentHostResource, error) {
 	hostResources := make(map[string]pkg_models.DeploymentHostResource)
-	var errs []error
+	var required []string
 	for reference, hostResource := range moduleHostResources {
 		id, ok := userInputHostResources[reference]
 		if !ok {
 			if hostResource.Required {
-				errs = append(errs, errors.New(fmt.Sprintf("'%s' required", reference)))
+				required = append(required, reference)
 			}
 			continue
 		}
@@ -80,6 +81,9 @@ func getSelectedHostResources(
 			DeploymentId: deploymentID,
 			Reference:    reference,
 		}
+	}
+	if len(required) > 0 {
+		return nil, errors.New(fmt.Sprintf("required host resources: %s", strings.Join(required, ", ")))
 	}
 	return hostResources, nil
 }

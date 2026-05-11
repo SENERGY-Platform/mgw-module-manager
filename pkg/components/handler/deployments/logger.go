@@ -23,7 +23,9 @@ import (
 )
 
 var logger *slog.Logger
+var rmLogger *slog.Logger
 
 func InitLogger(sl *slog.Logger) {
 	logger = sl.With(slog_keys.Component, "handler-deployments")
+	rmLogger = sl.With(slog_keys.Component, "handler-deployments-runtime-monitor")
 }

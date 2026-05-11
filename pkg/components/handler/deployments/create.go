@@ -19,6 +19,7 @@ package deployments
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"maps"
 	"os"
@@ -370,7 +371,7 @@ func getNewContainers(
 	for reference := range moduleServices {
 		cacheItem, ok := cacheContainers[reference]
 		if !ok {
-			return nil, errors.New("missing container alias")
+			return nil, errors.New(fmt.Sprintf("'%s' missing container alias", reference))
 		}
 		containers[reference] = pkg_models.DeploymentContainerBase{
 			Name:         cacheItem.Name,

@@ -380,7 +380,7 @@ func (h *Handler) pullImages(ctx context.Context, images []string) ([]string, er
 		}
 		err = h.pullImage(ctx, image)
 		if err != nil {
-			errs = append(errs, err)
+			errs = append(errs, fmt.Errorf("'%s' %w", image, err))
 		}
 		newImages = append(newImages, image)
 	}
@@ -412,7 +412,7 @@ func (h *Handler) removeImages(ctx context.Context, images []string) error {
 		if err != nil {
 			var notFoundErr *external_models.CewNotFoundErr
 			if !errors.As(err, &notFoundErr) {
-				errs = append(errs, err)
+				errs = append(errs, fmt.Errorf("'%s' %w", image, err))
 			}
 		}
 	}
@@ -430,7 +430,7 @@ func (h *Handler) removeOldImages(ctx context.Context, oldImages, newImages []st
 			if err != nil {
 				var notFoundErr *external_models.CewNotFoundErr
 				if !errors.As(err, &notFoundErr) {
-					errs = append(errs, err)
+					errs = append(errs, fmt.Errorf("'%s' %w", image, err))
 				}
 			}
 		}

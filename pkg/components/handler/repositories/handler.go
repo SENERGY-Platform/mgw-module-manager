@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"slices"
 	"strings"
@@ -39,7 +40,7 @@ func (h *Handler) InitRepositories(ctx context.Context) error {
 		err := repo.Handler.Init()
 		if err != nil {
 			logger.Error("initialize repository", slog_keys.Source, source, slog_keys.Error, err.Error())
-			errs = append(errs, err)
+			errs = append(errs, fmt.Errorf("'%s' %w", source, err))
 			continue
 		}
 		logger.Info("initialize repository", slog_keys.Source, source)
@@ -58,7 +59,7 @@ func (h *Handler) RefreshRepositories(ctx context.Context) error {
 		err := repo.Handler.Refresh(ctx)
 		if err != nil {
 			logger.Error("refresh repository", slog_keys.Source, source, slog_keys.Error, err.Error())
-			errs = append(errs, err)
+			errs = append(errs, fmt.Errorf("'%s' %w", source, err))
 			continue
 		}
 		logger.Info("refresh repository", slog_keys.Source, source)
@@ -151,7 +152,7 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 					slog_keys.Channel, channel.Name,
 					slog_keys.Error, err.Error(),
 				)
-				errs = append(errs, err)
+				errs = append(errs, fmt.Errorf("'%s' '%s' %w", source, channel.Name, err))
 				continue
 			}
 			for ref, fSys := range fsMap {
@@ -164,7 +165,7 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 						slog_keys.Reference, ref,
 						slog_keys.Error, err.Error(),
 					)
-					errs = append(errs, err)
+					errs = append(errs, fmt.Errorf("'%s' '%s' '%s' %w", source, channel.Name, ref, err))
 					continue
 				}
 				sources, ok := variantsMap[mod.ID]

@@ -18,11 +18,13 @@ package deployments
 
 import (
 	"context"
+	"fmt"
 	"maps"
 	"slices"
 	"time"
 
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -43,7 +45,7 @@ func (h *Handler) RuntimeMonitor(ctx context.Context) {
 func (h *Handler) checkDeployments(ctx context.Context) {
 	deployments, deploymentsContainers, deploymentsMountSecrets, cewContainersMap, err := h.getCurrentRuntimeData(ctx)
 	if err != nil {
-		logger.Error(err.Error()) // TODO
+		rmLogger.Error("get deployments", slog_keys.Error, err)
 		return
 	}
 	filteredDeployments := h.runtimeMonitorJobsFilter(deployments)
@@ -117,19 +119,35 @@ func (h *Handler) startDeployment(
 		if err != nil && len(deploymentMountSecrets) > 0 {
 			e, _ := h.secretManagerClient.CleanPathVariants(context.Background(), deploymentId)
 			if e != nil {
-				logger.Error(e.Error()) // TODO
+				rmLogger.Error("start deployment, unload mounted secrets", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
 			}
 		}
 		h.runtimeMonitorJobsRemove(deploymentId)
 	}()
+	rmLogger.Debug(
+		"start deployment",
+		slog_keys.DeploymentId, deploymentId,
+		slog_keys.Containers, deploymentContainers,
+		slog_keys.Secrets, deploymentMountSecrets,
+	)
 	err = h.loadDeploymentMountSecrets(ctx, deploymentId, deploymentMountSecrets)
 	if err != nil {
-		logger.Error(err.Error()) // TODO
+		rmLogger.Error(
+			"start deployment, load mount secrets",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Secrets, deploymentMountSecrets,
+			slog_keys.Error, err,
+		)
 		return
 	}
 	err = h.startContainers(ctx, deploymentContainers)
 	if err != nil {
-		logger.Error(err.Error()) // TODO
+		rmLogger.Error(
+			"start deployment, start containers",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Containers, deploymentContainers,
+			slog_keys.Error, err,
+		)
 		return
 	}
 }
@@ -139,6 +157,7 @@ func (h *Handler) loadDeploymentMountSecrets(
 	deploymentId string,
 	deploymentMountSecrets map[string]pkg_models.DeploymentSecret,
 ) error {
+	var errs []error
 	for _, secret := range deploymentMountSecrets {
 		for _, item := range secret.Items {
 			if item.AsEnv {
@@ -154,7 +173,7 @@ func (h *Handler) loadDeploymentMountSecrets(
 			}
 			err, _ := h.secretManagerClient.LoadPathVariant(ctx, req)
 			if err != nil {
-				return err
+				errs = append(errs, fmt.Errorf("'%s' %w", secret.Reference, err))
 			}
 		}
 	}
@@ -168,15 +187,25 @@ func (h *Handler) stopDeployment(
 	hasMountSecrets bool,
 ) {
 	defer h.runtimeMonitorJobsRemove(deploymentId)
+	rmLogger.Debug(
+		"stop deployment",
+		slog_keys.DeploymentId, deploymentId,
+		slog_keys.Containers, deploymentContainers,
+	)
 	if hasMountSecrets {
 		err, _ := h.secretManagerClient.CleanPathVariants(ctx, deploymentId)
 		if err != nil {
-			logger.Error(err.Error()) // TODO
+			rmLogger.Error("stop deployment, unload mounted secrets", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
 		}
 	}
 	err := h.stopContainers(ctx, deploymentContainers)
 	if err != nil {
-		logger.Error(err.Error()) // TODO
+		rmLogger.Error(
+			"stop deployment, start containers",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Containers, deploymentContainers,
+			slog_keys.Error, err,
+		)
 	}
 }
 

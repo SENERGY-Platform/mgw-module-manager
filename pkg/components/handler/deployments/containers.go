@@ -66,7 +66,7 @@ func (h *Handler) createContainers(
 		mounts = appendFileMounts(mounts, service.Files, deploymentFilesDirName, bindMounts.Files, h.config.HostWorkDirPath)
 		mounts = appendFileGroupMounts(mounts, service.FileGroups, deploymentFilesDirName, bindMounts.FileGroups, h.config.HostWorkDirPath)
 		storageContainer := containers[reference]
-		cewContainer, err := getCewContainer(
+		cewContainer := getCewContainer(
 			service.Image,
 			service.DeviceCGroupRules,
 			service.Ports,
@@ -79,7 +79,7 @@ func (h *Handler) createContainers(
 			mounts,
 			getContainerDevices(service.HostResources, userDataHostResources, cacheHostResources),
 		)
-		_, err = h.containerEngineWrapperClient.CreateContainer(ctx, cewContainer)
+		_, err := h.containerEngineWrapperClient.CreateContainer(ctx, cewContainer)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("'%s' %w", reference, err))
 			continue
@@ -116,7 +116,7 @@ func (h *Handler) startContainers(
 	for _, container := range deploymentContainers {
 		err := h.containerEngineWrapperClient.StartContainer(ctx, container.Name)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("'%s' %w", container.Name, err))
+			errs = append(errs, fmt.Errorf("'%s' %w", container.Reference, err))
 		}
 	}
 	if len(errs) > 0 {
@@ -133,7 +133,7 @@ func (h *Handler) stopContainers(
 	for _, container := range deploymentContainers {
 		err := helper_containers.Stop(ctx, h.containerEngineWrapperClient, container.Name, h.config.JobPollInterval)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("'%s' %w", container.Name, err))
+			errs = append(errs, fmt.Errorf("'%s' %w", container.Reference, err))
 		}
 	}
 	if len(errs) > 0 {
@@ -154,7 +154,7 @@ func getCewContainer(
 	envVariables map[string]string,
 	mounts []external_models.CewMount,
 	devices []external_models.CewDevice,
-) (external_models.CewContainer, error) {
+) external_models.CewContainer {
 	return external_models.CewContainer{
 		Name:    containerName,
 		Image:   serviceImage,
@@ -176,7 +176,7 @@ func getCewContainer(
 			},
 		},
 		RunConfig: newCewRunConfig(serviceRunConfig),
-	}, nil
+	}
 }
 
 func setConfigEnvVariables(

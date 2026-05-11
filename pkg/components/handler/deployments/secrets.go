@@ -22,10 +22,12 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"strings"
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -101,7 +103,7 @@ func (h *Handler) createSecretMounts(
 	if len(errs) > 0 {
 		err := h.removeSecretMounts(ctx, deploymentId)
 		if err != nil {
-			errs = append(errs, err)
+			logger.Error("remove created secret mounts", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
 		}
 		return nil, helper_errors.Join(errs...)
 	}
@@ -122,12 +124,12 @@ func getSelectedSecrets(
 	deploymentID string,
 ) (map[string]pkg_models.DeploymentSecret, error) {
 	secrets := make(map[string]pkg_models.DeploymentSecret)
-	var errs []error
+	var required []string
 	for reference, secret := range module.Secrets {
 		id, ok := userInputSecrets[reference]
 		if !ok {
 			if secret.Required {
-				errs = append(errs, errors.New(fmt.Sprintf("'%s' required", reference)))
+				required = append(required, reference)
 			}
 			continue
 		}
@@ -138,8 +140,8 @@ func getSelectedSecrets(
 			Items:        getSecretItems(reference, module.Services),
 		}
 	}
-	if len(errs) > 0 {
-		return nil, helper_errors.Join(errs...)
+	if len(required) > 0 {
+		return nil, errors.New(fmt.Sprintf("required secrets: %s", strings.Join(required, ", ")))
 	}
 	return secrets, nil
 }

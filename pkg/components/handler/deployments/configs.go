@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"strings"
 
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
@@ -53,14 +54,14 @@ func (h *Handler) updateGlobalConfigsCache(
 	for id, globalConfig := range globalConfigs {
 		cacheGlobalConfigs[id] = globalConfig
 	}
-	var errs []error
+	var notFound []string
 	for _, id := range idsNotInCache {
 		if _, ok := cacheGlobalConfigs[id]; !ok {
-			errs = append(errs, errors.New(fmt.Sprintf("'%s' not found", id)))
+			notFound = append(notFound, id)
 		}
 	}
-	if len(errs) > 0 {
-		return helper_errors.Join(errs...)
+	if len(notFound) > 0 {
+		return errors.New(fmt.Sprintf("global configs not found: %s", strings.Join(notFound, ", ")))
 	}
 	return nil
 }
@@ -69,15 +70,15 @@ func checkConfigs(
 	moduleConfigs external_models.ModuleLibConfigs,
 	configs map[string]pkg_models.Value,
 ) error {
-	var errs []error
+	var required []string
 	for reference, moduleConfig := range moduleConfigs {
 		_, ok := configs[reference]
 		if !ok && moduleConfig.Required {
-			errs = append(errs, errors.New(fmt.Sprintf("'%s' required", reference)))
+			required = append(required, reference)
 		}
 	}
-	if len(errs) > 0 {
-		return helper_errors.Join(errs...)
+	if len(required) > 0 {
+		return errors.New(fmt.Sprintf("required configs: %s", strings.Join(required, ", ")))
 	}
 	return nil
 }
@@ -117,7 +118,7 @@ func getDefaultConfigs(moduleConfigs external_models.ModuleLibConfigs) (map[stri
 		configs[reference] = value
 	}
 	if len(errs) > 0 {
-		return nil, helper_errors.Join(errs...)
+		return nil, helper_errors.Joinp("get default configs:", errs...)
 	}
 	return configs, nil
 }

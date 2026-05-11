@@ -25,6 +25,7 @@ import (
 	"maps"
 	"os"
 	"path"
+	"strings"
 
 	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
@@ -46,7 +47,7 @@ func getDefaultFiles(moduleFiles map[string]external_models.ModuleLibFile, modul
 		}
 	}
 	if len(errs) > 0 {
-		return nil, helper_errors.Join(errs...)
+		return nil, helper_errors.Joinp("get default files:", errs...)
 	}
 	return files, nil
 }
@@ -101,15 +102,15 @@ func checkFiles(
 	moduleFiles map[string]external_models.ModuleLibFile,
 	files map[string][]byte,
 ) error {
-	var errs []error
+	var required []string
 	for reference, moduleFile := range moduleFiles {
 		_, ok := files[reference]
 		if !ok && moduleFile.Required {
-			errs = append(errs, errors.New(fmt.Sprintf("'%s' required", reference)))
+			required = append(required, reference)
 		}
 	}
-	if len(errs) > 0 {
-		return helper_errors.Join(errs...)
+	if len(required) > 0 {
+		return errors.New(fmt.Sprintf("required files: %s", strings.Join(required, ", ")))
 	}
 	return nil
 }
@@ -158,18 +159,23 @@ func createFileGroups(
 	workDirPath string,
 ) (map[string][]fileGroupMount, error) {
 	fileNames := make(map[string][]fileGroupMount)
+	var errs []error
 	for reference, fileGroup := range userDataFileGroups {
 		for _, file := range fileGroup.Files {
 			fileName := helper_naming.GenHash(fileGroup.Id, file.Path)
 			err := writeToFile(file.Data, path.Join(workDirPath, deploymentFilesDirName, fileName))
 			if err != nil {
-				return nil, err
+				errs = append(errs, fmt.Errorf("'%s' '%s' %w", reference, file.Path, err))
+				continue
 			}
 			fileNames[reference] = append(fileNames[reference], fileGroupMount{
 				FileName: fileName,
 				Path:     file.Path,
 			})
 		}
+	}
+	if len(errs) > 0 {
+		return nil, helper_errors.Joinp("create file group files:", errs...)
 	}
 	return fileNames, nil
 }
@@ -181,13 +187,18 @@ func createFiles(
 	workDirPath string,
 ) (map[string]string, error) {
 	mounts := make(map[string]string)
+	var errs []error
 	for reference, data := range files {
 		fileName := helper_naming.GenHash(deploymentId, reference)
 		err := writeToFile(data, path.Join(workDirPath, deploymentFilesDirName, fileName))
 		if err != nil {
-			return nil, err
+			errs = append(errs, fmt.Errorf("'%s' %w", reference, err))
+			continue
 		}
 		mounts[reference] = fileName
+	}
+	if len(errs) > 0 {
+		return nil, helper_errors.Joinp("create files:", errs...)
 	}
 	return mounts, nil
 }
