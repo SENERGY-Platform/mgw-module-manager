@@ -19,10 +19,11 @@ package aux_deployments
 import (
 	"context"
 	"errors"
+	"fmt"
 	"maps"
-	"strings"
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
@@ -136,18 +137,18 @@ func (h *Handler) ensureContainerVolumes(
 	if err != nil {
 		return err
 	}
-	var errs []string
+	var errs []error
 	for _, volume := range volumes {
 		_, ok := existingVolumes[volume.Name]
 		if !ok {
 			err = h.createContainerVolume(ctx, volume)
 			if err != nil {
-				errs = append(errs, err.Error())
+				errs = append(errs, fmt.Errorf("'%s' %w", volume.Reference, err))
 			}
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n")) // TODO
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }
@@ -174,15 +175,15 @@ func (h *Handler) removeContainerVolumes(
 	ctx context.Context,
 	deploymentVolumes map[string]lib_models.AuxiliaryDeploymentVolume,
 ) error {
-	var errs []string
+	var errs []error
 	for _, volume := range deploymentVolumes {
 		err := h.removeContainerVolume(ctx, volume.Name)
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, fmt.Errorf("'%s' %w", volume.Reference, err))
 		}
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }

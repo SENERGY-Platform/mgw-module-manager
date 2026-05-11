@@ -25,6 +25,7 @@ import (
 	"slices"
 	"strings"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
@@ -32,6 +33,7 @@ import (
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -47,7 +49,7 @@ func (h *Handler) CreateDeployment(
 	defer mu.Unlock()
 	auxService, ok := module.AuxServices[serviceInput.Reference]
 	if !ok {
-		return lib_models.AuxiliaryDeploymentResult{}, errors.New("auxiliary service reference not found") // TODO
+		return lib_models.AuxiliaryDeploymentResult{}, lib_errors.New[lib_errors.ErrInvalidInput]("reference not found")
 	}
 	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id, nil)
 	if err != nil {
@@ -103,7 +105,7 @@ func (h *Handler) CreateDeployment(
 		if err != nil {
 			e := h.databaseHandler.DeleteAuxiliaryDeployment(ctx, id)
 			if e != nil {
-				logger.Error(e.Error()) // TODO
+				logger.Error("remove created deployment", slog_keys.AuxDeploymentId, id, slog_keys.Error, err)
 			}
 		}
 	}()
@@ -214,11 +216,11 @@ func validateImage(auxImgSrc map[string]struct{}, image string) error {
 		s = "^" + s
 		re, err := regexp.Compile(s)
 		if err != nil {
-			return fmt.Errorf("invalid regex pattern '%s'", s) // TODO
+			return errors.New(fmt.Sprintf("regex pattern '%s' invalid", s))
 		}
 		if re.MatchString(image) {
 			return nil
 		}
 	}
-	return errors.New("invalid image") // TODO
+	return errors.New("image invalid")
 }

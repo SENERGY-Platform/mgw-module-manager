@@ -24,6 +24,7 @@ import (
 	lib_external "github.com/SENERGY-Platform/mgw-module-manager/lib/models/external"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -44,7 +45,7 @@ func (h *Handler) RuntimeMonitor(ctx context.Context) {
 func (h *Handler) checkDeployments(ctx context.Context) {
 	auxDepsByParent, cewContainersMap, err := h.getCurrentRuntimeData(ctx)
 	if err != nil {
-		logger.Error(err.Error()) // TODO
+		rmLogger.Error("get deployments", slog_keys.Error, err)
 		return
 	}
 	filteredAuxDepsByParent := h.runtimeMonitorJobsFilter(auxDepsByParent)
@@ -121,10 +122,11 @@ func (h *Handler) startContainers(
 	ctx context.Context,
 	containerNames []string,
 ) {
+	rmLogger.Debug("start containers", slog_keys.Containers, containerNames)
 	for _, name := range containerNames {
 		err := h.containerEngineWrapperClient.StartContainer(ctx, name)
 		if err != nil {
-			logger.Error(err.Error())
+			rmLogger.Error("start containers", slog_keys.Containers, containerNames, slog_keys.Error, err)
 		}
 	}
 }
@@ -133,10 +135,11 @@ func (h *Handler) stopContainers(
 	ctx context.Context,
 	containerNames []string,
 ) {
+	rmLogger.Debug("stop containers", slog_keys.Containers, containerNames)
 	for _, name := range containerNames {
 		err := helper_containers.Stop(ctx, h.containerEngineWrapperClient, name, h.config.JobPollInterval)
 		if err != nil {
-			logger.Error(err.Error())
+			rmLogger.Error("stop containers", slog_keys.Containers, containerNames, slog_keys.Error, err)
 		}
 	}
 }

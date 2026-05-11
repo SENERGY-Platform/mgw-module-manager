@@ -18,10 +18,10 @@ package aux_deployments
 
 import (
 	"context"
-	"errors"
 	"maps"
 	"slices"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
@@ -48,7 +48,7 @@ func (h *Handler) UpdateDeployment(
 	}
 	auxService, ok := module.AuxServices[serviceInput.Reference]
 	if !ok {
-		return errors.New("auxiliary service reference not found") // TODO
+		return lib_errors.New[lib_errors.ErrInvalidInput]("reference not found")
 	}
 	err = validateImage(module.AuxImgSrc, serviceInput.Image)
 	if err != nil {

@@ -17,11 +17,11 @@
 package aux_deployments
 
 import (
-	"errors"
+	"fmt"
 	"maps"
-	"strings"
 
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
@@ -32,7 +32,7 @@ func getDeploymentConfigs(
 	deploymentConfigs map[string]pkg_models.DeploymentUserConfig,
 ) (map[string]string, error) {
 	configs := make(map[string]string)
-	var errs []string
+	var errs []error
 	for varName, reference := range moduleAuxServiceConfigs {
 		moduleConfig, ok := moduleConfigs[reference]
 		if !ok {
@@ -52,7 +52,7 @@ func getDeploymentConfigs(
 			}
 			defaultValue, err := helper_configs.GetValueWithValidation(moduleConfig.Default, moduleConfig)
 			if err != nil {
-				errs = append(errs, err.Error())
+				errs = append(errs, fmt.Errorf("'%s' %w", reference, err))
 				continue
 			}
 			if moduleConfig.IsSlice {
@@ -64,7 +64,7 @@ func getDeploymentConfigs(
 		configs[varName] = value
 	}
 	if len(errs) > 0 {
-		return nil, errors.New(strings.Join(errs, "\n")) // TODO
+		return nil, helper_errors.Join(errs...)
 	}
 	return configs, nil
 }
