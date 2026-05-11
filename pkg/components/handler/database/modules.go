@@ -26,8 +26,8 @@ import (
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
-func (h *Handler) Module(ctx context.Context, id string) (pkg_models.DatabaseModule, error) {
-	modules, err := h.Modules(ctx, pkg_models.ModulesFilter{Ids: []string{id}})
+func (h *Handler) ReadModule(ctx context.Context, id string) (pkg_models.DatabaseModule, error) {
+	modules, err := h.ReadModules(ctx, pkg_models.ModulesFilter{Ids: []string{id}})
 	if err != nil {
 		return pkg_models.DatabaseModule{}, err
 	}
@@ -37,7 +37,7 @@ func (h *Handler) Module(ctx context.Context, id string) (pkg_models.DatabaseMod
 	return modules[id], nil
 }
 
-func (h *Handler) Modules(ctx context.Context, filter pkg_models.ModulesFilter) (map[string]pkg_models.DatabaseModule, error) {
+func (h *Handler) ReadModules(ctx context.Context, filter pkg_models.ModulesFilter) (map[string]pkg_models.DatabaseModule, error) {
 	fc, val := genModulesFilter(filter)
 	rows, err := h.sqlDB.QueryContext(
 		ctx,

@@ -663,7 +663,7 @@ type storageHandlerMock struct {
 	Mods map[string]pkg_models.DatabaseModule
 }
 
-func (m *storageHandlerMock) Modules(_ context.Context, filter pkg_models.ModulesFilter) (map[string]pkg_models.DatabaseModule, error) {
+func (m *storageHandlerMock) ReadModules(_ context.Context, filter pkg_models.ModulesFilter) (map[string]pkg_models.DatabaseModule, error) {
 	if m.Err != nil {
 		return nil, m.Err
 	}
@@ -680,7 +680,7 @@ func (m *storageHandlerMock) Modules(_ context.Context, filter pkg_models.Module
 	return m.Mods, nil
 }
 
-func (m *storageHandlerMock) Module(_ context.Context, id string) (pkg_models.DatabaseModule, error) {
+func (m *storageHandlerMock) ReadModule(_ context.Context, id string) (pkg_models.DatabaseModule, error) {
 	if m.Err != nil {
 		return pkg_models.DatabaseModule{}, m.Err
 	}

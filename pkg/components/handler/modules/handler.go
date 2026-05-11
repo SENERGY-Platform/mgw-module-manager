@@ -94,7 +94,7 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 		slog_keys.Channel, channel,
 		slog_keys.ModuleId, id,
 	)
-	_, err := h.databaseHandler.Module(ctx, id)
+	_, err := h.databaseHandler.ReadModule(ctx, id)
 	if err != nil {
 		if !lib_errors.IsOf[lib_errors.ErrNotFound](err) {
 			return err
@@ -163,7 +163,7 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 		slog_keys.Channel, channel,
 		slog_keys.ModuleId, id,
 	)
-	stgModOld, err := h.databaseHandler.Module(ctx, id)
+	stgModOld, err := h.databaseHandler.ReadModule(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -239,7 +239,7 @@ func (h *Handler) RemoveModule(ctx context.Context, id string) error {
 		"begin remove module",
 		slog_keys.ModuleId, id,
 	)
-	stgMod, err := h.databaseHandler.Module(ctx, id)
+	stgMod, err := h.databaseHandler.ReadModule(ctx, id)
 	if err != nil {
 		if lib_errors.IsOf[lib_errors.ErrNotFound](err) {
 			return nil
@@ -304,7 +304,7 @@ func (h *Handler) getModulesWithDependencies(ctx context.Context, filterIds []st
 }
 
 func (h *Handler) getModules(ctx context.Context, filter pkg_models.ModulesFilterWithName) (map[string]pkg_models.Module, error) {
-	stgMods, err := h.databaseHandler.Modules(ctx, pkg_models.ModulesFilter{
+	stgMods, err := h.databaseHandler.ReadModules(ctx, pkg_models.ModulesFilter{
 		Ids:     filter.Ids,
 		Source:  filter.Source,
 		Channel: filter.Channel,

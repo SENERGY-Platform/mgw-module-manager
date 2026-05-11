@@ -24,8 +24,8 @@ import (
 )
 
 type databaseHandler interface {
-	Modules(ctx context.Context, filter pkg_models.ModulesFilter) (map[string]pkg_models.DatabaseModule, error)
-	Module(ctx context.Context, id string) (pkg_models.DatabaseModule, error)
+	ReadModules(ctx context.Context, filter pkg_models.ModulesFilter) (map[string]pkg_models.DatabaseModule, error)
+	ReadModule(ctx context.Context, id string) (pkg_models.DatabaseModule, error)
 	CreateModule(ctx context.Context, mod pkg_models.DatabaseModule) error
 	UpdateModule(ctx context.Context, mod pkg_models.DatabaseModule) error
 	DeleteModule(ctx context.Context, id string) error
