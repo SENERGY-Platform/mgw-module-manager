@@ -19,7 +19,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
