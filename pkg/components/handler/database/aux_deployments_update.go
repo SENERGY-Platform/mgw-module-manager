@@ -62,7 +62,11 @@ func (h *Handler) UpdateAuxiliaryDeployment(
 	if err != nil {
 		return err
 	}
-	return tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (h *Handler) UpdateAuxiliaryDeploymentContainerName(ctx context.Context, auxDeploymentId, name string) error {
@@ -78,9 +82,10 @@ func (h *Handler) UpdateAuxiliaryDeploymentContainerName(ctx context.Context, au
 	return nil
 }
 
-func (h *Handler) UpdateAuxiliaryDeploymentsEnabledState(ctx context.Context, auxDeploymentIds []string, state bool) (err error) {
+func (h *Handler) UpdateAuxiliaryDeploymentsEnabledState(ctx context.Context, auxDeploymentIds []string, state bool) error {
 	var db sqlDatabase = h.sqlDB
 	var tx *sql.Tx
+	var err error
 	if len(auxDeploymentIds) > 0 {
 		tx, err = h.sqlDB.BeginTx(ctx, nil)
 		if err != nil {
@@ -97,13 +102,16 @@ func (h *Handler) UpdateAuxiliaryDeploymentsEnabledState(ctx context.Context, au
 			id,
 		)
 		if err != nil {
-			return
+			return err
 		}
 	}
 	if tx != nil {
 		err = tx.Commit()
+		if err != nil {
+			return err
+		}
 	}
-	return
+	return nil
 }
 
 func (h *Handler) deleteAuxiliaryDeploymentAssets(ctx context.Context, tx *sql.Tx, auxDeploymentId string) error {

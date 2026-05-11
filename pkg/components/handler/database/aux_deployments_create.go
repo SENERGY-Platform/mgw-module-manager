@@ -60,7 +60,11 @@ func (h *Handler) CreateAuxiliaryDeployment(
 	if err != nil {
 		return err
 	}
-	return tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (h *Handler) CreateAuxiliaryDeploymentVolumes(
@@ -86,7 +90,11 @@ func (h *Handler) CreateAuxiliaryDeploymentVolumes(
 			return err
 		}
 	}
-	return tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (h *Handler) createAuxiliaryDeploymentAssets(

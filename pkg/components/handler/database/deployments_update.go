@@ -23,9 +23,10 @@ import (
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
-func (h *Handler) UpdateDeploymentsEnabledState(ctx context.Context, deploymentIds []string, state bool) (err error) {
+func (h *Handler) UpdateDeploymentsEnabledState(ctx context.Context, deploymentIds []string, state bool) error {
 	var db sqlDatabase = h.sqlDB
 	var tx *sql.Tx
+	var err error
 	if len(deploymentIds) > 0 {
 		tx, err = h.sqlDB.BeginTx(ctx, nil)
 		if err != nil {
@@ -42,13 +43,16 @@ func (h *Handler) UpdateDeploymentsEnabledState(ctx context.Context, deploymentI
 			id,
 		)
 		if err != nil {
-			return
+			return err
 		}
 	}
 	if tx != nil {
 		err = tx.Commit()
+		if err != nil {
+			return err
+		}
 	}
-	return
+	return nil
 }
 
 func (h *Handler) UpdateDeploymentEnabledState(ctx context.Context, id string, state bool) error {
@@ -66,7 +70,7 @@ func (h *Handler) UpdateDeployment(
 	fileGroups []pkg_models.DeploymentFileGroup,
 	volumes []pkg_models.DeploymentVolume,
 	containers []pkg_models.DeploymentContainerBase,
-) (err error) {
+) error {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -84,11 +88,11 @@ func (h *Handler) UpdateDeployment(
 		deployment.Id,
 	)
 	if err != nil {
-		return
+		return err
 	}
 	err = h.deleteDeploymentResourcesAndConfigs(ctx, tx, deployment.Id)
 	if err != nil {
-		return
+		return err
 	}
 	err = h.createDeploymentResourcesAndConfigs(
 		ctx,
@@ -104,15 +108,19 @@ func (h *Handler) UpdateDeployment(
 		containers,
 	)
 	if err != nil {
-		return
+		return err
 	}
 	err = tx.Commit()
-	return
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (h *Handler) UpdateDeploymentContainerNames(ctx context.Context, containers []pkg_models.DeploymentContainerBase) (err error) {
+func (h *Handler) UpdateDeploymentContainerNames(ctx context.Context, containers []pkg_models.DeploymentContainerBase) error {
 	var db sqlDatabase = h.sqlDB
 	var tx *sql.Tx
+	var err error
 	if len(containers) > 0 {
 		tx, err = h.sqlDB.BeginTx(ctx, nil)
 		if err != nil {
@@ -130,11 +138,14 @@ func (h *Handler) UpdateDeploymentContainerNames(ctx context.Context, containers
 			container.Reference,
 		)
 		if err != nil {
-			return
+			return err
 		}
 	}
 	if tx != nil {
 		err = tx.Commit()
+		if err != nil {
+			return err
+		}
 	}
-	return
+	return nil
 }

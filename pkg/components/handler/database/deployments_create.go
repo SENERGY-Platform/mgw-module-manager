@@ -19,6 +19,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
@@ -34,7 +35,7 @@ func (h *Handler) CreateDeployment(
 	fileGroups []pkg_models.DeploymentFileGroup,
 	volumes []pkg_models.DeploymentVolume,
 	containers []pkg_models.DeploymentContainerBase,
-) (err error) {
+) error {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -55,7 +56,7 @@ func (h *Handler) CreateDeployment(
 		deployment.Updated,
 	)
 	if err != nil {
-		return
+		return err
 	}
 	err = h.createDeploymentResourcesAndConfigs(
 		ctx,
@@ -71,10 +72,13 @@ func (h *Handler) CreateDeployment(
 		containers,
 	)
 	if err != nil {
-		return
+		return err
 	}
 	err = tx.Commit()
-	return
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (h *Handler) createDeploymentResourcesAndConfigs(

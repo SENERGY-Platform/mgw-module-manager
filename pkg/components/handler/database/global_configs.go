@@ -26,10 +26,10 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
 )
 
-func (h *Handler) CreateGlobalConfig(ctx context.Context, config pkg_models.Config) (err error) {
+func (h *Handler) CreateGlobalConfig(ctx context.Context, config pkg_models.Config) error {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
-		return
+		return err
 	}
 	defer tx.Rollback()
 	_, err = tx.ExecContext(
@@ -41,14 +41,17 @@ func (h *Handler) CreateGlobalConfig(ctx context.Context, config pkg_models.Conf
 		config.IsSlice,
 	)
 	if err != nil {
-		return
+		return err
 	}
 	err = createConfigValues(ctx, tx, "global_config_values", config.Id, config.Value)
 	if err != nil {
-		return
+		return err
 	}
 	err = tx.Commit()
-	return
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (h *Handler) ReadGlobalConfig(ctx context.Context, id string) (pkg_models.Config, error) {
@@ -118,10 +121,10 @@ func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[stri
 	return globalConfigs, nil
 }
 
-func (h *Handler) UpdateGlobalConfig(ctx context.Context, config pkg_models.Config) (err error) {
+func (h *Handler) UpdateGlobalConfig(ctx context.Context, config pkg_models.Config) error {
 	tx, err := h.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
-		return
+		return err
 	}
 	defer tx.Rollback()
 	_, err = tx.ExecContext(
@@ -132,18 +135,21 @@ func (h *Handler) UpdateGlobalConfig(ctx context.Context, config pkg_models.Conf
 		config.IsSlice,
 	)
 	if err != nil {
-		return
+		return err
 	}
 	_, err = tx.ExecContext(ctx, "DELETE FROM global_config_values WHERE c_id = ?", config.Id)
 	if err != nil {
-		return
+		return err
 	}
 	err = createConfigValues(ctx, tx, "global_config_values", config.Id, config.Value)
 	if err != nil {
-		return
+		return err
 	}
 	err = tx.Commit()
-	return
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (h *Handler) DeleteGlobalConfig(ctx context.Context, id string) error {

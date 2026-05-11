@@ -24,6 +24,7 @@ import (
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 const selectDeploymentAdvertisementsStmt = `SELECT dep_advertisements.id, dep_advertisements.dep_id, dep_advertisements.mod_id, dep_advertisements.origin, dep_advertisements.ref, dep_advertisements.timestamp, dep_adv_items.item_key, dep_adv_items.item_value
@@ -158,7 +159,11 @@ func (h *Handler) WriteDeploymentAdvertisements(
 			return err
 		}
 	}
-	return tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (h *Handler) DeleteDeploymentAdvertisements(

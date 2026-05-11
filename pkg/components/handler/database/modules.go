@@ -24,6 +24,7 @@ import (
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 func (h *Handler) ReadModule(ctx context.Context, id string) (pkg_models.DatabaseModule, error) {
