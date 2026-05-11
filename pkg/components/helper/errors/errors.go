@@ -19,10 +19,14 @@ package errors
 import "fmt"
 
 func Join(errs ...error) error {
-	return Joinf("Err%d: %s", errs...)
+	return Joinf("", "Err%d: %s", errs...)
 }
 
-func Joinf(format string, errs ...error) error {
+func Joinp(prefixMsg string, errs ...error) error {
+	return Joinf(prefixMsg, "Err%d: %s", errs...)
+}
+
+func Joinf(prefixMsg, format string, errs ...error) error {
 	n := 0
 	for _, err := range errs {
 		if err != nil {
@@ -33,8 +37,9 @@ func Joinf(format string, errs ...error) error {
 		return nil
 	}
 	e := &joinErr{
-		format: format,
-		errs:   make([]error, n),
+		prefixMsg: prefixMsg,
+		format:    format,
+		errs:      make([]error, n),
 	}
 	for i, err := range errs {
 		if err != nil {
@@ -45,15 +50,20 @@ func Joinf(format string, errs ...error) error {
 }
 
 type joinErr struct {
-	format string
-	errs   []error
+	prefixMsg string
+	format    string
+	errs      []error
 }
 
 func (e *joinErr) Error() string {
-	if len(e.errs) == 1 {
-		return e.errs[0].Error()
+	var msg string
+	if e.prefixMsg != "" {
+		msg += e.prefixMsg + " "
 	}
-	msg := fmt.Sprintf(e.format, 0, e.errs[0].Error())
+	if len(e.errs) == 1 {
+		return msg + e.errs[0].Error()
+	}
+	msg += fmt.Sprintf(e.format, 0, e.errs[0].Error())
 	for i, err := range e.errs[1:] {
 		msg += ", " + fmt.Sprintf(e.format, i+1, err.Error())
 	}

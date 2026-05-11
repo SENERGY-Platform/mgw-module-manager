@@ -321,7 +321,7 @@ func (h *Handler) getModules(ctx context.Context, filter pkg_models.ModulesFilte
 		if !ok {
 			mod, err = helper_modfile.GetModule(modFS)
 			if err != nil {
-				errs = append(errs, err)
+				errs = append(errs, fmt.Errorf("'%s' %w", stgMod.Id, err))
 				logger.Error("get module", slog_keys.ModuleId, stgMod.Id, slog_keys.Error, err)
 				continue
 			}
