@@ -38,6 +38,8 @@ const (
 	Description        = "description"
 	JobSlot            = "job_slot"
 	ContainerName      = "container_name"
+	Secrets            = "secrets"
+	Containers         = "containers"
 	Error              = attributes.ErrorKey
 	Method             = attributes.MethodKey
 	Path               = attributes.PathKey
