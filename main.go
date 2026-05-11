@@ -83,6 +83,7 @@ func main() {
 	sqlDB := helper_sql_db.NewSQLDatabase(mySQLConnector, config.Database.SQL)
 	defer sqlDB.Close()
 
+	handler_database.InitLogger(logger)
 	databaseHandler := handler_database.New(sqlDB)
 	migration_db_restructure.InitLogger(logger)
 	err = databaseHandler.Migrate(ctx, migration_db_restructure.Migration, migration_db_init.Migration)

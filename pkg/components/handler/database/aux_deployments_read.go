@@ -86,10 +86,10 @@ func (h *Handler) ReadAuxiliaryDeployments(
 			return nil, err
 		}
 		if auxDep.Created, err = time.Parse(timeLayout, string(ct)); err != nil {
-			return nil, err
+			logger.Error("read auxiliary deployments", slog_keys.AuxDeploymentId, auxDep.Id, slog_keys.Error, err)
 		}
 		if auxDep.Updated, err = time.Parse(timeLayout, string(ut)); err != nil {
-			return nil, err
+			logger.Error("read auxiliary deployments", slog_keys.AuxDeploymentId, auxDep.Id, slog_keys.Error, err)
 		}
 		auxDep.RunConfig.Command = strings.Split(command.String, ",")
 		auxDep.RunConfig.PseudoTTY = pseudoTTY.Bool

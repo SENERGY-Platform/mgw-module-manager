@@ -19,25 +19,26 @@ package slog_keys
 import "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
 
 const (
-	RequestId       = "request_id"
-	StackTrace      = "stack_trace"
-	ModuleId        = "module_id"
-	DeploymentId    = "deployment_id"
-	AuxDeploymentId = "auxiliary_deployment_id"
-	JobId           = "job_id"
-	Reference       = "reference"
-	Filter          = "filter"
-	Source          = "source"
-	Channel         = "channel"
-	DirName         = "dir_name"
-	Signal          = "signal"
-	Version         = "version"
-	ConfigValues    = "config_values"
-	Component       = "component"
-	Description     = "description"
-	JobSlot         = "job_slot"
-	ContainerName   = "container_name"
-	Error           = attributes.ErrorKey
-	Method          = attributes.MethodKey
-	Path            = attributes.PathKey
+	RequestId          = "request_id"
+	StackTrace         = "stack_trace"
+	ModuleId           = "module_id"
+	DeploymentId       = "deployment_id"
+	AuxDeploymentId    = "auxiliary_deployment_id"
+	JobId              = "job_id"
+	DepAdvertisementId = "deployment_advertisement_id"
+	Reference          = "reference"
+	Filter             = "filter"
+	Source             = "source"
+	Channel            = "channel"
+	DirName            = "dir_name"
+	Signal             = "signal"
+	Version            = "version"
+	ConfigValues       = "config_values"
+	Component          = "component"
+	Description        = "description"
+	JobSlot            = "job_slot"
+	ContainerName      = "container_name"
+	Error              = attributes.ErrorKey
+	Method             = attributes.MethodKey
+	Path               = attributes.PathKey
 )
