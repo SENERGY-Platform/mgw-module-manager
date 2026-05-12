@@ -155,7 +155,6 @@ func main() {
 		config.AuxDeploymentsHandler,
 	)
 
-	handler_jobs.InitLogger(logger)
 	jobsHandler := handler_jobs.New(ctx, config.JobsHandler)
 
 	handler_global_configs.InitLogger(logger)

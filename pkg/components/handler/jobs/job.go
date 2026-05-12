@@ -22,7 +22,6 @@ import (
 	"time"
 
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 type doneHandler interface {
@@ -54,7 +53,6 @@ func (j *Job) Done() {
 	if j.doneHandler != nil {
 		j.doneHandler.JobDone()
 	}
-	logger.Debug("job done", slog_keys.JobId, j.Id)
 }
 
 func (j *Job) End() time.Time {
