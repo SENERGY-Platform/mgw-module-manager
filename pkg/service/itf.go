@@ -21,7 +21,7 @@ type modulesHandler interface {
 	GetModule(ctx context.Context, id string) (pkg_models.Module, error)
 	AddModule(ctx context.Context, id, source, channel string, fSys fs.FS) error
 	UpdateModule(ctx context.Context, id, source, channel string, fSys fs.FS) error
-	RemoveModule(ctx context.Context, id string) error
+	DeleteModule(ctx context.Context, id string) error
 }
 
 type deploymentsHandler interface {
@@ -139,8 +139,8 @@ type auxiliaryDeploymentsHandler interface {
 
 type globalConfigsHandler interface {
 	CreateGlobalConfig(ctx context.Context, name string, value pkg_models.Value) (string, error)
-	ReadGlobalConfig(ctx context.Context, id string) (pkg_models.Config, error)
-	ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]pkg_models.Config, error)
+	GetGlobalConfig(ctx context.Context, id string) (pkg_models.Config, error)
+	GetGlobalConfigs(ctx context.Context, ids []string) (map[string]pkg_models.Config, error)
 	UpdateGlobalConfig(ctx context.Context, config pkg_models.Config) error
 	DeleteGlobalConfig(ctx context.Context, id string) error
 	DeleteGlobalConfigs(ctx context.Context, ids []string, allowAll bool) error

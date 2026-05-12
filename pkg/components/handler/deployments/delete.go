@@ -25,6 +25,7 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -38,12 +39,27 @@ func (h *Handler) DeleteDeployments(
 	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
+	if allowAll {
+		logger.Warn("delete deployments", slog_keys.Filter, filter, slog_keys.AllowAll, allowAll)
+	}
 	deployments, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
+		logger.Error(
+			"delete deployments, read from database",
+			slog_keys.Filter, filter,
+			slog_keys.AllowAll, allowAll,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
-	deploymentsVolumes, deploymentsContainers, err := h.getDeploymentsVolumesAndContainersFromDB(ctx, slices.Collect(maps.Keys(deployments)))
+	deploymentIds := slices.Collect(maps.Keys(deployments))
+	deploymentsVolumes, deploymentsContainers, err := h.getDeploymentsVolumesAndContainersFromDB(ctx, deploymentIds)
 	if err != nil {
+		logger.Error(
+			"delete deployments, read volume and container data from database",
+			slog_keys.DeploymentIds, deploymentIds,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	var results []lib_models.DeploymentResult
@@ -75,17 +91,26 @@ func (h *Handler) deleteDeployment(
 ) error {
 	err := h.removeDeploymentEnvironment(ctx, deploymentId, deploymentDirName, deploymentFilesDirName, containers)
 	if err != nil {
+		logger.Error("delete deployment, remove environment", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
 		return err
 	}
 	err = h.removeContainerVolumes(ctx, volumes)
 	if err != nil {
+		logger.Error("delete deployment, remove volumes", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
 		return err
 	}
 	err = h.removeHttpEndpoints(ctx, deploymentId)
 	if err != nil {
+		logger.Error("delete deployment, remove http endpoints", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
 		return err
 	}
-	return h.databaseHandler.DeleteDeployment(ctx, deploymentId)
+	err = h.databaseHandler.DeleteDeployment(ctx, deploymentId)
+	if err != nil {
+		logger.Error("delete deployment, remove from database", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
+		return err
+	}
+	logger.Info("delete deployment", slog_keys.DeploymentId, deploymentId)
+	return nil
 }
 
 func (h *Handler) removeHttpEndpoints(ctx context.Context, deploymentId string) error {

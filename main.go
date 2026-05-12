@@ -158,6 +158,8 @@ func main() {
 	handler_jobs.InitLogger(logger)
 	jobsHandler := handler_jobs.New(ctx, config.JobsHandler)
 
+	handler_global_configs.InitLogger(logger)
+	handler_dep_advertisements.InitLogger(logger)
 	service.InitLogger(logger)
 	srv := service.New(
 		repositoriesHandler,

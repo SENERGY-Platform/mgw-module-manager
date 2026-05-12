@@ -25,6 +25,7 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -60,23 +61,53 @@ func (h *Handler) GetDeployments(
 	defer mu.RUnlock()
 	dbAuxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, filter.AuxiliaryDeploymentsFilter)
 	if err != nil {
+		logger.Error(
+			"get auxiliary deployments, read from database",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Filter, filter,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	auxDepIds := slices.Collect(maps.Keys(dbAuxDeployments))
 	dbAuxDepLabels, err := h.databaseHandler.ReadAuxiliaryDeploymentsLabels(ctx, auxDepIds)
 	if err != nil {
+		logger.Error(
+			"get auxiliary deployments, read labels from database",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.AuxDeploymentIds, auxDepIds,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	dbAuxDepConfigs, err := h.databaseHandler.ReadAuxiliaryDeploymentsConfigs(ctx, auxDepIds)
 	if err != nil {
+		logger.Error(
+			"get auxiliary deployments, read configs from database",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.AuxDeploymentIds, auxDepIds,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	dbAuxDepVolumeMounts, err := h.databaseHandler.ReadAuxiliaryDeploymentsVolumeMounts(ctx, auxDepIds)
 	if err != nil {
+		logger.Error(
+			"get auxiliary deployments, read volume mounts from database",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.AuxDeploymentIds, auxDepIds,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	cewContainers, err := h.getCewContainers(ctx, dbAuxDeployments)
 	if err != nil {
+		logger.Error(
+			"get auxiliary deployments, get containers",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.AuxDeploymentIds, auxDepIds,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	return getAuxiliaryDeployments(dbAuxDeployments, dbAuxDepLabels, dbAuxDepConfigs, dbAuxDepVolumeMounts, cewContainers), nil
@@ -92,10 +123,22 @@ func (h *Handler) GetReducedDeployments(
 	defer mu.RUnlock()
 	dbAuxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, filter.AuxiliaryDeploymentsFilter)
 	if err != nil {
+		logger.Error(
+			"get reduced auxiliary deployments, read from database",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Filter, filter,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	cewContainers, err := h.getCewContainers(ctx, dbAuxDeployments)
 	if err != nil {
+		logger.Error(
+			"get reduced auxiliary deployments, get containers",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.AuxDeploymentIds, slices.Collect(maps.Keys(dbAuxDeployments)),
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	return getReducedAuxiliaryDeployments(dbAuxDeployments, cewContainers), nil

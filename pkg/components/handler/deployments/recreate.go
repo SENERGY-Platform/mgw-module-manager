@@ -19,12 +19,14 @@ package deployments
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"maps"
 	"slices"
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -34,19 +36,31 @@ func (h *Handler) RecreateDeployments(
 ) ([]lib_models.DeploymentResult, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
+	moduleIds := slices.Collect(maps.Keys(selectedModules))
 	deployments, err := h.databaseHandler.ReadDeployments(ctx, pkg_models.DeploymentsFilter{
-		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
+		ModuleIds: moduleIds,
 	})
 	if err != nil {
+		logger.Error("recreate deployments, read from database", slog_keys.ModuleIds, moduleIds, slog_keys.Error, err)
 		return nil, err
 	}
 	deploymentIds := slices.Collect(maps.Keys(deployments))
 	deploymentsUserData, err := h.getDeploymentsUserDataFromDB(ctx, deploymentIds)
 	if err != nil {
+		logger.Error(
+			"recreate deployments, read user data from database",
+			slog_keys.DeploymentIds, deploymentIds,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	deploymentsVolumes, deploymentsContainers, err := h.getDeploymentsVolumesAndContainersFromDB(ctx, deploymentIds)
 	if err != nil {
+		logger.Error(
+			"recreate deployments, read volume and container data from database",
+			slog_keys.DeploymentIds, deploymentIds,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	cache := cacheCollection{
@@ -56,6 +70,7 @@ func (h *Handler) RecreateDeployments(
 	}
 	cache.Deployments, err = initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
 	if err != nil {
+		logger.Error("recreate deployments, initialize cache", slog_keys.Error, err)
 		return nil, err
 	}
 	var results []lib_models.DeploymentResult
@@ -99,10 +114,18 @@ func (h *Handler) recreateDeployment(
 	cache cacheCollection,
 ) error {
 	if currentDeployment.ModuleSource+currentDeployment.ModuleChannel+currentDeployment.ModuleVersion != module.Source+module.Channel+module.Version {
-		return errors.New("module " + module.ID + " has changed and must be updated first")
+		msg := fmt.Sprintf("module '%s' has changed and must be updated first", module.ID)
+		logger.Error("recreate deployment", slog_keys.ModuleId, module.ID, slog_keys.DeploymentId, deploymentId, slog_keys.Error, msg)
+		return errors.New(msg)
 	}
 	defaultData, err := getDefaultData(module)
 	if err != nil {
+		logger.Error(
+			"recreate deployment, get default data",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	err = h.updateCaches(
@@ -114,6 +137,12 @@ func (h *Handler) recreateDeployment(
 		cache,
 	)
 	if err != nil {
+		logger.Error(
+			"recreate deployment, get dependencies and external resources",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	mergedConfigs, mergedFiles, err := mergeDefaultAndUserData(
@@ -125,14 +154,32 @@ func (h *Handler) recreateDeployment(
 		cache.GlobalConfigs,
 	)
 	if err != nil {
+		logger.Error(
+			"recreate deployment, merge default and user data",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	newContainers, err := getNewContainers(module.Services, cacheContainers, deploymentId)
 	if err != nil {
+		logger.Error(
+			"recreate deployment, generate new containers",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	err = h.stopContainers(ctx, currentContainers)
 	if err != nil {
+		logger.Error(
+			"recreate deployment, stop containers",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	err = h.removeDeploymentEnvironment(
@@ -142,8 +189,23 @@ func (h *Handler) recreateDeployment(
 		currentDeployment.FilesDirName,
 		currentContainers,
 	)
+	if err != nil {
+		logger.Error(
+			"recreate deployment, remove environment",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
+		return err
+	}
 	err = h.databaseHandler.UpdateDeploymentContainerNames(ctx, slices.Collect(maps.Values(newContainers)))
 	if err != nil {
+		logger.Error(
+			"recreate deployment, write container names to database",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	err = h.ensureDeploymentEnvironment(
@@ -156,6 +218,12 @@ func (h *Handler) recreateDeployment(
 		currentVolumes,
 	)
 	if err != nil {
+		logger.Error(
+			"recreate deployment, ensure environment",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	bindMounts, err := h.getBindMounts(
@@ -167,13 +235,15 @@ func (h *Handler) recreateDeployment(
 		mergedFiles,
 	)
 	if err != nil {
+		logger.Error(
+			"recreate deployment, get bind mounts",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	// TODO "mount secrets" must be "unloaded" if one of the following steps fail
-	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
-	if err != nil {
-		logger.Error(err.Error()) // TODO
-	}
 	err = h.createContainers(
 		ctx,
 		module.Configs,
@@ -192,7 +262,23 @@ func (h *Handler) recreateDeployment(
 		cache.HostResources,
 	)
 	if err != nil {
-		logger.Error(err.Error()) // TODO
+		logger.Error(
+			"recreate deployment, create containers",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
+		return err
+	}
+	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
+	if err != nil {
+		logger.Error(
+			"recreate deployment, create http endpoints",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
+		return err
 	}
 	return nil
 }

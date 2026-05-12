@@ -22,6 +22,7 @@ import (
 	"slices"
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 func (h *Handler) EnableDeployments(
@@ -34,11 +35,23 @@ func (h *Handler) EnableDeployments(
 	defer mu.RUnlock()
 	auxDeployments, err := h.readAuxiliaryDeploymentsAndFilterByState(ctx, deploymentId, filter)
 	if err != nil {
+		logger.Error(
+			"enable auxiliary deployments, read from database",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Filter, filter,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	ids := slices.Collect(maps.Keys(auxDeployments))
 	err = h.databaseHandler.UpdateAuxiliaryDeploymentsEnabledState(ctx, ids, true)
 	if err != nil {
+		logger.Error(
+			"enable auxiliary deployments, write to database",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.AuxDeploymentIds, ids,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	return ids, nil
@@ -54,11 +67,23 @@ func (h *Handler) DisableDeployments(
 	defer mu.RUnlock()
 	auxDeployments, err := h.readAuxiliaryDeploymentsAndFilterByState(ctx, deploymentId, filter)
 	if err != nil {
+		logger.Error(
+			"disable auxiliary deployments, read from database",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Filter, filter,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	ids := slices.Collect(maps.Keys(auxDeployments))
 	err = h.databaseHandler.UpdateAuxiliaryDeploymentsEnabledState(ctx, ids, false)
 	if err != nil {
+		logger.Error(
+			"disable auxiliary deployments, write to database",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.AuxDeploymentIds, ids,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	return ids, nil

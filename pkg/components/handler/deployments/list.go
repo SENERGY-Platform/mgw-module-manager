@@ -143,16 +143,18 @@ func (h *Handler) getDeploymentsReduced(
 ) (map[string]pkg_models.DeploymentReduced, error) {
 	stgDeps, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
+		logger.Error("get reduced deployments, read from database", slog_keys.Filter, filter, slog_keys.Error, err)
 		return nil, err
 	}
 	depIds := slices.Collect(maps.Keys(stgDeps))
 	deploymentsContainers, err := h.databaseHandler.ReadDeploymentsContainers(ctx, depIds)
 	if err != nil {
+		logger.Error("get reduced deployments, read container data from database", slog_keys.DeploymentIds, depIds, slog_keys.Error, err)
 		return nil, err
 	}
 	cewContainersMap, cewErr := h.getCewContainers(ctx, deploymentsContainers)
 	if cewErr != nil {
-		logger.Warn("get containers", slog_keys.Filter, filter, slog_keys.Error, cewErr)
+		logger.Warn("get reduced deployments, get containers", slog_keys.Containers, deploymentsContainers, slog_keys.Error, cewErr)
 	}
 	deployments := make(map[string]pkg_models.DeploymentReduced)
 	for id, stgDep := range stgDeps {
@@ -178,20 +180,23 @@ func (h *Handler) getDeployments(
 ) (map[string]pkg_models.Deployment, error) {
 	stgDeps, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
+		logger.Error("get deployments, read from database", slog_keys.Filter, filter, slog_keys.Error, err)
 		return nil, err
 	}
 	depIds := slices.Collect(maps.Keys(stgDeps))
 	deploymentsUserData, err := h.getDeploymentsUserDataFromDB(ctx, depIds)
 	if err != nil {
+		logger.Error("get deployments, read user data from database", slog_keys.DeploymentIds, depIds, slog_keys.Error, err)
 		return nil, err
 	}
 	deploymentsVolumes, deploymentsContainers, err := h.getDeploymentsVolumesAndContainersFromDB(ctx, depIds)
 	if err != nil {
+		logger.Error("get deployments, read volume and container data from database", slog_keys.DeploymentIds, depIds, slog_keys.Error, err)
 		return nil, err
 	}
 	cewContainersMap, cewErr := h.getCewContainers(ctx, deploymentsContainers)
 	if cewErr != nil {
-		logger.Warn("get containers", slog_keys.Filter, filter, slog_keys.Error, cewErr)
+		logger.Warn("get deployments, get containers", slog_keys.Containers, deploymentsContainers, slog_keys.Error, cewErr)
 	}
 	deployments := make(map[string]pkg_models.Deployment)
 	for id, stgDep := range stgDeps {

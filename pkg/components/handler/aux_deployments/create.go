@@ -49,18 +49,47 @@ func (h *Handler) CreateDeployment(
 	defer mu.Unlock()
 	auxService, ok := module.AuxServices[serviceInput.Reference]
 	if !ok {
-		return lib_models.AuxiliaryDeploymentResult{}, lib_errors.New[lib_errors.ErrInvalidInput]("reference not found")
+		msg := "reference not found"
+		logger.Error(
+			"create auxiliary deployment",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, activeDeployment.Id,
+			slog_keys.Reference, serviceInput.Reference,
+			slog_keys.Error, msg,
+		)
+		return lib_models.AuxiliaryDeploymentResult{}, lib_errors.New[lib_errors.ErrInvalidInput](msg)
 	}
 	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id, nil)
 	if err != nil {
+		logger.Error(
+			"create auxiliary deployment, read volumes from database",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, activeDeployment.Id,
+			slog_keys.Reference, serviceInput.Reference,
+			slog_keys.Error, err,
+		)
 		return lib_models.AuxiliaryDeploymentResult{}, err
 	}
 	err = validateImage(module.AuxImgSrc, serviceInput.Image)
 	if err != nil {
+		logger.Error(
+			"create auxiliary deployment, validate image",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, activeDeployment.Id,
+			slog_keys.Reference, serviceInput.Reference,
+			slog_keys.Error, err,
+		)
 		return lib_models.AuxiliaryDeploymentResult{}, err
 	}
 	id, err := helper_uuid.New()
 	if err != nil {
+		logger.Error(
+			"create auxiliary deployment, generate id",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, activeDeployment.Id,
+			slog_keys.Reference, serviceInput.Reference,
+			slog_keys.Error, err,
+		)
 		return lib_models.AuxiliaryDeploymentResult{}, err
 	}
 	newAuxDeployment, err := getAuxiliaryDeployment(
@@ -72,12 +101,26 @@ func (h *Handler) CreateDeployment(
 		serviceInput,
 	)
 	if err != nil {
+		logger.Error(
+			"create auxiliary deployment, generate new auxiliary deployment",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, activeDeployment.Id,
+			slog_keys.Reference, serviceInput.Reference,
+			slog_keys.Error, err,
+		)
 		return lib_models.AuxiliaryDeploymentResult{}, err
 	}
 	newAuxDeployment.Created = helper_time.Now()
 	newAuxDeployment.Updated = newAuxDeployment.Created
 	deploymentConfigs, err := getDeploymentConfigs(module.Configs, auxService.Configs, activeDeployment.Configs)
 	if err != nil {
+		logger.Error(
+			"create auxiliary deployment, get configs",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, activeDeployment.Id,
+			slog_keys.Reference, serviceInput.Reference,
+			slog_keys.Error, err,
+		)
 		return lib_models.AuxiliaryDeploymentResult{}, err
 	}
 	newAuxDeploymentVolumes := getNewVolumes(activeDeployment.Id, serviceInput.Volumes, auxDeploymentVolumes)
@@ -87,6 +130,13 @@ func (h *Handler) CreateDeployment(
 		slices.Collect(maps.Values(newAuxDeploymentVolumes)),
 	)
 	if err != nil {
+		logger.Error(
+			"create auxiliary deployment, write volumes to database",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, activeDeployment.Id,
+			slog_keys.Reference, serviceInput.Reference,
+			slog_keys.Error, err,
+		)
 		return lib_models.AuxiliaryDeploymentResult{}, err
 	}
 	maps.Copy(auxDeploymentVolumes, newAuxDeploymentVolumes)
@@ -99,13 +149,26 @@ func (h *Handler) CreateDeployment(
 		volumeMounts,
 	)
 	if err != nil {
+		logger.Error(
+			"create auxiliary deployment, write to database",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, activeDeployment.Id,
+			slog_keys.Reference, serviceInput.Reference,
+			slog_keys.Error, err,
+		)
 		return lib_models.AuxiliaryDeploymentResult{}, err
 	}
 	defer func() {
 		if err != nil {
 			e := h.databaseHandler.DeleteAuxiliaryDeployment(ctx, id)
 			if e != nil {
-				logger.Error("remove created deployment", slog_keys.AuxDeploymentId, id, slog_keys.Error, err)
+				logger.Error(
+					"create auxiliary deployment, remove from database",
+					slog_keys.ModuleId, module.ID,
+					slog_keys.DeploymentId, activeDeployment.Id,
+					slog_keys.Reference, serviceInput.Reference,
+					slog_keys.Error, e,
+				)
 			}
 		}
 	}()
@@ -117,6 +180,13 @@ func (h *Handler) CreateDeployment(
 		auxDeploymentVolumes,
 	)
 	if err != nil {
+		logger.Error(
+			"create auxiliary deployment, ensure environment",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, activeDeployment.Id,
+			slog_keys.Reference, serviceInput.Reference,
+			slog_keys.Error, err,
+		)
 		return lib_models.AuxiliaryDeploymentResult{}, err
 	}
 	err = h.createContainer(
@@ -130,6 +200,13 @@ func (h *Handler) CreateDeployment(
 		volumeMounts,
 	)
 	if err != nil {
+		logger.Error(
+			"create auxiliary deployment, create container",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, activeDeployment.Id,
+			slog_keys.Reference, serviceInput.Reference,
+			slog_keys.Error, err,
+		)
 		return lib_models.AuxiliaryDeploymentResult{}, err
 	}
 	return lib_models.AuxiliaryDeploymentResult{

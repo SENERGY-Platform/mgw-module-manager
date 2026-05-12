@@ -22,9 +22,13 @@ const (
 	RequestId          = "request_id"
 	StackTrace         = "stack_trace"
 	ModuleId           = "module_id"
+	ModuleIds          = "module_ids"
 	DeploymentId       = "deployment_id"
+	DeploymentIds      = "deployment_ids"
 	AuxDeploymentId    = "auxiliary_deployment_id"
+	AuxDeploymentIds   = "auxiliary_deployment_ids"
 	JobId              = "job_id"
+	JobIds             = "job_ids"
 	DepAdvertisementId = "deployment_advertisement_id"
 	Reference          = "reference"
 	Filter             = "filter"
@@ -40,6 +44,11 @@ const (
 	ContainerName      = "container_name"
 	Secrets            = "secrets"
 	Containers         = "containers"
+	Name               = "Name"
+	GlobalConfigId     = "global_config_id"
+	Incremental        = "incremental"
+	AllowAll           = "allow_all"
+	Volumes            = "volumes"
 	Error              = attributes.ErrorKey
 	Method             = attributes.MethodKey
 	Path               = attributes.PathKey

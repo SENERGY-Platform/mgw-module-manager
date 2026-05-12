@@ -27,3 +27,7 @@ var logger *slog.Logger
 func InitLogger(sl *slog.Logger) {
 	logger = sl.With(slog_keys.Component, "service")
 }
+
+func init() {
+	InitLogger(slog.Default())
+}

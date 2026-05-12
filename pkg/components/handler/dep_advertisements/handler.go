@@ -26,6 +26,7 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 type Handler struct {
@@ -41,7 +42,17 @@ func (h *Handler) GetAdvertisement(
 	deploymentId string,
 	reference string,
 ) (lib_models.DeploymentAdvertisement, error) {
-	return h.databaseHandler.ReadDeploymentAdvertisement(ctx, deploymentId, reference)
+	adv, err := h.databaseHandler.ReadDeploymentAdvertisement(ctx, deploymentId, reference)
+	if err != nil {
+		logger.Error(
+			"get deployment advertisement",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Reference, reference,
+			slog_keys.Error, err,
+		)
+		return lib_models.DeploymentAdvertisement{}, err
+	}
+	return adv, nil
 }
 
 func (h *Handler) GetAdvertisementById(ctx context.Context, id string) (lib_models.DeploymentAdvertisement, error) {
@@ -49,6 +60,7 @@ func (h *Handler) GetAdvertisementById(ctx context.Context, id string) (lib_mode
 		Ids: []string{id},
 	})
 	if err != nil {
+		logger.Error("get deployment advertisement", slog_keys.DepAdvertisementId, id, slog_keys.Error, err)
 		return lib_models.DeploymentAdvertisement{}, err
 	}
 	if len(advertisements) == 0 {
@@ -61,7 +73,12 @@ func (h *Handler) GetAdvertisements(
 	ctx context.Context,
 	filter lib_models.DeploymentAdvertisementsFilter,
 ) (map[string]lib_models.DeploymentAdvertisement, error) {
-	return h.databaseHandler.ReadDeploymentAdvertisements(ctx, filter)
+	advs, err := h.databaseHandler.ReadDeploymentAdvertisements(ctx, filter)
+	if err != nil {
+		logger.Error("get deployment advertisements", slog_keys.Filter, filter, slog_keys.Error, err)
+		return nil, err
+	}
+	return advs, nil
 }
 
 func (h *Handler) PutAdvertisement(
@@ -73,6 +90,13 @@ func (h *Handler) PutAdvertisement(
 ) (string, error) {
 	advertisement, err := newDatabaseAdvertisement(moduleId, deploymentId, helper_time.Now(), reference, items)
 	if err != nil {
+		logger.Error(
+			"put deployment advertisement",
+			slog_keys.ModuleId, moduleId,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Reference, reference,
+			slog_keys.Error, err,
+		)
 		return "", err
 	}
 	err = h.databaseHandler.WriteDeploymentAdvertisements(
@@ -82,6 +106,13 @@ func (h *Handler) PutAdvertisement(
 		true,
 	)
 	if err != nil {
+		logger.Error(
+			"put deployment advertisement, write to database",
+			slog_keys.ModuleId, moduleId,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Reference, reference,
+			slog_keys.Error, err,
+		)
 		return "", err
 	}
 	return advertisement.Id, nil
@@ -100,6 +131,14 @@ func (h *Handler) PutAdvertisements(
 	for _, input := range inputs {
 		advertisement, err := newDatabaseAdvertisement(moduleId, deploymentId, timestamp, input.Reference, input.Items)
 		if err != nil {
+			logger.Error(
+				"put deployment advertisements",
+				slog_keys.ModuleId, moduleId,
+				slog_keys.DeploymentId, deploymentId,
+				slog_keys.Reference, input.Reference,
+				slog_keys.Incremental, incremental,
+				slog_keys.Error, err,
+			)
 			return nil, err
 		}
 		advertisements = append(advertisements, advertisement)
@@ -107,6 +146,13 @@ func (h *Handler) PutAdvertisements(
 	}
 	err := h.databaseHandler.WriteDeploymentAdvertisements(ctx, deploymentId, advertisements, incremental)
 	if err != nil {
+		logger.Error(
+			"put deployment advertisements, write to database",
+			slog_keys.ModuleId, moduleId,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Incremental, incremental,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	return res, nil
@@ -121,7 +167,21 @@ func (h *Handler) DeleteAdvertisements(
 	if !allowAll && filterEmpty(filter) {
 		return nil
 	}
-	return h.databaseHandler.DeleteDeploymentAdvertisements(ctx, deploymentId, filter)
+	if allowAll {
+		logger.Warn("delete deployment advertisements", slog_keys.Filter, filter, slog_keys.AllowAll, allowAll)
+	}
+	err := h.databaseHandler.DeleteDeploymentAdvertisements(ctx, deploymentId, filter)
+	if err != nil {
+		logger.Error(
+			"delete deployment advertisements",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Filter, filter,
+			slog_keys.AllowAll, allowAll,
+			slog_keys.Error, err,
+		)
+		return err
+	}
+	return nil
 }
 
 func newDatabaseAdvertisement(

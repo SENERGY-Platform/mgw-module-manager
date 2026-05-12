@@ -22,6 +22,7 @@ import (
 	"slices"
 
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 func (h *Handler) EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error) {
@@ -31,11 +32,21 @@ func (h *Handler) EnableDeployments(ctx context.Context, moduleIds []string) ([]
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
+		logger.Error(
+			"enable deployments, read from database",
+			slog_keys.Filter, moduleIds,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	ids := slices.Collect(maps.Keys(deployments))
 	err = h.databaseHandler.UpdateDeploymentsEnabledState(ctx, ids, true)
 	if err != nil {
+		logger.Error(
+			"enable deployments, write to database",
+			slog_keys.DeploymentIds, ids,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	return ids, nil
@@ -48,11 +59,21 @@ func (h *Handler) DisableDeployments(ctx context.Context, moduleIds []string) ([
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
+		logger.Error(
+			"disable deployments, read from database",
+			slog_keys.Filter, moduleIds,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	ids := slices.Collect(maps.Keys(deployments))
 	err = h.databaseHandler.UpdateDeploymentsEnabledState(ctx, ids, false)
 	if err != nil {
+		logger.Error(
+			"disable deployments, write to database",
+			slog_keys.DeploymentIds, ids,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	return ids, nil

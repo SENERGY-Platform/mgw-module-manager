@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/url"
 	"os"
 	"path"
@@ -36,7 +35,6 @@ import (
 )
 
 func TestHandler_Modules(t *testing.T) {
-	InitLogger(slog.Default())
 	timestamp := time.Now().UTC()
 	stgHdlMock := &storageHandlerMock{Mods: map[string]pkg_models.DatabaseModule{
 		"github.com/org/repo": {
@@ -88,7 +86,6 @@ func TestHandler_Modules(t *testing.T) {
 }
 
 func TestHandler_Module(t *testing.T) {
-	InitLogger(slog.Default())
 	timestamp := time.Now().UTC()
 	stgHdlMock := &storageHandlerMock{Mods: map[string]pkg_models.DatabaseModule{
 		"github.com/org/repo": {
@@ -163,7 +160,6 @@ func TestHandler_Module(t *testing.T) {
 }
 
 func TestHandler_Add(t *testing.T) {
-	InitLogger(slog.Default())
 	stgHdlMock := &storageHandlerMock{Mods: make(map[string]pkg_models.DatabaseModule)}
 	cewCltMock := &cewClientMock{Images: make(map[string]external_models.CewImage), Jobs: make(map[string]external_models.JobLibJob), JobCompleteDelay: time.Second * 1}
 	workDir := t.TempDir()
@@ -283,7 +279,6 @@ func TestHandler_Add(t *testing.T) {
 }
 
 func TestHandler_Update(t *testing.T) {
-	InitLogger(slog.Default())
 	timestamp := time.Now().UTC()
 	stgHdlMock := &storageHandlerMock{Mods: map[string]pkg_models.DatabaseModule{
 		"github.com/org/repo": {
@@ -479,7 +474,6 @@ func TestHandler_Update(t *testing.T) {
 }
 
 func TestHandler_Delete(t *testing.T) {
-	InitLogger(slog.Default())
 	stgHdlMock := &storageHandlerMock{}
 	cewCltMock := &cewClientMock{Images: make(map[string]external_models.CewImage), Jobs: make(map[string]external_models.JobLibJob), JobCompleteDelay: time.Second * 1}
 	workDir := t.TempDir()
@@ -502,7 +496,7 @@ func TestHandler_Delete(t *testing.T) {
 				},
 			}
 			cewCltMock.Images["ghcr.io/org/repo:test"] = external_models.CewImage{}
-			err = h.RemoveModule(context.Background(), "github.com/org/repo")
+			err = h.DeleteModule(context.Background(), "github.com/org/repo")
 			if err != nil {
 				t.Error(err)
 			}
@@ -531,7 +525,7 @@ func TestHandler_Delete(t *testing.T) {
 			}
 			cewCltMock.Images["ghcr.io/org/repo:test"] = external_models.CewImage{}
 			h.cache["github.com/org/repo"] = module_lib.Module{Services: map[string]module_lib.Service{"test": {Image: "ghcr.io/org/repo:test"}}}
-			err = h.RemoveModule(context.Background(), "github.com/org/repo")
+			err = h.DeleteModule(context.Background(), "github.com/org/repo")
 			if err != nil {
 				t.Error(err)
 			}
@@ -563,7 +557,7 @@ func TestHandler_Delete(t *testing.T) {
 				},
 			}
 			cewCltMock.Images = make(map[string]external_models.CewImage)
-			err = h.RemoveModule(context.Background(), "github.com/org/repo")
+			err = h.DeleteModule(context.Background(), "github.com/org/repo")
 			if err != nil {
 				t.Error(err)
 			}
@@ -591,7 +585,7 @@ func TestHandler_Delete(t *testing.T) {
 			cewCltMock.Images["ghcr.io/org/repo:test"] = external_models.CewImage{}
 			testErr := errors.New("test error")
 			stgHdlMock.Err = testErr
-			err = h.RemoveModule(context.Background(), "github.com/org/repo")
+			err = h.DeleteModule(context.Background(), "github.com/org/repo")
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -609,9 +603,9 @@ func TestHandler_Delete(t *testing.T) {
 				},
 			}
 			cewCltMock.Images["ghcr.io/org/repo:test"] = external_models.CewImage{}
-			err = h.RemoveModule(context.Background(), "test")
-			if err == nil {
-				t.Error("expected error")
+			err = h.DeleteModule(context.Background(), "test")
+			if err != nil {
+				t.Error("unexpected error")
 			}
 		})
 		t.Run("remove image", func(t *testing.T) {
@@ -625,7 +619,7 @@ func TestHandler_Delete(t *testing.T) {
 			testErr := errors.New("test error")
 			cewCltMock.RemoveImageErr = testErr
 			cewCltMock.Images["ghcr.io/org/repo:test"] = external_models.CewImage{}
-			err = h.RemoveModule(context.Background(), "github.com/org/repo")
+			err = h.DeleteModule(context.Background(), "github.com/org/repo")
 			if err == nil {
 				t.Error("expected error")
 			}

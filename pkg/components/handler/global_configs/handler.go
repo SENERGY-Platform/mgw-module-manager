@@ -21,6 +21,7 @@ import (
 
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 type Handler struct {
@@ -34,6 +35,7 @@ func New(databaseHandler databaseHandler) *Handler {
 func (h *Handler) CreateGlobalConfig(ctx context.Context, name string, value pkg_models.Value) (string, error) {
 	id, err := helper_uuid.New()
 	if err != nil {
+		logger.Error("create global config, generate id", slog_keys.Name, name, slog_keys.Error, err)
 		return "", err
 	}
 	err = h.databaseHandler.CreateGlobalConfig(ctx, pkg_models.Config{
@@ -42,30 +44,59 @@ func (h *Handler) CreateGlobalConfig(ctx context.Context, name string, value pkg
 		Name:  name,
 	})
 	if err != nil {
+		logger.Error("create global config, write to database", slog_keys.Name, name, slog_keys.Error, err)
 		return "", err
 	}
 	return id, nil
 }
 
-func (h *Handler) ReadGlobalConfig(ctx context.Context, id string) (pkg_models.Config, error) {
-	return h.databaseHandler.ReadGlobalConfig(ctx, id)
+func (h *Handler) GetGlobalConfig(ctx context.Context, id string) (pkg_models.Config, error) {
+	config, err := h.databaseHandler.ReadGlobalConfig(ctx, id)
+	if err != nil {
+		logger.Error("get global config", slog_keys.GlobalConfigId, id, slog_keys.Error, err)
+		return pkg_models.Config{}, err
+	}
+	return config, nil
 }
 
-func (h *Handler) ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]pkg_models.Config, error) {
-	return h.databaseHandler.ReadGlobalConfigs(ctx, ids)
+func (h *Handler) GetGlobalConfigs(ctx context.Context, ids []string) (map[string]pkg_models.Config, error) {
+	configs, err := h.databaseHandler.ReadGlobalConfigs(ctx, ids)
+	if err != nil {
+		logger.Error("get global configs", slog_keys.Filter, ids, slog_keys.Error, err)
+		return nil, err
+	}
+	return configs, nil
 }
 
 func (h *Handler) UpdateGlobalConfig(ctx context.Context, config pkg_models.Config) error {
-	return h.databaseHandler.UpdateGlobalConfig(ctx, config)
+	err := h.databaseHandler.UpdateGlobalConfig(ctx, config)
+	if err != nil {
+		logger.Error("update global config", slog_keys.GlobalConfigId, config.Id, slog_keys.Error, err)
+		return err
+	}
+	return nil
 }
 
 func (h *Handler) DeleteGlobalConfig(ctx context.Context, id string) error {
-	return h.databaseHandler.DeleteGlobalConfig(ctx, id)
+	err := h.databaseHandler.DeleteGlobalConfig(ctx, id)
+	if err != nil {
+		logger.Error("delete global config", slog_keys.GlobalConfigId, id, slog_keys.Error, err)
+		return err
+	}
+	return nil
 }
 
 func (h *Handler) DeleteGlobalConfigs(ctx context.Context, ids []string, allowAll bool) error {
 	if !allowAll && len(ids) == 0 {
 		return nil
 	}
-	return h.databaseHandler.DeleteGlobalConfigs(ctx, ids)
+	if allowAll {
+		logger.Warn("delete global configs", slog_keys.Filter, ids, slog_keys.AllowAll, allowAll)
+	}
+	err := h.databaseHandler.DeleteGlobalConfigs(ctx, ids)
+	if err != nil {
+		logger.Error("delete global configs", slog_keys.Filter, ids, slog_keys.AllowAll, allowAll, slog_keys.Error, err)
+		return err
+	}
+	return nil
 }

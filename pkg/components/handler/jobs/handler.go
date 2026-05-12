@@ -57,6 +57,7 @@ func (h *Handler) CreateJob(description string) (*Job, error) {
 	defer h.mu.Unlock()
 	id, err := helper_uuid.New()
 	if err != nil {
+		logger.Error("create job", slog_keys.Error, err)
 		return nil, err
 	}
 	ctx, cf := context.WithCancel(h.ctx)
@@ -81,6 +82,7 @@ func (h *Handler) CreateSlotJob(slotNum int, description string) (*Job, error) {
 	}
 	id, err := helper_uuid.New()
 	if err != nil {
+		logger.Error("create slot job", slog_keys.JobSlot, slotNum, slog_keys.Error, err)
 		return nil, err
 	}
 	ctx, cf := context.WithCancel(h.ctx)
@@ -183,6 +185,7 @@ func (h *Handler) cleanup() []string {
 		}
 	}
 	h.jobMap = tmp
+	logger.Debug("job cleanup", slog_keys.JobIds, oldJobs)
 	return oldJobs
 }
 

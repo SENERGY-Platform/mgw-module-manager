@@ -34,6 +34,7 @@ import (
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -52,10 +53,12 @@ func (h *Handler) CreateDeployments(
 	var err error
 	selectedModules, err = h.filterSelectedModules(ctx, selectedModules)
 	if err != nil {
+		logger.Error("create deployments, filter selected modules", slog_keys.Error, err)
 		return nil, err
 	}
 	cache.Deployments, err = initDeploymentsCacheFromModules(selectedModules)
 	if err != nil {
+		logger.Error("create deployments, initialize cache", slog_keys.Error, err)
 		return nil, err
 	}
 	var results []lib_models.DeploymentResult
@@ -91,16 +94,19 @@ func (h *Handler) createDeployment(
 ) error {
 	newDeployment, err := getDeployment(module, deploymentId)
 	if err != nil {
+		logger.Error("create deployment, generate new deployment", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
 		return err
 	}
 	newDeployment.Created = helper_time.Now()
 	newDeployment.Updated = newDeployment.Created
 	defaultData, err := getDefaultData(module)
 	if err != nil {
+		logger.Error("create deployment, get default data", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
 		return err
 	}
 	userData, err := getUserData(module, defaultData, userInput, deploymentId)
 	if err != nil {
+		logger.Error("create deployment, get user data", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
 		return err
 	}
 	err = h.updateCaches(
@@ -112,6 +118,7 @@ func (h *Handler) createDeployment(
 		cache,
 	)
 	if err != nil {
+		logger.Error("create deployment, get dependencies and external resources", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
 		return err
 	}
 	mergedConfigs, mergedFiles, err := mergeDefaultAndUserData(
@@ -123,10 +130,12 @@ func (h *Handler) createDeployment(
 		cache.GlobalConfigs,
 	)
 	if err != nil {
+		logger.Error("create deployment, merge default and user data", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
 		return err
 	}
 	newContainers, err := getNewContainers(module.Services, cacheContainers, deploymentId)
 	if err != nil {
+		logger.Error("create deployment, generate new containers", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
 		return err
 	}
 	newVolumes := getNewVolumes(module.Volumes, deploymentId)
@@ -143,6 +152,7 @@ func (h *Handler) createDeployment(
 		slices.Collect(maps.Values(newContainers)),
 	)
 	if err != nil {
+		logger.Error("create deployment, write to database", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
 		return err
 	}
 	err = h.ensureDeploymentEnvironment(
@@ -155,6 +165,7 @@ func (h *Handler) createDeployment(
 		newVolumes,
 	)
 	if err != nil {
+		logger.Error("create deployment, ensure environment", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
 		return err
 	}
 	bindMounts, err := h.getBindMounts(
@@ -166,6 +177,7 @@ func (h *Handler) createDeployment(
 		mergedFiles,
 	)
 	if err != nil {
+		logger.Error("create deployment, get bind mounts", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
 		return err
 	}
 	// TODO "mount secrets" must be "unloaded" if one of the following steps fail
@@ -187,12 +199,15 @@ func (h *Handler) createDeployment(
 		cache.HostResources,
 	)
 	if err != nil {
+		logger.Error("create deployment, create containers", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
 		return err
 	}
 	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
 	if err != nil {
+		logger.Error("create deployment, create http endpoints", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
 		return err
 	}
+	logger.Info("create deployment", slog_keys.ModuleId, module.ID, slog_keys.DeploymentId, deploymentId)
 	return nil
 }
 

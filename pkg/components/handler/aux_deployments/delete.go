@@ -21,6 +21,7 @@ import (
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 func (h *Handler) DeleteDeployments(
@@ -35,8 +36,22 @@ func (h *Handler) DeleteDeployments(
 	mu := h.mutexes.Get(deploymentId)
 	mu.Lock()
 	defer mu.Unlock()
+	if allowAll {
+		logger.Warn(
+			"delete auxiliary deployments",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Filter, filter,
+			slog_keys.AllowAll, allowAll,
+		)
+	}
 	auxDeployments, err := h.readAuxiliaryDeploymentsAndFilterByState(ctx, deploymentId, filter)
 	if err != nil {
+		logger.Error(
+			"delete auxiliary deployments, read from database",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Filter, filter,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	var deleted []string
@@ -45,6 +60,13 @@ func (h *Handler) DeleteDeployments(
 		result := lib_models.AuxiliaryDeploymentBatchResult{Id: id}
 		err = helper_containers.Remove(ctx, h.containerEngineWrapperClient, auxDep.Container.Name)
 		if err != nil {
+			logger.Error(
+				"delete auxiliary deployments, remove container",
+				slog_keys.DeploymentId, deploymentId,
+				slog_keys.AuxDeploymentId, id,
+				slog_keys.ContainerName, auxDep.Container.Name,
+				slog_keys.Error, err,
+			)
 			result.ErrorResult = lib_models.NewErrorResult(err.Error())
 		} else {
 			deleted = append(deleted, id)
@@ -53,6 +75,12 @@ func (h *Handler) DeleteDeployments(
 	}
 	err = h.databaseHandler.DeleteAuxiliaryDeployments(ctx, deleted)
 	if err != nil {
+		logger.Error(
+			"delete auxiliary deployments, remove from database",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.AuxDeploymentIds, deleted,
+			slog_keys.Error, err,
+		)
 		return results, err
 	}
 	return results, nil

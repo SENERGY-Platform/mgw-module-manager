@@ -45,7 +45,7 @@ func (h *Handler) RuntimeMonitor(ctx context.Context) {
 func (h *Handler) checkDeployments(ctx context.Context) {
 	auxDepsByParent, cewContainersMap, err := h.getCurrentRuntimeData(ctx)
 	if err != nil {
-		rmLogger.Error("get deployments", slog_keys.Error, err)
+		rmLogger.Error("get auxiliary deployments", slog_keys.Error, err)
 		return
 	}
 	filteredAuxDepsByParent := h.runtimeMonitorJobsFilter(auxDepsByParent)

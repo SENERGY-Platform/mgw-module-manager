@@ -239,7 +239,7 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.Modul
 			Id:     id,
 			Action: lib_constants.ModuleChangeActionRemove,
 		}
-		err := s.modulesHandler.RemoveModule(ctx, id)
+		err := s.modulesHandler.DeleteModule(ctx, id)
 		if err != nil {
 			failed = append(failed, lib_models.ChangeReportErrItem{
 				ChangeReportItem: cri,

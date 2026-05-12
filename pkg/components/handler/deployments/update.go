@@ -29,6 +29,7 @@ import (
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -39,15 +40,22 @@ func (h *Handler) UpdateDeployments(
 ) ([]lib_models.DeploymentResult, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
+	moduleIds := slices.Collect(maps.Keys(selectedModules))
 	deployments, err := h.databaseHandler.ReadDeployments(ctx, pkg_models.DeploymentsFilter{
-		ModuleIds: slices.Collect(maps.Keys(selectedModules)),
+		ModuleIds: moduleIds,
 	})
 	if err != nil {
+		logger.Error("update deployments, read from database", slog_keys.ModuleIds, moduleIds, slog_keys.Error, err)
 		return nil, err
 	}
 	deploymentIds := slices.Collect(maps.Keys(deployments))
 	deploymentsVolumes, deploymentsContainers, err := h.getDeploymentsVolumesAndContainersFromDB(ctx, deploymentIds)
 	if err != nil {
+		logger.Error(
+			"update deployments, read volume and container data from database",
+			slog_keys.DeploymentIds, deploymentIds,
+			slog_keys.Error, err,
+		)
 		return nil, err
 	}
 	cache := cacheCollection{
@@ -57,6 +65,7 @@ func (h *Handler) UpdateDeployments(
 	}
 	cache.Deployments, err = initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
 	if err != nil {
+		logger.Error("update deployments, initialize cache", slog_keys.Error, err)
 		return nil, err
 	}
 	var results []lib_models.DeploymentResult
@@ -101,6 +110,12 @@ func (h *Handler) updateDeployment(
 ) error {
 	newDeployment, err := getDeployment(module, deploymentId)
 	if err != nil {
+		logger.Error(
+			"update deployment, generate new deployment",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	newDeployment.Enabled = currentDeployment.Enabled
@@ -108,10 +123,22 @@ func (h *Handler) updateDeployment(
 	newDeployment.Updated = helper_time.Now()
 	defaultData, err := getDefaultData(module)
 	if err != nil {
+		logger.Error(
+			"update deployment, get default data",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	userData, err := getUserData(module, defaultData, userInput, deploymentId)
 	if err != nil {
+		logger.Error(
+			"update deployment, get user data",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	err = h.updateCaches(
@@ -123,6 +150,12 @@ func (h *Handler) updateDeployment(
 		cache,
 	)
 	if err != nil {
+		logger.Error(
+			"update deployment, get dependencies and external resources",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	mergedConfigs, mergedFiles, err := mergeDefaultAndUserData(
@@ -134,14 +167,32 @@ func (h *Handler) updateDeployment(
 		cache.GlobalConfigs,
 	)
 	if err != nil {
+		logger.Error(
+			"update deployment, merge default and user data",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	newContainers, err := getNewContainers(module.Services, cacheContainers, deploymentId)
 	if err != nil {
+		logger.Error(
+			"update deployment, generate new containers",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	err = h.stopContainers(ctx, currentContainers)
 	if err != nil {
+		logger.Error(
+			"update deployment, stop containers",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	updatedVolumes := updateVolumes(module.Volumes, currentVolumes, deploymentId)
@@ -153,6 +204,12 @@ func (h *Handler) updateDeployment(
 		currentContainers,
 	)
 	if err != nil {
+		logger.Error(
+			"update deployment, remove environment",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	err = h.databaseHandler.UpdateDeployment(
@@ -168,6 +225,12 @@ func (h *Handler) updateDeployment(
 		slices.Collect(maps.Values(newContainers)),
 	)
 	if err != nil {
+		logger.Error(
+			"update deployment, write to database",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	err = h.ensureDeploymentEnvironment(
@@ -180,6 +243,12 @@ func (h *Handler) updateDeployment(
 		updatedVolumes,
 	)
 	if err != nil {
+		logger.Error(
+			"update deployment, ensure environment",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	bindMounts, err := h.getBindMounts(
@@ -191,13 +260,15 @@ func (h *Handler) updateDeployment(
 		mergedFiles,
 	)
 	if err != nil {
+		logger.Error(
+			"update deployment, get bind mounts",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
 		return err
 	}
 	// TODO "mount secrets" must be "unloaded" if one of the following steps fail
-	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
-	if err != nil {
-		logger.Error(err.Error()) // TODO
-	}
 	err = h.createContainers(
 		ctx,
 		module.Configs,
@@ -216,7 +287,23 @@ func (h *Handler) updateDeployment(
 		cache.HostResources,
 	)
 	if err != nil {
-		logger.Error(err.Error()) // TODO
+		logger.Error(
+			"update deployment, create containers",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
+		return err
+	}
+	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
+	if err != nil {
+		logger.Error(
+			"update deployment, create http endpoints",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
+		return err
 	}
 	return nil
 }
