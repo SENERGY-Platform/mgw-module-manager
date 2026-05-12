@@ -50,7 +50,8 @@ func (h *Handler) CreateDeployment(
 	auxService, ok := module.AuxServices[serviceInput.Reference]
 	if !ok {
 		msg := "reference not found"
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"create auxiliary deployment",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,
@@ -61,7 +62,8 @@ func (h *Handler) CreateDeployment(
 	}
 	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id, nil)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"create auxiliary deployment, read volumes from database",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,
@@ -72,7 +74,8 @@ func (h *Handler) CreateDeployment(
 	}
 	err = validateImage(module.AuxImgSrc, serviceInput.Image)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"create auxiliary deployment, validate image",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,
@@ -83,7 +86,8 @@ func (h *Handler) CreateDeployment(
 	}
 	id, err := helper_uuid.New()
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"create auxiliary deployment, generate id",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,
@@ -101,7 +105,8 @@ func (h *Handler) CreateDeployment(
 		serviceInput,
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"create auxiliary deployment, generate new auxiliary deployment",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,
@@ -114,7 +119,8 @@ func (h *Handler) CreateDeployment(
 	newAuxDeployment.Updated = newAuxDeployment.Created
 	deploymentConfigs, err := getDeploymentConfigs(module.Configs, auxService.Configs, activeDeployment.Configs)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"create auxiliary deployment, get configs",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,
@@ -130,7 +136,8 @@ func (h *Handler) CreateDeployment(
 		slices.Collect(maps.Values(newAuxDeploymentVolumes)),
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"create auxiliary deployment, write volumes to database",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,
@@ -149,7 +156,8 @@ func (h *Handler) CreateDeployment(
 		volumeMounts,
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"create auxiliary deployment, write to database",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,
@@ -162,7 +170,8 @@ func (h *Handler) CreateDeployment(
 		if err != nil {
 			e := h.databaseHandler.DeleteAuxiliaryDeployment(ctx, id)
 			if e != nil {
-				logger.Error(
+				logger.ErrorContext(
+					ctx,
 					"create auxiliary deployment, remove from database",
 					slog_keys.ModuleId, module.ID,
 					slog_keys.DeploymentId, activeDeployment.Id,
@@ -180,7 +189,8 @@ func (h *Handler) CreateDeployment(
 		auxDeploymentVolumes,
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"create auxiliary deployment, ensure environment",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,
@@ -200,7 +210,8 @@ func (h *Handler) CreateDeployment(
 		volumeMounts,
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"create auxiliary deployment, create container",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,

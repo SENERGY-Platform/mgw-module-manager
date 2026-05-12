@@ -58,10 +58,10 @@ func (h *Handler) ReadModules(ctx context.Context, filter pkg_models.ModulesFilt
 			return nil, err
 		}
 		if mod.Added, err = time.Parse(timeLayout, string(at)); err != nil {
-			logger.Error("read modules", slog_keys.DeploymentId, mod.Id, slog_keys.Error, err)
+			logger.ErrorContext(ctx, "read modules", slog_keys.DeploymentId, mod.Id, slog_keys.Error, err)
 		}
 		if mod.Updated, err = time.Parse(timeLayout, string(ut)); err != nil {
-			logger.Error("read modules", slog_keys.DeploymentId, mod.Id, slog_keys.Error, err)
+			logger.ErrorContext(ctx, "read modules", slog_keys.DeploymentId, mod.Id, slog_keys.Error, err)
 		}
 		mods[mod.Id] = mod
 	}

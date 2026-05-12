@@ -45,13 +45,14 @@ func (h *Handler) UpdateDeployments(
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
-		logger.Error("update deployments, read from database", slog_keys.ModuleIds, moduleIds, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "update deployments, read from database", slog_keys.ModuleIds, moduleIds, slog_keys.Error, err)
 		return nil, err
 	}
 	deploymentIds := slices.Collect(maps.Keys(deployments))
 	deploymentsVolumes, deploymentsContainers, err := h.getDeploymentsVolumesAndContainersFromDB(ctx, deploymentIds)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"update deployments, read volume and container data from database",
 			slog_keys.DeploymentIds, deploymentIds,
 			slog_keys.Error, err,
@@ -65,7 +66,7 @@ func (h *Handler) UpdateDeployments(
 	}
 	cache.Deployments, err = initDeploymentsCacheFromModulesAndDeployments(selectedModules, deployments, deploymentsContainers)
 	if err != nil {
-		logger.Error("update deployments, initialize cache", slog_keys.Error, err)
+		logger.ErrorContext(ctx, "update deployments, initialize cache", slog_keys.Error, err)
 		return nil, err
 	}
 	var results []lib_models.DeploymentResult
@@ -110,7 +111,8 @@ func (h *Handler) updateDeployment(
 ) error {
 	newDeployment, err := getDeployment(module, deploymentId)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"update deployment, generate new deployment",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, deploymentId,
@@ -123,7 +125,8 @@ func (h *Handler) updateDeployment(
 	newDeployment.Updated = helper_time.Now()
 	defaultData, err := getDefaultData(module)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"update deployment, get default data",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, deploymentId,
@@ -133,7 +136,8 @@ func (h *Handler) updateDeployment(
 	}
 	userData, err := getUserData(module, defaultData, userInput, deploymentId)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"update deployment, get user data",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, deploymentId,
@@ -150,7 +154,8 @@ func (h *Handler) updateDeployment(
 		cache,
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"update deployment, get dependencies and external resources",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, deploymentId,
@@ -167,7 +172,8 @@ func (h *Handler) updateDeployment(
 		cache.GlobalConfigs,
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"update deployment, merge default and user data",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, deploymentId,
@@ -177,7 +183,8 @@ func (h *Handler) updateDeployment(
 	}
 	newContainers, err := getNewContainers(module.Services, cacheContainers, deploymentId)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"update deployment, generate new containers",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, deploymentId,
@@ -187,7 +194,8 @@ func (h *Handler) updateDeployment(
 	}
 	err = h.stopContainers(ctx, currentContainers)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"update deployment, stop containers",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, deploymentId,
@@ -204,7 +212,8 @@ func (h *Handler) updateDeployment(
 		currentContainers,
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"update deployment, remove environment",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, deploymentId,
@@ -225,7 +234,8 @@ func (h *Handler) updateDeployment(
 		slices.Collect(maps.Values(newContainers)),
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"update deployment, write to database",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, deploymentId,
@@ -243,7 +253,8 @@ func (h *Handler) updateDeployment(
 		updatedVolumes,
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"update deployment, ensure environment",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, deploymentId,
@@ -260,7 +271,8 @@ func (h *Handler) updateDeployment(
 		mergedFiles,
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"update deployment, get bind mounts",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, deploymentId,
@@ -287,7 +299,8 @@ func (h *Handler) updateDeployment(
 		cache.HostResources,
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"update deployment, create containers",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, deploymentId,
@@ -297,7 +310,8 @@ func (h *Handler) updateDeployment(
 	}
 	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"update deployment, create http endpoints",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, deploymentId,

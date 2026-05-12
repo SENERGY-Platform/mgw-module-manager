@@ -91,7 +91,7 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 	_, err := h.databaseHandler.ReadModule(ctx, id)
 	if err != nil {
 		if !lib_errors.IsOf[lib_errors.ErrNotFound](err) {
-			logger.Error("add module, read from database", slog_keys.ModuleId, id, slog_keys.Error, err)
+			logger.ErrorContext(ctx, "add module, read from database", slog_keys.ModuleId, id, slog_keys.Error, err)
 			return err
 		}
 	} else {
@@ -99,7 +99,7 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 	}
 	stgMod, err := newStgMod(id, source, channel)
 	if err != nil {
-		logger.Error("add module, generate new module", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "add module, generate new module", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	timestamp := helper_time.Now()
@@ -107,13 +107,14 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 	stgMod.Updated = timestamp
 	dstPath := path.Join(h.config.WorkDirPath, stgMod.DirName)
 	if err = helper_file_sys.CopyAll(fSys, dstPath); err != nil {
-		logger.Error("add module, copy file system", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "add module, copy file system", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error(
+				logger.ErrorContext(
+					ctx,
 					"add module, remove file system",
 					slog_keys.ModuleId, id,
 					slog_keys.DirName, stgMod.DirName,
@@ -124,33 +125,34 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 	}()
 	mod, err := helper_modfile.GetModule(os.DirFS(dstPath))
 	if err != nil {
-		logger.Error("add module, read modfile", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "add module, read modfile", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	if id != mod.ID {
 		err = errors.New("provided id does not match modfile id")
-		logger.Error("add module", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "add module", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	newImages, err := h.pullImages(ctx, getModuleServiceImages(mod.Services))
 	if err != nil {
-		logger.Error("add module, pull images", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "add module, pull images", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				logger.Error("add module, remove images", slog_keys.ModuleId, id, slog_keys.Error, e)
+				logger.ErrorContext(ctx, "add module, remove images", slog_keys.ModuleId, id, slog_keys.Error, e)
 			}
 		}
 	}()
 	err = h.databaseHandler.CreateModule(ctx, stgMod)
 	if err != nil {
-		logger.Error("add module, write to database", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "add module, write to database", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	h.cacheSet(id, mod)
-	logger.Info(
+	logger.InfoContext(
+		ctx,
 		"add module",
 		slog_keys.Source, source,
 		slog_keys.Channel, channel,
@@ -165,7 +167,7 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 	defer h.mu.Unlock()
 	stgModOld, err := h.databaseHandler.ReadModule(ctx, id)
 	if err != nil {
-		logger.Error("update module, read old module from database", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "update module, read old module from database", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	oldMod, ok := h.cacheGet(id)
@@ -173,26 +175,26 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgModOld.DirName))
 		oldMod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
-			logger.Error("update module, read old modfile", slog_keys.ModuleId, id, slog_keys.Error, err)
+			logger.ErrorContext(ctx, "update module, read old modfile", slog_keys.ModuleId, id, slog_keys.Error, err)
 			return err
 		}
 	}
 	stgModNew, err := newStgMod(id, source, channel)
 	if err != nil {
-		logger.Error("update module, generate new module", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "update module, generate new module", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	stgModNew.Added = stgModOld.Added
 	stgModNew.Updated = helper_time.Now()
 	dstPath := path.Join(h.config.WorkDirPath, stgModNew.DirName)
 	if err = helper_file_sys.CopyAll(fSys, dstPath); err != nil {
-		logger.Error("update module, copy new file system", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "update module, copy new file system", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if e := os.RemoveAll(dstPath); e != nil {
-				logger.Error("update module, remove new file system", slog_keys.ModuleId, id, slog_keys.DirName, stgModNew.DirName, slog_keys.Error, e)
+				logger.ErrorContext(ctx, "update module, remove new file system", slog_keys.ModuleId, id, slog_keys.DirName, stgModNew.DirName, slog_keys.Error, e)
 			}
 		}
 	}()
@@ -202,28 +204,29 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 	}
 	if id != newMod.ID {
 		err = errors.New("provided id does not match modfile id")
-		logger.Error("update module", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "update module", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	newImages, err := h.pullImages(ctx, getModuleServiceImages(newMod.Services))
 	if err != nil {
-		logger.Error("update module, pull images", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "update module, pull images", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if e := h.removeImages(ctx, newImages); e != nil {
-				logger.Error("update module, remove new images", slog_keys.ModuleId, id, slog_keys.Error, e)
+				logger.ErrorContext(ctx, "update module, remove new images", slog_keys.ModuleId, id, slog_keys.Error, e)
 			}
 		}
 	}()
 	err = h.databaseHandler.UpdateModule(ctx, stgModNew)
 	if err != nil {
-		logger.Error("update module, write new module to database", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "update module, write new module to database", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	h.cacheSet(id, newMod)
-	logger.Info(
+	logger.InfoContext(
+		ctx,
 		"update module",
 		slog_keys.Source, fmt.Sprintf("%s -> %s", stgModOld.Source, source),
 		slog_keys.Channel, fmt.Sprintf("%s -> %s", stgModOld.Channel, channel),
@@ -231,10 +234,10 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 		slog_keys.Version, fmt.Sprintf("%s -> %s", oldMod.Version, newMod.Version),
 	)
 	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, stgModOld.DirName)); e != nil {
-		logger.Error("update module, remove old file system", slog_keys.ModuleId, id, slog_keys.DirName, stgModOld.DirName, slog_keys.Error, e)
+		logger.ErrorContext(ctx, "update module, remove old file system", slog_keys.ModuleId, id, slog_keys.DirName, stgModOld.DirName, slog_keys.Error, e)
 	}
 	if e := h.removeOldImages(ctx, getModuleServiceImages(oldMod.Services), getModuleServiceImages(newMod.Services)); e != nil {
-		logger.Error("update module, remove old images", slog_keys.ModuleId, id, slog_keys.Error, e)
+		logger.ErrorContext(ctx, "update module, remove old images", slog_keys.ModuleId, id, slog_keys.Error, e)
 	}
 	return nil
 }
@@ -247,7 +250,7 @@ func (h *Handler) DeleteModule(ctx context.Context, id string) error {
 		if lib_errors.IsOf[lib_errors.ErrNotFound](err) {
 			return nil
 		}
-		logger.Error("delete module, read from database", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "delete module, read from database", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	mod, ok := h.cacheGet(id)
@@ -255,25 +258,25 @@ func (h *Handler) DeleteModule(ctx context.Context, id string) error {
 		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
 		mod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
-			logger.Error("delete module, read modfile", slog_keys.ModuleId, id, slog_keys.Error, err)
+			logger.ErrorContext(ctx, "delete module, read modfile", slog_keys.ModuleId, id, slog_keys.Error, err)
 			return err
 		}
 	}
 	err = os.RemoveAll(path.Join(h.config.WorkDirPath, stgMod.DirName))
 	if err != nil && !os.IsNotExist(err) {
-		logger.Error("delete module, remove file system", slog_keys.ModuleId, id, slog_keys.DirName, stgMod.DirName, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "delete module, remove file system", slog_keys.ModuleId, id, slog_keys.DirName, stgMod.DirName, slog_keys.Error, err)
 		return err
 	}
 	if err = h.removeImages(ctx, getModuleServiceImages(mod.Services)); err != nil {
-		logger.Info("delete module, remove images", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.InfoContext(ctx, "delete module, remove images", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	if err = h.databaseHandler.DeleteModule(ctx, id); err != nil {
-		logger.Info("delete module, remove from database", slog_keys.ModuleId, id, slog_keys.Error, err)
+		logger.InfoContext(ctx, "delete module, remove from database", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	h.cacheDel(id)
-	logger.Info("delete module", slog_keys.ModuleId, id)
+	logger.InfoContext(ctx, "delete module", slog_keys.ModuleId, id)
 	return nil
 }
 
@@ -318,7 +321,7 @@ func (h *Handler) getModules(ctx context.Context, filter pkg_models.ModulesFilte
 		Channel: filter.Channel,
 	})
 	if err != nil {
-		logger.Error("get modules, read from database", slog_keys.Filter, filter, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "get modules, read from database", slog_keys.Filter, filter, slog_keys.Error, err)
 		return nil, err
 	}
 	filter.Name = strings.ToLower(filter.Name)
@@ -331,7 +334,7 @@ func (h *Handler) getModules(ctx context.Context, filter pkg_models.ModulesFilte
 			mod, err = helper_modfile.GetModule(modFS)
 			if err != nil {
 				errs = append(errs, fmt.Errorf("'%s' %w", stgMod.Id, err))
-				logger.Error("get modules, read modfile", slog_keys.ModuleId, stgMod.Id, slog_keys.Error, err)
+				logger.ErrorContext(ctx, "get modules, read modfile", slog_keys.ModuleId, stgMod.Id, slog_keys.Error, err)
 				continue
 			}
 			h.cacheSet(stgMod.Id, mod)

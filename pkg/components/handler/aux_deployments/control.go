@@ -35,7 +35,8 @@ func (h *Handler) EnableDeployments(
 	defer mu.RUnlock()
 	auxDeployments, err := h.readAuxiliaryDeploymentsAndFilterByState(ctx, deploymentId, filter)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"enable auxiliary deployments, read from database",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.Filter, filter,
@@ -46,7 +47,8 @@ func (h *Handler) EnableDeployments(
 	ids := slices.Collect(maps.Keys(auxDeployments))
 	err = h.databaseHandler.UpdateAuxiliaryDeploymentsEnabledState(ctx, ids, true)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"enable auxiliary deployments, write to database",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.AuxDeploymentIds, ids,
@@ -67,7 +69,8 @@ func (h *Handler) DisableDeployments(
 	defer mu.RUnlock()
 	auxDeployments, err := h.readAuxiliaryDeploymentsAndFilterByState(ctx, deploymentId, filter)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"disable auxiliary deployments, read from database",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.Filter, filter,
@@ -78,7 +81,8 @@ func (h *Handler) DisableDeployments(
 	ids := slices.Collect(maps.Keys(auxDeployments))
 	err = h.databaseHandler.UpdateAuxiliaryDeploymentsEnabledState(ctx, ids, false)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"disable auxiliary deployments, write to database",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.AuxDeploymentIds, ids,

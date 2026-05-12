@@ -61,7 +61,8 @@ func (h *Handler) GetDeployments(
 	defer mu.RUnlock()
 	dbAuxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, filter.AuxiliaryDeploymentsFilter)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"get auxiliary deployments, read from database",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.Filter, filter,
@@ -72,7 +73,8 @@ func (h *Handler) GetDeployments(
 	auxDepIds := slices.Collect(maps.Keys(dbAuxDeployments))
 	dbAuxDepLabels, err := h.databaseHandler.ReadAuxiliaryDeploymentsLabels(ctx, auxDepIds)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"get auxiliary deployments, read labels from database",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.AuxDeploymentIds, auxDepIds,
@@ -82,7 +84,8 @@ func (h *Handler) GetDeployments(
 	}
 	dbAuxDepConfigs, err := h.databaseHandler.ReadAuxiliaryDeploymentsConfigs(ctx, auxDepIds)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"get auxiliary deployments, read configs from database",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.AuxDeploymentIds, auxDepIds,
@@ -92,7 +95,8 @@ func (h *Handler) GetDeployments(
 	}
 	dbAuxDepVolumeMounts, err := h.databaseHandler.ReadAuxiliaryDeploymentsVolumeMounts(ctx, auxDepIds)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"get auxiliary deployments, read volume mounts from database",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.AuxDeploymentIds, auxDepIds,
@@ -102,7 +106,8 @@ func (h *Handler) GetDeployments(
 	}
 	cewContainers, err := h.getCewContainers(ctx, dbAuxDeployments)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"get auxiliary deployments, get containers",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.AuxDeploymentIds, auxDepIds,
@@ -123,7 +128,8 @@ func (h *Handler) GetReducedDeployments(
 	defer mu.RUnlock()
 	dbAuxDeployments, err := h.databaseHandler.ReadAuxiliaryDeployments(ctx, deploymentId, filter.AuxiliaryDeploymentsFilter)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"get reduced auxiliary deployments, read from database",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.Filter, filter,
@@ -133,7 +139,8 @@ func (h *Handler) GetReducedDeployments(
 	}
 	cewContainers, err := h.getCewContainers(ctx, dbAuxDeployments)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"get reduced auxiliary deployments, get containers",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.AuxDeploymentIds, slices.Collect(maps.Keys(dbAuxDeployments)),

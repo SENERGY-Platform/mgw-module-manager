@@ -37,7 +37,8 @@ func (h *Handler) DeleteDeployments(
 	mu.Lock()
 	defer mu.Unlock()
 	if allowAll {
-		logger.Warn(
+		logger.WarnContext(
+			ctx,
 			"delete auxiliary deployments",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.Filter, filter,
@@ -46,7 +47,8 @@ func (h *Handler) DeleteDeployments(
 	}
 	auxDeployments, err := h.readAuxiliaryDeploymentsAndFilterByState(ctx, deploymentId, filter)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"delete auxiliary deployments, read from database",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.Filter, filter,
@@ -60,7 +62,8 @@ func (h *Handler) DeleteDeployments(
 		result := lib_models.AuxiliaryDeploymentBatchResult{Id: id}
 		err = helper_containers.Remove(ctx, h.containerEngineWrapperClient, auxDep.Container.Name)
 		if err != nil {
-			logger.Error(
+			logger.ErrorContext(
+				ctx,
 				"delete auxiliary deployments, remove container",
 				slog_keys.DeploymentId, deploymentId,
 				slog_keys.AuxDeploymentId, id,
@@ -75,7 +78,8 @@ func (h *Handler) DeleteDeployments(
 	}
 	err = h.databaseHandler.DeleteAuxiliaryDeployments(ctx, deleted)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"delete auxiliary deployments, remove from database",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.AuxDeploymentIds, deleted,

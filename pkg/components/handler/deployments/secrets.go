@@ -103,7 +103,7 @@ func (h *Handler) createSecretMounts(
 	if len(errs) > 0 {
 		err := h.removeSecretMounts(ctx, deploymentId)
 		if err != nil {
-			logger.Error("remove created secret mounts", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
+			logger.ErrorContext(ctx, "remove created secret mounts", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
 		}
 		return nil, helper_errors.Join(errs...)
 	}

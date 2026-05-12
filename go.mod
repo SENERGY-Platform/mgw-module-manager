@@ -6,7 +6,7 @@ require (
 	github.com/SENERGY-Platform/gin-middleware v0.12.0
 	github.com/SENERGY-Platform/go-service-base/config-hdl v1.2.0
 	github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.2.0
-	github.com/SENERGY-Platform/go-service-base/struct-logger v0.6.0
+	github.com/SENERGY-Platform/go-service-base/struct-logger v0.7.1
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.18.0
 	github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.19.0
 	github.com/SENERGY-Platform/mgw-core-manager/client v0.9.4

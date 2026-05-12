@@ -56,6 +56,7 @@ func (s *Service) RepoModules(ctx context.Context, filter lib_models.RepoModules
 		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
 	mods, err := s.repoModules(
+		ctx,
 		s.repositoriesHandler.GetRepositories(ctx),
 		s.repositoriesHandler.GetModules(ctx, pkg_models.RepositoryModulesFilter{
 			Ids:     filter.Ids,
@@ -73,7 +74,7 @@ func (s *Service) RepoModules(ctx context.Context, filter lib_models.RepoModules
 	return handleInstalledMods(mods, installedMods, filter.Installed, filter.UpdateAvailable), nil
 }
 
-func (s *Service) repoModules(repos []pkg_models.Repository, repoMods []pkg_models.RepositoryModule) ([]lib_models.RepoModule, error) {
+func (s *Service) repoModules(ctx context.Context, repos []pkg_models.Repository, repoMods []pkg_models.RepositoryModule) ([]lib_models.RepoModule, error) {
 	reposTree := buildReposTree(repos)
 	var repoModules []lib_models.RepoModule
 	for id, sources := range buildRepoModsTree(repoMods) {
@@ -115,7 +116,7 @@ func (s *Service) repoModules(repos []pkg_models.Repository, repoMods []pkg_mode
 			repoModule.Repositories = append(repoModule.Repositories, repository)
 		}
 		if fErr != nil {
-			logger.Error("invalid repository module", slog_keys.ModuleId, id, slog_keys.Error, fErr)
+			logger.ErrorContext(ctx, "invalid repository module", slog_keys.ModuleId, id, slog_keys.Error, fErr)
 			continue
 		}
 		slices.SortStableFunc(repoModule.Repositories, func(a, b lib_models.Repository) int {

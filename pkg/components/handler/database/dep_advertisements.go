@@ -58,7 +58,7 @@ func (h *Handler) ReadDeploymentAdvertisement(
 		}
 		if depAdv.Timestamp.IsZero() {
 			if depAdv.Timestamp, err = time.Parse(timeLayout, string(ts)); err != nil {
-				logger.Error("read deployment advertisement", slog_keys.DepAdvertisementId, depAdv.Id, slog_keys.Error, err)
+				logger.ErrorContext(ctx, "read deployment advertisement", slog_keys.DepAdvertisementId, depAdv.Id, slog_keys.Error, err)
 			}
 		}
 		if depAdv.Items == nil {
@@ -103,7 +103,7 @@ func (h *Handler) ReadDeploymentAdvertisements(
 		depAdv, ok := depAdvs[id]
 		if !ok {
 			if depAdv.Timestamp, err = time.Parse(timeLayout, string(ts)); err != nil {
-				logger.Error("read deployment advertisements", slog_keys.DepAdvertisementId, depAdv.Id, slog_keys.Error, err)
+				logger.ErrorContext(ctx, "read deployment advertisements", slog_keys.DepAdvertisementId, depAdv.Id, slog_keys.Error, err)
 			}
 			depAdv.Id = id
 			depAdv.DeploymentId = depId

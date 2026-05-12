@@ -42,7 +42,8 @@ func (h *Handler) RecreateDeployments(
 	defer mu.Unlock()
 	auxDeployments, err := h.readAuxiliaryDeploymentsAndFilterByState(ctx, activeDeployment.Id, filter)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"recreate auxiliary deployments, read from database",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,
@@ -54,7 +55,8 @@ func (h *Handler) RecreateDeployments(
 	auxDepIds := slices.Collect(maps.Keys(auxDeployments))
 	auxDepConfigs, err := h.databaseHandler.ReadAuxiliaryDeploymentsConfigs(ctx, auxDepIds)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"recreate auxiliary deployments, read configs from database",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,
@@ -65,7 +67,8 @@ func (h *Handler) RecreateDeployments(
 	}
 	auxDepVolumeMounts, err := h.databaseHandler.ReadAuxiliaryDeploymentsVolumeMounts(ctx, auxDepIds)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"recreate auxiliary deployments, read volume mounts from database",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,
@@ -76,7 +79,8 @@ func (h *Handler) RecreateDeployments(
 	}
 	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id, nil)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"recreate auxiliary deployments, read volumes from database",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,
@@ -86,7 +90,8 @@ func (h *Handler) RecreateDeployments(
 	}
 	err = h.ensureContainerVolumes(ctx, auxDeploymentVolumes, activeDeployment.Id)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"recreate auxiliary deployments, ensure volumes",
 			slog_keys.ModuleId, module.ID,
 			slog_keys.DeploymentId, activeDeployment.Id,
@@ -102,7 +107,8 @@ func (h *Handler) RecreateDeployments(
 		auxService, ok := module.AuxServices[auxDep.Reference]
 		if !ok {
 			msg := "auxiliary service reference not found"
-			logger.Error(
+			logger.ErrorContext(
+				ctx,
 				"recreate auxiliary deployments",
 				slog_keys.ModuleId, module.ID,
 				slog_keys.DeploymentId, activeDeployment.Id,
@@ -117,7 +123,8 @@ func (h *Handler) RecreateDeployments(
 		if !ok {
 			deploymentConfigs, err = getDeploymentConfigs(module.Configs, auxService.Configs, activeDeployment.Configs)
 			if err != nil {
-				logger.Error(
+				logger.ErrorContext(
+					ctx,
 					"recreate auxiliary deployments, get deployment configs",
 					slog_keys.ModuleId, module.ID,
 					slog_keys.DeploymentId, activeDeployment.Id,
@@ -159,7 +166,8 @@ func (h *Handler) recreateAuxiliaryDeployment(
 ) error {
 	ctrName, err := helper_naming.NewContainerName(constants.AuxDeploymentAbbreviation)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"recreate auxiliary deployments, generate new container name",
 			slog_keys.DeploymentId, activeDeployment.Id,
 			slog_keys.AuxDeploymentId, currentAuxDeployment.Id,
@@ -170,7 +178,8 @@ func (h *Handler) recreateAuxiliaryDeployment(
 	currentAuxDeployment.Container.Name = ctrName
 	err = helper_containers.Stop(ctx, h.containerEngineWrapperClient, currentAuxDeployment.Container.Name, h.config.JobPollInterval)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"recreate auxiliary deployments, stop old container",
 			slog_keys.DeploymentId, activeDeployment.Id,
 			slog_keys.AuxDeploymentId, currentAuxDeployment.Id,
@@ -181,7 +190,8 @@ func (h *Handler) recreateAuxiliaryDeployment(
 	}
 	err = helper_containers.Remove(ctx, h.containerEngineWrapperClient, currentAuxDeployment.Container.Name)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"recreate auxiliary deployments, remove old container",
 			slog_keys.DeploymentId, activeDeployment.Id,
 			slog_keys.AuxDeploymentId, currentAuxDeployment.Id,
@@ -192,7 +202,8 @@ func (h *Handler) recreateAuxiliaryDeployment(
 	}
 	err = h.databaseHandler.UpdateAuxiliaryDeploymentContainerName(ctx, currentAuxDeployment.Id, ctrName)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"recreate auxiliary deployments, write new container name to database",
 			slog_keys.DeploymentId, activeDeployment.Id,
 			slog_keys.AuxDeploymentId, currentAuxDeployment.Id,
@@ -209,7 +220,8 @@ func (h *Handler) recreateAuxiliaryDeployment(
 		h.config.JobPollInterval,
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"recreate auxiliary deployments, ensure image",
 			slog_keys.DeploymentId, activeDeployment.Id,
 			slog_keys.AuxDeploymentId, currentAuxDeployment.Id,
@@ -228,7 +240,8 @@ func (h *Handler) recreateAuxiliaryDeployment(
 		volumeMounts,
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"recreate auxiliary deployments, create container",
 			slog_keys.DeploymentId, activeDeployment.Id,
 			slog_keys.AuxDeploymentId, currentAuxDeployment.Id,

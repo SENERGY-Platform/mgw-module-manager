@@ -44,7 +44,8 @@ func (h *Handler) GetAdvertisement(
 ) (lib_models.DeploymentAdvertisement, error) {
 	adv, err := h.databaseHandler.ReadDeploymentAdvertisement(ctx, deploymentId, reference)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"get deployment advertisement",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.Reference, reference,
@@ -60,7 +61,7 @@ func (h *Handler) GetAdvertisementById(ctx context.Context, id string) (lib_mode
 		Ids: []string{id},
 	})
 	if err != nil {
-		logger.Error("get deployment advertisement", slog_keys.DepAdvertisementId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "get deployment advertisement", slog_keys.DepAdvertisementId, id, slog_keys.Error, err)
 		return lib_models.DeploymentAdvertisement{}, err
 	}
 	if len(advertisements) == 0 {
@@ -75,7 +76,7 @@ func (h *Handler) GetAdvertisements(
 ) (map[string]lib_models.DeploymentAdvertisement, error) {
 	advs, err := h.databaseHandler.ReadDeploymentAdvertisements(ctx, filter)
 	if err != nil {
-		logger.Error("get deployment advertisements", slog_keys.Filter, filter, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "get deployment advertisements", slog_keys.Filter, filter, slog_keys.Error, err)
 		return nil, err
 	}
 	return advs, nil
@@ -90,7 +91,8 @@ func (h *Handler) PutAdvertisement(
 ) (string, error) {
 	advertisement, err := newDatabaseAdvertisement(moduleId, deploymentId, helper_time.Now(), reference, items)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"put deployment advertisement",
 			slog_keys.ModuleId, moduleId,
 			slog_keys.DeploymentId, deploymentId,
@@ -106,7 +108,8 @@ func (h *Handler) PutAdvertisement(
 		true,
 	)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"put deployment advertisement, write to database",
 			slog_keys.ModuleId, moduleId,
 			slog_keys.DeploymentId, deploymentId,
@@ -131,7 +134,8 @@ func (h *Handler) PutAdvertisements(
 	for _, input := range inputs {
 		advertisement, err := newDatabaseAdvertisement(moduleId, deploymentId, timestamp, input.Reference, input.Items)
 		if err != nil {
-			logger.Error(
+			logger.ErrorContext(
+				ctx,
 				"put deployment advertisements",
 				slog_keys.ModuleId, moduleId,
 				slog_keys.DeploymentId, deploymentId,
@@ -146,7 +150,8 @@ func (h *Handler) PutAdvertisements(
 	}
 	err := h.databaseHandler.WriteDeploymentAdvertisements(ctx, deploymentId, advertisements, incremental)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"put deployment advertisements, write to database",
 			slog_keys.ModuleId, moduleId,
 			slog_keys.DeploymentId, deploymentId,
@@ -168,11 +173,12 @@ func (h *Handler) DeleteAdvertisements(
 		return nil
 	}
 	if allowAll {
-		logger.Warn("delete deployment advertisements", slog_keys.Filter, filter, slog_keys.AllowAll, allowAll)
+		logger.WarnContext(ctx, "delete deployment advertisements", slog_keys.Filter, filter, slog_keys.AllowAll, allowAll)
 	}
 	err := h.databaseHandler.DeleteDeploymentAdvertisements(ctx, deploymentId, filter)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"delete deployment advertisements",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.Filter, filter,

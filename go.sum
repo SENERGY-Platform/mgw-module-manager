@@ -20,8 +20,8 @@ github.com/SENERGY-Platform/go-service-base/config-hdl v1.2.0 h1:OST21YZ0/Or10Ey
 github.com/SENERGY-Platform/go-service-base/config-hdl v1.2.0/go.mod h1:+YKSlnOc5NNeZuVA5HE8hmrKCRQwb5FlMvgmpMw2FWk=
 github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.2.0 h1:EQbMcWBVgzArb/OJi0LbNXcE48oIRWngw0ChnWzd8KM=
 github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.2.0/go.mod h1:mgNdIRGzrn3Vey2d0j/OtGSt8APIp5Io54MD80UorPs=
-github.com/SENERGY-Platform/go-service-base/struct-logger v0.6.0 h1:DQNAPU1DI3XNyLaIGnHN9O0gZ7Q+tyOq/ZmAvbL/5gg=
-github.com/SENERGY-Platform/go-service-base/struct-logger v0.6.0/go.mod h1:z9cf8WOUMLoifRj5Tqts1MNe6QoPFq5Msxj899ZC11g=
+github.com/SENERGY-Platform/go-service-base/struct-logger v0.7.1 h1:3q9r8KVY+Gw2VbDMNgl/t5I430TFiGHCCpEeHv/SEOs=
+github.com/SENERGY-Platform/go-service-base/struct-logger v0.7.1/go.mod h1:z9cf8WOUMLoifRj5Tqts1MNe6QoPFq5Msxj899ZC11g=
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.18.0 h1:srq+IiY4M8mRhtzvN0k73kPGvYM83IjVHhGwAkVprhM=
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/client v0.18.0/go.mod h1:/6nl9HWqgiBr8/js8BWRBkqPud5QSAATP8ukd/K10Z4=
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.19.0 h1:xrDfls5cHKxw9AqbSo4BVTD0bkGwMJ6QJtM0t+YOxUo=

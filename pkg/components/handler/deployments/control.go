@@ -32,7 +32,8 @@ func (h *Handler) EnableDeployments(ctx context.Context, moduleIds []string) ([]
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"enable deployments, read from database",
 			slog_keys.Filter, moduleIds,
 			slog_keys.Error, err,
@@ -42,7 +43,8 @@ func (h *Handler) EnableDeployments(ctx context.Context, moduleIds []string) ([]
 	ids := slices.Collect(maps.Keys(deployments))
 	err = h.databaseHandler.UpdateDeploymentsEnabledState(ctx, ids, true)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"enable deployments, write to database",
 			slog_keys.DeploymentIds, ids,
 			slog_keys.Error, err,
@@ -59,7 +61,8 @@ func (h *Handler) DisableDeployments(ctx context.Context, moduleIds []string) ([
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"disable deployments, read from database",
 			slog_keys.Filter, moduleIds,
 			slog_keys.Error, err,
@@ -69,7 +72,8 @@ func (h *Handler) DisableDeployments(ctx context.Context, moduleIds []string) ([
 	ids := slices.Collect(maps.Keys(deployments))
 	err = h.databaseHandler.UpdateDeploymentsEnabledState(ctx, ids, false)
 	if err != nil {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"disable deployments, write to database",
 			slog_keys.DeploymentIds, ids,
 			slog_keys.Error, err,

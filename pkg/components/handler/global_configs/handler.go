@@ -35,7 +35,7 @@ func New(databaseHandler databaseHandler) *Handler {
 func (h *Handler) CreateGlobalConfig(ctx context.Context, name string, value pkg_models.Value) (string, error) {
 	id, err := helper_uuid.New()
 	if err != nil {
-		logger.Error("create global config, generate id", slog_keys.Name, name, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "create global config, generate id", slog_keys.Name, name, slog_keys.Error, err)
 		return "", err
 	}
 	err = h.databaseHandler.CreateGlobalConfig(ctx, pkg_models.Config{
@@ -44,7 +44,7 @@ func (h *Handler) CreateGlobalConfig(ctx context.Context, name string, value pkg
 		Name:  name,
 	})
 	if err != nil {
-		logger.Error("create global config, write to database", slog_keys.Name, name, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "create global config, write to database", slog_keys.Name, name, slog_keys.Error, err)
 		return "", err
 	}
 	return id, nil
@@ -53,7 +53,7 @@ func (h *Handler) CreateGlobalConfig(ctx context.Context, name string, value pkg
 func (h *Handler) GetGlobalConfig(ctx context.Context, id string) (pkg_models.Config, error) {
 	config, err := h.databaseHandler.ReadGlobalConfig(ctx, id)
 	if err != nil {
-		logger.Error("get global config", slog_keys.GlobalConfigId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "get global config", slog_keys.GlobalConfigId, id, slog_keys.Error, err)
 		return pkg_models.Config{}, err
 	}
 	return config, nil
@@ -62,7 +62,7 @@ func (h *Handler) GetGlobalConfig(ctx context.Context, id string) (pkg_models.Co
 func (h *Handler) GetGlobalConfigs(ctx context.Context, ids []string) (map[string]pkg_models.Config, error) {
 	configs, err := h.databaseHandler.ReadGlobalConfigs(ctx, ids)
 	if err != nil {
-		logger.Error("get global configs", slog_keys.Filter, ids, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "get global configs", slog_keys.Filter, ids, slog_keys.Error, err)
 		return nil, err
 	}
 	return configs, nil
@@ -71,7 +71,7 @@ func (h *Handler) GetGlobalConfigs(ctx context.Context, ids []string) (map[strin
 func (h *Handler) UpdateGlobalConfig(ctx context.Context, config pkg_models.Config) error {
 	err := h.databaseHandler.UpdateGlobalConfig(ctx, config)
 	if err != nil {
-		logger.Error("update global config", slog_keys.GlobalConfigId, config.Id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "update global config", slog_keys.GlobalConfigId, config.Id, slog_keys.Error, err)
 		return err
 	}
 	return nil
@@ -80,7 +80,7 @@ func (h *Handler) UpdateGlobalConfig(ctx context.Context, config pkg_models.Conf
 func (h *Handler) DeleteGlobalConfig(ctx context.Context, id string) error {
 	err := h.databaseHandler.DeleteGlobalConfig(ctx, id)
 	if err != nil {
-		logger.Error("delete global config", slog_keys.GlobalConfigId, id, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "delete global config", slog_keys.GlobalConfigId, id, slog_keys.Error, err)
 		return err
 	}
 	return nil
@@ -91,11 +91,11 @@ func (h *Handler) DeleteGlobalConfigs(ctx context.Context, ids []string, allowAl
 		return nil
 	}
 	if allowAll {
-		logger.Warn("delete global configs", slog_keys.Filter, ids, slog_keys.AllowAll, allowAll)
+		logger.WarnContext(ctx, "delete global configs", slog_keys.Filter, ids, slog_keys.AllowAll, allowAll)
 	}
 	err := h.databaseHandler.DeleteGlobalConfigs(ctx, ids)
 	if err != nil {
-		logger.Error("delete global configs", slog_keys.Filter, ids, slog_keys.AllowAll, allowAll, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "delete global configs", slog_keys.Filter, ids, slog_keys.AllowAll, allowAll, slog_keys.Error, err)
 		return err
 	}
 	return nil

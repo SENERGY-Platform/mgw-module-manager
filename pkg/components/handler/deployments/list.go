@@ -143,25 +143,25 @@ func (h *Handler) getDeploymentsReduced(
 ) (map[string]pkg_models.DeploymentReduced, error) {
 	stgDeps, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
-		logger.Error("get reduced deployments, read from database", slog_keys.Filter, filter, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "get reduced deployments, read from database", slog_keys.Filter, filter, slog_keys.Error, err)
 		return nil, err
 	}
 	depIds := slices.Collect(maps.Keys(stgDeps))
 	deploymentsContainers, err := h.databaseHandler.ReadDeploymentsContainers(ctx, depIds)
 	if err != nil {
-		logger.Error("get reduced deployments, read container data from database", slog_keys.DeploymentIds, depIds, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "get reduced deployments, read container data from database", slog_keys.DeploymentIds, depIds, slog_keys.Error, err)
 		return nil, err
 	}
 	cewContainersMap, cewErr := h.getCewContainers(ctx, deploymentsContainers)
 	if cewErr != nil {
-		logger.Warn("get reduced deployments, get containers", slog_keys.Containers, deploymentsContainers, slog_keys.Error, cewErr)
+		logger.WarnContext(ctx, "get reduced deployments, get containers", slog_keys.Containers, deploymentsContainers, slog_keys.Error, cewErr)
 	}
 	deployments := make(map[string]pkg_models.DeploymentReduced)
 	for id, stgDep := range stgDeps {
 		deploymentContainers := deploymentsContainers[id]
 		deployment := pkg_models.DeploymentReduced{
 			DeploymentBase: stgDep,
-			Containers:     getContainers(deploymentContainers, cewContainersMap),
+			Containers:     getContainers(ctx, deploymentContainers, cewContainersMap),
 		}
 		if cewErr == nil && deployment.Enabled {
 			deployment.State = getDeploymentState(getContainersCombinedState(deploymentContainers, cewContainersMap))
@@ -180,30 +180,30 @@ func (h *Handler) getDeployments(
 ) (map[string]pkg_models.Deployment, error) {
 	stgDeps, err := h.databaseHandler.ReadDeployments(ctx, filter.DeploymentsFilter)
 	if err != nil {
-		logger.Error("get deployments, read from database", slog_keys.Filter, filter, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "get deployments, read from database", slog_keys.Filter, filter, slog_keys.Error, err)
 		return nil, err
 	}
 	depIds := slices.Collect(maps.Keys(stgDeps))
 	deploymentsUserData, err := h.getDeploymentsUserDataFromDB(ctx, depIds)
 	if err != nil {
-		logger.Error("get deployments, read user data from database", slog_keys.DeploymentIds, depIds, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "get deployments, read user data from database", slog_keys.DeploymentIds, depIds, slog_keys.Error, err)
 		return nil, err
 	}
 	deploymentsVolumes, deploymentsContainers, err := h.getDeploymentsVolumesAndContainersFromDB(ctx, depIds)
 	if err != nil {
-		logger.Error("get deployments, read volume and container data from database", slog_keys.DeploymentIds, depIds, slog_keys.Error, err)
+		logger.ErrorContext(ctx, "get deployments, read volume and container data from database", slog_keys.DeploymentIds, depIds, slog_keys.Error, err)
 		return nil, err
 	}
 	cewContainersMap, cewErr := h.getCewContainers(ctx, deploymentsContainers)
 	if cewErr != nil {
-		logger.Warn("get deployments, get containers", slog_keys.Containers, deploymentsContainers, slog_keys.Error, cewErr)
+		logger.WarnContext(ctx, "get deployments, get containers", slog_keys.Containers, deploymentsContainers, slog_keys.Error, cewErr)
 	}
 	deployments := make(map[string]pkg_models.Deployment)
 	for id, stgDep := range stgDeps {
 		deploymentContainers := deploymentsContainers[id]
 		deployment := pkg_models.Deployment{
 			DeploymentBase: stgDep,
-			Containers:     getContainers(deploymentContainers, cewContainersMap),
+			Containers:     getContainers(ctx, deploymentContainers, cewContainersMap),
 			Volumes:        deploymentsVolumes[id],
 			HostResources:  deploymentsUserData[id].HostResources,
 			Secrets:        deploymentsUserData[id].Secrets,
@@ -244,6 +244,7 @@ func (h *Handler) getCewContainers(
 }
 
 func getContainers(
+	ctx context.Context,
 	stgDepContainers map[string]pkg_models.DeploymentContainerBase,
 	cewContainers map[string]external_models.CewContainer,
 ) map[string]pkg_models.DeploymentContainer {
@@ -258,7 +259,8 @@ func getContainers(
 				container.Health = *cewContainer.Health
 			}
 		} else {
-			logger.Warn(
+			logger.WarnContext(
+				ctx,
 				"container not found",
 				slog_keys.DeploymentId, stgDepContainer.DeploymentId,
 				slog_keys.Reference, stgDepContainer.Reference,

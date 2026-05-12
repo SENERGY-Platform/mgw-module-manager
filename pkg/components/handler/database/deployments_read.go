@@ -72,10 +72,10 @@ func (h *Handler) ReadDeployments(ctx context.Context, filter pkg_models.Deploym
 			return nil, err
 		}
 		if dep.Created, err = time.Parse(timeLayout, string(ct)); err != nil {
-			logger.Error("read deployments", slog_keys.DeploymentId, dep.Id, slog_keys.Error, err)
+			logger.ErrorContext(ctx, "read deployments", slog_keys.DeploymentId, dep.Id, slog_keys.Error, err)
 		}
 		if dep.Updated, err = time.Parse(timeLayout, string(ut)); err != nil {
-			logger.Error("read deployments", slog_keys.DeploymentId, dep.Id, slog_keys.Error, err)
+			logger.ErrorContext(ctx, "read deployments", slog_keys.DeploymentId, dep.Id, slog_keys.Error, err)
 		}
 		deps[dep.Id] = dep
 	}

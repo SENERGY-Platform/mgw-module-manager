@@ -14,7 +14,6 @@ import (
 
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
 	"github.com/SENERGY-Platform/go-service-base/srv-info-hdl"
-	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
 	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	cm_client "github.com/SENERGY-Platform/mgw-core-manager/client"
 	hm_client "github.com/SENERGY-Platform/mgw-host-manager/client"
@@ -33,6 +32,7 @@ import (
 	client_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 	helper_http "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/http"
 	helper_os_signal "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/os_signal"
+	helper_slog "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slog"
 	helper_sql_db "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/configuration"
@@ -62,7 +62,8 @@ func main() {
 
 	helper_time.UTC = config.UseUTC
 
-	logger := struct_logger.New(config.Logger, os.Stderr, "", serviceInfoHandler.Name())
+	helper_slog.ContextValueKeys = []string{slog_keys.RequestId}
+	logger := helper_slog.New(config.Logger, os.Stderr, "", serviceInfoHandler.Name())
 
 	logger.Info(
 		"start service",
