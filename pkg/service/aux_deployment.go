@@ -25,6 +25,7 @@ import (
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 func (s *Service) GetAuxiliaryDeployment(
@@ -88,14 +89,28 @@ func (s *Service) CreateAuxiliaryDeployment(
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer job.Done()
+		defer func() {
+			job.Done()
+			logJobDone(ctx, job)
+		}()
+		logJobStart(ctx, job)
 		jobResult := lib_models.AuxiliaryDeploymentCreateJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
-			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
+			if st := recover(); st != nil {
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
 				s.setCreateAuxiliaryDeploymentJobResult(job.Id, jobResult)
+				logger.ErrorContext(
+					ctx,
+					"create auxiliary deployment",
+					slog_keys.JobId, job.Id,
+					slog_keys.ModuleId, module.ID,
+					slog_keys.DeploymentId, serviceInput.DeploymentId,
+					slog_keys.Reference, serviceInput.Reference,
+					slog_keys.Error, "panic",
+					slog_keys.StackTrace, st,
+				)
 			}
 		}()
 		jobResult.AuxiliaryDeploymentResult, err = s.auxDeploymentsHandler.CreateDeployment(
@@ -148,12 +163,26 @@ func (s *Service) UpdateAuxiliaryDeployment(
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer job.Done()
+		defer func() {
+			job.Done()
+			logJobDone(ctx, job)
+		}()
+		logJobStart(ctx, job)
 		jobResult := lib_models.JobResult{JobId: job.Id}
 		defer func() {
-			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
+			if st := recover(); st != nil {
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
 				s.setUpdateAuxiliaryDeploymentJobResult(job.Id, jobResult)
+				logger.ErrorContext(
+					ctx,
+					"update auxiliary deployment",
+					slog_keys.JobId, job.Id,
+					slog_keys.ModuleId, module.ID,
+					slog_keys.DeploymentId, serviceInput.DeploymentId,
+					slog_keys.Reference, serviceInput.Reference,
+					slog_keys.Error, "panic",
+					slog_keys.StackTrace, st,
+				)
 			}
 		}()
 		err = s.auxDeploymentsHandler.UpdateDeployment(
@@ -208,14 +237,27 @@ func (s *Service) RecreateAuxiliaryDeployments(
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer job.Done()
+		defer func() {
+			job.Done()
+			logJobDone(ctx, job)
+		}()
+		logJobStart(ctx, job)
 		jobResult := lib_models.AuxiliaryDeploymentJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
-			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
+			if st := recover(); st != nil {
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
 				s.setAuxiliaryDeploymentsJobResult(job.Id, jobResult)
+				logger.ErrorContext(
+					ctx,
+					"recreate auxiliary deployments",
+					slog_keys.JobId, job.Id,
+					slog_keys.ModuleId, module.ID,
+					slog_keys.DeploymentId, deploymentId,
+					slog_keys.Error, "panic",
+					slog_keys.StackTrace, st,
+				)
 			}
 		}()
 		jobResult.Results, err = s.auxDeploymentsHandler.RecreateDeployments(
@@ -243,7 +285,7 @@ func (s *Service) RecreateAuxiliaryDeployments(
 }
 
 func (s *Service) DeleteAuxiliaryDeployments(
-	_ context.Context,
+	ctx context.Context,
 	deploymentId string,
 	filter lib_models.AuxiliaryDeploymentsFilterWithState,
 	allowAll bool,
@@ -255,14 +297,26 @@ func (s *Service) DeleteAuxiliaryDeployments(
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer job.Done()
+		defer func() {
+			job.Done()
+			logJobDone(ctx, job)
+		}()
+		logJobStart(ctx, job)
 		jobResult := lib_models.AuxiliaryDeploymentJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
-			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
+			if st := recover(); st != nil {
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
 				s.setAuxiliaryDeploymentsJobResult(job.Id, jobResult)
+				logger.ErrorContext(
+					ctx,
+					"delete auxiliary deployments",
+					slog_keys.JobId, job.Id,
+					slog_keys.DeploymentId, deploymentId,
+					slog_keys.Error, "panic",
+					slog_keys.StackTrace, st,
+				)
 			}
 		}()
 		jobResult.Results, err = s.auxDeploymentsHandler.DeleteDeployments(

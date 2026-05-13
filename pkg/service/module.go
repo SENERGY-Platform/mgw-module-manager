@@ -30,6 +30,7 @@ import (
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 func (s *Service) Modules(ctx context.Context, filter lib_models.ModulesFilter) ([]lib_models.ModuleReduced, error) {
@@ -129,7 +130,7 @@ func (s *Service) NewModulesChangeRequest(
 	return transformModulesChangeRequest(changeRequest), nil
 }
 
-func (s *Service) ExecModulesChangeRequest(_ context.Context) (lib_models.Job, error) {
+func (s *Service) ExecModulesChangeRequest(ctx context.Context) (lib_models.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.changeRequest == nil {
@@ -139,19 +140,30 @@ func (s *Service) ExecModulesChangeRequest(_ context.Context) (lib_models.Job, e
 	if len(currentJobs) > 0 {
 		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob]("active jobs")
 	}
-	job, err := s.jobsHandler.CreateSlotJob(moduleJobSlotNum, "execute modules change")
+	job, err := s.jobsHandler.CreateSlotJob(moduleJobSlotNum, "execute modules change request")
 	if err != nil {
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer job.Done()
+		defer func() {
+			job.Done()
+			logJobDone(ctx, job)
+		}()
+		logJobStart(ctx, job)
 		jobResult := lib_models.ModulesChangeJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
-			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
+			if st := recover(); st != nil {
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
 				s.setModuleChangeJobResult(job.Id, jobResult)
+				logger.ErrorContext(
+					ctx,
+					"execute modules change request",
+					slog_keys.JobId, job.Id,
+					slog_keys.Error, "panic",
+					slog_keys.StackTrace, st,
+				)
 			}
 		}()
 		jobResult.ModulesChangeReport = s.execModulesChangeRequest(job.Context())

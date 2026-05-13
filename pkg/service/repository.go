@@ -14,7 +14,7 @@ import (
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
-func (s *Service) RefreshRepositories(_ context.Context) (lib_models.Job, error) {
+func (s *Service) RefreshRepositories(ctx context.Context) (lib_models.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
@@ -27,12 +27,23 @@ func (s *Service) RefreshRepositories(_ context.Context) (lib_models.Job, error)
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer job.Done()
+		defer func() {
+			job.Done()
+			logJobDone(ctx, job)
+		}()
+		logJobStart(ctx, job)
 		jobResult := lib_models.JobResult{JobId: job.Id}
 		defer func() {
-			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
+			if st := recover(); st != nil {
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
 				s.setRefreshRepositoriesJobResult(job.Id, jobResult)
+				logger.ErrorContext(
+					ctx,
+					"refresh repositories",
+					slog_keys.JobId, job.Id,
+					slog_keys.Error, "panic",
+					slog_keys.StackTrace, st,
+				)
 			}
 		}()
 		err = s.repositoriesHandler.RefreshRepositories(job.Context())

@@ -28,6 +28,7 @@ import (
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]lib_models.Module, error) {
@@ -94,14 +95,25 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []lib_models
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer job.Done()
+		defer func() {
+			job.Done()
+			logJobDone(ctx, job)
+		}()
+		logJobStart(ctx, job)
 		jobResult := lib_models.DeploymentJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
-			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
+			if st := recover(); st != nil {
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
 				s.setDeploymentsJobResult(job.Id, jobResult)
+				logger.ErrorContext(
+					ctx,
+					"create deployments",
+					slog_keys.JobId, job.Id,
+					slog_keys.Error, "panic",
+					slog_keys.StackTrace, st,
+				)
 			}
 		}()
 		jobResult.Results, err = s.deploymentsHandler.CreateDeployments(job.Context(), handlerModules, userInputMap)
@@ -152,14 +164,25 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer job.Done()
+		defer func() {
+			job.Done()
+			logJobDone(ctx, job)
+		}()
+		logJobStart(ctx, job)
 		jobResult := lib_models.DeploymentUpdateJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
-			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
+			if st := recover(); st != nil {
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
 				s.setUpdateDeploymentsJobResult(job.Id, jobResult)
+				logger.ErrorContext(
+					ctx,
+					"update deployments",
+					slog_keys.JobId, job.Id,
+					slog_keys.Error, "panic",
+					slog_keys.StackTrace, st,
+				)
 			}
 		}()
 		updateDepResults, err := s.deploymentsHandler.UpdateDeployments(job.Context(), handlerModules, userInputMap)
@@ -230,14 +253,25 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer job.Done()
+		defer func() {
+			job.Done()
+			logJobDone(ctx, job)
+		}()
+		logJobStart(ctx, job)
 		jobResult := lib_models.DeploymentJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
-			if err := recover(); err != nil {
-				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("panic\n%v", err))
+			if st := recover(); st != nil {
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
 				s.setDeploymentsJobResult(job.Id, jobResult)
+				logger.ErrorContext(
+					ctx,
+					"recreate deployments",
+					slog_keys.JobId, job.Id,
+					slog_keys.Error, "panic",
+					slog_keys.StackTrace, st,
+				)
 			}
 		}()
 		jobResult.Results, err = s.deploymentsHandler.RecreateDeployments(job.Context(), handlerModules)

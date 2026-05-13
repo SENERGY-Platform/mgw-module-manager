@@ -24,6 +24,7 @@ import (
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	handler_jobs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 func (s *Service) Jobs(_ context.Context, filterIds []string) ([]lib_models.Job, error) {
@@ -91,4 +92,12 @@ func activeJobsErrMsg(jobs map[int]*handler_jobs.Job) string {
 		}
 	}
 	return msg
+}
+
+func logJobStart(ctx context.Context, job *handler_jobs.Job) {
+	logger.DebugContext(ctx, "job start", slog_keys.JobId, job.Id, slog_keys.Description, job.Description)
+}
+
+func logJobDone(ctx context.Context, job *handler_jobs.Job) {
+	logger.DebugContext(ctx, "job done", slog_keys.JobId, job.Id, slog_keys.Description, job.Description)
 }
