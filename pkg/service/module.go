@@ -33,7 +33,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
-func (s *Service) Modules(ctx context.Context, filter lib_models.ModulesFilter) ([]lib_models.ModuleReduced, error) {
+func (s *Service) GetModules(ctx context.Context, filter lib_models.ModulesFilter) ([]lib_models.ModuleReduced, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(moduleJobSlotNum)
@@ -64,7 +64,7 @@ func (s *Service) Modules(ctx context.Context, filter lib_models.ModulesFilter) 
 	return getModulesReduced(modules, deployments, filter), nil
 }
 
-func (s *Service) Module(ctx context.Context, id string) (lib_models.Module, error) {
+func (s *Service) GetModule(ctx context.Context, id string) (lib_models.Module, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(moduleJobSlotNum)
@@ -88,7 +88,7 @@ func (s *Service) Module(ctx context.Context, id string) (lib_models.Module, err
 	return module, nil
 }
 
-func (s *Service) ModulesChangeRequest(_ context.Context) (lib_models.ModulesChangeRequest, error) {
+func (s *Service) GetModulesChangeRequest(_ context.Context) (lib_models.ModulesChangeRequest, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	if s.changeRequest == nil {
@@ -97,7 +97,7 @@ func (s *Service) ModulesChangeRequest(_ context.Context) (lib_models.ModulesCha
 	return transformModulesChangeRequest(*s.changeRequest), nil
 }
 
-func (s *Service) NewModulesChangeRequest(
+func (s *Service) CreateModulesChangeRequest(
 	ctx context.Context,
 	reqItems []lib_models.ChangeRequestItem,
 ) (lib_models.ModulesChangeRequest, error) {
@@ -186,7 +186,7 @@ func (s *Service) CancelModulesChangeRequest(_ context.Context) error {
 	return nil
 }
 
-func (s *Service) ModulesAvailableUpdates(ctx context.Context) (int, error) {
+func (s *Service) GetModulesAvailableUpdates(ctx context.Context) (int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	changeRequest, err := s.newModulesUpdateAllChangeRequest(ctx)
@@ -196,7 +196,7 @@ func (s *Service) ModulesAvailableUpdates(ctx context.Context) (int, error) {
 	return len(changeRequest.Change), nil
 }
 
-func (s *Service) NewModulesUpdateAllChangeRequest(ctx context.Context) (lib_models.ModulesChangeRequest, error) {
+func (s *Service) CreateModulesUpdateAllChangeRequest(ctx context.Context) (lib_models.ModulesChangeRequest, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	changeRequest, err := s.newModulesUpdateAllChangeRequest(ctx)

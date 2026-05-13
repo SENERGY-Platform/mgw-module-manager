@@ -27,7 +27,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
-func (s *Service) Jobs(_ context.Context, filterIds []string) ([]lib_models.Job, error) {
+func (s *Service) GetJobs(_ context.Context, filterIds []string) ([]lib_models.Job, error) {
 	handlerJobs := s.jobsHandler.Jobs(filterIds)
 	var jobs []lib_models.Job
 	for _, handlerJob := range handlerJobs {
@@ -39,10 +39,10 @@ func (s *Service) Jobs(_ context.Context, filterIds []string) ([]lib_models.Job,
 	return jobs, nil
 }
 
-func (s *Service) Job(_ context.Context, id string) (lib_models.Job, error) {
+func (s *Service) GetJob(_ context.Context, id string) (lib_models.Job, error) {
 	handlerJob, ok := s.jobsHandler.Job(id)
 	if !ok {
-		return lib_models.Job{}, lib_errors.New[lib_errors.ErrNotFound]("")
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrNotFound]("job not found")
 	}
 	return getJob(handlerJob), nil
 }
@@ -58,7 +58,7 @@ func (s *Service) CancelJobs(_ context.Context, ids []string) error {
 func (s *Service) CancelJob(_ context.Context, id string) error {
 	handlerJob, ok := s.jobsHandler.Job(id)
 	if !ok {
-		return lib_errors.New[lib_errors.ErrNotFound]("")
+		return lib_errors.New[lib_errors.ErrNotFound]("job not found")
 	}
 	handlerJob.Cancel()
 	return nil

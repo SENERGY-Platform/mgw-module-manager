@@ -34,7 +34,7 @@ func (s *Service) CreateGlobalConfig(ctx context.Context, input lib_models.Globa
 	return s.globalConfigsHandler.CreateGlobalConfig(ctx, input.Name, value)
 }
 
-func (s *Service) ReadGlobalConfig(ctx context.Context, id string) (lib_models.GlobalConfig, error) {
+func (s *Service) GetGlobalConfig(ctx context.Context, id string) (lib_models.GlobalConfig, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	config, err := s.globalConfigsHandler.GetGlobalConfig(ctx, id)
@@ -44,7 +44,7 @@ func (s *Service) ReadGlobalConfig(ctx context.Context, id string) (lib_models.G
 	return newGlobalConfig(config), nil
 }
 
-func (s *Service) ReadGlobalConfigs(ctx context.Context, ids []string) (map[string]lib_models.GlobalConfig, error) {
+func (s *Service) GetGlobalConfigs(ctx context.Context, ids []string) (map[string]lib_models.GlobalConfig, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	tmp, err := s.globalConfigsHandler.GetGlobalConfigs(ctx, ids)

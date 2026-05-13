@@ -31,7 +31,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
-func (s *Service) DeploymentRequest(ctx context.Context, moduleIds []string) ([]lib_models.Module, error) {
+func (s *Service) GetDeploymentRequest(ctx context.Context, moduleIds []string) ([]lib_models.Module, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(moduleJobSlotNum)
