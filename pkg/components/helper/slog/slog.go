@@ -27,14 +27,27 @@ import (
 	"github.com/SENERGY-Platform/go-service-base/struct-logger/handlers"
 )
 
-var ContextValueKeys []string
+var ContextAttributeKeys []string
+var ContextValuesKey string
+
+type itfValues interface {
+	Get(string) (interface{}, bool)
+}
 
 func GetContextAttributes(ctx context.Context) iter.Seq[slog.Attr] {
 	return func(yield func(slog.Attr) bool) {
-		for _, key := range ContextValueKeys {
-			val := ctx.Value(key)
-			if val == nil {
-				continue
+		values, itfOk := ctx.Value(ContextValuesKey).(itfValues)
+		for _, key := range ContextAttributeKeys {
+			var val interface{}
+			var ok bool
+			if itfOk {
+				val, ok = values.Get(key)
+			}
+			if !ok {
+				val = ctx.Value(key)
+				if val == nil {
+					continue
+				}
 			}
 			if !yield(slog.Any(key, val)) {
 				return
