@@ -26,10 +26,3 @@ func Now() time.Time {
 	}
 	return time.Now()
 }
-
-func Date(year int, month time.Month, day, hour, min, sec, nsec int) time.Time {
-	if UTC {
-		return time.Date(year, month, day, hour, min, sec, nsec, time.UTC)
-	}
-	return time.Date(year, month, day, hour, min, sec, nsec, time.Local)
-}
