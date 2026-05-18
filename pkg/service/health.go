@@ -18,6 +18,7 @@ package service
 
 import (
 	"context"
+	"slices"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
@@ -30,24 +31,39 @@ func (s *Service) ServiceHealth(ctx context.Context) error {
 	return s.databaseHandler.Ping(ctx)
 }
 
-func (s *Service) DeploymentsHealth(ctx context.Context, includeAll bool) (lib_models.DeploymentsHealthInfo, error) {
+func (s *Service) DeploymentsHealth(ctx context.Context, filter lib_models.DeploymentsHealthInfoFilter) (lib_models.DeploymentsHealthInfo, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
 	if len(currentJobs) > 0 {
 		return lib_models.DeploymentsHealthInfo{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
-	deployments, err := s.deploymentsHandler.GetReducedDeployments(ctx, pkg_models.DeploymentsFilterWithState{
+	var moduleIds []string
+	for _, id := range filter.ModuleIds {
+		if !slices.Contains(filter.ExclModuleIds, id) {
+			moduleIds = append(moduleIds, id)
+		}
+	}
+	deployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, pkg_models.DeploymentsFilterWithState{
 		DeploymentsFilter: pkg_models.DeploymentsFilter{
-			Enabled: 1,
+			ModuleIds: moduleIds,
+			Enabled:   1,
 		},
 	})
 	if err != nil {
 		return lib_models.DeploymentsHealthInfo{}, err
 	}
+	for _, id := range filter.ExclModuleIds {
+		delete(deployments, id)
+	}
+	lenFilterAuxDepsOfIds := len(filter.AuxDeploymentsOfIds)
+	lenFilterExclAuxDepsOfIds := len(filter.ExclAuxDeploymentsOfIds)
 	auxDeployments := make(map[string]map[string]lib_models.AuxiliaryDeploymentReduced)
-	for id := range deployments {
-		auxDeps, err := s.auxDeploymentsHandler.GetReducedDeployments(ctx, id, lib_models.AuxiliaryDeploymentsFilterWithState{
+	for moduleId, deployment := range deployments {
+		if lenFilterAuxDepsOfIds > 0 && !slices.Contains(filter.AuxDeploymentsOfIds, moduleId) || lenFilterExclAuxDepsOfIds > 0 && slices.Contains(filter.ExclAuxDeploymentsOfIds, moduleId) {
+			continue
+		}
+		auxDeps, err := s.auxDeploymentsHandler.GetReducedDeployments(ctx, deployment.Id, lib_models.AuxiliaryDeploymentsFilterWithState{
 			AuxiliaryDeploymentsFilter: lib_models.AuxiliaryDeploymentsFilter{
 				Enabled: 1,
 			},
@@ -55,15 +71,15 @@ func (s *Service) DeploymentsHealth(ctx context.Context, includeAll bool) (lib_m
 		if err != nil {
 			return lib_models.DeploymentsHealthInfo{}, err
 		}
-		auxDeployments[id] = auxDeps
+		auxDeployments[moduleId] = auxDeps
 	}
-	return getDeploymentsHealthInfo(deployments, auxDeployments, includeAll), nil
+	return getDeploymentsHealthInfo(deployments, auxDeployments, filter.IncludeHealthy), nil
 }
 
 func getDeploymentsHealthInfo(
 	deployments map[string]pkg_models.DeploymentReduced,
 	auxDeployments map[string]map[string]lib_models.AuxiliaryDeploymentReduced,
-	includeAll bool,
+	includeHealthy bool,
 ) lib_models.DeploymentsHealthInfo {
 	healthInfo := lib_models.DeploymentsHealthInfo{
 		TotalEnabledDeployments: len(deployments),
@@ -77,7 +93,7 @@ func getDeploymentsHealthInfo(
 			for _, auxDep := range auxDeps {
 				if !containerOk(auxDep.Container.State, auxDep.Container.Health) {
 					notOk++
-				} else if !includeAll {
+				} else if !includeHealthy {
 					continue
 				}
 				auxDepsHealthInfo = append(auxDepsHealthInfo, lib_models.AuxiliaryDeploymentHealthInfo{
@@ -95,7 +111,7 @@ func getDeploymentsHealthInfo(
 				auxDepsState = lib_constants.DeploymentStateUnhealthy
 			}
 		}
-		if !includeAll && deployment.State < 2 && auxDepsState < 2 {
+		if !includeHealthy && deployment.State < 2 && auxDepsState < 2 {
 			continue
 		}
 		depHealth := lib_models.DeploymentHealthInfo{
@@ -107,7 +123,7 @@ func getDeploymentsHealthInfo(
 			AuxiliaryDeploymentsState:        auxDepsState,
 		}
 		for _, container := range deployment.Containers {
-			if !includeAll && containerOk(container.State, container.Health) {
+			if !includeHealthy && containerOk(container.State, container.Health) {
 				continue
 			}
 			depHealth.Containers = append(depHealth.Containers, lib_models.DeploymentContainerHealthInfo{

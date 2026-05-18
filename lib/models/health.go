@@ -46,3 +46,12 @@ type AuxiliaryDeploymentHealthInfo struct {
 	Reference string              `json:"reference"`
 	Container ContainerHealthInfo `json:"container"`
 }
+
+type DeploymentsHealthInfoFilter struct {
+	ModuleIds               []string
+	ExclModuleIds           []string
+	AuxiliaryDeployments    bool
+	AuxDeploymentsOfIds     []string
+	ExclAuxDeploymentsOfIds []string
+	IncludeHealthy          bool
+}

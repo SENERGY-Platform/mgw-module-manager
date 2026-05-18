@@ -172,7 +172,7 @@ type serviceItf interface {
 	CancelJob(ctx context.Context, id string) error
 
 	ServiceHealth(ctx context.Context) error
-	DeploymentsHealth(ctx context.Context, includeAll bool) (lib_models.DeploymentsHealthInfo, error)
+	DeploymentsHealth(ctx context.Context, filter lib_models.DeploymentsHealthInfoFilter) (lib_models.DeploymentsHealthInfo, error)
 }
 
 type infoHandler interface {
