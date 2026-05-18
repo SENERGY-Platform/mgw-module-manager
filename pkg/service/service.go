@@ -14,6 +14,7 @@ type Service struct {
 	auxDeploymentsHandler    auxiliaryDeploymentsHandler
 	globalConfigsHandler     globalConfigsHandler
 	depAdvertisementsHandler deploymentAdvertisementsHandler
+	databaseHandler          databaseHandler
 	jobsHandler              *handler_jobs.Handler
 	changeRequest            *modulesChangeRequest
 	jobResults               jobResults
@@ -27,6 +28,7 @@ func New(
 	auxDeploymentsHandler auxiliaryDeploymentsHandler,
 	globalConfigsHandler globalConfigsHandler,
 	depAdvertisementsHandler deploymentAdvertisementsHandler,
+	databaseHandler databaseHandler,
 	jobsHandler *handler_jobs.Handler,
 ) *Service {
 	return &Service{
@@ -36,6 +38,7 @@ func New(
 		auxDeploymentsHandler:    auxDeploymentsHandler,
 		globalConfigsHandler:     globalConfigsHandler,
 		depAdvertisementsHandler: depAdvertisementsHandler,
+		databaseHandler:          databaseHandler,
 		jobsHandler:              jobsHandler,
 		jobResults: jobResults{
 			deployments:         make(map[string]lib_models.DeploymentJobResult),

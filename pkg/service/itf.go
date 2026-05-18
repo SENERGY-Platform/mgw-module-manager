@@ -25,6 +25,10 @@ type modulesHandler interface {
 }
 
 type deploymentsHandler interface {
+	GetReducedDeployments(
+		ctx context.Context,
+		filter pkg_models.DeploymentsFilterWithState,
+	) (map[string]pkg_models.DeploymentReduced, error)
 	GetDeployment(ctx context.Context, id string) (pkg_models.Deployment, error)
 	GetReducedDeploymentsByModuleIds(
 		ctx context.Context,
@@ -177,4 +181,8 @@ type deploymentAdvertisementsHandler interface {
 		filter lib_models.DeploymentAdvertisementsFilterReduced,
 		allowAll bool,
 	) error
+}
+
+type databaseHandler interface {
+	Ping(ctx context.Context) error
 }

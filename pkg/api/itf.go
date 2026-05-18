@@ -170,6 +170,9 @@ type serviceItf interface {
 	GetJob(ctx context.Context, id string) (lib_models.Job, error)
 	CancelJobs(ctx context.Context, ids []string) error
 	CancelJob(ctx context.Context, id string) error
+
+	ServiceHealth(ctx context.Context) error
+	DeploymentsHealth(ctx context.Context, includeAll bool) (lib_models.DeploymentsHealthInfo, error)
 }
 
 type infoHandler interface {

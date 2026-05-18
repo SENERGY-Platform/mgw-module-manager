@@ -33,8 +33,6 @@ func init() {
 
 const ContextKeyRequestId = "request_id"
 
-// TODO add func for getting go context from gin context with request Id in values
-
 type Api struct {
 	service   serviceItf
 	infoHdl   infoHandler

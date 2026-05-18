@@ -34,7 +34,6 @@ func GetContextAttributes(ctx context.Context) iter.Seq[slog.Attr] {
 		for _, key := range ContextAttributeKeys {
 			val := ctx.Value(key)
 			if val != nil {
-
 				if !yield(slog.Any(key, val)) {
 					return
 				}

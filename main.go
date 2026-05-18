@@ -168,6 +168,7 @@ func main() {
 		auxDeploymentsHandler,
 		handler_global_configs.New(databaseHandler),
 		handler_dep_advertisements.New(databaseHandler),
+		databaseHandler,
 		jobsHandler,
 	)
 
