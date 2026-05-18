@@ -28,29 +28,16 @@ import (
 )
 
 var ContextAttributeKeys []string
-var ContextValuesKey string
-
-type itfValues interface {
-	Get(string) (interface{}, bool)
-}
 
 func GetContextAttributes(ctx context.Context) iter.Seq[slog.Attr] {
 	return func(yield func(slog.Attr) bool) {
-		values, itfOk := ctx.Value(ContextValuesKey).(itfValues)
 		for _, key := range ContextAttributeKeys {
-			var val interface{}
-			var ok bool
-			if itfOk {
-				val, ok = values.Get(key)
-			}
-			if !ok {
-				val = ctx.Value(key)
-				if val == nil {
-					continue
+			val := ctx.Value(key)
+			if val != nil {
+
+				if !yield(slog.Any(key, val)) {
+					return
 				}
-			}
-			if !yield(slog.Any(key, val)) {
-				return
 			}
 		}
 	}

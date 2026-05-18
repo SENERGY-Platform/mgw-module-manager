@@ -24,7 +24,6 @@ import (
 	"time"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
-	helper_context "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/context"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
@@ -64,7 +63,7 @@ func (h *Handler) CreateJob(description string) (*Job, error) {
 		return nil, err
 	}
 	ctx, cf := context.WithCancel(h.ctx)
-	ctx = helper_context.WithValues(ctx, ContextKeyJobId, id)
+	ctx = context.WithValue(ctx, ContextKeyJobId, id)
 	job := &Job{
 		Id:          id,
 		Description: description,
@@ -88,7 +87,7 @@ func (h *Handler) CreateSlotJob(slotNum int, description string) (*Job, error) {
 		return nil, err
 	}
 	ctx, cf := context.WithCancel(h.ctx)
-	ctx = helper_context.WithValues(ctx, ContextKeyJobId, id)
+	ctx = context.WithValue(ctx, ContextKeyJobId, id)
 	job := &Job{
 		Id:          id,
 		Description: description,

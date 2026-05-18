@@ -30,7 +30,6 @@ import (
 	handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
 	handler_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github"
 	client_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
-	helper_context "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/context"
 	helper_http "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/http"
 	helper_os_signal "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/os_signal"
 	helper_slog "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slog"
@@ -64,7 +63,6 @@ func main() {
 	helper_time.UTC = config.UseUTC
 
 	helper_slog.ContextAttributeKeys = []string{api.ContextKeyRequestId, handler_jobs.ContextKeyJobId}
-	helper_slog.ContextValuesKey = helper_context.ValuesKey
 	logger := helper_slog.New(config.Logger, os.Stderr, "", serviceInfoHandler.Name())
 
 	logger.Info(
