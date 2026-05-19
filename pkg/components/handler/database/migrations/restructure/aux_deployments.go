@@ -36,7 +36,7 @@ func migrateAuxDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping column", attrColumn, "index", attrTable, tableName)
+		logger.InfoContext(ctx, "dropping column", attrColumn, "index", attrTable, tableName)
 		err = dropColumn(ctx, db, tableName, "`index`")
 		if err != nil {
 			return err
@@ -47,7 +47,7 @@ func migrateAuxDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding column", attrColumn, "ctr_name", attrTable, tableName)
+		logger.InfoContext(ctx, "adding column", attrColumn, "ctr_name", attrTable, tableName)
 		err = addColumn(ctx, db, tableName, "ctr_name", "VARCHAR(256)", "NOT NULL", "AFTER enabled")
 		if err != nil {
 			return err
@@ -58,7 +58,7 @@ func migrateAuxDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding column", attrColumn, "ctr_alias", attrTable, tableName)
+		logger.InfoContext(ctx, "adding column", attrColumn, "ctr_alias", attrTable, tableName)
 		err = addColumn(ctx, db, tableName, "ctr_alias", "VARCHAR(256)", "NOT NULL", "AFTER ctr_name")
 		if err != nil {
 			return err
@@ -69,7 +69,7 @@ func migrateAuxDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding column", attrColumn, "recreate", attrTable, tableName)
+		logger.InfoContext(ctx, "adding column", attrColumn, "recreate", attrTable, tableName)
 		err = addColumn(ctx, db, tableName, "recreate", "BOOLEAN", "NOT NULL", "AFTER ctr_alias")
 		if err != nil {
 			return err
@@ -80,7 +80,7 @@ func migrateAuxDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding primary key", attrColumn, "id", attrTable, tableName)
+		logger.InfoContext(ctx, "adding primary key", attrColumn, "id", attrTable, tableName)
 		err = addPrimaryKey(ctx, db, tableName, "id")
 		if err != nil {
 			return err
@@ -91,7 +91,7 @@ func migrateAuxDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding index", attrIndex, "i_dep_id", attrTable, tableName)
+		logger.InfoContext(ctx, "adding index", attrIndex, "i_dep_id", attrTable, tableName)
 		err = addIndex(ctx, db, tableName, "i_dep_id", "dep_id")
 		if err != nil {
 			return err
@@ -102,7 +102,7 @@ func migrateAuxDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding index", attrIndex, "i_dep_id_ref", attrTable, tableName)
+		logger.InfoContext(ctx, "adding index", attrIndex, "i_dep_id_ref", attrTable, tableName)
 		err = addIndex(ctx, db, tableName, "i_dep_id_ref", "dep_id", "ref")
 		if err != nil {
 			return err
@@ -118,7 +118,7 @@ func migrateAuxDeploymentsTab(ctx context.Context, db *sql.DB) error {
 			continue
 		}
 		if !slices.Contains(newIndexKeys, key) {
-			logger.Info("dropping index", attrIndex, key, attrTable, tableName)
+			logger.InfoContext(ctx, "dropping index", attrIndex, key, attrTable, tableName)
 			err = dropIndex(ctx, db, tableName, key)
 			if err != nil {
 				return err

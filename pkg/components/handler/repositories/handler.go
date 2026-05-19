@@ -39,11 +39,11 @@ func (h *Handler) InitRepositories(ctx context.Context) error {
 	for source, repo := range h.repositories {
 		err := repo.Handler.Init()
 		if err != nil {
-			logger.Error("initialize repository", slog_keys.Source, source, slog_keys.Error, err.Error())
+			logger.ErrorContext(ctx, "initialize repository", slog_keys.Source, source, slog_keys.Error, err.Error())
 			errs = append(errs, fmt.Errorf("'%s' %w", source, err))
 			continue
 		}
-		logger.Info("initialize repository", slog_keys.Source, source)
+		logger.InfoContext(ctx, "initialize repository", slog_keys.Source, source)
 	}
 	if len(errs) > 0 {
 		return helper_errors.Join(errs...)

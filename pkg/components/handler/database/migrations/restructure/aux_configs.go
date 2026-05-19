@@ -36,7 +36,7 @@ func migrateAuxConfigsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping column", attrColumn, "index", attrTable, tableName)
+		logger.InfoContext(ctx, "dropping column", attrColumn, "index", attrTable, tableName)
 		err = dropColumn(ctx, db, tableName, "`index`")
 		if err != nil {
 			return err
@@ -47,7 +47,7 @@ func migrateAuxConfigsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("renaming column", attrColumn, "aux_id", attrNewName, "aux_dep_id", attrTable, tableName)
+		logger.InfoContext(ctx, "renaming column", attrColumn, "aux_id", attrNewName, "aux_dep_id", attrTable, tableName)
 		err = changeColumn(ctx, db, tableName, "aux_id", "aux_dep_id", "char(36)", "NOT NULL", "FIRST")
 		if err != nil {
 			return err
@@ -58,7 +58,7 @@ func migrateAuxConfigsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("renaming column", attrColumn, "ref", attrNewName, "name", attrTable, tableName)
+		logger.InfoContext(ctx, "renaming column", attrColumn, "ref", attrNewName, "name", attrTable, tableName)
 		err = changeColumn(ctx, db, tableName, "ref", "name", "char(256)", "NOT NULL", "AFTER aux_dep_id")
 		if err != nil {
 			return err
@@ -69,7 +69,7 @@ func migrateAuxConfigsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding unique index", attrIndex, "uk_aux_dep_id_name", attrTable, tableName)
+		logger.InfoContext(ctx, "adding unique index", attrIndex, "uk_aux_dep_id_name", attrTable, tableName)
 		err = addUniqueIndex(ctx, db, tableName, "uk_aux_dep_id_name", "aux_dep_id", "name")
 		if err != nil {
 			return err
@@ -80,7 +80,7 @@ func migrateAuxConfigsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding index", attrIndex, "i_aux_dep_id", attrTable, tableName)
+		logger.InfoContext(ctx, "adding index", attrIndex, "i_aux_dep_id", attrTable, tableName)
 		err = addIndex(ctx, db, tableName, "i_aux_dep_id", "aux_dep_id")
 		if err != nil {
 			return err
@@ -96,13 +96,13 @@ func migrateAuxConfigsTab(ctx context.Context, db *sql.DB) error {
 			continue
 		}
 		if !slices.Contains(newIndexKeys, key) {
-			logger.Info("dropping index", attrIndex, key, attrTable, tableName)
+			logger.InfoContext(ctx, "dropping index", attrIndex, key, attrTable, tableName)
 			err = dropIndex(ctx, db, tableName, key)
 			if err != nil {
 				return err
 			}
 		}
 	}
-	logger.Info("renaming table", attrTable, tableName, attrNewName, "aux_dep_configs")
+	logger.InfoContext(ctx, "renaming table", attrTable, tableName, attrNewName, "aux_dep_configs")
 	return renameTable(ctx, db, tableName, "aux_dep_configs")
 }

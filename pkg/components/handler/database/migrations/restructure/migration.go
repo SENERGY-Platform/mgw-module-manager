@@ -62,7 +62,7 @@ func dropTables(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping table", attrTable, "dependencies")
+		logger.InfoContext(ctx, "dropping table", attrTable, "dependencies")
 		err = dropTable(ctx, db, "dependencies")
 		if err != nil {
 			return err
@@ -73,7 +73,7 @@ func dropTables(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping table", attrTable, "mod_dependencies")
+		logger.InfoContext(ctx, "dropping table", attrTable, "mod_dependencies")
 		err = dropTable(ctx, db, "mod_dependencies")
 		if err != nil {
 			return err

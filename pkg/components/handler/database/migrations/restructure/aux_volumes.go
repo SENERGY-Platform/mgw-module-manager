@@ -36,7 +36,7 @@ func migrateAuxVolumesTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping column", attrColumn, "index", attrTable, tableName)
+		logger.InfoContext(ctx, "dropping column", attrColumn, "index", attrTable, tableName)
 		err = dropColumn(ctx, db, tableName, "`index`")
 		if err != nil {
 			return err
@@ -47,7 +47,7 @@ func migrateAuxVolumesTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping column", attrColumn, "aux_id", attrTable, tableName)
+		logger.InfoContext(ctx, "dropping column", attrColumn, "aux_id", attrTable, tableName)
 		err = dropColumn(ctx, db, tableName, "`aux_id`")
 		if err != nil {
 			return err
@@ -58,7 +58,7 @@ func migrateAuxVolumesTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping column", attrColumn, "mnt_point", attrTable, tableName)
+		logger.InfoContext(ctx, "dropping column", attrColumn, "mnt_point", attrTable, tableName)
 		err = dropColumn(ctx, db, tableName, "`mnt_point`")
 		if err != nil {
 			return err
@@ -69,7 +69,7 @@ func migrateAuxVolumesTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding column", attrColumn, "dep_id", attrTable, tableName)
+		logger.InfoContext(ctx, "adding column", attrColumn, "dep_id", attrTable, tableName)
 		err = addColumn(ctx, db, tableName, "dep_id", "CHAR(36)", "NOT NULL", "FIRST")
 		if err != nil {
 			return err
@@ -80,7 +80,7 @@ func migrateAuxVolumesTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding column", attrColumn, "ref", attrTable, tableName)
+		logger.InfoContext(ctx, "adding column", attrColumn, "ref", attrTable, tableName)
 		err = addColumn(ctx, db, tableName, "ref", "VARCHAR(256)", "NOT NULL", "AFTER dep_id")
 		if err != nil {
 			return err
@@ -91,7 +91,7 @@ func migrateAuxVolumesTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding unique index", attrIndex, "uk_dep_id_ref", attrTable, tableName)
+		logger.InfoContext(ctx, "adding unique index", attrIndex, "uk_dep_id_ref", attrTable, tableName)
 		err = addUniqueIndex(ctx, db, tableName, "uk_dep_id_ref", "dep_id", "ref")
 		if err != nil {
 			return err
@@ -102,7 +102,7 @@ func migrateAuxVolumesTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding index", attrIndex, "i_dep_id", attrTable, tableName)
+		logger.InfoContext(ctx, "adding index", attrIndex, "i_dep_id", attrTable, tableName)
 		err = addIndex(ctx, db, tableName, "i_dep_id", "dep_id")
 		if err != nil {
 			return err
@@ -118,13 +118,13 @@ func migrateAuxVolumesTab(ctx context.Context, db *sql.DB) error {
 			continue
 		}
 		if !slices.Contains(newIndexKeys, key) {
-			logger.Info("dropping index", attrIndex, key, attrTable, tableName)
+			logger.InfoContext(ctx, "dropping index", attrIndex, key, attrTable, tableName)
 			err = dropIndex(ctx, db, tableName, key)
 			if err != nil {
 				return err
 			}
 		}
 	}
-	logger.Info("renaming table", attrTable, tableName, attrNewName, "aux_dep_volumes")
+	logger.InfoContext(ctx, "renaming table", attrTable, tableName, attrNewName, "aux_dep_volumes")
 	return renameTable(ctx, db, tableName, "aux_dep_volumes")
 }

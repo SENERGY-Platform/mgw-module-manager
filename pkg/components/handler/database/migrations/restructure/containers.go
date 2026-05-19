@@ -36,7 +36,7 @@ func migrateContainersTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping column", attrColumn, "index", attrTable, tableName)
+		logger.InfoContext(ctx, "dropping column", attrColumn, "index", attrTable, tableName)
 		err = dropColumn(ctx, db, tableName, "`index`")
 		if err != nil {
 			return err
@@ -47,7 +47,7 @@ func migrateContainersTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping column", attrColumn, "order", attrTable, tableName)
+		logger.InfoContext(ctx, "dropping column", attrColumn, "order", attrTable, tableName)
 		err = dropColumn(ctx, db, tableName, "`order`")
 		if err != nil {
 			return err
@@ -58,7 +58,7 @@ func migrateContainersTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("renaming column", attrColumn, "ctr_id", attrNewName, "name", attrTable, tableName)
+		logger.InfoContext(ctx, "renaming column", attrColumn, "ctr_id", attrNewName, "name", attrTable, tableName)
 		err = changeColumn(ctx, db, tableName, "ctr_id", "name", "VARCHAR(256)", "NOT NULL", "AFTER dep_id")
 		if err != nil {
 			return err
@@ -69,7 +69,7 @@ func migrateContainersTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding unique index", attrIndex, "uk_dep_id_name_srv_ref", attrTable, tableName)
+		logger.InfoContext(ctx, "adding unique index", attrIndex, "uk_dep_id_name_srv_ref", attrTable, tableName)
 		err = addUniqueIndex(ctx, db, tableName, "uk_dep_id_name_srv_ref", "dep_id", "name", "srv_ref")
 		if err != nil {
 			return err
@@ -80,7 +80,7 @@ func migrateContainersTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding index", attrIndex, "i_dep_id", attrTable, tableName)
+		logger.InfoContext(ctx, "adding index", attrIndex, "i_dep_id", attrTable, tableName)
 		err = addIndex(ctx, db, tableName, "i_dep_id", "dep_id")
 		if err != nil {
 			return err
@@ -91,7 +91,7 @@ func migrateContainersTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding index", attrIndex, "i_name", attrTable, tableName)
+		logger.InfoContext(ctx, "adding index", attrIndex, "i_name", attrTable, tableName)
 		err = addIndex(ctx, db, tableName, "i_name", "name")
 		if err != nil {
 			return err
@@ -107,13 +107,13 @@ func migrateContainersTab(ctx context.Context, db *sql.DB) error {
 			continue
 		}
 		if !slices.Contains(newIndexKeys, key) {
-			logger.Info("dropping index", attrIndex, key, attrTable, tableName)
+			logger.InfoContext(ctx, "dropping index", attrIndex, key, attrTable, tableName)
 			err = dropIndex(ctx, db, tableName, key)
 			if err != nil {
 				return err
 			}
 		}
 	}
-	logger.Info("renaming table", attrTable, tableName, attrNewName, "dep_containers")
+	logger.InfoContext(ctx, "renaming table", attrTable, tableName, attrNewName, "dep_containers")
 	return renameTable(ctx, db, tableName, "dep_containers")
 }

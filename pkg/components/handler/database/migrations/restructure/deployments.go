@@ -35,7 +35,7 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping column", attrColumn, "index", attrTable, tableName)
+		logger.InfoContext(ctx, "dropping column", attrColumn, "index", attrTable, tableName)
 		err = dropColumn(ctx, db, tableName, "`index`")
 		if err != nil {
 			return err
@@ -46,7 +46,7 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping column", attrColumn, "name", attrTable, tableName)
+		logger.InfoContext(ctx, "dropping column", attrColumn, "name", attrTable, tableName)
 		err = dropColumn(ctx, db, tableName, "`name`")
 		if err != nil {
 			return err
@@ -57,7 +57,7 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping column", attrColumn, "indirect", attrTable, tableName)
+		logger.InfoContext(ctx, "dropping column", attrColumn, "indirect", attrTable, tableName)
 		err = dropColumn(ctx, db, tableName, "`indirect`")
 		if err != nil {
 			return err
@@ -68,7 +68,7 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping column", attrColumn, "order", attrTable, tableName)
+		logger.InfoContext(ctx, "dropping column", attrColumn, "order", attrTable, tableName)
 		err = dropColumn(ctx, db, tableName, "`order`")
 		if err != nil {
 			return err
@@ -79,7 +79,7 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding column", attrColumn, "mod_source", attrTable, tableName)
+		logger.InfoContext(ctx, "adding column", attrColumn, "mod_source", attrTable, tableName)
 		err = addColumn(ctx, db, tableName, "mod_source", "VARCHAR(512)", "NOT NULL", "AFTER mod_id")
 		if err != nil {
 			return err
@@ -90,7 +90,7 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding column", attrColumn, "mod_channel", attrTable, tableName)
+		logger.InfoContext(ctx, "adding column", attrColumn, "mod_channel", attrTable, tableName)
 		err = addColumn(ctx, db, tableName, "mod_channel", "VARCHAR(256)", "NOT NULL", "AFTER mod_source")
 		if err != nil {
 			return err
@@ -101,7 +101,7 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding column", attrColumn, "files_dir", attrTable, tableName)
+		logger.InfoContext(ctx, "adding column", attrColumn, "files_dir", attrTable, tableName)
 		err = addColumn(ctx, db, tableName, "files_dir", "VARCHAR(256)", "NOT NULL", "AFTER dir")
 		if err != nil {
 			return err
@@ -112,7 +112,7 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding primary key", attrColumn, "id", attrTable, tableName)
+		logger.InfoContext(ctx, "adding primary key", attrColumn, "id", attrTable, tableName)
 		err = addPrimaryKey(ctx, db, tableName, "id")
 		if err != nil {
 			return err
@@ -123,7 +123,7 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding unique index", attrIndex, "uk_mod_id", attrTable, tableName)
+		logger.InfoContext(ctx, "adding unique index", attrIndex, "uk_mod_id", attrTable, tableName)
 		err = addUniqueIndex(ctx, db, tableName, "uk_mod_id", "mod_id")
 		if err != nil {
 			return err
@@ -137,7 +137,7 @@ func migrateDeploymentsTab(ctx context.Context, db *sql.DB) error {
 		if key == "PRIMARY" || key == "uk_mod_id" {
 			continue
 		}
-		logger.Info("dropping index", attrIndex, key, attrTable, tableName)
+		logger.InfoContext(ctx, "dropping index", attrIndex, key, attrTable, tableName)
 		err = dropIndex(ctx, db, tableName, key)
 		if err != nil {
 			return err

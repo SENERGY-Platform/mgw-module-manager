@@ -35,7 +35,7 @@ func migrateModulesTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping column", attrColumn, "index", attrTable, tableName)
+		logger.InfoContext(ctx, "dropping column", attrColumn, "index", attrTable, tableName)
 		err = dropColumn(ctx, db, tableName, "`index`")
 		if err != nil {
 			return err
@@ -46,7 +46,7 @@ func migrateModulesTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if ok {
-		logger.Info("dropping column", attrColumn, "modfile", attrTable, tableName)
+		logger.InfoContext(ctx, "dropping column", attrColumn, "modfile", attrTable, tableName)
 		err = dropColumn(ctx, db, tableName, "`modfile`")
 		if err != nil {
 			return err
@@ -57,7 +57,7 @@ func migrateModulesTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding primary key", attrColumn, "id", attrTable, tableName)
+		logger.InfoContext(ctx, "adding primary key", attrColumn, "id", attrTable, tableName)
 		err = addPrimaryKey(ctx, db, tableName, "id")
 		if err != nil {
 			return err
@@ -71,7 +71,7 @@ func migrateModulesTab(ctx context.Context, db *sql.DB) error {
 		if key == "PRIMARY" {
 			continue
 		}
-		logger.Info("dropping index", attrIndex, key, attrTable, tableName)
+		logger.InfoContext(ctx, "dropping index", attrIndex, key, attrTable, tableName)
 		err = dropIndex(ctx, db, tableName, key)
 		if err != nil {
 			return err
@@ -82,7 +82,7 @@ func migrateModulesTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding column", attrColumn, "source", attrTable, tableName)
+		logger.InfoContext(ctx, "adding column", attrColumn, "source", attrTable, tableName)
 		err = addColumn(ctx, db, tableName, "source", "VARCHAR(512)", "NOT NULL", "AFTER dir")
 		if err != nil {
 			return err
@@ -93,7 +93,7 @@ func migrateModulesTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if !ok {
-		logger.Info("adding column", attrColumn, "channel", attrTable, tableName)
+		logger.InfoContext(ctx, "adding column", attrColumn, "channel", attrTable, tableName)
 		err = addColumn(ctx, db, tableName, "channel", "VARCHAR(256)", "NOT NULL", "AFTER source")
 		if err != nil {
 			return err
