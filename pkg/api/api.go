@@ -47,7 +47,7 @@ func New(service serviceItf, infoHdl infoHandler, accessLog bool) (*Api, error) 
 		middleware = append(
 			middleware,
 			gin_mw.StructLoggerHandler(
-				logger,
+				accessLogger,
 				sb_slog_attributes.Provider,
 				nil,
 				nil,
