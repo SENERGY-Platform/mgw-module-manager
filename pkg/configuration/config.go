@@ -45,8 +45,8 @@ type GitHubModulesRepoHandlerConfig struct {
 }
 
 type DatabaseConfig struct {
-	MySQL handler_database.Config
-	SQL   helper_sql_db.Config
+	MySQL handler_database.Config `json:"my_sql"`
+	SQL   helper_sql_db.Config    `json:"sql"`
 }
 
 type Config struct {
