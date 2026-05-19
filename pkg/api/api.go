@@ -23,6 +23,7 @@ import (
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
 	sb_slog_attributes "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
 	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/models/constants"
+	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
@@ -55,11 +56,18 @@ func New(service serviceItf, infoHdl infoHandler, accessLog bool) (*Api, error) 
 		)
 	}
 	middleware = append(middleware,
+		runtimeIdContextHandler,
+		requestid.New(
+			requestid.WithCustomHeaderStrKey(lib_constants.HttpHeaderRequestId),
+			requestid.WithHandler(requestIdContextHandler),
+		),
 		gin_mw.StaticHeaderHandler(map[string]string{
 			lib_constants.HttpHeaderApiVer:  infoHdl.Version(),
 			lib_constants.HttpHeaderSrvName: infoHdl.Name(),
+			lib_constants.HttpRuntimeId:     helper_naming.RuntimeId,
+			lib_constants.HttpCoreId:        helper_naming.CoreId,
+			lib_constants.HttpManagerId:     helper_naming.ManagerId,
 		}),
-		requestid.New(requestid.WithCustomHeaderStrKey(lib_constants.HttpHeaderRequestId), requestid.WithHandler(requestIdContextHandler)),
 		gin_mw.ErrorHandler(getStatusCode, ", "),
 		gin_mw.StructRecoveryHandler(logger, gin_mw.DefaultRecoveryFunc),
 	)
@@ -78,7 +86,7 @@ func (a *Api) Init(ctx context.Context) error {
 		return err
 	}
 	for _, route := range setRoutes {
-		logger.DebugContext(ctx, "http route", slog_keys.Method, route[0], slog_keys.Path, route[1])
+		logger.DebugContext(ctx, "set http route", slog_keys.Method, route[0], slog_keys.Path, route[1])
 	}
 	return nil
 }
@@ -89,4 +97,9 @@ func (a *Api) Handler() http.Handler {
 
 func requestIdContextHandler(c *gin.Context, requestId string) {
 	c.Set(ContextKeyRequestId, requestId)
+}
+
+func runtimeIdContextHandler(c *gin.Context) {
+	c.Set(helper_naming.RuntimeIdKey, helper_naming.RuntimeId)
+	c.Next()
 }
