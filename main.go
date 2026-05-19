@@ -45,15 +45,18 @@ import (
 var version string
 
 func main() {
+
+	// set correct return code on exit
 	ec := 0
 	defer func() {
 		os.Exit(ec)
 	}()
 
+	// create info handler
 	serviceInfoHandler := srv_info_hdl.New("module-manager", version)
 
+	// load configuration
 	configuration.ParseFlags()
-
 	config, err := configuration.New(configuration.ConfPath)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "load configuration: %s", err)
@@ -61,6 +64,7 @@ func main() {
 		return
 	}
 
+	// init naming helper
 	helper_naming.CoreId = config.CoreId
 	helper_naming.ModuleContainerNetwork = config.ModuleContainerNetwork
 	err = helper_naming.SetManagerID(config.ManagerIdPath, configuration.ManagerId)
@@ -70,10 +74,10 @@ func main() {
 		return
 	}
 
+	// init time helper
 	helper_time.UTC = config.UseUTC
 
-	ctx, cf := context.WithCancel(context.Background())
-
+	// create database handler
 	mySQLConnector, err := handler_database.NewConnector(config.Database.MySQL)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "create mysql connector: %s\n", err)
@@ -82,14 +86,13 @@ func main() {
 	}
 	sqlDB := helper_sql_db.NewSQLDatabase(mySQLConnector, config.Database.SQL)
 	defer sqlDB.Close()
-
 	databaseHandler := handler_database.New(sqlDB)
 
+	// create repositories handler
 	gitHubClient := client_repositories_github.New(
 		helper_http.NewClient(config.GitHubModulesRepoHandler.Timeout),
 		config.GitHubModulesRepoHandler.BaseUrl,
 	)
-
 	repositoriesHandler := handler_repositories.New(
 		[]handler_repositories.Repository{
 			{
@@ -118,53 +121,58 @@ func main() {
 		},
 	)
 
-	containerEngineWrapperClient := cew_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CewBaseUrl)
+	// create modules handler
+	modulesHandler := handler_modules.New(
+		databaseHandler,
+		cew_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CewBaseUrl),
+		config.ModulesHandler,
+	)
 
-	modulesHdl := handler_modules.New(databaseHandler, containerEngineWrapperClient, config.ModulesHandler)
-
-	hostManagerClient := hm_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.HmBaseUrl)
-
-	secretManagerClient := sm_client.NewClient(config.MGW.SmBaseUrl, helper_http.NewClient(config.MGW.Timeout))
-
-	coreManagerClient := cm_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CmBaseUrl)
-
+	// create deployments handler
 	deploymentsHandler := handler_deployments.New(
 		databaseHandler,
-		containerEngineWrapperClient,
-		hostManagerClient,
-		secretManagerClient,
-		coreManagerClient,
+		cew_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CewBaseUrl),
+		hm_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.HmBaseUrl),
+		sm_client.NewClient(config.MGW.SmBaseUrl, helper_http.NewClient(config.MGW.Timeout)),
+		cm_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CmBaseUrl),
 		config.DeploymentsHandler,
 	)
 
-	auxDeploymentsHandler := handler_aux_deployments.New(
+	// create auxiliary deployments handler
+	auxiliaryDeploymentsHandler := handler_aux_deployments.New(
 		databaseHandler,
-		containerEngineWrapperClient,
+		cew_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CewBaseUrl),
 		config.AuxDeploymentsHandler,
 	)
 
+	// create main context
+	ctx, cf := context.WithCancel(context.Background())
+
+	// create jobs handler
 	jobsHandler := handler_jobs.New(ctx, config.JobsHandler)
 
+	// create service
 	srv := service.New(
 		repositoriesHandler,
-		modulesHdl,
+		modulesHandler,
 		deploymentsHandler,
-		auxDeploymentsHandler,
+		auxiliaryDeploymentsHandler,
 		handler_global_configs.New(databaseHandler),
 		handler_dep_advertisements.New(databaseHandler),
 		databaseHandler,
 		jobsHandler,
 	)
 
+	// set job results cleanup callback
 	jobsHandler.SetCleanupHandler(srv.DeleteJobResults)
 
-	err = modulesHdl.CreateWorkDir()
+	// create handler work directories
+	err = modulesHandler.CreateWorkDir()
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "create modules handler work directory: %s\n", err)
 		ec = 1
 		return
 	}
-
 	err = deploymentsHandler.CreateWorkDir()
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "create deployments handler work directory: %s\n", err)
@@ -172,6 +180,7 @@ func main() {
 		return
 	}
 
+	// create http api
 	httpApi, err := api.New(srv, serviceInfoHandler, config.HttpAccessLog)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "create http api engine: %s\n", err)
@@ -179,6 +188,7 @@ func main() {
 		return
 	}
 
+	// create http server
 	httpServer := &http.Server{Handler: httpApi.Handler()}
 	serverListener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
@@ -187,8 +197,11 @@ func main() {
 		return
 	}
 
+	// create logger
 	helper_slog.ContextAttributeKeys = []string{api.ContextKeyRequestId, handler_jobs.ContextKeyJobId}
 	logger := helper_slog.New(config.Logger, os.Stderr, "", serviceInfoHandler.Name())
+
+	// init loggers
 	handler_database.InitLogger(logger)
 	handler_repositories.InitLogger(logger)
 	handler_modules.InitLogger(logger)
@@ -200,6 +213,8 @@ func main() {
 	service.InitLogger(logger)
 	api.InitLogger(logger)
 
+	// start service ---------------------------------------------------------------------------------------------------
+
 	logger.Info(
 		"start service",
 		slog_keys.Version, serviceInfoHandler.Version(),
@@ -208,6 +223,7 @@ func main() {
 		slog_keys.Config, sb_config_hdl.StructToMap(config, true),
 	)
 
+	// run database migrations
 	err = databaseHandler.Migrate(ctx, migration_db_restructure.Migration, migration_db_init.Migration)
 	if err != nil {
 		logger.Error("database migration", slog_keys.Error, err)
@@ -215,6 +231,7 @@ func main() {
 		return
 	}
 
+	// init repositories
 	err = repositoriesHandler.InitRepositories(ctx)
 	if err != nil {
 		logger.Error("initialize repositories", slog_keys.Error, err)
@@ -222,6 +239,7 @@ func main() {
 		return
 	}
 
+	// init http api
 	err = httpApi.Init()
 	if err != nil {
 		logger.Error("initialize http api", slog_keys.Error, err)
@@ -229,13 +247,16 @@ func main() {
 		return
 	}
 
+	// start os signal listener
 	go func() {
 		helper_os_signal.Wait(ctx, logger, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 		cf()
 	}()
 
+	// create wait group for parallel tasks
 	wg := &sync.WaitGroup{}
 
+	// start deployments runtime monitor
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -243,13 +264,15 @@ func main() {
 		cf()
 	}()
 
+	// start auxiliary deployments runtime monitor
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		auxDeploymentsHandler.RuntimeMonitor(ctx)
+		auxiliaryDeploymentsHandler.RuntimeMonitor(ctx)
 		cf()
 	}()
 
+	// start jobs cleanup routine
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -257,6 +280,7 @@ func main() {
 		cf()
 	}()
 
+	// start http server
 	go func() {
 		logger.Info("start http server")
 		if err := httpServer.Serve(serverListener); !errors.Is(err, http.ErrServerClosed) {
@@ -266,6 +290,7 @@ func main() {
 		cf()
 	}()
 
+	// start http server shutdown listener
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -281,5 +306,6 @@ func main() {
 		}
 	}()
 
+	// wait for parallel tasks to finish
 	wg.Wait()
 }
