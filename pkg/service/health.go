@@ -115,7 +115,7 @@ func getDeploymentsHealthInfo(
 			continue
 		}
 		depHealth := lib_models.DeploymentHealthInfo{
-			Id:                               deployment.ModuleId,
+			ModuleId:                         deployment.ModuleId,
 			State:                            deployment.State,
 			TotalContainers:                  len(deployment.Containers),
 			AuxiliaryDeployments:             auxDepsHealthInfo,

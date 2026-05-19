@@ -22,7 +22,7 @@ type DeploymentsHealthInfo struct {
 }
 
 type DeploymentHealthInfo struct {
-	Id                               string                          `json:"id"` // module id
+	ModuleId                         string                          `json:"module_id"`
 	State                            int                             `json:"state"`
 	Containers                       []DeploymentContainerHealthInfo `json:"containers"`
 	TotalContainers                  int                             `json:"total_containers"`
