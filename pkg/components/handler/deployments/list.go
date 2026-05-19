@@ -31,6 +31,17 @@ import (
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
+func (h *Handler) CheckDeployment(ctx context.Context, id string) error {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	_, err := h.databaseHandler.ReadDeployment(ctx, id)
+	if err != nil {
+		logger.ErrorContext(ctx, "check deployment", slog_keys.DeploymentId, id, slog_keys.Error, err)
+		return err
+	}
+	return nil
+}
+
 func (h *Handler) GetReducedDeployments(
 	ctx context.Context,
 	filter pkg_models.DeploymentsFilterWithState,

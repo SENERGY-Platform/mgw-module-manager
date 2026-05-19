@@ -19,7 +19,6 @@ package service
 import (
 	"context"
 
-	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 )
 
@@ -65,8 +64,9 @@ func (s *Service) GetDeploymentAdvertisement(
 	deploymentId string,
 	reference string,
 ) (lib_models.DeploymentAdvertisement, error) {
-	if deploymentId == "" {
-		return lib_models.DeploymentAdvertisement{}, lib_errors.New[lib_errors.ErrNotFound]("deployment not found")
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return lib_models.DeploymentAdvertisement{}, err
 	}
 	return s.depAdvertisementsHandler.GetAdvertisement(ctx, deploymentId, reference)
 }
@@ -83,8 +83,9 @@ func (s *Service) GetDeploymentAdvertisements(
 	deploymentId string,
 	filter lib_models.DeploymentAdvertisementsFilterReduced,
 ) (map[string]lib_models.DeploymentAdvertisement, error) {
-	if deploymentId == "" {
-		return nil, lib_errors.New[lib_errors.ErrNotFound]("deployment not found")
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return nil, err
 	}
 	return s.depAdvertisementsHandler.GetAdvertisements(ctx, lib_models.DeploymentAdvertisementsFilter{
 		DeploymentId: deploymentId,
@@ -137,8 +138,9 @@ func (s *Service) DeleteDeploymentAdvertisements(
 	filter lib_models.DeploymentAdvertisementsFilterReduced,
 	allowAll bool,
 ) error {
-	if deploymentId == "" {
-		return lib_errors.New[lib_errors.ErrNotFound]("deployment not found")
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return err
 	}
 	return s.depAdvertisementsHandler.DeleteAdvertisements(ctx, deploymentId, filter, allowAll)
 }

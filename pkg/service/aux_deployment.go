@@ -35,6 +35,10 @@ func (s *Service) GetAuxiliaryDeployment(
 ) (lib_models.AuxiliaryDeployment, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return lib_models.AuxiliaryDeployment{}, err
+	}
 	return s.auxDeploymentsHandler.GetDeployment(ctx, deploymentId, auxDeploymentId)
 }
 
@@ -45,6 +49,10 @@ func (s *Service) GetAuxiliaryDeployments(
 ) (map[string]lib_models.AuxiliaryDeployment, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return nil, err
+	}
 	return s.auxDeploymentsHandler.GetDeployments(ctx, deploymentId, filter)
 }
 
@@ -55,6 +63,10 @@ func (s *Service) GetReducedAuxiliaryDeployments(
 ) (map[string]lib_models.AuxiliaryDeploymentReduced, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return nil, err
+	}
 	return s.auxDeploymentsHandler.GetReducedDeployments(ctx, deploymentId, filter)
 }
 
@@ -292,6 +304,10 @@ func (s *Service) DeleteAuxiliaryDeployments(
 ) (lib_models.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return lib_models.Job{}, err
+	}
 	job, err := s.jobsHandler.CreateJob("delete auxiliary deployments")
 	if err != nil {
 		return lib_models.Job{}, err
@@ -349,6 +365,10 @@ func (s *Service) EnableAuxiliaryDeployments(
 ) ([]string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return nil, err
+	}
 	return s.auxDeploymentsHandler.EnableDeployments(ctx, deploymentId, filter)
 }
 
@@ -359,6 +379,10 @@ func (s *Service) DisableAuxiliaryDeployments(
 ) ([]string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return nil, err
+	}
 	return s.auxDeploymentsHandler.DisableDeployments(ctx, deploymentId, filter)
 }
 
@@ -369,6 +393,10 @@ func (s *Service) GetAuxiliaryDeploymentVolumes(
 ) (map[string]lib_models.AuxiliaryDeploymentVolume, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return nil, err
+	}
 	return s.auxDeploymentsHandler.GetVolumes(ctx, deploymentId, filterReferences)
 }
 
@@ -379,6 +407,10 @@ func (s *Service) GetAuxiliaryDeploymentVolumesWithMounts(
 ) (map[string]lib_models.AuxiliaryDeploymentVolumeWithMounts, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return nil, err
+	}
 	return s.auxDeploymentsHandler.GetVolumesWithMounts(ctx, deploymentId, filterReferences)
 }
 
@@ -390,6 +422,10 @@ func (s *Service) DeleteAuxiliaryDeploymentVolumes(
 ) ([]lib_models.AuxiliaryDeploymentVolumeResult, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return nil, err
+	}
 	return s.auxDeploymentsHandler.DeleteVolumes(ctx, deploymentId, filterReferences, allowAll)
 }
 
@@ -400,6 +436,10 @@ func (s *Service) DeleteUnusedAuxiliaryDeploymentVolumes(
 ) ([]lib_models.AuxiliaryDeploymentVolumeResult, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return nil, err
+	}
 	return s.auxDeploymentsHandler.DeleteUnusedVolumes(ctx, deploymentId, excludeReferences)
 }
 

@@ -57,6 +57,7 @@ type deploymentsHandler interface {
 	) ([]lib_models.DeploymentResult, error)
 	EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error)
 	DisableDeployments(ctx context.Context, moduleIds []string) ([]string, error)
+	CheckDeployment(ctx context.Context, id string) error
 }
 
 type auxiliaryDeploymentsHandler interface {

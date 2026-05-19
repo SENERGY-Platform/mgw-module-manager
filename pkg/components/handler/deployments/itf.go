@@ -36,6 +36,7 @@ type databaseHandler interface {
 		volumes []pkg_models.DeploymentVolume,
 		containers []pkg_models.DeploymentContainerBase,
 	) error
+	ReadDeployment(ctx context.Context, id string) (pkg_models.DeploymentBase, error)
 	ReadDeployments(
 		ctx context.Context,
 		filter pkg_models.DeploymentsFilter,
