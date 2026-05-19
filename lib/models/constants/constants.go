@@ -28,7 +28,10 @@ const (
 )
 
 const (
+	HttpCoreId          = "X-Core-Id"
+	HttpManagerId       = "X-Manager-Id"
+	HttpRuntimeId       = "X-Runtime-Id"
 	HttpHeaderRequestId = "X-Request-Id"
-	HttpHeaderApiVer    = "X-Api-Version"
-	HttpHeaderSrvName   = "X-Service-Name"
+	HttpHeaderApiVer    = "X-Version"
+	HttpHeaderSrvName   = "X-Service"
 )
