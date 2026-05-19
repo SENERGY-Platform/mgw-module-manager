@@ -19,6 +19,7 @@ package deployments
 import (
 	"context"
 	"errors"
+	"time"
 
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
@@ -46,7 +47,7 @@ func (h *Handler) createHttpEndpoints(
 	if err != nil {
 		return err
 	}
-	job, err := helper_job.Await(ctx, h.coreManagerClient, jobId, h.config.JobPollInterval)
+	job, err := helper_job.Await(ctx, h.coreManagerClient, jobId, time.Duration(h.config.JobPollInterval))
 	if err != nil {
 		return err
 	}

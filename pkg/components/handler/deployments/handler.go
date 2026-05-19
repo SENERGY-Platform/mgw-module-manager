@@ -19,17 +19,18 @@ package deployments
 import (
 	"os"
 	"sync"
-	"time"
+
+	sb_config_types "github.com/SENERGY-Platform/go-service-base/config-hdl/types"
 )
 
 type Config struct {
-	WorkDirPath                string        `json:"work_dir_path" env_var:"DEPLOYMENTS_HANDLER_WORK_DIR_PATH"`
-	PathEscapeDepth            int           `json:"path_escape_depth" env_var:"PATH_ESCAPE_DEPTH"`
-	JobPollInterval            time.Duration `json:"job_poll_interval" env_var:"JOB_POLL_INTERVAL"`
-	HostWorkDirPath            string        `json:"host_work_dir_path" env_var:"DEPLOYMENTS_HANDLER_HOST_WORK_DIR_PATH"`
-	HostSecretsPath            string        `json:"host_secrets_path" env_var:"HOST_SECRETS_PATH"`
-	RuntimeMonitorStartupDelay time.Duration `json:"runtime_monitor_startup_delay" env_var:"DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY"`
-	RuntimeMonitorLoopDelay    time.Duration `json:"runtime_monitor_loop_delay" env_var:"DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY"`
+	WorkDirPath                string                   `json:"work_dir_path" env_var:"DEPLOYMENTS_HANDLER_WORK_DIR_PATH"`
+	PathEscapeDepth            int                      `json:"path_escape_depth" env_var:"PATH_ESCAPE_DEPTH"`
+	JobPollInterval            sb_config_types.Duration `json:"job_poll_interval" env_var:"JOB_POLL_INTERVAL"`
+	HostWorkDirPath            string                   `json:"host_work_dir_path" env_var:"DEPLOYMENTS_HANDLER_HOST_WORK_DIR_PATH"`
+	HostSecretsPath            string                   `json:"host_secrets_path" env_var:"HOST_SECRETS_PATH"`
+	RuntimeMonitorStartupDelay sb_config_types.Duration `json:"runtime_monitor_startup_delay" env_var:"DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY"`
+	RuntimeMonitorLoopDelay    sb_config_types.Duration `json:"runtime_monitor_loop_delay" env_var:"DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY"`
 }
 
 type Handler struct {

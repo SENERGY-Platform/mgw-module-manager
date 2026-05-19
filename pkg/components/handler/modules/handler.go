@@ -11,6 +11,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"time"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
@@ -407,7 +408,7 @@ func (h *Handler) pullImage(ctx context.Context, image string) error {
 	if err != nil {
 		return err
 	}
-	job, err := helper_job.Await(ctx, h.containerEngineWrapperClient, jobId, h.config.JobPollInterval)
+	job, err := helper_job.Await(ctx, h.containerEngineWrapperClient, jobId, time.Duration(h.config.JobPollInterval))
 	if err != nil {
 		return err
 	}

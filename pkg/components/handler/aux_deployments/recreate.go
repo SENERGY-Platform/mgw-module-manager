@@ -20,6 +20,7 @@ import (
 	"context"
 	"maps"
 	"slices"
+	"time"
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
@@ -176,7 +177,12 @@ func (h *Handler) recreateAuxiliaryDeployment(
 		return err
 	}
 	currentAuxDeployment.Container.Name = ctrName
-	err = helper_containers.Stop(ctx, h.containerEngineWrapperClient, currentAuxDeployment.Container.Name, h.config.JobPollInterval)
+	err = helper_containers.Stop(
+		ctx,
+		h.containerEngineWrapperClient,
+		currentAuxDeployment.Container.Name,
+		time.Duration(h.config.JobPollInterval),
+	)
 	if err != nil {
 		logger.ErrorContext(
 			ctx,
@@ -217,7 +223,7 @@ func (h *Handler) recreateAuxiliaryDeployment(
 		currentAuxDeployment.Image,
 		false,
 		h.config.PathEscapeDepth,
-		h.config.JobPollInterval,
+		time.Duration(h.config.JobPollInterval),
 	)
 	if err != nil {
 		logger.ErrorContext(

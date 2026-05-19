@@ -92,7 +92,7 @@ func main() {
 
 	// create repositories handler
 	gitHubClient := client_repositories_github.New(
-		helper_http.NewClient(config.GitHubModulesRepoHandler.Timeout),
+		helper_http.NewClient(time.Duration(config.GitHubModulesRepoHandler.Timeout)),
 		config.GitHubModulesRepoHandler.BaseUrl,
 	)
 	repositoriesHandler := handler_repositories.New(
@@ -126,24 +126,24 @@ func main() {
 	// create modules handler
 	modulesHandler := handler_modules.New(
 		databaseHandler,
-		cew_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CewBaseUrl),
+		cew_client.New(helper_http.NewClient(time.Duration(config.MGW.Timeout)), config.MGW.CewBaseUrl),
 		config.ModulesHandler,
 	)
 
 	// create deployments handler
 	deploymentsHandler := handler_deployments.New(
 		databaseHandler,
-		cew_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CewBaseUrl),
-		hm_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.HmBaseUrl),
-		sm_client.NewClient(config.MGW.SmBaseUrl, helper_http.NewClient(config.MGW.Timeout)),
-		cm_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CmBaseUrl),
+		cew_client.New(helper_http.NewClient(time.Duration(config.MGW.Timeout)), config.MGW.CewBaseUrl),
+		hm_client.New(helper_http.NewClient(time.Duration(config.MGW.Timeout)), config.MGW.HmBaseUrl),
+		sm_client.NewClient(config.MGW.SmBaseUrl, helper_http.NewClient(time.Duration(config.MGW.Timeout))),
+		cm_client.New(helper_http.NewClient(time.Duration(config.MGW.Timeout)), config.MGW.CmBaseUrl),
 		config.DeploymentsHandler,
 	)
 
 	// create auxiliary deployments handler
 	auxiliaryDeploymentsHandler := handler_aux_deployments.New(
 		databaseHandler,
-		cew_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CewBaseUrl),
+		cew_client.New(helper_http.NewClient(time.Duration(config.MGW.Timeout)), config.MGW.CewBaseUrl),
 		config.AuxDeploymentsHandler,
 	)
 

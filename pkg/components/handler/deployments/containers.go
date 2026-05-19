@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"time"
 
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
@@ -131,7 +132,7 @@ func (h *Handler) stopContainers(
 ) error {
 	var errs []error
 	for _, container := range deploymentContainers {
-		err := helper_containers.Stop(ctx, h.containerEngineWrapperClient, container.Name, h.config.JobPollInterval)
+		err := helper_containers.Stop(ctx, h.containerEngineWrapperClient, container.Name, time.Duration(h.config.JobPollInterval))
 		if err != nil {
 			errs = append(errs, fmt.Errorf("'%s' %w", container.Reference, err))
 		}

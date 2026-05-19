@@ -20,6 +20,7 @@ import (
 	"context"
 	"maps"
 	"slices"
+	"time"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
@@ -185,7 +186,12 @@ func (h *Handler) UpdateDeployment(
 	}
 	maps.Copy(auxDeploymentVolumes, newAuxDeploymentVolumes)
 	volumeMounts := getVolumeMounts(newAuxDeployment.Id, serviceInput.Volumes, auxDeploymentVolumes)
-	err = helper_containers.Stop(ctx, h.containerEngineWrapperClient, currentAuxDeployment.Container.Name, h.config.JobPollInterval)
+	err = helper_containers.Stop(
+		ctx,
+		h.containerEngineWrapperClient,
+		currentAuxDeployment.Container.Name,
+		time.Duration(h.config.JobPollInterval),
+	)
 	if err != nil {
 		logger.ErrorContext(
 			ctx,

@@ -29,13 +29,13 @@ import (
 )
 
 func (h *Handler) RuntimeMonitor(ctx context.Context) {
-	timer := time.NewTimer(h.config.RuntimeMonitorStartupDelay)
+	timer := time.NewTimer(time.Duration(h.config.RuntimeMonitorStartupDelay))
 	defer timer.Stop()
 	for {
 		select {
 		case <-timer.C:
 			h.checkDeployments(ctx)
-			timer.Reset(h.config.RuntimeMonitorLoopDelay)
+			timer.Reset(time.Duration(h.config.RuntimeMonitorLoopDelay))
 		case <-ctx.Done():
 			return
 		}
@@ -137,7 +137,7 @@ func (h *Handler) stopContainers(
 ) {
 	rmLogger.DebugContext(ctx, "stop containers", slog_keys.Containers, containerNames)
 	for _, name := range containerNames {
-		err := helper_containers.Stop(ctx, h.containerEngineWrapperClient, name, h.config.JobPollInterval)
+		err := helper_containers.Stop(ctx, h.containerEngineWrapperClient, name, time.Duration(h.config.JobPollInterval))
 		if err != nil {
 			rmLogger.ErrorContext(ctx, "stop containers", slog_keys.Containers, containerNames, slog_keys.Error, err)
 		}

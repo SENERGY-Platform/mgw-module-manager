@@ -29,13 +29,13 @@ import (
 )
 
 func (h *Handler) RuntimeMonitor(ctx context.Context) {
-	timer := time.NewTimer(h.config.RuntimeMonitorStartupDelay)
+	timer := time.NewTimer(time.Duration(h.config.RuntimeMonitorStartupDelay))
 	defer timer.Stop()
 	for {
 		select {
 		case <-timer.C:
 			h.checkDeployments(ctx)
-			timer.Reset(h.config.RuntimeMonitorLoopDelay)
+			timer.Reset(time.Duration(h.config.RuntimeMonitorLoopDelay))
 		case <-ctx.Done():
 			return
 		}

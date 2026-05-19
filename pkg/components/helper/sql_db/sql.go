@@ -19,12 +19,13 @@ package sql_db
 import (
 	"database/sql"
 	"database/sql/driver"
+	"time"
 )
 
 func NewSQLDatabase(connector driver.Connector, config Config) *sql.DB {
 	db := sql.OpenDB(connector)
 	db.SetMaxOpenConns(config.MaxOpenConns)
 	db.SetMaxIdleConns(config.MaxIdleConns)
-	db.SetConnMaxLifetime(config.ConnMaxLifetime)
+	db.SetConnMaxLifetime(time.Duration(config.ConnMaxLifetime))
 	return db
 }

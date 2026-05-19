@@ -16,10 +16,12 @@
 
 package sql_db
 
-import "time"
+import (
+	sb_config_types "github.com/SENERGY-Platform/go-service-base/config-hdl/types"
+)
 
 type Config struct {
-	MaxOpenConns    int           `json:"max_open_conns" env_var:"DATABASE_MAX_OPEN_CONNS"`
-	MaxIdleConns    int           `json:"max_idle_conns" env_var:"DATABASE_MAX_IDLE_CONNS"`
-	ConnMaxLifetime time.Duration `json:"conn_max_lifetime" env_var:"DATABASE_CONN_MAX_LIFETIME"`
+	MaxOpenConns    int                      `json:"max_open_conns" env_var:"DATABASE_MAX_OPEN_CONNS"`
+	MaxIdleConns    int                      `json:"max_idle_conns" env_var:"DATABASE_MAX_IDLE_CONNS"`
+	ConnMaxLifetime sb_config_types.Duration `json:"conn_max_lifetime" env_var:"DATABASE_CONN_MAX_LIFETIME"`
 }

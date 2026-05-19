@@ -18,17 +18,17 @@ package aux_deployments
 
 import (
 	"sync"
-	"time"
 
+	sb_config_types "github.com/SENERGY-Platform/go-service-base/config-hdl/types"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/mutex_map"
 )
 
 type Config struct {
-	PathEscapeDepth            int           `json:"path_escape_depth" env_var:"PATH_ESCAPE_DEPTH"`
-	JobPollInterval            time.Duration `json:"job_poll_interval" env_var:"JOB_POLL_INTERVAL"`
-	HostWorkDirPath            string        `json:"host_work_dir_path" env_var:"DEPLOYMENTS_HANDLER_HOST_WORK_DIR_PATH"`
-	RuntimeMonitorStartupDelay time.Duration `json:"runtime_monitor_startup_delay" env_var:"AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY"`
-	RuntimeMonitorLoopDelay    time.Duration `json:"runtime_monitor_loop_delay" env_var:"AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY"`
+	PathEscapeDepth            int                      `json:"path_escape_depth" env_var:"PATH_ESCAPE_DEPTH"`
+	JobPollInterval            sb_config_types.Duration `json:"job_poll_interval" env_var:"JOB_POLL_INTERVAL"`
+	HostWorkDirPath            string                   `json:"host_work_dir_path" env_var:"DEPLOYMENTS_HANDLER_HOST_WORK_DIR_PATH"`
+	RuntimeMonitorStartupDelay sb_config_types.Duration `json:"runtime_monitor_startup_delay" env_var:"AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY"`
+	RuntimeMonitorLoopDelay    sb_config_types.Duration `json:"runtime_monitor_loop_delay" env_var:"AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY"`
 }
 
 type Handler struct {

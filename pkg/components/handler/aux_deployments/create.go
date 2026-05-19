@@ -24,6 +24,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"time"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
@@ -239,7 +240,7 @@ func (h *Handler) ensureAuxDeploymentEnvironment(
 		imageName,
 		forceImagePull,
 		h.config.PathEscapeDepth,
-		h.config.JobPollInterval,
+		time.Duration(h.config.JobPollInterval),
 	)
 	if err != nil {
 		return err

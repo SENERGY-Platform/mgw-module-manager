@@ -16,10 +16,12 @@
 
 package modules
 
-import "time"
+import (
+	sb_config_types "github.com/SENERGY-Platform/go-service-base/config-hdl/types"
+)
 
 type Config struct {
-	WorkDirPath     string        `json:"work_dir_path" env_var:"MODULES_HANDLER_WORK_DIR_PATH"`
-	JobPollInterval time.Duration `json:"job_poll_interval" env_var:"MODULES_HANDLER_JOB_POLL_INTERVAL"`
-	PathEscapeDepth int           `json:"path_escape_depth" env_var:"PATH_ESCAPE_DEPTH"`
+	WorkDirPath     string                   `json:"work_dir_path" env_var:"MODULES_HANDLER_WORK_DIR_PATH"`
+	JobPollInterval sb_config_types.Duration `json:"job_poll_interval" env_var:"MODULES_HANDLER_JOB_POLL_INTERVAL"`
+	PathEscapeDepth int                      `json:"path_escape_depth" env_var:"PATH_ESCAPE_DEPTH"`
 }
