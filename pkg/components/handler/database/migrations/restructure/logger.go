@@ -18,6 +18,8 @@ package restructure
 
 import (
 	"log/slog"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
 const (
@@ -31,5 +33,5 @@ const (
 var logger *slog.Logger
 
 func InitLogger(sl *slog.Logger) {
-	logger = sl.With(attrKeyMigration, "restructure")
+	logger = sl.With(slog_keys.Component, "handler-database", attrKeyMigration, "restructure")
 }
