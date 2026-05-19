@@ -112,7 +112,7 @@ func migrateDepAdvertisementsTab(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	newIndexKeys := []string{"uk_dep_id_ref", "i_dep_id", "i_mod_id"}
+	newIndexKeys := []string{"uk_dep_id_ref", "i_dep_id", "i_mod_id", "i_origin", "i_ref"}
 	for _, key := range currentIndexKeys {
 		if key == "PRIMARY" {
 			continue
