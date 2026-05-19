@@ -12,7 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
 	"github.com/SENERGY-Platform/go-service-base/srv-info-hdl"
 	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
 	cm_client "github.com/SENERGY-Platform/mgw-core-manager/client"
@@ -42,8 +41,6 @@ import (
 	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
 )
 
-const runtimeIdKey = "runtime_id"
-
 var version string
 
 func main() {
@@ -69,6 +66,7 @@ func main() {
 	// init naming helper
 	helper_naming.CoreId = config.CoreId
 	helper_naming.ModuleContainerNetwork = config.ModuleContainerNetwork
+	helper_naming.SetRuntimeId()
 	err = helper_naming.SetManagerID(config.ManagerIdPath, configuration.ManagerId)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "set manager id: %s\n", err)
@@ -149,7 +147,7 @@ func main() {
 
 	// create main context
 	ctx, cf := context.WithCancel(context.Background())
-	ctx = context.WithValue(ctx, runtimeIdKey, helper_naming.GetRuntimeId())
+	ctx = context.WithValue(ctx, helper_naming.RuntimeIdKey, helper_naming.RuntimeId)
 
 	// create jobs handler
 	jobsHandler := handler_jobs.New(ctx, config.JobsHandler)
@@ -201,7 +199,7 @@ func main() {
 	}
 
 	// create logger
-	helper_slog.ContextAttributeKeys = []string{runtimeIdKey, api.ContextKeyRequestId, handler_jobs.ContextKeyJobId}
+	helper_slog.ContextAttributeKeys = []string{helper_naming.RuntimeIdKey, api.ContextKeyRequestId, handler_jobs.ContextKeyJobId}
 	logger := helper_slog.New(config.Logger, os.Stderr, "", serviceInfoHandler.Name())
 
 	// init loggers

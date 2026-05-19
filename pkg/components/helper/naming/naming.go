@@ -30,8 +30,11 @@ import (
 	"github.com/google/uuid"
 )
 
+const RuntimeIdKey = "runtime_id"
+
 const prefix = "mgw"
 
+var RuntimeId string
 var CoreId string
 var ManagerId string
 var ModuleContainerNetwork string
@@ -93,9 +96,9 @@ func SetManagerID(pth, val string) error {
 	return nil
 }
 
-func GetRuntimeId() string {
+func SetRuntimeId() {
 	time.Sleep(time.Millisecond * 2)
 	b := []byte(strconv.FormatInt(time.Now().UnixMilli(), 10))
 	slices.Reverse(b)
-	return base64.RawStdEncoding.EncodeToString(b)
+	RuntimeId = base64.RawStdEncoding.EncodeToString(b)
 }
