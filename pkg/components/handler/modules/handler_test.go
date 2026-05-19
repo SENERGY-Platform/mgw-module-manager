@@ -60,7 +60,7 @@ func TestHandler_Modules(t *testing.T) {
 		FileSystem: os.DirFS("test/test_mod"),
 	}
 	h := New(stgHdlMock, nil, Config{WorkDirPath: "./test"})
-	err := h.Init()
+	err := h.CreateWorkDir()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -111,7 +111,7 @@ func TestHandler_Module(t *testing.T) {
 		FileSystem: os.DirFS("test/test_mod"),
 	}
 	h := New(stgHdlMock, nil, Config{WorkDirPath: "./test"})
-	err := h.Init()
+	err := h.CreateWorkDir()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -164,7 +164,7 @@ func TestHandler_Add(t *testing.T) {
 	cewCltMock := &cewClientMock{Images: make(map[string]external_models.CewImage), Jobs: make(map[string]external_models.JobLibJob), JobCompleteDelay: time.Second * 1}
 	workDir := t.TempDir()
 	h := New(stgHdlMock, cewCltMock, Config{WorkDirPath: workDir, JobPollInterval: time.Millisecond * 250})
-	err := h.Init()
+	err := h.CreateWorkDir()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -297,7 +297,7 @@ func TestHandler_Update(t *testing.T) {
 		t.Fatal(err)
 	}
 	h := New(stgHdlMock, cewCltMock, Config{WorkDirPath: workDir})
-	err = h.Init()
+	err = h.CreateWorkDir()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -482,7 +482,7 @@ func TestHandler_Delete(t *testing.T) {
 		t.Fatal(err)
 	}
 	h := New(stgHdlMock, cewCltMock, Config{WorkDirPath: workDir})
-	err = h.Init()
+	err = h.CreateWorkDir()
 	if err != nil {
 		t.Fatal(err)
 	}

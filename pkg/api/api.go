@@ -17,7 +17,7 @@
 package api
 
 import (
-	"log/slog"
+	"net/http"
 
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
 	sb_slog_attributes "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
@@ -39,18 +39,17 @@ type Api struct {
 	ginEngine *gin.Engine
 }
 
-func New(service serviceItf, infoHdl infoHandler, logger *slog.Logger, accessLog bool) (*Api, error) {
+func New(service serviceItf, infoHdl infoHandler, accessLog bool) (*Api, error) {
 	ginEngine := gin.New()
 	var middleware []gin.HandlerFunc
 	if accessLog {
 		middleware = append(
 			middleware,
 			gin_mw.StructLoggerHandler(
-				logger.With(sb_slog_attributes.LogRecordTypeKey, sb_slog_attributes.HttpAccessLogRecordTypeVal),
+				logger,
 				sb_slog_attributes.Provider,
 				nil,
 				nil,
-				requestIdGenerator,
 			),
 		)
 	}
@@ -59,31 +58,34 @@ func New(service serviceItf, infoHdl infoHandler, logger *slog.Logger, accessLog
 			lib_constants.HttpHeaderApiVer:  infoHdl.Version(),
 			lib_constants.HttpHeaderSrvName: infoHdl.Name(),
 		}),
-		requestid.New(requestid.WithCustomHeaderStrKey(lib_constants.HttpHeaderRequestId)),
+		requestid.New(requestid.WithCustomHeaderStrKey(lib_constants.HttpHeaderRequestId), requestid.WithHandler(requestIdContextHandler)),
 		gin_mw.ErrorHandler(getStatusCode, ", "),
 		gin_mw.StructRecoveryHandler(logger, gin_mw.DefaultRecoveryFunc),
 	)
 	ginEngine.Use(middleware...)
 	ginEngine.UseRawPath = true
-	a := &Api{
+	return &Api{
 		service:   service,
 		infoHdl:   infoHdl,
 		ginEngine: ginEngine,
-	}
-	setRoutes, err := routes.Set(a, ginEngine)
+	}, nil
+}
+
+func (a *Api) Init() error {
+	setRoutes, err := routes.Set(a, a.ginEngine)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	for _, route := range setRoutes {
 		logger.Debug("http route", slog_keys.Method, route[0], slog_keys.Path, route[1])
 	}
-	return a, nil
+	return nil
 }
 
-func (a *Api) Handler() *gin.Engine {
+func (a *Api) Handler() http.Handler {
 	return a.ginEngine
 }
 
-func requestIdGenerator(gc *gin.Context) (string, any) {
-	return slog_keys.RequestId, requestid.Get(gc)
+func requestIdContextHandler(c *gin.Context, requestId string) {
+	c.Set(ContextKeyRequestId, requestId)
 }

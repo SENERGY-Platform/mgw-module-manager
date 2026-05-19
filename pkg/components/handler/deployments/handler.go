@@ -63,6 +63,6 @@ func New(
 	}
 }
 
-func (h *Handler) Init() error {
+func (h *Handler) CreateWorkDir() error {
 	return os.MkdirAll(h.config.WorkDirPath, dirPerm)
 }

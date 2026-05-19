@@ -60,6 +60,7 @@ type Config struct {
 	Database                 DatabaseConfig                 `json:"database"`
 	ManagerIdPath            string                         `json:"manager_id_path" env_var:"MANAGER_ID_PATH"`
 	CoreId                   string                         `json:"core_id" env_var:"CORE_ID"`
+	ModuleContainerNetwork   string                         `json:"module_container_network" env_var:"MODULE_CONTAINER_NETWORK"`
 	HttpAccessLog            bool                           `json:"http_access_log" env_var:"HTTP_ACCESS_LOG"`
 	UseUTC                   bool                           `json:"use_utc" env_var:"USE_UTC"`
 }

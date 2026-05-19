@@ -31,6 +31,7 @@ import (
 	handler_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github"
 	client_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 	helper_http "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/http"
+	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_os_signal "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/os_signal"
 	helper_slog "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slog"
 	helper_sql_db "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"
@@ -55,51 +56,40 @@ func main() {
 
 	config, err := configuration.New(configuration.ConfPath)
 	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, err)
+		_, _ = fmt.Fprintf(os.Stderr, "load configuration: %s", err)
+		ec = 1
+		return
+	}
+
+	helper_naming.CoreId = config.CoreId
+	helper_naming.ModuleContainerNetwork = config.ModuleContainerNetwork
+	err = helper_naming.SetManagerID(config.ManagerIdPath, configuration.ManagerId)
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "set manager id: %s\n", err)
 		ec = 1
 		return
 	}
 
 	helper_time.UTC = config.UseUTC
 
-	helper_slog.ContextAttributeKeys = []string{api.ContextKeyRequestId, handler_jobs.ContextKeyJobId}
-	logger := helper_slog.New(config.Logger, os.Stderr, "", serviceInfoHandler.Name())
-
-	logger.Info(
-		"start service",
-		slog_keys.Version,
-		serviceInfoHandler.Version(),
-		slog_keys.ConfigValues,
-		sb_config_hdl.StructToMap(config, true),
-	)
-
 	ctx, cf := context.WithCancel(context.Background())
 
 	mySQLConnector, err := handler_database.NewConnector(config.Database.MySQL)
 	if err != nil {
-		logger.Error("create mysql connector", slog_keys.Error, err)
+		_, _ = fmt.Fprintf(os.Stderr, "create mysql connector: %s\n", err)
 		ec = 1
 		return
 	}
 	sqlDB := helper_sql_db.NewSQLDatabase(mySQLConnector, config.Database.SQL)
 	defer sqlDB.Close()
 
-	handler_database.InitLogger(logger)
 	databaseHandler := handler_database.New(sqlDB)
-	migration_db_restructure.InitLogger(logger)
-	err = databaseHandler.Migrate(ctx, migration_db_restructure.Migration, migration_db_init.Migration)
-	if err != nil {
-		logger.Error("database migration", slog_keys.Error, err)
-		ec = 1
-		return
-	}
 
 	gitHubClient := client_repositories_github.New(
 		helper_http.NewClient(config.GitHubModulesRepoHandler.Timeout),
 		config.GitHubModulesRepoHandler.BaseUrl,
 	)
 
-	handler_repositories.InitLogger(logger)
 	repositoriesHandler := handler_repositories.New(
 		[]handler_repositories.Repository{
 			{
@@ -130,7 +120,6 @@ func main() {
 
 	containerEngineWrapperClient := cew_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CewBaseUrl)
 
-	handler_modules.InitLogger(logger)
 	modulesHdl := handler_modules.New(databaseHandler, containerEngineWrapperClient, config.ModulesHandler)
 
 	hostManagerClient := hm_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.HmBaseUrl)
@@ -139,7 +128,6 @@ func main() {
 
 	coreManagerClient := cm_client.New(helper_http.NewClient(config.MGW.Timeout), config.MGW.CmBaseUrl)
 
-	handler_deployments.InitLogger(logger)
 	deploymentsHandler := handler_deployments.New(
 		databaseHandler,
 		containerEngineWrapperClient,
@@ -149,7 +137,6 @@ func main() {
 		config.DeploymentsHandler,
 	)
 
-	handler_aux_deployments.InitLogger(logger)
 	auxDeploymentsHandler := handler_aux_deployments.New(
 		databaseHandler,
 		containerEngineWrapperClient,
@@ -158,9 +145,6 @@ func main() {
 
 	jobsHandler := handler_jobs.New(ctx, config.JobsHandler)
 
-	handler_global_configs.InitLogger(logger)
-	handler_dep_advertisements.InitLogger(logger)
-	service.InitLogger(logger)
 	srv := service.New(
 		repositoriesHandler,
 		modulesHdl,
@@ -174,14 +158,23 @@ func main() {
 
 	jobsHandler.SetCleanupHandler(srv.DeleteJobResults)
 
-	httpApi, err := api.New(
-		srv,
-		serviceInfoHandler,
-		logger,
-		config.HttpAccessLog,
-	)
+	err = modulesHdl.CreateWorkDir()
 	if err != nil {
-		logger.Error("create http engine", slog_keys.Error, err)
+		_, _ = fmt.Fprintf(os.Stderr, "create modules handler work directory: %s\n", err)
+		ec = 1
+		return
+	}
+
+	err = deploymentsHandler.CreateWorkDir()
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "create deployments handler work directory: %s\n", err)
+		ec = 1
+		return
+	}
+
+	httpApi, err := api.New(srv, serviceInfoHandler, config.HttpAccessLog)
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "create http api engine: %s\n", err)
 		ec = 1
 		return
 	}
@@ -189,7 +182,35 @@ func main() {
 	httpServer := &http.Server{Handler: httpApi.Handler()}
 	serverListener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
-		logger.Error("create server listener", slog_keys.Error, err)
+		_, _ = fmt.Fprintf(os.Stderr, "create server listener: %s\n", err)
+		ec = 1
+		return
+	}
+
+	helper_slog.ContextAttributeKeys = []string{api.ContextKeyRequestId, handler_jobs.ContextKeyJobId}
+	logger := helper_slog.New(config.Logger, os.Stderr, "", serviceInfoHandler.Name())
+	handler_database.InitLogger(logger)
+	handler_repositories.InitLogger(logger)
+	handler_modules.InitLogger(logger)
+	handler_deployments.InitLogger(logger)
+	handler_aux_deployments.InitLogger(logger)
+	handler_global_configs.InitLogger(logger)
+	handler_dep_advertisements.InitLogger(logger)
+	migration_db_restructure.InitLogger(logger)
+	service.InitLogger(logger)
+	api.InitLogger(logger)
+
+	logger.Info(
+		"start service",
+		slog_keys.Version, serviceInfoHandler.Version(),
+		slog_keys.ManagerId, helper_naming.ManagerId,
+		slog_keys.CoreId, helper_naming.CoreId,
+		slog_keys.Config, sb_config_hdl.StructToMap(config, true),
+	)
+
+	err = databaseHandler.Migrate(ctx, migration_db_restructure.Migration, migration_db_init.Migration)
+	if err != nil {
+		logger.Error("database migration", slog_keys.Error, err)
 		ec = 1
 		return
 	}
@@ -201,16 +222,9 @@ func main() {
 		return
 	}
 
-	err = modulesHdl.Init()
+	err = httpApi.Init()
 	if err != nil {
-		logger.Error("initialize modules handler", slog_keys.Error, err)
-		ec = 1
-		return
-	}
-
-	err = deploymentsHandler.Init()
-	if err != nil {
-		logger.Error("initialize deployments handler", slog_keys.Error, err)
+		logger.Error("initialize http api", slog_keys.Error, err)
 		ec = 1
 		return
 	}

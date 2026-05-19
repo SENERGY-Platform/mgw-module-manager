@@ -43,7 +43,7 @@ func New(databaseHandler databaseHandler, containerEngineWrapperClient container
 	}
 }
 
-func (h *Handler) Init() error {
+func (h *Handler) CreateWorkDir() error {
 	return os.MkdirAll(h.config.WorkDirPath, 0775)
 }
 

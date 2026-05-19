@@ -17,15 +17,18 @@
 package naming
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"os"
 
 	"github.com/google/uuid"
 )
 
+const prefix = "mgw"
+
 var CoreId string
-var Prefix string
 var ManagerId string
 var ModuleContainerNetwork string
 
@@ -34,15 +37,15 @@ func NewContainerName(prefix string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s-%s-%s-%s", Prefix, CoreId, prefix, GenHash(newUUID.String())), nil
+	return fmt.Sprintf("%s-%s-%s-%s", prefix, CoreId, prefix, GenHash(newUUID.String())), nil
 }
 
 func NewContainerAlias(arg ...string) string {
-	return fmt.Sprintf("%s-%s-%s", Prefix, CoreId, GenHash(arg...))
+	return fmt.Sprintf("%s-%s-%s", prefix, CoreId, GenHash(arg...))
 }
 
 func NewVolumeName(prefix string, arg ...string) string {
-	return fmt.Sprintf("%s_%s_%s_%s", Prefix, CoreId, prefix, GenHash(arg...))
+	return fmt.Sprintf("%s_%s_%s_%s", prefix, CoreId, prefix, GenHash(arg...))
 }
 
 func GenHash(str ...string) string {
@@ -51,4 +54,37 @@ func GenHash(str ...string) string {
 		hash.Write([]byte(s))
 	}
 	return hex.EncodeToString(hash.Sum(nil))
+}
+
+func SetManagerID(pth, val string) error {
+	if val != "" {
+		ManagerId = val
+		return nil
+	}
+	file, err := os.OpenFile(pth, os.O_CREATE|os.O_RDWR, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	buf := new(bytes.Buffer)
+	n, err := buf.ReadFrom(file)
+	if err != nil {
+		return err
+	}
+	var id string
+	if n != 0 {
+		id = buf.String()
+	} else {
+		newUUID, err := uuid.NewV7()
+		if err != nil {
+			return err
+		}
+		id = newUUID.String()
+		_, err = file.Write([]byte(id))
+		if err != nil {
+			return err
+		}
+	}
+	ManagerId = id
+	return nil
 }
