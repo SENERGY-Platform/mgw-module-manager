@@ -46,7 +46,7 @@ var version string
 
 func main() {
 
-	// set correct return code on exit
+	// set exit status code
 	ec := 0
 	defer func() {
 		os.Exit(ec)
