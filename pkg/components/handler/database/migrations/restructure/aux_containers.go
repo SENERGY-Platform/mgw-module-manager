@@ -34,7 +34,7 @@ func migrateAuxContainersTab(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	logger.Info("transforming data from table", attrTable, tableName)
+	logger.InfoContext(ctx, "transforming data from table", attrTable, tableName)
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func migrateAuxContainersTab(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	logger.Info("dropping table", attrTable, tableName)
+	logger.InfoContext(ctx, "dropping table", attrTable, tableName)
 	return dropTable(ctx, db, tableName)
 }
 

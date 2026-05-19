@@ -45,7 +45,7 @@ func (h *Handler) RuntimeMonitor(ctx context.Context) {
 func (h *Handler) checkDeployments(ctx context.Context) {
 	auxDepsByParent, cewContainersMap, err := h.getCurrentRuntimeData(ctx)
 	if err != nil {
-		rmLogger.Error("get auxiliary deployments", slog_keys.Error, err)
+		rmLogger.ErrorContext(ctx, "get auxiliary deployments", slog_keys.Error, err)
 		return
 	}
 	filteredAuxDepsByParent := h.runtimeMonitorJobsFilter(auxDepsByParent)
@@ -122,11 +122,11 @@ func (h *Handler) startContainers(
 	ctx context.Context,
 	containerNames []string,
 ) {
-	rmLogger.Debug("start containers", slog_keys.Containers, containerNames)
+	rmLogger.DebugContext(ctx, "start containers", slog_keys.Containers, containerNames)
 	for _, name := range containerNames {
 		err := h.containerEngineWrapperClient.StartContainer(ctx, name)
 		if err != nil {
-			rmLogger.Error("start containers", slog_keys.Containers, containerNames, slog_keys.Error, err)
+			rmLogger.ErrorContext(ctx, "start containers", slog_keys.Containers, containerNames, slog_keys.Error, err)
 		}
 	}
 }
@@ -135,11 +135,11 @@ func (h *Handler) stopContainers(
 	ctx context.Context,
 	containerNames []string,
 ) {
-	rmLogger.Debug("stop containers", slog_keys.Containers, containerNames)
+	rmLogger.DebugContext(ctx, "stop containers", slog_keys.Containers, containerNames)
 	for _, name := range containerNames {
 		err := helper_containers.Stop(ctx, h.containerEngineWrapperClient, name, h.config.JobPollInterval)
 		if err != nil {
-			rmLogger.Error("stop containers", slog_keys.Containers, containerNames, slog_keys.Error, err)
+			rmLogger.ErrorContext(ctx, "stop containers", slog_keys.Containers, containerNames, slog_keys.Error, err)
 		}
 	}
 }

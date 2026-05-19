@@ -45,7 +45,7 @@ func (h *Handler) RuntimeMonitor(ctx context.Context) {
 func (h *Handler) checkDeployments(ctx context.Context) {
 	deployments, deploymentsContainers, deploymentsMountSecrets, cewContainersMap, err := h.getCurrentRuntimeData(ctx)
 	if err != nil {
-		rmLogger.Error("get deployments", slog_keys.Error, err)
+		rmLogger.ErrorContext(ctx, "get deployments", slog_keys.Error, err)
 		return
 	}
 	filteredDeployments := h.runtimeMonitorJobsFilter(deployments)
@@ -119,12 +119,12 @@ func (h *Handler) startDeployment(
 		if err != nil && len(deploymentMountSecrets) > 0 {
 			e, _ := h.secretManagerClient.CleanPathVariants(context.Background(), deploymentId)
 			if e != nil {
-				rmLogger.Error("start deployment, unload mounted secrets", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
+				rmLogger.ErrorContext(ctx, "start deployment, unload mounted secrets", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
 			}
 		}
 		h.runtimeMonitorJobsRemove(deploymentId)
 	}()
-	rmLogger.Debug(
+	rmLogger.DebugContext(ctx,
 		"start deployment",
 		slog_keys.DeploymentId, deploymentId,
 		slog_keys.Containers, deploymentContainers,
@@ -132,7 +132,7 @@ func (h *Handler) startDeployment(
 	)
 	err = h.loadDeploymentMountSecrets(ctx, deploymentId, deploymentMountSecrets)
 	if err != nil {
-		rmLogger.Error(
+		rmLogger.ErrorContext(ctx,
 			"start deployment, load mount secrets",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.Secrets, deploymentMountSecrets,
@@ -142,7 +142,7 @@ func (h *Handler) startDeployment(
 	}
 	err = h.startContainers(ctx, deploymentContainers)
 	if err != nil {
-		rmLogger.Error(
+		rmLogger.ErrorContext(ctx,
 			"start deployment, start containers",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.Containers, deploymentContainers,
@@ -187,7 +187,7 @@ func (h *Handler) stopDeployment(
 	hasMountSecrets bool,
 ) {
 	defer h.runtimeMonitorJobsRemove(deploymentId)
-	rmLogger.Debug(
+	rmLogger.DebugContext(ctx,
 		"stop deployment",
 		slog_keys.DeploymentId, deploymentId,
 		slog_keys.Containers, deploymentContainers,
@@ -195,12 +195,12 @@ func (h *Handler) stopDeployment(
 	if hasMountSecrets {
 		err, _ := h.secretManagerClient.CleanPathVariants(ctx, deploymentId)
 		if err != nil {
-			rmLogger.Error("stop deployment, unload mounted secrets", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
+			rmLogger.ErrorContext(ctx, "stop deployment, unload mounted secrets", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
 		}
 	}
 	err := h.stopContainers(ctx, deploymentContainers)
 	if err != nil {
-		rmLogger.Error(
+		rmLogger.ErrorContext(ctx,
 			"stop deployment, start containers",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.Containers, deploymentContainers,

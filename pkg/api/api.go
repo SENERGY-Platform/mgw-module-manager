@@ -17,6 +17,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
@@ -71,13 +72,13 @@ func New(service serviceItf, infoHdl infoHandler, accessLog bool) (*Api, error) 
 	}, nil
 }
 
-func (a *Api) Init() error {
+func (a *Api) Init(ctx context.Context) error {
 	setRoutes, err := routes.Set(a, a.ginEngine)
 	if err != nil {
 		return err
 	}
 	for _, route := range setRoutes {
-		logger.Debug("http route", slog_keys.Method, route[0], slog_keys.Path, route[1])
+		logger.DebugContext(ctx, "http route", slog_keys.Method, route[0], slog_keys.Path, route[1])
 	}
 	return nil
 }

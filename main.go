@@ -42,6 +42,8 @@ import (
 	sm_client "github.com/SENERGY-Platform/mgw-secret-manager/pkg/client"
 )
 
+const runtimeIdKey = "runtime_id"
+
 var version string
 
 func main() {
@@ -147,6 +149,7 @@ func main() {
 
 	// create main context
 	ctx, cf := context.WithCancel(context.Background())
+	ctx = context.WithValue(ctx, runtimeIdKey, helper_naming.GetRuntimeId())
 
 	// create jobs handler
 	jobsHandler := handler_jobs.New(ctx, config.JobsHandler)
@@ -198,7 +201,7 @@ func main() {
 	}
 
 	// create logger
-	helper_slog.ContextAttributeKeys = []string{api.ContextKeyRequestId, handler_jobs.ContextKeyJobId}
+	helper_slog.ContextAttributeKeys = []string{runtimeIdKey, api.ContextKeyRequestId, handler_jobs.ContextKeyJobId}
 	logger := helper_slog.New(config.Logger, os.Stderr, "", serviceInfoHandler.Name())
 
 	// init loggers
@@ -215,7 +218,8 @@ func main() {
 
 	// start service ---------------------------------------------------------------------------------------------------
 
-	logger.Info(
+	logger.InfoContext(
+		ctx,
 		"start service",
 		slog_keys.Version, serviceInfoHandler.Version(),
 		slog_keys.ManagerId, helper_naming.ManagerId,
@@ -226,7 +230,7 @@ func main() {
 	// run database migrations
 	err = databaseHandler.Migrate(ctx, migration_db_restructure.Migration, migration_db_init.Migration)
 	if err != nil {
-		logger.Error("database migration", slog_keys.Error, err)
+		logger.ErrorContext(ctx, "database migration", slog_keys.Error, err)
 		ec = 1
 		return
 	}
@@ -234,22 +238,25 @@ func main() {
 	// init repositories
 	err = repositoriesHandler.InitRepositories(ctx)
 	if err != nil {
-		logger.Error("initialize repositories", slog_keys.Error, err)
+		logger.ErrorContext(ctx, "initialize repositories", slog_keys.Error, err)
 		ec = 1
 		return
 	}
 
 	// init http api
-	err = httpApi.Init()
+	err = httpApi.Init(ctx)
 	if err != nil {
-		logger.Error("initialize http api", slog_keys.Error, err)
+		logger.ErrorContext(ctx, "initialize http api", slog_keys.Error, err)
 		ec = 1
 		return
 	}
 
 	// start os signal listener
 	go func() {
-		helper_os_signal.Wait(ctx, logger, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+		sig := helper_os_signal.Wait(ctx, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+		if sig != nil {
+			logger.WarnContext(ctx, "caught os signal", slog_keys.Signal, sig.String())
+		}
 		cf()
 	}()
 
@@ -282,9 +289,9 @@ func main() {
 
 	// start http server
 	go func() {
-		logger.Info("start http server")
+		logger.InfoContext(ctx, "start http server")
 		if err := httpServer.Serve(serverListener); !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("start server", slog_keys.Error, err)
+			logger.ErrorContext(ctx, "start server", slog_keys.Error, err)
 			ec = 1
 		}
 		cf()
@@ -295,14 +302,14 @@ func main() {
 	go func() {
 		defer wg.Done()
 		<-ctx.Done()
-		logger.Info("stop http server")
+		logger.InfoContext(ctx, "stop http server")
 		ctxWt, cf2 := context.WithTimeout(context.Background(), time.Second*5)
 		defer cf2()
 		if err := httpServer.Shutdown(ctxWt); err != nil {
-			logger.Error("stop http server", slog_keys.Error, err)
+			logger.ErrorContext(ctx, "stop http server", slog_keys.Error, err)
 			ec = 1
 		} else {
-			logger.Info("http server stopped")
+			logger.InfoContext(ctx, "http server stopped")
 		}
 	}()
 

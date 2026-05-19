@@ -86,7 +86,7 @@ func migrateConfigsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if len(configs) > 0 {
-		logger.Info("transforming data from table", attrTable, tableName)
+		logger.InfoContext(ctx, "transforming data from table", attrTable, tableName)
 		tx, err := db.BeginTx(ctx, nil)
 		if err != nil {
 			return err
@@ -122,7 +122,7 @@ func migrateConfigsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
-	logger.Info("dropping table", attrTable, tableName)
+	logger.InfoContext(ctx, "dropping table", attrTable, tableName)
 	return dropTable(ctx, db, tableName)
 }
 
@@ -140,7 +140,7 @@ func migrateListConfigsTab(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if len(configs) > 0 {
-		logger.Info("transforming data from table", attrTable, tableName)
+		logger.InfoContext(ctx, "transforming data from table", attrTable, tableName)
 		tx, err := db.BeginTx(ctx, nil)
 		if err != nil {
 			return err
@@ -173,7 +173,7 @@ func migrateListConfigsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
-	logger.Info("dropping table", attrTable, tableName)
+	logger.InfoContext(ctx, "dropping table", attrTable, tableName)
 	return dropTable(ctx, db, tableName)
 }
 

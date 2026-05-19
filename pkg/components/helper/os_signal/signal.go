@@ -18,24 +18,21 @@ package os_signal
 
 import (
 	"context"
-	"log/slog"
 	"os"
 	"os/signal"
-
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
-func Wait(ctx context.Context, logger *slog.Logger, signals ...os.Signal) {
+func Wait(ctx context.Context, signals ...os.Signal) os.Signal {
 	ch := make(chan os.Signal, 1)
 	for _, sig := range signals {
 		signal.Notify(ch, sig)
 	}
+	defer signal.Stop(ch)
 	select {
 	case sig := <-ch:
-		logger.Warn("caught os signal", slog_keys.Signal, sig.String())
-		break
+		return sig
 	case <-ctx.Done():
 		break
 	}
-	signal.Stop(ch)
+	return nil
 }

@@ -26,8 +26,6 @@ import (
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
-	"github.com/bytedance/gopkg/util/logger"
 )
 
 const ContextKeyJobId = "job_id"
@@ -186,7 +184,6 @@ func (h *Handler) cleanup() []string {
 		}
 	}
 	h.jobMap = tmp
-	logger.Debug("job cleanup", slog_keys.JobIds, oldJobs)
 	return oldJobs
 }
 

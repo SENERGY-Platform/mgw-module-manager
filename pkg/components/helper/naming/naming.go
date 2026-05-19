@@ -19,9 +19,13 @@ package naming
 import (
 	"bytes"
 	"crypto/sha1"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"os"
+	"slices"
+	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -87,4 +91,11 @@ func SetManagerID(pth, val string) error {
 	}
 	ManagerId = id
 	return nil
+}
+
+func GetRuntimeId() string {
+	time.Sleep(time.Millisecond * 2)
+	b := []byte(strconv.FormatInt(time.Now().UnixMilli(), 10))
+	slices.Reverse(b)
+	return base64.RawStdEncoding.EncodeToString(b)
 }
