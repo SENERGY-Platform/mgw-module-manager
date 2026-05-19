@@ -17,6 +17,8 @@
 package configuration
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"time"
 
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
@@ -125,4 +127,12 @@ func New(path string) (Config, error) {
 	cfg := defaultConfig
 	err := sb_config_hdl.Load(&cfg, nil, envTypeParser, nil, path)
 	return cfg, err
+}
+
+func ToBase64EncodedJson(v interface{}) string {
+	b, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return base64.StdEncoding.EncodeToString(b)
 }

@@ -222,8 +222,8 @@ func main() {
 		slog_keys.Version, serviceInfoHandler.Version(),
 		slog_keys.ManagerId, helper_naming.ManagerId,
 		slog_keys.CoreId, helper_naming.CoreId,
-		slog_keys.Config, sb_config_hdl.StructToMap(config, true),
 	)
+	logger.DebugContext(ctx, "configuration values", slog_keys.Config, configuration.ToBase64EncodedJson(config))
 
 	// run database migrations
 	err = databaseHandler.Migrate(ctx, migration_db_restructure.Migration, migration_db_init.Migration)
