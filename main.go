@@ -63,6 +63,22 @@ func main() {
 		return
 	}
 
+	// create logger
+	helper_slog.ContextAttributeKeys = []string{helper_naming.RuntimeIdKey, api.ContextKeyRequestId, handler_jobs.ContextKeyJobId}
+	logger := helper_slog.New(config.Logger, os.Stderr, "", serviceInfoHandler.Name())
+
+	// init loggers
+	handler_database.InitLogger(logger)
+	handler_repositories.InitLogger(logger)
+	handler_modules.InitLogger(logger)
+	handler_deployments.InitLogger(logger)
+	handler_aux_deployments.InitLogger(logger)
+	handler_global_configs.InitLogger(logger)
+	handler_dep_advertisements.InitLogger(logger)
+	migration_db_restructure.InitLogger(logger)
+	service.InitLogger(logger)
+	api.InitLogger(logger)
+
 	// init naming helper
 	helper_naming.CoreId = config.CoreId
 	helper_naming.ModuleContainerNetwork = config.ModuleContainerNetwork
@@ -197,22 +213,6 @@ func main() {
 		ec = 1
 		return
 	}
-
-	// create logger
-	helper_slog.ContextAttributeKeys = []string{helper_naming.RuntimeIdKey, api.ContextKeyRequestId, handler_jobs.ContextKeyJobId}
-	logger := helper_slog.New(config.Logger, os.Stderr, "", serviceInfoHandler.Name())
-
-	// init loggers
-	handler_database.InitLogger(logger)
-	handler_repositories.InitLogger(logger)
-	handler_modules.InitLogger(logger)
-	handler_deployments.InitLogger(logger)
-	handler_aux_deployments.InitLogger(logger)
-	handler_global_configs.InitLogger(logger)
-	handler_dep_advertisements.InitLogger(logger)
-	migration_db_restructure.InitLogger(logger)
-	service.InitLogger(logger)
-	api.InitLogger(logger)
 
 	// start service ---------------------------------------------------------------------------------------------------
 
