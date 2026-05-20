@@ -59,7 +59,7 @@ func (s *Service) RefreshRepositories(ctx context.Context) (lib_models.Job, erro
 	}, nil
 }
 
-func (s *Service) RepoModules(ctx context.Context, filter lib_models.RepoModulesFilter) ([]lib_models.RepoModule, error) {
+func (s *Service) GetRepositoryModules(ctx context.Context, filter lib_models.RepoModulesFilter) ([]lib_models.RepoModule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)

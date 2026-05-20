@@ -185,7 +185,7 @@ func (s *Service) CancelModulesChangeRequest(_ context.Context) error {
 	return nil
 }
 
-func (s *Service) GetModulesAvailableUpdates(ctx context.Context) (int, error) {
+func (s *Service) GetModulesAvailableUpdatesCount(ctx context.Context) (int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	changeRequest, err := s.newModulesUpdateAllChangeRequest(ctx)
