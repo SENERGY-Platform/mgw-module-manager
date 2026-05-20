@@ -183,3 +183,9 @@ type deploymentAdvertisementsHandler interface {
 type databaseHandler interface {
 	Ping(ctx context.Context) error
 }
+
+type infoHandler interface {
+	ServiceInfo() lib_models.ServiceInfo
+	Version() string
+	Name() string
+}

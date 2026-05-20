@@ -515,11 +515,11 @@ func getModule(module pkg_models.Module, deployment pkg_models.Deployment) lib_m
 		}
 	}
 	return lib_models.Module{
-		ModuleLibModule: module.ModuleLibModule,
-		Source:          module.Source,
-		Channel:         module.Channel,
-		Added:           module.Added,
-		Updated:         module.Updated,
+		ModuleBase: module.ModuleLibModule,
+		Source:     module.Source,
+		Channel:    module.Channel,
+		Added:      module.Added,
+		Updated:    module.Updated,
 		Deployment: lib_models.Deployment{
 			Id:            deployment.Id,
 			ModuleSource:  deployment.ModuleSource,

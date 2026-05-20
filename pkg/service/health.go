@@ -23,7 +23,6 @@ import (
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/models/constants"
-	lib_external "github.com/SENERGY-Platform/mgw-module-manager/lib/models/external"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
@@ -141,7 +140,7 @@ func getDeploymentsHealthInfo(
 
 func containerOk(state, health string) bool {
 	if health != "" {
-		return health == lib_external.CewHealthyState
+		return health == lib_models.CewHealthyState
 	}
-	return state == lib_external.CewRunningState || state == lib_external.CewRestartingState || state == lib_external.CewTransitionState
+	return state == lib_models.CewRunningState || state == lib_models.CewRestartingState || state == lib_models.CewTransitionState
 }

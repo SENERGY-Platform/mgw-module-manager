@@ -21,7 +21,7 @@ import (
 	"maps"
 	"time"
 
-	lib_external "github.com/SENERGY-Platform/mgw-module-manager/lib/models/external"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
@@ -55,7 +55,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 			var toStop []string
 			for _, auxDep := range parent.AuxiliaryDeployments {
 				container, ok := cewContainersMap[auxDep.Container.Name]
-				if !ok || container.State == lib_external.CewRemovingState {
+				if !ok || container.State == lib_models.CewRemovingState {
 					continue
 				}
 				if auxDep.Enabled {
@@ -80,7 +80,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 			var toStop []string
 			for _, auxDep := range parent.AuxiliaryDeployments {
 				container, ok := cewContainersMap[auxDep.Container.Name]
-				if !ok || container.State == lib_external.CewRemovingState {
+				if !ok || container.State == lib_models.CewRemovingState {
 					continue
 				}
 				if getContainerState(container.State) > 0 {
@@ -173,17 +173,17 @@ func (h *Handler) runtimeMonitorJobsRemove(id string) {
 
 func getContainerState(state string) int {
 	switch state {
-	case lib_external.CewInitState:
+	case lib_models.CewInitState:
 		return -1
-	case lib_external.CewStoppedState:
+	case lib_models.CewStoppedState:
 		return -1
-	case lib_external.CewDeadState:
+	case lib_models.CewDeadState:
 		return -1
-	case lib_external.CewRunningState:
+	case lib_models.CewRunningState:
 		return 1
-	case lib_external.CewPausedState:
+	case lib_models.CewPausedState:
 		return 1
-	case lib_external.CewRestartingState:
+	case lib_models.CewRestartingState:
 		return 1
 	}
 	return 0

@@ -19,6 +19,7 @@ type Service struct {
 	changeRequest            *modulesChangeRequest
 	jobResults               jobResults
 	mu                       sync.RWMutex
+	infoHandler
 }
 
 func New(
@@ -30,6 +31,7 @@ func New(
 	depAdvertisementsHandler deploymentAdvertisementsHandler,
 	databaseHandler databaseHandler,
 	jobsHandler *handler_jobs.Handler,
+	infoHandler infoHandler,
 ) *Service {
 	return &Service{
 		repositoriesHandler:      repositoriesHandler,
@@ -40,6 +42,7 @@ func New(
 		depAdvertisementsHandler: depAdvertisementsHandler,
 		databaseHandler:          databaseHandler,
 		jobsHandler:              jobsHandler,
+		infoHandler:              infoHandler,
 		jobResults: jobResults{
 			deployments:         make(map[string]lib_models.DeploymentJobResult),
 			deploymentsUpdate:   make(map[string]lib_models.DeploymentUpdateJobResult),

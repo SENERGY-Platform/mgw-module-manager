@@ -1,3 +1,5 @@
+github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.2.0 h1:EQbMcWBVgzArb/OJi0LbNXcE48oIRWngw0ChnWzd8KM=
+github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.2.0/go.mod h1:mgNdIRGzrn3Vey2d0j/OtGSt8APIp5Io54MD80UorPs=
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.19.0 h1:xrDfls5cHKxw9AqbSo4BVTD0bkGwMJ6QJtM0t+YOxUo=
 github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib v0.19.0/go.mod h1:/lZf+P+IVb6HCuwP5syNCb2oozlZ/uDCoRXrQjScdxw=
 github.com/SENERGY-Platform/mgw-module-lib v0.32.1 h1:U0Oc7deuo3kbd0/i9oqDl2aXE2K31REq7AYmyggQM3Y=

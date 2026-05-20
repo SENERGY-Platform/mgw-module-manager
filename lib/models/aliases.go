@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package external
+package models
 
 import (
+	srv_info_hdl "github.com/SENERGY-Platform/go-service-base/srv-info-hdl"
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 )
@@ -34,4 +35,6 @@ const (
 	CewTransitionState = cew_model.TransitionState
 )
 
-type ModuleLibModule = module_lib.Module
+type ModuleBase = module_lib.Module
+
+type ServiceInfo = srv_info_hdl.ServiceInfo

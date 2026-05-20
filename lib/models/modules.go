@@ -18,12 +18,10 @@ package models
 
 import (
 	"time"
-
-	external_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models/external"
 )
 
 type Module struct {
-	external_models.ModuleLibModule
+	ModuleBase
 	Source     string     `json:"source"`
 	Channel    string     `json:"channel"`
 	Added      time.Time  `json:"added"`
