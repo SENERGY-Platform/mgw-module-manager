@@ -284,9 +284,9 @@ func getContainers(
 
 func getDeploymentState(containersState int) int {
 	if containersState == containersStateRunning {
-		return lib_models.DeploymentStateHealthy
+		return lib_models.DeploymentHealthy
 	}
-	return lib_models.DeploymentStateUnhealthy
+	return lib_models.DeploymentUnhealthy
 }
 
 func getContainersCombinedState(
@@ -300,10 +300,10 @@ func getContainersCombinedState(
 		if !ok {
 			return containersStateBroken
 		}
-		if existingContainer.State == lib_models.CewRunningState {
+		if existingContainer.State == lib_models.ContainerRunning {
 			runningCount++
 		}
-		if existingContainer.Health != nil && *existingContainer.Health == lib_models.CewUnhealthyState {
+		if existingContainer.Health != nil && *existingContainer.Health == lib_models.ContainerUnhealthy {
 			unhealthyCount++
 		}
 	}

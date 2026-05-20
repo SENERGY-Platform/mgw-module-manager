@@ -23,22 +23,23 @@ import (
 )
 
 type ContainerState = string
+
+const (
+	ContainerInitialized ContainerState = cew_model.InitState
+	ContainerRunning     ContainerState = cew_model.RunningState
+	ContainerPaused      ContainerState = cew_model.PausedState
+	ContainerRestarting  ContainerState = cew_model.RestartingState
+	ContainerRemoving    ContainerState = cew_model.RemovingState
+	ContainerStopped     ContainerState = cew_model.StoppedState
+	ContainerDead        ContainerState = cew_model.DeadState
+)
+
 type ContainerHealth = string
 
 const (
-	CewInitState       ContainerState = cew_model.InitState
-	CewRunningState    ContainerState = cew_model.RunningState
-	CewPausedState     ContainerState = cew_model.PausedState
-	CewRestartingState ContainerState = cew_model.RestartingState
-	CewRemovingState   ContainerState = cew_model.RemovingState
-	CewStoppedState    ContainerState = cew_model.StoppedState
-	CewDeadState       ContainerState = cew_model.DeadState
-)
-
-const (
-	CewHealthyState    ContainerHealth = cew_model.HealthyState
-	CewUnhealthyState  ContainerHealth = cew_model.UnhealthyState
-	CewTransitionState ContainerHealth = cew_model.TransitionState
+	ContainerHealthy       ContainerHealth = cew_model.HealthyState
+	ContainerUnhealthy     ContainerHealth = cew_model.UnhealthyState
+	ContainerTransitioning ContainerHealth = cew_model.TransitionState
 )
 
 type ModuleBase = module_lib.Module

@@ -16,25 +16,23 @@
 
 package models
 
-type ModuleChangeAction = string
-
 const (
-	ModuleChangeActionInstall ModuleChangeAction = "install"
-	ModuleChangeActionChange  ModuleChangeAction = "change"
-	ModuleChangeActionRemove  ModuleChangeAction = "remove"
+	ActionInstall = "install"
+	ActionChange  = "change"
+	ActionRemove  = "remove"
 )
 
 type DeploymentState = int
 
 const (
-	DeploymentStateHealthy DeploymentState = iota + 1
-	DeploymentStateUnhealthy
+	DeploymentHealthy DeploymentState = iota + 1
+	DeploymentUnhealthy
 )
 
 const (
-	HttpCoreId          = "X-Core-Id"
-	HttpManagerId       = "X-Manager-Id"
-	HttpRuntimeId       = "X-Runtime-Id"
+	HttpHeaderCoreId    = "X-Core-Id"
+	HttpHeaderManagerId = "X-Manager-Id"
+	HttpHeaderRuntimeId = "X-Runtime-Id"
 	HttpHeaderRequestId = "X-Request-Id"
 	HttpHeaderApiVer    = "X-Version"
 	HttpHeaderSrvName   = "X-Service"

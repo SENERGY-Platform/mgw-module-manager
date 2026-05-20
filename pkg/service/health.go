@@ -104,9 +104,9 @@ func getDeploymentsHealthInfo(
 				})
 			}
 			if notOk == 0 {
-				auxDepsState = lib_models.DeploymentStateHealthy
+				auxDepsState = lib_models.DeploymentHealthy
 			} else {
-				auxDepsState = lib_models.DeploymentStateUnhealthy
+				auxDepsState = lib_models.DeploymentUnhealthy
 			}
 		}
 		if !includeHealthy && deployment.State < 2 && auxDepsState < 2 {
@@ -139,7 +139,7 @@ func getDeploymentsHealthInfo(
 
 func containerOk(state, health string) bool {
 	if health != "" {
-		return health == lib_models.CewHealthyState
+		return health == lib_models.ContainerHealthy || health == lib_models.ContainerTransitioning
 	}
-	return state == lib_models.CewRunningState || state == lib_models.CewRestartingState || state == lib_models.CewTransitionState
+	return state == lib_models.ContainerRunning || state == lib_models.ContainerRestarting
 }

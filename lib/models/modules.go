@@ -94,8 +94,8 @@ type ModuleAbbreviated struct {
 }
 
 type ChangeReportItem struct {
-	Id     string             `json:"id"`
-	Action ModuleChangeAction `json:"action"`
+	Id     string `json:"id"`
+	Action string `json:"action"`
 }
 
 type ChangeReportErrItem struct {

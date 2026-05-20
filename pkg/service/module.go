@@ -248,7 +248,7 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.Modul
 	for _, id := range s.changeRequest.Remove {
 		cri := lib_models.ChangeReportItem{
 			Id:     id,
-			Action: lib_models.ModuleChangeActionRemove,
+			Action: lib_models.ActionRemove,
 		}
 		err := s.modulesHandler.DeleteModule(ctx, id)
 		if err != nil {
@@ -263,7 +263,7 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.Modul
 	for _, repoMod := range s.changeRequest.Install {
 		cri := lib_models.ChangeReportItem{
 			Id:     repoMod.Mod.ID,
-			Action: lib_models.ModuleChangeActionInstall,
+			Action: lib_models.ActionInstall,
 		}
 		err := s.modulesHandler.AddModule(ctx, repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.FS)
 		if err != nil {
@@ -278,7 +278,7 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.Modul
 	for _, item := range s.changeRequest.Change {
 		cri := lib_models.ChangeReportItem{
 			Id:     item.Next.Mod.ID,
-			Action: lib_models.ModuleChangeActionChange,
+			Action: lib_models.ActionChange,
 		}
 		err := s.modulesHandler.UpdateModule(ctx, item.Next.Mod.ID, item.Next.Source, item.Next.Channel, item.Next.FS)
 		if err != nil {

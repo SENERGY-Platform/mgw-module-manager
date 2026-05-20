@@ -55,7 +55,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 			var toStop []string
 			for _, auxDep := range parent.AuxiliaryDeployments {
 				container, ok := cewContainersMap[auxDep.Container.Name]
-				if !ok || container.State == lib_models.CewRemovingState {
+				if !ok || container.State == lib_models.ContainerRemoving {
 					continue
 				}
 				if auxDep.Enabled {
@@ -80,7 +80,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 			var toStop []string
 			for _, auxDep := range parent.AuxiliaryDeployments {
 				container, ok := cewContainersMap[auxDep.Container.Name]
-				if !ok || container.State == lib_models.CewRemovingState {
+				if !ok || container.State == lib_models.ContainerRemoving {
 					continue
 				}
 				if getContainerState(container.State) > 0 {
@@ -173,17 +173,17 @@ func (h *Handler) runtimeMonitorJobsRemove(id string) {
 
 func getContainerState(state string) int {
 	switch state {
-	case lib_models.CewInitState:
+	case lib_models.ContainerInitialized:
 		return -1
-	case lib_models.CewStoppedState:
+	case lib_models.ContainerStopped:
 		return -1
-	case lib_models.CewDeadState:
+	case lib_models.ContainerDead:
 		return -1
-	case lib_models.CewRunningState:
+	case lib_models.ContainerRunning:
 		return 1
-	case lib_models.CewPausedState:
+	case lib_models.ContainerPaused:
 		return 1
-	case lib_models.CewRestartingState:
+	case lib_models.ContainerRestarting:
 		return 1
 	}
 	return 0
