@@ -42,6 +42,7 @@ import (
 )
 
 var version string
+var name = "module-manager"
 
 func main() {
 
@@ -50,9 +51,6 @@ func main() {
 	defer func() {
 		os.Exit(ec)
 	}()
-
-	// create info handler
-	serviceInfoHandler := srv_info_hdl.New("module-manager", version)
 
 	// load configuration
 	configuration.ParseFlags()
@@ -65,7 +63,7 @@ func main() {
 
 	// create logger
 	helper_slog.ContextAttributeKeys = []string{helper_naming.RuntimeIdKey, api.ContextKeyRequestId, handler_jobs.ContextKeyJobId}
-	logger := helper_slog.New(config.Logger, os.Stderr, "", serviceInfoHandler.Name())
+	logger := helper_slog.New(config.Logger, os.Stderr, "", name)
 
 	// init loggers
 	handler_database.InitLogger(logger)
@@ -178,6 +176,7 @@ func main() {
 		handler_dep_advertisements.New(databaseHandler),
 		databaseHandler,
 		jobsHandler,
+		srv_info_hdl.New(name, version),
 	)
 
 	// set job results cleanup callback
@@ -198,7 +197,7 @@ func main() {
 	}
 
 	// create http api
-	httpApi, err := api.New(srv, serviceInfoHandler, config.HttpAccessLog)
+	httpApi, err := api.New(name, version, config.HttpAccessLog)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "create http api engine: %s\n", err)
 		ec = 1
@@ -206,7 +205,7 @@ func main() {
 	}
 
 	// create http server
-	httpServer := &http.Server{Handler: httpApi.Handler()}
+	httpServer := &http.Server{Handler: httpApi}
 	serverListener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "create server listener: %s\n", err)
@@ -219,7 +218,7 @@ func main() {
 	logger.InfoContext(
 		ctx,
 		"start service",
-		slog_keys.Version, serviceInfoHandler.Version(),
+		slog_keys.Version, version,
 		slog_keys.ManagerId, helper_naming.ManagerId,
 		slog_keys.CoreId, helper_naming.CoreId,
 	)
