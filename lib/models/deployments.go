@@ -40,11 +40,11 @@ type Deployment struct {
 }
 
 type Container struct {
-	Name    string `json:"name"`
-	Alias   string `json:"alias"`
-	ImageId string `json:"image_id"` // docker image id
-	State   string `json:"state"`    // docker container state
-	Health  string `json:"health"`   // docker container health
+	Name    string          `json:"name"`
+	Alias   string          `json:"alias"`
+	ImageId string          `json:"image_id"` // docker image id
+	State   ContainerState  `json:"state"`    // docker container state
+	Health  ContainerHealth `json:"health"`   // docker container health
 }
 
 type DeploymentSecret struct {

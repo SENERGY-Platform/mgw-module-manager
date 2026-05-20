@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package constants
+package models
+
+type ModuleChangeAction = string
 
 const (
-	ModuleChangeActionInstall = "install"
-	ModuleChangeActionChange  = "change"
-	ModuleChangeActionRemove  = "remove"
+	ModuleChangeActionInstall ModuleChangeAction = "install"
+	ModuleChangeActionChange  ModuleChangeAction = "change"
+	ModuleChangeActionRemove  ModuleChangeAction = "remove"
 )
 
+type DeploymentState = int
+
 const (
-	DeploymentStateHealthy = iota + 1
+	DeploymentStateHealthy DeploymentState = iota + 1
 	DeploymentStateUnhealthy
 )
 

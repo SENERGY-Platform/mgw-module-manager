@@ -22,17 +22,23 @@ import (
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 )
 
+type ContainerState = string
+type ContainerHealth = string
+
 const (
-	CewInitState       = cew_model.InitState
-	CewRunningState    = cew_model.RunningState
-	CewPausedState     = cew_model.PausedState
-	CewRestartingState = cew_model.RestartingState
-	CewRemovingState   = cew_model.RemovingState
-	CewStoppedState    = cew_model.StoppedState
-	CewDeadState       = cew_model.DeadState
-	CewHealthyState    = cew_model.HealthyState
-	CewUnhealthyState  = cew_model.UnhealthyState
-	CewTransitionState = cew_model.TransitionState
+	CewInitState       ContainerState = cew_model.InitState
+	CewRunningState    ContainerState = cew_model.RunningState
+	CewPausedState     ContainerState = cew_model.PausedState
+	CewRestartingState ContainerState = cew_model.RestartingState
+	CewRemovingState   ContainerState = cew_model.RemovingState
+	CewStoppedState    ContainerState = cew_model.StoppedState
+	CewDeadState       ContainerState = cew_model.DeadState
+)
+
+const (
+	CewHealthyState    ContainerHealth = cew_model.HealthyState
+	CewUnhealthyState  ContainerHealth = cew_model.UnhealthyState
+	CewTransitionState ContainerHealth = cew_model.TransitionState
 )
 
 type ModuleBase = module_lib.Module

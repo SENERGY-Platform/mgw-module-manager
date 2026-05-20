@@ -23,12 +23,12 @@ type DeploymentsHealthInfo struct {
 
 type DeploymentHealthInfo struct {
 	ModuleId                         string                          `json:"module_id"`
-	State                            int                             `json:"state"`
+	State                            DeploymentState                 `json:"state"`
 	Containers                       []DeploymentContainerHealthInfo `json:"containers"`
 	TotalContainers                  int                             `json:"total_containers"`
 	AuxiliaryDeployments             []AuxiliaryDeploymentHealthInfo `json:"auxiliary_deployments"`
 	TotalEnabledAuxiliaryDeployments int                             `json:"total_enabled_auxiliary_deployments"`
-	AuxiliaryDeploymentsState        int                             `json:"auxiliary_deployments_state"`
+	AuxiliaryDeploymentsState        DeploymentState                 `json:"auxiliary_deployments_state"`
 }
 
 type DeploymentContainerHealthInfo struct {
@@ -37,8 +37,8 @@ type DeploymentContainerHealthInfo struct {
 }
 
 type ContainerHealthInfo struct {
-	State  string `json:"state"`  // docker container state
-	Health string `json:"health"` // docker container health
+	State  ContainerState  `json:"state"`  // docker container state
+	Health ContainerHealth `json:"health"` // docker container health
 }
 
 type AuxiliaryDeploymentHealthInfo struct {

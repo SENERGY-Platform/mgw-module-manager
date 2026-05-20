@@ -22,7 +22,6 @@ import (
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
-	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/models/constants"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
@@ -105,9 +104,9 @@ func getDeploymentsHealthInfo(
 				})
 			}
 			if notOk == 0 {
-				auxDepsState = lib_constants.DeploymentStateHealthy
+				auxDepsState = lib_models.DeploymentStateHealthy
 			} else {
-				auxDepsState = lib_constants.DeploymentStateUnhealthy
+				auxDepsState = lib_models.DeploymentStateUnhealthy
 			}
 		}
 		if !includeHealthy && deployment.State < 2 && auxDepsState < 2 {

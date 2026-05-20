@@ -26,7 +26,6 @@ import (
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
-	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/models/constants"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
@@ -249,7 +248,7 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.Modul
 	for _, id := range s.changeRequest.Remove {
 		cri := lib_models.ChangeReportItem{
 			Id:     id,
-			Action: lib_constants.ModuleChangeActionRemove,
+			Action: lib_models.ModuleChangeActionRemove,
 		}
 		err := s.modulesHandler.DeleteModule(ctx, id)
 		if err != nil {
@@ -264,7 +263,7 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.Modul
 	for _, repoMod := range s.changeRequest.Install {
 		cri := lib_models.ChangeReportItem{
 			Id:     repoMod.Mod.ID,
-			Action: lib_constants.ModuleChangeActionInstall,
+			Action: lib_models.ModuleChangeActionInstall,
 		}
 		err := s.modulesHandler.AddModule(ctx, repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.FS)
 		if err != nil {
@@ -279,7 +278,7 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.Modul
 	for _, item := range s.changeRequest.Change {
 		cri := lib_models.ChangeReportItem{
 			Id:     item.Next.Mod.ID,
-			Action: lib_constants.ModuleChangeActionChange,
+			Action: lib_models.ModuleChangeActionChange,
 		}
 		err := s.modulesHandler.UpdateModule(ctx, item.Next.Mod.ID, item.Next.Source, item.Next.Channel, item.Next.FS)
 		if err != nil {
