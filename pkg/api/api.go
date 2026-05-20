@@ -66,11 +66,11 @@ func New(srvName, srvVersion string, accessLog bool) (*gin.Engine, error) {
 	return ginEngine, nil
 }
 
-func requestIdContextHandler(c *gin.Context, requestId string) {
-	c.Set(ContextKeyRequestId, requestId)
+func requestIdContextHandler(ctx *gin.Context, requestId string) {
+	ctx.Set(ContextKeyRequestId, requestId)
 }
 
-func runtimeIdContextHandler(c *gin.Context) {
-	c.Set(helper_naming.RuntimeIdKey, helper_naming.RuntimeId)
-	c.Next()
+func runtimeIdContextHandler(ctx *gin.Context) {
+	ctx.Set(helper_naming.RuntimeIdKey, helper_naming.RuntimeId)
+	ctx.Next()
 }
