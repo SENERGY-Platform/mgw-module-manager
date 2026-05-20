@@ -17,14 +17,10 @@
 package api
 
 import (
-	"context"
-	"net/http"
-
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
 	sb_slog_attributes "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
-	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/models/constants"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
-	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 )
@@ -35,13 +31,7 @@ func init() {
 
 const ContextKeyRequestId = "request_id"
 
-type Api struct {
-	service   serviceItf
-	infoHdl   infoHandler
-	ginEngine *gin.Engine
-}
-
-func New(service serviceItf, infoHdl infoHandler, accessLog bool) (*Api, error) {
+func New(srvName, srvVersion string, accessLog bool) (*gin.Engine, error) {
 	ginEngine := gin.New()
 	var middleware []gin.HandlerFunc
 	if accessLog {
@@ -58,41 +48,22 @@ func New(service serviceItf, infoHdl infoHandler, accessLog bool) (*Api, error) 
 	middleware = append(middleware,
 		runtimeIdContextHandler,
 		requestid.New(
-			requestid.WithCustomHeaderStrKey(lib_constants.HttpHeaderRequestId),
+			requestid.WithCustomHeaderStrKey(lib_models.HttpHeaderRequestId),
 			requestid.WithHandler(requestIdContextHandler),
 		),
 		gin_mw.StaticHeaderHandler(map[string]string{
-			lib_constants.HttpHeaderApiVer:  infoHdl.Version(),
-			lib_constants.HttpHeaderSrvName: infoHdl.Name(),
-			lib_constants.HttpRuntimeId:     helper_naming.RuntimeId,
-			lib_constants.HttpCoreId:        helper_naming.CoreId,
-			lib_constants.HttpManagerId:     helper_naming.ManagerId,
+			lib_models.HttpHeaderApiVer:    srvVersion,
+			lib_models.HttpHeaderSrvName:   srvName,
+			lib_models.HttpHeaderRuntimeId: helper_naming.RuntimeId,
+			lib_models.HttpHeaderCoreId:    helper_naming.CoreId,
+			lib_models.HttpHeaderManagerId: helper_naming.ManagerId,
 		}),
 		gin_mw.ErrorHandler(getStatusCode, ", "),
 		gin_mw.StructRecoveryHandler(logger, gin_mw.DefaultRecoveryFunc),
 	)
 	ginEngine.Use(middleware...)
 	ginEngine.UseRawPath = true
-	return &Api{
-		service:   service,
-		infoHdl:   infoHdl,
-		ginEngine: ginEngine,
-	}, nil
-}
-
-func (a *Api) Init(ctx context.Context) error {
-	setRoutes, err := routes.Set(a, a.ginEngine)
-	if err != nil {
-		return err
-	}
-	for _, route := range setRoutes {
-		logger.DebugContext(ctx, "set http route", slog_keys.Method, route[0], slog_keys.Path, route[1])
-	}
-	return nil
-}
-
-func (a *Api) Handler() http.Handler {
-	return a.ginEngine
+	return ginEngine, nil
 }
 
 func requestIdContextHandler(c *gin.Context, requestId string) {
