@@ -73,8 +73,13 @@ func (s *Service) GetDeploymentAdvertisement(
 
 func (s *Service) GetDeploymentAdvertisementById(
 	ctx context.Context,
+	deploymentId string,
 	id string,
 ) (lib_models.DeploymentAdvertisement, error) {
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return lib_models.DeploymentAdvertisement{}, err
+	}
 	return s.depAdvertisementsHandler.GetAdvertisementById(ctx, id)
 }
 
