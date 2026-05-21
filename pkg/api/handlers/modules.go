@@ -99,10 +99,6 @@ func CreateModulesChangeRequest(srv *service.Service) (string, string, gin.Handl
 		var res lib_models.ModulesChangeRequest
 		if query.UpdateAll {
 			res, err = srv.CreateModulesUpdateAllChangeRequest(gc)
-			if err != nil {
-				_ = gc.Error(err)
-				return
-			}
 		} else {
 			var body []lib_models.ChangeRequestItem
 			err = gc.MustBindWith(&body, binding.JSON)
@@ -110,10 +106,10 @@ func CreateModulesChangeRequest(srv *service.Service) (string, string, gin.Handl
 				return
 			}
 			res, err = srv.CreateModulesChangeRequest(gc, body)
-			if err != nil {
-				_ = gc.Error(err)
-				return
-			}
+		}
+		if err != nil {
+			_ = gc.Error(err)
+			return
 		}
 		gc.JSON(http.StatusOK, res)
 	}
