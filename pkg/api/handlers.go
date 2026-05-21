@@ -55,6 +55,13 @@ var standardApiHandlers = []handlerFunc[*service.Service]{
 }
 
 var restrictedApiHandlers = []handlerFunc[*service.Service]{
+	handlers.CreateAuxiliaryDeployment,
+	handlers.UpdateAuxiliaryDeployment,
+	handlers.RecreateAuxiliaryDeployments,
+	handlers.DeleteAuxiliaryDeployments,
+	handlers.EnableAuxiliaryDeployments,
+	handlers.DisableAuxiliaryDeployments,
+	handlers.DeleteAuxiliaryDeploymentVolumes,
 	handlers.GetDeploymentAdvertisement,
 	handlers.GetDeploymentAdvertisementById,
 	handlers.GetDeploymentAdvertisements,
@@ -64,6 +71,11 @@ var restrictedApiHandlers = []handlerFunc[*service.Service]{
 }
 
 var sharedApiHandlers = []handlerFunc[*service.Service]{
+	handlers.GetAuxiliaryDeployment,
+	handlers.GetAuxiliaryDeployments,
+	handlers.GetReducedAuxiliaryDeployments,
+	handlers.GetAuxiliaryDeploymentVolumes,
+	handlers.GetAuxiliaryDeploymentVolumesWithMounts,
 	handlers.QueryDeploymentAdvertisements,
 	handlers.QueryDeploymentAdvertisement,
 }
