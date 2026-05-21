@@ -87,25 +87,17 @@ func GetModulesChangeRequest(srv *service.Service) (string, string, gin.HandlerF
 	}
 }
 
-func getCreateModulesChangeRequestUpdateAll(gc *gin.Context) (bool, error) {
-	var query struct {
-		UpdateAll bool `form:"update_all"`
-	}
-	err := gc.MustBindWith(&query, binding.Query)
-	if err != nil {
-		return false, err
-	}
-	return query.UpdateAll, nil
-}
-
 func CreateModulesChangeRequest(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, "modules-change-request", func(gc *gin.Context) {
-		updateAll, err := getCreateModulesChangeRequestUpdateAll(gc)
+		var query struct {
+			UpdateAll bool `form:"update_all"`
+		}
+		err := gc.MustBindWith(&query, binding.Query)
 		if err != nil {
 			return
 		}
 		var res lib_models.ModulesChangeRequest
-		if updateAll {
+		if query.UpdateAll {
 			res, err = srv.CreateModulesUpdateAllChangeRequest(gc)
 			if err != nil {
 				_ = gc.Error(err)

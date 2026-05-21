@@ -25,24 +25,16 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
-func getGlobalConfigsFilter(gc *gin.Context) ([]string, error) {
-	var query struct {
-		Ids []string `form:"ids" collection_format:"csv"`
-	}
-	err := gc.MustBindWith(&query, binding.Query)
-	if err != nil {
-		return nil, err
-	}
-	return query.Ids, nil
-}
-
 func GetGlobalConfigs(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, "global-configs", func(gc *gin.Context) {
-		filter, err := getGlobalConfigsFilter(gc)
+		var query struct {
+			Ids []string `form:"ids" collection_format:"csv"`
+		}
+		err := gc.MustBindWith(&query, binding.Query)
 		if err != nil {
 			return
 		}
-		res, err := srv.GetGlobalConfigs(gc, filter)
+		res, err := srv.GetGlobalConfigs(gc, query.Ids)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -98,25 +90,17 @@ func UpdateGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) 
 	}
 }
 
-func getDeleteGlobalConfigsFilter(gc *gin.Context) ([]string, bool, error) {
-	var query struct {
-		Ids      []string `form:"ids" collection_format:"csv"`
-		AllowAll bool     `form:"allow_all"`
-	}
-	err := gc.MustBindWith(&query, binding.Query)
-	if err != nil {
-		return nil, false, err
-	}
-	return query.Ids, query.AllowAll, nil
-}
-
 func DeleteGlobalConfigs(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, "global-configs", func(gc *gin.Context) {
-		ids, allowAll, err := getDeleteGlobalConfigsFilter(gc)
+		var query struct {
+			Ids      []string `form:"ids" collection_format:"csv"`
+			AllowAll bool     `form:"allow_all"`
+		}
+		err := gc.MustBindWith(&query, binding.Query)
 		if err != nil {
 			return
 		}
-		err = srv.DeleteGlobalConfigs(gc, ids, allowAll)
+		err = srv.DeleteGlobalConfigs(gc, query.Ids, query.AllowAll)
 		if err != nil {
 			_ = gc.Error(err)
 			return

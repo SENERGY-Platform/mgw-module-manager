@@ -89,25 +89,17 @@ func RecreateDeployments(srv *service.Service) (string, string, gin.HandlerFunc)
 	}
 }
 
-func getDeleteDeploymentsFilter(gc *gin.Context) ([]string, bool, error) {
-	var query struct {
-		ModuleIds []string `form:"module_ids" collection_format:"csv"`
-		AllowAll  bool     `form:"allow_all"`
-	}
-	err := gc.MustBindWith(&query, binding.Query)
-	if err != nil {
-		return nil, false, err
-	}
-	return query.ModuleIds, query.AllowAll, err
-}
-
 func DeleteDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, "deployments", func(gc *gin.Context) {
-		moduleIds, allowAll, err := getDeleteDeploymentsFilter(gc)
+		var query struct {
+			ModuleIds []string `form:"module_ids" collection_format:"csv"`
+			AllowAll  bool     `form:"allow_all"`
+		}
+		err := gc.MustBindWith(&query, binding.Query)
 		if err != nil {
 			return
 		}
-		res, err := srv.DeleteDeployments(gc, moduleIds, allowAll)
+		res, err := srv.DeleteDeployments(gc, query.ModuleIds, query.AllowAll)
 		if err != nil {
 			_ = gc.Error(err)
 			return
