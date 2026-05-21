@@ -60,8 +60,8 @@ func QueryDeploymentAdvertisements(srv *service.Service) (string, string, gin.Ha
 }
 
 func QueryDeploymentAdvertisement(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "deployment-advertisements/:id", func(gc *gin.Context) {
-		res, err := srv.QueryDeploymentAdvertisement(gc, gc.Param("id"))
+	return http.MethodGet, "deployment-advertisements/:adv_id", func(gc *gin.Context) {
+		res, err := srv.QueryDeploymentAdvertisement(gc, gc.Param("adv_id"))
 		if err != nil {
 			_ = gc.Error(err)
 			return

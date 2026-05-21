@@ -44,8 +44,8 @@ func GetGlobalConfigs(srv *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 func GetGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "global-configs/:id", func(gc *gin.Context) {
-		res, err := srv.GetGlobalConfig(gc, gc.Param("id"))
+	return http.MethodGet, "global-configs/:config_id", func(gc *gin.Context) {
+		res, err := srv.GetGlobalConfig(gc, gc.Param("config_id"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -71,14 +71,14 @@ func CreateGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) 
 }
 
 func UpdateGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPut, "global-configs/:id", func(gc *gin.Context) {
+	return http.MethodPut, "global-configs/:config_id", func(gc *gin.Context) {
 		var body lib_models.GlobalConfigInput
 		err := gc.MustBindWith(&body, binding.JSON)
 		if err != nil {
 			return
 		}
 		err = srv.UpdateGlobalConfig(gc, lib_models.GlobalConfig{
-			Id:             gc.Param("id"),
+			Id:             gc.Param("config_id"),
 			Name:           body.Name,
 			InterfaceValue: body.InterfaceValue,
 		})
@@ -110,8 +110,8 @@ func DeleteGlobalConfigs(srv *service.Service) (string, string, gin.HandlerFunc)
 }
 
 func DeleteGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodDelete, "global-configs/:id", func(gc *gin.Context) {
-		err := srv.DeleteGlobalConfig(gc, gc.Param("id"))
+	return http.MethodDelete, "global-configs/:config_id", func(gc *gin.Context) {
+		err := srv.DeleteGlobalConfig(gc, gc.Param("config_id"))
 		if err != nil {
 			_ = gc.Error(err)
 			return

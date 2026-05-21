@@ -66,8 +66,8 @@ func GetModules(srv *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 func GetModule(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "modules/:id", func(gc *gin.Context) {
-		res, err := srv.GetModule(gc, gc.Param("id"))
+	return http.MethodGet, "modules/:module_id", func(gc *gin.Context) {
+		res, err := srv.GetModule(gc, gc.Param("module_id"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
