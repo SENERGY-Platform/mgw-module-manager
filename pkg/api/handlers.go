@@ -56,6 +56,7 @@ var standardApiHandlers = []handlerFunc[*service.Service]{
 	handlers.GetUpdateDeploymentsJobResult,
 	handlers.GetModuleChangeJobResult,
 	handlers.GetRefreshRepositoriesJobResult,
+	handlers.ServiceHealth,
 }
 
 var restrictedApiHandlers = []handlerFunc[*service.Service]{
@@ -89,6 +90,8 @@ var sharedApiHandlers = []handlerFunc[*service.Service]{
 	handlers.GetJob,
 	handlers.CancelJobs,
 	handlers.CancelJob,
+	handlers.DeploymentsHealth,
+	handlers.ServiceInfo,
 }
 
 type handlerFunc[T any] func(srv T) (method, path string, handlerFunc gin.HandlerFunc)
