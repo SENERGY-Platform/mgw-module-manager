@@ -17,6 +17,7 @@
 package service
 
 import (
+	"context"
 	"sync"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
@@ -40,7 +41,7 @@ func (s *Service) setDeploymentsJobResult(jobId string, res lib_models.Deploymen
 	s.jobResults.deployments[jobId] = res
 }
 
-func (s *Service) GetDeploymentsJobResult(jobId string) (lib_models.DeploymentJobResult, error) {
+func (s *Service) GetDeploymentsJobResult(_ context.Context, jobId string) (lib_models.DeploymentJobResult, error) {
 	s.jobResults.mu.RLock()
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.deployments[jobId]
@@ -56,7 +57,7 @@ func (s *Service) setUpdateDeploymentsJobResult(jobId string, res lib_models.Dep
 	s.jobResults.deploymentsUpdate[jobId] = res
 }
 
-func (s *Service) GetUpdateDeploymentsJobResult(jobId string) (lib_models.DeploymentUpdateJobResult, error) {
+func (s *Service) GetUpdateDeploymentsJobResult(_ context.Context, jobId string) (lib_models.DeploymentUpdateJobResult, error) {
 	s.jobResults.mu.RLock()
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.deploymentsUpdate[jobId]
@@ -72,7 +73,7 @@ func (s *Service) setModuleChangeJobResult(jobId string, res lib_models.ModulesC
 	s.jobResults.moduleChange[jobId] = res
 }
 
-func (s *Service) GetModuleChangeJobResult(jobId string) (lib_models.ModulesChangeJobResult, error) {
+func (s *Service) GetModuleChangeJobResult(_ context.Context, jobId string) (lib_models.ModulesChangeJobResult, error) {
 	s.jobResults.mu.RLock()
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.moduleChange[jobId]
@@ -88,7 +89,7 @@ func (s *Service) setRefreshRepositoriesJobResult(jobId string, res lib_models.J
 	s.jobResults.refreshRepositories[jobId] = res
 }
 
-func (s *Service) GetRefreshRepositoriesJobResult(jobId string) (lib_models.JobResult, error) {
+func (s *Service) GetRefreshRepositoriesJobResult(_ context.Context, jobId string) (lib_models.JobResult, error) {
 	s.jobResults.mu.RLock()
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.refreshRepositories[jobId]
@@ -104,7 +105,7 @@ func (s *Service) setCreateAuxiliaryDeploymentJobResult(jobId string, res lib_mo
 	s.jobResults.auxDeploymentCreate[jobId] = res
 }
 
-func (s *Service) GetCreateAuxiliaryDeploymentJobResult(jobId string) (lib_models.AuxiliaryDeploymentCreateJobResult, error) {
+func (s *Service) GetCreateAuxiliaryDeploymentJobResult(_ context.Context, jobId string) (lib_models.AuxiliaryDeploymentCreateJobResult, error) {
 	s.jobResults.mu.RLock()
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.auxDeploymentCreate[jobId]
@@ -120,7 +121,7 @@ func (s *Service) setUpdateAuxiliaryDeploymentJobResult(jobId string, res lib_mo
 	s.jobResults.auxDeploymentUpdate[jobId] = res
 }
 
-func (s *Service) GetUpdateAuxiliaryDeploymentJobResult(jobId string) (lib_models.JobResult, error) {
+func (s *Service) GetUpdateAuxiliaryDeploymentJobResult(_ context.Context, jobId string) (lib_models.JobResult, error) {
 	s.jobResults.mu.RLock()
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.auxDeploymentUpdate[jobId]
@@ -136,7 +137,7 @@ func (s *Service) setAuxiliaryDeploymentsJobResult(jobId string, res lib_models.
 	s.jobResults.auxDeployment[jobId] = res
 }
 
-func (s *Service) GetAuxiliaryDeploymentsJobResult(jobId string) (lib_models.AuxiliaryDeploymentJobResult, error) {
+func (s *Service) GetAuxiliaryDeploymentsJobResult(_ context.Context, jobId string) (lib_models.AuxiliaryDeploymentJobResult, error) {
 	s.jobResults.mu.RLock()
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.auxDeployment[jobId]
