@@ -23,32 +23,32 @@ import (
 	"reflect"
 	"runtime"
 
-	api_handler "github.com/SENERGY-Platform/mgw-module-manager/pkg/api/handler"
-	pkg_service "github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/api/handlers"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-gonic/gin"
 )
 
-var standardApiHandlers = []handlerFunc[*pkg_service.Service]{
-	api_handler.GetModule,
-	api_handler.GetModules,
-	api_handler.GetModulesChangeRequest,
-	api_handler.CreateModulesChangeRequest,
-	api_handler.ExecModulesChangeRequest,
-	api_handler.CancelModulesChangeRequest,
-	api_handler.GetModulesAvailableUpdatesCount,
-	api_handler.RefreshRepositories,
-	api_handler.GetRepositoryModules,
-	api_handler.CreateGlobalConfig,
-	api_handler.GetGlobalConfig,
-	api_handler.GetGlobalConfigs,
-	api_handler.UpdateGlobalConfig,
-	api_handler.DeleteGlobalConfig,
-	api_handler.DeleteGlobalConfigs,
+var standardApiHandlers = []handlerFunc[*service.Service]{
+	handlers.GetModule,
+	handlers.GetModules,
+	handlers.GetModulesChangeRequest,
+	handlers.CreateModulesChangeRequest,
+	handlers.ExecModulesChangeRequest,
+	handlers.CancelModulesChangeRequest,
+	handlers.GetModulesAvailableUpdatesCount,
+	handlers.RefreshRepositories,
+	handlers.GetRepositoryModules,
+	handlers.CreateGlobalConfig,
+	handlers.GetGlobalConfig,
+	handlers.GetGlobalConfigs,
+	handlers.UpdateGlobalConfig,
+	handlers.DeleteGlobalConfig,
+	handlers.DeleteGlobalConfigs,
 }
 
-var restrictedApiHandlers = []handlerFunc[*pkg_service.Service]{}
+var restrictedApiHandlers = []handlerFunc[*service.Service]{}
 
-var sharedApiHandlers = []handlerFunc[*pkg_service.Service]{}
+var sharedApiHandlers = []handlerFunc[*service.Service]{}
 
 type handlerFunc[T any] func(srv T) (method, path string, handlerFunc gin.HandlerFunc)
 
