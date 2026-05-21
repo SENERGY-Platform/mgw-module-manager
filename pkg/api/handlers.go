@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"reflect"
 	"runtime"
 
@@ -53,17 +54,32 @@ var standardApiHandlers = []handlerFunc[*service.Service]{
 	handlers.DisableDeployments,
 }
 
-var restrictedApiHandlers = []handlerFunc[*service.Service]{}
+var restrictedApiHandlers = []handlerFunc[*service.Service]{
+	handlers.GetDeploymentAdvertisement,
+	handlers.GetDeploymentAdvertisementById,
+	handlers.GetDeploymentAdvertisements,
+	handlers.PutDeploymentAdvertisement,
+	handlers.PutDeploymentAdvertisements,
+	handlers.DeleteDeploymentAdvertisements,
+}
 
-var sharedApiHandlers = []handlerFunc[*service.Service]{}
+var sharedApiHandlers = []handlerFunc[*service.Service]{
+	handlers.QueryDeploymentAdvertisements,
+	handlers.QueryDeploymentAdvertisement,
+}
 
 type handlerFunc[T any] func(srv T) (method, path string, handlerFunc gin.HandlerFunc)
 
-func registerHandlers[T any](ginEngine *gin.Engine, srv T, handlers ...handlerFunc[T]) error {
+type httpEngine interface {
+	BasePath() string
+	Handle(httpMethod, relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
+}
+
+func registerHandlers[T any](engine httpEngine, srv T, handlers ...handlerFunc[T]) error {
 	paths := make(map[string]handlerFunc[T])
 	for _, hf := range handlers {
 		m, p, ginHf := hf(srv)
-		if tmpHf, ok := paths[m+ginEngine.BasePath()+p]; ok {
+		if tmpHf, ok := paths[m+engine.BasePath()+p]; ok {
 			if reflect.ValueOf(tmpHf) == reflect.ValueOf(hf) {
 				continue
 			}
@@ -71,15 +87,15 @@ func registerHandlers[T any](ginEngine *gin.Engine, srv T, handlers ...handlerFu
 				fmt.Sprintf(
 					"handler conflict: '%s %s' mapped by '%s' and '%s'",
 					m,
-					ginEngine.BasePath()+p,
+					path.Join(engine.BasePath(), p),
 					getFuncName(tmpHf),
 					getFuncName(hf),
 				),
 			)
 		}
-		ginEngine.Handle(m, p, ginHf)
-		paths[m+ginEngine.BasePath()+p] = hf
-		_, _ = fmt.Fprintf(os.Stderr, "register http engine handler: %-7s %s\n", m, ginEngine.BasePath()+p)
+		engine.Handle(m, p, ginHf)
+		paths[m+engine.BasePath()+p] = hf
+		_, _ = fmt.Fprintf(os.Stderr, "register http engine handler: %-7s %s\n", m, path.Join(engine.BasePath(), p))
 	}
 	return nil
 }
