@@ -79,7 +79,7 @@ func registerHandlers[T any](ginEngine *gin.Engine, srv T, handlers ...handlerFu
 		}
 		ginEngine.Handle(m, p, ginHf)
 		paths[m+ginEngine.BasePath()+p] = hf
-		_, _ = fmt.Fprintf(os.Stderr, "register http engine handler: %s %s\n", m, ginEngine.BasePath()+p)
+		_, _ = fmt.Fprintf(os.Stderr, "register http engine handler: %-7s %s\n", m, ginEngine.BasePath()+p)
 	}
 	return nil
 }
