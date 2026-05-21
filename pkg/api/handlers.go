@@ -52,6 +52,10 @@ var standardApiHandlers = []handlerFunc[*service.Service]{
 	handlers.DeleteDeployments,
 	handlers.EnableDeployments,
 	handlers.DisableDeployments,
+	handlers.GetDeploymentsJobResult,
+	handlers.GetUpdateDeploymentsJobResult,
+	handlers.GetModuleChangeJobResult,
+	handlers.GetRefreshRepositoriesJobResult,
 }
 
 var restrictedApiHandlers = []handlerFunc[*service.Service]{
@@ -78,6 +82,9 @@ var sharedApiHandlers = []handlerFunc[*service.Service]{
 	handlers.GetAuxiliaryDeploymentVolumesWithMounts,
 	handlers.QueryDeploymentAdvertisements,
 	handlers.QueryDeploymentAdvertisement,
+	handlers.GetCreateAuxiliaryDeploymentJobResult,
+	handlers.GetUpdateAuxiliaryDeploymentJobResult,
+	handlers.GetAuxiliaryDeploymentsJobResult,
 }
 
 type handlerFunc[T any] func(srv T) (method, path string, handlerFunc gin.HandlerFunc)
