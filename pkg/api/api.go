@@ -70,7 +70,7 @@ func CreateHandler(srv *service.Service, srvName, srvVersion string, accessLog b
 	if err != nil {
 		return nil, err
 	}
-	err = registerHandlers(ginEngine, srv, append(restrictedApiHandlers, sharedApiHandlers...)...)
+	err = registerHandlers(ginEngine.Group("restricted"), srv, append(restrictedApiHandlers, sharedApiHandlers...)...)
 	if err != nil {
 		return nil, err
 	}
