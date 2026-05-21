@@ -27,8 +27,8 @@ var logger *slog.Logger
 var accessLogger *slog.Logger
 
 func InitLogger(sl *slog.Logger) {
-	logger = sl.With(slog_keys.Component, "api")
-	accessLogger = sl.With(sb_slog_attributes.LogRecordTypeKey, sb_slog_attributes.HttpAccessLogRecordTypeVal)
+	logger = sl.With(slog_keys.Component, "http-api")
+	accessLogger = sl.With(slog_keys.Component, "http-api", sb_slog_attributes.LogRecordTypeKey, sb_slog_attributes.HttpAccessLogRecordTypeVal)
 }
 
 func init() {
