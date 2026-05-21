@@ -292,12 +292,18 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 	}, nil
 }
 
-func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string) ([]lib_models.DeploymentDeleteResult, error) {
+func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string, allowAll bool) ([]lib_models.DeploymentDeleteResult, error) {
+	if !allowAll && len(moduleIds) == 0 {
+		return nil, nil
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
 	if ok {
 		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
+	}
+	if allowAll {
+		logger.WarnContext(ctx, "delete deployments", slog_keys.Filter, moduleIds, slog_keys.AllowAll, allowAll)
 	}
 	deploymentIds, err := s.deploymentsHandler.GetDeploymentIds(ctx, pkg_models.DeploymentsFilter{
 		ModuleIds: moduleIds,
