@@ -43,7 +43,7 @@ func CreateHandler(srv *service.Service, srvName, srvVersion string, accessLog b
 			gin_mw.StructLoggerHandler(
 				accessLogger,
 				sb_slog_attributes.Provider,
-				nil,
+				[]string{"health/service"},
 				nil,
 			),
 		)
