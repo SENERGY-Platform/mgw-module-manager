@@ -85,6 +85,10 @@ var sharedApiHandlers = []handlerFunc[*service.Service]{
 	handlers.GetCreateAuxiliaryDeploymentJobResult,
 	handlers.GetUpdateAuxiliaryDeploymentJobResult,
 	handlers.GetAuxiliaryDeploymentsJobResult,
+	handlers.GetJobs,
+	handlers.GetJob,
+	handlers.CancelJobs,
+	handlers.CancelJob,
 }
 
 type handlerFunc[T any] func(srv T) (method, path string, handlerFunc gin.HandlerFunc)
