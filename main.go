@@ -197,7 +197,7 @@ func main() {
 	}
 
 	// create http api
-	httpApi, err := api.New(name, version, config.HttpAccessLog)
+	httpApiHandler, err := api.CreateHandler(srv, name, version, config.HttpAccessLog)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "create http api engine: %s\n", err)
 		ec = 1
@@ -205,7 +205,7 @@ func main() {
 	}
 
 	// create http server
-	httpServer := &http.Server{Handler: httpApi}
+	httpServer := &http.Server{Handler: httpApiHandler}
 	serverListener, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(config.ServerPort), 10))
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "create server listener: %s\n", err)
@@ -236,14 +236,6 @@ func main() {
 	err = repositoriesHandler.InitRepositories(ctx)
 	if err != nil {
 		logger.ErrorContext(ctx, "initialize repositories", slog_keys.Error, err)
-		ec = 1
-		return
-	}
-
-	// init http api
-	err = httpApi.Init(ctx)
-	if err != nil {
-		logger.ErrorContext(ctx, "initialize http api", slog_keys.Error, err)
 		ec = 1
 		return
 	}

@@ -17,10 +17,13 @@
 package api
 
 import (
+	"net/http"
+
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
 	sb_slog_attributes "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +34,7 @@ func init() {
 
 const ContextKeyRequestId = "request_id"
 
-func New(srvName, srvVersion string, accessLog bool) (*gin.Engine, error) {
+func CreateHandler(srv *service.Service, srvName, srvVersion string, accessLog bool) (http.Handler, error) {
 	ginEngine := gin.New()
 	var middleware []gin.HandlerFunc
 	if accessLog {
@@ -63,6 +66,14 @@ func New(srvName, srvVersion string, accessLog bool) (*gin.Engine, error) {
 	)
 	ginEngine.Use(middleware...)
 	ginEngine.UseRawPath = true
+	err := registerHandlers(ginEngine, srv, append(standardApiHandlers, sharedApiHandlers...)...)
+	if err != nil {
+		return nil, err
+	}
+	err = registerHandlers(ginEngine, srv, append(restrictedApiHandlers, sharedApiHandlers...)...)
+	if err != nil {
+		return nil, err
+	}
 	return ginEngine, nil
 }
 
