@@ -44,6 +44,13 @@ var standardApiHandlers = []handlerFunc[*service.Service]{
 	handlers.UpdateGlobalConfig,
 	handlers.DeleteGlobalConfig,
 	handlers.DeleteGlobalConfigs,
+	handlers.GetDeploymentRequest,
+	handlers.CreateDeployments,
+	handlers.UpdateDeployments,
+	handlers.RecreateDeployments,
+	handlers.DeleteDeployments,
+	handlers.EnableDeployments,
+	handlers.DisableDeployments,
 }
 
 var restrictedApiHandlers = []handlerFunc[*service.Service]{}
