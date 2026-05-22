@@ -20,6 +20,8 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 )
 
 type ErrHttpResponse struct {
@@ -60,4 +62,18 @@ func (e *ErrHttpResponse) HeaderValues(key string) []string {
 
 func (e *ErrHttpResponse) Body() []byte {
 	return bytes.Clone(e.body)
+}
+
+func wrapError(err error, errCode string) error {
+	switch errCode {
+	case "001":
+		err = errors.Wrap[errors.ErrNotFound](err)
+	case "002":
+		err = errors.Wrap[errors.ErrExists](err)
+	case "003":
+		err = errors.Wrap[errors.ErrInvalidInput](err)
+	case "004":
+		err = errors.Wrap[errors.ErrActiveJob](err)
+	}
+	return err
 }

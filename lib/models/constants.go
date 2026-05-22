@@ -34,6 +34,7 @@ const (
 	HttpHeaderManagerId = "X-Manager-Id"
 	HttpHeaderRuntimeId = "X-Runtime-Id"
 	HttpHeaderRequestId = "X-Request-Id"
+	HttpHeaderErrorCode = "X-Err-Code"
 	HttpHeaderApiVer    = "X-Version"
 	HttpHeaderSrvName   = "X-Service"
 )

@@ -61,7 +61,7 @@ func CreateHandler(srv *service.Service, srvName, srvVersion string, accessLog b
 			lib_models.HttpHeaderCoreId:    helper_naming.CoreId,
 			lib_models.HttpHeaderManagerId: helper_naming.ManagerId,
 		}),
-		gin_mw.ErrorHandler(getStatusCode, ", "),
+		errorHandler("Err%d: %s"),
 		gin_mw.StructRecoveryHandler(logger, gin_mw.DefaultRecoveryFunc),
 	)
 	ginEngine.Use(middleware...)

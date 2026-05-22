@@ -22,6 +22,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 )
 
 type httpClient interface {
@@ -72,7 +74,7 @@ func handleResponseErr(resp *http.Response) error {
 		} else {
 			resErr.body = b
 		}
-		return resErr
+		return wrapError(resErr, resp.Header.Get(models.HttpHeaderErrorCode))
 	}
 	return nil
 }
