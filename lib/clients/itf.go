@@ -97,8 +97,6 @@ type ClientAuxiliaryDeploymentsItf interface {
 	GetJob(ctx context.Context, id string) (models.Job, error)
 	CancelJobs(ctx context.Context, ids []string) error
 	CancelJob(ctx context.Context, id string) error
-
-	ServiceInfo() models.ServiceInfo
 }
 
 type ClientDeploymentAdvertisementsItf interface {
@@ -141,12 +139,8 @@ type ClientDeploymentAdvertisementsItf interface {
 		filter models.DeploymentAdvertisementsFilter,
 	) ([]models.DeploymentAdvertisementReduced, error)
 	QueryDeploymentAdvertisement(ctx context.Context, id string) (models.DeploymentAdvertisementReduced, error)
-
-	ServiceInfo() models.ServiceInfo
 }
 
 type ClientHealthItf interface {
 	DeploymentsHealth(ctx context.Context, filter models.DeploymentsHealthInfoFilter) (models.DeploymentsHealthInfo, error)
-
-	ServiceInfo() models.ServiceInfo
 }
