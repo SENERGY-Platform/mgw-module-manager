@@ -20,6 +20,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
 type httpClient interface {
@@ -73,4 +75,12 @@ func handleResponseErr(resp *http.Response) error {
 		return resErr
 	}
 	return nil
+}
+
+func queryJoinStrings(sl []string, sep string) string {
+	tmp := make([]string, len(sl))
+	for i, s := range sl {
+		tmp[i] = url.QueryEscape(s)
+	}
+	return strings.Join(tmp, sep)
 }
