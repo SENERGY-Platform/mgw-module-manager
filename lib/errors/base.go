@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package lib_errors
+package errors
 
 import (
 	"errors"
