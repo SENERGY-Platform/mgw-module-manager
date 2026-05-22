@@ -18,6 +18,7 @@ package clients
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 )
 
@@ -29,13 +30,13 @@ type ErrHttpResponse struct {
 }
 
 func (e *ErrHttpResponse) Error() string {
+	if e.err != nil {
+		return fmt.Sprintf("%s | read body: %s", http.StatusText(e.statusCode), e.err.Error())
+	}
 	if len(e.body) == 0 {
-		if e.err != nil {
-			return e.err.Error()
-		}
 		return http.StatusText(e.statusCode)
 	}
-	return string(e.body)
+	return http.StatusText(e.statusCode) + " | " + string(e.body)
 }
 
 func (e *ErrHttpResponse) Unwrap() error {
