@@ -398,6 +398,20 @@ func (s *Service) GetAuxiliaryDeploymentVolumesWithMounts(
 	return s.auxDeploymentsHandler.GetVolumesWithMounts(ctx, deploymentId, filterReferences)
 }
 
+func (s *Service) DeleteAuxiliaryDeploymentVolume(ctx context.Context, deploymentId, reference string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return err
+	}
+	_, err = s.auxDeploymentsHandler.DeleteVolumes(ctx, deploymentId, []string{reference}, false)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *Service) DeleteAuxiliaryDeploymentVolumes(
 	ctx context.Context,
 	deploymentId string,

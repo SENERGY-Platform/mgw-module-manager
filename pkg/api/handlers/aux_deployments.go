@@ -318,3 +318,14 @@ func DeleteAuxiliaryDeploymentVolumes(srv *service.Service) (string, string, gin
 		gc.JSON(http.StatusOK, res)
 	}
 }
+
+func DeleteAuxiliaryDeploymentVolume(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodDelete, "deployments/:dep_id/auxiliary/volumes/:ref", func(gc *gin.Context) {
+		err := srv.DeleteAuxiliaryDeploymentVolume(gc, gc.Param("dep_id"), gc.Param("ref"))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}

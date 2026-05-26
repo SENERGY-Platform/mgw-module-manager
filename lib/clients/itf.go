@@ -57,6 +57,7 @@ type ClientAuxiliaryDeploymentsItf interface {
 		deploymentId string,
 		filter models.AuxiliaryDeploymentsFilterWithState,
 	) ([]string, error)
+	DeleteAuxiliaryDeploymentVolume(ctx context.Context, deploymentId, reference string) error
 	DeleteAuxiliaryDeploymentVolumes(
 		ctx context.Context,
 		deploymentId string,

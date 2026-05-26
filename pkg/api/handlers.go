@@ -67,6 +67,7 @@ var restrictedApiHandlers = []handlerFunc[*service.Service]{
 	handlers.DeleteAuxiliaryDeployments,
 	handlers.EnableAuxiliaryDeployments,
 	handlers.DisableAuxiliaryDeployments,
+	handlers.DeleteAuxiliaryDeploymentVolume,
 	handlers.DeleteAuxiliaryDeploymentVolumes,
 	handlers.GetDeploymentAdvertisement,
 	handlers.GetDeploymentAdvertisementById,
