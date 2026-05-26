@@ -25,23 +25,28 @@ import (
 type ClientAuxiliaryDeploymentsItf interface {
 	CreateAuxiliaryDeployment(
 		ctx context.Context,
+		deploymentId string,
 		serviceInput models.AuxiliaryDeploymentInput,
 	) (models.Job, error)
 	UpdateAuxiliaryDeployment(
 		ctx context.Context,
-		serviceInput models.AuxiliaryDeploymentUpdateInput,
+		deploymentId string,
+		auxDeploymentId string,
+		serviceInput models.AuxiliaryDeploymentInput,
+		incremental bool,
 	) (models.Job, error)
 	RecreateAuxiliaryDeployments(
 		ctx context.Context,
 		deploymentId string,
 		filter models.AuxiliaryDeploymentsFilterWithState,
 	) (models.Job, error)
+	DeleteAuxiliaryDeployment(ctx context.Context, deploymentId, auxDeploymentId string) error
 	DeleteAuxiliaryDeployments(
 		ctx context.Context,
 		deploymentId string,
 		filter models.AuxiliaryDeploymentsFilterWithState,
 		allowAll bool,
-	) (models.Job, error)
+	) ([]models.AuxiliaryDeploymentBatchResult, error)
 	EnableAuxiliaryDeployments(
 		ctx context.Context,
 		deploymentId string,

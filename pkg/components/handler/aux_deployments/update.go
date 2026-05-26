@@ -36,7 +36,8 @@ func (h *Handler) UpdateDeployment(
 	activeDeployment pkg_models.Deployment,
 	dependencies map[string]pkg_models.DeploymentReduced,
 	auxDeploymentId string,
-	serviceInput lib_models.AuxiliaryDeploymentUpdateInputBase,
+	serviceInput lib_models.AuxiliaryDeploymentInput,
+	incremental bool,
 ) error {
 	mu := h.mutexes.Get(activeDeployment.Id)
 	mu.Lock()
@@ -82,7 +83,7 @@ func (h *Handler) UpdateDeployment(
 		)
 		return err
 	}
-	if serviceInput.Incremental {
+	if incremental {
 		serviceInput.Volumes, err = h.updateServiceInputVolumes(ctx, auxDeploymentId, serviceInput.Volumes)
 		if err != nil {
 			logger.ErrorContext(
@@ -141,7 +142,7 @@ func (h *Handler) UpdateDeployment(
 		activeDeployment.Id,
 		currentAuxDeployment.Id,
 		currentAuxDeployment.Container.Alias,
-		serviceInput.AuxiliaryDeploymentInputBase,
+		serviceInput,
 	)
 	if err != nil {
 		logger.ErrorContext(

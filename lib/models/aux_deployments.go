@@ -68,7 +68,7 @@ type AuxiliaryDeploymentVolumeWithMounts struct {
 	MountedBy []string `json:"mounted_by"`
 }
 
-type AuxiliaryDeploymentInputBase struct {
+type AuxiliaryDeploymentInput struct {
 	Reference string                            `json:"reference"`
 	Name      string                            `json:"name"`
 	Image     string                            `json:"image"`
@@ -84,11 +84,6 @@ type AuxiliaryDeploymentInputBase struct {
 type AuxiliaryDeploymentInputRunConfig struct {
 	Command   []string `json:"command"`
 	PseudoTTY int      `json:"pseudo_tty"`
-}
-
-type AuxiliaryDeploymentUpdateInputBase struct {
-	AuxiliaryDeploymentInputBase
-	Incremental bool `json:"incremental"`
 }
 
 type AuxiliaryDeploymentResult struct {
@@ -117,17 +112,6 @@ type AuxiliaryDeploymentsFilter struct {
 	Image    string
 	Enabled  int
 	Recreate int
-}
-
-type AuxiliaryDeploymentInput struct {
-	DeploymentId string `json:"deployment_id"`
-	AuxiliaryDeploymentInputBase
-}
-
-type AuxiliaryDeploymentUpdateInput struct {
-	DeploymentId    string `json:"deployment_id"`
-	AuxDeploymentId string `json:"auxiliary_deployment_id"`
-	AuxiliaryDeploymentUpdateInputBase
 }
 
 type AuxiliaryDeploymentCreateJobResult struct {

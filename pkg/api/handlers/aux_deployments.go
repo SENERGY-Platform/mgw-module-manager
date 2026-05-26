@@ -116,15 +116,12 @@ func GetReducedAuxiliaryDeployments(srv *service.Service) (string, string, gin.H
 
 func CreateAuxiliaryDeployment(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, "deployments/:dep_id/auxiliary/deployments", func(gc *gin.Context) {
-		var body lib_models.AuxiliaryDeploymentInputBase
+		var body lib_models.AuxiliaryDeploymentInput
 		err := gc.MustBindWith(&body, binding.JSON)
 		if err != nil {
 			return
 		}
-		res, err := srv.CreateAuxiliaryDeployment(gc, lib_models.AuxiliaryDeploymentInput{
-			DeploymentId:                 gc.Param("dep_id"),
-			AuxiliaryDeploymentInputBase: body,
-		})
+		res, err := srv.CreateAuxiliaryDeployment(gc, gc.Param("dep_id"), body)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -135,16 +132,19 @@ func CreateAuxiliaryDeployment(srv *service.Service) (string, string, gin.Handle
 
 func UpdateAuxiliaryDeployment(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPut, "deployments/:dep_id/auxiliary/deployments/:aux_dep_id", func(gc *gin.Context) {
-		var body lib_models.AuxiliaryDeploymentUpdateInputBase
-		err := gc.MustBindWith(&body, binding.JSON)
+		var query struct {
+			Incremental bool `form:"incremental"`
+		}
+		err := gc.MustBindWith(&query, binding.Query)
 		if err != nil {
 			return
 		}
-		res, err := srv.UpdateAuxiliaryDeployment(gc, lib_models.AuxiliaryDeploymentUpdateInput{
-			DeploymentId:                       gc.Param("dep_id"),
-			AuxDeploymentId:                    gc.Param("aux_dep_id"),
-			AuxiliaryDeploymentUpdateInputBase: body,
-		})
+		var body lib_models.AuxiliaryDeploymentInput
+		err = gc.MustBindWith(&body, binding.JSON)
+		if err != nil {
+			return
+		}
+		res, err := srv.UpdateAuxiliaryDeployment(gc, gc.Param("dep_id"), gc.Param("aux_dep_id"), body, query.Incremental)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -200,6 +200,17 @@ func getDeleteAuxiliaryDeploymentsFilter(gc *gin.Context) (lib_models.AuxiliaryD
 	}, query.AllowAll, nil
 }
 
+func DeleteAuxiliaryDeployment(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodDelete, "deployments/:dep_id/auxiliary/deployments/:aux_dep_id", func(gc *gin.Context) {
+		err := srv.DeleteAuxiliaryDeployment(gc, gc.Param("dep_id"), gc.Param("aux_dep_id"))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
 func DeleteAuxiliaryDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, "deployments/:dep_id/auxiliary/deployments", func(gc *gin.Context) {
 		filter, allowAll, err := getDeleteAuxiliaryDeploymentsFilter(gc)
@@ -217,11 +228,12 @@ func DeleteAuxiliaryDeployments(srv *service.Service) (string, string, gin.Handl
 
 func EnableAuxiliaryDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, "deployments/:dep_id/auxiliary/deployments-enable", func(gc *gin.Context) {
-		filter, err := getAuxiliaryDeploymentsFilter(gc)
+		var body lib_models.AuxiliaryDeploymentsFilterWithState
+		err := gc.MustBindWith(&body, binding.JSON)
 		if err != nil {
 			return
 		}
-		res, err := srv.EnableAuxiliaryDeployments(gc, gc.Param("dep_id"), filter)
+		res, err := srv.EnableAuxiliaryDeployments(gc, gc.Param("dep_id"), body)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -232,11 +244,12 @@ func EnableAuxiliaryDeployments(srv *service.Service) (string, string, gin.Handl
 
 func DisableAuxiliaryDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, "deployments/:dep_id/auxiliary/deployments-disable", func(gc *gin.Context) {
-		filter, err := getAuxiliaryDeploymentsFilter(gc)
+		var body lib_models.AuxiliaryDeploymentsFilterWithState
+		err := gc.MustBindWith(&body, binding.JSON)
 		if err != nil {
 			return
 		}
-		res, err := srv.DisableAuxiliaryDeployments(gc, gc.Param("dep_id"), filter)
+		res, err := srv.DisableAuxiliaryDeployments(gc, gc.Param("dep_id"), body)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -303,11 +316,5 @@ func DeleteAuxiliaryDeploymentVolumes(srv *service.Service) (string, string, gin
 			return
 		}
 		gc.JSON(http.StatusOK, res)
-	}
-}
-
-func name(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodDelete, "deployments/:dep_id/auxiliary/volumes", func(gc *gin.Context) {
-
 	}
 }

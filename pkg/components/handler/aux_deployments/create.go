@@ -43,7 +43,7 @@ func (h *Handler) CreateDeployment(
 	module pkg_models.Module,
 	activeDeployment pkg_models.Deployment,
 	dependencies map[string]pkg_models.DeploymentReduced,
-	serviceInput lib_models.AuxiliaryDeploymentInputBase,
+	serviceInput lib_models.AuxiliaryDeploymentInput,
 ) (lib_models.AuxiliaryDeploymentResult, error) {
 	mu := h.mutexes.Get(activeDeployment.Id)
 	mu.Lock()
@@ -254,7 +254,7 @@ func getAuxiliaryDeployment(
 	deploymentId string,
 	auxDeploymentId string,
 	containerAlias string,
-	serviceInput lib_models.AuxiliaryDeploymentInputBase,
+	serviceInput lib_models.AuxiliaryDeploymentInput,
 ) (pkg_models.AuxiliaryDeployment, error) {
 	ctrName, err := helper_naming.NewContainerName(constants.AuxDeploymentAbbreviation)
 	if err != nil {
