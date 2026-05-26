@@ -16,6 +16,18 @@
 
 package clients
 
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/models"
+)
+
 type ClientAuxiliaryDeployments struct {
 	client  httpClient
 	baseUrl string
@@ -26,4 +38,202 @@ func NewClientAuxiliaryDeployments(httpClient httpClient, baseUrl string) *Clien
 		client:  httpClient,
 		baseUrl: baseUrl,
 	}
+}
+
+func (c *ClientAuxiliaryDeployments) CreateAuxiliaryDeployment(
+	ctx context.Context,
+	deploymentId string,
+	serviceInput models.AuxiliaryDeploymentInput,
+) (models.Job, error) {
+	u, err := url.JoinPath(c.baseUrl, "deployments", deploymentId, "auxiliary/deployments")
+	if err != nil {
+		return models.Job{}, err
+	}
+	buffer := bytes.NewBuffer(nil)
+	err = json.NewEncoder(buffer).Encode(serviceInput)
+	if err != nil {
+		return models.Job{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, buffer)
+	if err != nil {
+		return models.Job{}, err
+	}
+	var res models.Job
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return models.Job{}, err
+	}
+	return res, nil
+}
+
+func (c *ClientAuxiliaryDeployments) UpdateAuxiliaryDeployment(
+	ctx context.Context,
+	deploymentId string,
+	auxDeploymentId string,
+	serviceInput models.AuxiliaryDeploymentInput,
+	incremental bool,
+) (models.Job, error) {
+	u, err := url.JoinPath(c.baseUrl, "deployments", deploymentId, "auxiliary/deployments", auxDeploymentId)
+	if err != nil {
+		return models.Job{}, err
+	}
+	if incremental {
+		u += "?incremental=true"
+	}
+	buffer := bytes.NewBuffer(nil)
+	err = json.NewEncoder(buffer).Encode(serviceInput)
+	if err != nil {
+		return models.Job{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u, buffer)
+	if err != nil {
+		return models.Job{}, err
+	}
+	var res models.Job
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return models.Job{}, err
+	}
+	return res, nil
+}
+
+func (c *ClientAuxiliaryDeployments) RecreateAuxiliaryDeployments(
+	ctx context.Context,
+	deploymentId string,
+	filter models.AuxiliaryDeploymentsFilterWithState,
+) (models.Job, error) {
+	u, err := url.JoinPath(c.baseUrl, "deployments", deploymentId, "auxiliary/deployments-recreate")
+	if err != nil {
+		return models.Job{}, err
+	}
+	buffer := bytes.NewBuffer(nil)
+	err = json.NewEncoder(buffer).Encode(filter)
+	if err != nil {
+		return models.Job{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, buffer)
+	if err != nil {
+		return models.Job{}, err
+	}
+	var res models.Job
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return models.Job{}, err
+	}
+	return res, nil
+}
+
+func appendAuxiliaryDeploymentsQuery(u string, filter models.AuxiliaryDeploymentsFilterWithState, allowAll bool) string {
+	var items []string
+	if len(filter.Ids) > 0 {
+		items = append(items, "ids="+queryJoinStrings(filter.Ids, ","))
+	}
+	if len(filter.Labels) > 0 {
+		var labels []string
+		for key, val := range filter.Labels {
+			labels = append(labels, url.QueryEscape(key+"|"+val))
+		}
+		items = append(items, "labels="+strings.Join(labels, ","))
+	}
+	if filter.Image != "" {
+		items = append(items, "image="+url.QueryEscape(filter.Image))
+	}
+	if filter.Enabled != 0 {
+		items = append(items, "enabled="+strconv.FormatInt(int64(filter.Enabled), 10))
+	}
+	if filter.Recreate != 0 {
+		items = append(items, "recreate="+strconv.FormatInt(int64(filter.Recreate), 10))
+	}
+	if filter.State != "" {
+		items = append(items, "state="+filter.State)
+	}
+	if allowAll {
+		items = append(items, "allow_all=true")
+	}
+	if len(items) > 0 {
+		return u + "?" + strings.Join(items, "&")
+	}
+	return ""
+}
+
+func (c *ClientAuxiliaryDeployments) DeleteAuxiliaryDeployment(ctx context.Context, deploymentId, auxDeploymentId string) error {
+	u, err := url.JoinPath(c.baseUrl, "deployments", deploymentId, "auxiliary/deployments", auxDeploymentId)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, u, nil)
+	if err != nil {
+		return err
+	}
+	return doErr(c.client, req)
+}
+
+func (c *ClientAuxiliaryDeployments) DeleteAuxiliaryDeployments(
+	ctx context.Context,
+	deploymentId string,
+	filter models.AuxiliaryDeploymentsFilterWithState,
+	allowAll bool,
+) ([]models.AuxiliaryDeploymentBatchResult, error) {
+	u, err := url.JoinPath(c.baseUrl, "deployments", deploymentId, "auxiliary/deployments")
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, appendAuxiliaryDeploymentsQuery(u, filter, allowAll), nil)
+	if err != nil {
+		return nil, err
+	}
+	var res []models.AuxiliaryDeploymentBatchResult
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (c *ClientAuxiliaryDeployments) EnableAuxiliaryDeployments(
+	ctx context.Context,
+	deploymentId string,
+	filter models.AuxiliaryDeploymentsFilterWithState,
+) ([]string, error) {
+	u, err := url.JoinPath(c.baseUrl, "deployments", deploymentId, "auxiliary/deployments-enable")
+	if err != nil {
+		return nil, err
+	}
+	buffer := bytes.NewBuffer(nil)
+	err = json.NewEncoder(buffer).Encode(filter)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, buffer)
+	if err != nil {
+		return nil, err
+	}
+	var res []string
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (c *ClientAuxiliaryDeployments) DisableAuxiliaryDeployments(ctx context.Context, deploymentId string, filter models.AuxiliaryDeploymentsFilterWithState) ([]string, error) {
+	u, err := url.JoinPath(c.baseUrl, "deployments", deploymentId, "auxiliary/deployments-disable")
+	if err != nil {
+		return nil, err
+	}
+	buffer := bytes.NewBuffer(nil)
+	err = json.NewEncoder(buffer).Encode(filter)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, buffer)
+	if err != nil {
+		return nil, err
+	}
+	var res []string
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
