@@ -26,6 +26,8 @@ const (
 	HttpPathAuxiliaryDeploymentVolumesCollection           = "deployments/:DEP_ID/auxiliary/volumes"
 	HttpPathAuxiliaryDeploymentVolumeResource              = "deployments/:DEP_ID/auxiliary/volumes/:AUX_VOL_REF"
 	HttpPathAuxiliaryDeploymentVolumesWithMountsCollection = "deployments/:DEP_ID/auxiliary/volumes-with-mounts"
+
+	HttpPathDeploymentsHealthCollection = "health/deployments"
 )
 
 const (

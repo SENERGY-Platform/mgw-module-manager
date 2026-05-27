@@ -22,6 +22,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 )
 
@@ -64,7 +65,7 @@ func appendDeploymentsHealthQuery(u string, filter models.DeploymentsHealthInfoF
 }
 
 func (c *ClientHealth) DeploymentsHealth(ctx context.Context, filter models.DeploymentsHealthInfoFilter) (models.DeploymentsHealthInfo, error) {
-	u, err := url.JoinPath(c.baseUrl, "health/deployments")
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathDeploymentsHealthCollection))
 	if err != nil {
 		return models.DeploymentsHealthInfo{}, err
 	}

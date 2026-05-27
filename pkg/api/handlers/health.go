@@ -19,6 +19,7 @@ package handlers
 import (
 	"net/http"
 
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-gonic/gin"
@@ -60,7 +61,7 @@ func getDeploymentsHealthFilter(gc *gin.Context) (lib_models.DeploymentsHealthIn
 }
 
 func DeploymentsHealth(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "health/deployments", func(gc *gin.Context) {
+	return http.MethodGet, lib_constants.HttpPathDeploymentsHealthCollection, func(gc *gin.Context) {
 		filter, err := getDeploymentsHealthFilter(gc)
 		if err != nil {
 			return
