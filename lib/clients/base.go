@@ -92,9 +92,10 @@ var urlPathParamRegex = regexp.MustCompile(":[^/]+")
 
 func getUrlRelPath(template string, params ...string) string {
 	placeholders := urlPathParamRegex.FindAllString(template, -1)
-	if len(placeholders) > len(params) {
-		placeholders = placeholders[:len(params)]
+	if len(placeholders) == 0 {
+		return template
 	}
+	placeholders = placeholders[:len(params)]
 	for i, placeholder := range placeholders {
 		template = strings.Replace(template, placeholder, url.PathEscape(params[i]), 1)
 	}
