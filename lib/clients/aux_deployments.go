@@ -244,12 +244,32 @@ func (c *ClientAuxiliaryDeployments) DisableAuxiliaryDeployments(
 }
 
 func (c *ClientAuxiliaryDeployments) DeleteAuxiliaryDeploymentVolume(ctx context.Context, deploymentId, reference string) error {
-	//u, err := url.JoinPath(c.baseUrl, "deployments", url.PathEscape(deploymentId), "auxiliary/volumes", url.PathEscape(reference))
-	//if err != nil {
-	//	return err
-	//}
-	//TODO implement me
-	panic("implement me")
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentVolumeResource, deploymentId, reference))
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, u, nil)
+	if err != nil {
+		return err
+	}
+	return doErr(c.client, req)
+}
+
+func appendAuxiliaryDeploymentVolumesQuery(u string, references []string, allowAll, unused bool) string {
+	var items []string
+	if len(references) > 0 {
+		items = append(items, "ids="+queryJoinStrings(references))
+	}
+	if allowAll {
+		items = append(items, "allow_all=true")
+	}
+	if unused {
+		items = append(items, "only_unsued=true")
+	}
+	if len(items) > 0 {
+		return u + "?" + strings.Join(items, "&")
+	}
+	return ""
 }
 
 func (c *ClientAuxiliaryDeployments) DeleteAuxiliaryDeploymentVolumes(
@@ -258,71 +278,282 @@ func (c *ClientAuxiliaryDeployments) DeleteAuxiliaryDeploymentVolumes(
 	filterReferences []string,
 	allowAll bool,
 ) ([]models.AuxiliaryDeploymentVolumeResult, error) {
-	//TODO implement me
-	panic("implement me")
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentVolumesCollection, deploymentId))
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodDelete,
+		appendAuxiliaryDeploymentVolumesQuery(u, filterReferences, allowAll, false),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	var res []models.AuxiliaryDeploymentVolumeResult
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
-func (c *ClientAuxiliaryDeployments) DeleteUnusedAuxiliaryDeploymentVolumes(ctx context.Context, deploymentId string, excludeReferences []string) ([]models.AuxiliaryDeploymentVolumeResult, error) {
-	//TODO implement me
-	panic("implement me")
+func (c *ClientAuxiliaryDeployments) DeleteUnusedAuxiliaryDeploymentVolumes(
+	ctx context.Context,
+	deploymentId string,
+	excludeReferences []string,
+) ([]models.AuxiliaryDeploymentVolumeResult, error) {
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentVolumesCollection, deploymentId))
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodDelete,
+		appendAuxiliaryDeploymentVolumesQuery(u, excludeReferences, false, true),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	var res []models.AuxiliaryDeploymentVolumeResult
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
-func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeployment(ctx context.Context, deploymentId string, auxDeploymentId string) (models.AuxiliaryDeployment, error) {
-	//TODO implement me
-	panic("implement me")
+func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeployment(
+	ctx context.Context,
+	deploymentId string,
+	auxDeploymentId string,
+) (models.AuxiliaryDeployment, error) {
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentResource, deploymentId, auxDeploymentId))
+	if err != nil {
+		return models.AuxiliaryDeployment{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return models.AuxiliaryDeployment{}, err
+	}
+	var res models.AuxiliaryDeployment
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return models.AuxiliaryDeployment{}, err
+	}
+	return res, nil
 }
 
-func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeployments(ctx context.Context, deploymentId string, filter models.AuxiliaryDeploymentsFilterWithState) (map[string]models.AuxiliaryDeployment, error) {
-	//TODO implement me
-	panic("implement me")
+func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeployments(
+	ctx context.Context,
+	deploymentId string,
+	filter models.AuxiliaryDeploymentsFilterWithState,
+) (map[string]models.AuxiliaryDeployment, error) {
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentsCollection, deploymentId))
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, appendAuxiliaryDeploymentsQuery(u, filter, false), nil)
+	if err != nil {
+		return nil, err
+	}
+	var res map[string]models.AuxiliaryDeployment
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
-func (c *ClientAuxiliaryDeployments) GetReducedAuxiliaryDeployments(ctx context.Context, deploymentId string, filter models.AuxiliaryDeploymentsFilterWithState) (map[string]models.AuxiliaryDeploymentReduced, error) {
-	//TODO implement me
-	panic("implement me")
+func (c *ClientAuxiliaryDeployments) GetReducedAuxiliaryDeployments(
+	ctx context.Context,
+	deploymentId string,
+	filter models.AuxiliaryDeploymentsFilterWithState,
+) (map[string]models.AuxiliaryDeploymentReduced, error) {
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathReducedAuxiliaryDeploymentsCollection, deploymentId))
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, appendAuxiliaryDeploymentsQuery(u, filter, false), nil)
+	if err != nil {
+		return nil, err
+	}
+	var res map[string]models.AuxiliaryDeploymentReduced
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
-func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeploymentVolumes(ctx context.Context, deploymentId string, filterReferences []string) (map[string]models.AuxiliaryDeploymentVolume, error) {
-	//TODO implement me
-	panic("implement me")
+func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeploymentVolumes(
+	ctx context.Context,
+	deploymentId string,
+	filterReferences []string,
+) (map[string]models.AuxiliaryDeploymentVolume, error) {
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentVolumesCollection, deploymentId))
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(
+		ctx, http.MethodGet,
+		appendAuxiliaryDeploymentVolumesQuery(u, filterReferences, false, false),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	var res map[string]models.AuxiliaryDeploymentVolume
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
-func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeploymentVolumesWithMounts(ctx context.Context, deploymentId string, filterReferences []string) (map[string]models.AuxiliaryDeploymentVolumeWithMounts, error) {
-	//TODO implement me
-	panic("implement me")
+func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeploymentVolumesWithMounts(
+	ctx context.Context,
+	deploymentId string,
+	filterReferences []string,
+) (map[string]models.AuxiliaryDeploymentVolumeWithMounts, error) {
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentVolumesWithMountsCollection, deploymentId))
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(
+		ctx, http.MethodGet,
+		appendAuxiliaryDeploymentVolumesQuery(u, filterReferences, false, false),
+		nil,
+	)
+	var res map[string]models.AuxiliaryDeploymentVolumeWithMounts
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
-func (c *ClientAuxiliaryDeployments) GetCreateAuxiliaryDeploymentJobResult(ctx context.Context, jobId string) (models.AuxiliaryDeploymentCreateJobResult, error) {
-	//TODO implement me
-	panic("implement me")
+func (c *ClientAuxiliaryDeployments) GetCreateAuxiliaryDeploymentJobResult(
+	ctx context.Context,
+	jobId string,
+) (models.AuxiliaryDeploymentCreateJobResult, error) {
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathCreateAuxiliaryDeploymentResultResource, jobId))
+	if err != nil {
+		return models.AuxiliaryDeploymentCreateJobResult{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return models.AuxiliaryDeploymentCreateJobResult{}, err
+	}
+	var res models.AuxiliaryDeploymentCreateJobResult
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return models.AuxiliaryDeploymentCreateJobResult{}, err
+	}
+	return res, nil
 }
 
-func (c *ClientAuxiliaryDeployments) GetUpdateAuxiliaryDeploymentJobResult(ctx context.Context, jobId string) (models.JobResult, error) {
-	//TODO implement me
-	panic("implement me")
+func (c *ClientAuxiliaryDeployments) GetUpdateAuxiliaryDeploymentJobResult(
+	ctx context.Context,
+	jobId string,
+) (models.JobResult, error) {
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathUpdateAuxiliaryDeploymentResultResource, jobId))
+	if err != nil {
+		return models.JobResult{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return models.JobResult{}, err
+	}
+	var res models.JobResult
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return models.JobResult{}, err
+	}
+	return res, nil
 }
 
-func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeploymentsJobResult(ctx context.Context, jobId string) (models.AuxiliaryDeploymentJobResult, error) {
-	//TODO implement me
-	panic("implement me")
+func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeploymentsJobResult(
+	ctx context.Context,
+	jobId string,
+) (models.AuxiliaryDeploymentJobResult, error) {
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentsResultResource, jobId))
+	if err != nil {
+		return models.AuxiliaryDeploymentJobResult{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return models.AuxiliaryDeploymentJobResult{}, err
+	}
+	var res models.AuxiliaryDeploymentJobResult
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return models.AuxiliaryDeploymentJobResult{}, err
+	}
+	return res, nil
 }
 
 func (c *ClientAuxiliaryDeployments) GetJobs(ctx context.Context, filterIds []string) ([]models.Job, error) {
-	//TODO implement me
-	panic("implement me")
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathJobsCollection))
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return nil, err
+	}
+	var res []models.Job
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (c *ClientAuxiliaryDeployments) GetJob(ctx context.Context, id string) (models.Job, error) {
-	//TODO implement me
-	panic("implement me")
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathJobResource, id))
+	if err != nil {
+		return models.Job{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return models.Job{}, err
+	}
+	var res models.Job
+	err = doJson(c.client, req, &res)
+	if err != nil {
+		return models.Job{}, err
+	}
+	return res, nil
 }
 
 func (c *ClientAuxiliaryDeployments) CancelJobs(ctx context.Context, ids []string) error {
-	//TODO implement me
-	panic("implement me")
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathCancelJobs))
+	if err != nil {
+		return err
+	}
+	buffer := bytes.NewBuffer(nil)
+	err = json.NewEncoder(buffer).Encode(ids)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, buffer)
+	if err != nil {
+		return err
+	}
+	return doErr(c.client, req)
 }
 
 func (c *ClientAuxiliaryDeployments) CancelJob(ctx context.Context, id string) error {
-	//TODO implement me
-	panic("implement me")
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathJobResource, id))
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, u, nil)
+	if err != nil {
+		return err
+	}
+	return doErr(c.client, req)
 }
