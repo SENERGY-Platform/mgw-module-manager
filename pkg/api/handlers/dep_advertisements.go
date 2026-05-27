@@ -19,6 +19,7 @@ package handlers
 import (
 	"net/http"
 
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-gonic/gin"
@@ -45,7 +46,7 @@ func getQueryDeploymentAdvertisementsFilter(gc *gin.Context) (lib_models.Deploym
 }
 
 func QueryDeploymentAdvertisements(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "deployment-advertisements", func(gc *gin.Context) {
+	return http.MethodGet, lib_constants.HttpPathDeploymentAdvertisementsQueryCollection, func(gc *gin.Context) {
 		filter, err := getQueryDeploymentAdvertisementsFilter(gc)
 		if err != nil {
 			return
@@ -60,8 +61,8 @@ func QueryDeploymentAdvertisements(srv *service.Service) (string, string, gin.Ha
 }
 
 func QueryDeploymentAdvertisement(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "deployment-advertisements/:adv_id", func(gc *gin.Context) {
-		res, err := srv.QueryDeploymentAdvertisement(gc, gc.Param("adv_id"))
+	return http.MethodGet, lib_constants.HttpPathDeploymentAdvertisementQueryResource, func(gc *gin.Context) {
+		res, err := srv.QueryDeploymentAdvertisement(gc, gc.Param("ADV_ID"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -71,8 +72,8 @@ func QueryDeploymentAdvertisement(srv *service.Service) (string, string, gin.Han
 }
 
 func GetDeploymentAdvertisement(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "deployments/:dep_id/advertisements/:ref", func(gc *gin.Context) {
-		res, err := srv.GetDeploymentAdvertisement(gc, gc.Param("dep_id"), gc.Param("ref"))
+	return http.MethodGet, lib_constants.HttpPathDeploymentAdvertisementResource, func(gc *gin.Context) {
+		res, err := srv.GetDeploymentAdvertisement(gc, gc.Param("DEP_ID"), gc.Param("ADV_REF"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -82,8 +83,8 @@ func GetDeploymentAdvertisement(srv *service.Service) (string, string, gin.Handl
 }
 
 func GetDeploymentAdvertisementById(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "deployments/:dep_id/advertisements-by-id/:adv_id", func(gc *gin.Context) {
-		res, err := srv.GetDeploymentAdvertisementById(gc, gc.Param("dep_id"), gc.Param("adv_id"))
+	return http.MethodGet, lib_constants.HttpPathDeploymentAdvertisementByIdResource, func(gc *gin.Context) {
+		res, err := srv.GetDeploymentAdvertisementById(gc, gc.Param("DEP_ID"), gc.Param("ADV_ID"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -108,12 +109,12 @@ func getDeploymentsAdvertisementsFilter(gc *gin.Context) (lib_models.DeploymentA
 }
 
 func GetDeploymentAdvertisements(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "deployments/:dep_id/advertisements", func(gc *gin.Context) {
+	return http.MethodGet, lib_constants.HttpPathDeploymentAdvertisementsCollection, func(gc *gin.Context) {
 		filter, err := getDeploymentsAdvertisementsFilter(gc)
 		if err != nil {
 			return
 		}
-		res, err := srv.GetDeploymentAdvertisements(gc, gc.Param("dep_id"), filter)
+		res, err := srv.GetDeploymentAdvertisements(gc, gc.Param("DEP_ID"), filter)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -123,13 +124,13 @@ func GetDeploymentAdvertisements(srv *service.Service) (string, string, gin.Hand
 }
 
 func PutDeploymentAdvertisement(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPut, "deployments/:dep_id/advertisements/:ref", func(gc *gin.Context) {
+	return http.MethodPut, lib_constants.HttpPathDeploymentAdvertisementResource, func(gc *gin.Context) {
 		var body map[string]string
 		err := gc.MustBindWith(&body, binding.JSON)
 		if err != nil {
 			return
 		}
-		res, err := srv.PutDeploymentAdvertisement(gc, gc.Param("dep_id"), gc.Param("ref"), body)
+		res, err := srv.PutDeploymentAdvertisement(gc, gc.Param("DEP_ID"), gc.Param("ADV_REF"), body)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -139,7 +140,7 @@ func PutDeploymentAdvertisement(srv *service.Service) (string, string, gin.Handl
 }
 
 func PutDeploymentAdvertisements(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPut, "deployments/:dep_id/advertisements", func(gc *gin.Context) {
+	return http.MethodPut, lib_constants.HttpPathDeploymentAdvertisementsCollection, func(gc *gin.Context) {
 		var query struct {
 			Incremental bool `form:"incremental"`
 		}
@@ -152,7 +153,7 @@ func PutDeploymentAdvertisements(srv *service.Service) (string, string, gin.Hand
 		if err != nil {
 			return
 		}
-		res, err := srv.PutDeploymentAdvertisements(gc, gc.Param("dep_id"), body, query.Incremental)
+		res, err := srv.PutDeploymentAdvertisements(gc, gc.Param("DEP_ID"), body, query.Incremental)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -178,12 +179,12 @@ func getDeleteDeploymentAdvertisementsFilter(gc *gin.Context) (lib_models.Deploy
 }
 
 func DeleteDeploymentAdvertisements(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodDelete, "deployments/:dep_id/advertisements", func(gc *gin.Context) {
+	return http.MethodDelete, lib_constants.HttpPathDeploymentAdvertisementsCollection, func(gc *gin.Context) {
 		filter, allowAll, err := getDeleteDeploymentAdvertisementsFilter(gc)
 		if err != nil {
 			return
 		}
-		err = srv.DeleteDeploymentAdvertisements(gc, gc.Param("dep_id"), filter, allowAll)
+		err = srv.DeleteDeploymentAdvertisements(gc, gc.Param("DEP_ID"), filter, allowAll)
 		if err != nil {
 			_ = gc.Error(err)
 			return

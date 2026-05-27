@@ -27,6 +27,12 @@ const (
 	HttpPathAuxiliaryDeploymentVolumeResource              = "deployments/:DEP_ID/auxiliary/volumes/:AUX_VOL_REF"
 	HttpPathAuxiliaryDeploymentVolumesWithMountsCollection = "deployments/:DEP_ID/auxiliary/volumes-with-mounts"
 
+	HttpPathDeploymentAdvertisementsQueryCollection = "deployment-advertisements"
+	HttpPathDeploymentAdvertisementQueryResource    = "deployment-advertisements/:ADV_ID"
+	HttpPathDeploymentAdvertisementsCollection      = "deployments/:DEP_ID/advertisements"
+	HttpPathDeploymentAdvertisementResource         = "deployments/:DEP_ID/advertisements/:ADV_REF"
+	HttpPathDeploymentAdvertisementByIdResource     = "deployments/:DEP_ID/advertisements-by-id/:ADV_ID"
+
 	HttpPathDeploymentsHealthCollection = "health/deployments"
 )
 
