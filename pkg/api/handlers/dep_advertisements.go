@@ -178,6 +178,17 @@ func getDeleteDeploymentAdvertisementsFilter(gc *gin.Context) (lib_models.Deploy
 	}, query.AllowAll, nil
 }
 
+func DeleteDeploymentAdvertisement(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodDelete, lib_constants.HttpPathDeploymentAdvertisementResource, func(gc *gin.Context) {
+		err := srv.DeleteDeploymentAdvertisement(gc, gc.Param("DEP_ID"), gc.Param("ADV_REF"))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
 func DeleteDeploymentAdvertisements(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, lib_constants.HttpPathDeploymentAdvertisementsCollection, func(gc *gin.Context) {
 		filter, allowAll, err := getDeleteDeploymentAdvertisementsFilter(gc)
