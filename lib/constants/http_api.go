@@ -1,0 +1,39 @@
+/*
+ * Copyright 2026 InfAI (CC SES)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package constants
+
+const (
+	HttpPathAuxiliaryDeploymentsCollection                 = "deployments/:DEP_ID/auxiliary/deployments"
+	HttpPathAuxiliaryDeploymentResource                    = "deployments/:DEP_ID/auxiliary/deployments/:AUX_DEP_ID"
+	HttpPathReducedAuxiliaryDeploymentsCollection          = "deployments/:DEP_ID/auxiliary/deployments-reduced"
+	HttpPathRecreateAuxiliaryDeployments                   = "deployments/:DEP_ID/auxiliary/deployments-recreate"
+	HttpPathEnableAuxiliaryDeployments                     = "deployments/:DEP_ID/auxiliary/deployments-enable"
+	HttpPathDisableAuxiliaryDeployments                    = "deployments/:DEP_ID/auxiliary/deployments-disable"
+	HttpPathAuxiliaryDeploymentVolumesCollection           = "deployments/:DEP_ID/auxiliary/volumes"
+	HttpPathAuxiliaryDeploymentVolumeResource              = "deployments/:DEP_ID/auxiliary/volumes/:AUX_VOL_REF"
+	HttpPathAuxiliaryDeploymentVolumesWithMountsCollection = "deployments/:DEP_ID/auxiliary/volumes-with-mounts"
+)
+
+const (
+	HttpHeaderCoreId    = "X-Core-Id"
+	HttpHeaderManagerId = "X-Manager-Id"
+	HttpHeaderRuntimeId = "X-Runtime-Id"
+	HttpHeaderRequestId = "X-Request-Id"
+	HttpHeaderErrorCode = "X-Err-Code"
+	HttpHeaderApiVer    = "X-Version"
+	HttpHeaderSrvName   = "X-Service"
+)

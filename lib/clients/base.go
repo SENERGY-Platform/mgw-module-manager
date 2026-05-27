@@ -21,6 +21,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
@@ -85,4 +86,17 @@ func queryJoinStrings(sl []string, sep string) string {
 		tmp[i] = url.QueryEscape(s)
 	}
 	return strings.Join(tmp, sep)
+}
+
+var urlPathParamRegex = regexp.MustCompile(":[^/]+")
+
+func getUrlRelPath(template string, params ...string) string {
+	placeholders := urlPathParamRegex.FindAllString(template, -1)
+	if len(placeholders) > len(params) {
+		placeholders = placeholders[:len(params)]
+	}
+	for i, placeholder := range placeholders {
+		template = strings.Replace(template, placeholder, url.PathEscape(params[i]), 1)
+	}
+	return template
 }

@@ -25,6 +25,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 )
 
@@ -45,7 +46,7 @@ func (c *ClientAuxiliaryDeployments) CreateAuxiliaryDeployment(
 	deploymentId string,
 	serviceInput models.AuxiliaryDeploymentInput,
 ) (models.Job, error) {
-	u, err := url.JoinPath(c.baseUrl, "deployments", deploymentId, "auxiliary/deployments")
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentsCollection, deploymentId))
 	if err != nil {
 		return models.Job{}, err
 	}
@@ -73,7 +74,7 @@ func (c *ClientAuxiliaryDeployments) UpdateAuxiliaryDeployment(
 	serviceInput models.AuxiliaryDeploymentInput,
 	incremental bool,
 ) (models.Job, error) {
-	u, err := url.JoinPath(c.baseUrl, "deployments", deploymentId, "auxiliary/deployments", auxDeploymentId)
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentResource, deploymentId, auxDeploymentId))
 	if err != nil {
 		return models.Job{}, err
 	}
@@ -102,7 +103,7 @@ func (c *ClientAuxiliaryDeployments) RecreateAuxiliaryDeployments(
 	deploymentId string,
 	filter models.AuxiliaryDeploymentsFilterWithState,
 ) (models.Job, error) {
-	u, err := url.JoinPath(c.baseUrl, "deployments", deploymentId, "auxiliary/deployments-recreate")
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathRecreateAuxiliaryDeployments, deploymentId))
 	if err != nil {
 		return models.Job{}, err
 	}
@@ -157,7 +158,7 @@ func appendAuxiliaryDeploymentsQuery(u string, filter models.AuxiliaryDeployment
 }
 
 func (c *ClientAuxiliaryDeployments) DeleteAuxiliaryDeployment(ctx context.Context, deploymentId, auxDeploymentId string) error {
-	u, err := url.JoinPath(c.baseUrl, "deployments", deploymentId, "auxiliary/deployments", auxDeploymentId)
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentResource, deploymentId, auxDeploymentId))
 	if err != nil {
 		return err
 	}
@@ -174,7 +175,7 @@ func (c *ClientAuxiliaryDeployments) DeleteAuxiliaryDeployments(
 	filter models.AuxiliaryDeploymentsFilterWithState,
 	allowAll bool,
 ) ([]models.AuxiliaryDeploymentBatchResult, error) {
-	u, err := url.JoinPath(c.baseUrl, "deployments", deploymentId, "auxiliary/deployments")
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentsCollection, deploymentId))
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +196,7 @@ func (c *ClientAuxiliaryDeployments) EnableAuxiliaryDeployments(
 	deploymentId string,
 	filter models.AuxiliaryDeploymentsFilterWithState,
 ) ([]string, error) {
-	u, err := url.JoinPath(c.baseUrl, "deployments", deploymentId, "auxiliary/deployments-enable")
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathEnableAuxiliaryDeployments, deploymentId))
 	if err != nil {
 		return nil, err
 	}
@@ -216,8 +217,12 @@ func (c *ClientAuxiliaryDeployments) EnableAuxiliaryDeployments(
 	return res, nil
 }
 
-func (c *ClientAuxiliaryDeployments) DisableAuxiliaryDeployments(ctx context.Context, deploymentId string, filter models.AuxiliaryDeploymentsFilterWithState) ([]string, error) {
-	u, err := url.JoinPath(c.baseUrl, "deployments", deploymentId, "auxiliary/deployments-disable")
+func (c *ClientAuxiliaryDeployments) DisableAuxiliaryDeployments(
+	ctx context.Context,
+	deploymentId string,
+	filter models.AuxiliaryDeploymentsFilterWithState,
+) ([]string, error) {
+	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathDisableAuxiliaryDeployments, deploymentId))
 	if err != nil {
 		return nil, err
 	}
@@ -236,4 +241,88 @@ func (c *ClientAuxiliaryDeployments) DisableAuxiliaryDeployments(ctx context.Con
 		return nil, err
 	}
 	return res, nil
+}
+
+func (c *ClientAuxiliaryDeployments) DeleteAuxiliaryDeploymentVolume(ctx context.Context, deploymentId, reference string) error {
+	//u, err := url.JoinPath(c.baseUrl, "deployments", url.PathEscape(deploymentId), "auxiliary/volumes", url.PathEscape(reference))
+	//if err != nil {
+	//	return err
+	//}
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClientAuxiliaryDeployments) DeleteAuxiliaryDeploymentVolumes(
+	ctx context.Context,
+	deploymentId string,
+	filterReferences []string,
+	allowAll bool,
+) ([]models.AuxiliaryDeploymentVolumeResult, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClientAuxiliaryDeployments) DeleteUnusedAuxiliaryDeploymentVolumes(ctx context.Context, deploymentId string, excludeReferences []string) ([]models.AuxiliaryDeploymentVolumeResult, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeployment(ctx context.Context, deploymentId string, auxDeploymentId string) (models.AuxiliaryDeployment, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeployments(ctx context.Context, deploymentId string, filter models.AuxiliaryDeploymentsFilterWithState) (map[string]models.AuxiliaryDeployment, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClientAuxiliaryDeployments) GetReducedAuxiliaryDeployments(ctx context.Context, deploymentId string, filter models.AuxiliaryDeploymentsFilterWithState) (map[string]models.AuxiliaryDeploymentReduced, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeploymentVolumes(ctx context.Context, deploymentId string, filterReferences []string) (map[string]models.AuxiliaryDeploymentVolume, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeploymentVolumesWithMounts(ctx context.Context, deploymentId string, filterReferences []string) (map[string]models.AuxiliaryDeploymentVolumeWithMounts, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClientAuxiliaryDeployments) GetCreateAuxiliaryDeploymentJobResult(ctx context.Context, jobId string) (models.AuxiliaryDeploymentCreateJobResult, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClientAuxiliaryDeployments) GetUpdateAuxiliaryDeploymentJobResult(ctx context.Context, jobId string) (models.JobResult, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClientAuxiliaryDeployments) GetAuxiliaryDeploymentsJobResult(ctx context.Context, jobId string) (models.AuxiliaryDeploymentJobResult, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClientAuxiliaryDeployments) GetJobs(ctx context.Context, filterIds []string) ([]models.Job, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClientAuxiliaryDeployments) GetJob(ctx context.Context, id string) (models.Job, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClientAuxiliaryDeployments) CancelJobs(ctx context.Context, ids []string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClientAuxiliaryDeployments) CancelJob(ctx context.Context, id string) error {
+	//TODO implement me
+	panic("implement me")
 }
