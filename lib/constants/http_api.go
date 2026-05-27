@@ -17,6 +17,20 @@
 package constants
 
 const (
+	HttpPathModulesCollection                    = "modules"
+	HttpPathModuleResource                       = "modules/:MOD_ID"
+	HttpPathModulesChangeRequestResource         = "modules-change-request"
+	HttpPathModulesAvailableUpdatesCountResource = "modules-available-updates"
+
+	HttpPathRepositoriesCollection      = "repositories"
+	HttpPathRepositoryModulesCollection = "repository-modules"
+
+	HttpPathDeploymentRequestResource = "deployment-request"
+	HttpPathDeploymentsCollection     = "deployments"
+	HttpPathRecreateDeployments       = "deployments-recreate"
+	HttpPathEnableDeployments         = "deployments-enable"
+	HttpPathDisableDeployments        = "deployments-disable"
+
 	HttpPathAuxiliaryDeploymentsCollection                 = "deployments/:DEP_ID/auxiliary/deployments"
 	HttpPathAuxiliaryDeploymentResource                    = "deployments/:DEP_ID/auxiliary/deployments/:AUX_DEP_ID"
 	HttpPathReducedAuxiliaryDeploymentsCollection          = "deployments/:DEP_ID/auxiliary/deployments-reduced"
@@ -33,7 +47,23 @@ const (
 	HttpPathDeploymentAdvertisementResource         = "deployments/:DEP_ID/advertisements/:ADV_REF"
 	HttpPathDeploymentAdvertisementByIdResource     = "deployments/:DEP_ID/advertisements-by-id/:ADV_ID"
 
+	HttpPathGlobalConfigsCollection = "global-configs"
+	HttpPathGlobalConfigResource    = "global-configs/:CFG_ID"
+
+	HttpPathJobsCollection = "jobs"
+	HttpPathJobResource    = "jobs/:JOB_ID"
+
+	HttpPathDeploymentResultResource                = "results/deployments/:JOB_ID"
+	HttpPathUpdateDeploymentResultResource          = "results/deployments-update/:JOB_ID"
+	HttpPathChangeModulesResultResource             = "results/modules-change/:JOB_ID"
+	HttpPathRefreshRepositoriesResultResource       = "results/repositories-refresh/:JOB_ID"
+	HttpPathAuxiliaryDeploymentsResultResource      = "results/auxiliary-deployments/:JOB_ID"
+	HttpPathCreateAuxiliaryDeploymentResultResource = "results/auxiliary-deployment-create/:JOB_ID"
+	HttpPathUpdateAuxiliaryDeploymentResultResource = "results/auxiliary-deployment-update/:JOB_ID"
+
 	HttpPathDeploymentsHealthCollection = "health/deployments"
+
+	HttpPathServiceInfoResource = "info"
 )
 
 const (

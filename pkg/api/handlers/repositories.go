@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"strings"
 
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-gonic/gin"
@@ -29,7 +30,7 @@ import (
 )
 
 func RefreshRepositories(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPatch, "repositories", func(gc *gin.Context) {
+	return http.MethodPatch, lib_constants.HttpPathRepositoriesCollection, func(gc *gin.Context) {
 		res, err := srv.RefreshRepositories(gc)
 		if err != nil {
 			_ = gc.Error(err)
@@ -89,7 +90,7 @@ func getRepositoryFilter(sources, sourceChannels []string) ([]lib_models.Reposit
 }
 
 func GetRepositoryModules(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "repositories/modules", func(gc *gin.Context) {
+	return http.MethodGet, lib_constants.HttpPathRepositoryModulesCollection, func(gc *gin.Context) {
 		filter, err := getGetRepositoryModulesFilter(gc)
 		if err != nil {
 			return

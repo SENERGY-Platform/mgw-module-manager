@@ -19,13 +19,14 @@ package handlers
 import (
 	"net/http"
 
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 )
 
 func GetJobs(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "jobs", func(gc *gin.Context) {
+	return http.MethodGet, lib_constants.HttpPathJobsCollection, func(gc *gin.Context) {
 		var query struct {
 			Ids []string `form:"ids" collection_format:"csv"`
 		}
@@ -43,8 +44,8 @@ func GetJobs(srv *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 func GetJob(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "jobs/:job_id", func(gc *gin.Context) {
-		res, err := srv.GetJob(gc, gc.Param("job_id"))
+	return http.MethodGet, lib_constants.HttpPathJobResource, func(gc *gin.Context) {
+		res, err := srv.GetJob(gc, gc.Param("JOB_ID"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -54,7 +55,7 @@ func GetJob(srv *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 func CancelJobs(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPatch, "jobs", func(gc *gin.Context) {
+	return http.MethodPatch, lib_constants.HttpPathJobsCollection, func(gc *gin.Context) {
 		var query struct {
 			Ids []string `form:"ids" collection_format:"csv"`
 		}
@@ -72,8 +73,8 @@ func CancelJobs(srv *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 func CancelJob(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPatch, "jobs/:job_id", func(gc *gin.Context) {
-		err := srv.CancelJob(gc, gc.Param("job_id"))
+	return http.MethodPatch, lib_constants.HttpPathJobResource, func(gc *gin.Context) {
+		err := srv.CancelJob(gc, gc.Param("JOB_ID"))
 		if err != nil {
 			_ = gc.Error(err)
 			return

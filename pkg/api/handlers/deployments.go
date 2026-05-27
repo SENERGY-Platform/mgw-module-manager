@@ -19,6 +19,7 @@ package handlers
 import (
 	"net/http"
 
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-gonic/gin"
@@ -26,7 +27,7 @@ import (
 )
 
 func GetDeploymentRequest(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPost, "deployment-request", func(gc *gin.Context) {
+	return http.MethodGet, lib_constants.HttpPathDeploymentRequestResource, func(gc *gin.Context) {
 		var body []string
 		err := gc.MustBindWith(&body, binding.JSON)
 		if err != nil {
@@ -42,7 +43,7 @@ func GetDeploymentRequest(srv *service.Service) (string, string, gin.HandlerFunc
 }
 
 func CreateDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPost, "deployments", func(gc *gin.Context) {
+	return http.MethodPost, lib_constants.HttpPathDeploymentsCollection, func(gc *gin.Context) {
 		var body []lib_models.DeploymentUserInput
 		err := gc.MustBindWith(&body, binding.JSON)
 		if err != nil {
@@ -58,7 +59,7 @@ func CreateDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 func UpdateDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPut, "deployments", func(gc *gin.Context) {
+	return http.MethodPut, lib_constants.HttpPathDeploymentsCollection, func(gc *gin.Context) {
 		var body []lib_models.DeploymentUserInput
 		err := gc.MustBindWith(&body, binding.JSON)
 		if err != nil {
@@ -74,7 +75,7 @@ func UpdateDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 func RecreateDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPost, "deployments-recreate", func(gc *gin.Context) {
+	return http.MethodPost, lib_constants.HttpPathRecreateDeployments, func(gc *gin.Context) {
 		var body []string
 		err := gc.MustBindWith(&body, binding.JSON)
 		if err != nil {
@@ -90,7 +91,7 @@ func RecreateDeployments(srv *service.Service) (string, string, gin.HandlerFunc)
 }
 
 func DeleteDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodDelete, "deployments", func(gc *gin.Context) {
+	return http.MethodDelete, lib_constants.HttpPathDeploymentsCollection, func(gc *gin.Context) {
 		var query struct {
 			ModuleIds []string `form:"module_ids" collection_format:"csv"`
 			AllowAll  bool     `form:"allow_all"`
@@ -109,7 +110,7 @@ func DeleteDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 func EnableDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPost, "deployments-enable", func(gc *gin.Context) {
+	return http.MethodPost, lib_constants.HttpPathEnableDeployments, func(gc *gin.Context) {
 		var body []string
 		err := gc.MustBindWith(&body, binding.JSON)
 		if err != nil {
@@ -125,7 +126,7 @@ func EnableDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 func DisableDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPost, "deployments-disable", func(gc *gin.Context) {
+	return http.MethodPost, lib_constants.HttpPathDisableDeployments, func(gc *gin.Context) {
 		var body []string
 		err := gc.MustBindWith(&body, binding.JSON)
 		if err != nil {

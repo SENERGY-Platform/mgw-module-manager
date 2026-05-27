@@ -19,13 +19,14 @@ package handlers
 import (
 	"net/http"
 
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-gonic/gin"
 )
 
 func GetDeploymentsJobResult(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "results/deployments/:job_id", func(gc *gin.Context) {
-		res, err := srv.GetDeploymentsJobResult(gc, gc.Param("job_id"))
+	return http.MethodGet, lib_constants.HttpPathDeploymentResultResource, func(gc *gin.Context) {
+		res, err := srv.GetDeploymentsJobResult(gc, gc.Param("JOB_ID"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -35,8 +36,8 @@ func GetDeploymentsJobResult(srv *service.Service) (string, string, gin.HandlerF
 }
 
 func GetUpdateDeploymentsJobResult(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "results/deployments-update/:job_id", func(gc *gin.Context) {
-		res, err := srv.GetUpdateDeploymentsJobResult(gc, gc.Param("job_id"))
+	return http.MethodGet, lib_constants.HttpPathUpdateDeploymentResultResource, func(gc *gin.Context) {
+		res, err := srv.GetUpdateDeploymentsJobResult(gc, gc.Param("JOB_ID"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -46,8 +47,8 @@ func GetUpdateDeploymentsJobResult(srv *service.Service) (string, string, gin.Ha
 }
 
 func GetModuleChangeJobResult(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "results/modules-change/:job_id", func(gc *gin.Context) {
-		res, err := srv.GetModuleChangeJobResult(gc, gc.Param("job_id"))
+	return http.MethodGet, lib_constants.HttpPathChangeModulesResultResource, func(gc *gin.Context) {
+		res, err := srv.GetModuleChangeJobResult(gc, gc.Param("JOB_ID"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -57,8 +58,8 @@ func GetModuleChangeJobResult(srv *service.Service) (string, string, gin.Handler
 }
 
 func GetRefreshRepositoriesJobResult(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "results/repositories-refresh/:job_id", func(gc *gin.Context) {
-		res, err := srv.GetRefreshRepositoriesJobResult(gc, gc.Param("job_id"))
+	return http.MethodGet, lib_constants.HttpPathRefreshRepositoriesResultResource, func(gc *gin.Context) {
+		res, err := srv.GetRefreshRepositoriesJobResult(gc, gc.Param("JOB_ID"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -68,8 +69,8 @@ func GetRefreshRepositoriesJobResult(srv *service.Service) (string, string, gin.
 }
 
 func GetCreateAuxiliaryDeploymentJobResult(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "results/auxiliary-deployment-create/:job_id", func(gc *gin.Context) {
-		res, err := srv.GetCreateAuxiliaryDeploymentJobResult(gc, gc.Param("job_id"))
+	return http.MethodGet, lib_constants.HttpPathCreateAuxiliaryDeploymentResultResource, func(gc *gin.Context) {
+		res, err := srv.GetCreateAuxiliaryDeploymentJobResult(gc, gc.Param("JOB_ID"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -79,8 +80,8 @@ func GetCreateAuxiliaryDeploymentJobResult(srv *service.Service) (string, string
 }
 
 func GetUpdateAuxiliaryDeploymentJobResult(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "results/auxiliary-deployment-update/:job_id", func(gc *gin.Context) {
-		res, err := srv.GetUpdateAuxiliaryDeploymentJobResult(gc, gc.Param("job_id"))
+	return http.MethodGet, lib_constants.HttpPathUpdateAuxiliaryDeploymentResultResource, func(gc *gin.Context) {
+		res, err := srv.GetUpdateAuxiliaryDeploymentJobResult(gc, gc.Param("JOB_ID"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -90,8 +91,8 @@ func GetUpdateAuxiliaryDeploymentJobResult(srv *service.Service) (string, string
 }
 
 func GetAuxiliaryDeploymentsJobResult(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "results/auxiliary-deployments/:job_id", func(gc *gin.Context) {
-		res, err := srv.GetAuxiliaryDeploymentsJobResult(gc, gc.Param("job_id"))
+	return http.MethodGet, lib_constants.HttpPathAuxiliaryDeploymentsResultResource, func(gc *gin.Context) {
+		res, err := srv.GetAuxiliaryDeploymentsJobResult(gc, gc.Param("JOB_ID"))
 		if err != nil {
 			_ = gc.Error(err)
 			return

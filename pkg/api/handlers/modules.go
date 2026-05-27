@@ -19,6 +19,7 @@ package handlers
 import (
 	"net/http"
 
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-gonic/gin"
@@ -51,7 +52,7 @@ func getModulesFilter(gc *gin.Context) (lib_models.ModulesFilter, error) {
 }
 
 func GetModules(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "modules", func(gc *gin.Context) {
+	return http.MethodGet, lib_constants.HttpPathModulesCollection, func(gc *gin.Context) {
 		filter, err := getModulesFilter(gc)
 		if err != nil {
 			return
@@ -66,8 +67,8 @@ func GetModules(srv *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 func GetModule(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "modules/:module_id", func(gc *gin.Context) {
-		res, err := srv.GetModule(gc, gc.Param("module_id"))
+	return http.MethodGet, lib_constants.HttpPathModuleResource, func(gc *gin.Context) {
+		res, err := srv.GetModule(gc, gc.Param("MOD_ID"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -77,7 +78,7 @@ func GetModule(srv *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 func GetModulesChangeRequest(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "modules-change-request", func(gc *gin.Context) {
+	return http.MethodGet, lib_constants.HttpPathModulesChangeRequestResource, func(gc *gin.Context) {
 		res, err := srv.GetModulesChangeRequest(gc)
 		if err != nil {
 			_ = gc.Error(err)
@@ -88,7 +89,7 @@ func GetModulesChangeRequest(srv *service.Service) (string, string, gin.HandlerF
 }
 
 func CreateModulesChangeRequest(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPost, "modules-change-request", func(gc *gin.Context) {
+	return http.MethodPost, lib_constants.HttpPathModulesChangeRequestResource, func(gc *gin.Context) {
 		var query struct {
 			UpdateAll bool `form:"update_all"`
 		}
@@ -116,7 +117,7 @@ func CreateModulesChangeRequest(srv *service.Service) (string, string, gin.Handl
 }
 
 func ExecModulesChangeRequest(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPatch, "modules-change-request", func(gc *gin.Context) {
+	return http.MethodPatch, lib_constants.HttpPathModulesChangeRequestResource, func(gc *gin.Context) {
 		res, err := srv.ExecModulesChangeRequest(gc)
 		if err != nil {
 			_ = gc.Error(err)
@@ -127,7 +128,7 @@ func ExecModulesChangeRequest(srv *service.Service) (string, string, gin.Handler
 }
 
 func CancelModulesChangeRequest(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodDelete, "modules-change-request", func(gc *gin.Context) {
+	return http.MethodDelete, lib_constants.HttpPathModulesChangeRequestResource, func(gc *gin.Context) {
 		err := srv.CancelModulesChangeRequest(gc)
 		if err != nil {
 			_ = gc.Error(err)
@@ -138,7 +139,7 @@ func CancelModulesChangeRequest(srv *service.Service) (string, string, gin.Handl
 }
 
 func GetModulesAvailableUpdatesCount(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "modules-available-updates", func(gc *gin.Context) {
+	return http.MethodGet, lib_constants.HttpPathModulesAvailableUpdatesCountResource, func(gc *gin.Context) {
 		res, err := srv.GetModulesAvailableUpdatesCount(gc)
 		if err != nil {
 			_ = gc.Error(err)

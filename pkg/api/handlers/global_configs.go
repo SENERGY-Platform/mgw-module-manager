@@ -19,6 +19,7 @@ package handlers
 import (
 	"net/http"
 
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-gonic/gin"
@@ -26,7 +27,7 @@ import (
 )
 
 func GetGlobalConfigs(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "global-configs", func(gc *gin.Context) {
+	return http.MethodGet, lib_constants.HttpPathGlobalConfigsCollection, func(gc *gin.Context) {
 		var query struct {
 			Ids []string `form:"ids" collection_format:"csv"`
 		}
@@ -44,8 +45,8 @@ func GetGlobalConfigs(srv *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 func GetGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "global-configs/:config_id", func(gc *gin.Context) {
-		res, err := srv.GetGlobalConfig(gc, gc.Param("config_id"))
+	return http.MethodGet, lib_constants.HttpPathGlobalConfigResource, func(gc *gin.Context) {
+		res, err := srv.GetGlobalConfig(gc, gc.Param("CFG_ID"))
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -55,7 +56,7 @@ func GetGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 func CreateGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPost, "global-configs", func(gc *gin.Context) {
+	return http.MethodPost, lib_constants.HttpPathGlobalConfigsCollection, func(gc *gin.Context) {
 		var body lib_models.GlobalConfigInput
 		err := gc.MustBindWith(&body, binding.JSON)
 		if err != nil {
@@ -71,14 +72,14 @@ func CreateGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) 
 }
 
 func UpdateGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPut, "global-configs/:config_id", func(gc *gin.Context) {
+	return http.MethodPut, lib_constants.HttpPathGlobalConfigResource, func(gc *gin.Context) {
 		var body lib_models.GlobalConfigInput
 		err := gc.MustBindWith(&body, binding.JSON)
 		if err != nil {
 			return
 		}
 		err = srv.UpdateGlobalConfig(gc, lib_models.GlobalConfig{
-			Id:             gc.Param("config_id"),
+			Id:             gc.Param("CFG_ID"),
 			Name:           body.Name,
 			InterfaceValue: body.InterfaceValue,
 		})
@@ -91,7 +92,7 @@ func UpdateGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) 
 }
 
 func DeleteGlobalConfigs(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodDelete, "global-configs", func(gc *gin.Context) {
+	return http.MethodDelete, lib_constants.HttpPathGlobalConfigsCollection, func(gc *gin.Context) {
 		var query struct {
 			Ids      []string `form:"ids" collection_format:"csv"`
 			AllowAll bool     `form:"allow_all"`
@@ -110,8 +111,8 @@ func DeleteGlobalConfigs(srv *service.Service) (string, string, gin.HandlerFunc)
 }
 
 func DeleteGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodDelete, "global-configs/:config_id", func(gc *gin.Context) {
-		err := srv.DeleteGlobalConfig(gc, gc.Param("config_id"))
+	return http.MethodDelete, lib_constants.HttpPathGlobalConfigResource, func(gc *gin.Context) {
+		err := srv.DeleteGlobalConfig(gc, gc.Param("CFG_ID"))
 		if err != nil {
 			_ = gc.Error(err)
 			return

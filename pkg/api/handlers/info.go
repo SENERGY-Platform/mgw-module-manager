@@ -19,12 +19,13 @@ package handlers
 import (
 	"net/http"
 
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-gonic/gin"
 )
 
 func ServiceInfo(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "info", func(gc *gin.Context) {
+	return http.MethodGet, lib_constants.HttpPathServiceInfoResource, func(gc *gin.Context) {
 		gc.JSON(http.StatusOK, srv.ServiceInfo())
 	}
 }
