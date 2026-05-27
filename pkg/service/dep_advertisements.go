@@ -137,6 +137,19 @@ func (s *Service) PutDeploymentAdvertisements(
 	)
 }
 
+func (s *Service) DeleteDeploymentAdvertisement(ctx context.Context, deploymentId string, reference string) error {
+	err := s.deploymentsHandler.CheckDeployment(ctx, deploymentId)
+	if err != nil {
+		return err
+	}
+	return s.depAdvertisementsHandler.DeleteAdvertisements(
+		ctx,
+		deploymentId,
+		lib_models.DeploymentAdvertisementsFilterReduced{References: []string{reference}},
+		false,
+	)
+}
+
 func (s *Service) DeleteDeploymentAdvertisements(
 	ctx context.Context,
 	deploymentId string,

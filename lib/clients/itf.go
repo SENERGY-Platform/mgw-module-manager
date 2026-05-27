@@ -133,6 +133,7 @@ type ClientDeploymentAdvertisementsItf interface {
 		inputs []models.DeploymentAdvertisementInput,
 		incremental bool,
 	) (map[string]string, error)
+	DeleteDeploymentAdvertisement(ctx context.Context, deploymentId string, reference string) error
 	DeleteDeploymentAdvertisements(
 		ctx context.Context,
 		deploymentId string,
