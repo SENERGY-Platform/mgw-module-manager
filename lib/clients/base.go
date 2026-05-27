@@ -23,7 +23,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/SENERGY-Platform/mgw-module-manager/lib/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 )
 
 type httpClient interface {
@@ -74,7 +74,7 @@ func handleResponseErr(resp *http.Response) error {
 		} else {
 			resErr.body = b
 		}
-		return wrapError(resErr, resp.Header.Get(models.HttpHeaderErrorCode))
+		return wrapError(resErr, resp.Header.Get(constants.HttpHeaderErrorCode))
 	}
 	return nil
 }

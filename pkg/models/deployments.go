@@ -19,6 +19,7 @@ package models
 import (
 	"time"
 
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 )
 
@@ -38,14 +39,14 @@ type Deployment struct {
 type DeploymentReduced struct {
 	DeploymentBase
 	Containers map[string]DeploymentContainer
-	State      lib_models.DeploymentState // health state determined by container states
+	State      lib_constants.DeploymentState // health state determined by container states
 }
 
 type DeploymentContainer struct {
 	DeploymentContainerBase
-	ImageId string                     // docker image id
-	State   lib_models.ContainerState  // docker container state
-	Health  lib_models.ContainerHealth // docker container health
+	ImageId string                        // docker image id
+	State   lib_constants.ContainerState  // docker container state
+	Health  lib_constants.ContainerHealth // docker container health
 }
 
 type DeploymentsFilterWithState struct {

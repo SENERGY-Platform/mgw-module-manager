@@ -18,6 +18,8 @@ package models
 
 import (
 	"time"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 )
 
 type Deployment struct {
@@ -40,11 +42,11 @@ type Deployment struct {
 }
 
 type Container struct {
-	Name    string          `json:"name"`
-	Alias   string          `json:"alias"`
-	ImageId string          `json:"image_id"` // docker image id
-	State   ContainerState  `json:"state"`    // docker container state
-	Health  ContainerHealth `json:"health"`   // docker container health
+	Name    string                    `json:"name"`
+	Alias   string                    `json:"alias"`
+	ImageId string                    `json:"image_id"` // docker image id
+	State   constants.ContainerState  `json:"state"`    // docker container state
+	Health  constants.ContainerHealth `json:"health"`   // docker container health
 }
 
 type DeploymentSecret struct {

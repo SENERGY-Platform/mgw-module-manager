@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"net/http"
 
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
-	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -65,7 +65,7 @@ func errorHandler(format string) gin.HandlerFunc {
 				statusCode = http.StatusInternalServerError
 			}
 			if errCode != "" {
-				gc.Header(lib_models.HttpHeaderErrorCode, errCode)
+				gc.Header(lib_constants.HttpHeaderErrorCode, errCode)
 			}
 			gc.String(statusCode, combineErrorMessages(format, errs))
 		}

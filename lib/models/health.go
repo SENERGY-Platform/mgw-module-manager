@@ -16,6 +16,8 @@
 
 package models
 
+import "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
+
 type DeploymentsHealthInfo struct {
 	Deployments             []DeploymentHealthInfo `json:"deployments"`
 	TotalEnabledDeployments int                    `json:"total_enabled_deployments"`
@@ -23,12 +25,12 @@ type DeploymentsHealthInfo struct {
 
 type DeploymentHealthInfo struct {
 	ModuleId                         string                          `json:"module_id"`
-	State                            DeploymentState                 `json:"state"`
+	State                            constants.DeploymentState       `json:"state"`
 	Containers                       []DeploymentContainerHealthInfo `json:"containers"`
 	TotalContainers                  int                             `json:"total_containers"`
 	AuxiliaryDeployments             []AuxiliaryDeploymentHealthInfo `json:"auxiliary_deployments"`
 	TotalEnabledAuxiliaryDeployments int                             `json:"total_enabled_auxiliary_deployments"`
-	AuxiliaryDeploymentsState        DeploymentState                 `json:"auxiliary_deployments_state"`
+	AuxiliaryDeploymentsState        constants.DeploymentState       `json:"auxiliary_deployments_state"`
 }
 
 type DeploymentContainerHealthInfo struct {
@@ -37,8 +39,8 @@ type DeploymentContainerHealthInfo struct {
 }
 
 type ContainerHealthInfo struct {
-	State  ContainerState  `json:"state"`  // docker container state
-	Health ContainerHealth `json:"health"` // docker container health
+	State  constants.ContainerState  `json:"state"`  // docker container state
+	Health constants.ContainerHealth `json:"health"` // docker container health
 }
 
 type AuxiliaryDeploymentHealthInfo struct {

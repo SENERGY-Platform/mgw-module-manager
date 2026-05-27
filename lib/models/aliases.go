@@ -18,28 +18,7 @@ package models
 
 import (
 	srv_info_hdl "github.com/SENERGY-Platform/go-service-base/srv-info-hdl"
-	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
-)
-
-type ContainerState = string
-
-const (
-	ContainerInitialized ContainerState = cew_model.InitState
-	ContainerRunning     ContainerState = cew_model.RunningState
-	ContainerPaused      ContainerState = cew_model.PausedState
-	ContainerRestarting  ContainerState = cew_model.RestartingState
-	ContainerRemoving    ContainerState = cew_model.RemovingState
-	ContainerStopped     ContainerState = cew_model.StoppedState
-	ContainerDead        ContainerState = cew_model.DeadState
-)
-
-type ContainerHealth = string
-
-const (
-	ContainerHealthy       ContainerHealth = cew_model.HealthyState
-	ContainerUnhealthy     ContainerHealth = cew_model.UnhealthyState
-	ContainerTransitioning ContainerHealth = cew_model.TransitionState
 )
 
 type ModuleBase = module_lib.Module

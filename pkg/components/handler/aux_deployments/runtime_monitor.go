@@ -21,7 +21,7 @@ import (
 	"maps"
 	"time"
 
-	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
@@ -55,7 +55,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 			var toStop []string
 			for _, auxDep := range parent.AuxiliaryDeployments {
 				container, ok := cewContainersMap[auxDep.Container.Name]
-				if !ok || container.State == lib_models.ContainerRemoving {
+				if !ok || container.State == lib_constants.ContainerRemoving {
 					continue
 				}
 				if auxDep.Enabled {
@@ -80,7 +80,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 			var toStop []string
 			for _, auxDep := range parent.AuxiliaryDeployments {
 				container, ok := cewContainersMap[auxDep.Container.Name]
-				if !ok || container.State == lib_models.ContainerRemoving {
+				if !ok || container.State == lib_constants.ContainerRemoving {
 					continue
 				}
 				if getContainerState(container.State) > 0 {
@@ -173,17 +173,17 @@ func (h *Handler) runtimeMonitorJobsRemove(id string) {
 
 func getContainerState(state string) int {
 	switch state {
-	case lib_models.ContainerInitialized:
+	case lib_constants.ContainerInitialized:
 		return -1
-	case lib_models.ContainerStopped:
+	case lib_constants.ContainerStopped:
 		return -1
-	case lib_models.ContainerDead:
+	case lib_constants.ContainerDead:
 		return -1
-	case lib_models.ContainerRunning:
+	case lib_constants.ContainerRunning:
 		return 1
-	case lib_models.ContainerPaused:
+	case lib_constants.ContainerPaused:
 		return 1
-	case lib_models.ContainerRestarting:
+	case lib_constants.ContainerRestarting:
 		return 1
 	}
 	return 0

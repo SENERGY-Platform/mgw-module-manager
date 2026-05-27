@@ -20,6 +20,7 @@ import (
 	"context"
 	"slices"
 
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
@@ -104,9 +105,9 @@ func getDeploymentsHealthInfo(
 				})
 			}
 			if notOk == 0 {
-				auxDepsState = lib_models.DeploymentHealthy
+				auxDepsState = lib_constants.DeploymentHealthy
 			} else {
-				auxDepsState = lib_models.DeploymentUnhealthy
+				auxDepsState = lib_constants.DeploymentUnhealthy
 			}
 		}
 		if !includeHealthy && deployment.State < 2 && auxDepsState < 2 {
@@ -139,7 +140,7 @@ func getDeploymentsHealthInfo(
 
 func containerOk(state, health string) bool {
 	if health != "" {
-		return health == lib_models.ContainerHealthy || health == lib_models.ContainerTransitioning
+		return health == lib_constants.ContainerHealthy || health == lib_constants.ContainerTransitioning
 	}
-	return state == lib_models.ContainerRunning || state == lib_models.ContainerRestarting
+	return state == lib_constants.ContainerRunning || state == lib_constants.ContainerRestarting
 }

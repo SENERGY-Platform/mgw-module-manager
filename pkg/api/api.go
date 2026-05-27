@@ -21,7 +21,7 @@ import (
 
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
 	sb_slog_attributes "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
-	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-contrib/requestid"
@@ -51,15 +51,15 @@ func CreateHandler(srv *service.Service, srvName, srvVersion string, accessLog b
 	middleware = append(middleware,
 		runtimeIdContextHandler,
 		requestid.New(
-			requestid.WithCustomHeaderStrKey(lib_models.HttpHeaderRequestId),
+			requestid.WithCustomHeaderStrKey(lib_constants.HttpHeaderRequestId),
 			requestid.WithHandler(requestIdContextHandler),
 		),
 		gin_mw.StaticHeaderHandler(map[string]string{
-			lib_models.HttpHeaderApiVer:    srvVersion,
-			lib_models.HttpHeaderSrvName:   srvName,
-			lib_models.HttpHeaderRuntimeId: helper_naming.RuntimeId,
-			lib_models.HttpHeaderCoreId:    helper_naming.CoreId,
-			lib_models.HttpHeaderManagerId: helper_naming.ManagerId,
+			lib_constants.HttpHeaderApiVer:    srvVersion,
+			lib_constants.HttpHeaderSrvName:   srvName,
+			lib_constants.HttpHeaderRuntimeId: helper_naming.RuntimeId,
+			lib_constants.HttpHeaderCoreId:    helper_naming.CoreId,
+			lib_constants.HttpHeaderManagerId: helper_naming.ManagerId,
 		}),
 		errorHandler("Err%d: %s"),
 		gin_mw.StructRecoveryHandler(logger, gin_mw.DefaultRecoveryFunc),
