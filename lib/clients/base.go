@@ -80,12 +80,12 @@ func handleResponseErr(resp *http.Response) error {
 	return nil
 }
 
-func queryJoinStrings(sl []string, sep string) string {
+func queryJoinStrings(sl []string) string {
 	tmp := make([]string, len(sl))
 	for i, s := range sl {
 		tmp[i] = url.QueryEscape(s)
 	}
-	return strings.Join(tmp, sep)
+	return strings.Join(tmp, ",")
 }
 
 var urlPathParamRegex = regexp.MustCompile(":[^/]+")

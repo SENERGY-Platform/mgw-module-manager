@@ -127,7 +127,7 @@ func (c *ClientAuxiliaryDeployments) RecreateAuxiliaryDeployments(
 func appendAuxiliaryDeploymentsQuery(u string, filter models.AuxiliaryDeploymentsFilterWithState, allowAll bool) string {
 	var items []string
 	if len(filter.Ids) > 0 {
-		items = append(items, "ids="+queryJoinStrings(filter.Ids, ","))
+		items = append(items, "ids="+queryJoinStrings(filter.Ids))
 	}
 	if len(filter.Labels) > 0 {
 		var labels []string

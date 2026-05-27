@@ -41,19 +41,19 @@ func NewClientHealth(httpClient httpClient, baseUrl string) *ClientHealth {
 func appendDeploymentsHealthQuery(u string, filter models.DeploymentsHealthInfoFilter) string {
 	var items []string
 	if len(filter.ModuleIds) > 0 {
-		items = append(items, "module_ids="+queryJoinStrings(filter.ModuleIds, ","))
+		items = append(items, "module_ids="+queryJoinStrings(filter.ModuleIds))
 	}
 	if len(filter.ExclModuleIds) > 0 {
-		items = append(items, "excl_module_ids="+queryJoinStrings(filter.ExclModuleIds, ","))
+		items = append(items, "excl_module_ids="+queryJoinStrings(filter.ExclModuleIds))
 	}
 	if filter.AuxiliaryDeployments {
 		items = append(items, "auxiliary_deployments=true")
 	}
 	if len(filter.AuxDeploymentsOfIds) > 0 {
-		items = append(items, "auxiliary_deployments_of_ids="+queryJoinStrings(filter.AuxDeploymentsOfIds, ","))
+		items = append(items, "auxiliary_deployments_of_ids="+queryJoinStrings(filter.AuxDeploymentsOfIds))
 	}
 	if len(filter.ExclAuxDeploymentsOfIds) > 0 {
-		items = append(items, "excl_auxiliary_deployments_of_ids="+queryJoinStrings(filter.ExclAuxDeploymentsOfIds, ","))
+		items = append(items, "excl_auxiliary_deployments_of_ids="+queryJoinStrings(filter.ExclAuxDeploymentsOfIds))
 	}
 	if filter.IncludeHealthy {
 		items = append(items, "include_healthy=true")
