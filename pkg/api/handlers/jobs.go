@@ -55,15 +55,13 @@ func GetJob(srv *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 func CancelJobs(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodPatch, lib_constants.HttpPathJobsCollection, func(gc *gin.Context) {
-		var query struct {
-			Ids []string `form:"ids" collection_format:"csv"`
-		}
-		err := gc.MustBindWith(&query, binding.Query)
+	return http.MethodPost, lib_constants.HttpPathCancelJobs, func(gc *gin.Context) {
+		var body []string
+		err := gc.MustBindWith(&body, binding.JSON)
 		if err != nil {
 			return
 		}
-		err = srv.CancelJobs(gc, query.Ids)
+		err = srv.CancelJobs(gc, body)
 		if err != nil {
 			_ = gc.Error(err)
 			return
