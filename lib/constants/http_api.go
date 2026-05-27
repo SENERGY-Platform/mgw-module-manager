@@ -52,6 +52,7 @@ const (
 
 	HttpPathJobsCollection = "jobs"
 	HttpPathJobResource    = "jobs/:JOB_ID"
+	HttpPathCancelJobs     = "jobs-cancel"
 
 	HttpPathDeploymentResultResource                = "results/deployments/:JOB_ID"
 	HttpPathUpdateDeploymentResultResource          = "results/deployments-update/:JOB_ID"
