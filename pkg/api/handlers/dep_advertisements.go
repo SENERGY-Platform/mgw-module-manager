@@ -164,9 +164,9 @@ func PutDeploymentAdvertisements(srv *service.Service) (string, string, gin.Hand
 
 func getDeleteDeploymentAdvertisementsFilter(gc *gin.Context) (lib_models.DeploymentAdvertisementsFilterReduced, bool, error) {
 	var query struct {
-		Ids        []string
-		References []string
-		AllowAll   bool
+		Ids        []string `form:"ids" collection_format:"csv"`
+		References []string `form:"references" collection_format:"csv"`
+		AllowAll   bool     `form:"allow_all"`
 	}
 	err := gc.MustBindWith(&query, binding.Query)
 	if err != nil {
