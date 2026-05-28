@@ -238,7 +238,7 @@ func (c *ClientDeploymentAdvertisements) QueryDeploymentAdvertisements(
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, appendDeploymentAdvertisementsQuery(u, filter), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, appendDeploymentAdvertisementsQuery(u, filter), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -258,7 +258,7 @@ func (c *ClientDeploymentAdvertisements) QueryDeploymentAdvertisement(
 	if err != nil {
 		return models.DeploymentAdvertisementReduced{}, err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, u, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return models.DeploymentAdvertisementReduced{}, err
 	}

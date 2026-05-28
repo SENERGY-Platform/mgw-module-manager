@@ -500,6 +500,9 @@ func (c *ClientAuxiliaryDeployments) GetJobs(ctx context.Context, filterIds []st
 	if err != nil {
 		return nil, err
 	}
+	if len(filterIds) > 0 {
+		u += "?ids=" + queryJoinStrings(filterIds)
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return nil, err
