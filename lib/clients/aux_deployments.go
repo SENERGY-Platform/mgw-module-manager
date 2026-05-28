@@ -258,7 +258,7 @@ func (c *ClientAuxiliaryDeployments) DeleteAuxiliaryDeploymentVolume(ctx context
 func appendAuxiliaryDeploymentVolumesQuery(u string, references []string, allowAll, unused bool) string {
 	var items []string
 	if len(references) > 0 {
-		items = append(items, "ids="+queryJoinStrings(references))
+		items = append(items, "references="+queryJoinStrings(references))
 	}
 	if allowAll {
 		items = append(items, "allow_all=true")
