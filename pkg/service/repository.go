@@ -70,14 +70,22 @@ func (s *Service) GetRepositoryModules(ctx context.Context, filter lib_models.Re
 	if ok {
 		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
-	mods, err := s.repoModules(
+	repos, err := s.repositoriesHandler.GetRepositories(ctx)
+	if err != nil {
+		return nil, err
+	}
+	repoModules, err := s.repositoriesHandler.GetModules(ctx, pkg_models.RepositoryModulesFilter{
+		Ids:     filter.Ids,
+		Name:    filter.Name,
+		Sources: newSourceFilters(filter.Repositories),
+	})
+	if err != nil {
+		return nil, err
+	}
+	mergedRepoModules, err := s.mergeRepoModules(
 		ctx,
-		s.repositoriesHandler.GetRepositories(ctx),
-		s.repositoriesHandler.GetModules(ctx, pkg_models.RepositoryModulesFilter{
-			Ids:     filter.Ids,
-			Name:    filter.Name,
-			Sources: newSourceFilters(filter.Repositories),
-		}),
+		repos,
+		repoModules,
 	)
 	if err != nil {
 		return nil, err
@@ -86,10 +94,10 @@ func (s *Service) GetRepositoryModules(ctx context.Context, filter lib_models.Re
 	if err != nil {
 		return nil, err
 	}
-	return handleInstalledMods(mods, installedMods, filter.Installed, filter.UpdateAvailable), nil
+	return handleInstalledMods(mergedRepoModules, installedMods, filter.Installed, filter.UpdateAvailable), nil
 }
 
-func (s *Service) repoModules(ctx context.Context, repos []pkg_models.Repository, repoMods []pkg_models.RepositoryModule) ([]lib_models.RepoModule, error) {
+func (s *Service) mergeRepoModules(ctx context.Context, repos []pkg_models.Repository, repoMods []pkg_models.RepositoryModule) ([]lib_models.RepoModule, error) {
 	reposTree := buildReposTree(repos)
 	var repoModules []lib_models.RepoModule
 	for id, sources := range buildRepoModsTree(repoMods) {
@@ -183,7 +191,10 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models.C
 		}
 	}
 	// get repo with the highest priority
-	modRepos := s.repositoriesHandler.GetRepositories(ctx)
+	modRepos, err := s.repositoriesHandler.GetRepositories(ctx)
+	if err != nil {
+		return nil, err
+	}
 	highestPrioRepo := selectByPriority(modRepos, func(item pkg_models.Repository, lastPrio int) (int, bool) {
 		return item.Priority, item.Priority >= lastPrio
 	})

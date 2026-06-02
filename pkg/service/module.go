@@ -215,7 +215,10 @@ func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modules
 	if len(installedMods) == 0 {
 		return modulesChangeRequest{}, nil
 	}
-	repoMods := s.repositoriesHandler.GetModules(ctx, pkg_models.RepositoryModulesFilter{Ids: slices.Collect(maps.Keys(installedMods))})
+	repoMods, err := s.repositoriesHandler.GetModules(ctx, pkg_models.RepositoryModulesFilter{Ids: slices.Collect(maps.Keys(installedMods))})
+	if err != nil {
+		return modulesChangeRequest{}, err
+	}
 	if len(repoMods) == 0 {
 		return modulesChangeRequest{}, nil
 	}

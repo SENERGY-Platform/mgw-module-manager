@@ -170,7 +170,7 @@ func (h *Handler) RefreshRepositories(ctx context.Context) ([]lib_models.Reposit
 	return results, nil
 }
 
-func (h *Handler) GetRepositories(ctx context.Context) []pkg_models.Repository {
+func (h *Handler) GetRepositories(ctx context.Context) ([]pkg_models.Repository, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	var repos []pkg_models.Repository
@@ -184,7 +184,7 @@ func (h *Handler) GetRepositories(ctx context.Context) []pkg_models.Repository {
 			})
 		}
 	}
-	return repos
+	return repos, nil
 }
 
 func (h *Handler) CreateRepository(ctx context.Context, repositoryType string, data []byte) error {
@@ -233,7 +233,7 @@ func (h *Handler) DeleteRepository(ctx context.Context, source string) error {
 	return nil
 }
 
-func (h *Handler) GetModules(_ context.Context, filter pkg_models.RepositoryModulesFilter) []pkg_models.RepositoryModule {
+func (h *Handler) GetModules(_ context.Context, filter pkg_models.RepositoryModulesFilter) ([]pkg_models.RepositoryModule, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	filterById := len(filter.Ids) > 0
@@ -257,7 +257,7 @@ func (h *Handler) GetModules(_ context.Context, filter pkg_models.RepositoryModu
 			}
 		}
 	}
-	return variants
+	return variants, nil
 }
 
 func (h *Handler) GetModule(ctx context.Context, id, source, channel string) (pkg_models.RepositoryModule, error) {
