@@ -1,166 +1,176 @@
+/*
+ * Copyright 2026 InfAI (CC SES)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package github
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"io"
-	"io/fs"
+	"encoding/json"
 	"os"
 	"path"
-	"slices"
 	"strings"
 	"sync"
 
-	helper_archive "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/archive"
-	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
-	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
+	handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
 )
 
-const gitHubCom = "github.com"
-
-var commonBlacklist = []string{
-	".git",
-	".github",
-}
+const (
+	reposDir   = "repositories"
+	sourcesDir = "sources"
+)
 
 type Handler struct {
-	gitHubClt gitHubClient
-	owner     string
-	repo      string
-	reference string
-	channels  map[string]Channel
-	wrkPath   string
-	mu        sync.RWMutex
+	repositories map[string]*Repository
+	gitHubClient gitHubClient
+	workdirPath  string
+	mu           sync.RWMutex
 }
 
-func New(gitHubClt gitHubClient, wrkPath, owner, repo, reference string, channels []Channel) *Handler {
-	channelsMap := make(map[string]Channel)
-	for _, channel := range channels {
-		channelsMap[channel.Name] = channel
-	}
+func New(gitHubClient gitHubClient, workdirPath string) *Handler {
 	return &Handler{
-		gitHubClt: gitHubClt,
-		owner:     owner,
-		repo:      repo,
-		reference: reference,
-		channels:  channelsMap,
-		wrkPath:   path.Join(wrkPath, strings.Replace(strings.Replace(gitHubCom+"_"+owner+"_"+repo+"_"+reference, "/", "_", -1), ".", "_", -1)),
+		gitHubClient: gitHubClient,
+		workdirPath:  workdirPath,
 	}
 }
 
-func (h *Handler) Init() error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	err := os.MkdirAll(h.wrkPath, 0775)
+func (h *Handler) RepositoryType() string {
+	return gitHubCom
+}
+
+func (h *Handler) Init(_ context.Context) error {
+	err := os.MkdirAll(path.Join(h.workdirPath, sourcesDir), 0775)
 	if err != nil {
 		return err
+	}
+	dirEntries, err := os.ReadDir(path.Join(h.workdirPath, sourcesDir))
+	if err != nil {
+		return err
+	}
+	h.repositories = make(map[string]*Repository)
+	for _, dirEntry := range dirEntries {
+		if dirEntry.IsDir() {
+			continue
+		}
+		source, err := readSourceFile(path.Join(h.workdirPath, sourcesDir, dirEntry.Name()))
+		if err != nil {
+			return err
+		}
+		h.repositories[getSourceString(source)] = newRepository(
+			h.gitHubClient,
+			source,
+			path.Join(h.workdirPath, reposDir, getFsName(source)),
+		)
 	}
 	return nil
 }
 
-func (h *Handler) Source() string {
-	return path.Join(gitHubCom, h.owner, h.repo)
-}
-
-func (h *Handler) Channels() []pkg_models.RepositoryChannel {
-	var channels []pkg_models.RepositoryChannel
-	for _, channel := range h.channels {
-		channels = append(channels, pkg_models.RepositoryChannel{Name: channel.Name, Priority: channel.Priority})
-	}
-	return channels
-}
-
-func (h *Handler) FileSystemsMap(_ context.Context, channelName string) (map[string]fs.FS, error) {
+func (h *Handler) GetRepositories(_ context.Context) (map[string]handler_repositories.Repository, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	channel, ok := h.channels[channelName]
-	if !ok {
-		return nil, errors.New("channel not found")
+	tmp := make(map[string]handler_repositories.Repository)
+	for src, repo := range h.repositories {
+		tmp[src] = repo
 	}
-	repo, err := readRepoFile(h.wrkPath)
-	if err != nil {
-		return nil, err
-	}
-	dirEntries, err := os.ReadDir(path.Join(h.wrkPath, repo.Path, channel.Name))
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	fsMap := make(map[string]fs.FS)
-	for _, entry := range dirEntries {
-		if entry.IsDir() && !slices.Contains(commonBlacklist, entry.Name()) && !slices.Contains(channel.Blacklist, entry.Name()) {
-			fsMap[entry.Name()] = os.DirFS(path.Join(h.wrkPath, repo.Path, channel.Name, entry.Name()))
-		}
-	}
-	return fsMap, nil
+	return tmp, nil
 }
 
-func (h *Handler) FileSystem(_ context.Context, channelName, fsRef string) (fs.FS, error) {
+func (h *Handler) GetRepository(_ context.Context, source string) (handler_repositories.Repository, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	channel, ok := h.channels[channelName]
+	repo, ok := h.repositories[source]
 	if !ok {
-		return nil, errors.New("channel not found")
+		return nil, lib_errors.New[lib_errors.ErrNotFound]("source not found")
 	}
-	repo, err := readRepoFile(h.wrkPath)
-	if err != nil {
-		return nil, err
-	}
-	dirEntries, err := os.ReadDir(path.Join(h.wrkPath, repo.Path, channel.Name))
-	if err != nil {
-		return nil, err
-	}
-	for _, entry := range dirEntries {
-		if entry.IsDir() && entry.Name() == fsRef {
-			return os.DirFS(path.Join(h.wrkPath, repo.Path, channel.Name, entry.Name())), nil
-		}
-	}
-	return nil, errors.New("reference not found")
+	return repo, nil
 }
 
-func (h *Handler) Refresh(ctx context.Context) error {
+func (h *Handler) CreateRepository(_ context.Context, data []byte) (handler_repositories.Repository, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	oldRepo, err := readRepoFile(h.wrkPath)
+	var src Source
+	err := json.Unmarshal(data, &src)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	var newRepo repoFile
-	newRepo.GitCommit, err = h.gitHubClt.GetLastCommit(ctx, h.owner, h.repo, h.reference)
+	srcString := getSourceString(src)
+	_, ok := h.repositories[srcString]
+	if !ok {
+		return nil, lib_errors.New[lib_errors.ErrExists]("source already exists")
+	}
+	fsName := getFsName(src)
+	err = writeSourceFile(path.Join(h.workdirPath, sourcesDir, fsName), src)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if newRepo.GitCommit.Sha == oldRepo.GitCommit.Sha {
+	repo := newRepository(h.gitHubClient, src, path.Join(h.workdirPath, reposDir, fsName))
+	h.repositories[srcString] = repo
+	return repo, nil
+}
+
+func (h *Handler) DeleteRepository(_ context.Context, source string) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	repo, ok := h.repositories[source]
+	if !ok {
 		return nil
 	}
-	repoArchive, err := h.gitHubClt.GetRepoTarGzArchive(ctx, h.owner, h.repo, newRepo.GitCommit.Sha)
+	fsName := getFsName(repo.source)
+	err := os.RemoveAll(path.Join(h.workdirPath, reposDir, fsName))
 	if err != nil {
 		return err
 	}
-	defer repoArchive.Close()
-	if err = os.MkdirAll(path.Join(h.wrkPath, newRepo.GitCommit.Sha), 0775); err != nil {
-		return err
-	}
-	rootDir, err := helper_archive.ExtractTarGz(repoArchive, path.Join(h.wrkPath, newRepo.GitCommit.Sha))
+	err = os.RemoveAll(path.Join(h.workdirPath, sourcesDir, fsName))
 	if err != nil {
-		_, _ = io.ReadAll(repoArchive)
 		return err
 	}
-	newRepo.Path = path.Join(newRepo.GitCommit.Sha, rootDir)
-	if err = writeRepoFile(h.wrkPath, newRepo); err != nil {
-		if e := os.RemoveAll(path.Join(h.wrkPath, newRepo.GitCommit.Sha)); e != nil {
-			return helper_errors.Join(err, e)
-		}
-		return err
-	}
-	if oldRepo.Path != "" && oldRepo.Path != newRepo.Path {
-		fmt.Println(path.Join(h.wrkPath, oldRepo.Path))
-		if e := os.RemoveAll(path.Join(h.wrkPath, oldRepo.GitCommit.Sha)); e != nil {
-			fmt.Println(e)
-		}
-	}
+	delete(h.repositories, source)
 	return nil
+}
+
+func readSourceFile(p string) (Source, error) {
+	file, err := os.Open(p)
+	if err != nil {
+		return Source{}, err
+	}
+	defer file.Close()
+	jd := json.NewDecoder(file)
+	var src Source
+	err = jd.Decode(&src)
+	if err != nil {
+		return Source{}, err
+	}
+	return src, nil
+}
+
+func writeSourceFile(p string, src Source) error {
+	file, err := os.Create(p)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	je := json.NewEncoder(file)
+	je.SetIndent("", "\t")
+	return je.Encode(src)
+}
+
+func getSourceString(src Source) string {
+	return path.Join(gitHubCom, src.Owner, src.Repository)
+}
+
+func getFsName(src Source) string {
+	return strings.Replace(strings.Replace(src.Owner+"_"+src.Repository+"_"+src.Reference, "/", "_", -1), ".", "_", -1)
 }
