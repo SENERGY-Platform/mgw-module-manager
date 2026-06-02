@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
@@ -17,71 +18,219 @@ import (
 )
 
 type Handler struct {
-	repositories map[string]Repository
-	variantsMap  map[string]map[string]map[string]moduleWrapper // {moduleId:{source:{channel:variant}}}
-	mu           sync.RWMutex
+	repositoryHandlers map[string]repositoryHandler
+	lookUpMap          map[string]map[string]map[string]moduleWrapper // {moduleId:{source:{channel:variant}}}
+	mu                 sync.RWMutex
 }
 
-func New(repositories []Repository) *Handler {
-	tmp := make(map[string]Repository)
-	for _, repo := range repositories {
-		tmp[repo.Handler.Source()] = repo
+func New(handlers ...repositoryHandler) *Handler {
+	h := Handler{
+		repositoryHandlers: make(map[string]repositoryHandler),
 	}
-	return &Handler{
-		repositories: tmp,
+	for _, handler := range handlers {
+		h.repositoryHandlers[handler.RepositoryType()] = handler
 	}
+	return &h
+}
+
+func (h *Handler) InitHandlers(ctx context.Context) error {
+	var errs []error
+	for repoType, handler := range h.repositoryHandlers {
+		err := handler.Init(ctx)
+		if err != nil {
+			logger.ErrorContext(ctx, "initialize repository handler", slog_keys.RepositoryType, repoType, slog_keys.Error, err.Error())
+			errs = append(errs, fmt.Errorf("'%s' %w", repoType, err))
+			continue
+		}
+		logger.InfoContext(ctx, "initialize repository handler", slog_keys.RepositoryType, repoType)
+	}
+	if len(errs) > 0 {
+		return helper_errors.Join(errs...)
+	}
+	return nil
 }
 
 func (h *Handler) InitRepositories(ctx context.Context) error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
 	var errs []error
-	for source, repo := range h.repositories {
-		err := repo.Handler.Init()
-		if err != nil {
-			logger.ErrorContext(ctx, "initialize repository", slog_keys.Source, source, slog_keys.Error, err.Error())
-			errs = append(errs, fmt.Errorf("'%s' %w", source, err))
-			continue
+	repositories := make(map[string]Repository)
+	priorities := make(map[int]struct{})
+	for repoType, handler := range h.repositoryHandlers {
+		for source, repo := range handler.GetRepositories(ctx) {
+			if _, ok := repositories[source]; ok {
+				logger.ErrorContext(
+					ctx,
+					"initialize repository",
+					slog_keys.RepositoryType, repoType,
+					slog_keys.Source, source,
+					slog_keys.Error, "source collision",
+				)
+				errs = append(errs, errors.New(fmt.Sprintf("source collision: %s", source)))
+				continue
+			}
+			if _, ok := priorities[repo.Priority()]; ok {
+				logger.ErrorContext(
+					ctx,
+					"initialize repository",
+					slog_keys.RepositoryType, repoType,
+					slog_keys.Source, source,
+					slog_keys.Priority, repo.Priority(),
+					slog_keys.Error, "priority collision",
+				)
+				errs = append(errs, errors.New(fmt.Sprintf("priority collision: %d", repo.Priority())))
+				continue
+			}
+			err := repo.Init(ctx)
+			if err != nil {
+				logger.ErrorContext(
+					ctx,
+					"initialize repository",
+					slog_keys.RepositoryType, repoType,
+					slog_keys.Source, source,
+					slog_keys.Error, err.Error(),
+				)
+				errs = append(errs, fmt.Errorf("'%s' %w", source, err))
+				continue
+			}
+			repositories[source] = repo
+			logger.InfoContext(ctx, "initialize repository", slog_keys.RepositoryType, repoType, slog_keys.Source, source)
 		}
-		logger.InfoContext(ctx, "initialize repository", slog_keys.Source, source)
 	}
+	h.updateLookupMap(ctx, repositories)
 	if len(errs) > 0 {
 		return helper_errors.Join(errs...)
 	}
-	return h.updateVariantsMap(ctx)
+	return nil
 }
 
-func (h *Handler) RefreshRepositories(ctx context.Context) error {
+func (h *Handler) RefreshRepositories(ctx context.Context) ([]lib_models.RepositoryResult, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	var errs []error
-	for source, repo := range h.repositories {
-		err := repo.Handler.Refresh(ctx)
-		if err != nil {
-			logger.ErrorContext(ctx, "refresh repository", slog_keys.Source, source, slog_keys.Error, err.Error())
-			errs = append(errs, fmt.Errorf("'%s' %w", source, err))
-			continue
+	repositories := make(map[string]Repository)
+	priorities := make(map[int]struct{})
+	var results []lib_models.RepositoryResult
+	for repoType, handler := range h.repositoryHandlers {
+		for source, repo := range handler.GetRepositories(ctx) {
+			result := lib_models.RepositoryResult{
+				Type:   repoType,
+				Source: source,
+			}
+			if _, ok := repositories[source]; ok {
+				logger.ErrorContext(
+					ctx,
+					"refresh repository",
+					slog_keys.RepositoryType, repoType,
+					slog_keys.Source, source,
+					slog_keys.Error, "source collision",
+				)
+				result.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("source collision: %s", source))
+				results = append(results, result)
+				continue
+			}
+			if _, ok := priorities[repo.Priority()]; ok {
+				logger.ErrorContext(
+					ctx,
+					"refresh repository",
+					slog_keys.RepositoryType, repoType,
+					slog_keys.Source, source,
+					slog_keys.Priority, repo.Priority(),
+					slog_keys.Error, "priority collision",
+				)
+				result.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("priority collision: %d", repo.Priority()))
+				results = append(results, result)
+				continue
+			}
+			err := repo.Refresh(ctx)
+			if err != nil {
+				logger.ErrorContext(
+					ctx,
+					"refresh repository",
+					slog_keys.RepositoryType, repoType,
+					slog_keys.Source, source,
+					slog_keys.Error, err.Error(),
+				)
+				result.ErrorResult = lib_models.NewErrorResult(err.Error())
+				results = append(results, result)
+				continue
+			}
+			repositories[source] = repo
+			priorities[repo.Priority()] = struct{}{}
+			logger.InfoContext(ctx, "refresh repository", slog_keys.RepositoryType, repoType, slog_keys.Source, source)
+			results = append(results, result)
 		}
-		logger.InfoContext(ctx, "refresh repository", slog_keys.Source, source)
 	}
-	if len(errs) > 0 {
-		return helper_errors.Join(errs...)
+	lookupErrResults := h.updateLookupMap(ctx, repositories)
+	for i, result := range results {
+		chanErrs, ok := lookupErrResults[result.Source]
+		if ok {
+			result.ChannelErrors = chanErrs
+			result.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%d channel errors", len(chanErrs)))
+			results[i] = result
+		}
 	}
-	return h.updateVariantsMap(ctx)
+	return results, nil
 }
 
-func (h *Handler) GetRepositories(_ context.Context) []pkg_models.Repository {
+func (h *Handler) GetRepositories(ctx context.Context) []pkg_models.Repository {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	var repos []pkg_models.Repository
-	for source, repo := range h.repositories {
-		repos = append(repos, pkg_models.Repository{
-			Source:   source,
-			Priority: repo.Priority,
-			Channels: repo.Handler.Channels(),
-		})
+	for repoType, handler := range h.repositoryHandlers {
+		for source, repo := range handler.GetRepositories(ctx) {
+			repos = append(repos, pkg_models.Repository{
+				Type:     repoType,
+				Source:   source,
+				Priority: repo.Priority(),
+				Channels: repo.Channels(),
+			})
+		}
 	}
 	return repos
+}
+
+func (h *Handler) CreateRepository(ctx context.Context, repositoryType string, data []byte) error {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	handler, ok := h.repositoryHandlers[repositoryType]
+	if !ok {
+		err := lib_errors.New[lib_errors.ErrNotFound]("repository handler not found")
+		logger.Error("create repository", slog_keys.RepositoryType, repositoryType, slog_keys.Error, err.Error())
+		return err
+	}
+	repo, err := handler.CreateRepository(ctx, data)
+	if err != nil {
+		logger.Error("create repository", slog_keys.RepositoryType, repositoryType, slog_keys.Error, err.Error())
+		return err
+	}
+	err = repo.Init(ctx)
+	if err != nil {
+		logger.ErrorContext(
+			ctx,
+			"create repository",
+			slog_keys.RepositoryType, handler.RepositoryType(),
+			slog_keys.Source, repo.Source(),
+			slog_keys.Error, err.Error(),
+		)
+		return err
+	}
+	return nil
+}
+
+func (h *Handler) DeleteRepository(ctx context.Context, source string) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for repoType, handler := range h.repositoryHandlers {
+		err := handler.DeleteRepository(ctx, source)
+		if err != nil {
+			logger.ErrorContext(
+				ctx,
+				"delete repository",
+				slog_keys.RepositoryType, repoType,
+				slog_keys.Source, source,
+				slog_keys.Error, err.Error(),
+			)
+		}
+	}
+	return nil
 }
 
 func (h *Handler) GetModules(_ context.Context, filter pkg_models.RepositoryModulesFilter) []pkg_models.RepositoryModule {
@@ -92,7 +241,7 @@ func (h *Handler) GetModules(_ context.Context, filter pkg_models.RepositoryModu
 	filter.Name = strings.ToLower(filter.Name)
 	sourceFilterMap := newSourceFilterMap(filter.Sources)
 	var variants []pkg_models.RepositoryModule
-	for modId, sources := range h.variantsMap {
+	for modId, sources := range h.lookUpMap {
 		if filterById && !slices.Contains(filter.Ids, modId) {
 			continue
 		}
@@ -144,12 +293,13 @@ func (h *Handler) GetModuleFS(ctx context.Context, id, source, channel string) (
 		)
 		return nil, lib_errors.Wrap[lib_errors.ErrNotFound](err)
 	}
-	repo, ok := h.repositories[variant.Source]
+	handler, ok := h.repositoryHandlers[variant.RepoType]
 	if !ok {
 		err = errors.New("repository handler not found")
 		logger.ErrorContext(
 			ctx,
 			"get module file system",
+			slog_keys.RepositoryType, variant.RepoType,
 			slog_keys.Source, source,
 			slog_keys.Channel, channel,
 			slog_keys.ModuleId, id,
@@ -157,11 +307,25 @@ func (h *Handler) GetModuleFS(ctx context.Context, id, source, channel string) (
 		)
 		return nil, err
 	}
-	fSys, err := repo.Handler.FileSystem(ctx, variant.Channel, variant.FSysRef)
+	repo, err := handler.GetRepository(ctx, variant.Source)
 	if err != nil {
 		logger.ErrorContext(
 			ctx,
 			"get module file system",
+			slog_keys.RepositoryType, variant.RepoType,
+			slog_keys.Source, source,
+			slog_keys.Channel, channel,
+			slog_keys.ModuleId, id,
+			slog_keys.Error, err,
+		)
+		return nil, err
+	}
+	fSys, err := repo.GetFileSystem(ctx, variant.Channel, variant.FSysRef)
+	if err != nil {
+		logger.ErrorContext(
+			ctx,
+			"get module file system",
+			slog_keys.RepositoryType, variant.RepoType,
 			slog_keys.Source, source,
 			slog_keys.Channel, channel,
 			slog_keys.ModuleId, id,
@@ -172,21 +336,26 @@ func (h *Handler) GetModuleFS(ctx context.Context, id, source, channel string) (
 	return fSys, nil
 }
 
-func (h *Handler) updateVariantsMap(ctx context.Context) error {
-	variantsMap := make(map[string]map[string]map[string]moduleWrapper)
-	var errs []error
-	for source, repo := range h.repositories {
-		for _, channel := range repo.Handler.Channels() {
-			fsMap, err := repo.Handler.FileSystemsMap(ctx, channel.Name)
+func (h *Handler) updateLookupMap(ctx context.Context, repositories map[string]Repository) map[string][]lib_models.RepositoryChannelErrorResult {
+	lookupMap := make(map[string]map[string]map[string]moduleWrapper)
+	errResults := make(map[string][]lib_models.RepositoryChannelErrorResult)
+	for source, repo := range repositories {
+		for _, channel := range repo.Channels() {
+			fsMap, err := repo.GetFileSystemsMap(ctx, channel.Name)
 			if err != nil {
 				logger.ErrorContext(
 					ctx,
 					"update module variants, get file systems",
+					slog_keys.RepositoryType, repo.Type(),
 					slog_keys.Source, source,
 					slog_keys.Channel, channel.Name,
 					slog_keys.Error, err.Error(),
 				)
-				errs = append(errs, fmt.Errorf("'%s' '%s' %w", source, channel.Name, err))
+
+				errResults[source] = append(errResults[source], lib_models.RepositoryChannelErrorResult{
+					Channel:     channel.Name,
+					ErrorResult: lib_models.NewErrorResult(err.Error()),
+				})
 				continue
 			}
 			for ref, fSys := range fsMap {
@@ -195,18 +364,22 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 					logger.ErrorContext(
 						ctx,
 						"update module variants, get module",
+						slog_keys.RepositoryType, repo.Type(),
 						slog_keys.Source, source,
 						slog_keys.Channel, channel.Name,
 						slog_keys.Reference, ref,
 						slog_keys.Error, err.Error(),
 					)
-					errs = append(errs, fmt.Errorf("'%s' '%s' '%s' %w", source, channel.Name, ref, err))
+					errResults[source] = append(errResults[source], lib_models.RepositoryChannelErrorResult{
+						Channel:     channel.Name,
+						ErrorResult: lib_models.NewErrorResult(err.Error()),
+					})
 					continue
 				}
-				sources, ok := variantsMap[mod.ID]
+				sources, ok := lookupMap[mod.ID]
 				if !ok {
 					sources = make(map[string]map[string]moduleWrapper)
-					variantsMap[mod.ID] = sources
+					lookupMap[mod.ID] = sources
 				}
 				channels, ok := sources[source]
 				if !ok {
@@ -224,11 +397,13 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 						Desc:    mod.Description,
 						Version: mod.Version,
 					},
-					FSysRef: ref,
+					RepoType: repo.Type(),
+					FSysRef:  ref,
 				}
 				logger.DebugContext(
 					ctx,
 					"update module variants, add",
+					slog_keys.RepositoryType, repo.Type(),
 					slog_keys.Source, source,
 					slog_keys.Channel, channel.Name,
 					slog_keys.Reference, ref,
@@ -238,15 +413,12 @@ func (h *Handler) updateVariantsMap(ctx context.Context) error {
 			}
 		}
 	}
-	if len(errs) > 0 {
-		return helper_errors.Join(errs...)
-	}
-	h.variantsMap = variantsMap
-	return nil
+	h.lookUpMap = lookupMap
+	return errResults
 }
 
 func (h *Handler) getModuleVariant(id, source, channel string) (moduleWrapper, error) {
-	sources, ok := h.variantsMap[id]
+	sources, ok := h.lookUpMap[id]
 	if !ok {
 		return moduleWrapper{}, errors.New("module not found")
 	}

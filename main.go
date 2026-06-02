@@ -103,36 +103,14 @@ func main() {
 	databaseHandler := handler_database.New(sqlDB)
 
 	// create repositories handler
-	gitHubClient := client_repositories_github.New(
-		helper_http.NewClient(time.Duration(config.GitHubModulesRepoHandler.Timeout)),
-		config.GitHubModulesRepoHandler.BaseUrl,
-	)
 	repositoriesHandler := handler_repositories.New(
-		[]handler_repositories.Repository{
-			{
-				Handler: handler_repositories_github.New(
-					gitHubClient,
-					config.GitHubModulesRepoHandler.WorkDirPath,
-					"SENERGY-Platform",
-					"mgw-module-repository",
-					"main-validated",
-					[]handler_repositories_github.Channel{
-						{
-							Name:     "main",
-							Priority: 2,
-						},
-						{
-							Name:     "testing",
-							Priority: 1,
-						},
-						{
-							Name:     "legacy",
-							Priority: 0,
-						},
-					}),
-				Priority: 1,
-			},
-		},
+		handler_repositories_github.New(
+			client_repositories_github.New(
+				helper_http.NewClient(time.Duration(config.GitHubModulesRepoHandler.Timeout)),
+				config.GitHubModulesRepoHandler.BaseUrl,
+			),
+			config.GitHubModulesRepoHandler.WorkDirPath,
+		),
 	)
 
 	// create modules handler
@@ -232,12 +210,18 @@ func main() {
 		return
 	}
 
+	// init repository handlers
+	err = repositoriesHandler.InitHandlers(ctx)
+	if err != nil {
+		logger.ErrorContext(ctx, "initialize repository handlers", slog_keys.Error, err)
+		ec = 1
+		return
+	}
+
 	// init repositories
 	err = repositoriesHandler.InitRepositories(ctx)
 	if err != nil {
 		logger.ErrorContext(ctx, "initialize repositories", slog_keys.Error, err)
-		ec = 1
-		return
 	}
 
 	// start os signal listener

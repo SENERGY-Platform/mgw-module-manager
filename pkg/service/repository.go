@@ -32,7 +32,11 @@ func (s *Service) RefreshRepositories(ctx context.Context) (lib_models.Job, erro
 			logJobDone(ctx, job)
 		}()
 		logJobStart(ctx, job)
-		jobResult := lib_models.JobResult{JobId: job.Id}
+		jobResult := lib_models.RepositoryJobResult{
+			JobResult: lib_models.JobResult{
+				JobId: job.Id,
+			},
+		}
 		defer func() {
 			if st := recover(); st != nil {
 				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
@@ -46,7 +50,7 @@ func (s *Service) RefreshRepositories(ctx context.Context) (lib_models.Job, erro
 				)
 			}
 		}()
-		err = s.repositoriesHandler.RefreshRepositories(job.Context())
+		jobResult.Results, err = s.repositoriesHandler.RefreshRepositories(job.Context())
 		if err != nil {
 			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
 		}

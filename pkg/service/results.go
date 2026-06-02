@@ -28,7 +28,7 @@ type jobResults struct {
 	deployments         map[string]lib_models.DeploymentJobResult
 	deploymentsUpdate   map[string]lib_models.DeploymentUpdateJobResult
 	moduleChange        map[string]lib_models.ModulesChangeJobResult
-	refreshRepositories map[string]lib_models.JobResult
+	refreshRepositories map[string]lib_models.RepositoryJobResult
 	auxDeploymentCreate map[string]lib_models.AuxiliaryDeploymentCreateJobResult
 	auxDeploymentUpdate map[string]lib_models.JobResult
 	auxDeployment       map[string]lib_models.AuxiliaryDeploymentJobResult
@@ -83,18 +83,18 @@ func (s *Service) GetModuleChangeJobResult(_ context.Context, jobId string) (lib
 	return res, nil
 }
 
-func (s *Service) setRefreshRepositoriesJobResult(jobId string, res lib_models.JobResult) {
+func (s *Service) setRefreshRepositoriesJobResult(jobId string, res lib_models.RepositoryJobResult) {
 	s.jobResults.mu.Lock()
 	defer s.jobResults.mu.Unlock()
 	s.jobResults.refreshRepositories[jobId] = res
 }
 
-func (s *Service) GetRefreshRepositoriesJobResult(_ context.Context, jobId string) (lib_models.JobResult, error) {
+func (s *Service) GetRefreshRepositoriesJobResult(_ context.Context, jobId string) (lib_models.RepositoryJobResult, error) {
 	s.jobResults.mu.RLock()
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.refreshRepositories[jobId]
 	if !ok {
-		return lib_models.JobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
+		return lib_models.RepositoryJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
 	}
 	return res, nil
 }
