@@ -55,44 +55,26 @@ func (h *Handler) InitRepositories(ctx context.Context) error {
 	repositories := make(map[string]Repository)
 	priorities := make(map[int]struct{})
 	for repoType, handler := range h.repositoryHandlers {
-		for source, repo := range handler.GetRepositories(ctx) {
+		repos, err := handler.GetRepositories(ctx)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("get repositories: %s %w", repoType, err))
+			continue
+		}
+		for source, repo := range repos {
 			if _, ok := repositories[source]; ok {
-				logger.ErrorContext(
-					ctx,
-					"initialize repository",
-					slog_keys.RepositoryType, repoType,
-					slog_keys.Source, source,
-					slog_keys.Error, "source collision",
-				)
 				errs = append(errs, errors.New(fmt.Sprintf("source collision: %s", source)))
 				continue
 			}
 			if _, ok := priorities[repo.Priority()]; ok {
-				logger.ErrorContext(
-					ctx,
-					"initialize repository",
-					slog_keys.RepositoryType, repoType,
-					slog_keys.Source, source,
-					slog_keys.Priority, repo.Priority(),
-					slog_keys.Error, "priority collision",
-				)
 				errs = append(errs, errors.New(fmt.Sprintf("priority collision: %d", repo.Priority())))
 				continue
 			}
-			err := repo.Init(ctx)
+			err = repo.Init(ctx)
 			if err != nil {
-				logger.ErrorContext(
-					ctx,
-					"initialize repository",
-					slog_keys.RepositoryType, repoType,
-					slog_keys.Source, source,
-					slog_keys.Error, err.Error(),
-				)
 				errs = append(errs, fmt.Errorf("'%s' %w", source, err))
 				continue
 			}
 			repositories[source] = repo
-			logger.InfoContext(ctx, "initialize repository", slog_keys.RepositoryType, repoType, slog_keys.Source, source)
 		}
 	}
 	h.updateLookupMap(ctx, repositories)
@@ -109,7 +91,12 @@ func (h *Handler) RefreshRepositories(ctx context.Context) ([]lib_models.Reposit
 	priorities := make(map[int]struct{})
 	var results []lib_models.RepositoryResult
 	for repoType, handler := range h.repositoryHandlers {
-		for source, repo := range handler.GetRepositories(ctx) {
+		repos, err := handler.GetRepositories(ctx)
+		if err != nil {
+			logger.ErrorContext(ctx, "refresh repositories", slog_keys.RepositoryType, repoType, slog_keys.Error, err.Error())
+			continue
+		}
+		for source, repo := range repos {
 			result := lib_models.RepositoryResult{
 				Type:   repoType,
 				Source: source,
@@ -117,7 +104,7 @@ func (h *Handler) RefreshRepositories(ctx context.Context) ([]lib_models.Reposit
 			if _, ok := repositories[source]; ok {
 				logger.ErrorContext(
 					ctx,
-					"refresh repository",
+					"refresh repositories",
 					slog_keys.RepositoryType, repoType,
 					slog_keys.Source, source,
 					slog_keys.Error, "source collision",
@@ -129,7 +116,7 @@ func (h *Handler) RefreshRepositories(ctx context.Context) ([]lib_models.Reposit
 			if _, ok := priorities[repo.Priority()]; ok {
 				logger.ErrorContext(
 					ctx,
-					"refresh repository",
+					"refresh repositories",
 					slog_keys.RepositoryType, repoType,
 					slog_keys.Source, source,
 					slog_keys.Priority, repo.Priority(),
@@ -139,11 +126,11 @@ func (h *Handler) RefreshRepositories(ctx context.Context) ([]lib_models.Reposit
 				results = append(results, result)
 				continue
 			}
-			err := repo.Refresh(ctx)
+			err = repo.Refresh(ctx)
 			if err != nil {
 				logger.ErrorContext(
 					ctx,
-					"refresh repository",
+					"refresh repositories",
 					slog_keys.RepositoryType, repoType,
 					slog_keys.Source, source,
 					slog_keys.Error, err.Error(),
@@ -154,7 +141,6 @@ func (h *Handler) RefreshRepositories(ctx context.Context) ([]lib_models.Reposit
 			}
 			repositories[source] = repo
 			priorities[repo.Priority()] = struct{}{}
-			logger.InfoContext(ctx, "refresh repository", slog_keys.RepositoryType, repoType, slog_keys.Source, source)
 			results = append(results, result)
 		}
 	}
@@ -175,7 +161,12 @@ func (h *Handler) GetRepositories(ctx context.Context) ([]pkg_models.Repository,
 	defer h.mu.RUnlock()
 	var repos []pkg_models.Repository
 	for repoType, handler := range h.repositoryHandlers {
-		for source, repo := range handler.GetRepositories(ctx) {
+		repositories, err := handler.GetRepositories(ctx)
+		if err != nil {
+			logger.ErrorContext(ctx, "get repositories", slog_keys.RepositoryType, repoType, slog_keys.Error, err.Error())
+			continue
+		}
+		for source, repo := range repositories {
 			repos = append(repos, pkg_models.Repository{
 				Type:     repoType,
 				Source:   source,
@@ -193,12 +184,12 @@ func (h *Handler) CreateRepository(ctx context.Context, repositoryType string, d
 	handler, ok := h.repositoryHandlers[repositoryType]
 	if !ok {
 		err := lib_errors.New[lib_errors.ErrNotFound]("repository handler not found")
-		logger.Error("create repository", slog_keys.RepositoryType, repositoryType, slog_keys.Error, err.Error())
+		logger.ErrorContext(ctx, "create repository", slog_keys.RepositoryType, repositoryType, slog_keys.Error, err.Error())
 		return err
 	}
 	repo, err := handler.CreateRepository(ctx, data)
 	if err != nil {
-		logger.Error("create repository", slog_keys.RepositoryType, repositoryType, slog_keys.Error, err.Error())
+		logger.ErrorContext(ctx, "create repository", slog_keys.RepositoryType, repositoryType, slog_keys.Error, err.Error())
 		return err
 	}
 	err = repo.Init(ctx)
@@ -228,6 +219,7 @@ func (h *Handler) DeleteRepository(ctx context.Context, source string) error {
 				slog_keys.Source, source,
 				slog_keys.Error, err.Error(),
 			)
+			return err
 		}
 	}
 	return nil
