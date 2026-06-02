@@ -213,7 +213,6 @@ func main() {
 	// init repository handlers
 	err = repositoriesHandler.InitHandlers(ctx)
 	if err != nil {
-		logger.ErrorContext(ctx, "initialize repository handlers", slog_keys.Error, err)
 		ec = 1
 		return
 	}
