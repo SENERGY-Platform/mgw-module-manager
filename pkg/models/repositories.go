@@ -17,6 +17,7 @@
 package models
 
 type Repository struct {
+	Type     string
 	Source   string
 	Priority int
 	Channels []RepositoryChannel
