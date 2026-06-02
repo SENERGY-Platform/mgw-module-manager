@@ -55,3 +55,21 @@ type RepositoryChannel struct {
 	Priority int    `json:"priority"`
 	Version  string `json:"version"`
 }
+
+type RepositoryJobResult struct {
+	JobResult
+	Results       []RepositoryResult
+	ResultsErrNum int `json:"results_err_num"`
+}
+
+type RepositoryResult struct {
+	Type          string                         `json:"type"`
+	Source        string                         `json:"source"`
+	ChannelErrors []RepositoryChannelErrorResult `json:"channel_errors"`
+	ErrorResult
+}
+
+type RepositoryChannelErrorResult struct {
+	Channel string `json:"channel"`
+	ErrorResult
+}
