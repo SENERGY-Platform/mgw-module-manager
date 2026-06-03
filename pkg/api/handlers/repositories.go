@@ -19,6 +19,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -37,6 +38,52 @@ func RefreshRepositories(srv *service.Service) (string, string, gin.HandlerFunc)
 			return
 		}
 		gc.JSON(http.StatusOK, res)
+	}
+}
+
+func GetRepositories(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodGet, lib_constants.HttpPathRepositoriesCollection, func(gc *gin.Context) {
+		res, err := srv.GetRepositories(gc)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, res)
+	}
+}
+
+func CreateRepository(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodPost, lib_constants.HttpPathRepositoriesCollection, func(gc *gin.Context) {
+		var query struct {
+			Type string `form:"type"`
+		}
+		err := gc.MustBindWith(&query, binding.Query)
+		if err != nil {
+			return
+		}
+		defer gc.Request.Body.Close()
+		data, err := io.ReadAll(gc.Request.Body)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		err = srv.CreateRepository(gc, query.Type, data)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
+func DeleteRepository(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodDelete, lib_constants.HttpPathRepositoryResource, func(gc *gin.Context) {
+		err := srv.DeleteRepository(gc, gc.Param("SOURCE"))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
 	}
 }
 

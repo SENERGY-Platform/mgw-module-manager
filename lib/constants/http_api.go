@@ -23,6 +23,7 @@ const (
 	HttpPathModulesAvailableUpdatesCountResource = "modules-available-updates"
 
 	HttpPathRepositoriesCollection      = "repositories"
+	HttpPathRepositoryResource          = "repositories/:SOURCE"
 	HttpPathRepositoryModulesCollection = "repository-modules"
 
 	HttpPathDeploymentRequestResource = "deployment-request"
