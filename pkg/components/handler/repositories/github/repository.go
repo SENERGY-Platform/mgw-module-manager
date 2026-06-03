@@ -11,9 +11,9 @@ import (
 	"slices"
 	"sync"
 
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_archive "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/archive"
 	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
-	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 const gitHubCom = "github.com"
@@ -50,10 +50,10 @@ func (r *Repository) Source() string {
 	return getSourceString(r.source)
 }
 
-func (r *Repository) Channels() []pkg_models.RepositoryChannel {
-	var channels []pkg_models.RepositoryChannel
+func (r *Repository) Channels() []lib_models.RepositoryChannel {
+	var channels []lib_models.RepositoryChannel
 	for _, channel := range r.source.Channels {
-		channels = append(channels, pkg_models.RepositoryChannel{Name: channel.Name, Priority: channel.Priority})
+		channels = append(channels, lib_models.RepositoryChannel{Name: channel.Name, Priority: channel.Priority})
 	}
 	return channels
 }

@@ -134,10 +134,10 @@ func (h *Handler) RefreshRepositories(ctx context.Context) ([]lib_models.Reposit
 	return results, nil
 }
 
-func (h *Handler) GetRepositories(ctx context.Context) ([]pkg_models.Repository, error) {
+func (h *Handler) GetRepositories(ctx context.Context) ([]lib_models.Repository, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	var repos []pkg_models.Repository
+	var repos []lib_models.Repository
 	for repoType, handler := range h.repositoryHandlers {
 		repositories, err := handler.GetRepositories(ctx)
 		if err != nil {
@@ -145,7 +145,7 @@ func (h *Handler) GetRepositories(ctx context.Context) ([]pkg_models.Repository,
 			continue
 		}
 		for source, repo := range repositories {
-			repos = append(repos, pkg_models.Repository{
+			repos = append(repos, lib_models.Repository{
 				Type:     repoType,
 				Source:   source,
 				Priority: repo.Priority(),

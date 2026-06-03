@@ -4,14 +4,14 @@ import (
 	"context"
 	"io/fs"
 
-	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 )
 
 type Repository interface {
 	Type() string
 	Priority() int
 	Source() string
-	Channels() []pkg_models.RepositoryChannel
+	Channels() []lib_models.RepositoryChannel
 	Refresh(ctx context.Context) error
 	GetFileSystemsMap(ctx context.Context, channel string) (map[string]fs.FS, error)
 	GetFileSystem(ctx context.Context, channel, fsRef string) (fs.FS, error)

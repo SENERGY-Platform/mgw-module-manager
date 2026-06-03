@@ -56,6 +56,18 @@ type RepoModuleVariantChannel struct {
 	Version  string `json:"version"`
 }
 
+type Repository struct {
+	Type     string
+	Source   string
+	Priority int
+	Channels []RepositoryChannel
+}
+
+type RepositoryChannel struct {
+	Name     string
+	Priority int
+}
+
 type RepositoryJobResult struct {
 	JobResult
 	Results       []RepositoryResult

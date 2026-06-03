@@ -27,8 +27,8 @@ import (
 	"testing"
 	"time"
 
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
-	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
 func TestHandler_Source(t *testing.T) {
@@ -59,7 +59,7 @@ func TestHandler_Channels(t *testing.T) {
 		},
 		"",
 	)
-	a := []pkg_models.RepositoryChannel{{Name: "test_channel", Priority: 1}}
+	a := []lib_models.RepositoryChannel{{Name: "test_channel", Priority: 1}}
 	b := r.Channels()
 	if !reflect.DeepEqual(a, b) {
 		t.Errorf("expect %v, got %v", a, b)

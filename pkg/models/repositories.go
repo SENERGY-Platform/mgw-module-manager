@@ -16,18 +16,6 @@
 
 package models
 
-type Repository struct {
-	Type     string
-	Source   string
-	Priority int
-	Channels []RepositoryChannel
-}
-
-type RepositoryChannel struct {
-	Name     string
-	Priority int
-}
-
 type RepositoryModuleBase struct {
 	Id      string
 	Source  string

@@ -97,7 +97,7 @@ func (s *Service) GetRepositoryModules(ctx context.Context, filter lib_models.Re
 	return handleInstalledMods(mergedRepoModules, installedMods, filter.Installed, filter.UpdateAvailable), nil
 }
 
-func (s *Service) mergeRepoModules(ctx context.Context, repos []pkg_models.Repository, repoMods []pkg_models.RepositoryModule) ([]lib_models.RepoModule, error) {
+func (s *Service) mergeRepoModules(ctx context.Context, repos []lib_models.Repository, repoMods []pkg_models.RepositoryModule) ([]lib_models.RepoModule, error) {
 	reposTree := buildReposTree(repos)
 	var repoModules []lib_models.RepoModule
 	for id, sources := range buildRepoModsTree(repoMods) {
@@ -195,10 +195,10 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models.C
 	if err != nil {
 		return nil, err
 	}
-	highestPrioRepo := selectByPriority(modRepos, func(item pkg_models.Repository, lastPrio int) (int, bool) {
+	highestPrioRepo := selectByPriority(modRepos, func(item lib_models.Repository, lastPrio int) (int, bool) {
 		return item.Priority, item.Priority >= lastPrio
 	})
-	highestPrioChannel := selectByPriority(highestPrioRepo.Channels, func(item pkg_models.RepositoryChannel, lastPrio int) (int, bool) {
+	highestPrioChannel := selectByPriority(highestPrioRepo.Channels, func(item lib_models.RepositoryChannel, lastPrio int) (int, bool) {
 		return item.Priority, item.Priority >= lastPrio
 	})
 	deps := make(map[string]modWrapper)
@@ -292,7 +292,7 @@ func buildRepoModsTree(repoMods []pkg_models.RepositoryModule) map[string]map[st
 	return repoModsTree
 }
 
-func buildReposTree(repos []pkg_models.Repository) map[string]repoAbbreviated {
+func buildReposTree(repos []lib_models.Repository) map[string]repoAbbreviated {
 	reposTree := make(map[string]repoAbbreviated) // {source:repoAbbreviated}
 	for _, repo := range repos {
 		channels := make(map[string]int)
