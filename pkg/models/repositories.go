@@ -29,16 +29,16 @@ type RepositoryChannel struct {
 }
 
 type RepositoryModuleBase struct {
-	Id      string `json:"id"`
-	Source  string `json:"source"`
-	Channel string `json:"channel"`
+	Id      string
+	Source  string
+	Channel string
 }
 
 type RepositoryModule struct {
 	RepositoryModuleBase
-	Name    string `json:"name"`
-	Desc    string `json:"description"`
-	Version string `json:"version"`
+	Name    string
+	Desc    string
+	Version string
 }
 
 type RepositoryModulesFilter struct {
