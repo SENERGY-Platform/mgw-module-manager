@@ -109,7 +109,7 @@ func (s *Service) mergeRepoModules(ctx context.Context, repos []pkg_models.Repos
 				fErr = fmt.Errorf("repository '%s' not found", source)
 				break
 			}
-			repository := lib_models.Repository{
+			repoModuleVariant := lib_models.RepoModuleVariant{
 				Source:   source,
 				Priority: repo.Priority,
 			}
@@ -119,30 +119,30 @@ func (s *Service) mergeRepoModules(ctx context.Context, repos []pkg_models.Repos
 					fErr = fmt.Errorf("channel '%s' not found", channel)
 					break
 				}
-				repository.Channels = append(repository.Channels, lib_models.RepositoryChannel{
+				repoModuleVariant.Channels = append(repoModuleVariant.Channels, lib_models.RepoModuleVariantChannel{
 					Name:     channel,
 					Priority: channelPrio,
 					Version:  repoMod.Version,
 				})
 			}
-			slices.SortStableFunc(repository.Channels, func(a, b lib_models.RepositoryChannel) int {
+			slices.SortStableFunc(repoModuleVariant.Channels, func(a, b lib_models.RepoModuleVariantChannel) int {
 				return b.Priority - a.Priority
 			})
-			if len(repository.Channels) == 0 {
+			if len(repoModuleVariant.Channels) == 0 {
 				fErr = fmt.Errorf("no channels for '%s'", source)
 				break
 			}
-			repoMod := channels[repository.Channels[0].Name]
+			repoMod := channels[repoModuleVariant.Channels[0].Name]
 			repoModule.Name = repoMod.Name
 			repoModule.Desc = repoMod.Desc
 			repoModule.Version = repoMod.Version
-			repoModule.Repositories = append(repoModule.Repositories, repository)
+			repoModule.RepositoryVariants = append(repoModule.RepositoryVariants, repoModuleVariant)
 		}
 		if fErr != nil {
 			logger.ErrorContext(ctx, "invalid repository module", slog_keys.ModuleId, id, slog_keys.Error, fErr)
 			continue
 		}
-		slices.SortStableFunc(repoModule.Repositories, func(a, b lib_models.Repository) int {
+		slices.SortStableFunc(repoModule.RepositoryVariants, func(a, b lib_models.RepoModuleVariant) int {
 			return b.Priority - a.Priority
 		})
 		repoModules = append(repoModules, repoModule)
@@ -259,7 +259,7 @@ func (s *Service) addRepoModDepsToMap(
 	return nil
 }
 
-func newSourceFilters(repoFilters []lib_models.RepositoryFilter) []pkg_models.RepositorySourceFilter {
+func newSourceFilters(repoFilters []lib_models.RepoModuleRepositoriesFilter) []pkg_models.RepositorySourceFilter {
 	var sourcesFilter []pkg_models.RepositorySourceFilter
 	for _, repoFilter := range repoFilters {
 		sourcesFilter = append(sourcesFilter, pkg_models.RepositorySourceFilter{
@@ -315,7 +315,7 @@ func handleInstalledMods(mods []lib_models.RepoModule, installedMods map[string]
 	for _, mod := range mods {
 		variant, ok := installedMods[mod.Id]
 		if ok {
-			nextVersion := getNextVersion(variant, mod.Repositories)
+			nextVersion := getNextVersion(variant, mod.RepositoryVariants)
 			if filterUpdateAvailable && nextVersion == "" {
 				continue
 			}
@@ -341,7 +341,7 @@ func handleInstalledMods(mods []lib_models.RepoModule, installedMods map[string]
 	return tmp
 }
 
-func getNextVersion(installed pkg_models.Module, repos []lib_models.Repository) string {
+func getNextVersion(installed pkg_models.Module, repos []lib_models.RepoModuleVariant) string {
 	for _, repo := range repos {
 		if repo.Source == installed.Source {
 			for _, channel := range repo.Channels {

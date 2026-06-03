@@ -17,13 +17,13 @@
 package models
 
 type RepoModule struct {
-	Id               string                 `json:"id"`
-	Name             string                 `json:"name"`
-	Desc             string                 `json:"description"`
-	Version          string                 `json:"version"`
-	Repositories     []Repository           `json:"repositories"`
-	IsInstalled      bool                   `json:"is_installed"`
-	InstalledVariant InstalledModuleVariant `json:"installed_variant"`
+	Id                 string                 `json:"id"`
+	Name               string                 `json:"name"`
+	Desc               string                 `json:"description"`
+	Version            string                 `json:"version"`
+	RepositoryVariants []RepoModuleVariant    `json:"repository_variants"`
+	IsInstalled        bool                   `json:"is_installed"`
+	InstalledVariant   InstalledModuleVariant `json:"installed_variant"`
 }
 
 type InstalledModuleVariant struct {
@@ -32,25 +32,25 @@ type InstalledModuleVariant struct {
 }
 
 type RepoModulesFilter struct {
-	Ids             []string           `json:"ids"`
-	Name            string             `json:"name"`
-	Repositories    []RepositoryFilter `json:"repositories"`
-	Installed       bool               `json:"installed"`
-	UpdateAvailable bool               `json:"update_available"`
+	Ids             []string                       `json:"ids"`
+	Name            string                         `json:"name"`
+	Repositories    []RepoModuleRepositoriesFilter `json:"repositories"`
+	Installed       bool                           `json:"installed"`
+	UpdateAvailable bool                           `json:"update_available"`
 }
 
-type RepositoryFilter struct {
+type RepoModuleRepositoriesFilter struct {
 	Source   string   `json:"source"`
 	Channels []string `json:"channels"`
 }
 
-type Repository struct {
-	Source   string              `json:"source"`
-	Priority int                 `json:"priority"`
-	Channels []RepositoryChannel `json:"channels"`
+type RepoModuleVariant struct {
+	Source   string                     `json:"source"`
+	Priority int                        `json:"priority"`
+	Channels []RepoModuleVariantChannel `json:"channels"`
 }
 
-type RepositoryChannel struct {
+type RepoModuleVariantChannel struct {
 	Name     string `json:"name"`
 	Priority int    `json:"priority"`
 	Version  string `json:"version"`

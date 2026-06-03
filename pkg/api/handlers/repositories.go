@@ -67,7 +67,7 @@ func getGetRepositoryModulesFilter(gc *gin.Context) (lib_models.RepoModulesFilte
 	}, nil
 }
 
-func getRepositoryFilter(sources, sourceChannels []string) ([]lib_models.RepositoryFilter, error) {
+func getRepositoryFilter(sources, sourceChannels []string) ([]lib_models.RepoModuleRepositoriesFilter, error) {
 	repoChannels := make(map[string][]string)
 	for _, item := range sourceChannels {
 		if item == "" {
@@ -79,9 +79,9 @@ func getRepositoryFilter(sources, sourceChannels []string) ([]lib_models.Reposit
 		}
 		repoChannels[parts[0]] = append(repoChannels[parts[0]], parts[1])
 	}
-	var repositoryFilter []lib_models.RepositoryFilter
+	var repositoryFilter []lib_models.RepoModuleRepositoriesFilter
 	for _, source := range sources {
-		repositoryFilter = append(repositoryFilter, lib_models.RepositoryFilter{
+		repositoryFilter = append(repositoryFilter, lib_models.RepoModuleRepositoriesFilter{
 			Source:   source,
 			Channels: repoChannels[source],
 		})
