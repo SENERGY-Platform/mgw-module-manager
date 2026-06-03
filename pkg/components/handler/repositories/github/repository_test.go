@@ -23,7 +23,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -31,23 +30,6 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
-
-func TestRepository_Init(t *testing.T) {
-	tempDir := t.TempDir()
-	r := newRepository(
-		nil,
-		Source{},
-		path.Join(tempDir, "repo"),
-	)
-	err := r.Init(t.Context())
-	if err != nil {
-		t.Error(err)
-	}
-	_, err = os.Stat(filepath.Join(tempDir, "repo"))
-	if err != nil {
-		t.Error(err)
-	}
-}
 
 func TestHandler_Source(t *testing.T) {
 	r := newRepository(

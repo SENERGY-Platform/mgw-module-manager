@@ -38,14 +38,6 @@ func newRepository(gitHubClt gitHubClient, source Source, workdirPath string) *R
 	}
 }
 
-func (r *Repository) Init(_ context.Context) error {
-	err := os.MkdirAll(r.workdirPath, 0775)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (r *Repository) Type() string {
 	return gitHubCom
 }
@@ -125,6 +117,10 @@ func (r *Repository) GetFileSystem(_ context.Context, channelName, fsRef string)
 func (r *Repository) Refresh(ctx context.Context) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	err := os.MkdirAll(r.workdirPath, 0775)
+	if err != nil {
+		return err
+	}
 	oldRepo, err := readRepoFile(r.workdirPath)
 	if err != nil {
 		return err

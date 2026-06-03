@@ -102,16 +102,17 @@ func main() {
 	defer sqlDB.Close()
 	databaseHandler := handler_database.New(sqlDB)
 
-	// create repositories handler
-	repositoriesHandler := handler_repositories.New(
-		handler_repositories_github.New(
-			client_repositories_github.New(
-				helper_http.NewClient(time.Duration(config.GitHubModulesRepoHandler.Timeout)),
-				config.GitHubModulesRepoHandler.BaseUrl,
-			),
-			config.GitHubModulesRepoHandler.WorkDirPath,
+	// create GitHub repository handler
+	githubRepositoryHandler := handler_repositories_github.New(
+		client_repositories_github.New(
+			helper_http.NewClient(time.Duration(config.GitHubModulesRepoHandler.Timeout)),
+			config.GitHubModulesRepoHandler.BaseUrl,
 		),
+		config.GitHubModulesRepoHandler.WorkDirPath,
 	)
+
+	// create repositories handler
+	repositoriesHandler := handler_repositories.New(githubRepositoryHandler)
 
 	// create modules handler
 	modulesHandler := handler_modules.New(
@@ -210,17 +211,18 @@ func main() {
 		return
 	}
 
-	// init repository handlers
-	err = repositoriesHandler.InitHandlers(ctx)
+	// init GitHub repository handler
+	err = githubRepositoryHandler.Init()
 	if err != nil {
 		ec = 1
+		logger.ErrorContext(ctx, "initialize github repository handler", slog_keys.Error, err)
 		return
 	}
 
-	// init repositories
-	err = repositoriesHandler.InitRepositories(ctx)
+	// init repositories handler
+	err = repositoriesHandler.Init(ctx)
 	if err != nil {
-		logger.ErrorContext(ctx, "initialize repositories", slog_keys.Error, err)
+		logger.ErrorContext(ctx, "initialize repositories handler", slog_keys.Error, err)
 	}
 
 	// start os signal listener

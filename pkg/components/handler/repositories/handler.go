@@ -33,24 +33,7 @@ func New(handlers ...repositoryHandler) *Handler {
 	return &h
 }
 
-func (h *Handler) InitHandlers(ctx context.Context) error {
-	var errs []error
-	for repoType, handler := range h.repositoryHandlers {
-		err := handler.Init(ctx)
-		if err != nil {
-			logger.ErrorContext(ctx, "initialize repository handler", slog_keys.RepositoryType, repoType, slog_keys.Error, err.Error())
-			errs = append(errs, fmt.Errorf("'%s' %w", repoType, err))
-			continue
-		}
-		logger.InfoContext(ctx, "initialize repository handler", slog_keys.RepositoryType, repoType)
-	}
-	if len(errs) > 0 {
-		return helper_errors.Join(errs...)
-	}
-	return nil
-}
-
-func (h *Handler) InitRepositories(ctx context.Context) error {
+func (h *Handler) Init(ctx context.Context) error {
 	var errs []error
 	repositories := make(map[string]Repository)
 	priorities := make(map[int]struct{})
@@ -67,11 +50,6 @@ func (h *Handler) InitRepositories(ctx context.Context) error {
 			}
 			if _, ok := priorities[repo.Priority()]; ok {
 				errs = append(errs, errors.New(fmt.Sprintf("priority collision: %d", repo.Priority())))
-				continue
-			}
-			err = repo.Init(ctx)
-			if err != nil {
-				errs = append(errs, fmt.Errorf("'%s' %w", source, err))
 				continue
 			}
 			repositories[source] = repo
@@ -187,20 +165,9 @@ func (h *Handler) CreateRepository(ctx context.Context, repositoryType string, d
 		logger.ErrorContext(ctx, "create repository", slog_keys.RepositoryType, repositoryType, slog_keys.Error, err.Error())
 		return err
 	}
-	repo, err := handler.CreateRepository(ctx, data)
+	err := handler.CreateRepository(ctx, data)
 	if err != nil {
 		logger.ErrorContext(ctx, "create repository", slog_keys.RepositoryType, repositoryType, slog_keys.Error, err.Error())
-		return err
-	}
-	err = repo.Init(ctx)
-	if err != nil {
-		logger.ErrorContext(
-			ctx,
-			"create repository",
-			slog_keys.RepositoryType, handler.RepositoryType(),
-			slog_keys.Source, repo.Source(),
-			slog_keys.Error, err.Error(),
-		)
 		return err
 	}
 	return nil

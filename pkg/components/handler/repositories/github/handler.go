@@ -51,7 +51,7 @@ func (h *Handler) RepositoryType() string {
 	return gitHubCom
 }
 
-func (h *Handler) Init(_ context.Context) error {
+func (h *Handler) Init() error {
 	err := os.MkdirAll(path.Join(h.workdirPath, sourcesDir), 0775)
 	if err != nil {
 		return err
@@ -69,11 +69,12 @@ func (h *Handler) Init(_ context.Context) error {
 		if err != nil {
 			return err
 		}
-		h.repositories[getSourceString(source)] = newRepository(
+		repo := newRepository(
 			h.gitHubClient,
 			source,
 			path.Join(h.workdirPath, reposDir, getFsName(source)),
 		)
+		h.repositories[getSourceString(source)] = repo
 	}
 	return nil
 }
@@ -98,27 +99,26 @@ func (h *Handler) GetRepository(_ context.Context, source string) (handler_repos
 	return repo, nil
 }
 
-func (h *Handler) CreateRepository(_ context.Context, data []byte) (handler_repositories.Repository, error) {
+func (h *Handler) CreateRepository(_ context.Context, data []byte) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	var src Source
 	err := json.Unmarshal(data, &src)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	srcString := getSourceString(src)
 	_, ok := h.repositories[srcString]
 	if !ok {
-		return nil, lib_errors.New[lib_errors.ErrExists]("source already exists")
+		return lib_errors.New[lib_errors.ErrExists]("source already exists")
 	}
 	fsName := getFsName(src)
 	err = writeSourceFile(path.Join(h.workdirPath, sourcesDir, fsName), src)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	repo := newRepository(h.gitHubClient, src, path.Join(h.workdirPath, reposDir, fsName))
-	h.repositories[srcString] = repo
-	return repo, nil
+	h.repositories[srcString] = newRepository(h.gitHubClient, src, path.Join(h.workdirPath, reposDir, fsName))
+	return nil
 }
 
 func (h *Handler) DeleteRepository(_ context.Context, source string) error {
