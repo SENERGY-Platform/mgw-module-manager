@@ -214,9 +214,7 @@ func main() {
 	// init GitHub repository handler
 	err = githubRepositoryHandler.Init()
 	if err != nil {
-		ec = 1
 		logger.ErrorContext(ctx, "initialize github repository handler", slog_keys.Error, err)
-		return
 	}
 
 	// init repositories handler

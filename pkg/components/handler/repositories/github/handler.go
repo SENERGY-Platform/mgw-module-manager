@@ -26,6 +26,7 @@ import (
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 )
 
 const (
@@ -60,6 +61,7 @@ func (h *Handler) Init() error {
 	if err != nil {
 		return err
 	}
+	var errs []error
 	h.repositories = make(map[string]*Repository)
 	for _, dirEntry := range dirEntries {
 		if dirEntry.IsDir() {
@@ -67,7 +69,8 @@ func (h *Handler) Init() error {
 		}
 		source, err := readSourceFile(path.Join(h.workdirPath, sourcesDir, dirEntry.Name()))
 		if err != nil {
-			return err
+			errs = append(errs, err)
+			continue
 		}
 		repo := newRepository(
 			h.gitHubClient,
@@ -75,6 +78,9 @@ func (h *Handler) Init() error {
 			path.Join(h.workdirPath, reposDir, getFsName(source)),
 		)
 		h.repositories[getSourceString(source)] = repo
+	}
+	if len(errs) > 0 {
+		return helper_errors.Join(errs...)
 	}
 	return nil
 }
