@@ -32,55 +32,79 @@ import (
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
 
-func TestHandler_Init(t *testing.T) {
+func TestRepository_Init(t *testing.T) {
 	tempDir := t.TempDir()
-	h := New(nil, tempDir, "test_owner", "test_repo", "test_ref", []Channel{
-		{
-			Name: "test_channel",
-		},
-	})
-	err := h.Init()
+	r := newRepository(
+		nil,
+		Source{},
+		path.Join(tempDir, "repo"),
+	)
+	err := r.Init(t.Context())
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = os.Stat(filepath.Join(tempDir, "github_com_test_owner_test_repo_test_ref"))
+	_, err = os.Stat(filepath.Join(tempDir, "repo"))
 	if err != nil {
 		t.Error(err)
 	}
 }
 
 func TestHandler_Source(t *testing.T) {
-	h := New(nil, "", "test_owner", "test_repo", "test_ref", nil)
-	if h.Source() != "github.com/test_owner/test_repo" {
-		t.Errorf("expect github.com/test_owner/test_repo, got %s", h.Source())
+	r := newRepository(
+		nil,
+		Source{
+			Owner:      "test_owner",
+			Repository: "test_repo",
+			Reference:  "test_ref",
+		},
+		"",
+	)
+	if r.Source() != "github.com/test_owner/test_repo" {
+		t.Errorf("expect github.com/test_owner/test_repo, got %s", r.Source())
 	}
 }
 
 func TestHandler_Channels(t *testing.T) {
-	h := New(nil, "", "test_owner", "test_repo", "test_ref", []Channel{
-		{
-			Name: "test_channel",
+	r := newRepository(
+		nil,
+		Source{
+			Channels: []Channel{
+				{
+					Name:     "test_channel",
+					Priority: 1,
+				},
+			},
 		},
-	})
-	a := []pkg_models.RepositoryChannel{{Name: "test_channel"}}
-	b := h.Channels()
+		"",
+	)
+	a := []pkg_models.RepositoryChannel{{Name: "test_channel", Priority: 1}}
+	b := r.Channels()
 	if !reflect.DeepEqual(a, b) {
 		t.Errorf("expect %v, got %v", a, b)
 	}
 }
 
 func TestHandler_FileSystemsMap(t *testing.T) {
-	h := New(nil, "./test", "test_owner", "test_repo", "test_ref", []Channel{
-		{
-			Name:      "test_channel",
-			Blacklist: []string{"test_dir"},
+	r := newRepository(
+		nil,
+		Source{
+			Owner:      "test_owner",
+			Repository: "test_repo",
+			Reference:  "test_ref",
+			Channels: []Channel{
+				{
+					Name:      "test_channel",
+					Blacklist: []string{"test_dir"},
+				},
+			},
 		},
-	})
+		"./test/repo_1",
+	)
 	a := map[string]fs.FS{
-		"test_mod_1": os.DirFS("test/github_com_test_owner_test_repo_test_ref/sha_ref/mods/test_channel/test_mod_1"),
-		"test_mod_2": os.DirFS("test/github_com_test_owner_test_repo_test_ref/sha_ref/mods/test_channel/test_mod_2"),
+		"test_mod_1": os.DirFS("test/repo_1/sha_ref/mods/test_channel/test_mod_1"),
+		"test_mod_2": os.DirFS("test/repo_1/sha_ref/mods/test_channel/test_mod_2"),
 	}
-	b, err := h.FileSystemsMap(context.Background(), "test_channel")
+	b, err := r.GetFileSystemsMap(context.Background(), "test_channel")
 	if err != nil {
 		t.Error(err)
 	}
@@ -88,12 +112,22 @@ func TestHandler_FileSystemsMap(t *testing.T) {
 		t.Errorf("expected %v, got %v", a, b)
 	}
 	t.Run("no repo file", func(t *testing.T) {
-		h2 := New(nil, "./test", "test_owner", "test_repo_2", "test_ref", []Channel{
-			{
-				Name: "test_channel",
+		r2 := newRepository(
+			nil,
+			Source{
+				Owner:      "test_owner",
+				Repository: "test_repo_2",
+				Reference:  "test_ref",
+				Priority:   0,
+				Channels: []Channel{
+					{
+						Name: "test_channel",
+					},
+				},
 			},
-		})
-		fsMap, err := h2.FileSystemsMap(context.Background(), "test_channel")
+			"./test/repo_2",
+		)
+		fsMap, err := r2.GetFileSystemsMap(context.Background(), "test_channel")
 		if err != nil {
 			t.Error(err)
 		}
@@ -102,7 +136,7 @@ func TestHandler_FileSystemsMap(t *testing.T) {
 		}
 	})
 	t.Run("error", func(t *testing.T) {
-		_, err = h.FileSystemsMap(context.Background(), "test")
+		_, err = r.GetFileSystemsMap(context.Background(), "test")
 		if err == nil {
 			t.Error("expected error")
 		}
@@ -110,14 +144,23 @@ func TestHandler_FileSystemsMap(t *testing.T) {
 }
 
 func TestHandler_FileSystem(t *testing.T) {
-	h := New(nil, "./test", "test_owner", "test_repo", "test_ref", []Channel{
-		{
-			Name:      "test_channel",
-			Blacklist: []string{"test_dir"},
+	r := newRepository(
+		nil,
+		Source{
+			Owner:      "test_owner",
+			Repository: "test_repo",
+			Reference:  "test_ref",
+			Channels: []Channel{
+				{
+					Name:      "test_channel",
+					Blacklist: []string{"test_dir"},
+				},
+			},
 		},
-	})
-	a := os.DirFS("test/github_com_test_owner_test_repo_test_ref/sha_ref/mods/test_channel/test_mod_1")
-	b, err := h.FileSystem(context.Background(), "test_channel", "test_mod_1")
+		"./test/repo_1",
+	)
+	a := os.DirFS("test/repo_1/sha_ref/mods/test_channel/test_mod_1")
+	b, err := r.GetFileSystem(context.Background(), "test_channel", "test_mod_1")
 	if err != nil {
 		t.Error(err)
 	}
@@ -126,13 +169,13 @@ func TestHandler_FileSystem(t *testing.T) {
 	}
 	t.Run("error", func(t *testing.T) {
 		t.Run("fs ref does not exist", func(t *testing.T) {
-			_, err = h.FileSystem(context.Background(), "test_channel", "test")
+			_, err = r.GetFileSystem(context.Background(), "test_channel", "test")
 			if err == nil {
 				t.Error("expected error")
 			}
 		})
 		t.Run("channel does not exist", func(t *testing.T) {
-			_, err = h.FileSystem(context.Background(), "test", "test_mod_1")
+			_, err = r.GetFileSystem(context.Background(), "test", "test_mod_1")
 			if err == nil {
 				t.Error("expected error")
 			}
@@ -161,16 +204,26 @@ func TestHandler_Refresh(t *testing.T) {
 		},
 	}
 	tempDir := t.TempDir()
-	h := New(mockClient, tempDir, "test_owner", "test_repo", "test_ref", []Channel{
-		{
-			Name: "test_channel",
+	r := newRepository(
+		mockClient,
+		Source{
+			Owner:      "test_owner",
+			Repository: "test_repo",
+			Reference:  "test_ref",
+			Channels: []Channel{
+				{
+					Name:      "test_channel",
+					Blacklist: []string{"test_dir"},
+				},
+			},
 		},
-	})
-	err := h.Refresh(context.Background())
+		path.Join(tempDir, "repo"),
+	)
+	err := r.Refresh(context.Background())
 	if err != nil {
 		t.Error(err)
 	}
-	rf, err := readRepoFile(path.Join(tempDir, "github_com_test_owner_test_repo_test_ref"))
+	rf, err := readRepoFile(path.Join(tempDir, "repo"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -180,7 +233,7 @@ func TestHandler_Refresh(t *testing.T) {
 	if rf.Path != "1234/test" {
 		t.Errorf("expect test, got %s", rf.Path)
 	}
-	_, err = os.Stat(path.Join(tempDir, "github_com_test_owner_test_repo_test_ref/1234/test/test_channel/test_mod/Modfile.yml"))
+	_, err = os.Stat(path.Join(tempDir, "repo/1234/test/test_channel/test_mod/Modfile.yml"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -202,11 +255,11 @@ func TestHandler_Refresh(t *testing.T) {
 				},
 			},
 		}
-		err = h.Refresh(context.Background())
+		err = r.Refresh(context.Background())
 		if err != nil {
 			t.Error(err)
 		}
-		rf, err = readRepoFile(path.Join(tempDir, "github_com_test_owner_test_repo_test_ref"))
+		rf, err = readRepoFile(path.Join(tempDir, "repo"))
 		if err != nil {
 			t.Error(err)
 		}
@@ -216,11 +269,11 @@ func TestHandler_Refresh(t *testing.T) {
 		if rf.Path != "5678/test" {
 			t.Errorf("expect test, got %s", rf.Path)
 		}
-		_, err = os.Stat(path.Join(tempDir, "github_com_test_owner_test_repo_test_ref/5678/test/test_channel/test_mod/Modfile.yml"))
+		_, err = os.Stat(path.Join(tempDir, "repo/5678/test/test_channel/test_mod/Modfile.yml"))
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = os.Stat(path.Join(tempDir, "github_com_test_owner_test_repo_test_ref/1234"))
+		_, err = os.Stat(path.Join(tempDir, "repo/1234"))
 		if err != nil {
 			if !os.IsNotExist(err) {
 				t.Error(err)
