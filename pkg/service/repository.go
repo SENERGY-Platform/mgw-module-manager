@@ -63,6 +63,36 @@ func (s *Service) RefreshRepositories(ctx context.Context) (lib_models.Job, erro
 	}, nil
 }
 
+func (s *Service) GetRepositories(ctx context.Context) ([]lib_models.Repository, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	currentJob, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
+	if ok {
+		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
+	}
+	return s.repositoriesHandler.GetRepositories(ctx)
+}
+
+func (s *Service) CreateRepository(ctx context.Context, repositoryType string, data []byte) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	currentJob, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
+	if ok {
+		return lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
+	}
+	return s.repositoriesHandler.CreateRepository(ctx, repositoryType, data)
+}
+
+func (s *Service) DeleteRepository(ctx context.Context, source string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	currentJob, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
+	if ok {
+		return lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
+	}
+	return s.repositoriesHandler.DeleteRepository(ctx, source)
+}
+
 func (s *Service) GetRepositoryModules(ctx context.Context, filter lib_models.RepoModulesFilter) ([]lib_models.RepoModule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
