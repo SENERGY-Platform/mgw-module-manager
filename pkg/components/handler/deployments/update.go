@@ -361,11 +361,11 @@ func initDeploymentsCacheFromModulesAndDeployments(
 }
 
 func (h *Handler) removeDeploymentDirs(deploymentDirName, deploymentFilesDirName string) error {
-	err := removeDeploymentDir(h.config.WorkDirPath, deploymentDirName)
+	err := removeDeploymentDir(h.config.WorkdirPath, deploymentDirName)
 	if err != nil {
 		return err
 	}
-	return removeFilesDir(h.config.WorkDirPath, deploymentFilesDirName)
+	return removeFilesDir(h.config.WorkdirPath, deploymentFilesDirName)
 }
 
 func removeDeploymentDir(workDirPath, deploymentDirName string) error {

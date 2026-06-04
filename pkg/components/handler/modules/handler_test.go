@@ -59,7 +59,7 @@ func TestHandler_Modules(t *testing.T) {
 		Updated:    timestamp,
 		FileSystem: os.DirFS("test/test_mod"),
 	}
-	h := New(stgHdlMock, nil, Config{WorkDirPath: "./test"})
+	h := New(stgHdlMock, nil, Config{WorkdirPath: "./test"})
 	err := h.CreateWorkDir()
 	if err != nil {
 		t.Fatal(err)
@@ -110,7 +110,7 @@ func TestHandler_Module(t *testing.T) {
 		Updated:    timestamp,
 		FileSystem: os.DirFS("test/test_mod"),
 	}
-	h := New(stgHdlMock, nil, Config{WorkDirPath: "./test"})
+	h := New(stgHdlMock, nil, Config{WorkdirPath: "./test"})
 	err := h.CreateWorkDir()
 	if err != nil {
 		t.Fatal(err)
@@ -136,7 +136,7 @@ func TestHandler_Module(t *testing.T) {
 		})
 		t.Run("file", func(t *testing.T) {
 			bk := h.cache
-			h.config.WorkDirPath = ""
+			h.config.WorkdirPath = ""
 			h.cache = make(map[string]module_lib.Module)
 			_, err = h.GetModule(context.Background(), "github.com/org/repo")
 			if err == nil {
@@ -163,7 +163,7 @@ func TestHandler_Add(t *testing.T) {
 	stgHdlMock := &storageHandlerMock{Mods: make(map[string]pkg_models.DatabaseModule)}
 	cewCltMock := &cewClientMock{Images: make(map[string]external_models.CewImage), Jobs: make(map[string]external_models.JobLibJob), JobCompleteDelay: time.Second * 1}
 	workDir := t.TempDir()
-	h := New(stgHdlMock, cewCltMock, Config{WorkDirPath: workDir, JobPollInterval: time.Millisecond * 250})
+	h := New(stgHdlMock, cewCltMock, Config{WorkdirPath: workDir, JobPollInterval: time.Millisecond * 250})
 	err := h.CreateWorkDir()
 	if err != nil {
 		t.Fatal(err)
@@ -296,7 +296,7 @@ func TestHandler_Update(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h := New(stgHdlMock, cewCltMock, Config{WorkDirPath: workDir})
+	h := New(stgHdlMock, cewCltMock, Config{WorkdirPath: workDir})
 	err = h.CreateWorkDir()
 	if err != nil {
 		t.Fatal(err)
@@ -481,7 +481,7 @@ func TestHandler_Delete(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h := New(stgHdlMock, cewCltMock, Config{WorkDirPath: workDir})
+	h := New(stgHdlMock, cewCltMock, Config{WorkdirPath: workDir})
 	err = h.CreateWorkDir()
 	if err != nil {
 		t.Fatal(err)

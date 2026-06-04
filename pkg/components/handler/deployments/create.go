@@ -221,11 +221,11 @@ func (h *Handler) getBindMounts(
 ) (bindMountDataCollection, error) {
 	var bindMounts bindMountDataCollection
 	var err error
-	bindMounts.Files, err = createFiles(deploymentId, deploymentFilesDirName, mergedFiles, h.config.WorkDirPath)
+	bindMounts.Files, err = createFiles(deploymentId, deploymentFilesDirName, mergedFiles, h.config.WorkdirPath)
 	if err != nil {
 		return bindMountDataCollection{}, err
 	}
-	bindMounts.FileGroups, err = createFileGroups(deploymentFilesDirName, userDataFileGroups, h.config.WorkDirPath)
+	bindMounts.FileGroups, err = createFileGroups(deploymentFilesDirName, userDataFileGroups, h.config.WorkdirPath)
 	if err != nil {
 		return bindMountDataCollection{}, err
 	}
@@ -237,11 +237,11 @@ func (h *Handler) getBindMounts(
 }
 
 func (h *Handler) createDeploymentDirs(moduleFileSystem fs.FS, deploymentDirName, deploymentFilesDirName string) error {
-	err := createDeploymentDir(moduleFileSystem, h.config.WorkDirPath, deploymentDirName)
+	err := createDeploymentDir(moduleFileSystem, h.config.WorkdirPath, deploymentDirName)
 	if err != nil {
 		return err
 	}
-	err = createFilesDir(h.config.WorkDirPath, deploymentFilesDirName)
+	err = createFilesDir(h.config.WorkdirPath, deploymentFilesDirName)
 	if err != nil {
 		return err
 	}

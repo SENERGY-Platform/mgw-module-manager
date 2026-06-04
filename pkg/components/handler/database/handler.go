@@ -23,18 +23,17 @@ import (
 	"strings"
 	"time"
 
-	sb_config_types "github.com/SENERGY-Platform/go-service-base/config-hdl/types"
 	"github.com/go-sql-driver/mysql"
 )
 
 const timeLayout = "2006-01-02 15:04:05.000000"
 
 type Config struct {
-	Address  string                   `json:"address" env_var:"DATABASE_ADDRESS"`
-	Database string                   `json:"database" env_var:"DATABASE_NAME"`
-	User     string                   `json:"user" env_var:"DATABASE_USER"`
-	Password string                   `json:"password" env_var:"DATABASE_PASSWORD"`
-	Timeout  sb_config_types.Duration `json:"timeout" env_var:"DATABASE_TIMEOUT"`
+	Address  string
+	Database string
+	User     string
+	Password string
+	Timeout  time.Duration
 }
 
 func NewConnector(config Config) (driver.Connector, error) {
@@ -43,7 +42,7 @@ func NewConnector(config Config) (driver.Connector, error) {
 	cfg.User = config.User
 	cfg.Passwd = config.Password
 	cfg.DBName = config.Database
-	cfg.Timeout = time.Duration(config.Timeout)
+	cfg.Timeout = config.Timeout
 	cfg.ReadTimeout = cfg.Timeout
 	cfg.WriteTimeout = cfg.Timeout
 	return mysql.NewConnector(cfg)

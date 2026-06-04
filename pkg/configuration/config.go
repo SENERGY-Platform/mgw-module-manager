@@ -24,15 +24,10 @@ import (
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
 	sb_config_types "github.com/SENERGY-Platform/go-service-base/config-hdl/types"
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
-	handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/aux_deployments"
-	handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
-	handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/deployments"
-	handler_jobs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
-	handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
 	helper_sql_db "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"
 )
 
-type MGWConfig struct {
+type MgwCoreConfig struct {
 	CewBaseUrl string                   `json:"cew_base_url" env_var:"MGW_CEW_BASE_URL"`
 	CmBaseUrl  string                   `json:"cm_base_url" env_var:"MGW_CM_BASE_URL"`
 	HmBaseUrl  string                   `json:"hm_base_url" env_var:"MGW_HM_BASE_URL"`
@@ -40,87 +35,113 @@ type MGWConfig struct {
 	Timeout    sb_config_types.Duration `json:"timeout" env_var:"MGW_HTTP_TIMEOUT"`
 }
 
-type GitHubModulesRepoHandlerConfig struct {
-	BaseUrl     string                   `json:"base_url" env_var:"GITHUB_BASE_URL"`
-	Timeout     sb_config_types.Duration `json:"timeout" env_var:"GITHUB_TIMEOUT"`
-	WorkDirPath string                   `json:"work_dir_path" env_var:"GITHUB_MODULES_REPO_HANDLER_WORK_DIR_PATH"`
+type SqlConfig = helper_sql_db.Config
+type DatabaseConfig struct {
+	Address               string                   `json:"address" env_var:"DATABASE_ADDRESS"`
+	Database              string                   `json:"database" env_var:"DATABASE_NAME"`
+	User                  string                   `json:"user" env_var:"DATABASE_USER"`
+	Password              sb_config_types.Secret   `json:"password" env_var:"DATABASE_PASSWORD"`
+	Timeout               sb_config_types.Duration `json:"timeout" env_var:"DATABASE_TIMEOUT"`
+	MaxOpenConnections    int                      `json:"max_open_connections" env_var:"DATABASE_MAX_OPEN_CONNECTIONS"`
+	MaxIdleConnections    int                      `json:"max_idle_connections" env_var:"DATABASE_MAX_IDLE_CONNECTIONS"`
+	ConnectionMaxLifetime sb_config_types.Duration `json:"connection_max_lifetime" env_var:"DATABASE_CONNECTION_MAX_LIFETIME"`
 }
 
-type DatabaseConfig struct {
-	MySQL handler_database.Config `json:"my_sql"`
-	SQL   helper_sql_db.Config    `json:"sql"`
+type ModulesHandlerConfig struct {
+	WorkdirPath string `json:"workdir_path" env_var:"MODULES_HANDLER_WORKDIR_PATH"`
+}
+
+type DeploymentsHandlerConfig struct {
+	WorkdirPath                string                   `json:"workdir_path" env_var:"DEPLOYMENTS_HANDLER_WORKDIR_PATH"`
+	RuntimeMonitorStartupDelay sb_config_types.Duration `json:"runtime_monitor_startup_delay" env_var:"DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY"`
+	RuntimeMonitorLoopDelay    sb_config_types.Duration `json:"runtime_monitor_loop_delay" env_var:"DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY"`
+}
+
+type AuxDeploymentsHandlerConfig struct {
+	RuntimeMonitorStartupDelay sb_config_types.Duration `json:"runtime_monitor_startup_delay" env_var:"AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY"`
+	RuntimeMonitorLoopDelay    sb_config_types.Duration `json:"runtime_monitor_loop_delay" env_var:"AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY"`
+}
+
+type GitHubRepositoriesHandlerConfig struct {
+	BaseUrl     string                   `json:"base_url" env_var:"GITHUB_HANDLER_BASE_URL"`
+	WorkdirPath string                   `json:"workdir_path" env_var:"GITHUB_HANDLER_WORKDIR_PATH"`
+	Timeout     sb_config_types.Duration `json:"timeout" env_var:"GITHUB_HANDLER_HTTP_TIMEOUT"`
+}
+
+type JobsHandlerConfig struct {
+	MaxJobAge        sb_config_types.Duration `json:"max_job_age" env_var:"JOBS_HANDLER_MAX_JOB_AGE"`
+	CleanupLoopDelay sb_config_types.Duration `json:"cleanup_loop_delay" env_var:"JOBS_HANDLER_CLEANUP_LOOP_DELAY"`
+}
+
+type LoggerConfig struct {
+	struct_logger.Config
+	HttpAccessLog bool `json:"http_access_log" env_var:"HTTP_ACCESS_LOG"`
 }
 
 type Config struct {
-	ServerPort               uint                           `json:"server_port" env_var:"SERVER_PORT"`
-	MGW                      MGWConfig                      `json:"mgw"`
-	ModulesHandler           handler_modules.Config         `json:"modules_handler"`
-	DeploymentsHandler       handler_deployments.Config     `json:"deployments_handler"`
-	AuxDeploymentsHandler    handler_aux_deployments.Config `json:"aux_deployments_handler"`
-	Logger                   struct_logger.Config           `json:"logger"`
-	GitHubModulesRepoHandler GitHubModulesRepoHandlerConfig `json:"github_modules_repo_handler"`
-	JobsHandler              handler_jobs.Config            `json:"jobshandler"`
-	Database                 DatabaseConfig                 `json:"database"`
-	ManagerIdPath            string                         `json:"manager_id_path" env_var:"MANAGER_ID_PATH"`
-	CoreId                   string                         `json:"core_id" env_var:"CORE_ID"`
-	ModuleContainerNetwork   string                         `json:"module_container_network" env_var:"MODULE_CONTAINER_NETWORK"`
-	HttpAccessLog            bool                           `json:"http_access_log" env_var:"HTTP_ACCESS_LOG"`
-	UseUTC                   bool                           `json:"use_utc" env_var:"USE_UTC"`
+	ServerPort                uint                            `json:"server_port" env_var:"SERVER_PORT"`
+	ManagerIdPath             string                          `json:"manager_id_path" env_var:"MANAGER_ID_PATH"`
+	CoreId                    string                          `json:"core_id" env_var:"CORE_ID"`
+	ModuleContainerNetwork    string                          `json:"module_container_network" env_var:"MODULE_CONTAINER_NETWORK"`
+	UseUTC                    bool                            `json:"use_utc" env_var:"USE_UTC"`
+	JobPollInterval           sb_config_types.Duration        `json:"job_poll_interval" env_var:"JOB_POLL_INTERVAL"`
+	ImageNameEscapeDepth      int                             `json:"image_name_escape_depth" env_var:"IMAGE_NAME_ESCAPE_DEPTH"`
+	HostDeploymentsPath       string                          `json:"host_deployments_path" env_var:"HOST_DEPLOYMENTS_PATH"`
+	HostSecretsPath           string                          `json:"host_secrets_path" env_var:"HOST_SECRETS_PATH"`
+	Logger                    LoggerConfig                    `json:"logger"`
+	MgwCore                   MgwCoreConfig                   `json:"mgw_core"`
+	Database                  DatabaseConfig                  `json:"database"`
+	ModulesHandler            ModulesHandlerConfig            `json:"modules_handler"`
+	DeploymentsHandler        DeploymentsHandlerConfig        `json:"deployments_handler"`
+	AuxDeploymentsHandler     AuxDeploymentsHandlerConfig     `json:"aux_deployments_handler"`
+	GitHubRepositoriesHandler GitHubRepositoriesHandlerConfig `json:"github_repositories_handler"`
+	JobsHandler               JobsHandlerConfig               `json:"jobs_handler"`
 }
 
 var defaultConfig = Config{
-	ServerPort: 80,
-	MGW: MGWConfig{
-		CewBaseUrl: "http://core-api/ce-wrapper",
-		CmBaseUrl:  "http://core-api/c-manager",
-		HmBaseUrl:  "http://core-api/h-manager",
-		SmBaseUrl:  "http://secret-manager",
-		Timeout:    sb_config_types.Duration(time.Second * 30),
+	ServerPort:      80,
+	ManagerIdPath:   "/opt/module-manager/data/mid",
+	UseUTC:          true,
+	JobPollInterval: sb_config_types.Duration(time.Millisecond * 500),
+	Logger: LoggerConfig{
+		Config: struct_logger.Config{
+			Handler:    struct_logger.TextHandlerSelector,
+			Level:      struct_logger.LevelInfo,
+			TimeFormat: time.RFC3339Nano,
+			TimeUtc:    true,
+		},
 	},
-	ModulesHandler: handler_modules.Config{
-		WorkDirPath:     "/opt/module-manager/modules",
-		JobPollInterval: sb_config_types.Duration(time.Millisecond * 500),
-	},
-	DeploymentsHandler: handler_deployments.Config{
-		WorkDirPath:                "/opt/module-manager/deployments",
-		JobPollInterval:            sb_config_types.Duration(time.Millisecond * 500),
-		RuntimeMonitorStartupDelay: sb_config_types.Duration(time.Second * 30),
-		RuntimeMonitorLoopDelay:    sb_config_types.Duration(time.Second * 5),
-	},
-	AuxDeploymentsHandler: handler_aux_deployments.Config{
-		JobPollInterval:            sb_config_types.Duration(time.Millisecond * 500),
-		RuntimeMonitorStartupDelay: sb_config_types.Duration(time.Second * 30),
-		RuntimeMonitorLoopDelay:    sb_config_types.Duration(time.Second * 5),
-	},
-	Logger: struct_logger.Config{
-		Handler:    struct_logger.TextHandlerSelector,
-		Level:      struct_logger.LevelInfo,
-		TimeFormat: time.RFC3339Nano,
-		TimeUtc:    true,
-		AddMeta:    false,
-	},
-	GitHubModulesRepoHandler: GitHubModulesRepoHandlerConfig{
-		BaseUrl: "https://api.github.com",
-		Timeout: sb_config_types.Duration(time.Minute),
-	},
-	JobsHandler: handler_jobs.Config{
-		MaxJobAge:        sb_config_types.Duration(time.Hour),
-		CleanupLoopDelay: sb_config_types.Duration(time.Minute * 5),
+	MgwCore: MgwCoreConfig{
+		Timeout: sb_config_types.Duration(time.Second * 30),
 	},
 	Database: DatabaseConfig{
-		MySQL: handler_database.Config{
-			Address:  "core-db:3306",
-			Database: "module_manager",
-			Timeout:  sb_config_types.Duration(time.Second * 30),
-		},
-		SQL: helper_sql_db.Config{
-			MaxOpenConns:    25,
-			MaxIdleConns:    25,
-			ConnMaxLifetime: sb_config_types.Duration(time.Minute * 5),
-		},
+		Database:              "module_manager",
+		Timeout:               sb_config_types.Duration(time.Second * 30),
+		MaxOpenConnections:    25,
+		MaxIdleConnections:    25,
+		ConnectionMaxLifetime: sb_config_types.Duration(time.Minute * 5),
 	},
-	ManagerIdPath: "/opt/module-manager/data/mid",
-	UseUTC:        true,
+	ModulesHandler: ModulesHandlerConfig{
+		WorkdirPath: "/opt/module-manager/modules",
+	},
+	DeploymentsHandler: DeploymentsHandlerConfig{
+		WorkdirPath:                "/opt/module-manager/deployments",
+		RuntimeMonitorStartupDelay: sb_config_types.Duration(time.Second * 30),
+		RuntimeMonitorLoopDelay:    sb_config_types.Duration(time.Second * 5),
+	},
+	AuxDeploymentsHandler: AuxDeploymentsHandlerConfig{
+		RuntimeMonitorStartupDelay: sb_config_types.Duration(time.Second * 30),
+		RuntimeMonitorLoopDelay:    sb_config_types.Duration(time.Second * 5),
+	},
+	GitHubRepositoriesHandler: GitHubRepositoriesHandlerConfig{
+		BaseUrl:     "https://api.github.com",
+		WorkdirPath: "/opt/module-manager/repositories/github",
+		Timeout:     sb_config_types.Duration(time.Minute),
+	},
+	JobsHandler: JobsHandlerConfig{
+		MaxJobAge:        sb_config_types.Duration(time.Hour * 24),
+		CleanupLoopDelay: sb_config_types.Duration(time.Minute * 5),
+	},
 }
 
 func New(path string) (Config, error) {

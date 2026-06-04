@@ -26,6 +26,12 @@ import (
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
+type Config struct {
+	WorkdirPath     string
+	JobPollInterval time.Duration
+	PathEscapeDepth int
+}
+
 type Handler struct {
 	databaseHandler              databaseHandler
 	containerEngineWrapperClient containerEngineWrapperClient
@@ -45,7 +51,7 @@ func New(databaseHandler databaseHandler, containerEngineWrapperClient container
 }
 
 func (h *Handler) CreateWorkDir() error {
-	return os.MkdirAll(h.config.WorkDirPath, 0775)
+	return os.MkdirAll(h.config.WorkdirPath, 0775)
 }
 
 func (h *Handler) GetModules(
@@ -106,7 +112,7 @@ func (h *Handler) AddModule(ctx context.Context, id, source, channel string, fSy
 	timestamp := helper_time.Now()
 	stgMod.Added = timestamp
 	stgMod.Updated = timestamp
-	dstPath := path.Join(h.config.WorkDirPath, stgMod.DirName)
+	dstPath := path.Join(h.config.WorkdirPath, stgMod.DirName)
 	if err = helper_file_sys.CopyAll(fSys, dstPath); err != nil {
 		logger.ErrorContext(ctx, "add module, copy file system", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
@@ -173,7 +179,7 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 	}
 	oldMod, ok := h.cacheGet(id)
 	if !ok {
-		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgModOld.DirName))
+		modFS := os.DirFS(path.Join(h.config.WorkdirPath, stgModOld.DirName))
 		oldMod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
 			logger.ErrorContext(ctx, "update module, read old modfile", slog_keys.ModuleId, id, slog_keys.Error, err)
@@ -187,7 +193,7 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 	}
 	stgModNew.Added = stgModOld.Added
 	stgModNew.Updated = helper_time.Now()
-	dstPath := path.Join(h.config.WorkDirPath, stgModNew.DirName)
+	dstPath := path.Join(h.config.WorkdirPath, stgModNew.DirName)
 	if err = helper_file_sys.CopyAll(fSys, dstPath); err != nil {
 		logger.ErrorContext(ctx, "update module, copy new file system", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
@@ -234,7 +240,7 @@ func (h *Handler) UpdateModule(ctx context.Context, id, source, channel string, 
 		slog_keys.ModuleId, id,
 		slog_keys.Version, fmt.Sprintf("%s -> %s", oldMod.Version, newMod.Version),
 	)
-	if e := os.RemoveAll(path.Join(h.config.WorkDirPath, stgModOld.DirName)); e != nil {
+	if e := os.RemoveAll(path.Join(h.config.WorkdirPath, stgModOld.DirName)); e != nil {
 		logger.ErrorContext(ctx, "update module, remove old file system", slog_keys.ModuleId, id, slog_keys.DirName, stgModOld.DirName, slog_keys.Error, e)
 	}
 	if e := h.removeOldImages(ctx, getModuleServiceImages(oldMod.Services), getModuleServiceImages(newMod.Services)); e != nil {
@@ -256,14 +262,14 @@ func (h *Handler) DeleteModule(ctx context.Context, id string) error {
 	}
 	mod, ok := h.cacheGet(id)
 	if !ok {
-		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
+		modFS := os.DirFS(path.Join(h.config.WorkdirPath, stgMod.DirName))
 		mod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
 			logger.ErrorContext(ctx, "delete module, read modfile", slog_keys.ModuleId, id, slog_keys.Error, err)
 			return err
 		}
 	}
-	err = os.RemoveAll(path.Join(h.config.WorkDirPath, stgMod.DirName))
+	err = os.RemoveAll(path.Join(h.config.WorkdirPath, stgMod.DirName))
 	if err != nil && !os.IsNotExist(err) {
 		logger.ErrorContext(ctx, "delete module, remove file system", slog_keys.ModuleId, id, slog_keys.DirName, stgMod.DirName, slog_keys.Error, err)
 		return err
@@ -329,7 +335,7 @@ func (h *Handler) getModules(ctx context.Context, filter pkg_models.ModulesFilte
 	modules := make(map[string]pkg_models.Module)
 	var errs []error
 	for _, stgMod := range stgMods {
-		modFS := os.DirFS(path.Join(h.config.WorkDirPath, stgMod.DirName))
+		modFS := os.DirFS(path.Join(h.config.WorkdirPath, stgMod.DirName))
 		mod, ok := h.cacheGet(stgMod.Id)
 		if !ok {
 			mod, err = helper_modfile.GetModule(modFS)
@@ -408,7 +414,7 @@ func (h *Handler) pullImage(ctx context.Context, image string) error {
 	if err != nil {
 		return err
 	}
-	job, err := helper_job.Await(ctx, h.containerEngineWrapperClient, jobId, time.Duration(h.config.JobPollInterval))
+	job, err := helper_job.Await(ctx, h.containerEngineWrapperClient, jobId, h.config.JobPollInterval)
 	if err != nil {
 		return err
 	}

@@ -21,7 +21,6 @@ import (
 	"errors"
 	"maps"
 	"slices"
-	"time"
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_job "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/job"
@@ -121,7 +120,7 @@ func (h *Handler) removeHttpEndpoints(ctx context.Context, deploymentId string) 
 	if err != nil {
 		return err
 	}
-	job, err := helper_job.Await(ctx, h.coreManagerClient, jobId, time.Duration(h.config.JobPollInterval))
+	job, err := helper_job.Await(ctx, h.coreManagerClient, jobId, h.config.JobPollInterval)
 	if err != nil {
 		return err
 	}

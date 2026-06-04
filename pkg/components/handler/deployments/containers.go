@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"path"
-	"time"
 
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
@@ -59,13 +58,13 @@ func (h *Handler) createContainers(
 		envVariables[constants.EnvVariableCoreId] = helper_naming.CoreId
 		envVariables[constants.EnvVariableDeploymentId] = deploymentId
 		var mounts []external_models.CewMount
-		mounts = appendIncludeMounts(mounts, service.BindMounts, deploymentDirName, h.config.HostWorkDirPath)
+		mounts = appendIncludeMounts(mounts, service.BindMounts, deploymentDirName, h.config.HostWorkdirPath)
 		mounts = appendTmpfsMounts(mounts, service.Tmpfs)
 		mounts = appendVolumeMounts(mounts, service.Volumes, volumes)
 		mounts = appendApplicationMounts(mounts, service.HostResources, userDataHostResources, cacheHostResources)
 		mounts = appendSecretMounts(mounts, service.SecretMounts, userDataSecrets, bindMounts.Secrets, h.config.HostSecretsPath)
-		mounts = appendFileMounts(mounts, service.Files, deploymentFilesDirName, bindMounts.Files, h.config.HostWorkDirPath)
-		mounts = appendFileGroupMounts(mounts, service.FileGroups, deploymentFilesDirName, bindMounts.FileGroups, h.config.HostWorkDirPath)
+		mounts = appendFileMounts(mounts, service.Files, deploymentFilesDirName, bindMounts.Files, h.config.HostWorkdirPath)
+		mounts = appendFileGroupMounts(mounts, service.FileGroups, deploymentFilesDirName, bindMounts.FileGroups, h.config.HostWorkdirPath)
 		storageContainer := containers[reference]
 		cewContainer := getCewContainer(
 			service.Image,
@@ -132,7 +131,7 @@ func (h *Handler) stopContainers(
 ) error {
 	var errs []error
 	for _, container := range deploymentContainers {
-		err := helper_containers.Stop(ctx, h.containerEngineWrapperClient, container.Name, time.Duration(h.config.JobPollInterval))
+		err := helper_containers.Stop(ctx, h.containerEngineWrapperClient, container.Name, h.config.JobPollInterval)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("'%s' %w", container.Reference, err))
 		}

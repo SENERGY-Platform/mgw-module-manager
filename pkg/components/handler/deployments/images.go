@@ -19,7 +19,6 @@ package deployments
 import (
 	"context"
 	"fmt"
-	"time"
 
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
@@ -39,7 +38,7 @@ func (h *Handler) ensureContainerImages(ctx context.Context, moduleServices map[
 			imageName,
 			false,
 			h.config.PathEscapeDepth,
-			time.Duration(h.config.JobPollInterval),
+			h.config.JobPollInterval,
 		)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("'%s' %w", imageName, err))

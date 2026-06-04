@@ -23,7 +23,6 @@ import (
 	"sync"
 	"time"
 
-	sb_config_types "github.com/SENERGY-Platform/go-service-base/config-hdl/types"
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 	helper_uuid "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/uuid"
@@ -32,8 +31,8 @@ import (
 const ContextKeyJobId = "job_id"
 
 type Config struct {
-	MaxJobAge        sb_config_types.Duration `json:"max_job_age" env_var:"JOBS_HANDLER_MAX_JOB_AGE"`
-	CleanupLoopDelay sb_config_types.Duration `json:"cleanup_loop_delay" env_var:"JOBS_HANDLER_CLEANUP_LOOP_DELAY"`
+	MaxJobAge        time.Duration
+	CleanupLoopDelay time.Duration
 }
 
 type Handler struct {
@@ -154,7 +153,7 @@ func (h *Handler) SetCleanupHandler(f func([]string)) {
 }
 
 func (h *Handler) Cleanup(ctx context.Context) {
-	timer := time.NewTimer(time.Duration(h.config.CleanupLoopDelay))
+	timer := time.NewTimer(h.config.CleanupLoopDelay)
 	defer timer.Stop()
 	for {
 		select {
@@ -163,7 +162,7 @@ func (h *Handler) Cleanup(ctx context.Context) {
 			if h.cleanupHandler != nil && len(oldJobs) > 0 {
 				h.cleanupHandler(oldJobs)
 			}
-			timer.Reset(time.Duration(h.config.CleanupLoopDelay))
+			timer.Reset(h.config.CleanupLoopDelay)
 		case <-ctx.Done():
 			return
 		}
@@ -178,7 +177,7 @@ func (h *Handler) cleanup() []string {
 	now := helper_time.Now()
 	for id, job := range h.jobMap {
 		end := job.End()
-		if now.Sub(end) < time.Duration(h.config.MaxJobAge) {
+		if now.Sub(end) < h.config.MaxJobAge {
 			tmp[id] = job
 		} else {
 			oldJobs = append(oldJobs, id)

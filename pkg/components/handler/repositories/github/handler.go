@@ -23,16 +23,25 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"time"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
+	helper_http "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/http"
 )
 
 const (
 	reposDir   = "repositories"
 	sourcesDir = "sources"
 )
+
+type Config struct {
+	BaseUrl     string
+	WorkdirPath string
+	Timeout     time.Duration
+}
 
 type Handler struct {
 	repositories map[string]*Repository
@@ -41,10 +50,13 @@ type Handler struct {
 	mu           sync.RWMutex
 }
 
-func New(gitHubClient gitHubClient, workdirPath string) *Handler {
+func New(config Config) *Handler {
 	return &Handler{
-		gitHubClient: gitHubClient,
-		workdirPath:  workdirPath,
+		gitHubClient: client.New(
+			helper_http.NewClient(config.Timeout),
+			config.BaseUrl,
+		),
+		workdirPath: config.WorkdirPath,
 	}
 }
 

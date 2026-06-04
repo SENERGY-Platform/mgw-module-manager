@@ -22,10 +22,16 @@ import (
 	"time"
 )
 
+type Config struct {
+	MaxOpenConnections int
+	MaxIdleConnections int
+	ConnMaxLifetime    time.Duration
+}
+
 func NewSQLDatabase(connector driver.Connector, config Config) *sql.DB {
 	db := sql.OpenDB(connector)
-	db.SetMaxOpenConns(config.MaxOpenConns)
-	db.SetMaxIdleConns(config.MaxIdleConns)
-	db.SetConnMaxLifetime(time.Duration(config.ConnMaxLifetime))
+	db.SetMaxOpenConns(config.MaxOpenConnections)
+	db.SetMaxIdleConns(config.MaxIdleConnections)
+	db.SetConnMaxLifetime(config.ConnMaxLifetime)
 	return db
 }

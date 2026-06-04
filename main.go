@@ -28,7 +28,6 @@ import (
 	handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
 	handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
 	handler_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github"
-	client_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github/client"
 	helper_http "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/http"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_os_signal "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/os_signal"
@@ -63,7 +62,7 @@ func main() {
 
 	// create logger
 	helper_slog.ContextAttributeKeys = []string{helper_naming.RuntimeIdKey, api.ContextKeyRequestId, handler_jobs.ContextKeyJobId}
-	logger := helper_slog.New(config.Logger, os.Stderr, "", name)
+	logger := helper_slog.New(config.Logger.Config, os.Stderr, "", name)
 
 	// init loggers
 	handler_database.InitLogger(logger)
@@ -92,24 +91,32 @@ func main() {
 	helper_time.UTC = config.UseUTC
 
 	// create database handler
-	mySQLConnector, err := handler_database.NewConnector(config.Database.MySQL)
+	mySQLConnector, err := handler_database.NewConnector(handler_database.Config{
+		Address:  config.Database.Address,
+		Database: config.Database.Database,
+		User:     config.Database.User,
+		Password: config.Database.Password.Value(),
+		Timeout:  time.Duration(config.Database.Timeout),
+	})
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "create mysql connector: %s\n", err)
 		ec = 1
 		return
 	}
-	sqlDB := helper_sql_db.NewSQLDatabase(mySQLConnector, config.Database.SQL)
+	sqlDB := helper_sql_db.NewSQLDatabase(mySQLConnector, helper_sql_db.Config{
+		MaxOpenConnections: config.Database.MaxOpenConnections,
+		MaxIdleConnections: config.Database.MaxIdleConnections,
+		ConnMaxLifetime:    time.Duration(config.Database.ConnectionMaxLifetime),
+	})
 	defer sqlDB.Close()
 	databaseHandler := handler_database.New(sqlDB)
 
 	// create GitHub repository handler
-	githubRepositoryHandler := handler_repositories_github.New(
-		client_repositories_github.New(
-			helper_http.NewClient(time.Duration(config.GitHubModulesRepoHandler.Timeout)),
-			config.GitHubModulesRepoHandler.BaseUrl,
-		),
-		config.GitHubModulesRepoHandler.WorkDirPath,
-	)
+	githubRepositoryHandler := handler_repositories_github.New(handler_repositories_github.Config{
+		BaseUrl:     config.GitHubRepositoriesHandler.BaseUrl,
+		WorkdirPath: config.GitHubRepositoriesHandler.WorkdirPath,
+		Timeout:     time.Duration(config.GitHubRepositoriesHandler.Timeout),
+	})
 
 	// create repositories handler
 	repositoriesHandler := handler_repositories.New(githubRepositoryHandler)
@@ -117,25 +124,43 @@ func main() {
 	// create modules handler
 	modulesHandler := handler_modules.New(
 		databaseHandler,
-		cew_client.New(helper_http.NewClient(time.Duration(config.MGW.Timeout)), config.MGW.CewBaseUrl),
-		config.ModulesHandler,
+		cew_client.New(helper_http.NewClient(time.Duration(config.MgwCore.Timeout)), config.MgwCore.CewBaseUrl),
+		handler_modules.Config{
+			WorkdirPath:     config.ModulesHandler.WorkdirPath,
+			JobPollInterval: time.Duration(config.JobPollInterval),
+			PathEscapeDepth: config.ImageNameEscapeDepth,
+		},
 	)
 
 	// create deployments handler
 	deploymentsHandler := handler_deployments.New(
 		databaseHandler,
-		cew_client.New(helper_http.NewClient(time.Duration(config.MGW.Timeout)), config.MGW.CewBaseUrl),
-		hm_client.New(helper_http.NewClient(time.Duration(config.MGW.Timeout)), config.MGW.HmBaseUrl),
-		sm_client.NewClient(config.MGW.SmBaseUrl, helper_http.NewClient(time.Duration(config.MGW.Timeout))),
-		cm_client.New(helper_http.NewClient(time.Duration(config.MGW.Timeout)), config.MGW.CmBaseUrl),
-		config.DeploymentsHandler,
+		cew_client.New(helper_http.NewClient(time.Duration(config.MgwCore.Timeout)), config.MgwCore.CewBaseUrl),
+		hm_client.New(helper_http.NewClient(time.Duration(config.MgwCore.Timeout)), config.MgwCore.HmBaseUrl),
+		sm_client.NewClient(config.MgwCore.SmBaseUrl, helper_http.NewClient(time.Duration(config.MgwCore.Timeout))),
+		cm_client.New(helper_http.NewClient(time.Duration(config.MgwCore.Timeout)), config.MgwCore.CmBaseUrl),
+		handler_deployments.Config{
+			WorkdirPath:                config.DeploymentsHandler.WorkdirPath,
+			PathEscapeDepth:            config.ImageNameEscapeDepth,
+			JobPollInterval:            time.Duration(config.JobPollInterval),
+			HostWorkdirPath:            config.HostDeploymentsPath,
+			HostSecretsPath:            config.HostSecretsPath,
+			RuntimeMonitorStartupDelay: time.Duration(config.DeploymentsHandler.RuntimeMonitorStartupDelay),
+			RuntimeMonitorLoopDelay:    time.Duration(config.DeploymentsHandler.RuntimeMonitorLoopDelay),
+		},
 	)
 
 	// create auxiliary deployments handler
 	auxiliaryDeploymentsHandler := handler_aux_deployments.New(
 		databaseHandler,
-		cew_client.New(helper_http.NewClient(time.Duration(config.MGW.Timeout)), config.MGW.CewBaseUrl),
-		config.AuxDeploymentsHandler,
+		cew_client.New(helper_http.NewClient(time.Duration(config.MgwCore.Timeout)), config.MgwCore.CewBaseUrl),
+		handler_aux_deployments.Config{
+			PathEscapeDepth:            config.ImageNameEscapeDepth,
+			JobPollInterval:            time.Duration(config.JobPollInterval),
+			HostDeploymentsPath:        config.HostDeploymentsPath,
+			RuntimeMonitorStartupDelay: time.Duration(config.AuxDeploymentsHandler.RuntimeMonitorStartupDelay),
+			RuntimeMonitorLoopDelay:    time.Duration(config.AuxDeploymentsHandler.RuntimeMonitorLoopDelay),
+		},
 	)
 
 	// create main context
@@ -143,7 +168,10 @@ func main() {
 	ctx = context.WithValue(ctx, helper_naming.RuntimeIdKey, helper_naming.RuntimeId)
 
 	// create jobs handler
-	jobsHandler := handler_jobs.New(ctx, config.JobsHandler)
+	jobsHandler := handler_jobs.New(ctx, handler_jobs.Config{
+		MaxJobAge:        time.Duration(config.JobsHandler.MaxJobAge),
+		CleanupLoopDelay: time.Duration(config.JobsHandler.CleanupLoopDelay),
+	})
 
 	// create service
 	srv := service.New(
@@ -176,7 +204,7 @@ func main() {
 	}
 
 	// create http api
-	httpApiHandler, err := api.CreateHandler(srv, name, version, config.HttpAccessLog)
+	httpApiHandler, err := api.CreateHandler(srv, name, version, config.Logger.HttpAccessLog)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "create http api engine: %s\n", err)
 		ec = 1

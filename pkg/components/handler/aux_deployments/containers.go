@@ -47,7 +47,7 @@ func (h *Handler) createContainer(
 	envVariables[constants.EnvVariableDeploymentId] = activeDeployment.Id
 	envVariables[constants.EnvVariableAuxDeploymentId] = auxDeployment.Id
 	var mounts []external_models.CewMount
-	mounts = appendIncludeMounts(mounts, moduleAuxService.BindMounts, activeDeployment.DirName, h.config.HostWorkDirPath)
+	mounts = appendIncludeMounts(mounts, moduleAuxService.BindMounts, activeDeployment.DirName, h.config.HostDeploymentsPath)
 	mounts = appendTmpfsMounts(mounts, moduleAuxService.Tmpfs)
 	mounts = appendVolumeMounts(mounts, moduleAuxService.Volumes, activeDeployment.Volumes, volumeMounts)
 	cewContainer := getCewContainer(
