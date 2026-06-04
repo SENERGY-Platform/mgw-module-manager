@@ -127,7 +127,7 @@ func (h *Handler) CreateRepository(_ context.Context, data []byte) error {
 	}
 	srcString := getSourceString(src)
 	_, ok := h.repositories[srcString]
-	if !ok {
+	if ok {
 		return lib_errors.New[lib_errors.ErrExists]("source already exists")
 	}
 	fsName := getFsName(src)
