@@ -28,12 +28,14 @@ import (
 
 func GetDeploymentRequest(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathDeploymentRequestResource, func(gc *gin.Context) {
-		var body []string
-		err := gc.MustBindWith(&body, binding.JSON)
+		var query struct {
+			ModuleIds []string `form:"module_ids" collection_format:"csv"`
+		}
+		err := gc.MustBindWith(&query, binding.Query)
 		if err != nil {
 			return
 		}
-		res, err := srv.GetDeploymentRequest(gc, body)
+		res, err := srv.GetDeploymentRequest(gc, query.ModuleIds)
 		if err != nil {
 			_ = gc.Error(err)
 			return
