@@ -205,7 +205,9 @@ func (s *Service) CreateModulesUpdateAllChangeRequest(ctx context.Context) (lib_
 	if err != nil {
 		return lib_models.ModulesChangeRequest{}, err
 	}
-	s.changeRequest = &changeRequest
+	if len(changeRequest.Install) > 0 || len(changeRequest.Change) > 0 || len(changeRequest.Remove) > 0 {
+		s.changeRequest = &changeRequest
+	}
 	return transformModulesChangeRequest(changeRequest), nil
 }
 
