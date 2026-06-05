@@ -34,7 +34,7 @@ func (h *Handler) queryConfigs(ctx context.Context, ids []string, t1, t2 string,
 		ids = helper_slices.RemoveDuplicates(ids)
 		rows, err = h.sqlDB.QueryContext(
 			ctx,
-			genSelectConfigsStmt(t1, t2, t1Cols...)+fmt.Sprintf(") WHERE %s IN (", filterIdCol)+genQuestionMarks(len(ids))+") ORDER BY is_list, id, ord;",
+			genSelectConfigsStmt(t1, t2, t1Cols...)+fmt.Sprintf(" WHERE %s IN (", filterIdCol)+genQuestionMarks(len(ids))+") ORDER BY is_list, id, ord;",
 			helper_slices.ToAny(ids)...,
 		)
 	} else {
