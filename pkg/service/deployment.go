@@ -75,6 +75,9 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []lib_models
 	if len(currentJobs) > 0 {
 		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
+	if len(userInputs) == 0 {
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrInvalidInput]("no input provided")
+	}
 	handlerModules, err := s.modulesHandler.GetModules(
 		ctx,
 		pkg_models.ModulesFilterWithName{
