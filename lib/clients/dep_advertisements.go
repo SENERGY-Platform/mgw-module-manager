@@ -96,7 +96,7 @@ func appendDeploymentAdvertisementsQueryReduced(u string, filter models.Deployme
 	if len(items) > 0 {
 		return u + "?" + strings.Join(items, "&")
 	}
-	return ""
+	return u
 }
 
 func (c *ClientDeploymentAdvertisements) GetDeploymentAdvertisements(
@@ -227,7 +227,7 @@ func appendDeploymentAdvertisementsQuery(u string, filter models.DeploymentAdver
 	if len(items) > 0 {
 		return u + "?" + strings.Join(items, "&")
 	}
-	return ""
+	return u
 }
 
 func (c *ClientDeploymentAdvertisements) QueryDeploymentAdvertisements(

@@ -154,7 +154,7 @@ func appendAuxiliaryDeploymentsQuery(u string, filter models.AuxiliaryDeployment
 	if len(items) > 0 {
 		return u + "?" + strings.Join(items, "&")
 	}
-	return ""
+	return u
 }
 
 func (c *ClientAuxiliaryDeployments) DeleteAuxiliaryDeployment(ctx context.Context, deploymentId, auxDeploymentId string) error {
@@ -269,7 +269,7 @@ func appendAuxiliaryDeploymentVolumesQuery(u string, references []string, allowA
 	if len(items) > 0 {
 		return u + "?" + strings.Join(items, "&")
 	}
-	return ""
+	return u
 }
 
 func (c *ClientAuxiliaryDeployments) DeleteAuxiliaryDeploymentVolumes(
