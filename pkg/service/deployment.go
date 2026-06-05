@@ -38,6 +38,9 @@ func (s *Service) GetDeploymentRequest(ctx context.Context, moduleIds []string) 
 	if ok {
 		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
+	if len(moduleIds) == 0 {
+		return nil, nil
+	}
 	handlerModules, err := s.modulesHandler.GetModules(
 		ctx,
 		pkg_models.ModulesFilterWithName{
