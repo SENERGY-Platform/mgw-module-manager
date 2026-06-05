@@ -133,6 +133,7 @@ func (h *Handler) UpdateGlobalConfig(ctx context.Context, config pkg_models.Conf
 		config.Name,
 		config.DataType,
 		config.IsSlice,
+		config.Id,
 	)
 	if err != nil {
 		return err
