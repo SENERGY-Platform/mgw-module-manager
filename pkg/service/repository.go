@@ -339,6 +339,9 @@ func buildReposTree(repos []lib_models.Repository) map[string]repoAbbreviated {
 
 func handleInstalledMods(mods []lib_models.RepoModule, installedMods map[string]pkg_models.Module, filterInstalled, filterUpdateAvailable bool) []lib_models.RepoModule {
 	if len(installedMods) == 0 {
+		if filterInstalled || filterUpdateAvailable {
+			return nil
+		}
 		return mods
 	}
 	var tmp []lib_models.RepoModule
