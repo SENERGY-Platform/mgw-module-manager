@@ -66,7 +66,6 @@ func CreateHandler(srv *service.Service, srvName, srvVersion string, accessLog b
 		gin_mw.StructRecoveryHandler(logger, gin_mw.DefaultRecoveryFunc),
 	)
 	ginEngine.Use(middleware...)
-	ginEngine.UseRawPath = true
 	err := registerHandlers(ginEngine, srv, append(standardApiHandlers, sharedApiHandlers...)...)
 	if err != nil {
 		return nil, err
