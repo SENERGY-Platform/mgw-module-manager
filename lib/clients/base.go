@@ -27,6 +27,8 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 )
 
+var UrlPathEscapeDepth = 1
+
 type httpClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
@@ -97,7 +99,14 @@ func getUrlRelPath(template string, params ...string) string {
 	}
 	placeholders = placeholders[:len(params)]
 	for i, placeholder := range placeholders {
-		template = strings.Replace(template, placeholder, url.PathEscape(params[i]), 1)
+		template = strings.Replace(template, placeholder, urlPathEscape(params[i]), 1)
 	}
 	return template
+}
+
+func urlPathEscape(v string) string {
+	for c := 0; c < UrlPathEscapeDepth; c++ {
+		v = url.PathEscape(v)
+	}
+	return v
 }
