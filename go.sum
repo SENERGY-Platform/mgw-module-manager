@@ -10,8 +10,8 @@ github.com/Masterminds/semver/v3 v3.5.0 h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAw
 github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
-github.com/SENERGY-Platform/gin-middleware v0.12.1 h1:/BaCAZ4tIWzGH5Prh+Oa0SFiX8rvaxN5IXgQ2/6aGG0=
-github.com/SENERGY-Platform/gin-middleware v0.12.1/go.mod h1:t/wGjK1b3l3CofYqNEARyWniHCQ53nD3pcrWA9l8v3I=
+github.com/SENERGY-Platform/gin-middleware v0.13.0 h1:jcVVhyO/k0L9Ee5/z9thiLbPS7J7e/5Q2f44p7RX0R0=
+github.com/SENERGY-Platform/gin-middleware v0.13.0/go.mod h1:t/wGjK1b3l3CofYqNEARyWniHCQ53nD3pcrWA9l8v3I=
 github.com/SENERGY-Platform/go-base-http-client v0.1.0 h1:PUiZVEj7/cMSZJ0g5G611tjY9bSh1Eby+tcktrgpiZ0=
 github.com/SENERGY-Platform/go-base-http-client v0.1.0/go.mod h1:NfKW/relIVTkMXhz4OqZlzJXYPQUYEKxwqou8D0B/Kw=
 github.com/SENERGY-Platform/go-env-loader v0.5.3 h1:sNM/psxYBs3DeDCw8P8gWM2hvySijwy9t2DdSGdhF1c=
