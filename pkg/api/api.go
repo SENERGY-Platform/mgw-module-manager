@@ -37,6 +37,7 @@ const ContextKeyRequestId = "request_id"
 func CreateHandler(srv *service.Service, srvName, srvVersion string, accessLog bool) (http.Handler, error) {
 	ginEngine := gin.New()
 	ginEngine.RedirectTrailingSlash = false
+	ginEngine.UseEscapedPath = true
 	var middleware []gin.HandlerFunc
 	if accessLog {
 		middleware = append(
