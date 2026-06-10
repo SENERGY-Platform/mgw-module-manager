@@ -32,7 +32,7 @@ import (
 
 const RuntimeIdKey = "runtime_id"
 
-const prefix = "mgw"
+const mgwPrefix = "mgw"
 
 var RuntimeId string
 var CoreId string
@@ -44,15 +44,15 @@ func NewContainerName(prefix string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s-%s-%s-%s", prefix, CoreId, prefix, GenHash(newUUID.String())), nil
+	return fmt.Sprintf("%s-%s-%s-%s", mgwPrefix, CoreId, prefix, GenHash(newUUID.String())), nil
 }
 
 func NewContainerAlias(arg ...string) string {
-	return fmt.Sprintf("%s-%s-%s", prefix, CoreId, GenHash(arg...))
+	return fmt.Sprintf("%s-%s-%s", mgwPrefix, CoreId, GenHash(arg...))
 }
 
 func NewVolumeName(prefix string, arg ...string) string {
-	return fmt.Sprintf("%s_%s_%s_%s", prefix, CoreId, prefix, GenHash(arg...))
+	return fmt.Sprintf("%s_%s_%s_%s", mgwPrefix, CoreId, prefix, GenHash(arg...))
 }
 
 func GenHash(str ...string) string {
