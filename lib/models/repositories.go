@@ -68,6 +68,11 @@ type RepositoryChannel struct {
 	Priority int
 }
 
+type RepositoriesRefreshFilter struct {
+	Types   []string
+	Sources []string
+}
+
 type RepositoryJobResult struct {
 	JobResult
 	Results       []RepositoryResult
@@ -77,6 +82,7 @@ type RepositoryJobResult struct {
 type RepositoryResult struct {
 	Type          string                         `json:"type"`
 	Source        string                         `json:"source"`
+	Refresh       bool                           `json:"refresh"`
 	ChannelErrors []RepositoryChannelErrorResult `json:"channel_errors"`
 	ErrorResult
 }

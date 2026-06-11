@@ -14,7 +14,7 @@ import (
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
-func (s *Service) RefreshRepositories(ctx context.Context) (lib_models.Job, error) {
+func (s *Service) RefreshRepositories(ctx context.Context, filter lib_models.RepositoriesRefreshFilter) (lib_models.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
@@ -50,7 +50,7 @@ func (s *Service) RefreshRepositories(ctx context.Context) (lib_models.Job, erro
 				)
 			}
 		}()
-		jobResult.Results, err = s.repositoriesHandler.RefreshRepositories(job.Context())
+		jobResult.Results, err = s.repositoriesHandler.RefreshRepositories(job.Context(), filter)
 		if err != nil {
 			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
 		}

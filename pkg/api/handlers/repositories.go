@@ -30,9 +30,28 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
+func getRepositoriesRefreshFilter(gc *gin.Context) (lib_models.RepositoriesRefreshFilter, error) {
+	var query struct {
+		Types   []string `form:"types" collection_format:"csv"`
+		Sources []string `form:"sources"  collection_format:"csv"`
+	}
+	err := gc.MustBindWith(&query, binding.Query)
+	if err != nil {
+		return lib_models.RepositoriesRefreshFilter{}, err
+	}
+	return lib_models.RepositoriesRefreshFilter{
+		Types:   query.Types,
+		Sources: query.Sources,
+	}, nil
+}
+
 func RefreshRepositories(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, lib_constants.HttpPathRepositoriesCollection, func(gc *gin.Context) {
-		res, err := srv.RefreshRepositories(gc)
+		filter, err := getRepositoriesRefreshFilter(gc)
+		if err != nil {
+			return
+		}
+		res, err := srv.RefreshRepositories(gc, filter)
 		if err != nil {
 			_ = gc.Error(err)
 			return

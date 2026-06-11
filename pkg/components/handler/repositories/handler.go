@@ -62,7 +62,10 @@ func (h *Handler) Init(ctx context.Context) error {
 	return nil
 }
 
-func (h *Handler) RefreshRepositories(ctx context.Context) ([]lib_models.RepositoryResult, error) {
+func (h *Handler) RefreshRepositories(
+	ctx context.Context,
+	filter lib_models.RepositoriesRefreshFilter,
+) ([]lib_models.RepositoryResult, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	repositories := make(map[string]Repository)
@@ -104,7 +107,7 @@ func (h *Handler) RefreshRepositories(ctx context.Context) ([]lib_models.Reposit
 				results = append(results, result)
 				continue
 			}
-			err = repo.Refresh(ctx)
+			result.Refresh, err = doRepoRefresh(ctx, repo, filter)
 			if err != nil {
 				logger.ErrorContext(
 					ctx,
@@ -417,4 +420,11 @@ func filterSources(source, channel string, filter map[string]map[string]struct{}
 		return ok
 	}
 	return true
+}
+
+func doRepoRefresh(ctx context.Context, repo Repository, filter lib_models.RepositoriesRefreshFilter) (bool, error) {
+	if (len(filter.Types) > 0 || len(filter.Sources) > 0) && !(slices.Contains(filter.Types, repo.Type()) || slices.Contains(filter.Sources, repo.Source())) {
+		return false, nil
+	}
+	return true, repo.Refresh(ctx)
 }

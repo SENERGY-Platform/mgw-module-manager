@@ -9,7 +9,7 @@ import (
 )
 
 type repositoriesHandler interface {
-	RefreshRepositories(ctx context.Context) ([]lib_models.RepositoryResult, error)
+	RefreshRepositories(ctx context.Context, filter lib_models.RepositoriesRefreshFilter) ([]lib_models.RepositoryResult, error)
 	GetRepositories(ctx context.Context) ([]lib_models.Repository, error)
 	CreateRepository(ctx context.Context, repositoryType string, data []byte) error
 	DeleteRepository(ctx context.Context, source string) error
