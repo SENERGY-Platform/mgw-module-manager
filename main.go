@@ -28,6 +28,7 @@ import (
 	handler_modules "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/modules"
 	handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
 	handler_repositories_github "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/github"
+	handler_repositories_host_dir "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories/host_dir"
 	helper_http "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/http"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_os_signal "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/os_signal"
@@ -67,6 +68,7 @@ func main() {
 	// init loggers
 	handler_database.InitLogger(logger)
 	handler_repositories.InitLogger(logger)
+	handler_repositories_host_dir.InitLogger(logger)
 	handler_modules.InitLogger(logger)
 	handler_deployments.InitLogger(logger)
 	handler_aux_deployments.InitLogger(logger)
@@ -118,8 +120,14 @@ func main() {
 		Timeout:     time.Duration(config.GitHubRepositoriesHandler.Timeout),
 	})
 
+	// create host directory repository handler
+	hostDirRepositoryHandler := handler_repositories_host_dir.New(
+		config.HostDirRepositoryHandler.WorkdirPath,
+		config.HostDirRepositoryHandler.Priority,
+	)
+
 	// create repositories handler
-	repositoriesHandler := handler_repositories.New(githubRepositoryHandler)
+	repositoriesHandler := handler_repositories.New(hostDirRepositoryHandler, githubRepositoryHandler)
 
 	// create modules handler
 	modulesHandler := handler_modules.New(
@@ -237,6 +245,12 @@ func main() {
 		logger.ErrorContext(ctx, "database migration", slog_keys.Error, err)
 		ec = 1
 		return
+	}
+
+	// init host directory repository handler
+	err = hostDirRepositoryHandler.Init(ctx)
+	if err != nil {
+		logger.ErrorContext(ctx, "initialize host directory repository handler", slog_keys.Error, err)
 	}
 
 	// init GitHub repository handler

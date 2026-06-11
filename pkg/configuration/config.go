@@ -62,6 +62,11 @@ type AuxDeploymentsHandlerConfig struct {
 	RuntimeMonitorLoopDelay    sb_config_types.Duration `json:"runtime_monitor_loop_delay" env_var:"AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY"`
 }
 
+type HostDirRepositoryHandlerConfig struct {
+	WorkdirPath string `json:"workdir_path" env_var:"HOST_DIR_HANDLER_WORKDIR_PATH"`
+	Priority    int    `json:"priority" env_var:"HOST_DIR_HANDLER_PRIORITY"`
+}
+
 type GitHubRepositoriesHandlerConfig struct {
 	BaseUrl     string                   `json:"base_url" env_var:"GITHUB_HANDLER_BASE_URL"`
 	WorkdirPath string                   `json:"workdir_path" env_var:"GITHUB_HANDLER_WORKDIR_PATH"`
@@ -94,6 +99,7 @@ type Config struct {
 	ModulesHandler            ModulesHandlerConfig            `json:"modules_handler"`
 	DeploymentsHandler        DeploymentsHandlerConfig        `json:"deployments_handler"`
 	AuxDeploymentsHandler     AuxDeploymentsHandlerConfig     `json:"aux_deployments_handler"`
+	HostDirRepositoryHandler  HostDirRepositoryHandlerConfig  `json:"host_dir_repository_handler"`
 	GitHubRepositoriesHandler GitHubRepositoriesHandlerConfig `json:"github_repositories_handler"`
 	JobsHandler               JobsHandlerConfig               `json:"jobs_handler"`
 }
@@ -132,6 +138,10 @@ var defaultConfig = Config{
 	AuxDeploymentsHandler: AuxDeploymentsHandlerConfig{
 		RuntimeMonitorStartupDelay: sb_config_types.Duration(time.Second * 30),
 		RuntimeMonitorLoopDelay:    sb_config_types.Duration(time.Second * 5),
+	},
+	HostDirRepositoryHandler: HostDirRepositoryHandlerConfig{
+		WorkdirPath: "/opt/module-manager/repositories/host_dir",
+		Priority:    0,
 	},
 	GitHubRepositoriesHandler: GitHubRepositoriesHandlerConfig{
 		BaseUrl:     "https://api.github.com",
