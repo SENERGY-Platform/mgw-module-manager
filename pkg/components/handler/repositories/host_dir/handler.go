@@ -34,8 +34,8 @@ import (
 )
 
 const repoType = "host-dir"
-const source = "localhost"
-const channel = "default"
+const sourceName = "localhost"
+const channelName = "default"
 
 type Handler struct {
 	workdirPath string
@@ -60,13 +60,13 @@ func (h *Handler) Priority() int {
 }
 
 func (h *Handler) Source() string {
-	return source
+	return sourceName
 }
 
 func (h *Handler) Channels() []lib_models.RepositoryChannel {
 	return []lib_models.RepositoryChannel{
 		{
-			Name:     channel,
+			Name:     channelName,
 			Priority: 0,
 		},
 	}
@@ -95,11 +95,11 @@ func (h *Handler) Refresh(_ context.Context) error {
 	return nil
 }
 
-func (h *Handler) GetFileSystemsMap(ctx context.Context, c string) (map[string]fs.FS, error) {
+func (h *Handler) GetFileSystemsMap(ctx context.Context, channel string) (map[string]fs.FS, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	if c != channel {
-		return nil, errors.New(fmt.Sprintf("channel '%s' not defined", c))
+	if channel != channelName {
+		return nil, errors.New(fmt.Sprintf("channel '%s' not defined", channel))
 	}
 	dirEntries, err := os.ReadDir(h.workdirPath)
 	if err != nil {
@@ -121,11 +121,11 @@ func (h *Handler) GetFileSystemsMap(ctx context.Context, c string) (map[string]f
 	return fsMap, nil
 }
 
-func (h *Handler) GetFileSystem(_ context.Context, c, fsRef string) (fs.FS, error) {
+func (h *Handler) GetFileSystem(_ context.Context, channel, fsRef string) (fs.FS, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	if c != channel {
-		return nil, errors.New(fmt.Sprintf("channel '%s' not defined", c))
+	if channel != channelName {
+		return nil, errors.New(fmt.Sprintf("channel '%s' not defined", channel))
 	}
 	dirEntries, err := os.ReadDir(h.workdirPath)
 	if err != nil {
@@ -153,12 +153,12 @@ func (h *Handler) RepositoryType() string {
 }
 
 func (h *Handler) GetRepositories(_ context.Context) (map[string]handler_repositories.Repository, error) {
-	return map[string]handler_repositories.Repository{source: h}, nil
+	return map[string]handler_repositories.Repository{sourceName: h}, nil
 }
 
-func (h *Handler) GetRepository(_ context.Context, s string) (handler_repositories.Repository, error) {
-	if s != source {
-		return nil, errors.New(fmt.Sprintf("source '%s' not defined", s))
+func (h *Handler) GetRepository(_ context.Context, source string) (handler_repositories.Repository, error) {
+	if source != sourceName {
+		return nil, errors.New(fmt.Sprintf("source '%s' not defined", source))
 	}
 	return h, nil
 }
