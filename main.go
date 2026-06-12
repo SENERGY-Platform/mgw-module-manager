@@ -248,7 +248,7 @@ func main() {
 	}
 
 	// init host directory repository handler
-	err = hostDirRepositoryHandler.Init(ctx)
+	err = hostDirRepositoryHandler.Init()
 	if err != nil {
 		logger.ErrorContext(ctx, "initialize host directory repository handler", slog_keys.Error, err)
 	}

@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"maps"
 	"os"
 	"path"
 	"sync"
@@ -29,6 +28,7 @@ import (
 	module_lib_validation "github.com/SENERGY-Platform/mgw-module-lib/validation"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	handler_repositories "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/repositories"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_modfile "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/modfile"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
@@ -72,16 +72,38 @@ func (h *Handler) Channels() []lib_models.RepositoryChannel {
 	}
 }
 
-func (h *Handler) Refresh(ctx context.Context) error {
+func (h *Handler) Refresh(_ context.Context) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	return h.refresh(ctx)
-}
-
-func (h *Handler) refresh(ctx context.Context) error {
 	dirEntries, err := os.ReadDir(h.workdirPath)
 	if err != nil {
 		return err
+	}
+	var errs []error
+	for _, dirEntry := range dirEntries {
+		if !dirEntry.IsDir() {
+			continue
+		}
+		err = validateModule(os.DirFS(path.Join(h.workdirPath, dirEntry.Name())))
+		if err != nil {
+			errs = append(errs, fmt.Errorf("validate module: '%s' %w", dirEntry.Name(), err))
+		}
+	}
+	if len(errs) > 0 {
+		return helper_errors.Join(errs...)
+	}
+	return nil
+}
+
+func (h *Handler) GetFileSystemsMap(ctx context.Context, c string) (map[string]fs.FS, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	if c != channel {
+		return nil, errors.New(fmt.Sprintf("channel '%s' not defined", c))
+	}
+	dirEntries, err := os.ReadDir(h.workdirPath)
+	if err != nil {
+		return nil, err
 	}
 	fsMap := make(map[string]fs.FS)
 	for _, dirEntry := range dirEntries {
@@ -89,29 +111,14 @@ func (h *Handler) refresh(ctx context.Context) error {
 			continue
 		}
 		dirFs := os.DirFS(path.Join(h.workdirPath, dirEntry.Name()))
-		mod, err := helper_modfile.GetModule(dirFs)
-		if err != nil {
-			logger.ErrorContext(ctx, "get module", slog_keys.DirName, dirEntry.Name(), slog_keys.Error, err)
-			continue
-		}
-		err = module_lib_validation.Validate(mod)
+		err = validateModule(dirFs)
 		if err != nil {
 			logger.ErrorContext(ctx, "validate module", slog_keys.DirName, dirEntry.Name(), slog_keys.Error, err)
 			continue
 		}
 		fsMap[dirEntry.Name()] = dirFs
 	}
-	h.fileSystems = fsMap
-	return nil
-}
-
-func (h *Handler) GetFileSystemsMap(_ context.Context, c string) (map[string]fs.FS, error) {
-	h.mu.RLock()
-	defer h.mu.RUnlock()
-	if c != channel {
-		return nil, errors.New(fmt.Sprintf("channel '%s' not defined", c))
-	}
-	return maps.Clone(h.fileSystems), nil
+	return fsMap, nil
 }
 
 func (h *Handler) GetFileSystem(_ context.Context, c, fsRef string) (fs.FS, error) {
@@ -120,15 +127,25 @@ func (h *Handler) GetFileSystem(_ context.Context, c, fsRef string) (fs.FS, erro
 	if c != channel {
 		return nil, errors.New(fmt.Sprintf("channel '%s' not defined", c))
 	}
-	dirFs, ok := h.fileSystems[fsRef]
-	if !ok {
-		return nil, errors.New("reference not found")
+	dirEntries, err := os.ReadDir(h.workdirPath)
+	if err != nil {
+		return nil, err
 	}
-	return dirFs, nil
+	for _, dirEntry := range dirEntries {
+		if dirEntry.IsDir() && dirEntry.Name() == fsRef {
+			dirFs := os.DirFS(path.Join(h.workdirPath, dirEntry.Name()))
+			err = validateModule(dirFs)
+			if err != nil {
+				return nil, fmt.Errorf("validate module: '%s' %w", dirEntry.Name(), err)
+			}
+			return dirFs, nil
+		}
+	}
+	return nil, errors.New("reference not found")
 }
 
-func (h *Handler) Init(ctx context.Context) error {
-	return h.refresh(ctx)
+func (h *Handler) Init() error {
+	return os.MkdirAll(h.workdirPath, 0775)
 }
 
 func (h *Handler) RepositoryType() string {
@@ -152,4 +169,16 @@ func (h *Handler) CreateRepository(_ context.Context, _ []byte) error {
 
 func (h *Handler) DeleteRepository(_ context.Context, _ string) error {
 	return errors.New("not supported")
+}
+
+func validateModule(dirFs fs.FS) error {
+	mod, err := helper_modfile.GetModule(dirFs)
+	if err != nil {
+		return err
+	}
+	err = module_lib_validation.Validate(mod)
+	if err != nil {
+		return err
+	}
+	return nil
 }
