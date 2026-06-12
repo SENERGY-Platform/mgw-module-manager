@@ -54,6 +54,11 @@ func (s *Service) RefreshRepositories(ctx context.Context, filter lib_models.Rep
 		if err != nil {
 			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
 		}
+		for _, res := range jobResult.Results {
+			if res.HasError {
+				jobResult.ResultsErrNum++
+			}
+		}
 		s.setRefreshRepositoriesJobResult(job.Id, jobResult)
 	}()
 	return lib_models.Job{
