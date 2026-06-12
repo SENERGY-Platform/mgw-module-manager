@@ -86,7 +86,7 @@ func (h *Handler) Refresh(_ context.Context) error {
 		}
 		err = validateModule(os.DirFS(path.Join(h.workdirPath, dirEntry.Name())))
 		if err != nil {
-			errs = append(errs, fmt.Errorf("validate module: '%s' %w", dirEntry.Name(), err))
+			errs = append(errs, fmt.Errorf("'%s' %w", dirEntry.Name(), err))
 		}
 	}
 	if len(errs) > 0 {
@@ -113,7 +113,7 @@ func (h *Handler) GetFileSystemsMap(ctx context.Context, channel string) (map[st
 		dirFs := os.DirFS(path.Join(h.workdirPath, dirEntry.Name()))
 		err = validateModule(dirFs)
 		if err != nil {
-			logger.ErrorContext(ctx, "validate module", slog_keys.DirName, dirEntry.Name(), slog_keys.Error, err)
+			logger.ErrorContext(ctx, "get file systems map", slog_keys.DirName, dirEntry.Name(), slog_keys.Error, err)
 			continue
 		}
 		fsMap[dirEntry.Name()] = dirFs
@@ -136,7 +136,7 @@ func (h *Handler) GetFileSystem(_ context.Context, channel, fsRef string) (fs.FS
 			dirFs := os.DirFS(path.Join(h.workdirPath, dirEntry.Name()))
 			err = validateModule(dirFs)
 			if err != nil {
-				return nil, fmt.Errorf("validate module: '%s' %w", dirEntry.Name(), err)
+				return nil, fmt.Errorf("'%s' %w", dirEntry.Name(), err)
 			}
 			return dirFs, nil
 		}
