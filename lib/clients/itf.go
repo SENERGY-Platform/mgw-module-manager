@@ -46,7 +46,7 @@ type ClientAuxiliaryDeploymentsItf interface {
 		deploymentId string,
 		filter models.AuxiliaryDeploymentsFilterWithState,
 		allowAll bool,
-	) ([]models.AuxiliaryDeploymentBatchResult, error)
+	) (models.Job, error)
 	EnableAuxiliaryDeployments(
 		ctx context.Context,
 		deploymentId string,

@@ -174,19 +174,19 @@ func (c *ClientAuxiliaryDeployments) DeleteAuxiliaryDeployments(
 	deploymentId string,
 	filter models.AuxiliaryDeploymentsFilterWithState,
 	allowAll bool,
-) ([]models.AuxiliaryDeploymentBatchResult, error) {
+) (models.Job, error) {
 	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentsCollection, deploymentId))
 	if err != nil {
-		return nil, err
+		return models.Job{}, err
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, appendAuxiliaryDeploymentsQuery(u, filter, allowAll), nil)
 	if err != nil {
-		return nil, err
+		return models.Job{}, err
 	}
-	var res []models.AuxiliaryDeploymentBatchResult
+	var res models.Job
 	err = doJson(c.client, req, &res)
 	if err != nil {
-		return nil, err
+		return models.Job{}, err
 	}
 	return res, nil
 }
