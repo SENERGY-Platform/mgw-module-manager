@@ -298,15 +298,15 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 	}, nil
 }
 
-func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string, allowAll bool) ([]lib_models.DeploymentDeleteResult, error) {
+func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string, allowAll bool) (lib_models.Job, error) {
 	if !allowAll && len(moduleIds) == 0 {
-		return nil, nil
+		return lib_models.Job{}, nil
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(deploymentJobSlotNum)
 	if ok {
-		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
 	if allowAll {
 		logger.WarnContext(ctx, "delete deployments", slog_keys.Filter, moduleIds, slog_keys.AllowAll, allowAll)
@@ -315,65 +315,101 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string, all
 		ModuleIds: moduleIds,
 	})
 	if err != nil {
-		return nil, err
+		return lib_models.Job{}, err
 	}
-	auxResults := make(map[string]lib_models.AuxiliaryDeploymentDeleteResult)
-	var toDelete []string
-	for id := range deploymentIds {
-		var auxResult lib_models.AuxiliaryDeploymentDeleteResult
-		auxResult.Results, auxResult.VolumeResults, err = s.deleteAuxDeployments(ctx, id)
-		if err != nil {
-			auxResult.ErrorResult = lib_models.NewErrorResult(err.Error())
-		}
-		for _, res := range auxResult.Results {
-			if res.HasError {
-				auxResult.ResultsErrNum++
-			}
-		}
-		for _, res := range auxResult.VolumeResults {
-			if res.HasError {
-				auxResult.VolumeResultsErrNum++
-			}
-		}
-		auxResults[id] = auxResult
-		if !auxResult.HasError && auxResult.ResultsErrNum+auxResult.VolumeResultsErrNum == 0 {
-			toDelete = append(toDelete, id)
-		}
-	}
-	deleteResults, err := s.deploymentsHandler.DeleteDeployments(
-		ctx,
-		pkg_models.DeploymentsFilterWithState{
-			DeploymentsFilter: pkg_models.DeploymentsFilter{
-				Ids: toDelete,
-			},
-		},
-		false,
-	)
-	deleteResultsMap := maps.Collect(helper_slices.AllFunc(deleteResults, func(item lib_models.DeploymentResult) string {
-		return item.Id
-	}))
-	var results []lib_models.DeploymentDeleteResult
-	for id, moduleId := range deploymentIds {
-		var errResult lib_models.ErrorResult
-		deleteResult, ok := deleteResultsMap[id]
-		if !ok {
-			errResult = lib_models.NewErrorResult("not deleted")
-		} else {
-			errResult = deleteResult.ErrorResult
-		}
-		results = append(results, lib_models.DeploymentDeleteResult{
-			DeploymentResult: lib_models.DeploymentResult{
-				ModuleId:    moduleId,
-				Id:          id,
-				ErrorResult: errResult,
-			},
-			AuxiliaryDeployments: auxResults[id],
-		})
-	}
+	job, err := s.jobsHandler.CreateSlotJob(deploymentJobSlotNum, "delete deployments")
 	if err != nil {
-		return results, err
+		return lib_models.Job{}, err
 	}
-	return results, nil
+	go func() {
+		defer func() {
+			job.Done()
+			logJobDone(ctx, job)
+		}()
+		logJobStart(ctx, job)
+		jobResult := lib_models.DeploymentDeleteJobResult{
+			JobResult: lib_models.JobResult{JobId: job.Id},
+		}
+		defer func() {
+			if st := recover(); st != nil {
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
+				s.setDeleteDeploymentsJobResult(job.Id, jobResult)
+				logger.ErrorContext(
+					ctx,
+					"delete deployments",
+					slog_keys.JobId, job.Id,
+					slog_keys.Error, "panic",
+					slog_keys.StackTrace, st,
+				)
+			}
+		}()
+		auxResults := make(map[string]lib_models.AuxiliaryDeploymentDeleteResult)
+		var toDelete []string
+		for id := range deploymentIds {
+			var auxResult lib_models.AuxiliaryDeploymentDeleteResult
+			auxResult.Results, auxResult.VolumeResults, err = s.deleteAuxDeployments(ctx, id)
+			if err != nil {
+				auxResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+			}
+			for _, res := range auxResult.Results {
+				if res.HasError {
+					auxResult.ResultsErrNum++
+				}
+			}
+			for _, res := range auxResult.VolumeResults {
+				if res.HasError {
+					auxResult.VolumeResultsErrNum++
+				}
+			}
+			auxResults[id] = auxResult
+			if !auxResult.HasError && auxResult.ResultsErrNum+auxResult.VolumeResultsErrNum == 0 {
+				toDelete = append(toDelete, id)
+			}
+		}
+		deleteResults, err := s.deploymentsHandler.DeleteDeployments(
+			ctx,
+			pkg_models.DeploymentsFilterWithState{
+				DeploymentsFilter: pkg_models.DeploymentsFilter{
+					Ids: toDelete,
+				},
+			},
+			false,
+		)
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+		}
+		deleteResultsMap := maps.Collect(helper_slices.AllFunc(deleteResults, func(item lib_models.DeploymentResult) string {
+			return item.Id
+		}))
+		for id, moduleId := range deploymentIds {
+			var errResult lib_models.ErrorResult
+			deleteResult, ok := deleteResultsMap[id]
+			if !ok {
+				errResult = lib_models.NewErrorResult("not deleted")
+			} else {
+				errResult = deleteResult.ErrorResult
+			}
+			jobResult.Results = append(jobResult.Results, lib_models.DeploymentDeleteResult{
+				DeploymentResult: lib_models.DeploymentResult{
+					ModuleId:    moduleId,
+					Id:          id,
+					ErrorResult: errResult,
+				},
+				AuxiliaryDeployments: auxResults[id],
+			})
+		}
+		for _, res := range jobResult.Results {
+			if res.HasError {
+				jobResult.ResultsErrNum++
+			}
+		}
+		s.setDeleteDeploymentsJobResult(job.Id, jobResult)
+	}()
+	return lib_models.Job{
+		Id:          job.Id,
+		Description: job.Description,
+		Start:       job.Start,
+	}, nil
 }
 
 func (s *Service) EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error) {

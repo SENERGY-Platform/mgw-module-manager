@@ -46,6 +46,17 @@ func GetUpdateDeploymentsJobResult(srv *service.Service) (string, string, gin.Ha
 	}
 }
 
+func GetDeleteDeploymentsJobResult(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodGet, lib_constants.HttpPathDeleteDeploymentResultResource, func(gc *gin.Context) {
+		res, err := srv.GetDeleteDeploymentsJobResult(gc, gc.Param("JOB_ID"))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, res)
+	}
+}
+
 func GetModuleChangeJobResult(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathChangeModulesResultResource, func(gc *gin.Context) {
 		res, err := srv.GetModuleChangeJobResult(gc, gc.Param("JOB_ID"))

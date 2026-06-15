@@ -57,6 +57,7 @@ const (
 
 	HttpPathDeploymentResultResource                = "results/deployments/:JOB_ID"
 	HttpPathUpdateDeploymentResultResource          = "results/deployments-update/:JOB_ID"
+	HttpPathDeleteDeploymentResultResource          = "results/deployments-delete/:JOB_ID"
 	HttpPathChangeModulesResultResource             = "results/modules-change/:JOB_ID"
 	HttpPathRefreshRepositoriesResultResource       = "results/repositories-refresh/:JOB_ID"
 	HttpPathAuxiliaryDeploymentsResultResource      = "results/auxiliary-deployments/:JOB_ID"

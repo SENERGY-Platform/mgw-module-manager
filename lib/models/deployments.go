@@ -103,6 +103,12 @@ type DeploymentUpdateResult struct {
 	AuxiliaryDeployments AuxiliaryDeploymentRecreateResult `json:"auxiliary_deployments"`
 }
 
+type DeploymentDeleteJobResult struct {
+	JobResult
+	Results       []DeploymentDeleteResult `json:"results"`
+	ResultsErrNum int                      `json:"results_err_num"`
+}
+
 type DeploymentDeleteResult struct {
 	DeploymentResult
 	AuxiliaryDeployments AuxiliaryDeploymentDeleteResult `json:"auxiliary_deployments"`

@@ -57,6 +57,7 @@ var standardApiHandlers = []handlerFunc[*service.Service]{
 	handlers.DisableDeployments,
 	handlers.GetDeploymentsJobResult,
 	handlers.GetUpdateDeploymentsJobResult,
+	handlers.GetDeleteDeploymentsJobResult,
 	handlers.GetModuleChangeJobResult,
 	handlers.GetRefreshRepositoriesJobResult,
 	handlers.ServiceHealth,

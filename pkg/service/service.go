@@ -46,6 +46,7 @@ func New(
 		jobResults: jobResults{
 			deployments:         make(map[string]lib_models.DeploymentJobResult),
 			deploymentsUpdate:   make(map[string]lib_models.DeploymentUpdateJobResult),
+			deploymentsDelete:   make(map[string]lib_models.DeploymentDeleteJobResult),
 			moduleChange:        make(map[string]lib_models.ModulesChangeJobResult),
 			refreshRepositories: make(map[string]lib_models.RepositoryJobResult),
 			auxDeploymentCreate: make(map[string]lib_models.AuxiliaryDeploymentCreateJobResult),

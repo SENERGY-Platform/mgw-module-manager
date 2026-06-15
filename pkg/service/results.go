@@ -27,6 +27,7 @@ import (
 type jobResults struct {
 	deployments         map[string]lib_models.DeploymentJobResult
 	deploymentsUpdate   map[string]lib_models.DeploymentUpdateJobResult
+	deploymentsDelete   map[string]lib_models.DeploymentDeleteJobResult
 	moduleChange        map[string]lib_models.ModulesChangeJobResult
 	refreshRepositories map[string]lib_models.RepositoryJobResult
 	auxDeploymentCreate map[string]lib_models.AuxiliaryDeploymentCreateJobResult
@@ -46,7 +47,7 @@ func (s *Service) GetDeploymentsJobResult(_ context.Context, jobId string) (lib_
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.deployments[jobId]
 	if !ok {
-		return lib_models.DeploymentJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
+		return lib_models.DeploymentJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("job not found")
 	}
 	return res, nil
 }
@@ -62,7 +63,23 @@ func (s *Service) GetUpdateDeploymentsJobResult(_ context.Context, jobId string)
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.deploymentsUpdate[jobId]
 	if !ok {
-		return lib_models.DeploymentUpdateJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
+		return lib_models.DeploymentUpdateJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("job not found")
+	}
+	return res, nil
+}
+
+func (s *Service) setDeleteDeploymentsJobResult(jobId string, res lib_models.DeploymentDeleteJobResult) {
+	s.jobResults.mu.Lock()
+	defer s.jobResults.mu.Unlock()
+	s.jobResults.deploymentsDelete[jobId] = res
+}
+
+func (s *Service) GetDeleteDeploymentsJobResult(_ context.Context, jobId string) (lib_models.DeploymentDeleteJobResult, error) {
+	s.jobResults.mu.RLock()
+	defer s.jobResults.mu.RUnlock()
+	res, ok := s.jobResults.deploymentsDelete[jobId]
+	if !ok {
+		return lib_models.DeploymentDeleteJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("job not found")
 	}
 	return res, nil
 }
@@ -78,7 +95,7 @@ func (s *Service) GetModuleChangeJobResult(_ context.Context, jobId string) (lib
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.moduleChange[jobId]
 	if !ok {
-		return lib_models.ModulesChangeJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
+		return lib_models.ModulesChangeJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("job not found")
 	}
 	return res, nil
 }
@@ -94,7 +111,7 @@ func (s *Service) GetRefreshRepositoriesJobResult(_ context.Context, jobId strin
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.refreshRepositories[jobId]
 	if !ok {
-		return lib_models.RepositoryJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
+		return lib_models.RepositoryJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("job not found")
 	}
 	return res, nil
 }
@@ -110,7 +127,7 @@ func (s *Service) GetCreateAuxiliaryDeploymentJobResult(_ context.Context, jobId
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.auxDeploymentCreate[jobId]
 	if !ok {
-		return lib_models.AuxiliaryDeploymentCreateJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
+		return lib_models.AuxiliaryDeploymentCreateJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("job not found")
 	}
 	return res, nil
 }
@@ -126,7 +143,7 @@ func (s *Service) GetUpdateAuxiliaryDeploymentJobResult(_ context.Context, jobId
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.auxDeploymentUpdate[jobId]
 	if !ok {
-		return lib_models.JobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
+		return lib_models.JobResult{}, lib_errors.New[lib_errors.ErrNotFound]("job not found")
 	}
 	return res, nil
 }
@@ -142,7 +159,7 @@ func (s *Service) GetAuxiliaryDeploymentsJobResult(_ context.Context, jobId stri
 	defer s.jobResults.mu.RUnlock()
 	res, ok := s.jobResults.auxDeployment[jobId]
 	if !ok {
-		return lib_models.AuxiliaryDeploymentJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("")
+		return lib_models.AuxiliaryDeploymentJobResult{}, lib_errors.New[lib_errors.ErrNotFound]("job not found")
 	}
 	return res, nil
 }
