@@ -50,7 +50,7 @@ func getDeploymentConfigs(
 			if moduleConfig.Default == nil {
 				continue
 			}
-			defaultValue, err := helper_configs.GetValueWithValidation(moduleConfig.Default, moduleConfig)
+			defaultValue, err := helper_configs.GetValueModule(moduleConfig.Default, moduleConfig, false)
 			if err != nil {
 				errs = append(errs, fmt.Errorf("'%s' %w", reference, err))
 				continue

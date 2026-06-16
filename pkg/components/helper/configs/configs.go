@@ -142,7 +142,7 @@ func GetValue(val any, dataType int, isSlice bool) (pkg_models.Value, error) {
 	return config, nil
 }
 
-func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfigValue) (pkg_models.Value, error) {
+func GetValueModule(val any, moduleConfig external_models.ModuleLibConfigValue, validate bool) (pkg_models.Value, error) {
 	config := pkg_models.Value{
 		IsSlice: moduleConfig.IsSlice,
 	}
@@ -159,9 +159,11 @@ func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfi
 				if err != nil {
 					return pkg_models.Value{}, err
 				}
-				err = validateValue(v, moduleConfig)
-				if err != nil {
-					return pkg_models.Value{}, err
+				if validate {
+					err = validateValue(v, moduleConfig)
+					if err != nil {
+						return pkg_models.Value{}, err
+					}
 				}
 				config.StringSlice = append(config.StringSlice, v)
 			}
@@ -172,9 +174,11 @@ func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfi
 				if err != nil {
 					return pkg_models.Value{}, err
 				}
-				err = validateValue(v, moduleConfig)
-				if err != nil {
-					return pkg_models.Value{}, err
+				if validate {
+					err = validateValue(v, moduleConfig)
+					if err != nil {
+						return pkg_models.Value{}, err
+					}
 				}
 				config.BoolSlice = append(config.BoolSlice, v)
 			}
@@ -185,9 +189,11 @@ func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfi
 				if err != nil {
 					return pkg_models.Value{}, err
 				}
-				err = validateValue(v, moduleConfig)
-				if err != nil {
-					return pkg_models.Value{}, err
+				if validate {
+					err = validateValue(v, moduleConfig)
+					if err != nil {
+						return pkg_models.Value{}, err
+					}
 				}
 				config.Int64Slice = append(config.Int64Slice, v)
 			}
@@ -198,9 +204,11 @@ func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfi
 				if err != nil {
 					return pkg_models.Value{}, err
 				}
-				err = validateValue(v, moduleConfig)
-				if err != nil {
-					return pkg_models.Value{}, err
+				if validate {
+					err = validateValue(v, moduleConfig)
+					if err != nil {
+						return pkg_models.Value{}, err
+					}
 				}
 				config.Float64Slice = append(config.Float64Slice, v)
 			}
@@ -215,44 +223,52 @@ func GetValueWithValidation(val any, moduleConfig external_models.ModuleLibConfi
 			if err != nil {
 				return pkg_models.Value{}, err
 			}
-			config.String = v
-			err = validateValue(v, moduleConfig)
-			if err != nil {
-				return pkg_models.Value{}, err
+			if validate {
+				err = validateValue(v, moduleConfig)
+				if err != nil {
+					return pkg_models.Value{}, err
+				}
 			}
+			config.String = v
 		case external_models.ModuleLibBoolType:
 			config.DataType = constants.ValueDataTypeBool
 			v, err := toBool(val)
 			if err != nil {
 				return pkg_models.Value{}, err
 			}
-			config.Bool = v
-			err = validateValue(v, moduleConfig)
-			if err != nil {
-				return pkg_models.Value{}, err
+			if validate {
+				err = validateValue(v, moduleConfig)
+				if err != nil {
+					return pkg_models.Value{}, err
+				}
 			}
+			config.Bool = v
 		case external_models.ModuleLibInt64Type:
 			config.DataType = constants.ValueDataTypeInt64
 			v, err := toInt64(val)
 			if err != nil {
 				return pkg_models.Value{}, err
 			}
-			config.Int64 = v
-			err = validateValue(v, moduleConfig)
-			if err != nil {
-				return pkg_models.Value{}, err
+			if validate {
+				err = validateValue(v, moduleConfig)
+				if err != nil {
+					return pkg_models.Value{}, err
+				}
 			}
+			config.Int64 = v
 		case external_models.ModuleLibFloat64Type:
 			config.DataType = constants.ValueDataTypeFloat64
 			v, err := toFloat64(val)
 			if err != nil {
 				return pkg_models.Value{}, err
 			}
-			config.Float64 = v
-			err = validateValue(v, moduleConfig)
-			if err != nil {
-				return pkg_models.Value{}, err
+			if validate {
+				err = validateValue(v, moduleConfig)
+				if err != nil {
+					return pkg_models.Value{}, err
+				}
 			}
+			config.Float64 = v
 		default:
 			return pkg_models.Value{}, fmt.Errorf("unknown data type '%s'", moduleConfig.DataType) // TODO
 		}
