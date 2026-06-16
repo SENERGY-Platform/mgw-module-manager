@@ -30,13 +30,14 @@ func (h *Handler) createHttpEndpoints(
 	ctx context.Context,
 	moduleServices map[string]external_models.ModuleLibService,
 	moduleId string,
+	deploymentId string,
 	deploymentContainers map[string]pkg_models.DeploymentContainerBase,
 ) error {
 	var endpoints []external_models.CmEndpointBase
 	for reference, service := range moduleServices {
 		container := deploymentContainers[reference]
 		for externalPath, endpoint := range service.HttpEndpoints {
-			endpoints = append(endpoints, newCmEndpointBase(container.Reference, container.Alias, endpoint, moduleId, externalPath))
+			endpoints = append(endpoints, newCmEndpointBase(container.Alias, endpoint, moduleId, deploymentId, externalPath))
 		}
 	}
 	if len(endpoints) == 0 {
@@ -57,14 +58,14 @@ func (h *Handler) createHttpEndpoints(
 }
 
 func newCmEndpointBase(
-	containerReference string,
 	containerAlias string,
 	serviceEndpoint external_models.ModuleLibHttpEndpoint,
 	moduleId,
+	deploymentId,
 	externalPath string,
 ) external_models.CmEndpointBase {
 	return external_models.CmEndpointBase{
-		Ref:     containerReference,
+		Ref:     deploymentId,
 		Host:    containerAlias,
 		Port:    &serviceEndpoint.Port, // TODO unnecessary pointer
 		IntPath: serviceEndpoint.Path,
@@ -81,7 +82,7 @@ func newCmEndpointBase(
 		},
 		Labels: map[string]string{
 			constants.LabelHttpEndpointModuleId:         moduleId,
-			constants.LabelHttpEndpointServiceReference: containerReference,
+			constants.LabelHttpEndpointServiceReference: deploymentId,
 		},
 	}
 }

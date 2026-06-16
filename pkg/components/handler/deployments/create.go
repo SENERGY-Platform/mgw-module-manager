@@ -202,7 +202,7 @@ func (h *Handler) createDeployment(
 		logger.ErrorContext(ctx, "create deployment, create containers", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
 		return err
 	}
-	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
+	err = h.createHttpEndpoints(ctx, module.Services, module.ID, deploymentId, newContainers)
 	if err != nil {
 		logger.ErrorContext(ctx, "create deployment, create http endpoints", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
 		return err

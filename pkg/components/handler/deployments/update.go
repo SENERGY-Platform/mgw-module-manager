@@ -308,7 +308,7 @@ func (h *Handler) updateDeployment(
 		)
 		return err
 	}
-	err = h.createHttpEndpoints(ctx, module.Services, module.ID, newContainers)
+	err = h.createHttpEndpoints(ctx, module.Services, module.ID, deploymentId, newContainers)
 	if err != nil {
 		logger.ErrorContext(
 			ctx,
