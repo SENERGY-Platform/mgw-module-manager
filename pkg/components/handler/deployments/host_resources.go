@@ -39,7 +39,7 @@ func (h *Handler) updateHostResourcesCache(
 	})
 	var idsNotInCache []string
 	for _, id := range selectedIds {
-		if _, ok := cacheHostResources[id]; ok {
+		if _, ok := cacheHostResources[id]; !ok {
 			idsNotInCache = append(idsNotInCache, id)
 		}
 	}

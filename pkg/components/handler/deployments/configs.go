@@ -40,7 +40,7 @@ func (h *Handler) updateGlobalConfigsCache(
 	})
 	var idsNotInCache []string
 	for _, id := range selectedIds {
-		if _, ok := cacheGlobalConfigs[id]; ok {
+		if _, ok := cacheGlobalConfigs[id]; !ok {
 			idsNotInCache = append(idsNotInCache, id)
 		}
 	}
