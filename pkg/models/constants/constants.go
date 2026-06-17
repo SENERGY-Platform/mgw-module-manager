@@ -42,7 +42,7 @@ const (
 )
 
 const (
-	ValueDataTypeString = iota
+	ValueDataTypeString = iota + 1
 	ValueDataTypeInt64
 	ValueDataTypeFloat64
 	ValueDataTypeBool

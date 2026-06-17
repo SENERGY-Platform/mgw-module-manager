@@ -19,6 +19,7 @@ package service
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -26,6 +27,7 @@ import (
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
@@ -469,17 +471,33 @@ func getUserInputs(
 	handlerModules map[string]pkg_models.Module,
 ) (map[string]pkg_models.DeploymentUserInput, error) {
 	userInputsMap := make(map[string]pkg_models.DeploymentUserInput)
+	var errs []error
 	for _, userInput := range userInputs {
 		_, ok := userInputsMap[userInput.ModuleId]
 		if ok {
-			return nil, lib_errors.New[lib_errors.ErrInvalidInput]("duplicate entry: " + userInput.ModuleId)
+			errs = append(errs, errors.New("duplicate entry: '"+userInput.ModuleId+"'"))
+			continue
 		}
 		handlerModule := handlerModules[userInput.ModuleId]
 		configs := make(map[string]pkg_models.Value)
 		for reference, itfValue := range userInput.Configs {
-			value, err := helper_configs.GetValueModule(itfValue, handlerModule.Configs[reference], true)
+			moduleConfig, ok := handlerModule.Configs[reference]
+			if !ok {
+				continue
+			}
+			value, err := helper_configs.GetValue(
+				itfValue,
+				helper_configs.GetDataType(moduleConfig.DataType),
+				moduleConfig.IsSlice,
+			)
 			if err != nil {
-				return nil, err
+				errs = append(errs, err)
+				continue
+			}
+			err = helper_configs.ValidateValue(value, moduleConfig)
+			if err != nil {
+				errs = append(errs, err)
+				continue
 			}
 			configs[reference] = value
 		}
@@ -487,7 +505,8 @@ func getUserInputs(
 		for reference, value := range userInput.Files {
 			data, err := base64.StdEncoding.DecodeString(value)
 			if err != nil {
-				return nil, err
+				errs = append(errs, err)
+				continue
 			}
 			files[reference] = data
 		}
@@ -497,7 +516,8 @@ func getUserInputs(
 			for path, item := range items {
 				data, err := base64.StdEncoding.DecodeString(item.Data)
 				if err != nil {
-					return nil, err
+					errs = append(errs, err)
+					continue
 				}
 				depItems[path] = pkg_models.DeploymentFileGroupUserInput{
 					Format: item.Format,
@@ -515,6 +535,9 @@ func getUserInputs(
 			Files:         files,
 			FileGroups:    fileGroups,
 		}
+	}
+	if len(errs) > 0 {
+		return nil, lib_errors.Wrap[lib_errors.ErrInvalidInput](helper_errors.Join(errs...))
 	}
 	return userInputsMap, nil
 }

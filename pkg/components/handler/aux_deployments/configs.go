@@ -50,7 +50,11 @@ func getDeploymentConfigs(
 			if moduleConfig.Default == nil {
 				continue
 			}
-			defaultValue, err := helper_configs.GetValueModule(moduleConfig.Default, moduleConfig, false)
+			defaultValue, err := helper_configs.GetValue(
+				moduleConfig.Default,
+				helper_configs.GetDataType(moduleConfig.DataType),
+				moduleConfig.IsSlice,
+			)
 			if err != nil {
 				errs = append(errs, fmt.Errorf("'%s' %w", reference, err))
 				continue
