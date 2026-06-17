@@ -430,8 +430,12 @@ func mergeDefaultAndUserData(
 	userDataFiles map[string]pkg_models.DeploymentFile,
 	cacheGlobalConfigs map[string]pkg_models.Config,
 ) (map[string]pkg_models.Value, map[string][]byte, error) {
-	mergedConfigs := mergeConfigs(defaultData.Configs, userDataConfigs, userDataGlobalConfigs, cacheGlobalConfigs)
-	err := checkConfigs(module.Configs, mergedConfigs)
+	globalConfigs, err := getGlobalConfigs(module.Configs, userDataGlobalConfigs, cacheGlobalConfigs)
+	if err != nil {
+		return nil, nil, err
+	}
+	mergedConfigs := mergeConfigs(defaultData.Configs, userDataConfigs, globalConfigs)
+	err = checkConfigs(module.Configs, mergedConfigs)
 	if err != nil {
 		return nil, nil, err
 	}

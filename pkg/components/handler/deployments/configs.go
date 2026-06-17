@@ -86,21 +86,43 @@ func checkConfigs(
 func mergeConfigs(
 	defaultConfigs map[string]pkg_models.Value,
 	userDataConfigs map[string]pkg_models.DeploymentUserConfig,
-	userDataGlobalConfigs map[string]pkg_models.DeploymentGlobalConfig,
-	cacheGlobalConfigs map[string]pkg_models.Config,
+	globalConfigs map[string]pkg_models.Config,
 ) map[string]pkg_models.Value {
 	configs := make(map[string]pkg_models.Value)
 	maps.Copy(configs, defaultConfigs)
 	for reference, providedConfig := range userDataConfigs {
 		configs[reference] = providedConfig.Value
 	}
-	for reference, selectedGlobalConfig := range userDataGlobalConfigs {
-		globalConfig, ok := cacheGlobalConfigs[selectedGlobalConfig.Id]
-		if ok {
-			configs[reference] = globalConfig.Value
-		}
+	for reference, globalConfig := range globalConfigs {
+		configs[reference] = globalConfig.Value
 	}
 	return configs
+}
+
+func getGlobalConfigs(
+	moduleConfigs external_models.ModuleLibConfigs,
+	userDataGlobalConfigs map[string]pkg_models.DeploymentGlobalConfig,
+	cacheGlobalConfigs map[string]pkg_models.Config,
+) (map[string]pkg_models.Config, error) {
+	configs := make(map[string]pkg_models.Config)
+	var errs []error
+	for reference, selectedGlobalConfig := range userDataGlobalConfigs {
+		globalConfig, ok := cacheGlobalConfigs[selectedGlobalConfig.Id]
+		if !ok {
+			continue
+		}
+		moduleConfig, ok := moduleConfigs[reference]
+		if !ok {
+			continue
+		}
+		err := helper_configs.ValidateValue(globalConfig.Value, moduleConfig)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("'%s' %w", reference, err))
+			continue
+		}
+		configs[reference] = globalConfig
+	}
+	return configs, nil
 }
 
 func getDefaultConfigs(moduleConfigs external_models.ModuleLibConfigs) (map[string]pkg_models.Value, error) {
