@@ -44,7 +44,7 @@ const (
 	ContainerName      = "container_name"
 	Secrets            = "secrets"
 	Containers         = "containers"
-	Name               = "Name"
+	Name               = "name"
 	GlobalConfigId     = "global_config_id"
 	Incremental        = "incremental"
 	AllowAll           = "allow_all"
