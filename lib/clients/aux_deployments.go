@@ -24,6 +24,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	"github.com/SENERGY-Platform/mgw-module-manager/lib/models"
@@ -559,4 +560,28 @@ func (c *ClientAuxiliaryDeployments) CancelJob(ctx context.Context, id string) e
 		return err
 	}
 	return doErr(c.client, req)
+}
+
+func (c *ClientAuxiliaryDeployments) AwaitJob(ctx context.Context, id string, interval time.Duration) (models.Job, error) {
+	timer := time.NewTimer(interval)
+	defer timer.Stop()
+	for {
+		select {
+		case <-timer.C:
+			j, err := c.GetJob(ctx, id)
+			if err != nil {
+				return models.Job{}, err
+			}
+			if !j.End.IsZero() {
+				return j, nil
+			}
+			timer.Reset(interval)
+		case <-ctx.Done():
+			err := c.CancelJob(context.Background(), id)
+			if err != nil {
+				return models.Job{}, err
+			}
+			return models.Job{}, ctx.Err()
+		}
+	}
 }
