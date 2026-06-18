@@ -488,12 +488,12 @@ func getUserInputs(
 				moduleConfig.IsSlice,
 			)
 			if err != nil {
-				errs = append(errs, fmt.Errorf("config '%s' %w", reference, err))
+				errs = append(errs, fmt.Errorf("'%s' config '%s' %w", userInput.ModuleId, reference, err))
 				continue
 			}
 			err = helper_configs.ValidateValue(value, moduleConfig)
 			if err != nil {
-				errs = append(errs, fmt.Errorf("config '%s' %w", reference, err))
+				errs = append(errs, fmt.Errorf("'%s' config '%s' %w", userInput.ModuleId, reference, err))
 				continue
 			}
 			configs[reference] = value
@@ -502,7 +502,7 @@ func getUserInputs(
 		for reference, value := range userInput.Files {
 			data, err := base64.StdEncoding.DecodeString(value)
 			if err != nil {
-				errs = append(errs, fmt.Errorf("file '%s' %w", reference, err))
+				errs = append(errs, fmt.Errorf("'%s' file '%s' %w", userInput.ModuleId, reference, err))
 				continue
 			}
 			files[reference] = data
@@ -513,7 +513,7 @@ func getUserInputs(
 			for path, item := range items {
 				data, err := base64.StdEncoding.DecodeString(item.Data)
 				if err != nil {
-					errs = append(errs, fmt.Errorf("file group '%s' '%s' %w", reference, path, err))
+					errs = append(errs, fmt.Errorf("'%s' file group '%s' '%s' %w", userInput.ModuleId, reference, path, err))
 					continue
 				}
 				depItems[path] = pkg_models.DeploymentFileGroupUserInput{
