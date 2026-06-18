@@ -19,15 +19,19 @@ package deployments
 import (
 	"context"
 	"fmt"
+	"maps"
 	"path"
+	"slices"
 
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	helper_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/configs"
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
+	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -129,9 +133,23 @@ func (h *Handler) stopContainers(
 	ctx context.Context,
 	deploymentContainers map[string]pkg_models.DeploymentContainerBase,
 ) error {
+	containers, err := h.containerEngineWrapperClient.GetContainers(ctx, external_models.CewContainersFilter{
+		Names: helper_slices.CollectFunc(maps.Values(deploymentContainers), func(item pkg_models.DeploymentContainerBase) string {
+			return item.Name
+		}),
+	})
+	if err != nil {
+		return err
+	}
 	var errs []error
 	for _, container := range deploymentContainers {
-		err := helper_containers.Stop(ctx, h.containerEngineWrapperClient, container.Name, h.config.JobPollInterval)
+		if !slices.ContainsFunc(containers, func(item external_models.CewContainer) bool {
+			return item.Name == container.Name
+		}) {
+			logger.ErrorContext(ctx, "stop container", slog_keys.Name, container.Name, slog_keys.Error, "not found")
+			continue
+		}
+		err = helper_containers.Stop(ctx, h.containerEngineWrapperClient, container.Name, h.config.JobPollInterval)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("'%s' %w", container.Reference, err))
 		}
