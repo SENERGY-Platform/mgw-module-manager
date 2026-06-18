@@ -201,7 +201,7 @@ func (h *Handler) stopDeployment(
 	err := h.stopContainers(ctx, deploymentContainers)
 	if err != nil {
 		rmLogger.ErrorContext(ctx,
-			"stop deployment, start containers",
+			"stop deployment, stop containers",
 			slog_keys.DeploymentId, deploymentId,
 			slog_keys.Containers, deploymentContainers,
 			slog_keys.Error, err,
