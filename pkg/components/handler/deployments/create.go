@@ -121,13 +121,17 @@ func (h *Handler) createDeployment(
 		logger.ErrorContext(ctx, "create deployment, get dependencies and external resources", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
 		return err
 	}
+	globalConfigs, err := getGlobalConfigs(module.Configs, userData.GlobalConfigs, cache.GlobalConfigs)
+	if err != nil {
+		logger.ErrorContext(ctx, "create deployment, get global configs", slog_keys.ModuleId, module.ID, slog_keys.Error, err)
+		return err
+	}
 	mergedConfigs, mergedFiles, err := mergeDefaultAndUserData(
 		module,
 		defaultData,
 		userData.Configs,
-		userData.GlobalConfigs,
 		userData.Files,
-		cache.GlobalConfigs,
+		globalConfigs,
 	)
 	if err != nil {
 		logger.ErrorContext(ctx, "create deployment, merge default and user data", slog_keys.ModuleId, module.ID, slog_keys.Error, err)

@@ -163,13 +163,23 @@ func (h *Handler) updateDeployment(
 		)
 		return err
 	}
+	globalConfigs, err := getGlobalConfigs(module.Configs, userData.GlobalConfigs, cache.GlobalConfigs)
+	if err != nil {
+		logger.ErrorContext(
+			ctx,
+			"update deployment, get global configs",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
+		return err
+	}
 	mergedConfigs, mergedFiles, err := mergeDefaultAndUserData(
 		module,
 		defaultData,
 		userData.Configs,
-		userData.GlobalConfigs,
 		userData.Files,
-		cache.GlobalConfigs,
+		globalConfigs,
 	)
 	if err != nil {
 		logger.ErrorContext(

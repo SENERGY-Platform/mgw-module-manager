@@ -149,13 +149,23 @@ func (h *Handler) recreateDeployment(
 		)
 		return err
 	}
+	globalConfigs, err := getGlobalConfigs(module.Configs, userData.GlobalConfigs, cache.GlobalConfigs)
+	if err != nil {
+		logger.ErrorContext(
+			ctx,
+			"recreate deployment, get global configs",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Error, err,
+		)
+		return err
+	}
 	mergedConfigs, mergedFiles, err := mergeDefaultAndUserData(
 		module,
 		defaultData,
 		userData.Configs,
-		userData.GlobalConfigs,
 		userData.Files,
-		cache.GlobalConfigs,
+		globalConfigs,
 	)
 	if err != nil {
 		logger.ErrorContext(
@@ -426,16 +436,11 @@ func mergeDefaultAndUserData(
 	module pkg_models.Module,
 	defaultData defaultDataCollection,
 	userDataConfigs map[string]pkg_models.DeploymentUserConfig,
-	userDataGlobalConfigs map[string]pkg_models.DeploymentGlobalConfig,
 	userDataFiles map[string]pkg_models.DeploymentFile,
-	cacheGlobalConfigs map[string]pkg_models.Config,
+	globalConfigs map[string]pkg_models.Config,
 ) (map[string]pkg_models.Value, map[string][]byte, error) {
-	globalConfigs, err := getGlobalConfigs(module.Configs, userDataGlobalConfigs, cacheGlobalConfigs)
-	if err != nil {
-		return nil, nil, err
-	}
 	mergedConfigs := mergeConfigs(defaultData.Configs, userDataConfigs, globalConfigs)
-	err = checkConfigs(module.Configs, mergedConfigs)
+	err := checkConfigs(module.Configs, mergedConfigs)
 	if err != nil {
 		return nil, nil, err
 	}

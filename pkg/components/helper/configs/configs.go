@@ -212,10 +212,10 @@ func ValidateValue(value pkg_models.Value, moduleConfig external_models.ModuleLi
 		return errors.New(fmt.Sprintf("unsuported data type: '%d'", value.DataType))
 	}
 	if modCfgType != moduleConfig.DataType {
-		return errors.New(fmt.Sprintf("invalid data type: '%s' required but '%s' provided", moduleConfig.DataType, modCfgType))
+		return errors.New(fmt.Sprintf("invalid data type: '%s' required", moduleConfig.DataType))
 	}
 	if value.IsSlice != moduleConfig.IsSlice {
-		return errors.New(fmt.Sprintf("invalid slice declaration: '%v' required but '%v' provided", moduleConfig.IsSlice, value.IsSlice))
+		return errors.New("invalid slice declaration")
 	}
 	switch value.DataType {
 	case pkg_constants.ValueDataTypeString:
@@ -280,7 +280,7 @@ func validateAndCheckValueSlice[T comparable](valSl []T, moduleConfig external_m
 func toString(val any) (string, error) {
 	v, ok := val.(string)
 	if !ok {
-		return "", errors.New(fmt.Sprintf("invalid data type: '%T' required but '%T' provided", v, val))
+		return "", errors.New("invalid data type: 'string' required")
 	}
 	return v, nil
 }
@@ -288,7 +288,7 @@ func toString(val any) (string, error) {
 func toBool(val any) (bool, error) {
 	v, ok := val.(bool)
 	if !ok {
-		return false, errors.New(fmt.Sprintf("invalid data type: '%T' required but '%T' provided", v, val))
+		return false, errors.New("invalid data type: 'boolean' required")
 	}
 	return v, nil
 }
@@ -318,16 +318,16 @@ func toInt64(val any) (int64, error) {
 		var ok bool
 		i, ok = float64ToInt64(float64(v))
 		if !ok {
-			return 0, errors.New(fmt.Sprintf("invalid data type: '%T' required but '%T' provided", v, val))
+			return 0, errors.New("invalid data type: 'integer' required")
 		}
 	case float64:
 		var ok bool
 		i, ok = float64ToInt64(v)
 		if !ok {
-			return 0, errors.New(fmt.Sprintf("invalid data type: '%T' required but '%T' provided", v, val))
+			return 0, errors.New("invalid data type: 'integer' required")
 		}
 	default:
-		return 0, errors.New(fmt.Sprintf("invalid data type: '%T' required but '%T' provided", v, val))
+		return 0, errors.New("invalid data type: 'integer' required")
 	}
 	return i, nil
 }
@@ -340,7 +340,7 @@ func toFloat64(val any) (float64, error) {
 	case float64:
 		f = v
 	default:
-		return 0, errors.New(fmt.Sprintf("invalid data type: '%T' required but '%T' provided", v, val))
+		return 0, errors.New("invalid data type: 'float' required")
 	}
 	return f, nil
 }
