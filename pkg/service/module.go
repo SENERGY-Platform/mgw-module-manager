@@ -147,18 +147,12 @@ func (s *Service) ExecModulesChangeRequest(ctx context.Context) (lib_models.Job,
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer func() {
-			job.Done()
-			logJobDone(ctx, job)
-		}()
-		logJobStart(ctx, job)
 		jobResult := lib_models.ModulesChangeJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
 			if st := recover(); st != nil {
 				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
-				s.setModuleChangeJobResult(job.Id, jobResult)
 				logger.ErrorContext(
 					ctx,
 					"execute modules change request",
@@ -167,9 +161,12 @@ func (s *Service) ExecModulesChangeRequest(ctx context.Context) (lib_models.Job,
 					slog_keys.StackTrace, st,
 				)
 			}
+			s.setModuleChangeJobResult(job.Id, jobResult)
+			job.Done()
+			logJobDone(ctx, job)
 		}()
+		logJobStart(ctx, job)
 		jobResult.ModulesChangeReport = s.execModulesChangeRequest(job.Context())
-		s.setModuleChangeJobResult(job.Id, jobResult)
 	}()
 	return lib_models.Job{
 		Id:          job.Id,

@@ -85,47 +85,46 @@ func (s *Service) CreateAuxiliaryDeployment(
 	if err != nil {
 		return lib_models.Job{}, err
 	}
-	module, err := s.modulesHandler.GetModule(ctx, activeDeployment.ModuleId)
-	if err != nil {
-		return lib_models.Job{}, err
-	}
-	dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, pkg_models.DeploymentsFilterWithState{
-		DeploymentsFilter: pkg_models.DeploymentsFilter{
-			ModuleIds: slices.Collect(maps.Keys(module.Dependencies)),
-		},
-	})
-	if err != nil {
-		return lib_models.Job{}, err
-	}
 	job, err := s.jobsHandler.CreateJob("create auxiliary deployment")
 	if err != nil {
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer func() {
-			job.Done()
-			logJobDone(ctx, job)
-		}()
-		logJobStart(ctx, job)
 		jobResult := lib_models.AuxiliaryDeploymentCreateJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
 			if st := recover(); st != nil {
 				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
-				s.setCreateAuxiliaryDeploymentJobResult(job.Id, jobResult)
 				logger.ErrorContext(
 					ctx,
 					"create auxiliary deployment",
 					slog_keys.JobId, job.Id,
-					slog_keys.ModuleId, module.ID,
 					slog_keys.DeploymentId, deploymentId,
 					slog_keys.Reference, serviceInput.Reference,
 					slog_keys.Error, "panic",
 					slog_keys.StackTrace, st,
 				)
 			}
+			s.setCreateAuxiliaryDeploymentJobResult(job.Id, jobResult)
+			job.Done()
+			logJobDone(ctx, job)
 		}()
+		logJobStart(ctx, job)
+		module, err := s.modulesHandler.GetModule(ctx, activeDeployment.ModuleId)
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+			return
+		}
+		dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, pkg_models.DeploymentsFilterWithState{
+			DeploymentsFilter: pkg_models.DeploymentsFilter{
+				ModuleIds: slices.Collect(maps.Keys(module.Dependencies)),
+			},
+		})
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+			return
+		}
 		jobResult.AuxiliaryDeploymentResult, err = s.auxDeploymentsHandler.CreateDeployment(
 			job.Context(),
 			module,
@@ -136,7 +135,6 @@ func (s *Service) CreateAuxiliaryDeployment(
 		if err != nil {
 			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
 		}
-		s.setCreateAuxiliaryDeploymentJobResult(job.Id, jobResult)
 	}()
 	return lib_models.Job{
 		Id:          job.Id,
@@ -162,45 +160,44 @@ func (s *Service) UpdateAuxiliaryDeployment(
 	if err != nil {
 		return lib_models.Job{}, err
 	}
-	module, err := s.modulesHandler.GetModule(ctx, activeDeployment.ModuleId)
-	if err != nil {
-		return lib_models.Job{}, err
-	}
-	dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, pkg_models.DeploymentsFilterWithState{
-		DeploymentsFilter: pkg_models.DeploymentsFilter{
-			ModuleIds: slices.Collect(maps.Keys(module.Dependencies)),
-		},
-	})
-	if err != nil {
-		return lib_models.Job{}, err
-	}
 	job, err := s.jobsHandler.CreateJob("update auxiliary deployment")
 	if err != nil {
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer func() {
-			job.Done()
-			logJobDone(ctx, job)
-		}()
-		logJobStart(ctx, job)
 		jobResult := lib_models.JobResult{JobId: job.Id}
 		defer func() {
 			if st := recover(); st != nil {
 				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
-				s.setUpdateAuxiliaryDeploymentJobResult(job.Id, jobResult)
 				logger.ErrorContext(
 					ctx,
 					"update auxiliary deployment",
 					slog_keys.JobId, job.Id,
-					slog_keys.ModuleId, module.ID,
 					slog_keys.DeploymentId, deploymentId,
 					slog_keys.Reference, serviceInput.Reference,
 					slog_keys.Error, "panic",
 					slog_keys.StackTrace, st,
 				)
 			}
+			s.setUpdateAuxiliaryDeploymentJobResult(job.Id, jobResult)
+			job.Done()
+			logJobDone(ctx, job)
 		}()
+		logJobStart(ctx, job)
+		module, err := s.modulesHandler.GetModule(ctx, activeDeployment.ModuleId)
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+			return
+		}
+		dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, pkg_models.DeploymentsFilterWithState{
+			DeploymentsFilter: pkg_models.DeploymentsFilter{
+				ModuleIds: slices.Collect(maps.Keys(module.Dependencies)),
+			},
+		})
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+			return
+		}
 		err = s.auxDeploymentsHandler.UpdateDeployment(
 			job.Context(),
 			module,
@@ -213,7 +210,6 @@ func (s *Service) UpdateAuxiliaryDeployment(
 		if err != nil {
 			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
 		}
-		s.setUpdateAuxiliaryDeploymentJobResult(job.Id, jobResult)
 	}()
 	return lib_models.Job{
 		Id:          job.Id,
@@ -237,46 +233,45 @@ func (s *Service) RecreateAuxiliaryDeployments(
 	if err != nil {
 		return lib_models.Job{}, err
 	}
-	module, err := s.modulesHandler.GetModule(ctx, activeDeployment.ModuleId)
-	if err != nil {
-		return lib_models.Job{}, err
-	}
-	dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, pkg_models.DeploymentsFilterWithState{
-		DeploymentsFilter: pkg_models.DeploymentsFilter{
-			ModuleIds: slices.Collect(maps.Keys(module.Dependencies)),
-		},
-	})
-	if err != nil {
-		return lib_models.Job{}, err
-	}
 	job, err := s.jobsHandler.CreateJob("recreate auxiliary deployments")
 	if err != nil {
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer func() {
-			job.Done()
-			logJobDone(ctx, job)
-		}()
-		logJobStart(ctx, job)
 		jobResult := lib_models.AuxiliaryDeploymentJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
 			if st := recover(); st != nil {
 				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
-				s.setAuxiliaryDeploymentsJobResult(job.Id, jobResult)
 				logger.ErrorContext(
 					ctx,
 					"recreate auxiliary deployments",
 					slog_keys.JobId, job.Id,
-					slog_keys.ModuleId, module.ID,
 					slog_keys.DeploymentId, deploymentId,
 					slog_keys.Error, "panic",
 					slog_keys.StackTrace, st,
 				)
 			}
+			s.setAuxiliaryDeploymentsJobResult(job.Id, jobResult)
+			job.Done()
+			logJobDone(ctx, job)
 		}()
+		logJobStart(ctx, job)
+		module, err := s.modulesHandler.GetModule(ctx, activeDeployment.ModuleId)
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+			return
+		}
+		dependencyDeployments, err := s.deploymentsHandler.GetReducedDeploymentsByModuleIds(ctx, pkg_models.DeploymentsFilterWithState{
+			DeploymentsFilter: pkg_models.DeploymentsFilter{
+				ModuleIds: slices.Collect(maps.Keys(module.Dependencies)),
+			},
+		})
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+			return
+		}
 		jobResult.Results, err = s.auxDeploymentsHandler.RecreateDeployments(
 			job.Context(),
 			module,
@@ -292,7 +287,6 @@ func (s *Service) RecreateAuxiliaryDeployments(
 				jobResult.ResultsErrNum++
 			}
 		}
-		s.setAuxiliaryDeploymentsJobResult(job.Id, jobResult)
 	}()
 	return lib_models.Job{
 		Id:          job.Id,
@@ -339,18 +333,12 @@ func (s *Service) DeleteAuxiliaryDeployments(
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer func() {
-			job.Done()
-			logJobDone(ctx, job)
-		}()
-		logJobStart(ctx, job)
 		jobResult := lib_models.AuxiliaryDeploymentJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
 			if st := recover(); st != nil {
 				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
-				s.setAuxiliaryDeploymentsJobResult(job.Id, jobResult)
 				logger.ErrorContext(
 					ctx,
 					"delete auxiliary deployments",
@@ -360,7 +348,11 @@ func (s *Service) DeleteAuxiliaryDeployments(
 					slog_keys.StackTrace, st,
 				)
 			}
+			s.setAuxiliaryDeploymentsJobResult(job.Id, jobResult)
+			job.Done()
+			logJobDone(ctx, job)
 		}()
+		logJobStart(ctx, job)
 		jobResult.Results, err = s.auxDeploymentsHandler.DeleteDeployments(
 			ctx,
 			deploymentId,
@@ -375,7 +367,6 @@ func (s *Service) DeleteAuxiliaryDeployments(
 				jobResult.ResultsErrNum++
 			}
 		}
-		s.setAuxiliaryDeploymentsJobResult(job.Id, jobResult)
 	}()
 	return lib_models.Job{
 		Id:          job.Id,

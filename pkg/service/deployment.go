@@ -77,44 +77,17 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []lib_models
 	if len(currentJobs) > 0 {
 		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
-	if len(userInputs) == 0 {
-		return lib_models.Job{}, lib_errors.New[lib_errors.ErrInvalidInput]("no input provided")
-	}
-	handlerModules, err := s.modulesHandler.GetModules(
-		ctx,
-		pkg_models.ModulesFilterWithName{
-			ModulesFilter: pkg_models.ModulesFilter{
-				Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models.DeploymentUserInput) string {
-					return item.ModuleId
-				}),
-			},
-		},
-		true,
-	)
-	if err != nil {
-		return lib_models.Job{}, err
-	}
-	userInputMap, err := getUserInputs(userInputs, handlerModules)
-	if err != nil {
-		return lib_models.Job{}, err
-	}
 	job, err := s.jobsHandler.CreateSlotJob(deploymentJobSlotNum, "create deployments")
 	if err != nil {
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer func() {
-			job.Done()
-			logJobDone(ctx, job)
-		}()
-		logJobStart(ctx, job)
 		jobResult := lib_models.DeploymentJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
 			if st := recover(); st != nil {
 				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
-				s.setDeploymentsJobResult(job.Id, jobResult)
 				logger.ErrorContext(
 					ctx,
 					"create deployments",
@@ -123,7 +96,34 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []lib_models
 					slog_keys.StackTrace, st,
 				)
 			}
+			s.setDeploymentsJobResult(job.Id, jobResult)
+			job.Done()
+			logJobDone(ctx, job)
 		}()
+		logJobStart(ctx, job)
+		if len(userInputs) == 0 {
+			return
+		}
+		handlerModules, err := s.modulesHandler.GetModules(
+			ctx,
+			pkg_models.ModulesFilterWithName{
+				ModulesFilter: pkg_models.ModulesFilter{
+					Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models.DeploymentUserInput) string {
+						return item.ModuleId
+					}),
+				},
+			},
+			true,
+		)
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+			return
+		}
+		userInputMap, err := getUserInputs(userInputs, handlerModules)
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+			return
+		}
 		jobResult.Results, err = s.deploymentsHandler.CreateDeployments(job.Context(), handlerModules, userInputMap)
 		if err != nil {
 			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
@@ -133,7 +133,6 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []lib_models
 				jobResult.ResultsErrNum++
 			}
 		}
-		s.setDeploymentsJobResult(job.Id, jobResult)
 	}()
 	return lib_models.Job{
 		Id:          job.Id,
@@ -149,41 +148,17 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 	if len(currentJobs) > 0 {
 		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
-	handlerModules, err := s.modulesHandler.GetModules(
-		ctx,
-		pkg_models.ModulesFilterWithName{
-			ModulesFilter: pkg_models.ModulesFilter{
-				Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models.DeploymentUserInput) string {
-					return item.ModuleId
-				}),
-			},
-		},
-		false,
-	)
-	if err != nil {
-		return lib_models.Job{}, err
-	}
-	userInputMap, err := getUserInputs(userInputs, handlerModules)
-	if err != nil {
-		return lib_models.Job{}, err
-	}
 	job, err := s.jobsHandler.CreateSlotJob(deploymentJobSlotNum, "update deployments")
 	if err != nil {
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer func() {
-			job.Done()
-			logJobDone(ctx, job)
-		}()
-		logJobStart(ctx, job)
 		jobResult := lib_models.DeploymentUpdateJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
 			if st := recover(); st != nil {
 				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
-				s.setUpdateDeploymentsJobResult(job.Id, jobResult)
 				logger.ErrorContext(
 					ctx,
 					"update deployments",
@@ -192,7 +167,34 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 					slog_keys.StackTrace, st,
 				)
 			}
+			s.setUpdateDeploymentsJobResult(job.Id, jobResult)
+			job.Done()
+			logJobDone(ctx, job)
 		}()
+		logJobStart(ctx, job)
+		if len(userInputs) == 0 {
+			return
+		}
+		handlerModules, err := s.modulesHandler.GetModules(
+			ctx,
+			pkg_models.ModulesFilterWithName{
+				ModulesFilter: pkg_models.ModulesFilter{
+					Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models.DeploymentUserInput) string {
+						return item.ModuleId
+					}),
+				},
+			},
+			false,
+		)
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+			return
+		}
+		userInputMap, err := getUserInputs(userInputs, handlerModules)
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+			return
+		}
 		updateDepResults, err := s.deploymentsHandler.UpdateDeployments(job.Context(), handlerModules, userInputMap)
 		if err != nil {
 			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
@@ -228,7 +230,6 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 			}
 			jobResult.Results = append(jobResult.Results, result)
 		}
-		s.setUpdateDeploymentsJobResult(job.Id, jobResult)
 	}()
 	return lib_models.Job{
 		Id:          job.Id,
@@ -244,35 +245,17 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 	if len(currentJobs) > 0 {
 		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
-	handlerModules, err := s.modulesHandler.GetModules(
-		ctx,
-		pkg_models.ModulesFilterWithName{
-			ModulesFilter: pkg_models.ModulesFilter{
-				Ids: moduleIds,
-			},
-		},
-		false,
-	)
-	if err != nil {
-		return lib_models.Job{}, err
-	}
 	job, err := s.jobsHandler.CreateSlotJob(deploymentJobSlotNum, "recreate deployments")
 	if err != nil {
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer func() {
-			job.Done()
-			logJobDone(ctx, job)
-		}()
-		logJobStart(ctx, job)
 		jobResult := lib_models.DeploymentJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
 			if st := recover(); st != nil {
 				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
-				s.setDeploymentsJobResult(job.Id, jobResult)
 				logger.ErrorContext(
 					ctx,
 					"recreate deployments",
@@ -281,7 +264,24 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 					slog_keys.StackTrace, st,
 				)
 			}
+			s.setDeploymentsJobResult(job.Id, jobResult)
+			job.Done()
+			logJobDone(ctx, job)
 		}()
+		logJobStart(ctx, job)
+		handlerModules, err := s.modulesHandler.GetModules(
+			ctx,
+			pkg_models.ModulesFilterWithName{
+				ModulesFilter: pkg_models.ModulesFilter{
+					Ids: moduleIds,
+				},
+			},
+			false,
+		)
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+			return
+		}
 		jobResult.Results, err = s.deploymentsHandler.RecreateDeployments(job.Context(), handlerModules)
 		if err != nil {
 			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
@@ -291,7 +291,6 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 				jobResult.ResultsErrNum++
 			}
 		}
-		s.setDeploymentsJobResult(job.Id, jobResult)
 	}()
 	return lib_models.Job{
 		Id:          job.Id,
@@ -313,29 +312,17 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string, all
 	if allowAll {
 		logger.WarnContext(ctx, "delete deployments", slog_keys.Filter, moduleIds, slog_keys.AllowAll, allowAll)
 	}
-	deploymentIds, err := s.deploymentsHandler.GetDeploymentIds(ctx, pkg_models.DeploymentsFilter{
-		ModuleIds: moduleIds,
-	})
-	if err != nil {
-		return lib_models.Job{}, err
-	}
 	job, err := s.jobsHandler.CreateSlotJob(deploymentJobSlotNum, "delete deployments")
 	if err != nil {
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer func() {
-			job.Done()
-			logJobDone(ctx, job)
-		}()
-		logJobStart(ctx, job)
 		jobResult := lib_models.DeploymentDeleteJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
 		}
 		defer func() {
 			if st := recover(); st != nil {
 				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
-				s.setDeleteDeploymentsJobResult(job.Id, jobResult)
 				logger.ErrorContext(
 					ctx,
 					"delete deployments",
@@ -344,7 +331,18 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string, all
 					slog_keys.StackTrace, st,
 				)
 			}
+			s.setDeleteDeploymentsJobResult(job.Id, jobResult)
+			job.Done()
+			logJobDone(ctx, job)
 		}()
+		logJobStart(ctx, job)
+		deploymentIds, err := s.deploymentsHandler.GetDeploymentIds(ctx, pkg_models.DeploymentsFilter{
+			ModuleIds: moduleIds,
+		})
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+			return
+		}
 		auxResults := make(map[string]lib_models.AuxiliaryDeploymentDeleteResult)
 		var toDelete []string
 		for id := range deploymentIds {
@@ -405,7 +403,6 @@ func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string, all
 				jobResult.ResultsErrNum++
 			}
 		}
-		s.setDeleteDeploymentsJobResult(job.Id, jobResult)
 	}()
 	return lib_models.Job{
 		Id:          job.Id,

@@ -27,11 +27,6 @@ func (s *Service) RefreshRepositories(ctx context.Context, filter lib_models.Rep
 		return lib_models.Job{}, err
 	}
 	go func() {
-		defer func() {
-			job.Done()
-			logJobDone(ctx, job)
-		}()
-		logJobStart(ctx, job)
 		jobResult := lib_models.RepositoryJobResult{
 			JobResult: lib_models.JobResult{
 				JobId: job.Id,
@@ -40,7 +35,6 @@ func (s *Service) RefreshRepositories(ctx context.Context, filter lib_models.Rep
 		defer func() {
 			if st := recover(); st != nil {
 				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
-				s.setRefreshRepositoriesJobResult(job.Id, jobResult)
 				logger.ErrorContext(
 					ctx,
 					"refresh repositories",
@@ -49,7 +43,11 @@ func (s *Service) RefreshRepositories(ctx context.Context, filter lib_models.Rep
 					slog_keys.StackTrace, st,
 				)
 			}
+			s.setRefreshRepositoriesJobResult(job.Id, jobResult)
+			job.Done()
+			logJobDone(ctx, job)
 		}()
+		logJobStart(ctx, job)
 		jobResult.Results, err = s.repositoriesHandler.RefreshRepositories(job.Context(), filter)
 		if err != nil {
 			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
@@ -59,7 +57,6 @@ func (s *Service) RefreshRepositories(ctx context.Context, filter lib_models.Rep
 				jobResult.ResultsErrNum++
 			}
 		}
-		s.setRefreshRepositoriesJobResult(job.Id, jobResult)
 	}()
 	return lib_models.Job{
 		Id:          job.Id,
