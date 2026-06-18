@@ -122,6 +122,9 @@ func getGlobalConfigs(
 		}
 		configs[reference] = globalConfig
 	}
+	if len(errs) > 0 {
+		return nil, helper_errors.Join(errs...)
+	}
 	return configs, nil
 }
 
