@@ -78,11 +78,12 @@ func (h *Handler) UpdateDeployment(
 	defer tx.Rollback()
 	_, err = tx.ExecContext(
 		ctx,
-		"UPDATE deployments SET mod_source = ?, mod_channel = ?, mod_ver = ?, dir = ?, enabled = ?, updated = ? WHERE id = ?",
+		"UPDATE deployments SET mod_source = ?, mod_channel = ?, mod_ver = ?, dir = ?, files_dir = ?, enabled = ?, updated = ? WHERE id = ?",
 		deployment.ModuleSource,
 		deployment.ModuleChannel,
 		deployment.ModuleVersion,
 		deployment.DirName,
+		deployment.FilesDirName,
 		deployment.Enabled,
 		deployment.Updated,
 		deployment.Id,
