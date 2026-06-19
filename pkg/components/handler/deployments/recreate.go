@@ -116,7 +116,7 @@ func (h *Handler) recreateDeployment(
 	cache cacheCollection,
 ) error {
 	if currentDeployment.ModuleSource+currentDeployment.ModuleChannel+currentDeployment.ModuleVersion != module.Source+module.Channel+module.Version {
-		msg := fmt.Sprintf("module '%s' has changed and must be updated first", module.ID)
+		msg := fmt.Sprintf("module '%s' has changed, deployment must be updated first", module.ID)
 		logger.ErrorContext(ctx, "recreate deployment", slog_keys.ModuleId, module.ID, slog_keys.DeploymentId, deploymentId, slog_keys.Error, msg)
 		return errors.New(msg)
 	}
