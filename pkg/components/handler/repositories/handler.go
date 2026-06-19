@@ -117,8 +117,6 @@ func (h *Handler) RefreshRepositories(
 					slog_keys.Error, err.Error(),
 				)
 				result.ErrorResult = lib_models.NewErrorResult(err.Error())
-				results = append(results, result)
-				continue
 			}
 			repositories[source] = repo
 			priorities[repo.Priority()] = struct{}{}
