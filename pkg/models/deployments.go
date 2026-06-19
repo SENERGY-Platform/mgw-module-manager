@@ -121,7 +121,7 @@ type DeploymentFileGroup struct {
 
 type DeploymentFileGroupFile struct {
 	Path   string
-	Format int
+	Format string
 	Data   []byte
 }
 
@@ -159,6 +159,6 @@ type DeploymentUserInput struct {
 }
 
 type DeploymentFileGroupUserInput struct {
-	Format int
+	Format string
 	Data   []byte
 }

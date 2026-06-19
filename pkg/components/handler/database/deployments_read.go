@@ -438,7 +438,7 @@ func (h *Handler) ReadDeploymentsFileGroups(ctx context.Context, deploymentIds [
 		var depId string
 		var ref string
 		var path string
-		var format int
+		var format string
 		var data []byte
 		err = rows.Scan(&id, &depId, &ref, &path, &format, &data)
 		if err != nil {

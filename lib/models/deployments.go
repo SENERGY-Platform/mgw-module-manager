@@ -67,7 +67,7 @@ type DeploymentFileGroup struct {
 
 type DeploymentFileGroupFile struct {
 	Path   string `json:"path"`
-	Format int    `json:"format"`
+	Format string `json:"format"`
 	Data   string `json:"data"`
 }
 
@@ -82,7 +82,7 @@ type DeploymentUserInput struct {
 }
 
 type DeploymentFileGroupUserInput struct {
-	Format int    `json:"format"`
+	Format string `json:"format"`
 	Data   string `json:"data"`
 }
 
