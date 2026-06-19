@@ -22,12 +22,18 @@ import (
 
 type Module struct {
 	ModuleBase
-	Source     string     `json:"source"`
-	Channel    string     `json:"channel"`
-	Added      time.Time  `json:"added"`
-	Updated    time.Time  `json:"updated"`
-	IsDeployed bool       `json:"is_deployed"`
-	Deployment Deployment `json:"deployment"`
+	Source     string                `json:"source"`
+	Channel    string                `json:"channel"`
+	Added      time.Time             `json:"added"`
+	Updated    time.Time             `json:"updated"`
+	Files      map[string]ModuleFile `json:"files"`
+	IsDeployed bool                  `json:"is_deployed"`
+	Deployment Deployment            `json:"deployment"`
+}
+
+type ModuleFile struct {
+	ModuleFileBase
+	DefaultData string `json:"default_data"`
 }
 
 type ModuleReduced struct {

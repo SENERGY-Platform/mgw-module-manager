@@ -20,8 +20,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
-	"io/fs"
 	"maps"
 	"os"
 	"path"
@@ -30,39 +28,20 @@ import (
 	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
-	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
-func getDefaultFiles(moduleFiles map[string]external_models.ModuleLibFile, moduleFileSystem fs.FS) (map[string][]byte, error) {
+func getDefaultFiles(moduleFiles map[string]pkg_models.ModuleFile) map[string][]byte {
 	files := make(map[string][]byte)
-	var errs []error
 	for reference, file := range moduleFiles {
-		if file.Source != "" {
-			b, err := fileToBytes(moduleFileSystem, file.Source)
-			if err != nil {
-				errs = append(errs, fmt.Errorf("'%s' %w", reference, err))
-				continue
-			}
-			files[reference] = b
+		if len(file.DefaultData) > 0 {
+			files[reference] = file.DefaultData
 		}
 	}
-	if len(errs) > 0 {
-		return nil, helper_errors.Joinp("get default files:", errs...)
-	}
-	return files, nil
-}
-
-func fileToBytes(fSys fs.FS, path string) ([]byte, error) {
-	f, err := fSys.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	return io.ReadAll(f)
+	return files
 }
 
 func getProvidedFiles(
-	moduleFiles map[string]external_models.ModuleLibFile,
+	moduleFiles map[string]pkg_models.ModuleFile,
 	defaultDataFiles map[string][]byte,
 	userInputsFiles map[string][]byte,
 	deploymentId string,
@@ -99,7 +78,7 @@ func mergeFiles(
 }
 
 func checkFiles(
-	moduleFiles map[string]external_models.ModuleLibFile,
+	moduleFiles map[string]pkg_models.ModuleFile,
 	files map[string][]byte,
 ) error {
 	var required []string

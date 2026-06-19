@@ -29,7 +29,13 @@ type Module struct {
 	Channel    string
 	Added      time.Time
 	Updated    time.Time
+	Files      map[string]ModuleFile
 	FileSystem fs.FS
+}
+
+type ModuleFile struct {
+	external_models.ModuleLibFile
+	DefaultData []byte
 }
 
 type ModulesFilterWithName struct {

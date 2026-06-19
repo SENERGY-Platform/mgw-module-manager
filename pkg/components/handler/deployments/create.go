@@ -287,14 +287,11 @@ func createDeploymentDir(moduleFileSystem fs.FS, workDirPath, deploymentDirName 
 func getDefaultData(module pkg_models.Module) (defaultDataCollection, error) {
 	var data defaultDataCollection
 	var err error
-	data.Files, err = getDefaultFiles(module.Files, module.FileSystem)
-	if err != nil {
-		return defaultDataCollection{}, err
-	}
 	data.Configs, err = getDefaultConfigs(module.Configs)
 	if err != nil {
 		return defaultDataCollection{}, err
 	}
+	data.Files = getDefaultFiles(module.Files)
 	return data, nil
 }
 

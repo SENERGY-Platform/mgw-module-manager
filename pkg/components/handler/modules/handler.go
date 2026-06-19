@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"maps"
 	"os"
@@ -349,12 +350,19 @@ func (h *Handler) getModules(ctx context.Context, filter pkg_models.ModulesFilte
 		if !strings.Contains(strings.ToLower(mod.Name), filter.Name) { // empty string = true
 			continue
 		}
+		files, err := getModuleFiles(modFS, mod.Files)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("'%s' %w", stgMod.Id, err))
+			logger.ErrorContext(ctx, "get modules, read files", slog_keys.ModuleId, stgMod.Id, slog_keys.Error, err)
+			continue
+		}
 		modules[mod.ID] = pkg_models.Module{
 			ModuleLibModule: mod,
 			Source:          stgMod.Source,
 			Channel:         stgMod.Channel,
 			Added:           stgMod.Added,
 			Updated:         stgMod.Updated,
+			Files:           files,
 			FileSystem:      modFS,
 		}
 	}
@@ -479,4 +487,39 @@ func newStgMod(id, source, channel string) (pkg_models.DatabaseModule, error) {
 		Source:  source,
 		Channel: channel,
 	}, nil
+}
+
+func getModuleFiles(modFS fs.FS, modFiles map[string]external_models.ModuleLibFile) (map[string]pkg_models.ModuleFile, error) {
+	if len(modFiles) == 0 {
+		return nil, nil
+	}
+	files := make(map[string]pkg_models.ModuleFile)
+	var errs []error
+	for reference, modLibFile := range modFiles {
+		file := pkg_models.ModuleFile{
+			ModuleLibFile: modLibFile,
+		}
+		if modLibFile.Source != "" {
+			b, err := fileToBytes(modFS, modLibFile.Source)
+			if err != nil {
+				errs = append(errs, fmt.Errorf("'%s' %w", reference, err))
+				continue
+			}
+			file.DefaultData = b
+		}
+		files[reference] = file
+	}
+	if len(errs) > 0 {
+		return nil, helper_errors.Join(errs...)
+	}
+	return files, nil
+}
+
+func fileToBytes(fSys fs.FS, path string) ([]byte, error) {
+	f, err := fSys.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return io.ReadAll(f)
 }

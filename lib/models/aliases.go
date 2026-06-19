@@ -22,5 +22,6 @@ import (
 )
 
 type ModuleBase = module_lib.Module
+type ModuleFileBase = module_lib.File
 
 type ServiceInfo = srv_info_hdl.ServiceInfo

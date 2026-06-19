@@ -462,63 +462,7 @@ func getModulesReduced(
 }
 
 func getModule(module pkg_models.Module, deployment pkg_models.Deployment) lib_models.Module {
-	containers := make(map[string]lib_models.Container)
-	for reference, container := range deployment.Containers {
-		containers[reference] = lib_models.Container{
-			Name:    container.Name,
-			Alias:   container.Alias,
-			ImageId: container.ImageId,
-			State:   container.State,
-			Health:  container.Health,
-		}
-	}
-	volumes := make(map[string]string)
-	for reference, volume := range deployment.Volumes {
-		volumes[reference] = volume.Name
-	}
-	hostResources := make(map[string]string)
-	for reference, resource := range deployment.HostResources {
-		hostResources[reference] = resource.Id
-	}
-	secrets := make(map[string]lib_models.DeploymentSecret)
-	for reference, secret := range deployment.Secrets {
-		secrets[reference] = lib_models.DeploymentSecret{
-			Id:    secret.Id,
-			Items: secret.Items,
-		}
-	}
-	configs := make(map[string]lib_models.InterfaceValue)
-	for reference, config := range deployment.Configs {
-		configs[reference] = lib_models.InterfaceValue{
-			DataType: config.DataType,
-			IsSlice:  config.IsSlice,
-			Value:    helper_configs.ValueToInterface(config.Value),
-		}
-	}
-	globalConfigs := make(map[string]string)
-	for reference, globalConfig := range deployment.GlobalConfigs {
-		globalConfigs[reference] = globalConfig.Id
-	}
-	files := make(map[string]string)
-	for reference, file := range deployment.Files {
-		files[reference] = base64.StdEncoding.EncodeToString(file.Data)
-	}
-	fileGroups := make(map[string]lib_models.DeploymentFileGroup)
-	for reference, fileGroup := range deployment.FileGroups {
-		var fileGroupFiles []lib_models.DeploymentFileGroupFile
-		for _, file := range fileGroup.Files {
-			fileGroupFiles = append(fileGroupFiles, lib_models.DeploymentFileGroupFile{
-				Path:   file.Path,
-				Format: file.Format,
-				Data:   base64.StdEncoding.EncodeToString(file.Data),
-			})
-		}
-		fileGroups[reference] = lib_models.DeploymentFileGroup{
-			Id:    fileGroup.Id,
-			Files: fileGroupFiles,
-		}
-	}
-	return lib_models.Module{
+	mod := lib_models.Module{
 		ModuleBase: module.ModuleLibModule,
 		Source:     module.Source,
 		Channel:    module.Channel,
@@ -532,15 +476,93 @@ func getModule(module pkg_models.Module, deployment pkg_models.Deployment) lib_m
 			Enabled:       deployment.Enabled,
 			Created:       deployment.Created,
 			Updated:       deployment.Updated,
-			Containers:    containers,
-			Volumes:       volumes,
-			HostResources: hostResources,
-			Secrets:       secrets,
-			Configs:       configs,
-			GlobalConfigs: globalConfigs,
-			Files:         files,
-			FileGroups:    fileGroups,
 			State:         deployment.State,
 		},
 	}
+	if len(module.Files) > 0 {
+		mod.Files = make(map[string]lib_models.ModuleFile)
+		for reference, file := range module.Files {
+			mod.Files[reference] = lib_models.ModuleFile{
+				ModuleFileBase: lib_models.ModuleFileBase{
+					Source:   file.Source,
+					Type:     file.Type,
+					Required: file.Required,
+				},
+				DefaultData: base64.StdEncoding.EncodeToString(file.DefaultData),
+			}
+		}
+	}
+	if len(deployment.Containers) > 0 {
+		mod.Deployment.Containers = make(map[string]lib_models.Container)
+		for reference, container := range deployment.Containers {
+			mod.Deployment.Containers[reference] = lib_models.Container{
+				Name:    container.Name,
+				Alias:   container.Alias,
+				ImageId: container.ImageId,
+				State:   container.State,
+				Health:  container.Health,
+			}
+		}
+	}
+	if len(deployment.Volumes) > 0 {
+		mod.Deployment.Volumes = make(map[string]string)
+		for reference, volume := range deployment.Volumes {
+			mod.Deployment.Volumes[reference] = volume.Name
+		}
+	}
+	if len(deployment.HostResources) > 0 {
+		mod.Deployment.HostResources = make(map[string]string)
+		for reference, resource := range deployment.HostResources {
+			mod.Deployment.HostResources[reference] = resource.Id
+		}
+	}
+	if len(deployment.Secrets) > 0 {
+		mod.Deployment.Secrets = make(map[string]lib_models.DeploymentSecret)
+		for reference, secret := range deployment.Secrets {
+			mod.Deployment.Secrets[reference] = lib_models.DeploymentSecret{
+				Id:    secret.Id,
+				Items: secret.Items,
+			}
+		}
+	}
+	if len(deployment.Configs) > 0 {
+		mod.Deployment.Configs = make(map[string]lib_models.InterfaceValue)
+		for reference, config := range deployment.Configs {
+			mod.Deployment.Configs[reference] = lib_models.InterfaceValue{
+				DataType: config.DataType,
+				IsSlice:  config.IsSlice,
+				Value:    helper_configs.ValueToInterface(config.Value),
+			}
+		}
+	}
+	if len(deployment.GlobalConfigs) > 0 {
+		mod.Deployment.GlobalConfigs = make(map[string]string)
+		for reference, globalConfig := range deployment.GlobalConfigs {
+			mod.Deployment.GlobalConfigs[reference] = globalConfig.Id
+		}
+	}
+	if len(deployment.Files) > 0 {
+		mod.Deployment.Files = make(map[string]string)
+		for reference, file := range deployment.Files {
+			mod.Deployment.Files[reference] = base64.StdEncoding.EncodeToString(file.Data)
+		}
+	}
+	if len(deployment.FileGroups) > 0 {
+		mod.Deployment.FileGroups = make(map[string]lib_models.DeploymentFileGroup)
+		for reference, fileGroup := range deployment.FileGroups {
+			var fileGroupFiles []lib_models.DeploymentFileGroupFile
+			for _, file := range fileGroup.Files {
+				fileGroupFiles = append(fileGroupFiles, lib_models.DeploymentFileGroupFile{
+					Path:   file.Path,
+					Format: file.Format,
+					Data:   base64.StdEncoding.EncodeToString(file.Data),
+				})
+			}
+			mod.Deployment.FileGroups[reference] = lib_models.DeploymentFileGroup{
+				Id:    fileGroup.Id,
+				Files: fileGroupFiles,
+			}
+		}
+	}
+	return mod
 }
