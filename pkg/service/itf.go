@@ -60,6 +60,7 @@ type deploymentsHandler interface {
 	EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error)
 	DisableDeployments(ctx context.Context, moduleIds []string) ([]string, error)
 	CheckDeployment(ctx context.Context, id string) error
+	IsDeployed(ctx context.Context, moduleId string) (bool, error)
 }
 
 type auxiliaryDeploymentsHandler interface {

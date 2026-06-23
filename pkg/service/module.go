@@ -255,7 +255,22 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.Modul
 			Id:     id,
 			Action: lib_constants.ActionRemove,
 		}
-		err := s.modulesHandler.DeleteModule(ctx, id)
+		ok, err := s.deploymentsHandler.IsDeployed(ctx, id)
+		if err != nil {
+			failed = append(failed, lib_models.ChangeReportErrItem{
+				ChangeReportItem: cri,
+				Error:            err.Error(),
+			})
+			continue
+		}
+		if ok {
+			failed = append(failed, lib_models.ChangeReportErrItem{
+				ChangeReportItem: cri,
+				Error:            "deployment exists",
+			})
+			continue
+		}
+		err = s.modulesHandler.DeleteModule(ctx, id)
 		if err != nil {
 			failed = append(failed, lib_models.ChangeReportErrItem{
 				ChangeReportItem: cri,

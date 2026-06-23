@@ -41,6 +41,21 @@ func (h *Handler) CheckDeployment(ctx context.Context, id string) error {
 	return nil
 }
 
+func (h *Handler) IsDeployed(ctx context.Context, moduleId string) (bool, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	deployments, err := h.getDeployments(
+		ctx,
+		pkg_models.DeploymentsFilterWithState{
+			DeploymentsFilter: pkg_models.DeploymentsFilter{ModuleIds: []string{moduleId}},
+		},
+	)
+	if err != nil {
+		return false, err
+	}
+	return len(deployments) > 0, nil
+}
+
 func (h *Handler) GetReducedDeployments(
 	ctx context.Context,
 	filter pkg_models.DeploymentsFilterWithState,
