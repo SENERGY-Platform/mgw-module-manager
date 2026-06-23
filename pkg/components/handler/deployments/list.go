@@ -18,11 +18,14 @@ package deployments
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"maps"
 	"slices"
 
 	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
+	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
 	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
@@ -184,12 +187,20 @@ func (h *Handler) getDeploymentsReduced(
 	deployments := make(map[string]pkg_models.DeploymentReduced)
 	for id, stgDep := range stgDeps {
 		deploymentContainers := deploymentsContainers[id]
+		containers, notFound := getContainers(ctx, deploymentContainers, cewContainersMap)
 		deployment := pkg_models.DeploymentReduced{
 			DeploymentBase: stgDep,
-			Containers:     getContainers(ctx, deploymentContainers, cewContainersMap),
+			Containers:     containers,
 		}
-		if cewErr == nil && deployment.Enabled {
-			deployment.State = getDeploymentState(getContainersCombinedState(deploymentContainers, cewContainersMap))
+		if cewErr == nil {
+			if deployment.Enabled {
+				deployment.State = getDeploymentState(getContainersCombinedState(deploymentContainers, cewContainersMap))
+			}
+			if len(notFound) > 0 {
+				deployment.Err = helper_errors.Join(getContainerNotFoundErrs(notFound)...)
+			}
+		} else {
+			deployment.Err = cewErr
 		}
 		if filter.State > 0 && deployment.State != filter.State {
 			continue
@@ -226,9 +237,10 @@ func (h *Handler) getDeployments(
 	deployments := make(map[string]pkg_models.Deployment)
 	for id, stgDep := range stgDeps {
 		deploymentContainers := deploymentsContainers[id]
+		containers, notFound := getContainers(ctx, deploymentContainers, cewContainersMap)
 		deployment := pkg_models.Deployment{
 			DeploymentBase: stgDep,
-			Containers:     getContainers(ctx, deploymentContainers, cewContainersMap),
+			Containers:     containers,
 			Volumes:        deploymentsVolumes[id],
 			HostResources:  deploymentsUserData[id].HostResources,
 			Secrets:        deploymentsUserData[id].Secrets,
@@ -237,8 +249,15 @@ func (h *Handler) getDeployments(
 			Files:          deploymentsUserData[id].Files,
 			FileGroups:     deploymentsUserData[id].FileGroups,
 		}
-		if cewErr == nil && deployment.Enabled {
-			deployment.State = getDeploymentState(getContainersCombinedState(deploymentContainers, cewContainersMap))
+		if cewErr == nil {
+			if deployment.Enabled {
+				deployment.State = getDeploymentState(getContainersCombinedState(deploymentContainers, cewContainersMap))
+			}
+			if len(notFound) > 0 {
+				deployment.Err = helper_errors.Join(getContainerNotFoundErrs(notFound)...)
+			}
+		} else {
+			deployment.Err = cewErr
 		}
 		if filter.State > 0 && deployment.State != filter.State {
 			continue
@@ -272,8 +291,9 @@ func getContainers(
 	ctx context.Context,
 	stgDepContainers map[string]pkg_models.DeploymentContainerBase,
 	cewContainers map[string]external_models.CewContainer,
-) map[string]pkg_models.DeploymentContainer {
+) (map[string]pkg_models.DeploymentContainer, [][2]string) {
 	containers := make(map[string]pkg_models.DeploymentContainer)
+	var notFound [][2]string
 	for reference, stgDepContainer := range stgDepContainers {
 		container := pkg_models.DeploymentContainer{DeploymentContainerBase: stgDepContainer}
 		cewContainer, ok := cewContainers[stgDepContainer.Name]
@@ -291,10 +311,11 @@ func getContainers(
 				slog_keys.Reference, stgDepContainer.Reference,
 				slog_keys.ContainerName, stgDepContainer.Name,
 			)
+			notFound = append(notFound, [2]string{stgDepContainer.Reference, stgDepContainer.Name})
 		}
 		containers[reference] = container
 	}
-	return containers
+	return containers, notFound
 }
 
 func getDeploymentState(containersState int) int {
@@ -332,4 +353,12 @@ func getContainersCombinedState(
 		return containersStateRunning
 	}
 	return containersStatePartial
+}
+
+func getContainerNotFoundErrs(notFound [][2]string) []error {
+	var errs []error
+	for _, item := range notFound {
+		errs = append(errs, errors.New(fmt.Sprintf("'%s' container '%s' not found", item[0], item[1])))
+	}
+	return errs
 }

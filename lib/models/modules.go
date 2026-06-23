@@ -52,17 +52,6 @@ type ModuleReduced struct {
 	ErrorResult
 }
 
-type DeploymentReduced struct {
-	Id            string    `json:"id"`
-	ModuleSource  string    `json:"module_source"`
-	ModuleChannel string    `json:"module_channel"`
-	ModuleVersion string    `json:"module_version"`
-	Enabled       bool      `json:"enabled"`
-	Created       time.Time `json:"created"`
-	Updated       time.Time `json:"updated"`
-	State         int       `json:"state"`
-}
-
 type ModulesFilter struct {
 	Ids               []string
 	Name              string

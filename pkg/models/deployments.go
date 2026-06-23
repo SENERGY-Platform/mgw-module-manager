@@ -65,6 +65,7 @@ type DeploymentBase struct {
 	Enabled       bool
 	Created       time.Time
 	Updated       time.Time
+	Err           error
 }
 
 type DeploymentContainerBase struct {

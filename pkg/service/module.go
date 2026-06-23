@@ -474,6 +474,9 @@ func getModulesReduced(
 		if module.Err != nil {
 			mod.ErrorResult = lib_models.NewErrorResult(module.Err.Error())
 		}
+		if deployment.Err != nil {
+			mod.Deployment.ErrorResult = lib_models.NewErrorResult(deployment.Err.Error())
+		}
 		modules = append(modules, mod)
 	}
 	return modules
@@ -584,6 +587,9 @@ func getModule(module pkg_models.Module, deployment pkg_models.Deployment) lib_m
 	}
 	if module.Err != nil {
 		mod.ErrorResult = lib_models.NewErrorResult(module.Err.Error())
+	}
+	if deployment.Err != nil {
+		mod.Deployment.ErrorResult = lib_models.NewErrorResult(deployment.Err.Error())
 	}
 	return mod
 }
