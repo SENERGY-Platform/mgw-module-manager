@@ -20,9 +20,11 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"slices"
 
 	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_errors "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/errors"
+	helper_maps "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/maps"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
@@ -34,7 +36,10 @@ func (h *Handler) ensureContainerVolumes(ctx context.Context,
 	volumes map[string]pkg_models.DeploymentVolume,
 	deploymentId string,
 ) error {
-	existingVolumes, err := h.getContainerVolumes(ctx, deploymentId)
+	volumes = helper_maps.CollectFunc(maps.Values(volumes), func(value pkg_models.DeploymentVolume) string {
+		return value.Name
+	})
+	existingVolumes, err := h.getContainerVolumes(ctx, deploymentId, slices.Collect(maps.Keys(volumes)))
 	if err != nil {
 		return err
 	}
@@ -48,8 +53,8 @@ func (h *Handler) ensureContainerVolumes(ctx context.Context,
 			}
 		}
 	}
-	for _, volume := range volumes {
-		_, ok := existingVolumes[volume.Name]
+	for name, volume := range volumes {
+		_, ok := existingVolumes[name]
 		if !ok {
 			err = h.createContainerVolume(ctx, volume)
 			if err != nil {
@@ -97,8 +102,8 @@ func (h *Handler) removeContainerVolumes(
 	return nil
 }
 
-func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) (map[string]external_models.CewVolume, error) {
-	volumes, err := h.containerEngineWrapperClient.GetVolumes(ctx, external_models.CewVolumesFilter{
+func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string, names []string) (map[string]external_models.CewVolume, error) {
+	volumesByLabels, err := h.containerEngineWrapperClient.GetVolumes(ctx, external_models.CewVolumesFilter{
 		Labels: map[string]string{
 			constants.LabelCoreId:       helper_naming.CoreId,
 			constants.LabelManagerId:    helper_naming.ManagerId,
@@ -109,8 +114,26 @@ func (h *Handler) getContainerVolumes(ctx context.Context, deploymentId string) 
 	if err != nil {
 		return nil, err
 	}
-	volumesMap := maps.Collect(helper_slices.AllFunc(volumes, func(item external_models.CewVolume) string {
+	volumes := maps.Collect(helper_slices.AllFunc(volumesByLabels, func(item external_models.CewVolume) string {
 		return item.Name
 	}))
-	return volumesMap, nil
+	var missing []string
+	for _, name := range names {
+		_, ok := volumes[name]
+		if !ok {
+			missing = append(missing, name)
+		}
+	}
+	if len(missing) > 0 {
+		volumesByName, err := h.containerEngineWrapperClient.GetVolumes(ctx, external_models.CewVolumesFilter{
+			Names: missing,
+		})
+		if err != nil {
+			return nil, err
+		}
+		maps.Copy(volumes, maps.Collect(helper_slices.AllFunc(volumesByName, func(item external_models.CewVolume) string {
+			return item.Name
+		})))
+	}
+	return volumes, nil
 }
