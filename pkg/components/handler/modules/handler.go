@@ -267,7 +267,9 @@ func (h *Handler) DeleteModule(ctx context.Context, id string) error {
 		mod, err = helper_modfile.GetModule(modFS)
 		if err != nil {
 			logger.ErrorContext(ctx, "delete module, read modfile", slog_keys.ModuleId, id, slog_keys.Error, err)
-			return err
+			if !errors.Is(err, os.ErrNotExist) {
+				return err
+			}
 		}
 	}
 	err = os.RemoveAll(path.Join(h.config.WorkdirPath, stgMod.DirName))
