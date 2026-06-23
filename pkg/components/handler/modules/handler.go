@@ -272,13 +272,13 @@ func (h *Handler) DeleteModule(ctx context.Context, id string) error {
 			}
 		}
 	}
+	if err = h.removeImages(ctx, getModuleServiceImages(mod.Services)); err != nil {
+		logger.InfoContext(ctx, "delete module, remove images", slog_keys.ModuleId, id, slog_keys.Error, err)
+		return err
+	}
 	err = os.RemoveAll(path.Join(h.config.WorkdirPath, stgMod.DirName))
 	if err != nil && !os.IsNotExist(err) {
 		logger.ErrorContext(ctx, "delete module, remove file system", slog_keys.ModuleId, id, slog_keys.DirName, stgMod.DirName, slog_keys.Error, err)
-		return err
-	}
-	if err = h.removeImages(ctx, getModuleServiceImages(mod.Services)); err != nil {
-		logger.InfoContext(ctx, "delete module, remove images", slog_keys.ModuleId, id, slog_keys.Error, err)
 		return err
 	}
 	if err = h.databaseHandler.DeleteModule(ctx, id); err != nil {
