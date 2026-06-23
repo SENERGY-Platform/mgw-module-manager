@@ -29,6 +29,7 @@ type Module struct {
 	Files      map[string]ModuleFile `json:"files"`
 	IsDeployed bool                  `json:"is_deployed"`
 	Deployment Deployment            `json:"deployment"`
+	ErrorResult
 }
 
 type ModuleFile struct {
@@ -48,6 +49,7 @@ type ModuleReduced struct {
 	Author      string            `json:"author"`
 	IsDeployed  bool              `json:"is_deployed"`
 	Deployment  DeploymentReduced `json:"deployment"`
+	ErrorResult
 }
 
 type DeploymentReduced struct {

@@ -31,6 +31,7 @@ type Module struct {
 	Updated    time.Time
 	Files      map[string]ModuleFile
 	FileSystem fs.FS
+	Err        error
 }
 
 type ModuleFile struct {

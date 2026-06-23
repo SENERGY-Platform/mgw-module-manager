@@ -434,8 +434,7 @@ func getModulesReduced(
 		if filter.Author != "" && module.Author != filter.Author {
 			continue
 		}
-		// TODO implement tags filter
-		modules = append(modules, lib_models.ModuleReduced{
+		mod := lib_models.ModuleReduced{
 			Id:          moduleId,
 			Source:      module.Source,
 			Channel:     module.Channel,
@@ -456,7 +455,11 @@ func getModulesReduced(
 				Updated:       deployment.Updated,
 				State:         deployment.State,
 			},
-		})
+		}
+		if module.Err != nil {
+			mod.ErrorResult = lib_models.NewErrorResult(module.Err.Error())
+		}
+		modules = append(modules, mod)
 	}
 	return modules
 }
@@ -563,6 +566,9 @@ func getModule(module pkg_models.Module, deployment pkg_models.Deployment) lib_m
 				Files: fileGroupFiles,
 			}
 		}
+	}
+	if module.Err != nil {
+		mod.ErrorResult = lib_models.NewErrorResult(module.Err.Error())
 	}
 	return mod
 }

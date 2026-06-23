@@ -336,41 +336,35 @@ func (h *Handler) getModules(ctx context.Context, filter pkg_models.ModulesFilte
 	}
 	filter.Name = strings.ToLower(filter.Name)
 	modules := make(map[string]pkg_models.Module)
-	var errs []error
 	for _, stgMod := range stgMods {
-		modFS := os.DirFS(path.Join(h.config.WorkdirPath, stgMod.DirName))
-		mod, ok := h.cacheGet(stgMod.Id)
+		mod := pkg_models.Module{
+			Source:     stgMod.Source,
+			Channel:    stgMod.Channel,
+			Added:      stgMod.Added,
+			Updated:    stgMod.Updated,
+			FileSystem: os.DirFS(path.Join(h.config.WorkdirPath, stgMod.DirName)),
+		}
+		var ok bool
+		mod.ModuleLibModule, ok = h.cacheGet(stgMod.Id)
 		if !ok {
-			mod, err = helper_modfile.GetModule(modFS)
+			mod.ModuleLibModule, err = helper_modfile.GetModule(mod.FileSystem)
 			if err != nil {
-				errs = append(errs, fmt.Errorf("'%s' %w", stgMod.Id, err))
+				mod.ID = stgMod.Id
+				mod.Err = fmt.Errorf("read modfile: %w", err)
 				logger.ErrorContext(ctx, "get modules, read modfile", slog_keys.ModuleId, stgMod.Id, slog_keys.Error, err)
-				continue
+			} else {
+				h.cacheSet(stgMod.Id, mod.ModuleLibModule)
 			}
-			h.cacheSet(stgMod.Id, mod)
 		}
 		if !strings.Contains(strings.ToLower(mod.Name), filter.Name) { // empty string = true
 			continue
 		}
-		files, err := getModuleFiles(modFS, mod.Files)
+		mod.Files, err = getModuleFiles(mod.FileSystem, mod.ModuleLibModule.Files)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("'%s' %w", stgMod.Id, err))
+			mod.Err = fmt.Errorf("read files: %w", err)
 			logger.ErrorContext(ctx, "get modules, read files", slog_keys.ModuleId, stgMod.Id, slog_keys.Error, err)
-			continue
 		}
-		modules[mod.ID] = pkg_models.Module{
-			ModuleLibModule: mod,
-			Source:          stgMod.Source,
-			Channel:         stgMod.Channel,
-			Added:           stgMod.Added,
-			Updated:         stgMod.Updated,
-			Files:           files,
-			FileSystem:      modFS,
-		}
-	}
-	lenErrs := len(errs)
-	if lenErrs > 0 && lenErrs == len(stgMods) {
-		return nil, helper_errors.Join(errs...)
+		modules[stgMod.Id] = mod
 	}
 	return modules, nil
 }
