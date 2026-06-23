@@ -300,23 +300,23 @@ func (h *Handler) getModulesWithDependencies(ctx context.Context, filterIds []st
 	if err != nil {
 		return err
 	}
+	var dependencyIds []string
 	for id, module := range modules {
 		_, ok := modulesWithDependencies[id]
 		if !ok {
 			modulesWithDependencies[id] = module
 		}
-		if len(module.Dependencies) > 0 {
-			var dependencyIds []string
-			for dependencyId := range module.Dependencies {
-				_, ok := modulesWithDependencies[dependencyId]
-				if !ok {
-					dependencyIds = append(dependencyIds, dependencyId)
-				}
+		for dependencyId := range module.Dependencies {
+			_, ok = modulesWithDependencies[dependencyId]
+			if !ok && !slices.Contains(dependencyIds, dependencyId) {
+				dependencyIds = append(dependencyIds, dependencyId)
 			}
-			err = h.getModulesWithDependencies(ctx, dependencyIds, modulesWithDependencies)
-			if err != nil {
-				return err
-			}
+		}
+	}
+	if len(dependencyIds) > 0 {
+		err = h.getModulesWithDependencies(ctx, dependencyIds, modulesWithDependencies)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
