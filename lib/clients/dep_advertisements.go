@@ -218,9 +218,6 @@ func appendDeploymentAdvertisementsQuery(u string, filter models.DeploymentAdver
 	if len(filter.ModuleIds) > 0 {
 		items = append(items, "module_ids="+queryJoinStrings(filter.ModuleIds))
 	}
-	if len(filter.Origins) > 0 {
-		items = append(items, "origins="+queryJoinStrings(filter.Origins))
-	}
 	if len(filter.References) > 0 {
 		items = append(items, "references="+queryJoinStrings(filter.References))
 	}

@@ -18,8 +18,6 @@ package dep_advertisements
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"time"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
@@ -201,12 +199,9 @@ func newDatabaseAdvertisement(
 	if err != nil {
 		return lib_models.DeploymentAdvertisement{}, err
 	}
-	originHash := sha256.New()
-	originHash.Write([]byte(deploymentId))
 	return lib_models.DeploymentAdvertisement{
 		Id:        id,
 		ModuleId:  moduleId,
-		Origin:    hex.EncodeToString(originHash.Sum(nil)),
 		Reference: reference,
 		Timestamp: timestamp,
 		Items:     items,

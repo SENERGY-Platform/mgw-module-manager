@@ -42,6 +42,17 @@ func migrateDepAdvertisementsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
+	ok, err = columnExists(ctx, db, tableName, "origin")
+	if err != nil {
+		return err
+	}
+	if ok {
+		logger.InfoContext(ctx, "dropping column", attrColumn, "origin", attrTable, tableName)
+		err = dropColumn(ctx, db, tableName, "`origin`")
+		if err != nil {
+			return err
+		}
+	}
 	ok, err = indexExists(ctx, db, tableName, "PRIMARY")
 	if err != nil {
 		return err
@@ -86,17 +97,6 @@ func migrateDepAdvertisementsTab(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 	}
-	ok, err = indexExists(ctx, db, tableName, "i_origin")
-	if err != nil {
-		return err
-	}
-	if !ok {
-		logger.InfoContext(ctx, "adding index", attrIndex, "i_origin", attrTable, tableName)
-		err = addIndex(ctx, db, tableName, "i_origin", "origin")
-		if err != nil {
-			return err
-		}
-	}
 	ok, err = indexExists(ctx, db, tableName, "i_ref")
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func migrateDepAdvertisementsTab(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	newIndexKeys := []string{"uk_dep_id_ref", "i_dep_id", "i_mod_id", "i_origin", "i_ref"}
+	newIndexKeys := []string{"uk_dep_id_ref", "i_dep_id", "i_mod_id", "i_ref"}
 	for _, key := range currentIndexKeys {
 		if key == "PRIMARY" {
 			continue

@@ -35,7 +35,6 @@ func (s *Service) QueryDeploymentAdvertisements(
 		depAdvs = append(depAdvs, lib_models.DeploymentAdvertisementReduced{
 			Id:        depAdv.Id,
 			ModuleId:  depAdv.ModuleId,
-			Origin:    depAdv.Origin,
 			Reference: depAdv.Reference,
 			Timestamp: depAdv.Timestamp,
 			Items:     depAdv.Items,
@@ -52,7 +51,6 @@ func (s *Service) QueryDeploymentAdvertisement(ctx context.Context, id string) (
 	return lib_models.DeploymentAdvertisementReduced{
 		Id:        depAdv.Id,
 		ModuleId:  depAdv.ModuleId,
-		Origin:    depAdv.Origin,
 		Reference: depAdv.Reference,
 		Timestamp: depAdv.Timestamp,
 		Items:     depAdv.Items,

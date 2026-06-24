@@ -22,12 +22,13 @@ import (
 	"strings"
 	"time"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	helper_slices "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/slices"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
-const selectDeploymentAdvertisementsStmt = `SELECT dep_advertisements.id, dep_advertisements.dep_id, dep_advertisements.mod_id, dep_advertisements.origin, dep_advertisements.ref, dep_advertisements.timestamp, dep_adv_items.item_key, dep_adv_items.item_value
+const selectDeploymentAdvertisementsStmt = `SELECT dep_advertisements.id, dep_advertisements.dep_id, dep_advertisements.mod_id, dep_advertisements.ref, dep_advertisements.timestamp, dep_adv_items.item_key, dep_adv_items.item_value
 FROM dep_advertisements
 LEFT JOIN dep_adv_items
 ON dep_advertisements.id = dep_adv_items.dep_adv_id`
@@ -52,7 +53,7 @@ func (h *Handler) ReadDeploymentAdvertisement(
 		var ts []uint8
 		var itemKey string
 		var itemValue sql.NullString
-		err = rows.Scan(&depAdv.Id, &depAdv.DeploymentId, &depAdv.ModuleId, &depAdv.Origin, &depAdv.Reference, &ts, &itemKey, &itemValue)
+		err = rows.Scan(&depAdv.Id, &depAdv.DeploymentId, &depAdv.ModuleId, &depAdv.Reference, &ts, &itemKey, &itemValue)
 		if err != nil {
 			return lib_models.DeploymentAdvertisement{}, err
 		}
@@ -91,12 +92,11 @@ func (h *Handler) ReadDeploymentAdvertisements(
 		var id string
 		var depId string
 		var modId string
-		var origin string
 		var reference string
 		var ts []uint8
 		var itemKey string
 		var itemValue sql.NullString
-		err = rows.Scan(&id, &depId, &modId, &origin, &reference, &ts, &itemKey, &itemValue)
+		err = rows.Scan(&id, &depId, &modId, &reference, &ts, &itemKey, &itemValue)
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +108,6 @@ func (h *Handler) ReadDeploymentAdvertisements(
 			depAdv.Id = id
 			depAdv.DeploymentId = depId
 			depAdv.ModuleId = modId
-			depAdv.Origin = origin
 			depAdv.Reference = reference
 			depAdv.Items = make(map[string]string)
 			depAdvs[id] = depAdv
@@ -191,11 +190,10 @@ func (h *Handler) insertDeploymentAdvertisement(
 ) error {
 	_, err := tx.ExecContext(
 		ctx,
-		"INSERT INTO dep_advertisements (id, dep_id, mod_id, origin, ref, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
+		"INSERT INTO dep_advertisements (id, dep_id, mod_id, ref, timestamp) VALUES (?, ?, ?, ?, ?)",
 		advertisement.Id,
 		deploymentId,
 		advertisement.ModuleId,
-		advertisement.Origin,
 		advertisement.Reference,
 		advertisement.Timestamp,
 	)
@@ -234,13 +232,6 @@ func genDeploymentAdvertisementsFilter(filter lib_models.DeploymentAdvertisement
 		ids := helper_slices.RemoveDuplicates(filter.ModuleIds)
 		fc = append(fc, "mod_id IN ("+genQuestionMarks(len(ids))+")")
 		for _, ref := range ids {
-			val = append(val, ref)
-		}
-	}
-	if len(filter.Origins) > 0 {
-		origins := helper_slices.RemoveDuplicates(filter.Origins)
-		fc = append(fc, "origin IN ("+genQuestionMarks(len(origins))+")")
-		for _, ref := range origins {
 			val = append(val, ref)
 		}
 	}

@@ -21,7 +21,6 @@ import "time"
 type DeploymentAdvertisementReduced struct {
 	Id        string
 	ModuleId  string
-	Origin    string
 	Reference string
 	Timestamp time.Time
 	Items     map[string]string
@@ -31,7 +30,6 @@ type DeploymentAdvertisement struct {
 	Id           string
 	DeploymentId string
 	ModuleId     string
-	Origin       string
 	Reference    string
 	Timestamp    time.Time
 	Items        map[string]string
@@ -40,7 +38,6 @@ type DeploymentAdvertisementsFilter struct {
 	DeploymentId string
 	Ids          []string
 	ModuleIds    []string
-	Origins      []string
 	References   []string
 }
 

@@ -30,7 +30,6 @@ func getQueryDeploymentAdvertisementsFilter(gc *gin.Context) (lib_models.Deploym
 	var query struct {
 		Ids        []string `form:"ids" collection_format:"csv"`
 		ModuleIds  []string `form:"module_ids" collection_format:"csv"`
-		Origins    []string `form:"origins" collection_format:"csv"`
 		References []string `form:"references" collection_format:"csv"`
 	}
 	err := gc.MustBindWith(&query, binding.Query)
@@ -40,7 +39,6 @@ func getQueryDeploymentAdvertisementsFilter(gc *gin.Context) (lib_models.Deploym
 	return lib_models.DeploymentAdvertisementsFilter{
 		Ids:        query.Ids,
 		ModuleIds:  query.ModuleIds,
-		Origins:    query.Origins,
 		References: query.References,
 	}, nil
 }
