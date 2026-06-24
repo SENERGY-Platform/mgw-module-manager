@@ -204,6 +204,7 @@ func (h *Handler) insertDeploymentAdvertisement(
 		_, err = tx.ExecContext(
 			ctx,
 			"INSERT INTO dep_adv_items (dep_adv_id, item_key, item_value) VALUES (?, ?, ?)",
+			advertisement.Id,
 			key,
 			value,
 		)
