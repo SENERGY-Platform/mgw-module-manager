@@ -48,8 +48,10 @@ func (h *Handler) ReadDeploymentAdvertisement(
 		return lib_models.DeploymentAdvertisement{}, err
 	}
 	defer rows.Close()
+	var hasResult bool
 	var depAdv lib_models.DeploymentAdvertisement
 	for rows.Next() {
+		hasResult = true
 		var ts []uint8
 		var itemKey string
 		var itemValue sql.NullString
@@ -69,6 +71,9 @@ func (h *Handler) ReadDeploymentAdvertisement(
 	}
 	if err = rows.Err(); err != nil {
 		return lib_models.DeploymentAdvertisement{}, err
+	}
+	if !hasResult {
+		return lib_models.DeploymentAdvertisement{}, lib_errors.New[lib_errors.ErrNotFound]("deployment advertisement not found")
 	}
 	return depAdv, nil
 }
