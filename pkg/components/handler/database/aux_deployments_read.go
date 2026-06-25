@@ -286,6 +286,7 @@ func (h *Handler) ReadAuxiliaryDeploymentsVolumeMounts(
 		rows, err = h.sqlDB.QueryContext(
 			ctx,
 			selectAuxiliaryDeploymentsVolumeMountsStmt+" WHERE aux_dep_id IN ("+genQuestionMarks(len(auxiliaryDeploymentsIds))+") ORDER BY aux_dep_id, ref;",
+			helper_slices.ToAny(auxiliaryDeploymentsIds)...,
 		)
 	} else {
 		rows, err = h.sqlDB.QueryContext(ctx, selectAuxiliaryDeploymentsVolumeMountsStmt+" ORDER BY aux_dep_id, ref;")
