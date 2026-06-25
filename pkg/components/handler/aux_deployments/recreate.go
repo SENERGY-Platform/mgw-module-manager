@@ -175,7 +175,6 @@ func (h *Handler) recreateAuxiliaryDeployment(
 		)
 		return err
 	}
-	currentAuxDeployment.Container.Name = ctrName
 	err = helper_containers.Stop(
 		ctx,
 		h.containerEngineWrapperClient,
@@ -234,6 +233,7 @@ func (h *Handler) recreateAuxiliaryDeployment(
 		)
 		return err
 	}
+	currentAuxDeployment.Container.Name = ctrName
 	err = h.createContainer(
 		ctx,
 		auxService,
