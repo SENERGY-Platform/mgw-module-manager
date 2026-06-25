@@ -37,7 +37,7 @@ func (h *Handler) UpdateAuxiliaryDeployment(
 	defer tx.Rollback()
 	_, err = tx.ExecContext(
 		ctx,
-		"UPDATE aux_deployments SET image = ?, created = ?, updated = ?, ref = ?, name = ?, enabled = ?, ctr_name = ?, ctr_alias = ?, command = ?, pseudo_tty = ? WHERE dep_id = ? AND id = ?",
+		"UPDATE aux_deployments SET image = ?, created = ?, updated = ?, ref = ?, name = ?, enabled = ?, ctr_name = ?, ctr_alias = ?, recreate = ?, command = ?, pseudo_tty = ? WHERE dep_id = ? AND id = ?",
 		auxiliaryDeployment.Image,
 		auxiliaryDeployment.Created,
 		auxiliaryDeployment.Updated,
@@ -46,6 +46,7 @@ func (h *Handler) UpdateAuxiliaryDeployment(
 		auxiliaryDeployment.Enabled,
 		auxiliaryDeployment.Container.Name,
 		auxiliaryDeployment.Container.Alias,
+		auxiliaryDeployment.Recreate,
 		auxiliaryDeployment.RunConfig.Command,
 		auxiliaryDeployment.RunConfig.PseudoTTY,
 		auxiliaryDeployment.DeploymentId,

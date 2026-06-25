@@ -39,7 +39,7 @@ func (h *Handler) CreateAuxiliaryDeployment(
 	defer tx.Rollback()
 	_, err = tx.ExecContext(
 		ctx,
-		"INSERT INTO aux_deployments (id, dep_id, image, created, updated, ref, name, enabled, ctr_name, ctr_alias, command, pseudo_tty) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO aux_deployments (id, dep_id, image, created, updated, ref, name, enabled, ctr_name, ctr_alias, recreate, command, pseudo_tty) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		auxiliaryDeployment.Id,
 		auxiliaryDeployment.DeploymentId,
 		auxiliaryDeployment.Image,
@@ -50,6 +50,7 @@ func (h *Handler) CreateAuxiliaryDeployment(
 		auxiliaryDeployment.Enabled,
 		auxiliaryDeployment.Container.Name,
 		auxiliaryDeployment.Container.Alias,
+		auxiliaryDeployment.Recreate,
 		strings.Join(auxiliaryDeployment.RunConfig.Command, ","),
 		auxiliaryDeployment.RunConfig.PseudoTTY,
 	)
