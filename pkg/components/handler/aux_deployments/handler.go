@@ -46,5 +46,6 @@ func New(databaseHandler databaseHandler, containerEngineWrapperClient container
 		containerEngineWrapperClient: containerEngineWrapperClient,
 		config:                       config,
 		mutexes:                      mutex_map.New(),
+		runtimeMonitorJobs:           make(map[string]struct{}),
 	}
 }
