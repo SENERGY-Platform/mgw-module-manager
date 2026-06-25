@@ -74,7 +74,7 @@ func (h *Handler) UpdateDeployments(
 		result := lib_models.DeploymentResult{ModuleId: moduleId}
 		cacheItem, ok := cache.Deployments[moduleId]
 		if !ok {
-			result.ErrorResult = lib_models.NewErrorResult("not installed")
+			result.ErrorResult = lib_models.NewErrorResult("deployment not found")
 			results = append(results, result)
 			continue
 		}
