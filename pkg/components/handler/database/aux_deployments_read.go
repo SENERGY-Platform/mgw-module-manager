@@ -247,7 +247,7 @@ func (h *Handler) ReadAuxiliaryDeploymentVolumesWithMounts(
 		var depId string
 		var reference string
 		var volName string
-		var auxDepId string
+		var auxDepId sql.NullString
 		err = rows.Scan(&id, &depId, &reference, &volName, &auxDepId)
 		if err != nil {
 			return nil, err
@@ -259,7 +259,9 @@ func (h *Handler) ReadAuxiliaryDeploymentVolumesWithMounts(
 			volume.Reference = reference
 			volume.Name = volName
 		}
-		volume.MountedBy = append(volume.MountedBy, auxDepId)
+		if auxDepId.Valid {
+			volume.MountedBy = append(volume.MountedBy, auxDepId.String)
+		}
 		auxDepVolumes[reference] = volume
 	}
 	return auxDepVolumes, nil
