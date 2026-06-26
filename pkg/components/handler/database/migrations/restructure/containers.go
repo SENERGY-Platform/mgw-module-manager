@@ -1,0 +1,119 @@
+/*
+ * Copyright 2025 InfAI (CC SES)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package restructure
+
+import (
+	"context"
+	"database/sql"
+	"slices"
+)
+
+func migrateContainersTab(ctx context.Context, db *sql.DB) error {
+	tableName := "containers"
+	ok, err := tableExists(ctx, db, tableName)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	ok, err = columnExists(ctx, db, tableName, "index")
+	if err != nil {
+		return err
+	}
+	if ok {
+		logger.InfoContext(ctx, "dropping column", attrColumn, "index", attrTable, tableName)
+		err = dropColumn(ctx, db, tableName, "`index`")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = columnExists(ctx, db, tableName, "order")
+	if err != nil {
+		return err
+	}
+	if ok {
+		logger.InfoContext(ctx, "dropping column", attrColumn, "order", attrTable, tableName)
+		err = dropColumn(ctx, db, tableName, "`order`")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = columnExists(ctx, db, tableName, "ctr_id")
+	if err != nil {
+		return err
+	}
+	if ok {
+		logger.InfoContext(ctx, "renaming column", attrColumn, "ctr_id", attrNewName, "name", attrTable, tableName)
+		err = changeColumn(ctx, db, tableName, "ctr_id", "name", "VARCHAR(256)", "NOT NULL", "AFTER dep_id")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = indexExists(ctx, db, tableName, "uk_dep_id_name_srv_ref")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.InfoContext(ctx, "adding unique index", attrIndex, "uk_dep_id_name_srv_ref", attrTable, tableName)
+		err = addUniqueIndex(ctx, db, tableName, "uk_dep_id_name_srv_ref", "dep_id", "name", "srv_ref")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = indexExists(ctx, db, tableName, "i_dep_id")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.InfoContext(ctx, "adding index", attrIndex, "i_dep_id", attrTable, tableName)
+		err = addIndex(ctx, db, tableName, "i_dep_id", "dep_id")
+		if err != nil {
+			return err
+		}
+	}
+	ok, err = indexExists(ctx, db, tableName, "i_name")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		logger.InfoContext(ctx, "adding index", attrIndex, "i_name", attrTable, tableName)
+		err = addIndex(ctx, db, tableName, "i_name", "name")
+		if err != nil {
+			return err
+		}
+	}
+	currentIndexKeys, err := indexKeyNames(ctx, db, tableName)
+	if err != nil {
+		return err
+	}
+	newIndexKeys := []string{"uk_dep_id_name_srv_ref", "i_dep_id", "i_name"}
+	for _, key := range currentIndexKeys {
+		if key == "PRIMARY" {
+			continue
+		}
+		if !slices.Contains(newIndexKeys, key) {
+			logger.InfoContext(ctx, "dropping index", attrIndex, key, attrTable, tableName)
+			err = dropIndex(ctx, db, tableName, key)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	logger.InfoContext(ctx, "renaming table", attrTable, tableName, attrNewName, "dep_containers")
+	return renameTable(ctx, db, tableName, "dep_containers")
+}

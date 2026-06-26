@@ -1,0 +1,21 @@
+modfileVersion: "v1"
+id: github.com/org/repo
+name: Test Module
+description: Module for tests.
+license: Apache-2.0 license
+author: Tester
+version: v1.0.0
+type: add-on
+deploymentType: single
+services:
+  test-srv:
+    name: Test Service
+    image: ghcr.io/org/repo:test
+configs:
+  test-cfg:
+    dataType: int
+    value: 1
+    targets:
+      - refVar: TEST_VAR
+        services:
+          - test-srv

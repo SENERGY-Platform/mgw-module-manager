@@ -1,0 +1,122 @@
+/*
+ * Copyright 2026 InfAI (CC SES)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package handlers
+
+import (
+	"net/http"
+
+	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
+	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+)
+
+func GetGlobalConfigs(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodGet, lib_constants.HttpPathGlobalConfigsCollection, func(gc *gin.Context) {
+		var query struct {
+			Ids []string `form:"ids" collection_format:"csv"`
+		}
+		err := gc.MustBindWith(&query, binding.Query)
+		if err != nil {
+			return
+		}
+		res, err := srv.GetGlobalConfigs(gc, query.Ids)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, res)
+	}
+}
+
+func GetGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodGet, lib_constants.HttpPathGlobalConfigResource, func(gc *gin.Context) {
+		res, err := srv.GetGlobalConfig(gc, gc.Param("CFG_ID"))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, res)
+	}
+}
+
+func CreateGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodPost, lib_constants.HttpPathGlobalConfigsCollection, func(gc *gin.Context) {
+		var body lib_models.GlobalConfigInput
+		err := gc.MustBindWith(&body, binding.JSON)
+		if err != nil {
+			return
+		}
+		res, err := srv.CreateGlobalConfig(gc, body)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, res)
+	}
+}
+
+func UpdateGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodPut, lib_constants.HttpPathGlobalConfigResource, func(gc *gin.Context) {
+		var body lib_models.GlobalConfigInput
+		err := gc.MustBindWith(&body, binding.JSON)
+		if err != nil {
+			return
+		}
+		err = srv.UpdateGlobalConfig(gc, lib_models.GlobalConfig{
+			Id:             gc.Param("CFG_ID"),
+			Name:           body.Name,
+			InterfaceValue: body.InterfaceValue,
+		})
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
+func DeleteGlobalConfigs(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodDelete, lib_constants.HttpPathGlobalConfigsCollection, func(gc *gin.Context) {
+		var query struct {
+			Ids      []string `form:"ids" collection_format:"csv"`
+			AllowAll bool     `form:"allow_all"`
+		}
+		err := gc.MustBindWith(&query, binding.Query)
+		if err != nil {
+			return
+		}
+		err = srv.DeleteGlobalConfigs(gc, query.Ids, query.AllowAll)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}
+
+func DeleteGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodDelete, lib_constants.HttpPathGlobalConfigResource, func(gc *gin.Context) {
+		err := srv.DeleteGlobalConfig(gc, gc.Param("CFG_ID"))
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.Status(http.StatusOK)
+	}
+}

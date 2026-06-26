@@ -1,0 +1,235 @@
+/*
+ * Copyright 2026 InfAI (CC SES)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package deployments
+
+import (
+	"context"
+	"fmt"
+	"maps"
+	"slices"
+	"time"
+
+	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
+	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
+)
+
+func (h *Handler) RuntimeMonitor(ctx context.Context) {
+	timer := time.NewTimer(h.config.RuntimeMonitorStartupDelay)
+	defer timer.Stop()
+	for {
+		select {
+		case <-timer.C:
+			h.checkDeployments(ctx)
+			timer.Reset(h.config.RuntimeMonitorLoopDelay)
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func (h *Handler) checkDeployments(ctx context.Context) {
+	deployments, deploymentsContainers, deploymentsMountSecrets, cewContainersMap, err := h.getCurrentRuntimeData(ctx)
+	if err != nil {
+		rmLogger.ErrorContext(ctx, "get deployments", slog_keys.Error, err)
+		return
+	}
+	filteredDeployments := h.runtimeMonitorJobsFilter(deployments)
+	for id, deployment := range filteredDeployments {
+		deploymentContainers := deploymentsContainers[id]
+		state := getContainersCombinedState(deploymentContainers, cewContainersMap)
+		if state == containersStateBroken || state == containersStateUnhealthy {
+			continue
+		}
+		if deployment.Enabled {
+			if state == containersStateRunning {
+				continue
+			}
+			h.runtimeMonitorJobsAdd(id)
+			go h.startDeployment(ctx, id, deploymentContainers, deploymentsMountSecrets[id])
+		} else {
+			if state == containersStateStopped {
+				continue
+			}
+			h.runtimeMonitorJobsAdd(id)
+			go h.stopDeployment(ctx, id, deploymentContainers, len(deploymentsMountSecrets[id]) > 0)
+		}
+	}
+}
+
+func (h *Handler) getCurrentRuntimeData(ctx context.Context) (
+	map[string]pkg_models.DeploymentBase,
+	map[string]map[string]pkg_models.DeploymentContainerBase,
+	map[string]map[string]pkg_models.DeploymentSecret,
+	map[string]external_models.CewContainer,
+	error,
+) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	deployments, err := h.databaseHandler.ReadDeployments(ctx, pkg_models.DeploymentsFilter{})
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	deploymentsContainers, err := h.databaseHandler.ReadDeploymentsContainers(ctx, slices.Collect(maps.Keys(deployments)))
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	var enabledDeploymentIds []string
+	for id, deployment := range deployments {
+		if deployment.Enabled {
+			enabledDeploymentIds = append(enabledDeploymentIds, id)
+		}
+	}
+	deploymentsMountSecrets, err := h.databaseHandler.ReadDeploymentsSecrets(ctx, pkg_models.DeploymentsSecretsFilter{
+		DeploymentIds: enabledDeploymentIds,
+		AsMount:       1,
+	})
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	cewContainersMap, err := h.getCewContainers(ctx, deploymentsContainers)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	return deployments, deploymentsContainers, deploymentsMountSecrets, cewContainersMap, nil
+}
+
+func (h *Handler) startDeployment(
+	ctx context.Context,
+	deploymentId string,
+	deploymentContainers map[string]pkg_models.DeploymentContainerBase,
+	deploymentMountSecrets map[string]pkg_models.DeploymentSecret,
+) {
+	var err error
+	defer func() {
+		if err != nil && len(deploymentMountSecrets) > 0 {
+			e, _ := h.secretManagerClient.CleanPathVariants(context.Background(), deploymentId)
+			if e != nil {
+				rmLogger.ErrorContext(ctx, "start deployment, unload mounted secrets", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
+			}
+		}
+		h.runtimeMonitorJobsRemove(deploymentId)
+	}()
+	rmLogger.DebugContext(ctx,
+		"start deployment",
+		slog_keys.DeploymentId, deploymentId,
+		slog_keys.Containers, deploymentContainers,
+		slog_keys.Secrets, deploymentMountSecrets,
+	)
+	err = h.loadDeploymentMountSecrets(ctx, deploymentId, deploymentMountSecrets)
+	if err != nil {
+		rmLogger.ErrorContext(ctx,
+			"start deployment, load mount secrets",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Secrets, deploymentMountSecrets,
+			slog_keys.Error, err,
+		)
+		return
+	}
+	err = h.startContainers(ctx, deploymentContainers)
+	if err != nil {
+		rmLogger.ErrorContext(ctx,
+			"start deployment, start containers",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Containers, deploymentContainers,
+			slog_keys.Error, err,
+		)
+		return
+	}
+}
+
+func (h *Handler) loadDeploymentMountSecrets(
+	ctx context.Context,
+	deploymentId string,
+	deploymentMountSecrets map[string]pkg_models.DeploymentSecret,
+) error {
+	var errs []error
+	for _, secret := range deploymentMountSecrets {
+		for _, item := range secret.Items {
+			if item.AsEnv {
+				continue
+			}
+			req := external_models.SmSecretVariantRequest{
+				ID:        secret.Id,
+				Item:      nil,
+				Reference: deploymentId,
+			}
+			if item.Name != "" {
+				req.Item = &item.Name
+			}
+			err, _ := h.secretManagerClient.LoadPathVariant(ctx, req)
+			if err != nil {
+				errs = append(errs, fmt.Errorf("'%s' %w", secret.Reference, err))
+			}
+		}
+	}
+	return nil
+}
+
+func (h *Handler) stopDeployment(
+	ctx context.Context,
+	deploymentId string,
+	deploymentContainers map[string]pkg_models.DeploymentContainerBase,
+	hasMountSecrets bool,
+) {
+	defer h.runtimeMonitorJobsRemove(deploymentId)
+	rmLogger.DebugContext(ctx,
+		"stop deployment",
+		slog_keys.DeploymentId, deploymentId,
+		slog_keys.Containers, deploymentContainers,
+	)
+	if hasMountSecrets {
+		err, _ := h.secretManagerClient.CleanPathVariants(ctx, deploymentId)
+		if err != nil {
+			rmLogger.ErrorContext(ctx, "stop deployment, unload mounted secrets", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
+		}
+	}
+	err := h.stopContainers(ctx, deploymentContainers)
+	if err != nil {
+		rmLogger.ErrorContext(ctx,
+			"stop deployment, stop containers",
+			slog_keys.DeploymentId, deploymentId,
+			slog_keys.Containers, deploymentContainers,
+			slog_keys.Error, err,
+		)
+	}
+}
+
+func (h *Handler) runtimeMonitorJobsFilter(deployments map[string]pkg_models.DeploymentBase) map[string]pkg_models.DeploymentBase {
+	h.runtimeMonitorJobsMu.RLock()
+	defer h.runtimeMonitorJobsMu.RUnlock()
+	filteredDeployments := make(map[string]pkg_models.DeploymentBase)
+	for id, deployment := range deployments {
+		_, ok := h.runtimeMonitorJobs[id]
+		if !ok {
+			filteredDeployments[id] = deployment
+		}
+	}
+	return filteredDeployments
+}
+
+func (h *Handler) runtimeMonitorJobsAdd(id string) {
+	h.runtimeMonitorJobsMu.Lock()
+	defer h.runtimeMonitorJobsMu.Unlock()
+	h.runtimeMonitorJobs[id] = struct{}{}
+}
+
+func (h *Handler) runtimeMonitorJobsRemove(id string) {
+	h.runtimeMonitorJobsMu.Lock()
+	defer h.runtimeMonitorJobsMu.Unlock()
+	delete(h.runtimeMonitorJobs, id)
+}
