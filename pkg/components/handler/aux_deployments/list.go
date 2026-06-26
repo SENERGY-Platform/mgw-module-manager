@@ -205,13 +205,13 @@ func getReducedAuxiliaryDeployments(
 	return auxDeployments
 }
 
-func getVolumes(mounts []pkg_models.AuxiliaryDeploymentVolumeMount) []lib_models.AuxiliaryDeploymentVolumeMount {
-	var volumes []lib_models.AuxiliaryDeploymentVolumeMount
+func getVolumes(mounts []pkg_models.AuxiliaryDeploymentVolumeMount) map[string]string {
+	if len(mounts) == 0 {
+		return nil
+	}
+	volumes := make(map[string]string)
 	for _, mount := range mounts {
-		volumes = append(volumes, lib_models.AuxiliaryDeploymentVolumeMount{
-			Reference: mount.Reference,
-			MountPath: mount.MountPath,
-		})
+		volumes[mount.MountPath] = mount.Reference
 	}
 	return volumes
 }

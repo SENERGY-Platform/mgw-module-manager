@@ -35,20 +35,15 @@ type AuxiliaryDeploymentBase struct {
 
 type AuxiliaryDeployment struct {
 	AuxiliaryDeploymentBase
-	Labels    map[string]string                `json:"labels"`  // {name:value}
-	Configs   map[string]string                `json:"configs"` // {varName:value}
-	Volumes   []AuxiliaryDeploymentVolumeMount `json:"volumes"`
-	Container Container                        `json:"container"`
+	Labels    map[string]string `json:"labels"`  // {name:value}
+	Configs   map[string]string `json:"configs"` // {varName:value}
+	Volumes   map[string]string `json:"volumes"` // {mntPoint:ref}
+	Container Container         `json:"container"`
 }
 
 type AuxiliaryDeploymentReduced struct {
 	AuxiliaryDeploymentBase
 	Container Container `json:"container"`
-}
-
-type AuxiliaryDeploymentVolumeMount struct {
-	Reference string `json:"reference"`
-	MountPath string `json:"mount_path"`
 }
 
 type AuxiliaryDeploymentRunConfig struct {
