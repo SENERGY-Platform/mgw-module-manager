@@ -70,19 +70,13 @@ func (h *Handler) UpdateDeployment(
 		)
 		return lib_errors.New[lib_errors.ErrInvalidInput](msg)
 	}
-	err = validateImage(module.AuxImgSrc, serviceInput.Image)
-	if err != nil {
-		logger.ErrorContext(
-			ctx,
-			"update auxiliary deployment, validate image",
-			slog_keys.ModuleId, module.ID,
-			slog_keys.DeploymentId, activeDeployment.Id,
-			slog_keys.AuxDeploymentId, auxDeploymentId,
-			slog_keys.Error, err,
-		)
-		return err
-	}
 	if incremental {
+		if serviceInput.Name == "" {
+			serviceInput.Name = currentAuxDeployment.Name
+		}
+		if serviceInput.Image == "" {
+			serviceInput.Image = currentAuxDeployment.Image
+		}
 		serviceInput.Volumes, err = h.updateServiceInputVolumes(ctx, auxDeploymentId, serviceInput.Volumes)
 		if err != nil {
 			logger.ErrorContext(
@@ -119,6 +113,24 @@ func (h *Handler) UpdateDeployment(
 			)
 			return err
 		}
+		if len(serviceInput.RunConfig.Command) == 0 {
+			serviceInput.RunConfig.Command = currentAuxDeployment.RunConfig.Command
+		}
+		if serviceInput.RunConfig.PseudoTTY == 0 && currentAuxDeployment.RunConfig.PseudoTTY {
+			serviceInput.RunConfig.PseudoTTY = 1
+		}
+	}
+	err = validateImage(module.AuxImgSrc, serviceInput.Image)
+	if err != nil {
+		logger.ErrorContext(
+			ctx,
+			"update auxiliary deployment, validate image",
+			slog_keys.ModuleId, module.ID,
+			slog_keys.DeploymentId, activeDeployment.Id,
+			slog_keys.AuxDeploymentId, auxDeploymentId,
+			slog_keys.Error, err,
+		)
+		return err
 	}
 	auxDeploymentVolumes, err := h.databaseHandler.ReadAuxiliaryDeploymentVolumes(ctx, activeDeployment.Id, nil)
 	if err != nil {
