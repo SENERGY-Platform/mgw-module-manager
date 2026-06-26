@@ -27,6 +27,7 @@ type ClientAuxiliaryDeploymentsItf interface {
 		ctx context.Context,
 		deploymentId string,
 		serviceInput models.AuxiliaryDeploymentInput,
+		pullImage bool,
 	) (models.Job, error)
 	UpdateAuxiliaryDeployment(
 		ctx context.Context,
@@ -34,6 +35,7 @@ type ClientAuxiliaryDeploymentsItf interface {
 		auxDeploymentId string,
 		serviceInput models.AuxiliaryDeploymentInput,
 		incremental bool,
+		pullImage bool,
 	) (models.Job, error)
 	RecreateAuxiliaryDeployments(
 		ctx context.Context,

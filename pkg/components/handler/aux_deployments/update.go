@@ -37,6 +37,7 @@ func (h *Handler) UpdateDeployment(
 	auxDeploymentId string,
 	serviceInput lib_models.AuxiliaryDeploymentInput,
 	incremental bool,
+	pullImage bool,
 ) error {
 	mu := h.mutexes.Get(activeDeployment.Id)
 	mu.Lock()
@@ -246,7 +247,7 @@ func (h *Handler) UpdateDeployment(
 		ctx,
 		activeDeployment.Id,
 		serviceInput.Image,
-		serviceInput.PullImage,
+		pullImage,
 		auxDeploymentVolumes,
 	)
 	if err != nil {

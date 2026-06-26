@@ -85,6 +85,7 @@ type auxiliaryDeploymentsHandler interface {
 		activeDeployment pkg_models.Deployment,
 		dependencies map[string]pkg_models.DeploymentReduced,
 		serviceInput lib_models.AuxiliaryDeploymentInput,
+		pullImage bool,
 	) (lib_models.AuxiliaryDeploymentResult, error)
 	UpdateDeployment(
 		ctx context.Context,
@@ -94,6 +95,7 @@ type auxiliaryDeploymentsHandler interface {
 		auxDeploymentId string,
 		serviceInput lib_models.AuxiliaryDeploymentInput,
 		incremental bool,
+		pullImage bool,
 	) error
 	RecreateDeployments(
 		ctx context.Context,

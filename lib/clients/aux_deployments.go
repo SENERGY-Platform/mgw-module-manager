@@ -46,10 +46,14 @@ func (c *ClientAuxiliaryDeployments) CreateAuxiliaryDeployment(
 	ctx context.Context,
 	deploymentId string,
 	serviceInput models.AuxiliaryDeploymentInput,
+	pullImage bool,
 ) (models.Job, error) {
 	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentsCollection, deploymentId))
 	if err != nil {
 		return models.Job{}, err
+	}
+	if pullImage {
+		u += "?pull_image=true"
 	}
 	buffer := bytes.NewBuffer(nil)
 	err = json.NewEncoder(buffer).Encode(serviceInput)
@@ -68,26 +72,38 @@ func (c *ClientAuxiliaryDeployments) CreateAuxiliaryDeployment(
 	return res, nil
 }
 
+func appendUpdateAuxiliaryDeploymentQuery(u string, incremental, pullImage bool) string {
+	var items []string
+	if incremental {
+		items = append(items, "incremental=true")
+	}
+	if pullImage {
+		items = append(items, "pull_image=true")
+	}
+	if len(items) > 0 {
+		return u + "?" + strings.Join(items, "&")
+	}
+	return u
+}
+
 func (c *ClientAuxiliaryDeployments) UpdateAuxiliaryDeployment(
 	ctx context.Context,
 	deploymentId string,
 	auxDeploymentId string,
 	serviceInput models.AuxiliaryDeploymentInput,
 	incremental bool,
+	pullImage bool,
 ) (models.Job, error) {
 	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(constants.HttpPathAuxiliaryDeploymentResource, deploymentId, auxDeploymentId))
 	if err != nil {
 		return models.Job{}, err
-	}
-	if incremental {
-		u += "?incremental=true"
 	}
 	buffer := bytes.NewBuffer(nil)
 	err = json.NewEncoder(buffer).Encode(serviceInput)
 	if err != nil {
 		return models.Job{}, err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u, buffer)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, appendUpdateAuxiliaryDeploymentQuery(u, incremental, pullImage), buffer)
 	if err != nil {
 		return models.Job{}, err
 	}

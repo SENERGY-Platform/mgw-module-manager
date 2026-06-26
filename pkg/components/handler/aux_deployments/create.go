@@ -43,6 +43,7 @@ func (h *Handler) CreateDeployment(
 	activeDeployment pkg_models.Deployment,
 	dependencies map[string]pkg_models.DeploymentReduced,
 	serviceInput lib_models.AuxiliaryDeploymentInput,
+	pullImage bool,
 ) (lib_models.AuxiliaryDeploymentResult, error) {
 	mu := h.mutexes.Get(activeDeployment.Id)
 	mu.Lock()
@@ -185,7 +186,7 @@ func (h *Handler) CreateDeployment(
 		ctx,
 		activeDeployment.Id,
 		serviceInput.Image,
-		serviceInput.PullImage,
+		pullImage,
 		auxDeploymentVolumes,
 	)
 	if err != nil {
@@ -280,7 +281,6 @@ func getAuxiliaryDeployment(
 		Reference:    serviceInput.Reference,
 		Name:         name,
 		Image:        serviceInput.Image,
-		Enabled:      serviceInput.Enabled,
 		Container: pkg_models.AuxiliaryDeploymentContainer{
 			Name:  ctrName,
 			Alias: containerAlias,
@@ -289,7 +289,7 @@ func getAuxiliaryDeployment(
 			Command:   command,
 			PseudoTTY: pseudoTTY,
 		},
-		Recreate: serviceInput.Recreate,
+		Recreate: serviceInput.Recreate > 0,
 	}, nil
 }
 

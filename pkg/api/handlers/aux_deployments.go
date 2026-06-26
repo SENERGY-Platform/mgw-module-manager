@@ -117,12 +117,19 @@ func GetReducedAuxiliaryDeployments(srv *service.Service) (string, string, gin.H
 
 func CreateAuxiliaryDeployment(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_constants.HttpPathAuxiliaryDeploymentsCollection, func(gc *gin.Context) {
-		var body lib_models.AuxiliaryDeploymentInput
-		err := gc.MustBindWith(&body, binding.JSON)
+		var query struct {
+			PullImage bool `form:"pull_image"`
+		}
+		err := gc.MustBindWith(&query, binding.Query)
 		if err != nil {
 			return
 		}
-		res, err := srv.CreateAuxiliaryDeployment(gc, gc.Param("DEP_ID"), body)
+		var body lib_models.AuxiliaryDeploymentInput
+		err = gc.MustBindWith(&body, binding.JSON)
+		if err != nil {
+			return
+		}
+		res, err := srv.CreateAuxiliaryDeployment(gc, gc.Param("DEP_ID"), body, query.PullImage)
 		if err != nil {
 			_ = gc.Error(err)
 			return
@@ -135,6 +142,7 @@ func UpdateAuxiliaryDeployment(srv *service.Service) (string, string, gin.Handle
 	return http.MethodPut, lib_constants.HttpPathAuxiliaryDeploymentResource, func(gc *gin.Context) {
 		var query struct {
 			Incremental bool `form:"incremental"`
+			PullImage   bool `form:"pull_image"`
 		}
 		err := gc.MustBindWith(&query, binding.Query)
 		if err != nil {
@@ -145,7 +153,14 @@ func UpdateAuxiliaryDeployment(srv *service.Service) (string, string, gin.Handle
 		if err != nil {
 			return
 		}
-		res, err := srv.UpdateAuxiliaryDeployment(gc, gc.Param("DEP_ID"), gc.Param("AUX_DEP_ID"), body, query.Incremental)
+		res, err := srv.UpdateAuxiliaryDeployment(
+			gc,
+			gc.Param("DEP_ID"),
+			gc.Param("AUX_DEP_ID"),
+			body,
+			query.Incremental,
+			query.PullImage,
+		)
 		if err != nil {
 			_ = gc.Error(err)
 			return

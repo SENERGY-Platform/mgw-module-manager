@@ -74,6 +74,7 @@ func (s *Service) CreateAuxiliaryDeployment(
 	ctx context.Context,
 	deploymentId string,
 	serviceInput lib_models.AuxiliaryDeploymentInput,
+	pullImage bool,
 ) (lib_models.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -131,6 +132,7 @@ func (s *Service) CreateAuxiliaryDeployment(
 			activeDeployment,
 			dependencyDeployments,
 			serviceInput,
+			pullImage,
 		)
 		if err != nil {
 			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
@@ -149,6 +151,7 @@ func (s *Service) UpdateAuxiliaryDeployment(
 	auxDeploymentId string,
 	serviceInput lib_models.AuxiliaryDeploymentInput,
 	incremental bool,
+	pullImage bool,
 ) (lib_models.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -206,6 +209,7 @@ func (s *Service) UpdateAuxiliaryDeployment(
 			auxDeploymentId,
 			serviceInput,
 			incremental,
+			pullImage,
 		)
 		if err != nil {
 			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
