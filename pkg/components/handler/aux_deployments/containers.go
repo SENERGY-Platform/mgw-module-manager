@@ -18,14 +18,17 @@ package aux_deployments
 
 import (
 	"context"
+	"errors"
 	"maps"
 	"path"
 
 	cew_model "github.com/SENERGY-Platform/mgw-container-engine-wrapper/lib/model"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
+	helper_containers "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/containers"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants"
+	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 	external_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models/external"
 )
 
@@ -67,6 +70,24 @@ func (h *Handler) createContainer(
 		return err
 	}
 	return nil
+}
+
+func (h *Handler) stopContainer(ctx context.Context, containerName string) error {
+	_, err := h.containerEngineWrapperClient.GetContainer(ctx, containerName)
+	if err != nil {
+		var notFoundErr *external_models.CewNotFoundErr
+		if !errors.As(err, &notFoundErr) {
+			return err
+		}
+		logger.ErrorContext(ctx, "stop container", slog_keys.Name, containerName, slog_keys.Error, "not found")
+		return nil
+	}
+	return helper_containers.Stop(
+		ctx,
+		h.containerEngineWrapperClient,
+		containerName,
+		h.config.JobPollInterval,
+	)
 }
 
 func getCewContainer(

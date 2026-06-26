@@ -186,12 +186,7 @@ func (h *Handler) UpdateDeployment(
 	}
 	maps.Copy(auxDeploymentVolumes, newAuxDeploymentVolumes)
 	volumeMounts := getVolumeMounts(newAuxDeployment.Id, serviceInput.Volumes, auxDeploymentVolumes)
-	err = helper_containers.Stop(
-		ctx,
-		h.containerEngineWrapperClient,
-		currentAuxDeployment.Container.Name,
-		h.config.JobPollInterval,
-	)
+	err = h.stopContainer(ctx, currentAuxDeployment.Container.Name)
 	if err != nil {
 		logger.ErrorContext(
 			ctx,

@@ -88,6 +88,7 @@ type databaseHandler interface {
 }
 
 type containerEngineWrapperClient interface {
+	GetContainer(ctx context.Context, id string) (external_models.CewContainer, error)
 	GetContainers(ctx context.Context, filter external_models.CewContainersFilter) ([]external_models.CewContainer, error)
 	CreateContainer(ctx context.Context, container external_models.CewContainer) (id string, err error)
 	StartContainer(ctx context.Context, id string) error

@@ -175,12 +175,7 @@ func (h *Handler) recreateAuxiliaryDeployment(
 		)
 		return err
 	}
-	err = helper_containers.Stop(
-		ctx,
-		h.containerEngineWrapperClient,
-		currentAuxDeployment.Container.Name,
-		h.config.JobPollInterval,
-	)
+	err = h.stopContainer(ctx, currentAuxDeployment.Container.Name)
 	if err != nil {
 		logger.ErrorContext(
 			ctx,
