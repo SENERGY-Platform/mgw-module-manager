@@ -19,6 +19,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -92,7 +93,12 @@ func (h *Handler) ReadAuxiliaryDeployments(
 		if auxDep.Updated, err = time.Parse(timeLayout, string(ut)); err != nil {
 			logger.ErrorContext(ctx, "read auxiliary deployments", slog_keys.AuxDeploymentId, auxDep.Id, slog_keys.Error, err)
 		}
-		auxDep.RunConfig.Command = strings.Split(command.String, ",")
+		if command.Valid {
+			err = json.Unmarshal([]byte(command.String), &auxDep.RunConfig.Command)
+			if err != nil {
+				return nil, err
+			}
+		}
 		auxDep.RunConfig.PseudoTTY = pseudoTTY.Bool
 		auxDeps[auxDep.Id] = auxDep
 	}

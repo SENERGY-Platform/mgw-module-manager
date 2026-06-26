@@ -19,7 +19,7 @@ package database
 import (
 	"context"
 	"database/sql"
-	"strings"
+	"encoding/json"
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
@@ -37,6 +37,14 @@ func (h *Handler) CreateAuxiliaryDeployment(
 		return err
 	}
 	defer tx.Rollback()
+	var runConfigCmd string
+	if len(auxiliaryDeployment.RunConfig.Command) > 0 {
+		b, err := json.Marshal(auxiliaryDeployment.RunConfig.Command)
+		if err != nil {
+			return err
+		}
+		runConfigCmd = string(b)
+	}
 	_, err = tx.ExecContext(
 		ctx,
 		"INSERT INTO aux_deployments (id, dep_id, image, created, updated, ref, name, enabled, ctr_name, ctr_alias, recreate, command, pseudo_tty) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -51,7 +59,7 @@ func (h *Handler) CreateAuxiliaryDeployment(
 		auxiliaryDeployment.Container.Name,
 		auxiliaryDeployment.Container.Alias,
 		auxiliaryDeployment.Recreate,
-		strings.Join(auxiliaryDeployment.RunConfig.Command, ","),
+		runConfigCmd,
 		auxiliaryDeployment.RunConfig.PseudoTTY,
 	)
 	if err != nil {

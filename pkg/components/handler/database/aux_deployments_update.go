@@ -19,6 +19,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 
 	pkg_models "github.com/SENERGY-Platform/mgw-module-manager/pkg/models"
 )
@@ -35,19 +36,25 @@ func (h *Handler) UpdateAuxiliaryDeployment(
 		return err
 	}
 	defer tx.Rollback()
+	var runConfigCmd string
+	if len(auxiliaryDeployment.RunConfig.Command) > 0 {
+		b, err := json.Marshal(auxiliaryDeployment.RunConfig.Command)
+		if err != nil {
+			return err
+		}
+		runConfigCmd = string(b)
+	}
 	_, err = tx.ExecContext(
 		ctx,
-		"UPDATE aux_deployments SET image = ?, created = ?, updated = ?, ref = ?, name = ?, enabled = ?, ctr_name = ?, ctr_alias = ?, recreate = ?, command = ?, pseudo_tty = ? WHERE dep_id = ? AND id = ?",
+		"UPDATE aux_deployments SET image = ?, updated = ?, ref = ?, name = ?, ctr_name = ?, ctr_alias = ?, recreate = ?, command = ?, pseudo_tty = ? WHERE dep_id = ? AND id = ?",
 		auxiliaryDeployment.Image,
-		auxiliaryDeployment.Created,
 		auxiliaryDeployment.Updated,
 		auxiliaryDeployment.Reference,
 		auxiliaryDeployment.Name,
-		auxiliaryDeployment.Enabled,
 		auxiliaryDeployment.Container.Name,
 		auxiliaryDeployment.Container.Alias,
 		auxiliaryDeployment.Recreate,
-		auxiliaryDeployment.RunConfig.Command,
+		runConfigCmd,
 		auxiliaryDeployment.RunConfig.PseudoTTY,
 		auxiliaryDeployment.DeploymentId,
 		auxiliaryDeployment.Id,
