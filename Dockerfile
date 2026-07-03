@@ -7,7 +7,7 @@ WORKDIR /go/src/app
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o bin -ldflags="-X 'main.version=$VERSION'" main.go
 
-FROM alpine:3.20
+FROM alpine:3.24
 
 RUN mkdir -p /opt/module-manager
 WORKDIR /opt/module-manager
