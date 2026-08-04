@@ -104,12 +104,11 @@ type Config struct {
 	JobsHandler               JobsHandlerConfig               `json:"jobs_handler"`
 }
 
-const basePath = "/opt/module-manager"
-const reposBasePath = basePath + "/repositories"
+const reposBasePath = "./repositories"
 
 var defaultConfig = Config{
 	ServerPort:      80,
-	ManagerIdPath:   basePath + "service/mid",
+	ManagerIdPath:   "./service/mid",
 	UseUTC:          true,
 	JobPollInterval: sb_config_types.Duration(time.Millisecond * 500),
 	Logger: LoggerConfig{
@@ -131,10 +130,10 @@ var defaultConfig = Config{
 		ConnectionMaxLifetime: sb_config_types.Duration(time.Minute * 5),
 	},
 	ModulesHandler: ModulesHandlerConfig{
-		WorkdirPath: basePath + "/modules",
+		WorkdirPath: "./modules",
 	},
 	DeploymentsHandler: DeploymentsHandlerConfig{
-		WorkdirPath:                basePath + "/deployments",
+		WorkdirPath:                "./deployments",
 		RuntimeMonitorStartupDelay: sb_config_types.Duration(time.Second * 30),
 		RuntimeMonitorLoopDelay:    sb_config_types.Duration(time.Second * 5),
 	},
