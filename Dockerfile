@@ -9,13 +9,10 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o bin -ldflags="-X 'main.version=$VERSION
 
 FROM alpine:3.24
 
-RUN mkdir -p /opt/module-manager
+RUN mkdir -p /opt/module-manager/service
 WORKDIR /opt/module-manager
-RUN mkdir include
-RUN mkdir data
 COPY --from=builder /go/src/app/bin bin
-COPY --from=builder /go/src/app/include include
 
-HEALTHCHECK --interval=10s --timeout=5s --retries=3 CMD wget -nv -t1 --spider 'http://localhost/health-check' || exit 1
+HEALTHCHECK --interval=10s --timeout=5s --retries=3 CMD wget -nv -t1 --spider 'http://localhost/health/service' || exit 1
 
 ENTRYPOINT ["./bin"]
