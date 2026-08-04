@@ -29,7 +29,7 @@ const (
 	containersStateBroken               // one or more containers missing
 )
 
-const dirPerm = 0770
+const dirPerm = 0775
 
 type defaultDataCollection struct {
 	Configs map[string]pkg_models.Value
