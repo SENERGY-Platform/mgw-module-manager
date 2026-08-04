@@ -104,9 +104,12 @@ type Config struct {
 	JobsHandler               JobsHandlerConfig               `json:"jobs_handler"`
 }
 
+const basePath = "/opt/module-manager"
+const reposBasePath = basePath + "/repositories"
+
 var defaultConfig = Config{
 	ServerPort:      80,
-	ManagerIdPath:   "/opt/module-manager/data/mid",
+	ManagerIdPath:   basePath + "service/mid",
 	UseUTC:          true,
 	JobPollInterval: sb_config_types.Duration(time.Millisecond * 500),
 	Logger: LoggerConfig{
@@ -128,10 +131,10 @@ var defaultConfig = Config{
 		ConnectionMaxLifetime: sb_config_types.Duration(time.Minute * 5),
 	},
 	ModulesHandler: ModulesHandlerConfig{
-		WorkdirPath: "/opt/module-manager/modules",
+		WorkdirPath: basePath + "/modules",
 	},
 	DeploymentsHandler: DeploymentsHandlerConfig{
-		WorkdirPath:                "/opt/module-manager/deployments",
+		WorkdirPath:                basePath + "/deployments",
 		RuntimeMonitorStartupDelay: sb_config_types.Duration(time.Second * 30),
 		RuntimeMonitorLoopDelay:    sb_config_types.Duration(time.Second * 5),
 	},
@@ -140,12 +143,12 @@ var defaultConfig = Config{
 		RuntimeMonitorLoopDelay:    sb_config_types.Duration(time.Second * 5),
 	},
 	HostDirRepositoryHandler: HostDirRepositoryHandlerConfig{
-		WorkdirPath: "/opt/module-manager/repositories/host_dir",
+		WorkdirPath: reposBasePath + "/host_dir",
 		Priority:    0,
 	},
 	GitHubRepositoriesHandler: GitHubRepositoriesHandlerConfig{
 		BaseUrl:     "https://api.github.com",
-		WorkdirPath: "/opt/module-manager/repositories/github",
+		WorkdirPath: reposBasePath + "/github",
 		Timeout:     sb_config_types.Duration(time.Minute),
 	},
 	JobsHandler: JobsHandlerConfig{
