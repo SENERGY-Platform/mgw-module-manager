@@ -18,11 +18,10 @@ package configuration
 
 import (
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
-	sb_config_env_parser "github.com/SENERGY-Platform/go-service-base/config-hdl/env_parser"
 	sb_config_types "github.com/SENERGY-Platform/go-service-base/config-hdl/types"
 )
 
 var envTypeParser = []sb_config_hdl.EnvTypeParser{
 	sb_config_types.SecretEnvTypeParser,
-	sb_config_env_parser.DurationEnvTypeParser,
+	sb_config_types.DurationEnvTypeParser,
 }
