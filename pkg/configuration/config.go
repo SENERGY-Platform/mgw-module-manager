@@ -133,13 +133,11 @@ var defaultConfig = Config{
 		WorkdirPath: "./modules",
 	},
 	DeploymentsHandler: DeploymentsHandlerConfig{
-		WorkdirPath:                "./deployments",
-		RuntimeMonitorStartupDelay: sb_config_types.Duration(time.Second * 30),
-		RuntimeMonitorLoopDelay:    sb_config_types.Duration(time.Second * 5),
+		WorkdirPath:             "./deployments",
+		RuntimeMonitorLoopDelay: sb_config_types.Duration(time.Second * 5),
 	},
 	AuxDeploymentsHandler: AuxDeploymentsHandlerConfig{
-		RuntimeMonitorStartupDelay: sb_config_types.Duration(time.Second * 30),
-		RuntimeMonitorLoopDelay:    sb_config_types.Duration(time.Second * 5),
+		RuntimeMonitorLoopDelay: sb_config_types.Duration(time.Second * 5),
 	},
 	HostDirRepositoryHandler: HostDirRepositoryHandlerConfig{
 		WorkdirPath: reposBasePath + "/host_dir",
