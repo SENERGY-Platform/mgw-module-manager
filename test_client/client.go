@@ -43,19 +43,21 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	client = &Client{httpClient: http.DefaultClient, baseUrl: conf.BaseUrl, cookie: conf.Cookie}
+	client = &Client{httpClient: http.DefaultClient, clientConf: conf}
 	depAdvClient = lib_clients.NewClientDeploymentAdvertisements(client, conf.BaseUrl)
 	auxDepClient = lib_clients.NewClientAuxiliaryDeployments(client, conf.BaseUrl)
 }
 
 type clientConf struct {
-	BaseUrl string `json:"base_url"`
-	Cookie  string `json:"cookie"`
+	BaseUrl     string `json:"base_url"`
+	Cookie      string `json:"cookie"`
+	EscapeDepth int    `json:"escape_depth"`
 }
 
 func getClientConf() (clientConf, error) {
 	c := clientConf{
-		BaseUrl: "http://localhost:8080/core/api/module-manager",
+		BaseUrl:     "http://localhost:8080/core/api/module-manager",
+		EscapeDepth: 2,
 	}
 	file, err := os.Open(clientConfFile)
 	if err != nil {
@@ -89,13 +91,12 @@ type httpClient interface {
 
 type Client struct {
 	httpClient
-	baseUrl string
-	cookie  string
+	clientConf
 }
 
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
-	if c.cookie != "" {
-		req.Header.Set("Cookie", c.cookie)
+	if c.Cookie != "" {
+		req.Header.Set("Cookie", c.Cookie)
 	}
 	return c.httpClient.Do(req)
 }
@@ -160,9 +161,16 @@ func getUrlRelPath(template string, params ...string) string {
 	}
 	placeholders = placeholders[:len(params)]
 	for i, placeholder := range placeholders {
-		template = strings.Replace(template, placeholder, url.PathEscape(params[i]), 1)
+		template = strings.Replace(template, placeholder, urlPathEscape(params[i]), 1)
 	}
 	return template
+}
+
+func urlPathEscape(v string) string {
+	for c := 0; c < client.EscapeDepth; c++ {
+		v = url.PathEscape(v)
+	}
+	return v
 }
 
 func writeToJson(n string, v any) {

@@ -29,7 +29,7 @@ import (
 )
 
 func (c *Client) GetJobs(ctx context.Context, filterIds []string) ([]lib_models.Job, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathJobsCollection))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathJobsCollection))
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (c *Client) GetJobs(ctx context.Context, filterIds []string) ([]lib_models.
 }
 
 func (c *Client) GetJob(ctx context.Context, id string) (lib_models.Job, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathJobResource, id))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathJobResource, id))
 	if err != nil {
 		return lib_models.Job{}, err
 	}
@@ -66,7 +66,7 @@ func (c *Client) GetJob(ctx context.Context, id string) (lib_models.Job, error) 
 }
 
 func (c *Client) CancelJobs(ctx context.Context, ids []string) error {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathCancelJobs))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathCancelJobs))
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func (c *Client) CancelJobs(ctx context.Context, ids []string) error {
 }
 
 func (c *Client) CancelJob(ctx context.Context, id string) error {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathJobResource, id))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathJobResource, id))
 	if err != nil {
 		return err
 	}

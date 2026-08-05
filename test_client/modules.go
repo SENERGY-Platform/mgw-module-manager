@@ -56,7 +56,7 @@ func appendModulesFilterQuery(u string, filter lib_models.ModulesFilter) string 
 }
 
 func (c *Client) GetModules(ctx context.Context, filter lib_models.ModulesFilter) ([]lib_models.ModuleReduced, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathModulesCollection))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathModulesCollection))
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (c *Client) GetModules(ctx context.Context, filter lib_models.ModulesFilter
 }
 
 func (c *Client) GetModule(ctx context.Context, id string) (lib_models.Module, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathModuleResource, id))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathModuleResource, id))
 	if err != nil {
 		return lib_models.Module{}, err
 	}
@@ -90,7 +90,7 @@ func (c *Client) GetModule(ctx context.Context, id string) (lib_models.Module, e
 }
 
 func (c *Client) GetModulesChangeRequest(ctx context.Context) (lib_models.ModulesChangeRequest, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathModulesChangeRequestResource))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathModulesChangeRequestResource))
 	if err != nil {
 		return lib_models.ModulesChangeRequest{}, err
 	}
@@ -110,7 +110,7 @@ func (c *Client) CreateModulesChangeRequest(
 	ctx context.Context,
 	reqItems []lib_models.ChangeRequestItem,
 ) (lib_models.ModulesChangeRequest, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathModulesChangeRequestResource))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathModulesChangeRequestResource))
 	if err != nil {
 		return lib_models.ModulesChangeRequest{}, err
 	}
@@ -132,7 +132,7 @@ func (c *Client) CreateModulesChangeRequest(
 }
 
 func (c *Client) ExecModulesChangeRequest(ctx context.Context) (lib_models.Job, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathModulesChangeRequestResource))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathModulesChangeRequestResource))
 	if err != nil {
 		return lib_models.Job{}, err
 	}
@@ -149,7 +149,7 @@ func (c *Client) ExecModulesChangeRequest(ctx context.Context) (lib_models.Job, 
 }
 
 func (c *Client) CancelModulesChangeRequest(ctx context.Context) error {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathModulesChangeRequestResource))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathModulesChangeRequestResource))
 	if err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func (c *Client) CancelModulesChangeRequest(ctx context.Context) error {
 }
 
 func (c *Client) GetModulesAvailableUpdatesCount(ctx context.Context) (int, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathModulesAvailableUpdatesCountResource))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathModulesAvailableUpdatesCountResource))
 	if err != nil {
 		return 0, err
 	}
@@ -178,7 +178,7 @@ func (c *Client) GetModulesAvailableUpdatesCount(ctx context.Context) (int, erro
 }
 
 func (c *Client) CreateModulesUpdateAllChangeRequest(ctx context.Context) (lib_models.ModulesChangeRequest, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathModulesChangeRequestResource))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathModulesChangeRequestResource))
 	if err != nil {
 		return lib_models.ModulesChangeRequest{}, err
 	}

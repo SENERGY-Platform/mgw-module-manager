@@ -43,7 +43,7 @@ func appendRefreshRepositoriesQuery(u string, filter lib_models.RepositoriesRefr
 }
 
 func (c *Client) RefreshRepositories(ctx context.Context, filter lib_models.RepositoriesRefreshFilter) (lib_models.Job, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathRepositoriesCollection))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathRepositoriesCollection))
 	if err != nil {
 		return lib_models.Job{}, err
 	}
@@ -60,7 +60,7 @@ func (c *Client) RefreshRepositories(ctx context.Context, filter lib_models.Repo
 }
 
 func (c *Client) GetRepositories(ctx context.Context) ([]lib_models.Repository, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathRepositoriesCollection))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathRepositoriesCollection))
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (c *Client) GetRepositories(ctx context.Context) ([]lib_models.Repository, 
 }
 
 func (c *Client) CreateRepository(ctx context.Context, repositoryType string, data []byte) error {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathRepositoriesCollection))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathRepositoriesCollection))
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (c *Client) CreateRepository(ctx context.Context, repositoryType string, da
 }
 
 func (c *Client) DeleteRepository(ctx context.Context, source string) error {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathRepositoryResource, source))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathRepositoryResource, source))
 	if err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func appendRepoModulesFilterQuery(u string, filter lib_models.RepoModulesFilter)
 }
 
 func (c *Client) GetRepositoryModules(ctx context.Context, filter lib_models.RepoModulesFilter) ([]lib_models.RepoModule, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathRepositoryModulesCollection))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathRepositoryModulesCollection))
 	if err != nil {
 		return nil, err
 	}

@@ -29,7 +29,7 @@ import (
 )
 
 func (c *Client) CreateGlobalConfig(ctx context.Context, input lib_models.GlobalConfigInput) (string, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathGlobalConfigsCollection))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathGlobalConfigsCollection))
 	if err != nil {
 		return "", err
 	}
@@ -51,7 +51,7 @@ func (c *Client) CreateGlobalConfig(ctx context.Context, input lib_models.Global
 }
 
 func (c *Client) GetGlobalConfig(ctx context.Context, id string) (lib_models.GlobalConfig, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathGlobalConfigResource, id))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathGlobalConfigResource, id))
 	if err != nil {
 		return lib_models.GlobalConfig{}, err
 	}
@@ -68,7 +68,7 @@ func (c *Client) GetGlobalConfig(ctx context.Context, id string) (lib_models.Glo
 }
 
 func (c *Client) GetGlobalConfigs(ctx context.Context, ids []string) (map[string]lib_models.GlobalConfig, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathGlobalConfigsCollection))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathGlobalConfigsCollection))
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (c *Client) GetGlobalConfigs(ctx context.Context, ids []string) (map[string
 }
 
 func (c *Client) UpdateGlobalConfig(ctx context.Context, config lib_models.GlobalConfig) error {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathGlobalConfigResource, config.Id))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathGlobalConfigResource, config.Id))
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (c *Client) UpdateGlobalConfig(ctx context.Context, config lib_models.Globa
 }
 
 func (c *Client) DeleteGlobalConfig(ctx context.Context, id string) error {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathGlobalConfigResource, id))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathGlobalConfigResource, id))
 	if err != nil {
 		return err
 	}
@@ -134,7 +134,7 @@ func appendDeleteGlobalConfigsFilter(u string, ids []string, allowAll bool) stri
 }
 
 func (c *Client) DeleteGlobalConfigs(ctx context.Context, ids []string, allowAll bool) error {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathGlobalConfigsCollection))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathGlobalConfigsCollection))
 	if err != nil {
 		return err
 	}

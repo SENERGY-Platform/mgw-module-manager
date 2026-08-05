@@ -29,7 +29,7 @@ import (
 )
 
 func (c *Client) GetDeploymentRequest(ctx context.Context, moduleIds []string) ([]lib_models.Module, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathDeploymentRequestResource))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathDeploymentRequestResource))
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (c *Client) GetDeploymentRequest(ctx context.Context, moduleIds []string) (
 }
 
 func (c *Client) CreateDeployments(ctx context.Context, userInputs []lib_models.DeploymentUserInput) (lib_models.Job, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathDeploymentsCollection))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathDeploymentsCollection))
 	if err != nil {
 		return lib_models.Job{}, err
 	}
@@ -71,7 +71,7 @@ func (c *Client) CreateDeployments(ctx context.Context, userInputs []lib_models.
 }
 
 func (c *Client) UpdateDeployments(ctx context.Context, userInputs []lib_models.DeploymentUserInput) (lib_models.Job, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathDeploymentsCollection))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathDeploymentsCollection))
 	if err != nil {
 		return lib_models.Job{}, err
 	}
@@ -93,7 +93,7 @@ func (c *Client) UpdateDeployments(ctx context.Context, userInputs []lib_models.
 }
 
 func (c *Client) RecreateDeployments(ctx context.Context, moduleIds []string) (lib_models.Job, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathRecreateDeployments))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathRecreateDeployments))
 	if err != nil {
 		return lib_models.Job{}, err
 	}
@@ -129,7 +129,7 @@ func appendDeleteDeploymentsQuery(u string, moduleIds []string, allowAll bool) s
 }
 
 func (c *Client) DeleteDeployments(ctx context.Context, moduleIds []string, allowAll bool) (lib_models.Job, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathDeploymentsCollection))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathDeploymentsCollection))
 	if err != nil {
 		return lib_models.Job{}, err
 	}
@@ -146,7 +146,7 @@ func (c *Client) DeleteDeployments(ctx context.Context, moduleIds []string, allo
 }
 
 func (c *Client) EnableDeployments(ctx context.Context, moduleIds []string) ([]string, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathEnableDeployments))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathEnableDeployments))
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func (c *Client) EnableDeployments(ctx context.Context, moduleIds []string) ([]s
 }
 
 func (c *Client) DisableDeployments(ctx context.Context, moduleIds []string) ([]string, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathDisableDeployments))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathDisableDeployments))
 	if err != nil {
 		return nil, err
 	}

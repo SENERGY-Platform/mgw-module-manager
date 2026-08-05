@@ -26,7 +26,7 @@ import (
 )
 
 func (c *Client) GetDeploymentsJobResult(ctx context.Context, jobId string) (lib_models.DeploymentJobResult, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathDeploymentResultResource, jobId))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathDeploymentResultResource, jobId))
 	if err != nil {
 		return lib_models.DeploymentJobResult{}, err
 	}
@@ -43,7 +43,7 @@ func (c *Client) GetDeploymentsJobResult(ctx context.Context, jobId string) (lib
 }
 
 func (c *Client) GetUpdateDeploymentsJobResult(ctx context.Context, jobId string) (lib_models.DeploymentUpdateJobResult, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathUpdateDeploymentResultResource, jobId))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathUpdateDeploymentResultResource, jobId))
 	if err != nil {
 		return lib_models.DeploymentUpdateJobResult{}, err
 	}
@@ -60,7 +60,7 @@ func (c *Client) GetUpdateDeploymentsJobResult(ctx context.Context, jobId string
 }
 
 func (c *Client) GetDeleteDeploymentsJobResult(ctx context.Context, jobId string) (lib_models.DeploymentDeleteJobResult, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathDeleteDeploymentResultResource, jobId))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathDeleteDeploymentResultResource, jobId))
 	if err != nil {
 		return lib_models.DeploymentDeleteJobResult{}, err
 	}
@@ -77,7 +77,7 @@ func (c *Client) GetDeleteDeploymentsJobResult(ctx context.Context, jobId string
 }
 
 func (c *Client) GetModuleChangeJobResult(ctx context.Context, jobId string) (lib_models.ModulesChangeJobResult, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathChangeModulesResultResource, jobId))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathChangeModulesResultResource, jobId))
 	if err != nil {
 		return lib_models.ModulesChangeJobResult{}, err
 	}
@@ -94,7 +94,7 @@ func (c *Client) GetModuleChangeJobResult(ctx context.Context, jobId string) (li
 }
 
 func (c *Client) GetRefreshRepositoriesJobResult(ctx context.Context, jobId string) (lib_models.RepositoryJobResult, error) {
-	u, err := url.JoinPath(c.baseUrl, getUrlRelPath(lib_constants.HttpPathRefreshRepositoriesResultResource, jobId))
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathRefreshRepositoriesResultResource, jobId))
 	if err != nil {
 		return lib_models.RepositoryJobResult{}, err
 	}
