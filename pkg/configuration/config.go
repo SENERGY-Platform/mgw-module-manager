@@ -107,10 +107,11 @@ type Config struct {
 const reposBasePath = "./repositories"
 
 var defaultConfig = Config{
-	ServerPort:      80,
-	ManagerIdPath:   "./service/mid",
-	UseUTC:          true,
-	JobPollInterval: sb_config_types.Duration(time.Millisecond * 500),
+	ServerPort:           80,
+	ManagerIdPath:        "./service/mid",
+	UseUTC:               true,
+	JobPollInterval:      sb_config_types.Duration(time.Millisecond * 500),
+	ImageNameEscapeDepth: 1,
 	Logger: LoggerConfig{
 		Config: struct_logger.Config{
 			Handler:    struct_logger.TextHandlerSelector,
