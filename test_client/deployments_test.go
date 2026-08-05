@@ -19,6 +19,8 @@ package test_client
 import (
 	"fmt"
 	"testing"
+
+	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 )
 
 func TestGetDeploymentRequest(t *testing.T) {
@@ -133,4 +135,15 @@ func TestDisableDeployments(t *testing.T) {
 		t.Fatal(err)
 	}
 	writeToJson(t.Name(), res)
+}
+
+func TestDeploymentsHealth(t *testing.T) {
+	depReq, err := client.DeploymentsHealth(
+		t.Context(),
+		lib_models.DeploymentsHealthInfoFilter{},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeToJson(t.Name(), depReq)
 }

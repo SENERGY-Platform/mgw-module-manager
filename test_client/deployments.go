@@ -188,3 +188,46 @@ func (c *Client) DisableDeployments(ctx context.Context, moduleIds []string) ([]
 	}
 	return res, nil
 }
+
+func appendDeploymentsHealthFilterQuery(u string, filter lib_models.DeploymentsHealthInfoFilter) string {
+	var items []string
+	if len(filter.ModuleIds) > 0 {
+		items = append(items, "module_ids="+queryJoinStrings(filter.ModuleIds))
+	}
+	if len(filter.ExclModuleIds) > 0 {
+		items = append(items, "excl_module_ids="+queryJoinStrings(filter.ExclModuleIds))
+	}
+	if filter.AuxiliaryDeployments {
+		items = append(items, "auxiliary_deployments=true")
+	}
+	if len(filter.AuxDeploymentsOfIds) > 0 {
+		items = append(items, "auxiliary_deployments_of_ids="+queryJoinStrings(filter.AuxDeploymentsOfIds))
+	}
+	if len(filter.ExclAuxDeploymentsOfIds) > 0 {
+		items = append(items, "excl_auxiliary_deployments_of_ids="+queryJoinStrings(filter.ExclAuxDeploymentsOfIds))
+	}
+	if filter.IncludeHealthy {
+		items = append(items, "include_healthy=true")
+	}
+	if len(items) > 0 {
+		return u + "?" + strings.Join(items, "&")
+	}
+	return u
+}
+
+func (c *Client) DeploymentsHealth(ctx context.Context, filter lib_models.DeploymentsHealthInfoFilter) (lib_models.DeploymentsHealthInfo, error) {
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathDeploymentsHealthCollection))
+	if err != nil {
+		return lib_models.DeploymentsHealthInfo{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, appendDeploymentsHealthFilterQuery(u, filter), nil)
+	if err != nil {
+		return lib_models.DeploymentsHealthInfo{}, err
+	}
+	var res lib_models.DeploymentsHealthInfo
+	err = doJson(client, req, &res)
+	if err != nil {
+		return lib_models.DeploymentsHealthInfo{}, err
+	}
+	return res, nil
+}
