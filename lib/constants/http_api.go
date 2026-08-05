@@ -65,6 +65,7 @@ const (
 	HttpPathUpdateAuxiliaryDeploymentResultResource = "results/auxiliary-deployment-update/:JOB_ID"
 
 	HttpPathDeploymentsHealthCollection = "health/deployments"
+	HttpPathServiceHealthResource       = "health/service"
 
 	HttpPathServiceInfoResource = "info"
 )

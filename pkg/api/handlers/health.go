@@ -27,7 +27,7 @@ import (
 )
 
 func ServiceHealth(srv *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, "health/service", func(gc *gin.Context) {
+	return http.MethodGet, lib_constants.HttpPathServiceHealthResource, func(gc *gin.Context) {
 		err := srv.ServiceHealth(gc)
 		if err != nil {
 			_ = gc.Error(err)
