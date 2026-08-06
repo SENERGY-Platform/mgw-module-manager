@@ -199,6 +199,8 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/linux,windows,go,goland,visualstudiocode
 
+/.claude
+/.devcontainer
 /bin
 /test_client/outputs
 /test_client/config.json
