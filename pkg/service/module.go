@@ -109,7 +109,7 @@ func (s *Service) CreateModulesChangeRequest(
 	}
 	reqItems, err := validateReqItems(reqItems)
 	if err != nil {
-		return lib_models.ModulesChangeRequest{}, err
+		return lib_models.ModulesChangeRequest{}, lib_errors.Wrap[lib_errors.ErrInvalidInput](err)
 	}
 	installedMods, err := s.modulesHandler.GetModules(ctx, pkg_models.ModulesFilterWithName{}, false)
 	if err != nil {
