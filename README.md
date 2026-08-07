@@ -156,7 +156,7 @@ with the runtime and job ids.
 | `MGW_CM_BASE_URL` | string | – | Base URL of the core manager. |
 | `MGW_HM_BASE_URL` | string | – | Base URL of the host manager. |
 | `MGW_SM_BASE_URL` | string | – | Base URL of the secret manager. |
-| `MGW_HTTP_TIMEOUT` | string | `30s` | HTTP timeout for calls to the core services. |
+| `MGW_HTTP_TIMEOUT` | duration (string) | `30s` | HTTP timeout for calls to the core services. |
 
 ### Database
 
@@ -166,10 +166,10 @@ with the runtime and job ids.
 | `DATABASE_NAME` | string | `module_manager` | Database name.                       |
 | `DATABASE_USER` | string | – | Database user.                       |
 | `DATABASE_PASSWORD` | secret (string) | – | Database password.                   |
-| `DATABASE_TIMEOUT` | string | `30s` | Query/connection timeout.            |
+| `DATABASE_TIMEOUT` | duration (string) | `30s` | Query/connection timeout.            |
 | `DATABASE_MAX_OPEN_CONNECTIONS` | int | `25` | Max open connections in the pool.    |
 | `DATABASE_MAX_IDLE_CONNECTIONS` | int | `25` | Max idle connections in the pool.    |
-| `DATABASE_CONNECTION_MAX_LIFETIME` | string | `5m` | Max lifetime of a pooled connection. |
+| `DATABASE_CONNECTION_MAX_LIFETIME` | duration (string) | `5m` | Max lifetime of a pooled connection. |
 
 ### Modules handler
 
@@ -182,15 +182,15 @@ with the runtime and job ids.
 | Env var | Type | Default         | Description |
 |---|---|-----------------|---|
 | `DEPLOYMENTS_HANDLER_WORKDIR_PATH` | string | `./deployments` | Working directory for deployment data. |
-| `DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY` | string | -               | Delay before the runtime monitor starts. |
-| `DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY` | string | `5s`            | Delay between runtime monitor iterations. |
+| `DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY` | duration (string) | -               | Delay before the runtime monitor starts. |
+| `DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY` | duration (string) | `5s`            | Delay between runtime monitor iterations. |
 
 ### Aux deployments handler
 
 | Env var | Type | Default | Description |
 |---|---|---------|---|
-| `AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY` | string | -       | Delay before the aux runtime monitor starts. |
-| `AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY` | string | `5s`    | Delay between aux runtime monitor iterations. |
+| `AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY` | duration (string) | -       | Delay before the aux runtime monitor starts. |
+| `AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY` | duration (string) | `5s`    | Delay between aux runtime monitor iterations. |
 
 ### Host dir repository handler
 
@@ -201,15 +201,15 @@ with the runtime and job ids.
 
 ### GitHub repositories handler
 
-| Env var | Type | Default | Description |
-|---|---|---|---|
-| `GITHUB_HANDLER_BASE_URL` | string | `https://api.github.com` | GitHub API base URL. |
-| `GITHUB_HANDLER_WORKDIR_PATH` | string | `./repositories/github` | Working directory for GitHub repository data. |
-| `GITHUB_HANDLER_HTTP_TIMEOUT` | string | `1m` | HTTP timeout for GitHub API calls. |
+| Env var | Type              | Default | Description |
+|---|-------------------|---|---|
+| `GITHUB_HANDLER_BASE_URL` | string            | `https://api.github.com` | GitHub API base URL. |
+| `GITHUB_HANDLER_WORKDIR_PATH` | string            | `./repositories/github` | Working directory for GitHub repository data. |
+| `GITHUB_HANDLER_HTTP_TIMEOUT` | duration (string) | `1m` | HTTP timeout for GitHub API calls. |
 
 ### Jobs handler
 
 | Env var | Type | Default | Description |
 |---|---|---|---|
-| `JOBS_HANDLER_MAX_JOB_AGE` | string | `24h` | Age after which finished jobs are removed. |
-| `JOBS_HANDLER_CLEANUP_LOOP_DELAY` | string | `5m` | Delay between job cleanup runs. |
+| `JOBS_HANDLER_MAX_JOB_AGE` | duration (string) | `24h` | Age after which finished jobs are removed. |
+| `JOBS_HANDLER_CLEANUP_LOOP_DELAY` | duration (string) | `5m` | Delay between job cleanup runs. |
