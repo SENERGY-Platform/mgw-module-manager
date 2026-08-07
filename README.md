@@ -5,7 +5,7 @@ mgw-module-manager is the central service of the MGW ("multi gateway") edge-gate
 It allows the installation of **modules** — containerized add-on applications.
 
 State is kept in a MySQL database. `lib/` is a separate Go module containing the API
-models and HTTP clients, so other services — and modules can interact with the service.
+models and HTTP clients, so other services, apps and modules can interact with the service.
 
 ## Table of contents
 
