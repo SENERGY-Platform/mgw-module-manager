@@ -271,18 +271,18 @@ sequenceDiagram
 
     Note over C,API: 5. Await job completion
     loop until field "end" has non zero timestamp
-        C->>API: GET /jobs/:JOB_ID
+        C->>API: GET /jobs/{JOB_ID}
         API-->>C: 200<br/>( Job )
     end
-    C->>API: GET /jobs/:JOB_ID
+    C->>API: GET /jobs/{JOB_ID}
     API-->>C: 200<br/>( Job )
 
     Note over C,API: Abort the running job (optional)
-    C->>API: PATCH /jobs/:JOB_ID
+    C->>API: PATCH /jobs/{JOB_ID}
     API-->>C: 200
 
     Note over C,API: 6. Fetch change report
-    C->>API: GET /results/modules-change/:JOB_ID
+    C->>API: GET /results/modules-change/{JOB_ID}
     API-->>C: 200<br/>( ModulesChangeJobResult )
 ```
 
@@ -330,3 +330,50 @@ intent for exactly one module; the service turns the whole array into a single c
 An item can therefore be silently dropped — the preview is the authoritative answer to
 what will actually happen. If all items are dropped, the response contains three empty lists and no
 change request is stored.
+
+### Create Deployment
+
+HTTP interaction between a client and the service HTTP API when creating a deployment.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as Client
+    participant A as module-manager
+
+    Note over C,A: 1. Get modules and their input requirements
+
+    C->>+A: GET deployment-request?module_ids=<csv>
+    alt error
+        A-->>C: 503 - active job<br/>500 - general error<br/>( error message )
+    else selected modules and dependecies
+        A-->>-C: 200 OK<br/>( []Module )
+    end
+
+    Note over C,A: 2. Start deployment creation
+
+    C->>+A: POST deployments<br/>( []DeploymentUserInput )
+    alt error
+        A-->>C: 503 - active job<br/>500 - general error<br/>400 - invalid input<br/>( error message )
+    else accepted
+        A-->>-C: 200 OK<br/>( Job )
+    end
+
+    Note over C,A: 3. Await job completion
+
+    loop until field "end" has non zero timestamp
+        C->>A: GET /jobs/{JOB_ID}
+        A-->>C: 200<br/>( Job )
+    end
+    C->>A: GET /jobs/{JOB_ID}
+    A-->>C: 200<br/>( Job )
+
+    Note over C,A: Abort the running job (optional)
+    C->>A: PATCH /jobs/{JOB_ID}
+    A-->>C: 200
+
+    Note over C,A: 4. Fetch job result
+
+    C->>A: GET results/deployments/{JOB_ID}
+    A-->>C: 200<br/>( DeploymentJobResult )
+```
