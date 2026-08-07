@@ -119,3 +119,97 @@ with the runtime and job ids.
 
 ## Configuration
 
+### Service
+
+| Env var | Type | Default | Description |
+|---|---|---|---|
+| `SERVER_PORT` | uint | `80` | HTTP port the API server listens on. |
+| `MANAGER_ID_PATH` | string | `./service/mid` | File path where the manager's own ID is stored/read. |
+| `CORE_ID` | string | – | ID of the MGW core this manager belongs to. |
+| `MODULE_CONTAINER_NETWORK` | string | – | Container network that module containers are attached to. |
+| `USE_UTC` | bool | `true` | Use UTC for timestamps. |
+| `JOB_POLL_INTERVAL` | string | `500ms` | Interval for polling job state. |
+| `IMAGE_NAME_ESCAPE_DEPTH` | int | `1` | Path-segment depth used when escaping image names. |
+| `HOST_DEPLOYMENTS_PATH` | string | – | Path on the host to the deployments directory (for bind mounts). |
+| `HOST_SECRETS_PATH` | string | – | Path on the host to the secrets directory (for bind mounts). |
+
+### Logger
+
+| Env var | Type | Default                                               | Description |
+|---|---|-------------------------------------------------------|---|
+| `HTTP_ACCESS_LOG` | bool | `false`                                               | Enable HTTP access logging. |
+| `LOGGER_HANDLER` | string | `text`                                                | Log handler/format (`text`, `colored-text`, …). |
+| `LOGGER_LEVEL` | string | `info`                                                | Log level. |
+| `LOGGER_TIME_FORMAT` | string | `RFC3339Nano` (`2006-01-02T15:04:05.999999999Z07:00`) | Timestamp layout. |
+| `LOGGER_TIME_UTC` | bool | `true`                                                | Emit log timestamps in UTC. |
+| `LOGGER_FILE_PATH` | string | –                                                     | Write logs to this file instead of stdout. |
+| `LOGGER_ADD_SOURCE` | bool | -                                                     | Include source file/line in records. |
+| `LOGGER_ADD_META` | bool | -                                                     | Include metadata attributes in records. |
+| `LOGGER_TRIM_FORMAT` | string | –                                                     | Trim spec (e.g. `20:[...]:10`), applied to the log message. |
+| `LOGGER_TRIM_ATTRIBUTES` | string | –                                                     | Comma-separated attribute keys that should also be trimmed. |
+
+### MGW core
+
+| Env var | Type | Default | Description |
+|---|---|---|---|
+| `MGW_CEW_BASE_URL` | string | – | Base URL of the container engine wrapper. |
+| `MGW_CM_BASE_URL` | string | – | Base URL of the core manager. |
+| `MGW_HM_BASE_URL` | string | – | Base URL of the host manager. |
+| `MGW_SM_BASE_URL` | string | – | Base URL of the secret manager. |
+| `MGW_HTTP_TIMEOUT` | string | `30s` | HTTP timeout for calls to the core services. |
+
+### Database
+
+| Env var | Type | Default | Description                          |
+|---|---|---|--------------------------------------|
+| `DATABASE_ADDRESS` | string | – | Database host/address.               |
+| `DATABASE_NAME` | string | `module_manager` | Database name.                       |
+| `DATABASE_USER` | string | – | Database user.                       |
+| `DATABASE_PASSWORD` | secret (string) | – | Database password.                   |
+| `DATABASE_TIMEOUT` | string | `30s` | Query/connection timeout.            |
+| `DATABASE_MAX_OPEN_CONNECTIONS` | int | `25` | Max open connections in the pool.    |
+| `DATABASE_MAX_IDLE_CONNECTIONS` | int | `25` | Max idle connections in the pool.    |
+| `DATABASE_CONNECTION_MAX_LIFETIME` | string | `5m` | Max lifetime of a pooled connection. |
+
+### Modules handler
+
+| Env var | Type | Default | Description |
+|---|---|---|---|
+| `MODULES_HANDLER_WORKDIR_PATH` | string | `./modules` | Working directory for module data. |
+
+### Deployments handler
+
+| Env var | Type | Default         | Description |
+|---|---|-----------------|---|
+| `DEPLOYMENTS_HANDLER_WORKDIR_PATH` | string | `./deployments` | Working directory for deployment data. |
+| `DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY` | string | -               | Delay before the runtime monitor starts. |
+| `DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY` | string | `5s`            | Delay between runtime monitor iterations. |
+
+### Aux deployments handler
+
+| Env var | Type | Default | Description |
+|---|---|---------|---|
+| `AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY` | string | -       | Delay before the aux runtime monitor starts. |
+| `AUX_DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY` | string | `5s`    | Delay between aux runtime monitor iterations. |
+
+### Host dir repository handler
+
+| Env var | Type | Default | Description |
+|---|---|---|---|
+| `HOST_DIR_HANDLER_WORKDIR_PATH` | string | `./repositories/host_dir` | Working directory for the host-dir repository. |
+| `HOST_DIR_HANDLER_PRIORITY` | int | `0` | Priority of this repository relative to others. |
+
+### GitHub repositories handler
+
+| Env var | Type | Default | Description |
+|---|---|---|---|
+| `GITHUB_HANDLER_BASE_URL` | string | `https://api.github.com` | GitHub API base URL. |
+| `GITHUB_HANDLER_WORKDIR_PATH` | string | `./repositories/github` | Working directory for GitHub repository data. |
+| `GITHUB_HANDLER_HTTP_TIMEOUT` | string | `1m` | HTTP timeout for GitHub API calls. |
+
+### Jobs handler
+
+| Env var | Type | Default | Description |
+|---|---|---|---|
+| `JOBS_HANDLER_MAX_JOB_AGE` | string | `24h` | Age after which finished jobs are removed. |
+| `JOBS_HANDLER_CLEANUP_LOOP_DELAY` | string | `5m` | Delay between job cleanup runs. |
