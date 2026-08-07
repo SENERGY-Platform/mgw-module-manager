@@ -11,9 +11,9 @@ models and HTTP clients, so other services, apps and modules can interact with t
 
 - [Service interactions](#service-interactions)
 - [Concepts](#concepts)
-- [HTTP API](#http-api)
 - [Architecture](#architecture)
 - [Configuration](#configuration)
+- [HTTP API](#http-api)
 
 ## Service interactions
 
@@ -104,18 +104,6 @@ cached and removed once they exceed the configured maximum age.
 Two handlers — one for deployments, one for auxiliary deployments — compare the desired
 state in the database with the actual container state reported by CEW and start or
 stop containers accordingly.
-
-## HTTP API
-
-| Set | Mounted at | Audience                                                                                                                          |
-| --- | --- |-----------------------------------------------------------------------------------------------------------------------------------|
-| standard | `/` | management surface for the UI and external apps: modules, repositories, deployments, global configs, change requests, job results |
-| restricted | `/restricted` | calls coming from module containers: auxiliary deployments and advertisements                                                     |
-| shared | both | read access to auxiliary deployments and advertisements, jobs, health, service info                                               |
-
-Every response carries `X-Core-Id`, `X-Manager-Id`, `X-Runtime-Id`, `X-Version` and `X-Service`
-headers; `X-Request-Id` is honoured or generated and threaded through the structured logs together
-with the runtime and job ids.
 
 ## Configuration
 
@@ -213,3 +201,132 @@ with the runtime and job ids.
 |---|---|---|---|
 | `JOBS_HANDLER_MAX_JOB_AGE` | duration (string) | `24h` | Age after which finished jobs are removed. |
 | `JOBS_HANDLER_CLEANUP_LOOP_DELAY` | duration (string) | `5m` | Delay between job cleanup runs. |
+
+## HTTP API
+
+| Set | Mounted at | Audience                                                                                                                          |
+| --- | --- |-----------------------------------------------------------------------------------------------------------------------------------|
+| standard | `/` | management surface for the UI and external apps: modules, repositories, deployments, global configs, change requests, job results |
+| restricted | `/restricted` | calls coming from module containers: auxiliary deployments and advertisements                                                     |
+| shared | both | read access to auxiliary deployments and advertisements, jobs, health, service info                                               |
+
+Every response carries `X-Core-Id`, `X-Manager-Id`, `X-Runtime-Id`, `X-Version` and `X-Service`
+headers; `X-Request-Id` is honoured or generated and threaded through the structured logs together
+with the runtime and job ids.
+
+### Creating and Executing a Modules Change Request
+
+HTTP interaction between a client and the service API. The pending change request is a singleton on the
+service: `POST` creates or replaces it, `PATCH` executes and clears it, `DELETE` discards it.
+
+The request type is determined by the `ChangeRequestItem` fields in the `POST` body:
+
+| Intent       | Request item                                  | Preview list populated |
+|--------------|-----------------------------------------------|------------------------|
+| install/change | `{"id": ..., "source": ..., "channel": ...}`  | `install`/`change`             |
+| update       | `{"id": ..., "update": true}`                 | `change`               |
+| delete       | `{"id": ..., "remove": true}`                 | `remove`               |
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as Client
+    participant API as module-manager
+
+    Note over C,API: 1. Create change request
+    alt install / change / update / delete
+        C->>API: POST /modules-change-request<br/>( []ChangeRequestItem )
+    else update all installed modules
+        C->>API: POST /modules-change-request?update_all=true<br/>(no body)
+    end
+    alt error
+        API-->>C: 503 - active job<br/>500 - general error<br/>400 - invalid or duplicate request items<br/>( error message )
+    else accepted
+        API-->>C: 200<br/>( ModulesChangeRequest )
+    end
+
+    Note over C,API: 2. Review pending change request (optional)
+    C->>API: GET /modules-change-request
+    alt none pending
+        API-->>C: 404<br/>( error message )
+    else
+        API-->>C: 200<br/>( ModulesChangeRequest )
+    end
+
+    Note over C,API: 3. Discard instead of executing (optional)
+    C->>API: DELETE /modules-change-request
+    alt none pending
+        API-->>C: 404<br/>( error message )
+    else
+        API-->>C: 200
+    end
+
+    Note over C,API: 4. Execute
+    C->>API: PATCH /modules-change-request
+    alt error
+        API-->>C: 503 - active job<br/>500 - general error<br/>404 - none pending<br/>( error message )
+    else started
+        API-->>C: 200<br/>( Job )
+    end
+
+    Note over C,API: 5. Await job completion
+    loop until field "end" has non zero timestamp
+        C->>API: GET /jobs/:JOB_ID
+        API-->>C: 200<br/>( Job )
+    end
+    C->>API: GET /jobs/:JOB_ID
+    API-->>C: 200<br/>( Job )
+
+    Note over C,API: Abort the running job (optional)
+    C->>API: PATCH /jobs/:JOB_ID
+    API-->>C: 200
+
+    Note over C,API: 6. Fetch change report
+    C->>API: GET /results/modules-change/:JOB_ID
+    API-->>C: 200<br/>( ModulesChangeJobResult )
+```
+
+Per-module failures are reported in `failed` — the job itself still completes successfully. A module is
+only removed while it is not deployed, so its deployment must be deleted before a `remove` item can succeed.
+
+#### The `ChangeRequestItem`
+
+The body of `POST /modules-change-request` is a JSON array of `ChangeRequestItem`. One item describes the
+intent for exactly one module; the service turns the whole array into a single change request preview.
+
+```json
+{
+  "id": "github.com/acme/mod-a",
+  "source": "github.com/acme/repository",
+  "channel": "main",
+  "remove": false,
+  "update": false
+}
+```
+
+| Field | Type | Meaning |
+|-------|------|---------|
+| `id` | string | Module ID the item refers to. Used to look the module up in the repositories (install) or among the installed modules (update, remove). |
+| `source` | string | Repository source the module is taken from. Only evaluated when neither `update` nor `remove` is set. |
+| `channel` | string | Repository channel the module is taken from. Only evaluated when neither `update` nor `remove` is set. |
+| `remove` | bool | Uninstall the module. `source` and `channel` are ignored. |
+| `update` | bool | Update the module in place. `source` and `channel` are taken from the installed module and any values sent are ignored. |
+
+`remove` and `update` are the two mode flags; leaving both unset selects the third mode, install/change, which is the only mode that reads `source` and `channel`.
+
+##### How an item is processed
+
+1. **Validation**: rejects illegal combinations and conflicting duplicates.
+   The whole request fails; nothing is stored.
+2. **Repository selection**: `remove` items are skipped entirely. Dependencies of
+   every selected module are resolved and added to the request automatically, first from the
+   highest-priority repository and channel, then from the origin repository and channel of the
+   selecting module.
+3. **Classification for preview**: each selected module becomes an `install` entry (not
+   installed yet), a `change` entry (installed, but with a different source, channel or version), or is
+   dropped (installed with the identical variant and version). `remove` entries are kept only if the module
+   is actually installed and is not also selected for install or change.
+
+An item can therefore be silently dropped — the preview is the authoritative answer to
+what will actually happen. If all items are dropped, the response contains three empty lists and no
+change request is stored.
