@@ -314,7 +314,7 @@ intent for exactly one module; the service turns the whole array into a single c
 
 `remove` and `update` are the two mode flags; leaving both unset selects the third mode, install/change, which is the only mode that reads `source` and `channel`.
 
-##### How an item is processed
+#### How an item is processed
 
 1. **Validation**: rejects illegal combinations and conflicting duplicates.
    The whole request fails; nothing is stored.
