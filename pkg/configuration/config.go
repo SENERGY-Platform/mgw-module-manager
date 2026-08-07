@@ -24,7 +24,6 @@ import (
 	sb_config_hdl "github.com/SENERGY-Platform/go-service-base/config-hdl"
 	sb_config_types "github.com/SENERGY-Platform/go-service-base/config-hdl/types"
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
-	helper_sql_db "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/sql_db"
 )
 
 type MgwCoreConfig struct {
@@ -35,7 +34,6 @@ type MgwCoreConfig struct {
 	Timeout    sb_config_types.Duration `json:"timeout" env_var:"MGW_HTTP_TIMEOUT"`
 }
 
-type SqlConfig = helper_sql_db.Config
 type DatabaseConfig struct {
 	Address               string                   `json:"address" env_var:"DATABASE_ADDRESS"`
 	Database              string                   `json:"database" env_var:"DATABASE_NAME"`
