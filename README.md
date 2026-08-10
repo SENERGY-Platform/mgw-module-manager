@@ -231,59 +231,59 @@ The request type is determined by the `ChangeRequestItem` fields in the `POST` b
 sequenceDiagram
     autonumber
     actor C as Client
-    participant API as module-manager
+    participant A as module-manager
 
-    Note over C,API: 1. Create change request
+    Note over C,A: 1. Create change request
     alt install / change / update / delete
-        C->>API: POST /modules-change-request<br/>( []ChangeRequestItem )
+        C->>A: m=POST, p="/modules-change-request", b=[]ChangeRequestItem
     else update all installed modules
-        C->>API: POST /modules-change-request?update_all=true<br/>(no body)
+        C->>A: m=POST, p="/modules-change-request?update_all=true"
     end
     alt error
-        API-->>C: 503 - active job<br/>500 - general error<br/>400 - invalid or duplicate request items<br/>( error message )
+        A-->>C: s=503(active job)|500(general error)|400(invalid or duplicate request items), b="error message"
     else accepted
-        API-->>C: 200<br/>( ModulesChangeRequest )
+        A-->>C: s=200, b=ModulesChangeRequest
     end
 
-    Note over C,API: 2. Review pending change request (optional)
-    C->>API: GET /modules-change-request
+    Note over C,A: 2. Review pending change request (optional)
+    C->>A: m=GET, p="/modules-change-request"
     alt none pending
-        API-->>C: 404<br/>( error message )
+        A-->>C: s=404, b="error message"
     else
-        API-->>C: 200<br/>( ModulesChangeRequest )
+        A-->>C: s=200, b=ModulesChangeRequest
     end
 
-    Note over C,API: 3. Discard instead of executing (optional)
-    C->>API: DELETE /modules-change-request
+    Note over C,A: 3. Discard instead of executing (optional)
+    C->>A: m=DELETE, p="/modules-change-request"
     alt none pending
-        API-->>C: 404<br/>( error message )
+        A-->>C: s=404, b="error message"
     else
-        API-->>C: 200
+        A-->>C: s=200
     end
 
-    Note over C,API: 4. Execute
-    C->>API: PATCH /modules-change-request
+    Note over C,A: 4. Execute
+    C->>A: m=PATCH, p="/modules-change-request"
     alt error
-        API-->>C: 503 - active job<br/>500 - general error<br/>404 - none pending<br/>( error message )
+        A-->>C: s=503(active job)|500(general error)|404(none pending), b="error message"
     else started
-        API-->>C: 200<br/>( Job )
+        A-->>C: s=200, b=Job
     end
 
-    Note over C,API: 5. Await job completion
+    Note over C,A: 5. Await job completion
     loop until field "end" has non zero timestamp
-        C->>API: GET /jobs/{JOB_ID}
-        API-->>C: 200<br/>( Job )
+        C->>A: m=GET, p="/jobs/:JOB_ID"
+        A-->>C: s=200, b=Job
     end
-    C->>API: GET /jobs/{JOB_ID}
-    API-->>C: 200<br/>( Job )
+    C->>A: m=GET, p="/jobs/:JOB_ID"
+    A-->>C: s=200, b=Job
 
-    Note over C,API: Abort the running job (optional)
-    C->>API: PATCH /jobs/{JOB_ID}
-    API-->>C: 200
+    Note over C,A: Abort the running job (optional)
+    C->>A: m=PATCH, p="/jobs/:JOB_ID"
+    A-->>C: s=200
 
-    Note over C,API: 6. Fetch change report
-    C->>API: GET /results/modules-change/{JOB_ID}
-    API-->>C: 200<br/>( ModulesChangeJobResult )
+    Note over C,A: 6. Fetch change report
+    C->>A: m=GET, p="/results/modules-change/:JOB_ID"
+    A-->>C: s=200, b=ModulesChangeJobResult
 ```
 
 Per-module failures are reported in `failed` — the job itself still completes successfully. A module is
