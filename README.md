@@ -341,39 +341,39 @@ sequenceDiagram
     actor C as Client
     participant A as module-manager
 
-    Note over C,A: 1. Get modules and their input requirements
+    Note over C,A: 1. Get modules and dependencies
 
-    C->>+A: GET deployment-request?module_ids=<csv>
+    C->>+A: m=GET, p="/deployment-request?module_ids=<csv>"
     alt error
-        A-->>C: 503 - active job<br/>500 - general error<br/>( error message )
-    else selected modules and dependecies
-        A-->>-C: 200 OK<br/>( []Module )
+        A-->>C: s=503(active job)|500(general error), b="error message"
+    else modules
+        A-->>C: s=200, b=[]Module
     end
 
     Note over C,A: 2. Start deployment creation
 
-    C->>+A: POST deployments<br/>( []DeploymentUserInput )
+    C->>+A: m=POST, p="/deployments", b=[]DeploymentUserInput
     alt error
-        A-->>C: 503 - active job<br/>500 - general error<br/>400 - invalid input<br/>( error message )
+        A-->>C: s=503(active job)|500(general error)|400(invalid input), b="error message"
     else accepted
-        A-->>-C: 200 OK<br/>( Job )
+        A-->>C: s=200, b=Job
     end
 
     Note over C,A: 3. Await job completion
 
     loop until field "end" has non zero timestamp
-        C->>A: GET /jobs/{JOB_ID}
-        A-->>C: 200<br/>( Job )
+        C->>A: m=GET, p="/jobs/:JOB_ID"
+        A-->>C: s=200, b=Job
     end
-    C->>A: GET /jobs/{JOB_ID}
-    A-->>C: 200<br/>( Job )
+    C->>A: m=GET, p="/jobs/:JOB_ID"
+    A-->>C: s=200, b=Job
 
     Note over C,A: Abort the running job (optional)
-    C->>A: PATCH /jobs/{JOB_ID}
-    A-->>C: 200
+    C->>A: m=PATCH, p="/jobs/:JOB_ID"
+    A-->>C: s=200
 
     Note over C,A: 4. Fetch job result
 
-    C->>A: GET results/deployments/{JOB_ID}
-    A-->>C: 200<br/>( DeploymentJobResult )
+    C->>A: m=GET, p="/results/deployments/:JOB_ID"
+    A-->>C: s=200, b=DeploymentJobResult
 ```
