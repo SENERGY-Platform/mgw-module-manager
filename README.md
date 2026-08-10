@@ -377,3 +377,59 @@ sequenceDiagram
     C->>A: m=GET, p="/results/deployments/:JOB_ID"
     A-->>C: s=200, b=DeploymentJobResult
 ```
+
+### Update Deployment
+
+HTTP interaction between a client and the service HTTP API when updating a deployment.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as Client
+    participant A as Service HTTP API
+
+    Note over C,A: 1. Get modules
+ 
+    alt
+        C->>+A: m=GET, p="/modules?ids=<csv>"
+        alt error
+            A-->>C: s=503(active job)|500(general error), b="error message"
+        else modules
+            A-->>C: s=200, b=[]Module
+        end
+    else single module    
+        C->>A: m=GET, p="/modules/:MOD_ID"
+        alt error
+            A-->>C: s=503(active job)|500(general error)|404(not found), b="error message"
+        else module
+            A-->>C: s=200, b=Module
+        end
+    end
+
+    Note over C,A: 2. Start deployment update
+
+    C->>+A: m=PUT, p="/deployments", b=[]DeploymentUserInput
+    alt error
+        A-->>C: s=503(active job)|500(general error)|400(invalid input), b="error message"
+    else accepted
+        A-->>C: s=200, b=Job
+    end
+
+    Note over C,A: 3. Await job completion
+
+    loop until field "end" has non zero timestamp
+        C->>A: m=GET, p="/jobs/:JOB_ID"
+        A-->>C: s=200, b=Job
+    end
+    C->>A: m=GET, p="/jobs/:JOB_ID"
+    A-->>C: s=200, b=Job
+
+    Note over C,A: Abort the running job (optional)
+    C->>A: m=PATCH, p="/jobs/:JOB_ID"
+    A-->>C: s=200
+
+    Note over C,A: 5. Fetch job result
+
+    C->>+A: m=GET p="/results/deployments-update/:JOB_ID"
+    A-->>C: s=200, b=DeploymentUpdateJobResult
+```
