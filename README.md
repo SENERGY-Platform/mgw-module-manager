@@ -341,7 +341,7 @@ sequenceDiagram
     actor C as Client
     participant A as module-manager
 
-    Note over C,A: 1. Get modules and dependencies
+    Note over C,A: 1. Get modules
 
     C->>+A: m=GET, p="/deployment-request?module_ids=<csv>"
     alt error
