@@ -51,6 +51,21 @@ func getModulesFilter(gc *gin.Context) (lib_models.ModulesFilter, error) {
 	}, nil
 }
 
+func GetReducedModules(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodGet, lib_constants.HttpPathReducedModulesCollection, func(gc *gin.Context) {
+		filter, err := getModulesFilter(gc)
+		if err != nil {
+			return
+		}
+		res, err := srv.GetReducedModules(gc, filter)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, res)
+	}
+}
+
 func GetModules(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathModulesCollection, func(gc *gin.Context) {
 		filter, err := getModulesFilter(gc)

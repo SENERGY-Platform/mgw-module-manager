@@ -30,8 +30,9 @@ import (
 )
 
 var standardApiHandlers = []handlerFunc[*service.Service]{
-	handlers.GetModule,
 	handlers.GetModules,
+	handlers.GetModule,
+	handlers.GetReducedModules,
 	handlers.GetModulesChangeRequest,
 	handlers.CreateModulesChangeRequest,
 	handlers.ExecModulesChangeRequest,

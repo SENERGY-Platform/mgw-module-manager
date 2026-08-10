@@ -33,7 +33,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/models/constants/slog_keys"
 )
 
-func (s *Service) GetModules(ctx context.Context, filter lib_models.ModulesFilter) ([]lib_models.ModuleReduced, error) {
+func (s *Service) GetReducedModules(ctx context.Context, filter lib_models.ModulesFilter) ([]lib_models.ModuleReduced, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(moduleJobSlotNum)
@@ -62,6 +62,37 @@ func (s *Service) GetModules(ctx context.Context, filter lib_models.ModulesFilte
 		return nil, err
 	}
 	return getModulesReduced(modules, deployments, filter), nil
+}
+
+func (s *Service) GetModules(ctx context.Context, filter lib_models.ModulesFilter) ([]lib_models.Module, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	currentJob, ok := s.jobsHandler.CurrentSlotJob(moduleJobSlotNum)
+	if ok {
+		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
+	}
+	modules, err := s.modulesHandler.GetModules(
+		ctx,
+		pkg_models.ModulesFilterWithName{
+			ModulesFilter: pkg_models.ModulesFilter{
+				Ids: filter.Ids,
+			},
+			Name: filter.Name,
+		},
+		false,
+	)
+	if err != nil {
+		return nil, err
+	}
+	deployments, err := s.deploymentsHandler.GetDeploymentsByModuleIds(ctx, pkg_models.DeploymentsFilterWithState{
+		DeploymentsFilter: pkg_models.DeploymentsFilter{
+			ModuleIds: slices.Collect(maps.Keys(modules)),
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return getModules(modules, deployments, filter), nil
 }
 
 func (s *Service) GetModule(ctx context.Context, id string) (lib_models.Module, error) {
@@ -429,24 +460,7 @@ func getModulesReduced(
 	var modules []lib_models.ModuleReduced
 	for moduleId, module := range handlerModules {
 		deployment, ok := handlerDeployments[moduleId]
-		if ok {
-			if filter.DeploymentEnabled < 0 && deployment.Enabled {
-				continue
-			}
-			if filter.DeploymentEnabled > 0 && !deployment.Enabled {
-				continue
-			}
-		}
-		if filter.IsDeployed < 0 && ok {
-			continue
-		}
-		if filter.IsDeployed > 0 && !ok {
-			continue
-		}
-		if filter.DeploymentState > 0 && deployment.State != filter.DeploymentState {
-			continue
-		}
-		if filter.Author != "" && module.Author != filter.Author {
+		if filterExcludeModule(filter, module.Author, ok, deployment.Enabled, deployment.State) {
 			continue
 		}
 		mod := lib_models.ModuleReduced{
@@ -471,6 +485,28 @@ func getModulesReduced(
 				State:         deployment.State,
 			},
 		}
+		if module.Err != nil {
+			mod.ErrorResult = lib_models.NewErrorResult(module.Err.Error())
+		}
+		if deployment.Err != nil {
+			mod.Deployment.ErrorResult = lib_models.NewErrorResult(deployment.Err.Error())
+		}
+		modules = append(modules, mod)
+	}
+	return modules
+}
+
+func getModules(
+	handlerModules map[string]pkg_models.Module,
+	handlerDeployments map[string]pkg_models.Deployment,
+	filter lib_models.ModulesFilter) []lib_models.Module {
+	var modules []lib_models.Module
+	for moduleId, module := range handlerModules {
+		deployment, ok := handlerDeployments[moduleId]
+		if filterExcludeModule(filter, module.Author, ok, deployment.Enabled, deployment.State) {
+			continue
+		}
+		mod := getModule(module, deployment)
 		if module.Err != nil {
 			mod.ErrorResult = lib_models.NewErrorResult(module.Err.Error())
 		}
@@ -592,4 +628,28 @@ func getModule(module pkg_models.Module, deployment pkg_models.Deployment) lib_m
 		mod.Deployment.ErrorResult = lib_models.NewErrorResult(deployment.Err.Error())
 	}
 	return mod
+}
+
+func filterExcludeModule(filter lib_models.ModulesFilter, moduleAuthor string, isDeployed, deploymentEnabled bool, deploymentState int) bool {
+	if isDeployed {
+		if filter.DeploymentEnabled < 0 && deploymentEnabled {
+			return true
+		}
+		if filter.DeploymentEnabled > 0 && !deploymentEnabled {
+			return true
+		}
+	}
+	if filter.IsDeployed < 0 && isDeployed {
+		return true
+	}
+	if filter.IsDeployed > 0 && !isDeployed {
+		return true
+	}
+	if filter.DeploymentState > 0 && deploymentState != filter.DeploymentState {
+		return true
+	}
+	if filter.Author != "" && moduleAuthor != filter.Author {
+		return true
+	}
+	return false
 }

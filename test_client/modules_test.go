@@ -23,6 +23,17 @@ import (
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 )
 
+func TestGetReducedModules(t *testing.T) {
+	modules, err := client.GetReducedModules(
+		t.Context(),
+		lib_models.ModulesFilter{},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeToJson(t.Name(), modules)
+}
+
 func TestGetModules(t *testing.T) {
 	modules, err := client.GetModules(
 		t.Context(),

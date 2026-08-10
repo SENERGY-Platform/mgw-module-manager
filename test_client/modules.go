@@ -55,8 +55,8 @@ func appendModulesFilterQuery(u string, filter lib_models.ModulesFilter) string 
 	return u
 }
 
-func (c *Client) GetModules(ctx context.Context, filter lib_models.ModulesFilter) ([]lib_models.ModuleReduced, error) {
-	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathModulesCollection))
+func (c *Client) GetReducedModules(ctx context.Context, filter lib_models.ModulesFilter) ([]lib_models.ModuleReduced, error) {
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathReducedModulesCollection))
 	if err != nil {
 		return nil, err
 	}
@@ -65,6 +65,23 @@ func (c *Client) GetModules(ctx context.Context, filter lib_models.ModulesFilter
 		return nil, err
 	}
 	var res []lib_models.ModuleReduced
+	err = doJson(c, req, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (c *Client) GetModules(ctx context.Context, filter lib_models.ModulesFilter) ([]lib_models.Module, error) {
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathModulesCollection))
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, appendModulesFilterQuery(u, filter), nil)
+	if err != nil {
+		return nil, err
+	}
+	var res []lib_models.Module
 	err = doJson(c, req, &res)
 	if err != nil {
 		return nil, err

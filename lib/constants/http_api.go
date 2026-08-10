@@ -17,6 +17,7 @@
 package constants
 
 const (
+	HttpPathReducedModulesCollection             = "modules-reduced"
 	HttpPathModulesCollection                    = "modules"
 	HttpPathModuleResource                       = "modules/:MOD_ID"
 	HttpPathModulesChangeRequestResource         = "modules-change-request"
