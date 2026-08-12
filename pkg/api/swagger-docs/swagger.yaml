@@ -1,0 +1,11 @@
+basePath: /
+info:
+  contact: {}
+  description: Central service of the MGW ("multi gateway") edge-gateway stack.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: module-manager API
+  version: dev
+paths: {}
+swagger: "2.0"

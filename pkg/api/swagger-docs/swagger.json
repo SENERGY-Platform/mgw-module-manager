@@ -1,0 +1,15 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Central service of the MGW (\"multi gateway\") edge-gateway stack.",
+        "title": "module-manager API",
+        "contact": {},
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "dev"
+    },
+    "basePath": "/",
+    "paths": {}
+}

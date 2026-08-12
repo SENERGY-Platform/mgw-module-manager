@@ -22,11 +22,19 @@ import (
 	gin_mw "github.com/SENERGY-Platform/gin-middleware"
 	sb_slog_attributes "github.com/SENERGY-Platform/go-service-base/struct-logger/attributes"
 	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
+	swagger_docs "github.com/SENERGY-Platform/mgw-module-manager/pkg/api/swagger-docs"
 	helper_naming "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/naming"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 )
+
+//	@title			module-manager API
+//  @version        dev
+//	@description	Central service of the MGW ("multi gateway") edge-gateway stack.
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+//	@BasePath	/
 
 func init() {
 	gin.SetMode(gin.ReleaseMode)
@@ -75,6 +83,7 @@ func CreateHandler(srv *service.Service, srvName, srvVersion string, accessLog b
 	if err != nil {
 		return nil, err
 	}
+	swagger_docs.SwaggerInfo.Version = srvVersion
 	return ginEngine, nil
 }
 

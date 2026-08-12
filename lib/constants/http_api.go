@@ -69,6 +69,8 @@ const (
 	HttpPathServiceHealthResource       = "health/service"
 
 	HttpPathServiceInfoResource = "info"
+
+	HttpPathSwaggerDoc = "swagger/*any"
 )
 
 const (
