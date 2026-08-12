@@ -20,10 +20,19 @@ import (
 	"net/http"
 
 	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
+	_ "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary		Get service info
+// @Description	Get information about the service such as name, version and uptime.
+// @Tags		info
+// @Produce		json
+// @Success		200	{object}	models.ServiceInfo	"service info"
+// @Failure		500	{string}	string	"error message"
+// @Router		/info [get]
+// @Router		/restricted/info [get]
 func ServiceInfo(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathServiceInfoResource, func(gc *gin.Context) {
 		gc.JSON(http.StatusOK, srv.ServiceInfo())

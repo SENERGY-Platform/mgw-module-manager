@@ -51,6 +51,22 @@ func getModulesFilter(gc *gin.Context) (lib_models.ModulesFilter, error) {
 	}, nil
 }
 
+// @Summary		Get reduced modules
+// @Description	Get installed modules with a reduced set of fields.
+// @Tags		modules
+// @Produce		json
+// @Param		ids	query	[]string	false	"filter by module IDs"	collectionFormat(csv)
+// @Param		name	query	string	false	"filter by module name"
+// @Param		tags	query	[]string	false	"filter by module tags"	collectionFormat(csv)
+// @Param		author	query	string	false	"filter by module author"
+// @Param		is_deployed	query	int	false	"filter by deployment existence"
+// @Param		deployment_enabled	query	int	false	"filter by deployment enabled state"
+// @Param		deployment_state	query	int	false	"filter by deployment state"
+// @Success		200	{array}	lib_models.ModuleReduced	"reduced modules"
+// @Failure		400	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/modules-reduced [get]
 func GetReducedModules(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathReducedModulesCollection, func(gc *gin.Context) {
 		filter, err := getModulesFilter(gc)
@@ -66,6 +82,22 @@ func GetReducedModules(srv *service.Service) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// @Summary		Get modules
+// @Description	Get installed modules.
+// @Tags		modules
+// @Produce		json
+// @Param		ids	query	[]string	false	"filter by module IDs"	collectionFormat(csv)
+// @Param		name	query	string	false	"filter by module name"
+// @Param		tags	query	[]string	false	"filter by module tags"	collectionFormat(csv)
+// @Param		author	query	string	false	"filter by module author"
+// @Param		is_deployed	query	int	false	"filter by deployment existence"
+// @Param		deployment_enabled	query	int	false	"filter by deployment enabled state"
+// @Param		deployment_state	query	int	false	"filter by deployment state"
+// @Success		200	{array}	lib_models.Module	"modules"
+// @Failure		400	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/modules [get]
 func GetModules(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathModulesCollection, func(gc *gin.Context) {
 		filter, err := getModulesFilter(gc)
@@ -81,6 +113,16 @@ func GetModules(srv *service.Service) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// @Summary		Get module
+// @Description	Get a single installed module by its ID.
+// @Tags		modules
+// @Produce		json
+// @Param		MOD_ID	path	string	true	"module ID"
+// @Success		200	{object}	lib_models.Module	"module"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/modules/{MOD_ID} [get]
 func GetModule(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathModuleResource, func(gc *gin.Context) {
 		res, err := srv.GetModule(gc, gc.Param("MOD_ID"))
@@ -92,6 +134,14 @@ func GetModule(srv *service.Service) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// @Summary		Get modules change request
+// @Description	Get the currently pending modules change request.
+// @Tags		modules
+// @Produce		json
+// @Success		200	{object}	lib_models.ModulesChangeRequest	"modules change request"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/modules-change-request [get]
 func GetModulesChangeRequest(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathModulesChangeRequestResource, func(gc *gin.Context) {
 		res, err := srv.GetModulesChangeRequest(gc)
@@ -103,6 +153,19 @@ func GetModulesChangeRequest(srv *service.Service) (string, string, gin.HandlerF
 	}
 }
 
+// @Summary		Create modules change request
+// @Description	Create a modules change request for the given items or, if update_all is set, for all available module updates.
+// @Tags		modules
+// @Accept		json
+// @Produce		json
+// @Param		update_all	query	bool	false	"create a change request for all available module updates"
+// @Param		request	body	[]lib_models.ChangeRequestItem	false	"change request items (ignored if update_all is set)"
+// @Success		200	{object}	lib_models.ModulesChangeRequest	"modules change request"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/modules-change-request [post]
 func CreateModulesChangeRequest(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_constants.HttpPathModulesChangeRequestResource, func(gc *gin.Context) {
 		var query struct {
@@ -131,6 +194,15 @@ func CreateModulesChangeRequest(srv *service.Service) (string, string, gin.Handl
 	}
 }
 
+// @Summary		Execute modules change request
+// @Description	Execute the currently pending modules change request as a job.
+// @Tags		modules
+// @Produce		json
+// @Success		200	{object}	lib_models.Job	"job"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/modules-change-request [patch]
 func ExecModulesChangeRequest(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, lib_constants.HttpPathModulesChangeRequestResource, func(gc *gin.Context) {
 		res, err := srv.ExecModulesChangeRequest(gc)
@@ -142,6 +214,14 @@ func ExecModulesChangeRequest(srv *service.Service) (string, string, gin.Handler
 	}
 }
 
+// @Summary		Cancel modules change request
+// @Description	Discard the currently pending modules change request.
+// @Tags		modules
+// @Produce		plain
+// @Success		200	"modules change request canceled"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/modules-change-request [delete]
 func CancelModulesChangeRequest(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, lib_constants.HttpPathModulesChangeRequestResource, func(gc *gin.Context) {
 		err := srv.CancelModulesChangeRequest(gc)
@@ -153,6 +233,14 @@ func CancelModulesChangeRequest(srv *service.Service) (string, string, gin.Handl
 	}
 }
 
+// @Summary		Get modules available updates count
+// @Description	Get the number of installed modules for which an update is available.
+// @Tags		modules
+// @Produce		json
+// @Success		200	{integer}	int	"number of available module updates"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/modules-available-updates [get]
 func GetModulesAvailableUpdatesCount(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathModulesAvailableUpdatesCountResource, func(gc *gin.Context) {
 		res, err := srv.GetModulesAvailableUpdatesCount(gc)

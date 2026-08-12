@@ -45,6 +45,17 @@ func getRepositoriesRefreshFilter(gc *gin.Context) (lib_models.RepositoriesRefre
 	}, nil
 }
 
+// @Summary		Refresh repositories
+// @Description	Refresh all repositories or only the repositories matching the given filter as a job.
+// @Tags		repositories
+// @Produce		json
+// @Param		types	query	[]string	false	"filter by repository types"	collectionFormat(csv)
+// @Param		sources	query	[]string	false	"filter by repository sources"	collectionFormat(csv)
+// @Success		200	{object}	lib_models.Job	"job"
+// @Failure		400	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/repositories [patch]
 func RefreshRepositories(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPatch, lib_constants.HttpPathRepositoriesCollection, func(gc *gin.Context) {
 		filter, err := getRepositoriesRefreshFilter(gc)
@@ -60,6 +71,14 @@ func RefreshRepositories(srv *service.Service) (string, string, gin.HandlerFunc)
 	}
 }
 
+// @Summary		Get repositories
+// @Description	Get all configured module repositories.
+// @Tags		repositories
+// @Produce		json
+// @Success		200	{array}	lib_models.Repository	"repositories"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/repositories [get]
 func GetRepositories(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathRepositoriesCollection, func(gc *gin.Context) {
 		res, err := srv.GetRepositories(gc)
@@ -71,6 +90,18 @@ func GetRepositories(srv *service.Service) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// @Summary		Create repository
+// @Description	Create a module repository of the given type. The request body is passed to the repository type handler.
+// @Tags		repositories
+// @Accept		json
+// @Produce		plain
+// @Param		type	query	string	true	"repository type"
+// @Param		request	body	string	true	"repository source definition"
+// @Success		200	"repository created"
+// @Failure		400	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/repositories [post]
 func CreateRepository(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_constants.HttpPathRepositoriesCollection, func(gc *gin.Context) {
 		var query struct {
@@ -95,6 +126,16 @@ func CreateRepository(srv *service.Service) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// @Summary		Delete repository
+// @Description	Delete a module repository by its source.
+// @Tags		repositories
+// @Produce		plain
+// @Param		SOURCE	path	string	true	"repository source"
+// @Success		200	"repository deleted"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/repositories/{SOURCE} [delete]
 func DeleteRepository(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, lib_constants.HttpPathRepositoryResource, func(gc *gin.Context) {
 		err := srv.DeleteRepository(gc, gc.Param("SOURCE"))
@@ -155,6 +196,21 @@ func getRepositoryFilter(sources, sourceChannels []string) ([]lib_models.RepoMod
 	return repositoryFilter, nil
 }
 
+// @Summary		Get repository modules
+// @Description	Get the modules provided by the configured repositories.
+// @Tags		repositories
+// @Produce		json
+// @Param		ids	query	[]string	false	"filter by module IDs"	collectionFormat(csv)
+// @Param		name	query	string	false	"filter by module name"
+// @Param		repositories	query	[]string	false	"filter by repository sources"	collectionFormat(csv)
+// @Param		repository_channels	query	[]string	false	"filter by repository channels, item format: source|channel"	collectionFormat(csv)
+// @Param		installed	query	bool	false	"only return installed modules"
+// @Param		update_available	query	bool	false	"only return modules with an available update"
+// @Success		200	{array}	lib_models.RepoModule	"repository modules"
+// @Failure		400	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/repository-modules [get]
 func GetRepositoryModules(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathRepositoryModulesCollection, func(gc *gin.Context) {
 		filter, err := getGetRepositoryModulesFilter(gc)

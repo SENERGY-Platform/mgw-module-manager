@@ -28,6 +28,15 @@ import (
 	_ "github.com/SENERGY-Platform/mgw-module-manager/pkg/api/swagger-docs"
 )
 
+// @Summary		Get swagger documentation
+// @Description	Serve the swagger UI and the generated OpenAPI documentation of this API.
+// @Tags		swagger
+// @Produce		html
+// @Param		any	path	string	true	"swagger UI resource"
+// @Success		200	{string}	string	"swagger UI resource"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/swagger/{any} [get]
 func SwaggerDoc(_ *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathSwaggerDoc, ginSwagger.WrapHandler(swaggerFiles.Handler)
 }

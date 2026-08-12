@@ -26,6 +26,13 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
+// @Summary		Get service health
+// @Description	Check whether the service and its dependencies are operational.
+// @Tags		health
+// @Produce		plain
+// @Success		200	"service is healthy"
+// @Failure		500	{string}	string	"error message"
+// @Router		/health/service [get]
 func ServiceHealth(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathServiceHealthResource, func(gc *gin.Context) {
 		err := srv.ServiceHealth(gc)
@@ -60,6 +67,22 @@ func getDeploymentsHealthFilter(gc *gin.Context) (lib_models.DeploymentsHealthIn
 	}, nil
 }
 
+// @Summary		Get deployments health
+// @Description	Get health information of deployments and their auxiliary deployments.
+// @Tags			health
+// @Produce		json
+// @Param			module_ids	query	[]string	false	"filter by module IDs"	collectionFormat(csv)
+// @Param			excl_module_ids	query	[]string	false	"exclude module IDs"	collectionFormat(csv)
+// @Param			auxiliary_deployments	query	bool	false	"include auxiliary deployments"
+// @Param			auxiliary_deployments_of_ids	query	[]string	false	"include auxiliary deployments of module IDs"	collectionFormat(csv)
+// @Param			excl_auxiliary_deployments_of_ids	query	[]string	false	"exclude auxiliary deployments of module IDs"	collectionFormat(csv)
+// @Param			include_healthy	query	bool	false	"include healthy deployments"
+// @Success		200	{object}	lib_models.DeploymentsHealthInfo	"deployments health info"
+// @Failure		400	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router			/health/deployments [get]
+// @Router			/restricted/health/deployments [get]
 func DeploymentsHealth(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathDeploymentsHealthCollection, func(gc *gin.Context) {
 		filter, err := getDeploymentsHealthFilter(gc)

@@ -26,6 +26,17 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
+// @Summary		Get deployment request
+// @Description	Get the modules that must be configured to deploy the given modules including their dependencies.
+// @Tags			deployments
+// @Produce		json
+// @Param			module_ids	query	[]string	false	"filter by module IDs"	collectionFormat(csv)
+// @Success		200	{array}	lib_models.Module	"modules to be configured"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router			/deployment-request [get]
 func GetDeploymentRequest(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathDeploymentRequestResource, func(gc *gin.Context) {
 		var query struct {
@@ -44,6 +55,18 @@ func GetDeploymentRequest(srv *service.Service) (string, string, gin.HandlerFunc
 	}
 }
 
+// @Summary		Create deployments
+// @Description	Create deployments for the given modules as a job.
+// @Tags		deployments
+// @Accept		json
+// @Produce		json
+// @Param		request	body	[]lib_models.DeploymentUserInput	true	"deployment user inputs"
+// @Success		200	{object}	lib_models.Job	"job"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/deployments [post]
 func CreateDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_constants.HttpPathDeploymentsCollection, func(gc *gin.Context) {
 		var body []lib_models.DeploymentUserInput
@@ -60,6 +83,18 @@ func CreateDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// @Summary		Update deployments
+// @Description	Update the deployments of the given modules as a job.
+// @Tags		deployments
+// @Accept		json
+// @Produce		json
+// @Param		request	body	[]lib_models.DeploymentUserInput	true	"deployment user inputs"
+// @Success		200	{object}	lib_models.Job	"job"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/deployments [put]
 func UpdateDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPut, lib_constants.HttpPathDeploymentsCollection, func(gc *gin.Context) {
 		var body []lib_models.DeploymentUserInput
@@ -76,6 +111,18 @@ func UpdateDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// @Summary		Recreate deployments
+// @Description	Recreate the deployments of the given modules as a job.
+// @Tags		deployments
+// @Accept		json
+// @Produce		json
+// @Param		request	body	[]string	true	"module IDs"
+// @Success		200	{object}	lib_models.Job	"job"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/deployments-recreate [post]
 func RecreateDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_constants.HttpPathRecreateDeployments, func(gc *gin.Context) {
 		var body []string
@@ -92,6 +139,18 @@ func RecreateDeployments(srv *service.Service) (string, string, gin.HandlerFunc)
 	}
 }
 
+// @Summary		Delete deployments
+// @Description	Delete the deployments of the given modules as a job. All deployments are deleted if allow_all is set and no module IDs are given.
+// @Tags		deployments
+// @Produce		json
+// @Param		module_ids	query	[]string	false	"filter by module IDs"	collectionFormat(csv)
+// @Param		allow_all	query	bool	false	"allow deletion of all deployments"
+// @Success		200	{object}	lib_models.Job	"job"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/deployments [delete]
 func DeleteDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, lib_constants.HttpPathDeploymentsCollection, func(gc *gin.Context) {
 		var query struct {
@@ -111,6 +170,18 @@ func DeleteDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// @Summary		Enable deployments
+// @Description	Enable the deployments of the given modules.
+// @Tags		deployments
+// @Accept		json
+// @Produce		json
+// @Param		request	body	[]string	true	"module IDs"
+// @Success		200	{array}	string	"IDs of the enabled deployments"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/deployments-enable [post]
 func EnableDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_constants.HttpPathEnableDeployments, func(gc *gin.Context) {
 		var body []string
@@ -127,6 +198,18 @@ func EnableDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// @Summary		Disable deployments
+// @Description	Disable the deployments of the given modules.
+// @Tags		deployments
+// @Accept		json
+// @Produce		json
+// @Param		request	body	[]string	true	"module IDs"
+// @Success		200	{array}	string	"IDs of the disabled deployments"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/deployments-disable [post]
 func DisableDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_constants.HttpPathDisableDeployments, func(gc *gin.Context) {
 		var body []string

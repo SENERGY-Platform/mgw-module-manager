@@ -43,6 +43,18 @@ func getQueryDeploymentAdvertisementsFilter(gc *gin.Context) (lib_models.Deploym
 	}, nil
 }
 
+// @Summary		Query deployment advertisements
+// @Description	Query the advertisements of all deployments with a reduced set of fields.
+// @Tags		deployment-advertisements
+// @Produce		json
+// @Param		ids	query	[]string	false	"filter by advertisement IDs"	collectionFormat(csv)
+// @Param		module_ids	query	[]string	false	"filter by module IDs"	collectionFormat(csv)
+// @Param		references	query	[]string	false	"filter by advertisement references"	collectionFormat(csv)
+// @Success		200	{array}	lib_models.DeploymentAdvertisementReduced	"reduced deployment advertisements"
+// @Failure		400	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/deployment-advertisements [get]
+// @Router		/restricted/deployment-advertisements [get]
 func QueryDeploymentAdvertisements(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathDeploymentAdvertisementsQueryCollection, func(gc *gin.Context) {
 		filter, err := getQueryDeploymentAdvertisementsFilter(gc)
@@ -58,6 +70,16 @@ func QueryDeploymentAdvertisements(srv *service.Service) (string, string, gin.Ha
 	}
 }
 
+// @Summary		Query deployment advertisement
+// @Description	Query a single deployment advertisement by its ID with a reduced set of fields.
+// @Tags		deployment-advertisements
+// @Produce		json
+// @Param		ADV_ID	path	string	true	"advertisement ID"
+// @Success		200	{object}	lib_models.DeploymentAdvertisementReduced	"reduced deployment advertisement"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/deployment-advertisements/{ADV_ID} [get]
+// @Router		/restricted/deployment-advertisements/{ADV_ID} [get]
 func QueryDeploymentAdvertisement(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathDeploymentAdvertisementQueryResource, func(gc *gin.Context) {
 		res, err := srv.QueryDeploymentAdvertisement(gc, gc.Param("ADV_ID"))
@@ -69,6 +91,16 @@ func QueryDeploymentAdvertisement(srv *service.Service) (string, string, gin.Han
 	}
 }
 
+// @Summary		Get deployment advertisement
+// @Description	Get a single advertisement of a deployment by its reference.
+// @Tags		deployment-advertisements
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		ADV_REF	path	string	true	"advertisement reference"
+// @Success		200	{object}	lib_models.DeploymentAdvertisement	"deployment advertisement"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/advertisements/{ADV_REF} [get]
 func GetDeploymentAdvertisement(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathDeploymentAdvertisementResource, func(gc *gin.Context) {
 		res, err := srv.GetDeploymentAdvertisement(gc, gc.Param("DEP_ID"), gc.Param("ADV_REF"))
@@ -80,6 +112,16 @@ func GetDeploymentAdvertisement(srv *service.Service) (string, string, gin.Handl
 	}
 }
 
+// @Summary		Get deployment advertisement by ID
+// @Description	Get a single advertisement of a deployment by its ID.
+// @Tags		deployment-advertisements
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		ADV_ID	path	string	true	"advertisement ID"
+// @Success		200	{object}	lib_models.DeploymentAdvertisement	"deployment advertisement"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/advertisements-by-id/{ADV_ID} [get]
 func GetDeploymentAdvertisementById(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathDeploymentAdvertisementByIdResource, func(gc *gin.Context) {
 		res, err := srv.GetDeploymentAdvertisementById(gc, gc.Param("DEP_ID"), gc.Param("ADV_ID"))
@@ -106,6 +148,18 @@ func getDeploymentsAdvertisementsFilter(gc *gin.Context) (lib_models.DeploymentA
 	}, nil
 }
 
+// @Summary		Get deployment advertisements
+// @Description	Get the advertisements of a deployment.
+// @Tags		deployment-advertisements
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		ids	query	[]string	false	"filter by advertisement IDs"	collectionFormat(csv)
+// @Param		references	query	[]string	false	"filter by advertisement references"	collectionFormat(csv)
+// @Success		200	{object}	map[string]lib_models.DeploymentAdvertisement	"deployment advertisements by reference"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/advertisements [get]
 func GetDeploymentAdvertisements(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathDeploymentAdvertisementsCollection, func(gc *gin.Context) {
 		filter, err := getDeploymentsAdvertisementsFilter(gc)
@@ -121,6 +175,19 @@ func GetDeploymentAdvertisements(srv *service.Service) (string, string, gin.Hand
 	}
 }
 
+// @Summary		Put deployment advertisement
+// @Description	Create or replace a single advertisement of a deployment identified by its reference.
+// @Tags		deployment-advertisements
+// @Accept		json
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		ADV_REF	path	string	true	"advertisement reference"
+// @Param		request	body	map[string]string	true	"advertisement items"
+// @Success		200	{string}	string	"advertisement ID"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/advertisements/{ADV_REF} [put]
 func PutDeploymentAdvertisement(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPut, lib_constants.HttpPathDeploymentAdvertisementResource, func(gc *gin.Context) {
 		var body map[string]string
@@ -137,6 +204,19 @@ func PutDeploymentAdvertisement(srv *service.Service) (string, string, gin.Handl
 	}
 }
 
+// @Summary		Put deployment advertisements
+// @Description	Create or replace the advertisements of a deployment. Advertisements not contained in the request are removed unless incremental is set.
+// @Tags		deployment-advertisements
+// @Accept		json
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		incremental	query	bool	false	"keep advertisements not contained in the request"
+// @Param		request	body	[]lib_models.DeploymentAdvertisementInput	true	"deployment advertisements"
+// @Success		200	{object}	map[string]string	"advertisement IDs by reference"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/advertisements [put]
 func PutDeploymentAdvertisements(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPut, lib_constants.HttpPathDeploymentAdvertisementsCollection, func(gc *gin.Context) {
 		var query struct {
@@ -176,6 +256,16 @@ func getDeleteDeploymentAdvertisementsFilter(gc *gin.Context) (lib_models.Deploy
 	}, query.AllowAll, nil
 }
 
+// @Summary		Delete deployment advertisement
+// @Description	Delete a single advertisement of a deployment by its reference.
+// @Tags		deployment-advertisements
+// @Produce		plain
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		ADV_REF	path	string	true	"advertisement reference"
+// @Success		200	"deployment advertisement deleted"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/advertisements/{ADV_REF} [delete]
 func DeleteDeploymentAdvertisement(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, lib_constants.HttpPathDeploymentAdvertisementResource, func(gc *gin.Context) {
 		err := srv.DeleteDeploymentAdvertisement(gc, gc.Param("DEP_ID"), gc.Param("ADV_REF"))
@@ -187,6 +277,19 @@ func DeleteDeploymentAdvertisement(srv *service.Service) (string, string, gin.Ha
 	}
 }
 
+// @Summary		Delete deployment advertisements
+// @Description	Delete the advertisements of a deployment matching the given filter. All advertisements are deleted if allow_all is set and no filter is given.
+// @Tags		deployment-advertisements
+// @Produce		plain
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		ids	query	[]string	false	"filter by advertisement IDs"	collectionFormat(csv)
+// @Param		references	query	[]string	false	"filter by advertisement references"	collectionFormat(csv)
+// @Param		allow_all	query	bool	false	"allow deletion of all deployment advertisements"
+// @Success		200	"deployment advertisements deleted"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/advertisements [delete]
 func DeleteDeploymentAdvertisements(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, lib_constants.HttpPathDeploymentAdvertisementsCollection, func(gc *gin.Context) {
 		filter, allowAll, err := getDeleteDeploymentAdvertisementsFilter(gc)

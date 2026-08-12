@@ -29,6 +29,17 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
+// @Summary		Get auxiliary deployment
+// @Description	Get a single auxiliary deployment of a deployment.
+// @Tags		auxiliary-deployments
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		AUX_DEP_ID	path	string	true	"auxiliary deployment ID"
+// @Success		200	{object}	lib_models.AuxiliaryDeployment	"auxiliary deployment"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/deployments/{DEP_ID}/auxiliary/deployments/{AUX_DEP_ID} [get]
+// @Router		/restricted/deployments/{DEP_ID}/auxiliary/deployments/{AUX_DEP_ID} [get]
 func GetAuxiliaryDeployment(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathAuxiliaryDeploymentResource, func(gc *gin.Context) {
 		res, err := srv.GetAuxiliaryDeployment(gc, gc.Param("DEP_ID"), gc.Param("AUX_DEP_ID"))
@@ -85,6 +96,23 @@ func getAuxiliaryDeploymentsFilterLabels(queryLabels []string) (map[string]strin
 	return labels, nil
 }
 
+// @Summary		Get auxiliary deployments
+// @Description	Get the auxiliary deployments of a deployment.
+// @Tags		auxiliary-deployments
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		ids	query	[]string	false	"filter by auxiliary deployment IDs"	collectionFormat(csv)
+// @Param		labels	query	[]string	false	"filter by labels, item format: key|value"	collectionFormat(csv)
+// @Param		image	query	string	false	"filter by container image"
+// @Param		enabled	query	int	false	"filter by enabled state"
+// @Param		recreate	query	int	false	"filter by recreate state"
+// @Param		state	query	string	false	"filter by container state"
+// @Success		200	{object}	map[string]lib_models.AuxiliaryDeployment	"auxiliary deployments by ID"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/deployments/{DEP_ID}/auxiliary/deployments [get]
+// @Router		/restricted/deployments/{DEP_ID}/auxiliary/deployments [get]
 func GetAuxiliaryDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathAuxiliaryDeploymentsCollection, func(gc *gin.Context) {
 		filter, err := getAuxiliaryDeploymentsFilter(gc)
@@ -100,6 +128,23 @@ func GetAuxiliaryDeployments(srv *service.Service) (string, string, gin.HandlerF
 	}
 }
 
+// @Summary		Get reduced auxiliary deployments
+// @Description	Get the auxiliary deployments of a deployment with a reduced set of fields.
+// @Tags		auxiliary-deployments
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		ids	query	[]string	false	"filter by auxiliary deployment IDs"	collectionFormat(csv)
+// @Param		labels	query	[]string	false	"filter by labels, item format: key|value"	collectionFormat(csv)
+// @Param		image	query	string	false	"filter by container image"
+// @Param		enabled	query	int	false	"filter by enabled state"
+// @Param		recreate	query	int	false	"filter by recreate state"
+// @Param		state	query	string	false	"filter by container state"
+// @Success		200	{object}	map[string]lib_models.AuxiliaryDeploymentReduced	"reduced auxiliary deployments by ID"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/deployments/{DEP_ID}/auxiliary/deployments-reduced [get]
+// @Router		/restricted/deployments/{DEP_ID}/auxiliary/deployments-reduced [get]
 func GetReducedAuxiliaryDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathReducedAuxiliaryDeploymentsCollection, func(gc *gin.Context) {
 		filter, err := getAuxiliaryDeploymentsFilter(gc)
@@ -115,6 +160,20 @@ func GetReducedAuxiliaryDeployments(srv *service.Service) (string, string, gin.H
 	}
 }
 
+// @Summary		Create auxiliary deployment
+// @Description	Create an auxiliary deployment for a deployment as a job.
+// @Tags		auxiliary-deployments
+// @Accept		json
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		pull_image	query	bool	false	"pull the container image"
+// @Param		request	body	lib_models.AuxiliaryDeploymentInput	true	"auxiliary deployment"
+// @Success		200	{object}	lib_models.Job	"job"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/auxiliary/deployments [post]
 func CreateAuxiliaryDeployment(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_constants.HttpPathAuxiliaryDeploymentsCollection, func(gc *gin.Context) {
 		var query struct {
@@ -138,6 +197,22 @@ func CreateAuxiliaryDeployment(srv *service.Service) (string, string, gin.Handle
 	}
 }
 
+// @Summary		Update auxiliary deployment
+// @Description	Update an auxiliary deployment of a deployment as a job.
+// @Tags		auxiliary-deployments
+// @Accept		json
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		AUX_DEP_ID	path	string	true	"auxiliary deployment ID"
+// @Param		incremental	query	bool	false	"only apply the given fields"
+// @Param		pull_image	query	bool	false	"pull the container image"
+// @Param		request	body	lib_models.AuxiliaryDeploymentInput	true	"auxiliary deployment"
+// @Success		200	{object}	lib_models.Job	"job"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/auxiliary/deployments/{AUX_DEP_ID} [put]
 func UpdateAuxiliaryDeployment(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPut, lib_constants.HttpPathAuxiliaryDeploymentResource, func(gc *gin.Context) {
 		var query struct {
@@ -169,6 +244,19 @@ func UpdateAuxiliaryDeployment(srv *service.Service) (string, string, gin.Handle
 	}
 }
 
+// @Summary		Recreate auxiliary deployments
+// @Description	Recreate the auxiliary deployments of a deployment matching the given filter as a job.
+// @Tags		auxiliary-deployments
+// @Accept		json
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		request	body	lib_models.AuxiliaryDeploymentsFilterWithState	true	"auxiliary deployments filter"
+// @Success		200	{object}	lib_models.Job	"job"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/auxiliary/deployments-recreate [post]
 func RecreateAuxiliaryDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_constants.HttpPathRecreateAuxiliaryDeployments, func(gc *gin.Context) {
 		var body lib_models.AuxiliaryDeploymentsFilterWithState
@@ -216,6 +304,16 @@ func getDeleteAuxiliaryDeploymentsFilter(gc *gin.Context) (lib_models.AuxiliaryD
 	}, query.AllowAll, nil
 }
 
+// @Summary		Delete auxiliary deployment
+// @Description	Delete a single auxiliary deployment of a deployment.
+// @Tags		auxiliary-deployments
+// @Produce		plain
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		AUX_DEP_ID	path	string	true	"auxiliary deployment ID"
+// @Success		200	"auxiliary deployment deleted"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/auxiliary/deployments/{AUX_DEP_ID} [delete]
 func DeleteAuxiliaryDeployment(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, lib_constants.HttpPathAuxiliaryDeploymentResource, func(gc *gin.Context) {
 		err := srv.DeleteAuxiliaryDeployment(gc, gc.Param("DEP_ID"), gc.Param("AUX_DEP_ID"))
@@ -227,6 +325,23 @@ func DeleteAuxiliaryDeployment(srv *service.Service) (string, string, gin.Handle
 	}
 }
 
+// @Summary		Delete auxiliary deployments
+// @Description	Delete the auxiliary deployments of a deployment matching the given filter as a job. All auxiliary deployments are deleted if allow_all is set and no filter is given.
+// @Tags		auxiliary-deployments
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		ids	query	[]string	false	"filter by auxiliary deployment IDs"	collectionFormat(csv)
+// @Param		labels	query	[]string	false	"filter by labels, item format: key|value"	collectionFormat(csv)
+// @Param		image	query	string	false	"filter by container image"
+// @Param		enabled	query	int	false	"filter by enabled state"
+// @Param		recreate	query	int	false	"filter by recreate state"
+// @Param		state	query	string	false	"filter by container state"
+// @Param		allow_all	query	bool	false	"allow deletion of all auxiliary deployments"
+// @Success		200	{object}	lib_models.Job	"job"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/auxiliary/deployments [delete]
 func DeleteAuxiliaryDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, lib_constants.HttpPathAuxiliaryDeploymentsCollection, func(gc *gin.Context) {
 		filter, allowAll, err := getDeleteAuxiliaryDeploymentsFilter(gc)
@@ -242,6 +357,18 @@ func DeleteAuxiliaryDeployments(srv *service.Service) (string, string, gin.Handl
 	}
 }
 
+// @Summary		Enable auxiliary deployments
+// @Description	Enable the auxiliary deployments of a deployment matching the given filter.
+// @Tags		auxiliary-deployments
+// @Accept		json
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		request	body	lib_models.AuxiliaryDeploymentsFilterWithState	true	"auxiliary deployments filter"
+// @Success		200	{array}	string	"IDs of the enabled auxiliary deployments"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/auxiliary/deployments-enable [post]
 func EnableAuxiliaryDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_constants.HttpPathEnableAuxiliaryDeployments, func(gc *gin.Context) {
 		var body lib_models.AuxiliaryDeploymentsFilterWithState
@@ -258,6 +385,18 @@ func EnableAuxiliaryDeployments(srv *service.Service) (string, string, gin.Handl
 	}
 }
 
+// @Summary		Disable auxiliary deployments
+// @Description	Disable the auxiliary deployments of a deployment matching the given filter.
+// @Tags		auxiliary-deployments
+// @Accept		json
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		request	body	lib_models.AuxiliaryDeploymentsFilterWithState	true	"auxiliary deployments filter"
+// @Success		200	{array}	string	"IDs of the disabled auxiliary deployments"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/auxiliary/deployments-disable [post]
 func DisableAuxiliaryDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_constants.HttpPathDisableAuxiliaryDeployments, func(gc *gin.Context) {
 		var body lib_models.AuxiliaryDeploymentsFilterWithState
@@ -274,6 +413,18 @@ func DisableAuxiliaryDeployments(srv *service.Service) (string, string, gin.Hand
 	}
 }
 
+// @Summary		Get auxiliary deployment volumes
+// @Description	Get the auxiliary deployment volumes of a deployment.
+// @Tags		auxiliary-deployments
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		references	query	[]string	false	"filter by volume references"	collectionFormat(csv)
+// @Success		200	{object}	map[string]lib_models.AuxiliaryDeploymentVolume	"auxiliary deployment volumes by reference"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/deployments/{DEP_ID}/auxiliary/volumes [get]
+// @Router		/restricted/deployments/{DEP_ID}/auxiliary/volumes [get]
 func GetAuxiliaryDeploymentVolumes(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathAuxiliaryDeploymentVolumesCollection, func(gc *gin.Context) {
 		var query struct {
@@ -292,6 +443,18 @@ func GetAuxiliaryDeploymentVolumes(srv *service.Service) (string, string, gin.Ha
 	}
 }
 
+// @Summary		Get auxiliary deployment volumes with mounts
+// @Description	Get the auxiliary deployment volumes of a deployment including the auxiliary deployments they are mounted in.
+// @Tags		auxiliary-deployments
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		references	query	[]string	false	"filter by volume references"	collectionFormat(csv)
+// @Success		200	{object}	map[string]lib_models.AuxiliaryDeploymentVolumeWithMounts	"auxiliary deployment volumes with mounts by reference"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/deployments/{DEP_ID}/auxiliary/volumes-with-mounts [get]
+// @Router		/restricted/deployments/{DEP_ID}/auxiliary/volumes-with-mounts [get]
 func GetAuxiliaryDeploymentVolumesWithMounts(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathAuxiliaryDeploymentVolumesWithMountsCollection, func(gc *gin.Context) {
 		var query struct {
@@ -310,6 +473,19 @@ func GetAuxiliaryDeploymentVolumesWithMounts(srv *service.Service) (string, stri
 	}
 }
 
+// @Summary		Delete auxiliary deployment volumes
+// @Description	Delete the auxiliary deployment volumes of a deployment. If only_unsued is set, the given references are excluded and only unused volumes are deleted.
+// @Tags		auxiliary-deployments
+// @Produce		json
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		references	query	[]string	false	"filter by volume references"	collectionFormat(csv)
+// @Param		allow_all	query	bool	false	"allow deletion of all auxiliary deployment volumes"
+// @Param		only_unsued	query	bool	false	"only delete unused auxiliary deployment volumes"
+// @Success		200	{array}	lib_models.AuxiliaryDeploymentVolumeResult	"auxiliary deployment volume results"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/auxiliary/volumes [delete]
 func DeleteAuxiliaryDeploymentVolumes(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, lib_constants.HttpPathAuxiliaryDeploymentVolumesCollection, func(gc *gin.Context) {
 		var query struct {
@@ -335,6 +511,16 @@ func DeleteAuxiliaryDeploymentVolumes(srv *service.Service) (string, string, gin
 	}
 }
 
+// @Summary		Delete auxiliary deployment volume
+// @Description	Delete a single auxiliary deployment volume of a deployment.
+// @Tags		auxiliary-deployments
+// @Produce		plain
+// @Param		DEP_ID	path	string	true	"deployment ID"
+// @Param		AUX_VOL_REF	path	string	true	"auxiliary deployment volume reference"
+// @Success		200	"auxiliary deployment volume deleted"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/restricted/deployments/{DEP_ID}/auxiliary/volumes/{AUX_VOL_REF} [delete]
 func DeleteAuxiliaryDeploymentVolume(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, lib_constants.HttpPathAuxiliaryDeploymentVolumeResource, func(gc *gin.Context) {
 		err := srv.DeleteAuxiliaryDeploymentVolume(gc, gc.Param("DEP_ID"), gc.Param("AUX_VOL_REF"))

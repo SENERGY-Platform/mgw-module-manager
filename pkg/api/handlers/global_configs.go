@@ -26,6 +26,15 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
+// @Summary		Get global configs
+// @Description	Get all global configs or only the global configs matching the given IDs.
+// @Tags		global-configs
+// @Produce		json
+// @Param		ids	query	[]string	false	"filter by global config IDs"	collectionFormat(csv)
+// @Success		200	{object}	map[string]lib_models.GlobalConfig	"global configs by ID"
+// @Failure		400	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/global-configs [get]
 func GetGlobalConfigs(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathGlobalConfigsCollection, func(gc *gin.Context) {
 		var query struct {
@@ -44,6 +53,15 @@ func GetGlobalConfigs(srv *service.Service) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// @Summary		Get global config
+// @Description	Get a single global config by its ID.
+// @Tags		global-configs
+// @Produce		json
+// @Param		CFG_ID	path	string	true	"global config ID"
+// @Success		200	{object}	lib_models.GlobalConfig	"global config"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/global-configs/{CFG_ID} [get]
 func GetGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathGlobalConfigResource, func(gc *gin.Context) {
 		res, err := srv.GetGlobalConfig(gc, gc.Param("CFG_ID"))
@@ -55,6 +73,16 @@ func GetGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
 	}
 }
 
+// @Summary		Create global config
+// @Description	Create a global config.
+// @Tags		global-configs
+// @Accept		json
+// @Produce		json
+// @Param		request	body	lib_models.GlobalConfigInput	true	"global config"
+// @Success		200	{string}	string	"global config ID"
+// @Failure		400	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/global-configs [post]
 func CreateGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPost, lib_constants.HttpPathGlobalConfigsCollection, func(gc *gin.Context) {
 		var body lib_models.GlobalConfigInput
@@ -71,6 +99,18 @@ func CreateGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) 
 	}
 }
 
+// @Summary		Update global config
+// @Description	Update a global config identified by its ID.
+// @Tags		global-configs
+// @Accept		json
+// @Produce		plain
+// @Param		CFG_ID	path	string	true	"global config ID"
+// @Param		request	body	lib_models.GlobalConfigInput	true	"global config"
+// @Success		200	"global config updated"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/global-configs/{CFG_ID} [put]
 func UpdateGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodPut, lib_constants.HttpPathGlobalConfigResource, func(gc *gin.Context) {
 		var body lib_models.GlobalConfigInput
@@ -91,6 +131,17 @@ func UpdateGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) 
 	}
 }
 
+// @Summary		Delete global configs
+// @Description	Delete the global configs matching the given IDs. All global configs are deleted if allow_all is set and no IDs are given.
+// @Tags		global-configs
+// @Produce		plain
+// @Param		ids	query	[]string	false	"filter by global config IDs"	collectionFormat(csv)
+// @Param		allow_all	query	bool	false	"allow deletion of all global configs"
+// @Success		200	"global configs deleted"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/global-configs [delete]
 func DeleteGlobalConfigs(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, lib_constants.HttpPathGlobalConfigsCollection, func(gc *gin.Context) {
 		var query struct {
@@ -110,6 +161,15 @@ func DeleteGlobalConfigs(srv *service.Service) (string, string, gin.HandlerFunc)
 	}
 }
 
+// @Summary		Delete global config
+// @Description	Delete a single global config by its ID.
+// @Tags		global-configs
+// @Produce		plain
+// @Param		CFG_ID	path	string	true	"global config ID"
+// @Success		200	"global config deleted"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Router		/global-configs/{CFG_ID} [delete]
 func DeleteGlobalConfig(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodDelete, lib_constants.HttpPathGlobalConfigResource, func(gc *gin.Context) {
 		err := srv.DeleteGlobalConfig(gc, gc.Param("CFG_ID"))
