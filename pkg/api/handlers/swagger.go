@@ -49,3 +49,14 @@ func SwaggerDoc(_ *service.Service) (string, string, gin.HandlerFunc) {
 		swaggerHandler(gc)
 	}
 }
+
+// @Summary		Get swagger UI entrypoint
+// @Description	Redirect to the swagger UI entrypoint. Required because the swagger handler only serves named resources and the engine does not append trailing slashes.
+// @Tags		swagger
+// @Success		301	{string}	string	"redirect to the swagger UI entrypoint"
+// @Router		/swagger [get]
+func SwaggerDocBase(_ *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodGet, lib_constants.HttpPathSwaggerDocBase, func(gc *gin.Context) {
+		gc.Redirect(http.StatusMovedPermanently, gc.Request.URL.Path+"/index.html")
+	}
+}

@@ -63,6 +63,7 @@ var standardApiHandlers = []handlerFunc[*service.Service]{
 	handlers.GetRefreshRepositoriesJobResult,
 	handlers.ServiceHealth,
 	handlers.SwaggerDoc,
+	handlers.SwaggerDocBase,
 }
 
 var restrictedApiHandlers = []handlerFunc[*service.Service]{

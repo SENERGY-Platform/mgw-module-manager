@@ -70,7 +70,8 @@ const (
 
 	HttpPathServiceInfoResource = "info"
 
-	HttpPathSwaggerDoc = "swagger/*any"
+	HttpPathSwaggerDocBase = "swagger"
+	HttpPathSwaggerDoc     = "swagger/*any"
 )
 
 const (
