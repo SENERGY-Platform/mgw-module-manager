@@ -51,7 +51,7 @@ func SwaggerDoc(_ *service.Service) (string, string, gin.HandlerFunc) {
 }
 
 // @Summary		Get swagger UI entrypoint
-// @Description	Redirect to the swagger UI entrypoint. Required because the swagger handler only serves named resources and the engine does not append trailing slashes.
+// @Description	Redirect to the swagger UI entrypoint.
 // @Tags		swagger
 // @Success		301	{string}	string	"redirect to the swagger UI entrypoint"
 // @Router		/swagger [get]
