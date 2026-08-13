@@ -4422,6 +4422,23 @@ const docTemplate = `{
                 }
             }
         },
+        "/swagger": {
+            "get": {
+                "description": "Redirect to the swagger UI entrypoint. Required because the swagger handler only serves named resources and the engine does not append trailing slashes.",
+                "tags": [
+                    "swagger"
+                ],
+                "summary": "Get swagger UI entrypoint",
+                "responses": {
+                    "301": {
+                        "description": "redirect to the swagger UI entrypoint",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/swagger/{any}": {
             "get": {
                 "description": "Serve the swagger UI and the generated OpenAPI documentation of this API.",
@@ -6555,18 +6572,10 @@ const docTemplate = `{
                 1000,
                 1000000,
                 1000000000,
-                1,
-                1000,
-                1000000,
-                1000000000,
                 60000000000,
                 3600000000000
             ],
             "x-enum-varnames": [
-                "Nanosecond",
-                "Microsecond",
-                "Millisecond",
-                "Second",
                 "Nanosecond",
                 "Microsecond",
                 "Millisecond",
