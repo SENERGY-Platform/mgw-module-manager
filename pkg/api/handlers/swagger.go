@@ -24,8 +24,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
-
-	_ "github.com/SENERGY-Platform/mgw-module-manager/pkg/api/swagger-docs"
 )
 
 // @Summary		Get swagger documentation
@@ -38,5 +36,5 @@ import (
 // @Failure		500	{string}	string	"error message"
 // @Router		/swagger/{any} [get]
 func SwaggerDoc(_ *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, lib_constants.HttpPathSwaggerDoc, ginSwagger.WrapHandler(swaggerFiles.Handler)
+	return http.MethodGet, lib_constants.HttpPathSwaggerDoc, ginSwagger.WrapHandler(swaggerFiles.NewHandler())
 }
