@@ -18,6 +18,7 @@ package handlers
 
 import (
 	"net/http"
+	"path"
 
 	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	_ "github.com/SENERGY-Platform/mgw-module-manager/pkg/api/swagger-docs"
@@ -37,5 +38,14 @@ import (
 // @Failure		500	{string}	string	"error message"
 // @Router		/swagger/{any} [get]
 func SwaggerDoc(_ *service.Service) (string, string, gin.HandlerFunc) {
-	return http.MethodGet, lib_constants.HttpPathSwaggerDoc, ginSwagger.WrapHandler(swaggerFiles.NewHandler())
+	swaggerHandler := ginSwagger.WrapHandler(swaggerFiles.NewHandler())
+	return http.MethodGet, lib_constants.HttpPathSwaggerDoc, func(gc *gin.Context) {
+		// The swagger handler derives the prefix used for file lookups from the first request it
+		// receives and then keeps it for the lifetime of the process. Duplicate slashes are matched
+		// literally, so without normalisation a single malformed request breaks all later ones.
+		gc.Request.URL.Path = path.Clean(gc.Request.URL.Path)
+		gc.Request.URL.RawPath = ""
+		gc.Request.RequestURI = gc.Request.URL.RequestURI()
+		swaggerHandler(gc)
+	}
 }
