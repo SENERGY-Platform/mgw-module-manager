@@ -20,6 +20,7 @@ import (
 	"net/http"
 
 	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
+	_ "github.com/SENERGY-Platform/mgw-module-manager/pkg/api/swagger-docs"
 	"github.com/SENERGY-Platform/mgw-module-manager/pkg/service"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
