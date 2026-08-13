@@ -4907,54 +4907,73 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "configs": {
-                    "description": "{varName:value}",
+                    "description": "{varName:value} environment variables passed to the container, merged with the configs of the owning deployment",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "container": {
-                    "$ref": "#/definitions/models.Container"
+                    "description": "identity and runtime state of the container",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Container"
+                        }
+                    ]
                 },
                 "created": {
+                    "description": "point in time at which the auxiliary deployment was created",
                     "type": "string"
                 },
                 "deployment_id": {
+                    "description": "ID of the deployment that owns the auxiliary deployment",
                     "type": "string"
                 },
                 "enabled": {
+                    "description": "true if the container is meant to be running, disabled auxiliary deployments are not started and not health checked",
                     "type": "boolean"
                 },
                 "id": {
+                    "description": "unique ID of the auxiliary deployment",
                     "type": "string"
                 },
                 "image": {
+                    "description": "container image, must match one of the image sources declared by the module",
                     "type": "string"
                 },
                 "labels": {
-                    "description": "{name:value}",
+                    "description": "{name:value} labels set on creation or update, usable to filter auxiliary deployments",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "name": {
+                    "description": "human readable name, taken from the module auxiliary service if not set on creation",
                     "type": "string"
                 },
                 "recreate": {
+                    "description": "true if the auxiliary deployment is recreated when the owning deployment is updated, otherwise it is left untouched and keeps running against the previous module version",
                     "type": "boolean"
                 },
                 "reference": {
+                    "description": "reference of the module auxiliary service the auxiliary deployment is based on",
                     "type": "string"
                 },
                 "run_config": {
-                    "$ref": "#/definitions/models.AuxiliaryDeploymentRunConfig"
+                    "description": "effective run configuration of the container",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.AuxiliaryDeploymentRunConfig"
+                        }
+                    ]
                 },
                 "updated": {
+                    "description": "point in time at which the auxiliary deployment was last updated",
                     "type": "string"
                 },
                 "volumes": {
-                    "description": "{mntPoint:ref}",
+                    "description": "{mntPoint:ref} auxiliary deployment volumes by mount point within the container",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -4966,83 +4985,96 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "configs": {
+                    "description": "config values set as user input by module config reference",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/models.InterfaceValue"
                     }
                 },
                 "containers": {
+                    "description": "containers of the deployment by module service reference",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/models.Container"
                     }
                 },
                 "created": {
+                    "description": "point in time at which the deployment was created",
                     "type": "string"
                 },
                 "enabled": {
+                    "description": "true if the containers of the deployment are meant to be running, disabled deployments are not started and not health checked",
                     "type": "boolean"
                 },
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "file_groups": {
+                    "description": "files set as user input by module file group reference",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-manager_lib_models.DeploymentFileGroup"
                     }
                 },
                 "files": {
-                    "description": "{reference:data}",
+                    "description": "{reference:data} file contents as base64 encoded strings by module file reference",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "global_configs": {
-                    "description": "{reference:globalConfigId}",
+                    "description": "{reference:globalConfigId} global configs set as user input by module config reference",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "host_resources": {
-                    "description": "{reference:hostResourceId}",
+                    "description": "{reference:hostResourceId} host resources set as user input by module host resource reference",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "id": {
+                    "description": "unique ID of the deployment",
                     "type": "string"
                 },
                 "module_channel": {
+                    "description": "channel of the repository the deployed module version was installed from",
                     "type": "string"
                 },
                 "module_source": {
+                    "description": "source of the repository the deployed module version was installed from",
                     "type": "string"
                 },
                 "module_version": {
+                    "description": "version of the module the deployment was created for, can differ from the installed version until the deployment is updated",
                     "type": "string"
                 },
                 "secrets": {
+                    "description": "secrets set as user input by module secret reference",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-manager_lib_models.DeploymentSecret"
                     }
                 },
                 "state": {
-                    "description": "health state determined by container states",
+                    "description": "health state determined by container states, values: 1 = healthy, 2 = unhealthy, 0 if the deployment is disabled or the state could not be determined",
                     "type": "integer"
                 },
                 "updated": {
+                    "description": "point in time at which the deployment was last updated",
                     "type": "string"
                 },
                 "volumes": {
-                    "description": "{reference:name}",
+                    "description": "{reference:name} docker volume names by module volume reference",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -5054,12 +5086,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "files": {
+                    "description": "files of the group",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-manager_lib_models.DeploymentFileGroupFile"
                     }
                 },
                 "id": {
+                    "description": "unique ID of the file group, generated from the deployment ID and the module file group reference",
                     "type": "string"
                 }
             }
@@ -5068,12 +5102,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
+                    "description": "file content as a base64 encoded string",
                     "type": "string"
                 },
                 "format": {
+                    "description": "format of the file content, not interpreted by the module manager, content is defined by the module consuming the file group",
                     "type": "string"
                 },
                 "path": {
+                    "description": "path of the file relative to the base path the module mounts the file group at",
                     "type": "string"
                 }
             }
@@ -5082,9 +5119,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
+                    "description": "file content as a base64 encoded string",
                     "type": "string"
                 },
                 "format": {
+                    "description": "format of the file content, not interpreted by the module manager, content is defined by the module consuming the file group",
                     "type": "string"
                 }
             }
@@ -5093,33 +5132,43 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created": {
+                    "description": "point in time at which the deployment was created",
                     "type": "string"
                 },
                 "enabled": {
+                    "description": "true if the containers of the deployment are meant to be running, disabled deployments are not started and not health checked",
                     "type": "boolean"
                 },
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "id": {
+                    "description": "unique ID of the deployment",
                     "type": "string"
                 },
                 "module_channel": {
+                    "description": "channel of the repository the deployed module version was installed from",
                     "type": "string"
                 },
                 "module_source": {
+                    "description": "source of the repository the deployed module version was installed from",
                     "type": "string"
                 },
                 "module_version": {
+                    "description": "version of the module the deployment was created for, can differ from the installed version until the deployment is updated",
                     "type": "string"
                 },
                 "state": {
+                    "description": "health state determined by container states, values: 1 = healthy, 2 = unhealthy, 0 if the deployment is disabled or the state could not be determined",
                     "type": "integer"
                 },
                 "updated": {
+                    "description": "point in time at which the deployment was last updated",
                     "type": "string"
                 }
             }
@@ -5128,9 +5177,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
+                    "description": "ID of the secret in the secret service",
                     "type": "string"
                 },
                 "items": {
+                    "description": "items of the secret and how they are provided to the containers",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.DeploymentSecretItem"
@@ -5142,12 +5193,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "configs": {
-                    "description": "{ref:value}",
+                    "description": "{ref:value} config values by module config reference, must match the type declared by the module config, references not set fall back to the module default",
                     "type": "object",
                     "additionalProperties": true
                 },
                 "file_groups": {
-                    "description": "{ref:{path:FileGroupUserInput}}",
+                    "description": "{ref:{path:FileGroupUserInput}} files by module file group reference and file path",
                     "type": "object",
                     "additionalProperties": {
                         "type": "object",
@@ -5157,31 +5208,32 @@ const docTemplate = `{
                     }
                 },
                 "files": {
-                    "description": "{ref:data}",
+                    "description": "{ref:data} file contents as base64 encoded strings by module file reference, references not set fall back to the default data of the module file",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "global_configs": {
-                    "description": "{ref:configID}",
+                    "description": "{ref:configID} global config IDs by module config reference",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "host_resources": {
-                    "description": "{ref:resourceID}",
+                    "description": "{ref:resourceID} host resource IDs by module host resource reference",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "module_id": {
+                    "description": "ID of the module to deploy or update",
                     "type": "string"
                 },
                 "secrets": {
-                    "description": "{ref:secretID}",
+                    "description": "{ref:secretID} secret service IDs by module secret reference",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -5193,6 +5245,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "added": {
+                    "description": "point in time at which the module was installed",
                     "type": "string"
                 },
                 "architectures": {
@@ -5212,6 +5265,7 @@ const docTemplate = `{
                     }
                 },
                 "channel": {
+                    "description": "channel of the repository the module was installed from",
                     "type": "string"
                 },
                 "configs": {
@@ -5230,12 +5284,18 @@ const docTemplate = `{
                     }
                 },
                 "deployment": {
-                    "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-manager_lib_models.Deployment"
+                    "description": "deployment of the module, zero value if IsDeployed is false",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-manager_lib_models.Deployment"
+                        }
+                    ]
                 },
                 "description": {
                     "type": "string"
                 },
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "file_groups": {
@@ -5247,12 +5307,14 @@ const docTemplate = `{
                     ]
                 },
                 "files": {
+                    "description": "files the module consumes by reference, overrides ModuleBase.Files to also expose the default data",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-manager_lib_models.ModuleFile"
                     }
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "host_resources": {
@@ -5269,6 +5331,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/model.Inputs"
                 },
                 "is_deployed": {
+                    "description": "true if a deployment exists for the module, Deployment is only populated if true",
                     "type": "boolean"
                 },
                 "license": {
@@ -5292,12 +5355,14 @@ const docTemplate = `{
                     }
                 },
                 "source": {
+                    "description": "source of the repository the module was installed from",
                     "type": "string"
                 },
                 "tags": {
                     "$ref": "#/definitions/model.Set-string"
                 },
                 "updated": {
+                    "description": "point in time at which the module was last updated",
                     "type": "string"
                 },
                 "version": {
@@ -5317,6 +5382,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "default_data": {
+                    "description": "default file content as a base64 encoded string, used if no content is provided as user input",
                     "type": "string"
                 },
                 "required": {
@@ -5491,12 +5557,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "id": {
+                    "description": "ID of the auxiliary deployment the operation was performed on",
                     "type": "string"
                 }
             }
@@ -5505,18 +5574,23 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "container_alias": {
+                    "description": "network alias under which the container is reachable by the other containers of the owning deployment",
                     "type": "string"
                 },
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "id": {
+                    "description": "ID of the created auxiliary deployment",
                     "type": "string"
                 },
                 "job_id": {
+                    "description": "ID of the job that produced the result",
                     "type": "string"
                 }
             }
@@ -5525,27 +5599,33 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "results": {
+                    "description": "result per deleted auxiliary deployment",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.AuxiliaryDeploymentBatchResult"
                     }
                 },
                 "results_err_num": {
+                    "description": "number of entries in Results that failed",
                     "type": "integer"
                 },
                 "volume_results": {
+                    "description": "result per deleted auxiliary deployment volume",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.AuxiliaryDeploymentVolumeResult"
                     }
                 },
                 "volume_results_err_num": {
+                    "description": "number of entries in VolumeResults that failed",
                     "type": "integer"
                 }
             }
@@ -5554,12 +5634,19 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "container": {
-                    "$ref": "#/definitions/models.ContainerHealthInfo"
+                    "description": "state and health of the container of the auxiliary deployment",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ContainerHealthInfo"
+                        }
+                    ]
                 },
                 "id": {
+                    "description": "ID of the auxiliary deployment",
                     "type": "string"
                 },
                 "reference": {
+                    "description": "reference of the module auxiliary service the auxiliary deployment is based on",
                     "type": "string"
                 }
             }
@@ -5568,37 +5655,45 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "configs": {
-                    "description": "{varName:value}",
+                    "description": "{varName:value} environment variables to pass to the container in addition to the configs of the owning deployment",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "image": {
+                    "description": "container image, must match one of the image sources declared by the module",
                     "type": "string"
                 },
                 "labels": {
-                    "description": "{name:value}",
+                    "description": "{name:value} labels to set, on update they are merged into the existing labels",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "name": {
+                    "description": "human readable name, the name of the module auxiliary service is used if empty",
                     "type": "string"
                 },
                 "recreate": {
-                    "description": "recreate the auxiliary deployment if parent deployment gets updated",
+                    "description": "recreate the auxiliary deployment if parent deployment gets updated, values: greater than 0 = recreate, 0 or less = do not recreate",
                     "type": "integer"
                 },
                 "reference": {
+                    "description": "reference of the module auxiliary service to base the auxiliary deployment on",
                     "type": "string"
                 },
                 "run_config": {
-                    "$ref": "#/definitions/models.AuxiliaryDeploymentInputRunConfig"
+                    "description": "overrides for the run configuration of the module auxiliary service",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.AuxiliaryDeploymentInputRunConfig"
+                        }
+                    ]
                 },
                 "volumes": {
-                    "description": "{mntPath:reference}",
+                    "description": "{mntPath:reference} auxiliary deployment volumes by mount point, volumes that do not exist yet are created",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -5610,12 +5705,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "command": {
+                    "description": "command to start the container with, the command of the module auxiliary service is used if empty",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "pseudo_tty": {
+                    "description": "values: 1 = allocate a pseudo TTY, -1 = do not allocate one, 0 = use the setting of the module auxiliary service",
                     "type": "integer"
                 }
             }
@@ -5624,21 +5721,26 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "job_id": {
+                    "description": "ID of the job that produced the result",
                     "type": "string"
                 },
                 "results": {
+                    "description": "result per auxiliary deployment the job was started for",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.AuxiliaryDeploymentBatchResult"
                     }
                 },
                 "results_err_num": {
+                    "description": "number of entries in Results that failed",
                     "type": "integer"
                 }
             }
@@ -5647,18 +5749,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "results": {
+                    "description": "result per recreated auxiliary deployment",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.AuxiliaryDeploymentBatchResult"
                     }
                 },
                 "results_err_num": {
+                    "description": "number of entries in Results that failed",
                     "type": "integer"
                 }
             }
@@ -5667,36 +5773,55 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "container": {
-                    "$ref": "#/definitions/models.Container"
+                    "description": "identity and runtime state of the container",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Container"
+                        }
+                    ]
                 },
                 "created": {
+                    "description": "point in time at which the auxiliary deployment was created",
                     "type": "string"
                 },
                 "deployment_id": {
+                    "description": "ID of the deployment that owns the auxiliary deployment",
                     "type": "string"
                 },
                 "enabled": {
+                    "description": "true if the container is meant to be running, disabled auxiliary deployments are not started and not health checked",
                     "type": "boolean"
                 },
                 "id": {
+                    "description": "unique ID of the auxiliary deployment",
                     "type": "string"
                 },
                 "image": {
+                    "description": "container image, must match one of the image sources declared by the module",
                     "type": "string"
                 },
                 "name": {
+                    "description": "human readable name, taken from the module auxiliary service if not set on creation",
                     "type": "string"
                 },
                 "recreate": {
+                    "description": "true if the auxiliary deployment is recreated when the owning deployment is updated, otherwise it is left untouched and keeps running against the previous module version",
                     "type": "boolean"
                 },
                 "reference": {
+                    "description": "reference of the module auxiliary service the auxiliary deployment is based on",
                     "type": "string"
                 },
                 "run_config": {
-                    "$ref": "#/definitions/models.AuxiliaryDeploymentRunConfig"
+                    "description": "effective run configuration of the container",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.AuxiliaryDeploymentRunConfig"
+                        }
+                    ]
                 },
                 "updated": {
+                    "description": "point in time at which the auxiliary deployment was last updated",
                     "type": "string"
                 }
             }
@@ -5705,12 +5830,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "command": {
+                    "description": "command the container is started with, taken from the module auxiliary service if not overridden on creation",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "pseudo_tty": {
+                    "description": "true if a pseudo TTY is allocated for the container",
                     "type": "boolean"
                 }
             }
@@ -5719,15 +5846,19 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "deployment_id": {
+                    "description": "ID of the deployment that owns the volume",
                     "type": "string"
                 },
                 "id": {
+                    "description": "unique ID of the volume, generated from the deployment ID and the reference",
                     "type": "string"
                 },
                 "name": {
+                    "description": "name of the volume as known to the container engine, generated by the module manager",
                     "type": "string"
                 },
                 "reference": {
+                    "description": "identifier chosen by the deployment, unique per deployment",
                     "type": "string"
                 }
             }
@@ -5736,12 +5867,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "reference": {
+                    "description": "reference of the volume the operation was performed on",
                     "type": "string"
                 }
             }
@@ -5750,21 +5884,26 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "deployment_id": {
+                    "description": "ID of the deployment that owns the volume",
                     "type": "string"
                 },
                 "id": {
+                    "description": "unique ID of the volume, generated from the deployment ID and the reference",
                     "type": "string"
                 },
                 "mounted_by": {
+                    "description": "IDs of the auxiliary deployments that mount the volume, empty if the volume is unused",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "name": {
+                    "description": "name of the volume as known to the container engine, generated by the module manager",
                     "type": "string"
                 },
                 "reference": {
+                    "description": "identifier chosen by the deployment, unique per deployment",
                     "type": "string"
                 }
             }
@@ -5773,28 +5912,33 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "enabled": {
+                    "description": "values: 1 = only enabled, -1 = only disabled, 0 = do not filter by enabled state",
                     "type": "integer"
                 },
                 "ids": {
+                    "description": "only match auxiliary deployments with one of these IDs",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "image": {
+                    "description": "only match auxiliary deployments using this container image",
                     "type": "string"
                 },
                 "labels": {
+                    "description": "only match auxiliary deployments that carry all of these labels with the given values",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "recreate": {
+                    "description": "values: 1 = only auxiliary deployments marked for recreation, -1 = only those not marked, 0 = do not filter by recreate state",
                     "type": "integer"
                 },
                 "state": {
-                    "description": "docker container state",
+                    "description": "docker container state, values: initialized, running, paused, restarting, removing, stopped, dead, empty to not filter by state",
                     "type": "string"
                 }
             }
@@ -5803,12 +5947,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "action": {
+                    "description": "executed action, values: install, change, remove",
                     "type": "string"
                 },
                 "error": {
+                    "description": "reason the action failed",
                     "type": "string"
                 },
                 "id": {
+                    "description": "ID of the module the action was executed for",
                     "type": "string"
                 }
             }
@@ -5817,9 +5964,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "action": {
+                    "description": "executed action, values: install, change, remove",
                     "type": "string"
                 },
                 "id": {
+                    "description": "ID of the module the action was executed for",
                     "type": "string"
                 }
             }
@@ -5828,18 +5977,23 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "channel": {
+                    "description": "install or switch to the variant provided by this repository channel, ignored if Remove or Update is set",
                     "type": "string"
                 },
                 "id": {
+                    "description": "ID of the module to change",
                     "type": "string"
                 },
                 "remove": {
+                    "description": "remove the module, fails if a deployment exists for it, must not be combined with Update",
                     "type": "boolean"
                 },
                 "source": {
+                    "description": "install or switch to the variant provided by the repository with this source, ignored if Remove or Update is set",
                     "type": "string"
                 },
                 "update": {
+                    "description": "update the module within its current source and channel, must not be combined with Remove",
                     "type": "boolean"
                 }
             }
@@ -5848,10 +6002,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "alias": {
+                    "description": "network alias under which the container is reachable by other containers of the deployment",
                     "type": "string"
                 },
                 "health": {
-                    "description": "docker container health",
+                    "description": "docker container health, values: healthy, unhealthy, transitioning, empty if the container defines no health check",
                     "allOf": [
                         {
                             "$ref": "#/definitions/constants.ContainerHealth"
@@ -5859,14 +6014,15 @@ const docTemplate = `{
                     ]
                 },
                 "image_id": {
-                    "description": "docker image id",
+                    "description": "docker image id, empty if the container could not be found",
                     "type": "string"
                 },
                 "name": {
+                    "description": "name of the container as known to the container engine, generated by the module manager",
                     "type": "string"
                 },
                 "state": {
-                    "description": "docker container state",
+                    "description": "docker container state, values: initialized, running, paused, restarting, removing, stopped, dead",
                     "allOf": [
                         {
                             "$ref": "#/definitions/constants.ContainerState"
@@ -5879,7 +6035,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "health": {
-                    "description": "docker container health",
+                    "description": "docker container health, values: healthy, unhealthy, transitioning, empty if the container defines no health check",
                     "allOf": [
                         {
                             "$ref": "#/definitions/constants.ContainerHealth"
@@ -5887,7 +6043,7 @@ const docTemplate = `{
                     ]
                 },
                 "state": {
-                    "description": "docker container state",
+                    "description": "docker container state, values: initialized, running, paused, restarting, removing, stopped, dead",
                     "allOf": [
                         {
                             "$ref": "#/definitions/constants.ContainerState"
@@ -5900,24 +6056,30 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "deploymentId": {
+                    "description": "ID of the deployment that published the advertisement",
                     "type": "string"
                 },
                 "id": {
+                    "description": "unique ID of the advertisement, generated from the deployment ID and the reference",
                     "type": "string"
                 },
                 "items": {
+                    "description": "advertised data as key value pairs, content is defined by the publishing module",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "moduleId": {
+                    "description": "ID of the module the publishing deployment is based on",
                     "type": "string"
                 },
                 "reference": {
+                    "description": "identifier chosen by the publishing deployment, unique per deployment",
                     "type": "string"
                 },
                 "timestamp": {
+                    "description": "point in time at which the advertisement was created or last replaced",
                     "type": "string"
                 }
             }
@@ -5926,12 +6088,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "items": {
+                    "description": "advertised data as key value pairs, content is defined by the publishing module",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "reference": {
+                    "description": "identifier of the advertisement, an existing advertisement with the same reference is replaced",
                     "type": "string"
                 }
             }
@@ -5940,21 +6104,26 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
+                    "description": "unique ID of the advertisement, generated from the deployment ID and the reference",
                     "type": "string"
                 },
                 "items": {
+                    "description": "advertised data as key value pairs, content is defined by the publishing module",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "moduleId": {
+                    "description": "ID of the module whose deployment published the advertisement",
                     "type": "string"
                 },
                 "reference": {
+                    "description": "identifier chosen by the publishing deployment, unique per deployment",
                     "type": "string"
                 },
                 "timestamp": {
+                    "description": "point in time at which the advertisement was created or last replaced",
                     "type": "string"
                 }
             }
@@ -5963,7 +6132,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "health": {
-                    "description": "docker container health",
+                    "description": "docker container health, values: healthy, unhealthy, transitioning, empty if the container defines no health check",
                     "allOf": [
                         {
                             "$ref": "#/definitions/constants.ContainerHealth"
@@ -5971,10 +6140,11 @@ const docTemplate = `{
                     ]
                 },
                 "reference": {
+                    "description": "reference of the module service the container is based on",
                     "type": "string"
                 },
                 "state": {
-                    "description": "docker container state",
+                    "description": "docker container state, values: initialized, running, paused, restarting, removing, stopped, dead",
                     "allOf": [
                         {
                             "$ref": "#/definitions/constants.ContainerState"
@@ -5987,21 +6157,26 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "job_id": {
+                    "description": "ID of the job that produced the result",
                     "type": "string"
                 },
                 "results": {
+                    "description": "result per module the job was started for",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.DeploymentDeleteResult"
                     }
                 },
                 "results_err_num": {
+                    "description": "number of entries in Results that failed",
                     "type": "integer"
                 }
             }
@@ -6010,18 +6185,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "auxiliary_deployments": {
-                    "$ref": "#/definitions/models.AuxiliaryDeploymentDeleteResult"
+                    "description": "outcome of deleting the auxiliary deployments of the deployment",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.AuxiliaryDeploymentDeleteResult"
+                        }
+                    ]
                 },
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "id": {
+                    "description": "ID of the deployment, empty if the operation failed before the deployment was created",
                     "type": "string"
                 },
                 "module_id": {
+                    "description": "ID of the module the operation was performed for",
                     "type": "string"
                 }
             }
@@ -6030,30 +6214,45 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "auxiliary_deployments": {
+                    "description": "health information per auxiliary deployment, only auxiliary deployments that are not ok unless DeploymentsHealthInfoFilter.IncludeHealthy is set",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.AuxiliaryDeploymentHealthInfo"
                     }
                 },
                 "auxiliary_deployments_state": {
-                    "$ref": "#/definitions/constants.DeploymentState"
+                    "description": "combined health state of all enabled auxiliary deployments, values: 1 = healthy, 2 = unhealthy, 0 if none were checked",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/constants.DeploymentState"
+                        }
+                    ]
                 },
                 "containers": {
+                    "description": "health information per container, only containers that are not ok unless DeploymentsHealthInfoFilter.IncludeHealthy is set",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.DeploymentContainerHealthInfo"
                     }
                 },
                 "module_id": {
+                    "description": "ID of the module the deployment is based on",
                     "type": "string"
                 },
                 "state": {
-                    "$ref": "#/definitions/constants.DeploymentState"
+                    "description": "health state derived from the states of all containers, values: 1 = healthy, 2 = unhealthy, 0 if it could not be determined",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/constants.DeploymentState"
+                        }
+                    ]
                 },
                 "total_containers": {
+                    "description": "number of containers the deployment consists of",
                     "type": "integer"
                 },
                 "total_enabled_auxiliary_deployments": {
+                    "description": "number of enabled auxiliary deployments that were checked, disabled auxiliary deployments are never checked",
                     "type": "integer"
                 }
             }
@@ -6062,21 +6261,26 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "job_id": {
+                    "description": "ID of the job that produced the result",
                     "type": "string"
                 },
                 "results": {
+                    "description": "result per module the job was started for",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.DeploymentResult"
                     }
                 },
                 "results_err_num": {
+                    "description": "number of entries in Results that failed",
                     "type": "integer"
                 }
             }
@@ -6085,15 +6289,19 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "id": {
+                    "description": "ID of the deployment, empty if the operation failed before the deployment was created",
                     "type": "string"
                 },
                 "module_id": {
+                    "description": "ID of the module the operation was performed for",
                     "type": "string"
                 }
             }
@@ -6102,12 +6310,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "as_env": {
+                    "description": "true if the item is passed to the containers as an environment variable",
                     "type": "boolean"
                 },
                 "as_mount": {
+                    "description": "true if the item is mounted into the containers as a file",
                     "type": "boolean"
                 },
                 "name": {
+                    "description": "name of the item within the secret, empty if the secret is used as a whole",
                     "type": "string"
                 }
             }
@@ -6116,21 +6327,26 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "job_id": {
+                    "description": "ID of the job that produced the result",
                     "type": "string"
                 },
                 "results": {
+                    "description": "result per module the job was started for",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.DeploymentUpdateResult"
                     }
                 },
                 "results_err_num": {
+                    "description": "number of entries in Results that failed",
                     "type": "integer"
                 }
             }
@@ -6139,18 +6355,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "auxiliary_deployments": {
-                    "$ref": "#/definitions/models.AuxiliaryDeploymentRecreateResult"
+                    "description": "outcome of recreating the auxiliary deployments of the deployment",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.AuxiliaryDeploymentRecreateResult"
+                        }
+                    ]
                 },
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "id": {
+                    "description": "ID of the deployment, empty if the operation failed before the deployment was created",
                     "type": "string"
                 },
                 "module_id": {
+                    "description": "ID of the module the operation was performed for",
                     "type": "string"
                 }
             }
@@ -6159,12 +6384,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "deployments": {
+                    "description": "health information per deployment, only unhealthy deployments unless DeploymentsHealthInfoFilter.IncludeHealthy is set",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.DeploymentHealthInfo"
                     }
                 },
                 "total_enabled_deployments": {
+                    "description": "number of enabled deployments that were checked, disabled deployments are never checked",
                     "type": "integer"
                 }
             }
@@ -6173,48 +6400,63 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data_type": {
+                    "description": "type of Value, values: 1 = string, 2 = int64, 3 = float64, 4 = bool",
                     "type": "integer"
                 },
                 "id": {
+                    "description": "unique ID, used to reference the global config in deployment user inputs",
                     "type": "string"
                 },
                 "is_slice": {
+                    "description": "true if Value is a list of DataType instead of a single item",
                     "type": "boolean"
                 },
                 "name": {
+                    "description": "human readable name of the global config, does not have to be unique",
                     "type": "string"
                 },
-                "value": {}
+                "value": {
+                    "description": "the value itself, a single item or a list of items as stated by DataType and IsSlice"
+                }
             }
         },
         "models.GlobalConfigInput": {
             "type": "object",
             "properties": {
                 "data_type": {
+                    "description": "type of Value, values: 1 = string, 2 = int64, 3 = float64, 4 = bool",
                     "type": "integer"
                 },
                 "is_slice": {
+                    "description": "true if Value is a list of DataType instead of a single item",
                     "type": "boolean"
                 },
                 "name": {
+                    "description": "human readable name of the global config, does not have to be unique",
                     "type": "string"
                 },
-                "value": {}
+                "value": {
+                    "description": "the value itself, a single item or a list of items as stated by DataType and IsSlice"
+                }
             }
         },
         "models.InstalledModuleVariant": {
             "type": "object",
             "properties": {
                 "channel": {
+                    "description": "channel of the repository providing the variant",
                     "type": "string"
                 },
                 "next_version": {
+                    "description": "version the module can be updated to within its source and channel, empty if no update is available",
                     "type": "string"
                 },
                 "source": {
+                    "description": "source of the repository providing the variant",
                     "type": "string"
                 },
                 "version": {
+                    "description": "version of the module the variant provides",
                     "type": "string"
                 }
             }
@@ -6223,27 +6465,35 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data_type": {
+                    "description": "type of Value, values: 1 = string, 2 = int64, 3 = float64, 4 = bool",
                     "type": "integer"
                 },
                 "is_slice": {
+                    "description": "true if Value is a list of DataType instead of a single item",
                     "type": "boolean"
                 },
-                "value": {}
+                "value": {
+                    "description": "the value itself, a single item or a list of items as stated by DataType and IsSlice"
+                }
             }
         },
         "models.Job": {
             "type": "object",
             "properties": {
                 "description": {
+                    "description": "human readable description of the operation the job executes",
                     "type": "string"
                 },
                 "end": {
+                    "description": "point in time at which the job ended, zero value as long as the job is running or was canceled before completion",
                     "type": "string"
                 },
                 "id": {
+                    "description": "unique ID, used to query the job, cancel it and retrieve its result",
                     "type": "string"
                 },
                 "start": {
+                    "description": "point in time at which the job was created",
                     "type": "string"
                 }
             }
@@ -6252,12 +6502,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "job_id": {
+                    "description": "ID of the job that produced the result",
                     "type": "string"
                 }
             }
@@ -6266,21 +6519,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "channel": {
+                    "description": "channel of the repository providing the variant",
                     "type": "string"
                 },
                 "description": {
+                    "description": "human readable description of the module",
                     "type": "string"
                 },
                 "id": {
+                    "description": "unique ID of the module",
                     "type": "string"
                 },
                 "name": {
+                    "description": "human readable name of the module",
                     "type": "string"
                 },
                 "source": {
+                    "description": "source of the repository providing the variant",
                     "type": "string"
                 },
                 "version": {
+                    "description": "version of the module the variant provides",
                     "type": "string"
                 }
             }
@@ -6289,45 +6548,62 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "author": {
+                    "description": "author of the module",
                     "type": "string"
                 },
                 "channel": {
+                    "description": "channel of the repository the module was installed from",
                     "type": "string"
                 },
                 "deployment": {
-                    "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-manager_lib_models.DeploymentReduced"
+                    "description": "deployment of the module, zero value if IsDeployed is false",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-manager_lib_models.DeploymentReduced"
+                        }
+                    ]
                 },
                 "description": {
+                    "description": "human readable description of the module",
                     "type": "string"
                 },
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "id": {
+                    "description": "unique ID of the module",
                     "type": "string"
                 },
                 "is_deployed": {
+                    "description": "true if a deployment exists for the module, Deployment is only populated if true",
                     "type": "boolean"
                 },
                 "license": {
+                    "description": "license the module is published under",
                     "type": "string"
                 },
                 "name": {
+                    "description": "human readable name of the module",
                     "type": "string"
                 },
                 "source": {
+                    "description": "source of the repository the module was installed from",
                     "type": "string"
                 },
                 "tags": {
+                    "description": "tags the module is categorised by, usable to filter modules",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "version": {
+                    "description": "installed version of the module",
                     "type": "string"
                 }
             }
@@ -6336,21 +6612,26 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "failed": {
+                    "description": "modules whose action failed, the remaining actions of the change request are still executed",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.ChangeReportErrItem"
                     }
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "job_id": {
+                    "description": "ID of the job that produced the result",
                     "type": "string"
                 },
                 "success": {
+                    "description": "modules whose action was executed successfully",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.ChangeReportItem"
@@ -6362,6 +6643,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "change": {
+                    "description": "modules that will be changed, item format: [currentVariant, nextVariant]",
                     "type": "array",
                     "items": {
                         "type": "array",
@@ -6371,15 +6653,18 @@ const docTemplate = `{
                     }
                 },
                 "created": {
+                    "description": "point in time at which the change request was created",
                     "type": "string"
                 },
                 "install": {
+                    "description": "modules that will be newly installed, including dependencies of requested modules",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.ModuleAbbreviated"
                     }
                 },
                 "remove": {
+                    "description": "IDs of the modules that will be removed",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -6391,27 +6676,38 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "description": {
+                    "description": "human readable description of the module",
                     "type": "string"
                 },
                 "id": {
+                    "description": "unique ID of the module",
                     "type": "string"
                 },
                 "installed_variant": {
-                    "$ref": "#/definitions/models.InstalledModuleVariant"
+                    "description": "variant the module is installed from, zero value if IsInstalled is false",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.InstalledModuleVariant"
+                        }
+                    ]
                 },
                 "is_installed": {
+                    "description": "true if the module is installed, InstalledVariant is only populated if true",
                     "type": "boolean"
                 },
                 "name": {
+                    "description": "human readable name of the module",
                     "type": "string"
                 },
                 "repository_variants": {
+                    "description": "variants providing the module, sorted by repository priority in descending order",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.RepoModuleVariant"
                     }
                 },
                 "version": {
+                    "description": "version of the module offered by the repositories",
                     "type": "string"
                 }
             }
@@ -6420,15 +6716,18 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "channels": {
+                    "description": "channels of the repository offering the module, sorted by channel priority in descending order",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.RepoModuleVariantChannel"
                     }
                 },
                 "priority": {
+                    "description": "priority of the repository, a higher value takes precedence when a module is offered by several repositories",
                     "type": "integer"
                 },
                 "source": {
+                    "description": "source of the repository offering the module",
                     "type": "string"
                 }
             }
@@ -6437,12 +6736,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "name": {
+                    "description": "name of the channel",
                     "type": "string"
                 },
                 "priority": {
+                    "description": "priority of the channel, a higher value takes precedence when a module is offered by several channels of the same repository",
                     "type": "integer"
                 },
                 "version": {
+                    "description": "version of the module the channel offers",
                     "type": "string"
                 }
             }
@@ -6451,18 +6753,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "channels": {
+                    "description": "channels the repository is split into",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.RepositoryChannel"
                     }
                 },
                 "priority": {
+                    "description": "priority of the repository, a higher value takes precedence when a module is offered by several repositories, must be unique across all repositories",
                     "type": "integer"
                 },
                 "source": {
+                    "description": "source identifying the repository, must be unique across all repositories",
                     "type": "string"
                 },
                 "type": {
+                    "description": "type of the repository, determines how it is accessed, values: github.com, host-dir",
                     "type": "string"
                 }
             }
@@ -6471,9 +6777,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "name": {
+                    "description": "name of the channel, unique per repository",
                     "type": "string"
                 },
                 "priority": {
+                    "description": "priority of the channel, a higher value takes precedence when a module is offered by several channels of the same repository",
                     "type": "integer"
                 }
             }
@@ -6482,12 +6790,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "channel": {
+                    "description": "name of the channel that failed",
                     "type": "string"
                 },
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 }
             }
@@ -6496,21 +6807,26 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "job_id": {
+                    "description": "ID of the job that produced the result",
                     "type": "string"
                 },
                 "results": {
+                    "description": "result per repository the job was started for",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.RepositoryResult"
                     }
                 },
                 "results_err_num": {
+                    "description": "number of entries in Results that failed",
                     "type": "integer"
                 }
             }
@@ -6519,24 +6835,30 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "channel_errors": {
+                    "description": "errors that occurred for individual channels while the repository itself was refreshed",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.RepositoryChannelErrorResult"
                     }
                 },
                 "error_msg": {
+                    "description": "error message, empty if HasError is false",
                     "type": "string"
                 },
                 "has_error": {
+                    "description": "true if an error occurred, must be checked before relying on the enclosing model",
                     "type": "boolean"
                 },
                 "refresh": {
+                    "description": "true if the repository was refreshed, false if it did not match the filter and was skipped",
                     "type": "boolean"
                 },
                 "source": {
+                    "description": "source of the repository",
                     "type": "string"
                 },
                 "type": {
+                    "description": "type of the repository, values: github.com, host-dir",
                     "type": "string"
                 }
             }
@@ -6572,10 +6894,26 @@ const docTemplate = `{
                 1000,
                 1000000,
                 1000000000,
+                1,
+                1000,
+                1000000,
+                1000000000,
+                1,
+                1000,
+                1000000,
+                1000000000,
                 60000000000,
                 3600000000000
             ],
             "x-enum-varnames": [
+                "Nanosecond",
+                "Microsecond",
+                "Millisecond",
+                "Second",
+                "Nanosecond",
+                "Microsecond",
+                "Millisecond",
+                "Second",
                 "Nanosecond",
                 "Microsecond",
                 "Millisecond",
