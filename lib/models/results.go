@@ -16,11 +16,14 @@
 
 package models
 
+// ErrorResult reports an error that occurred during an operation which is not aborted by the error.
+// It is embedded in models that can be returned in a partially populated or failed state.
 type ErrorResult struct {
-	HasError bool   `json:"has_error"`
-	ErrorMsg string `json:"error_msg"`
+	HasError bool   `json:"has_error"` // true if an error occurred, must be checked before relying on the enclosing model
+	ErrorMsg string `json:"error_msg"` // error message, empty if HasError is false
 }
 
+// NewErrorResult returns an ErrorResult marked as failed with the given error message.
 func NewErrorResult(msg string) ErrorResult {
 	return ErrorResult{
 		HasError: true,

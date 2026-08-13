@@ -20,14 +20,17 @@ import (
 	"time"
 )
 
+// Job represents an operation that is executed asynchronously.
+// Operations returning a Job are completed once End is set, the outcome must then be retrieved from the result endpoint of the respective operation.
 type Job struct {
-	Id          string    `json:"id"`
-	Description string    `json:"description"`
-	Start       time.Time `json:"start"`
-	End         time.Time `json:"end"`
+	Id          string    `json:"id"`          // unique ID, used to query the job, cancel it and retrieve its result
+	Description string    `json:"description"` // human readable description of the operation the job executes
+	Start       time.Time `json:"start"`       // point in time at which the job was created
+	End         time.Time `json:"end"`         // point in time at which the job ended, zero value as long as the job is running or was canceled before completion
 }
 
+// JobResult is embedded in all job results and identifies the job as well as errors that aborted it.
 type JobResult struct {
-	JobId string `json:"job_id"`
-	ErrorResult
+	JobId       string `json:"job_id"` // ID of the job that produced the result
+	ErrorResult        // set if the job was aborted, individual item errors are reported by the results of the embedding model
 }

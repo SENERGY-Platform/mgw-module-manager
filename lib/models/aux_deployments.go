@@ -20,114 +20,141 @@ import (
 	"time"
 )
 
+// AuxiliaryDeploymentBase holds the fields common to all auxiliary deployment models.
+// An auxiliary deployment is an additional container that a deployment creates at runtime from one of the auxiliary services declared by its module.
+// In contrast to the containers of a deployment, auxiliary deployments are created, updated and removed by the deployment itself and not by user input.
 type AuxiliaryDeploymentBase struct {
-	Id           string                       `json:"id"`
-	DeploymentId string                       `json:"deployment_id"`
-	Reference    string                       `json:"reference"`
-	Name         string                       `json:"name"`
-	Image        string                       `json:"image"`
-	Created      time.Time                    `json:"created"`
-	Updated      time.Time                    `json:"updated"`
-	Enabled      bool                         `json:"enabled"`
-	Recreate     bool                         `json:"recreate"`
-	RunConfig    AuxiliaryDeploymentRunConfig `json:"run_config"`
+	Id           string                       `json:"id"`            // unique ID of the auxiliary deployment
+	DeploymentId string                       `json:"deployment_id"` // ID of the deployment that owns the auxiliary deployment
+	Reference    string                       `json:"reference"`     // reference of the module auxiliary service the auxiliary deployment is based on
+	Name         string                       `json:"name"`          // human readable name, taken from the module auxiliary service if not set on creation
+	Image        string                       `json:"image"`         // container image, must match one of the image sources declared by the module
+	Created      time.Time                    `json:"created"`       // point in time at which the auxiliary deployment was created
+	Updated      time.Time                    `json:"updated"`       // point in time at which the auxiliary deployment was last updated
+	Enabled      bool                         `json:"enabled"`       // true if the container is meant to be running, disabled auxiliary deployments are not started and not health checked
+	Recreate     bool                         `json:"recreate"`      // true if the auxiliary deployment is recreated when the owning deployment is updated, otherwise it is left untouched and keeps running against the previous module version
+	RunConfig    AuxiliaryDeploymentRunConfig `json:"run_config"`    // effective run configuration of the container
 }
 
+// AuxiliaryDeployment is an auxiliary deployment including its user defined data and the runtime state of its container.
 type AuxiliaryDeployment struct {
 	AuxiliaryDeploymentBase
-	Labels    map[string]string `json:"labels"`  // {name:value}
-	Configs   map[string]string `json:"configs"` // {varName:value}
-	Volumes   map[string]string `json:"volumes"` // {mntPoint:ref}
-	Container Container         `json:"container"`
+	Labels    map[string]string `json:"labels"`    // {name:value} labels set on creation or update, usable to filter auxiliary deployments
+	Configs   map[string]string `json:"configs"`   // {varName:value} environment variables passed to the container, merged with the configs of the owning deployment
+	Volumes   map[string]string `json:"volumes"`   // {mntPoint:ref} auxiliary deployment volumes by mount point within the container
+	Container Container         `json:"container"` // identity and runtime state of the container
 }
 
+// AuxiliaryDeploymentReduced is an AuxiliaryDeployment without labels, configs and volumes.
+// It is used where only the identity and the runtime state of an auxiliary deployment are of interest.
 type AuxiliaryDeploymentReduced struct {
 	AuxiliaryDeploymentBase
-	Container Container `json:"container"`
+	Container Container `json:"container"` // identity and runtime state of the container
 }
 
+// AuxiliaryDeploymentRunConfig is the effective run configuration of an auxiliary deployment container.
 type AuxiliaryDeploymentRunConfig struct {
-	Command   []string `json:"command"`
-	PseudoTTY bool     `json:"pseudo_tty"`
+	Command   []string `json:"command"`    // command the container is started with, taken from the module auxiliary service if not overridden on creation
+	PseudoTTY bool     `json:"pseudo_tty"` // true if a pseudo TTY is allocated for the container
 }
 
+// AuxiliaryDeploymentVolume is a docker volume created for the auxiliary deployments of a deployment.
+// Volumes are created implicitly when an auxiliary deployment references them and outlive the auxiliary deployments that mount them.
 type AuxiliaryDeploymentVolume struct {
-	Id           string `json:"id"`
-	DeploymentId string `json:"deployment_id"`
-	Reference    string `json:"reference"`
-	Name         string `json:"name"`
+	Id           string `json:"id"`            // unique ID of the volume, generated from the deployment ID and the reference
+	DeploymentId string `json:"deployment_id"` // ID of the deployment that owns the volume
+	Reference    string `json:"reference"`     // identifier chosen by the deployment, unique per deployment
+	Name         string `json:"name"`          // name of the volume as known to the container engine, generated by the module manager
 }
 
+// AuxiliaryDeploymentVolumeWithMounts is an AuxiliaryDeploymentVolume extended by the auxiliary deployments mounting it.
+// It is used to determine whether a volume is still in use before deleting it.
 type AuxiliaryDeploymentVolumeWithMounts struct {
 	AuxiliaryDeploymentVolume
-	MountedBy []string `json:"mounted_by"`
+	MountedBy []string `json:"mounted_by"` // IDs of the auxiliary deployments that mount the volume, empty if the volume is unused
 }
 
+// AuxiliaryDeploymentInput is the user input for creating or updating an auxiliary deployment.
+// Values not set are taken from the module auxiliary service identified by Reference.
 type AuxiliaryDeploymentInput struct {
-	Reference string                            `json:"reference"`
-	Name      string                            `json:"name"`
-	Image     string                            `json:"image"`
-	Labels    map[string]string                 `json:"labels"`  // {name:value}
-	Configs   map[string]string                 `json:"configs"` // {varName:value}
-	Volumes   map[string]string                 `json:"volumes"` // {mntPath:reference}
-	RunConfig AuxiliaryDeploymentInputRunConfig `json:"run_config"`
-	Recreate  int                               `json:"recreate"` // recreate the auxiliary deployment if parent deployment gets updated
+	Reference string                            `json:"reference"`  // reference of the module auxiliary service to base the auxiliary deployment on
+	Name      string                            `json:"name"`       // human readable name, the name of the module auxiliary service is used if empty
+	Image     string                            `json:"image"`      // container image, must match one of the image sources declared by the module
+	Labels    map[string]string                 `json:"labels"`     // {name:value} labels to set, on update they are merged into the existing labels
+	Configs   map[string]string                 `json:"configs"`    // {varName:value} environment variables to pass to the container in addition to the configs of the owning deployment
+	Volumes   map[string]string                 `json:"volumes"`    // {mntPath:reference} auxiliary deployment volumes by mount point, volumes that do not exist yet are created
+	RunConfig AuxiliaryDeploymentInputRunConfig `json:"run_config"` // overrides for the run configuration of the module auxiliary service
+	Recreate  int                               `json:"recreate"`   // recreate the auxiliary deployment if parent deployment gets updated, values: greater than 0 = recreate, 0 or less = do not recreate
 }
 
+// AuxiliaryDeploymentInputRunConfig overrides the run configuration declared by the module auxiliary service.
 type AuxiliaryDeploymentInputRunConfig struct {
-	Command   []string `json:"command"`
-	PseudoTTY int      `json:"pseudo_tty"`
+	Command   []string `json:"command"`    // command to start the container with, the command of the module auxiliary service is used if empty
+	PseudoTTY int      `json:"pseudo_tty"` // values: 1 = allocate a pseudo TTY, -1 = do not allocate one, 0 = use the setting of the module auxiliary service
 }
 
+// AuxiliaryDeploymentResult identifies an auxiliary deployment that was created.
 type AuxiliaryDeploymentResult struct {
-	Id             string `json:"id"`
-	ContainerAlias string `json:"container_alias"`
+	Id             string `json:"id"`              // ID of the created auxiliary deployment
+	ContainerAlias string `json:"container_alias"` // network alias under which the container is reachable by the other containers of the owning deployment
 }
 
+// AuxiliaryDeploymentBatchResult reports the outcome of an operation on a single auxiliary deployment.
 type AuxiliaryDeploymentBatchResult struct {
-	Id string `json:"id"`
-	ErrorResult
+	Id          string `json:"id"` // ID of the auxiliary deployment the operation was performed on
+	ErrorResult        // set if the operation failed for this auxiliary deployment
 }
 
+// AuxiliaryDeploymentVolumeResult reports the outcome of an operation on a single auxiliary deployment volume.
 type AuxiliaryDeploymentVolumeResult struct {
-	Reference string `json:"reference"`
-	ErrorResult
+	Reference   string `json:"reference"` // reference of the volume the operation was performed on
+	ErrorResult        // set if the operation failed for this volume
 }
 
+// AuxiliaryDeploymentsFilterWithState is an AuxiliaryDeploymentsFilter that also filters by the runtime state of the container.
 type AuxiliaryDeploymentsFilterWithState struct {
 	AuxiliaryDeploymentsFilter
-	State string // docker container state
+	State string // docker container state, values: initialized, running, paused, restarting, removing, stopped, dead, empty to not filter by state
 }
 
+// AuxiliaryDeploymentsFilter restricts the auxiliary deployments an operation is applied to.
+// All fields are optional, an empty or zero field is not applied, set fields are combined conjunctively.
+// Operations that delete auxiliary deployments require either a filter or an explicit permission to affect all of them.
 type AuxiliaryDeploymentsFilter struct {
-	Ids      []string
-	Labels   map[string]string
-	Image    string
-	Enabled  int
-	Recreate int
+	Ids      []string          // only match auxiliary deployments with one of these IDs
+	Labels   map[string]string // only match auxiliary deployments that carry all of these labels with the given values
+	Image    string            // only match auxiliary deployments using this container image
+	Enabled  int               // values: 1 = only enabled, -1 = only disabled, 0 = do not filter by enabled state
+	Recreate int               // values: 1 = only auxiliary deployments marked for recreation, -1 = only those not marked, 0 = do not filter by recreate state
 }
 
+// AuxiliaryDeploymentCreateJobResult is the result of a job created by creating an auxiliary deployment.
 type AuxiliaryDeploymentCreateJobResult struct {
 	JobResult
-	AuxiliaryDeploymentResult
+	AuxiliaryDeploymentResult // identity of the created auxiliary deployment, empty if the job failed
 }
 
+// AuxiliaryDeploymentJobResult is the result of a job created by recreating, deleting, enabling or disabling auxiliary deployments.
 type AuxiliaryDeploymentJobResult struct {
 	JobResult
-	Results       []AuxiliaryDeploymentBatchResult `json:"results"`
-	ResultsErrNum int                              `json:"results_err_num"`
+	Results       []AuxiliaryDeploymentBatchResult `json:"results"`         // result per auxiliary deployment the job was started for
+	ResultsErrNum int                              `json:"results_err_num"` // number of entries in Results that failed
 }
 
+// AuxiliaryDeploymentRecreateResult reports the outcome of recreating the auxiliary deployments of a deployment.
+// It is embedded in the results of operations that recreate auxiliary deployments as a side effect, such as updating a deployment.
 type AuxiliaryDeploymentRecreateResult struct {
-	ErrorResult
-	Results       []AuxiliaryDeploymentBatchResult `json:"results"`
-	ResultsErrNum int                              `json:"results_err_num"`
+	ErrorResult                                    // set if recreating the auxiliary deployments failed as a whole
+	Results       []AuxiliaryDeploymentBatchResult `json:"results"`         // result per recreated auxiliary deployment
+	ResultsErrNum int                              `json:"results_err_num"` // number of entries in Results that failed
 }
 
+// AuxiliaryDeploymentDeleteResult reports the outcome of deleting the auxiliary deployments of a deployment and their volumes.
+// It is embedded in the results of operations that delete auxiliary deployments as a side effect, such as deleting a deployment.
 type AuxiliaryDeploymentDeleteResult struct {
-	ErrorResult
-	Results             []AuxiliaryDeploymentBatchResult  `json:"results"`
-	ResultsErrNum       int                               `json:"results_err_num"`
-	VolumeResults       []AuxiliaryDeploymentVolumeResult `json:"volume_results"`
-	VolumeResultsErrNum int                               `json:"volume_results_err_num"`
+	ErrorResult                                           // set if deleting the auxiliary deployments failed as a whole
+	Results             []AuxiliaryDeploymentBatchResult  `json:"results"`                // result per deleted auxiliary deployment
+	ResultsErrNum       int                               `json:"results_err_num"`        // number of entries in Results that failed
+	VolumeResults       []AuxiliaryDeploymentVolumeResult `json:"volume_results"`         // result per deleted auxiliary deployment volume
+	VolumeResultsErrNum int                               `json:"volume_results_err_num"` // number of entries in VolumeResults that failed
 }

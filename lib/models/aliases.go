@@ -21,7 +21,13 @@ import (
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 )
 
+// ModuleBase provides the metadata of a module as declared in its modfile.
+// It describes among others the services, volumes, dependencies, secrets, files and configs a module consists of and therefore what must be provided as user input to deploy it.
 type ModuleBase = module_lib.Module
+
+// ModuleFileBase provides the metadata of a file a module can consume.
+// It states whether the file must be provided as user input to deploy the module.
 type ModuleFileBase = module_lib.File
 
+// ServiceInfo provides name, version, uptime and memory usage of the module manager service.
 type ServiceInfo = srv_info_hdl.ServiceInfo

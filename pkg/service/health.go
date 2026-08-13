@@ -55,22 +55,25 @@ func (s *Service) DeploymentsHealth(ctx context.Context, filter lib_models.Deplo
 	for _, id := range filter.ExclModuleIds {
 		delete(deployments, id)
 	}
+	var auxDeployments map[string]map[string]lib_models.AuxiliaryDeploymentReduced
 	lenFilterAuxDepsOfIds := len(filter.AuxDeploymentsOfIds)
-	lenFilterExclAuxDepsOfIds := len(filter.ExclAuxDeploymentsOfIds)
-	auxDeployments := make(map[string]map[string]lib_models.AuxiliaryDeploymentReduced)
-	for moduleId, deployment := range deployments {
-		if lenFilterAuxDepsOfIds > 0 && !slices.Contains(filter.AuxDeploymentsOfIds, moduleId) || lenFilterExclAuxDepsOfIds > 0 && slices.Contains(filter.ExclAuxDeploymentsOfIds, moduleId) {
-			continue
+	if filter.AuxiliaryDeployments || lenFilterAuxDepsOfIds > 0 {
+		lenFilterExclAuxDepsOfIds := len(filter.ExclAuxDeploymentsOfIds)
+		auxDeployments = make(map[string]map[string]lib_models.AuxiliaryDeploymentReduced)
+		for moduleId, deployment := range deployments {
+			if lenFilterAuxDepsOfIds > 0 && !slices.Contains(filter.AuxDeploymentsOfIds, moduleId) || lenFilterExclAuxDepsOfIds > 0 && slices.Contains(filter.ExclAuxDeploymentsOfIds, moduleId) {
+				continue
+			}
+			auxDeps, err := s.auxDeploymentsHandler.GetReducedDeployments(ctx, deployment.Id, lib_models.AuxiliaryDeploymentsFilterWithState{
+				AuxiliaryDeploymentsFilter: lib_models.AuxiliaryDeploymentsFilter{
+					Enabled: 1,
+				},
+			})
+			if err != nil {
+				return lib_models.DeploymentsHealthInfo{}, err
+			}
+			auxDeployments[moduleId] = auxDeps
 		}
-		auxDeps, err := s.auxDeploymentsHandler.GetReducedDeployments(ctx, deployment.Id, lib_models.AuxiliaryDeploymentsFilterWithState{
-			AuxiliaryDeploymentsFilter: lib_models.AuxiliaryDeploymentsFilter{
-				Enabled: 1,
-			},
-		})
-		if err != nil {
-			return lib_models.DeploymentsHealthInfo{}, err
-		}
-		auxDeployments[moduleId] = auxDeps
 	}
 	return getDeploymentsHealthInfo(deployments, auxDeployments, filter.IncludeHealthy), nil
 }
