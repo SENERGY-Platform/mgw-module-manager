@@ -28,15 +28,15 @@ import (
 
 // @Summary		Get deployment request
 // @Description	Get the modules that must be configured to deploy the given modules including their dependencies.
-// @Tags			deployments
+// @Tags		deployments
 // @Produce		json
-// @Param			module_ids	query	[]string	false	"filter by module IDs"	collectionFormat(csv)
+// @Param		module_ids	query	[]string	false	"filter by module IDs"	collectionFormat(csv)
 // @Success		200	{array}	lib_models.Module	"modules to be configured"
 // @Failure		400	{string}	string	"error message"
 // @Failure		404	{string}	string	"error message"
 // @Failure		500	{string}	string	"error message"
 // @Failure		503	{string}	string	"error message"
-// @Router			/deployment-request [get]
+// @Router		/deployment-request [get]
 func GetDeploymentRequest(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathDeploymentRequestResource, func(gc *gin.Context) {
 		var query struct {

@@ -104,8 +104,8 @@ func getAuxiliaryDeploymentsFilterLabels(queryLabels []string) (map[string]strin
 // @Param		ids	query	[]string	false	"filter by auxiliary deployment IDs"	collectionFormat(csv)
 // @Param		labels	query	[]string	false	"filter by labels, item format: key|value"	collectionFormat(csv)
 // @Param		image	query	string	false	"filter by container image"
-// @Param		enabled	query	int	false	"filter by enabled state"
-// @Param		recreate	query	int	false	"filter by recreate state"
+// @Param		enabled	query	int	false	"filter by enabled state, values: -1,0,1"
+// @Param		recreate	query	int	false	"filter by recreate state, values: -1,0,1"
 // @Param		state	query	string	false	"filter by container state"
 // @Success		200	{object}	map[string]lib_models.AuxiliaryDeployment	"auxiliary deployments by ID"
 // @Failure		400	{string}	string	"error message"
@@ -136,8 +136,8 @@ func GetAuxiliaryDeployments(srv *service.Service) (string, string, gin.HandlerF
 // @Param		ids	query	[]string	false	"filter by auxiliary deployment IDs"	collectionFormat(csv)
 // @Param		labels	query	[]string	false	"filter by labels, item format: key|value"	collectionFormat(csv)
 // @Param		image	query	string	false	"filter by container image"
-// @Param		enabled	query	int	false	"filter by enabled state"
-// @Param		recreate	query	int	false	"filter by recreate state"
+// @Param		enabled	query	int	false	"filter by enabled state, values: -1,0,1"
+// @Param		recreate	query	int	false	"filter by recreate state, values: -1,0,1"
 // @Param		state	query	string	false	"filter by container state"
 // @Success		200	{object}	map[string]lib_models.AuxiliaryDeploymentReduced	"reduced auxiliary deployments by ID"
 // @Failure		400	{string}	string	"error message"
@@ -333,8 +333,8 @@ func DeleteAuxiliaryDeployment(srv *service.Service) (string, string, gin.Handle
 // @Param		ids	query	[]string	false	"filter by auxiliary deployment IDs"	collectionFormat(csv)
 // @Param		labels	query	[]string	false	"filter by labels, item format: key|value"	collectionFormat(csv)
 // @Param		image	query	string	false	"filter by container image"
-// @Param		enabled	query	int	false	"filter by enabled state"
-// @Param		recreate	query	int	false	"filter by recreate state"
+// @Param		enabled	query	int	false	"filter by enabled state, values: -1,0,1"
+// @Param		recreate	query	int	false	"filter by recreate state, values: -1,0,1"
 // @Param		state	query	string	false	"filter by container state"
 // @Param		allow_all	query	bool	false	"allow deletion of all auxiliary deployments"
 // @Success		200	{object}	lib_models.Job	"job"

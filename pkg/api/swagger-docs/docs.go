@@ -601,13 +601,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "filter by enabled state",
+                        "description": "filter by enabled state, values: -1,0,1",
                         "name": "enabled",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "filter by recreate state",
+                        "description": "filter by recreate state, values: -1,0,1",
                         "name": "recreate",
                         "in": "query"
                     },
@@ -695,13 +695,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "filter by enabled state",
+                        "description": "filter by enabled state, values: -1,0,1",
                         "name": "enabled",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "filter by recreate state",
+                        "description": "filter by recreate state, values: -1,0,1",
                         "name": "recreate",
                         "in": "query"
                     },
@@ -1546,19 +1546,19 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "filter by deployment existence",
+                        "description": "filter by deployment existence, values: -1,0,1",
                         "name": "is_deployed",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "filter by deployment enabled state",
+                        "description": "filter by deployment enabled state, values: -1,0,1",
                         "name": "deployment_enabled",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "filter by deployment state",
+                        "description": "filter by deployment state, values: -1,0,1",
                         "name": "deployment_state",
                         "in": "query"
                     }
@@ -1830,19 +1830,19 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "filter by deployment existence",
+                        "description": "filter by deployment existence, values: -1,0,1",
                         "name": "is_deployed",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "filter by deployment enabled state",
+                        "description": "filter by deployment enabled state, values: -1,0,1",
                         "name": "deployment_enabled",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "filter by deployment state",
+                        "description": "filter by deployment state, values: -1,0,1",
                         "name": "deployment_state",
                         "in": "query"
                     }
@@ -2774,13 +2774,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "filter by enabled state",
+                        "description": "filter by enabled state, values: -1,0,1",
                         "name": "enabled",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "filter by recreate state",
+                        "description": "filter by recreate state, values: -1,0,1",
                         "name": "recreate",
                         "in": "query"
                     },
@@ -2935,13 +2935,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "filter by enabled state",
+                        "description": "filter by enabled state, values: -1,0,1",
                         "name": "enabled",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "filter by recreate state",
+                        "description": "filter by recreate state, values: -1,0,1",
                         "name": "recreate",
                         "in": "query"
                     },
@@ -3221,13 +3221,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "filter by enabled state",
+                        "description": "filter by enabled state, values: -1,0,1",
                         "name": "enabled",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "filter by recreate state",
+                        "description": "filter by recreate state, values: -1,0,1",
                         "name": "recreate",
                         "in": "query"
                     },
@@ -6572,18 +6572,10 @@ const docTemplate = `{
                 1000,
                 1000000,
                 1000000000,
-                1,
-                1000,
-                1000000,
-                1000000000,
                 60000000000,
                 3600000000000
             ],
             "x-enum-varnames": [
-                "Nanosecond",
-                "Microsecond",
-                "Millisecond",
-                "Second",
                 "Nanosecond",
                 "Microsecond",
                 "Millisecond",
