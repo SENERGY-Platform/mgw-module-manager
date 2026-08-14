@@ -11,7 +11,6 @@ models and HTTP clients, so other services, apps and modules can interact with t
 
 - [Service interactions](#service-interactions)
 - [Concepts](#concepts)
-- [Architecture](#architecture)
 - [Configuration](#configuration)
 - [HTTP API](#http-api)
 - [Project structure](#project-structure)
