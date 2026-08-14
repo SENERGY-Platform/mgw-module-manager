@@ -14,6 +14,7 @@ models and HTTP clients, so other services, apps and modules can interact with t
 - [Architecture](#architecture)
 - [Configuration](#configuration)
 - [HTTP API](#http-api)
+- [Project structure](#project-structure)
 
 ## Service interactions
 
@@ -433,3 +434,125 @@ sequenceDiagram
     C->>+A: m=GET p="/results/deployments-update/:JOB_ID"
     A-->>C: s=200, b=DeploymentUpdateJobResult
 ```
+
+## Project structure
+
+Folder-level map of the repository. Files are listed for the root level only; every
+other level is documented by folder. The `bin/` folder (runtime working directory
+created by the service: module data, deployment data, repository caches, backups) and
+`.dockerignore` are excluded on purpose.
+
+### Root level
+
+```
+.
+├── .github/            CI definitions
+├── lib/                public Go module: API models + HTTP clients for consumers
+├── pkg/                the service implementation
+├── test_client/        manual/integration client used to exercise a running service
+├── Dockerfile          two-stage build (golang builder → alpine), healthcheck on /health/service
+├── main.go             process entrypoint: config, logger, clients, handlers, wiring, goroutines
+└── ...
+```
+
+`main.go` is the composition root. It loads the configuration, builds the structured
+logger and injects it into every package logger, creates the MySQL connection pool and
+the database handler, constructs the repository / module / deployment / aux-deployment /
+global-config / advertisement / job handlers, assembles them into the `service.Service`,
+runs the database migrations, initializes the repository handlers, creates the HTTP API
+handler and server, and finally starts the long-running goroutines (deployment runtime
+monitor, aux-deployment runtime monitor, job cleanup, HTTP server, signal-triggered
+shutdown).
+
+### lib/ — public API module
+
+Separate Go module (`…/mgw-module-manager/lib`) so other MGW services, apps and modules
+can depend on the API surface without pulling in the service implementation.
+
+| Folder | Purpose |
+| --- | --- |
+| `lib/models` | Wire/DTO types of the whole API: modules and change requests, deployments and user input, auxiliary deployments and their volumes, deployment advertisements, global configs, jobs and typed job results, health info, repositories and module variants, error results. Also aliases types re-exported from `mgw-module-lib`. |
+| `lib/clients` | HTTP clients for the API surface a module container talks to: auxiliary deployments, deployment advertisements and deployments health, plus the shared request/response plumbing (JSON decoding, error wrapping with status code and body, URL path escaping, query building) and the interfaces those clients satisfy. |
+| `lib/constants` | Shared constants: HTTP paths, query and header names, container state/health aliases, deployment state values. |
+| `lib/errors` | Generic error base with typed wrappers (`ErrNotFound`, `ErrExists`, `ErrActiveJob`, `ErrInvalidInput`) used across service, API and clients for status-code mapping. |
+
+### pkg/api/ — HTTP layer
+
+Gin-based API. `CreateHandler` builds the middleware chain (optional structured access
+log, runtime-id and request-id context values, static `X-Core-Id`/`X-Manager-Id`/
+`X-Runtime-Id`/`X-Version`/`X-Service` headers, error handler, panic recovery) and
+registers three handler sets: standard handlers at `/`, restricted handlers at
+`/restricted`, and shared handlers on both. Errors are mapped from the typed `lib/errors`
+values to HTTP status codes in one place.
+
+| Folder | Purpose |
+| --- | --- |
+| `pkg/api/handlers` | One file per resource group, each function returning method, path and gin handler: modules and change requests, repositories, deployments, auxiliary deployments, deployment advertisements, global configs, jobs, job results, health, service info, swagger endpoints. Also holds all query/filter parsing and validation. |
+| `pkg/api/swagger-docs` | Generated OpenAPI documentation (`docs.go`, `swagger.json`, `swagger.yaml`) served by the swagger handlers; the version field is filled in at startup. |
+
+### pkg/components/handler/ — domain handlers
+
+| Folder | Purpose |
+| --- | --- |
+| `pkg/components/handler/modules` | Installed-module inventory: add, update and delete modules from a repository file system (Modfile parsing, image pulls via CEW, work directory management), read modules with resolved dependencies, in-memory module cache. |
+| `pkg/components/handler/repositories` | Aggregates all repository backends behind one interface: builds and refreshes the module lookup map across sources/channels with priority handling, lists repositories and repository modules, resolves a module id + source + channel to a file system, and delegates repository creation/deletion to the matching backend. |
+| `pkg/components/handler/repositories/github` | GitHub backend: source/channel definitions persisted as files in its work directory, last-commit polling, tar.gz archive download and extraction per validated commit, exposing each channel's modules as `fs.FS`. |
+| `pkg/components/handler/repositories/host_dir` | Local-directory backend (source `localhost`, channel `default`) for side-loading and module development. |
+| `pkg/components/handler/deployments` | The core of the service: create, update, recreate, delete, enable and disable deployments. Covers config resolution (defaults, user input, global configs), file and file-group materialization on disk, volumes, secret mounts via the secret manager, host resources via the host manager, container creation via CEW with dependency/config/secret env injection and bind/tmpfs/volume/application/secret mounts, HTTP endpoint registration with the core manager, image pulls, listing with runtime state, and the runtime monitor reconciling desired vs. actual container state. |
+| `pkg/components/handler/aux_deployments` | Same lifecycle for auxiliary deployments a running module spawns: create/update/recreate/delete, enable/disable, labels, configs merged with the parent deployment's, volumes with mounts, image validation against the module's `auxImageSources`, container creation and its own runtime monitor. |
+| `pkg/components/handler/dep_advertisements` | Key/value records a deployment publishes under a reference: read, query, put (single and batch) and delete, with deployment/module ownership enforcement. |
+| `pkg/components/handler/global_configs` | CRUD for named, typed values shared by any number of deployments. |
+| `pkg/components/handler/jobs` | Asynchronous job registry: plain and slot-based jobs (slots serialize conflicting long-running operations), per-job cancellable context, lookup and filtering, and a cleanup loop that drops finished jobs past the maximum age and triggers job-result cleanup. |
+| `pkg/components/handler/database` | MySQL persistence layer. Connector and pool setup, migration runner, and per-domain SQL: modules, deployments (containers, volumes, host resources, secrets, user/global configs, files and file groups), auxiliary deployments (labels, configs, volumes, volume mounts, parent relations), deployment advertisements and global configs, including the typed config-value column handling and filter generation. |
+| `pkg/components/handler/database/migrations/db_init` | Initial schema: embedded `.sql` files per domain (modules, deployments, aux deployments, advertisements, global configs) executed statement by statement. |
+| `pkg/components/handler/database/migrations/restructure` | One-off restructuring migration of the legacy schema, table by table (modules, deployments, containers, host resources, secrets, configs incl. list configs, aux deployments/containers/labels/volumes/configs, advertisements and their items) plus schema-introspection helpers. |
+
+### pkg/components/helper/ — technical helpers
+
+| Folder | Purpose |
+| --- | --- |
+| `pkg/components/helper/archive` | tar.gz extraction into a target path. |
+| `pkg/components/helper/configs` | Typed config values: conversion to/from `any`, string and list rendering, data-type mapping, equality and validation against a Modfile config definition. |
+| `pkg/components/helper/containers` | CEW convenience wrappers: stop, remove, ensure image present, remove volume. |
+| `pkg/components/helper/errors` | Multi-error joining with optional prefix/format, preserving `errors.Unwrap` semantics. |
+| `pkg/components/helper/file_sys` | Copy a file or a whole `fs.FS` to disk, find a file by predicate. |
+| `pkg/components/helper/http` | Pre-configured `http.Client` factory with timeout. |
+| `pkg/components/helper/job` | Await a job on a remote MGW service by polling its job endpoint. |
+| `pkg/components/helper/maps` | Collect an iterator into a map by key function. |
+| `pkg/components/helper/modfile` | Locate and parse `Modfile.yml`/`Modfile.yaml` in a module file system into a module-lib module. |
+| `pkg/components/helper/mutex_map` | Keyed read/write mutexes, used to serialize operations per deployment. |
+| `pkg/components/helper/naming` | Identity and naming: runtime id, manager id (persisted to disk), core id, container network, container names and dns aliases, volume names, hashes. |
+| `pkg/components/helper/os_signal` | Context-aware OS signal waiting for graceful shutdown. |
+| `pkg/components/helper/slices` | Slice/iterator utilities: key extraction, pair extraction, mapping, `[]any` conversion, deduplication. |
+| `pkg/components/helper/slog` | Structured logger construction and extraction of context attributes (runtime id, request id, job id) into log records. |
+| `pkg/components/helper/sql_db` | `*sql.DB` construction with pool limits from configuration. |
+| `pkg/components/helper/time` | UTC-aware `Now()`. |
+| `pkg/components/helper/url` | URL path escaping to a configurable segment depth. |
+| `pkg/components/helper/uuid` | UUID generation. |
+
+### pkg/service/ — use-case layer
+
+Single `Service` struct holding all handlers plus the service-info handler; the API layer
+talks only to this. Per-resource files implement the use cases: module change requests
+(validation, repository selection with dependency resolution, install/change/remove
+classification, execution as a job), repository listing and refresh, deployment create /
+update / recreate / delete / enable / disable, auxiliary deployment operations, global
+configs, advertisements, deployments health aggregation, job listing and cancellation,
+and the in-memory store of typed job results (cleaned up by the jobs handler callback).
+
+### pkg/configuration/ and pkg/models/
+
+| Folder | Purpose |
+| --- | --- |
+| `pkg/configuration` | Configuration struct with defaults, env-var/file loading with custom type parsers, command-line flags (config path, manager id) and base64-JSON dumping of the effective configuration for debug logs. |
+| `pkg/models` | Internal domain models used between service, handlers and database — deployments and their resources, auxiliary deployments, modules (incl. the database representation), repository modules, typed config values and filters. Distinct from `lib/models`, which is the public wire format. |
+
+### test_client/
+
+Standalone client package driving a running service over HTTP, used for manual and
+integration testing rather than unit testing. It wraps the standard API (modules and
+change requests, repositories, deployments, global configs, jobs incl. awaiting
+completion, job results) and reuses `lib/clients` for the restricted/shared surface
+(auxiliary deployments, advertisements). Configured by a local `config.json` holding base
+URL, session cookie and URL escape depth — it contains personal session credentials and
+is not meant to be shared.
