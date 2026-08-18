@@ -4531,48 +4531,54 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "bind_mounts": {
-                    "description": "{mntPoint:BindMount}",
+                    "description": "Files and directories of the module repository to be mounted into the\ncontainer, keyed by mount point.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.BindMount"
                     }
                 },
                 "configs": {
-                    "description": "{refVar:ref}",
+                    "description": "Configuration values to be passed as environment variables, mapping\nvariable name to a config reference of Module.Configs.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "ext_dependencies": {
-                    "description": "{refVar:ExtDependencyTarget}",
+                    "description": "Addresses of services provided by modules listed in\nModule.Dependencies, keyed by the environment variable that receives\nthe address.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/model.ExtDependencyTarget"
                     }
                 },
                 "name": {
+                    "description": "Human readable service name.",
                     "type": "string"
                 },
                 "run_config": {
-                    "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.RunConfig"
+                    "description": "Container runtime behaviour (stop handling, command, tty).",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.RunConfig"
+                        }
+                    ]
                 },
                 "srv_references": {
-                    "description": "{refVar:SrvRefTarget}",
+                    "description": "Addresses of module services, keyed by the environment variable that\nreceives the address.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/model.SrvRefTarget"
                     }
                 },
                 "tmpfs": {
-                    "description": "{mntPoint:TmpfsMount}",
+                    "description": "In-memory file systems to be created for the container, keyed by mount\npoint.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.TmpfsMount"
                     }
                 },
                 "volumes": {
-                    "description": "{mntPoint:volName}",
+                    "description": "Volumes to be mounted, mapping mount point to a volume name declared in\nModule.Volumes.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -4584,9 +4590,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "read_only": {
+                    "description": "Mount the source read-only.",
                     "type": "boolean"
                 },
                 "source": {
+                    "description": "Path of the file or directory relative to the module directory.",
                     "type": "string"
                 }
             }
@@ -4595,27 +4603,46 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data_type": {
-                    "$ref": "#/definitions/model.DataType"
+                    "description": "Data type of the value (see BoolType, Int64Type, Float64Type and\nStringType). Defaults to StringType when the modfile omits it.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.DataType"
+                        }
+                    ]
                 },
-                "default": {},
+                "default": {
+                    "description": "Default value used when the user provides none, or nil if there is no\ndefault."
+                },
                 "delimiter": {
+                    "description": "Delimiter used to join multiple values into the single string passed to\na container. Defaults to \",\" when the modfile omits it. Only meaningful\nif IsSlice is set.",
                     "type": "string"
                 },
                 "is_slice": {
+                    "description": "The config holds multiple values of DataType rather than a single one.",
                     "type": "boolean"
                 },
                 "opt_ext": {
+                    "description": "Accept values outside of Options. Only meaningful if Options is set.",
                     "type": "boolean"
                 },
-                "options": {},
+                "options": {
+                    "description": "Allowed values as a slice matching DataType, or nil if the value is not\nrestricted."
+                },
                 "required": {
+                    "description": "The module cannot be deployed unless a value is available. A required\nconfig must either have a Default or a user input defined for it.",
                     "type": "boolean"
                 },
                 "type": {
+                    "description": "Config type selecting the validation definition applied to user input\n(e.g. text, number). Empty if the value cannot be set by the user.",
                     "type": "string"
                 },
                 "type_opt": {
-                    "$ref": "#/definitions/model.ConfigTypeOptions"
+                    "description": "Type specific options constraining user input, keyed by option name as\nsupported by Type (e.g. min, max and step for number, regex, min_len\nand max_len for text).",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.ConfigTypeOptions"
+                        }
+                    ]
                 }
             }
         },
@@ -4623,13 +4650,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "required": {
+                    "description": "The module cannot be deployed unless content is available, either from\nSource or from user input.",
                     "type": "boolean"
                 },
                 "source": {
-                    "description": "optional source path",
+                    "description": "Optional path relative to the module directory of a file providing the\ndefault content.",
                     "type": "string"
                 },
                 "type": {
+                    "description": "Content type of the file (e.g. generic, json, yaml), used to present a\nsuitable editor and to validate user input.",
                     "type": "string"
                 }
             }
@@ -4638,10 +4667,16 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "required": {
+                    "description": "The module cannot be deployed unless a resource is selected. A required\nresource must either carry tags or have a user input defined for it.",
                     "type": "boolean"
                 },
                 "tags": {
-                    "$ref": "#/definitions/model.Set-string"
+                    "description": "Tags aiding identification of a matching resource. A tag combination\nthat yields exactly one candidate allows selecting the resource without\nuser interaction.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Set-string"
+                        }
+                    ]
                 }
             }
         },
@@ -4649,20 +4684,32 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "name": {
+                    "description": "Human readable endpoint name.",
                     "type": "string"
                 },
                 "path": {
-                    "description": "internal path",
+                    "description": "Internal path requests are forwarded to. Empty forwards to the root\npath.",
                     "type": "string"
                 },
                 "port": {
+                    "description": "Port the service listens on. Defaults to 80 when the modfile omits it.",
                     "type": "integer"
                 },
                 "proxy_conf": {
-                    "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.HttpEndpointProxyConf"
+                    "description": "Reverse proxy behaviour for this endpoint.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.HttpEndpointProxyConf"
+                        }
+                    ]
                 },
                 "string_sub": {
-                    "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.HttpEndpointStrSub"
+                    "description": "String substitutions applied to responses of this endpoint.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.HttpEndpointStrSub"
+                        }
+                    ]
                 }
             }
         },
@@ -4670,15 +4717,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "headers": {
+                    "description": "Headers to append to or overwrite on requests sent downstream.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "read_timeout": {
-                    "$ref": "#/definitions/time.Duration"
+                    "description": "Timeout for reading a response from downstream. Zero leaves the choice\nto the gateway.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/time.Duration"
+                        }
+                    ]
                 },
                 "websocket": {
+                    "description": "Allow connections to be upgraded to websocket.",
                     "type": "boolean"
                 }
             }
@@ -4687,18 +4741,21 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "filters": {
+                    "description": "Substitutions to apply, mapping the string to search for to its\nreplacement. The replacement may contain the {loc} placeholder, which\nexpands to the endpoint's external location\n(e.g. ` + "`" + `href=\"/` + "`" + ` -\u003e ` + "`" + `href=\"{loc}/` + "`" + `).",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "mime_types": {
+                    "description": "Restrict substitution to responses with these MIME types. Empty applies\nto all responses. Entries must be unique.",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "replace_once": {
+                    "description": "Replace only the first occurrence of each filter instead of all\noccurrences.",
                     "type": "boolean"
                 }
             }
@@ -4707,12 +4764,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "description": {
+                    "description": "Short text describing the group.",
                     "type": "string"
                 },
                 "group": {
+                    "description": "Optional reference of the parent group, must be a key of\nInputs.Groups. Cyclic references are rejected during validation.",
                     "type": "string"
                 },
                 "name": {
+                    "description": "Group name, used as the heading of the group.",
                     "type": "string"
                 }
             }
@@ -4721,19 +4781,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "bindings": {
+                    "description": "Host ports the container port is published on. Empty means no explicit\nbinding is requested. Bindings must not collide with those of other\nservices of the module.",
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
                 "name": {
+                    "description": "Human readable port name.",
                     "type": "string"
                 },
                 "number": {
+                    "description": "Port number inside the container. The combination of number and\nprotocol must be unique within a service.",
                     "type": "integer"
                 },
                 "protocol": {
-                    "$ref": "#/definitions/model.PortProtocol"
+                    "description": "Transport protocol, defaults to \"tcp\" when the modfile omits it.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.PortProtocol"
+                        }
+                    ]
                 }
             }
         },
@@ -4741,19 +4809,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "command": {
+                    "description": "Command to run instead of the image's default command, given as\nargument list. Empty keeps the image default.",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "pseudo_tty": {
+                    "description": "Allocate a pseudo TTY for the container.",
                     "type": "boolean"
                 },
                 "stop_signal": {
+                    "description": "Signal used to stop the container (e.g. SIGTERM). Empty leaves the\nchoice to the container engine.",
                     "type": "string"
                 },
                 "stop_timeout": {
-                    "$ref": "#/definitions/time.Duration"
+                    "description": "Grace period the container engine waits for the container to exit\nbefore killing it. Defaults to 5s when the modfile omits it.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/time.Duration"
+                        }
+                    ]
                 }
             }
         },
@@ -4761,12 +4837,19 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "required": {
+                    "description": "The module cannot be deployed unless a resource is selected. A required\nresource must either carry tags or have a user input defined for it.",
                     "type": "boolean"
                 },
                 "tags": {
-                    "$ref": "#/definitions/model.Set-string"
+                    "description": "Tags aiding identification of a matching resource. A tag combination\nthat yields exactly one candidate allows selecting the resource without\nuser interaction.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Set-string"
+                        }
+                    ]
                 },
                 "type": {
+                    "description": "Secret type as defined by the secret manager (e.g. certificate,\nbasic-auth, api-key, client-id, private-key). It determines which items\na SecretTarget may address.",
                     "type": "string"
                 }
             }
@@ -4775,9 +4858,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "item": {
+                    "description": "Optional item of the secret to use, as defined by the secret type.\nEmpty selects the secret's default item.",
                     "type": "string"
                 },
                 "ref": {
+                    "description": "Reference of the secret, must be a key of Module.Secrets.",
                     "type": "string"
                 }
             }
@@ -4786,105 +4871,114 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "bind_mounts": {
-                    "description": "{mntPoint:BindMount}",
+                    "description": "Files and directories of the module repository to be mounted into the\ncontainer, keyed by mount point.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.BindMount"
                     }
                 },
                 "configs": {
-                    "description": "{refVar:ref}",
+                    "description": "Configuration values to be passed as environment variables, mapping\nvariable name to a config reference of Module.Configs.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "device_cgroup_rules": {
+                    "description": "Device cgroup rules to be set for the container, passed through to the\ncontainer engine (e.g. \"c 13:* rwm\").",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "ext_dependencies": {
-                    "description": "{refVar:ExtDependencyTarget}",
+                    "description": "Addresses of services provided by modules listed in\nModule.Dependencies, keyed by the environment variable that receives\nthe address.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/model.ExtDependencyTarget"
                     }
                 },
                 "file_groups": {
-                    "description": "{basePath:ref}",
+                    "description": "File groups to be mounted, mapping the base path within the\ncontainer to a group reference of Module.FileGroups ({basePath:ref}).\nEvery file of the group is mounted at basePath joined with the relative\npath the user assigned to it.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "files": {
-                    "description": "{mntPoint:ref}",
+                    "description": "User provided files to be mounted, mapping mount point to a\nfile reference of Module.Files.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "host_resources": {
-                    "description": "{mntPoint:HostResTarget}",
+                    "description": "Host resources to be passed into the container, keyed by mount point.\nDepending on the type reported by the host manager the resource\nis attached as a device or as a bind mount.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/model.HostResTarget"
                     }
                 },
                 "http_endpoints": {
-                    "description": "{externalPath:HttpEndpoint}",
+                    "description": "Endpoints of the service to be published via the api gateway, keyed by\nthe external path they are served under.\nExternal paths must be unique within a module.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.HttpEndpoint"
                     }
                 },
                 "image": {
+                    "description": "Container image, versioned via tag or digest (e.g. srv-image:v1.0.0).",
                     "type": "string"
                 },
                 "name": {
+                    "description": "Human readable service name.",
                     "type": "string"
                 },
                 "ports": {
+                    "description": "Container ports to be exposed and optionally published on the host.",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.Port"
                     }
                 },
                 "run_config": {
-                    "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.RunConfig"
+                    "description": "Container runtime behaviour (stop handling, command, tty).",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.RunConfig"
+                        }
+                    ]
                 },
                 "secret_mounts": {
-                    "description": "{mntPoint:SecretTarget}",
+                    "description": "Secrets to be mounted into the container as read-only files, keyed by\nmount point.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.SecretTarget"
                     }
                 },
                 "secret_vars": {
-                    "description": "{refVar:SecretTarget}",
+                    "description": "Secrets to be passed to the container as environment variables, keyed\nby variable name.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.SecretTarget"
                     }
                 },
                 "srv_references": {
-                    "description": "{refVar:SrvRefTarget}",
+                    "description": "Addresses of other services of the same module, keyed by the\nenvironment variable that receives the address.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/model.SrvRefTarget"
                     }
                 },
                 "tmpfs": {
-                    "description": "{mntPoint:TmpfsMount}",
+                    "description": "In-memory file systems to be created for the container, keyed by mount\npoint.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.TmpfsMount"
                     }
                 },
                 "volumes": {
-                    "description": "{mntPoint:volName}",
+                    "description": "Volumes to be mounted, mapping mount point to a volume name declared in\nModule.Volumes.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -4896,9 +4990,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "mode": {
+                    "description": "Linux file mode of the mounted file system. Defaults to 0770 when the\nmodfile omits it.",
                     "type": "integer"
                 },
                 "size": {
+                    "description": "Size of the file system in bytes.",
                     "type": "integer"
                 }
             }
@@ -5249,16 +5345,27 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "architectures": {
-                    "$ref": "#/definitions/model.Set-model_CPUArch"
+                    "description": "CPU architectures the module supports. Entries must be known\narchitectures (see CPUArchMap); an empty set means unrestricted.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Set-model_CPUArch"
+                        }
+                    ]
                 },
                 "author": {
+                    "description": "Module author.",
                     "type": "string"
                 },
                 "aux_img_src": {
-                    "$ref": "#/definitions/model.Set-string"
+                    "description": "Image sources allowed for aux services (e.g.\nghcr.io/senergy-platform/*). A trailing '*' acts as a wildcard;\ndeploying an aux service whose image matches no entry is rejected.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Set-string"
+                        }
+                    ]
                 },
                 "aux_services": {
-                    "description": "{ref:AuxService}",
+                    "description": "Auxiliary services that module services may deploy at runtime, keyed by\naux service reference. Unlike Services these are not started with\nthe deployment but on demand.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.AuxService"
@@ -5269,7 +5376,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "configs": {
-                    "description": "{ref:ConfigValue}",
+                    "description": "Configuration values required by services, keyed by config reference.\nServices receive them as environment variables via Service.Configs.",
                     "allOf": [
                         {
                             "$ref": "#/definitions/model.Configs"
@@ -5277,7 +5384,7 @@ const docTemplate = `{
                     ]
                 },
                 "dependencies": {
-                    "description": "{moduleID:moduleVersion}",
+                    "description": "Other modules that must be installed and deployed for this module to\nwork, mapping module ID to a semantic version range\n(e.g. \"\u003e=v1.0.2;\u003cv2.0.0\"). Services address services of these modules\nvia Service.ExtDependencies.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -5292,6 +5399,7 @@ const docTemplate = `{
                     ]
                 },
                 "description": {
+                    "description": "Short text describing the module.",
                     "type": "string"
                 },
                 "error_msg": {
@@ -5299,7 +5407,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "file_groups": {
-                    "description": "{ref}",
+                    "description": "References of file groups. A file group collects an arbitrary\nnumber of user provided files under a common base path; services attach\na group via Service.FileGroups.",
                     "allOf": [
                         {
                             "$ref": "#/definitions/model.Set-string"
@@ -5318,37 +5426,45 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "host_resources": {
-                    "description": "{ref:HostResource}",
+                    "description": "Host resources (devices, sockets, ...) required by services, keyed by\nresource reference. The concrete resource is selected at deployment\ntime from the resources the host manager offers.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.HostResource"
                     }
                 },
                 "id": {
+                    "description": "Unique module identifier, a url without schema\n(e.g. github.com/user/repo). Used as key when other modules declare a\ndependency on this module.",
                     "type": "string"
                 },
                 "inputs": {
-                    "$ref": "#/definitions/model.Inputs"
+                    "description": "Metadata describing the inputs the user has to provide when deploying\nthe module (resource and secret selection, config values, files).",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Inputs"
+                        }
+                    ]
                 },
                 "is_deployed": {
                     "description": "true if a deployment exists for the module, Deployment is only populated if true",
                     "type": "boolean"
                 },
                 "license": {
+                    "description": "Module license name (e.g. Apache License 2.0).",
                     "type": "string"
                 },
                 "name": {
+                    "description": "Human readable module name.",
                     "type": "string"
                 },
                 "secrets": {
-                    "description": "{ref:Secret}",
+                    "description": "Secrets (certificates, keys, ...) required by services, keyed by secret\nreference. The concrete secret is selected at deployment\ntime from the secrets the secret manager holds.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.Secret"
                     }
                 },
                 "services": {
-                    "description": "{ref:Service}",
+                    "description": "Services the module consists of, keyed by service reference\n({ref:Service}). Each service becomes one container per deployment and\nits reference is used to address it from other services, from aux\nservices and from dependent modules.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.Service"
@@ -5359,17 +5475,23 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tags": {
-                    "$ref": "#/definitions/model.Set-string"
+                    "description": "Free-form tags used for categorising and filtering modules.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Set-string"
+                        }
+                    ]
                 },
                 "updated": {
                     "description": "point in time at which the module was last updated",
                     "type": "string"
                 },
                 "version": {
+                    "description": "Module version, prefixed with 'v' and adhering to semantic versioning\n(see https://semver.org/).",
                     "type": "string"
                 },
                 "volumes": {
-                    "description": "{volName}",
+                    "description": "Names of the volumes the module requires. Volumes are\ncreated per deployment; services attach them via Service.Volumes.",
                     "allOf": [
                         {
                             "$ref": "#/definitions/model.Set-string"
@@ -5386,13 +5508,15 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "required": {
+                    "description": "The module cannot be deployed unless content is available, either from\nSource or from user input.",
                     "type": "boolean"
                 },
                 "source": {
-                    "description": "optional source path",
+                    "description": "Optional path relative to the module directory of a file providing the\ndefault content.",
                     "type": "string"
                 },
                 "type": {
+                    "description": "Content type of the file (e.g. generic, json, yaml), used to present a\nsuitable editor and to validate user input.",
                     "type": "string"
                 }
             }
@@ -5401,9 +5525,16 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data_type": {
-                    "$ref": "#/definitions/model.DataType"
+                    "description": "Data type of Value. Depending on the option it must either match the\nDataType of the ConfigValue (e.g. min and max of number) or a type\nfixed by the option itself (e.g. min_len of text is always an int).",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.DataType"
+                        }
+                    ]
                 },
-                "value": {}
+                "value": {
+                    "description": "Option value, typed according to DataType."
+                }
             }
         },
         "model.ConfigTypeOptions": {
@@ -5437,12 +5568,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
+                    "description": "ID of the required module, must be a key of Module.Dependencies.",
                     "type": "string"
                 },
                 "service": {
+                    "description": "Service reference within the required module.",
                     "type": "string"
                 },
                 "template": {
+                    "description": "Optional template wrapping the resolved address, containing the {ref}\nplaceholder (e.g. http://{ref}/api).",
                     "type": "string"
                 }
             }
@@ -5451,9 +5585,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "read_only": {
+                    "description": "Attach the resource read-only.",
                     "type": "boolean"
                 },
                 "ref": {
+                    "description": "Reference of the host resource, must be a key of\nModule.HostResources.",
                     "type": "string"
                 }
             }
@@ -5462,12 +5598,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "description": {
+                    "description": "Short text describing what the user is expected to provide.",
                     "type": "string"
                 },
                 "group": {
+                    "description": "Optional reference of the group this input belongs to, must be a key of\nInputs.Groups.",
                     "type": "string"
                 },
                 "name": {
+                    "description": "Input name, used as the label of the input field.",
                     "type": "string"
                 }
             }
@@ -5476,42 +5615,42 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "configs": {
-                    "description": "{ref:Input}",
+                    "description": "Inputs for setting configuration values, keyed by a reference of\nModule.Configs.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/model.Input"
                     }
                 },
                 "file_groups": {
-                    "description": "{ref:Input}",
+                    "description": "Inputs for providing the files of a file group, keyed by a reference of\nModule.FileGroups. Every file group requires an input.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/model.Input"
                     }
                 },
                 "files": {
-                    "description": "{ref:Input}",
+                    "description": "Inputs for providing file content, keyed by a reference of\nModule.Files. Every file requires an input.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/model.Input"
                     }
                 },
                 "groups": {
-                    "description": "{ref:InputGroup}",
+                    "description": "Groups for categorising the inputs above, keyed by group reference.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_SENERGY-Platform_mgw-module-lib_model.InputGroup"
                     }
                 },
                 "resources": {
-                    "description": "{ref:Input}",
+                    "description": "Inputs for selecting host resources, keyed by a reference of\nModule.HostResources.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/model.Input"
                     }
                 },
                 "secrets": {
-                    "description": "{ref:Input}",
+                    "description": "Inputs for selecting secrets, keyed by a reference of Module.Secrets.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/model.Input"
@@ -5546,9 +5685,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "ref": {
+                    "description": "Reference of the target service, must be a key of Module.Services.",
                     "type": "string"
                 },
                 "template": {
+                    "description": "Optional template wrapping the resolved address, containing the {ref}\nplaceholder (e.g. http://{ref}/api).",
                     "type": "string"
                 }
             }
@@ -6898,18 +7039,10 @@ const docTemplate = `{
                 1000,
                 1000000,
                 1000000000,
-                1,
-                1000,
-                1000000,
-                1000000000,
                 60000000000,
                 3600000000000
             ],
             "x-enum-varnames": [
-                "Nanosecond",
-                "Microsecond",
-                "Millisecond",
-                "Second",
                 "Nanosecond",
                 "Microsecond",
                 "Millisecond",
