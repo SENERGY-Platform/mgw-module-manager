@@ -3,7 +3,7 @@ module github.com/SENERGY-Platform/mgw-module-manager
 go 1.26.4
 
 require (
-	github.com/SENERGY-Platform/gin-middleware v0.13.0
+	github.com/SENERGY-Platform/gin-middleware v0.14.1
 	github.com/SENERGY-Platform/go-service-base/config-hdl v1.2.0
 	github.com/SENERGY-Platform/go-service-base/srv-info-hdl v0.2.0
 	github.com/SENERGY-Platform/go-service-base/struct-logger v0.7.1
@@ -34,7 +34,7 @@ require (
 	github.com/SENERGY-Platform/go-base-http-client v0.1.0 // indirect
 	github.com/SENERGY-Platform/go-env-loader v0.5.3 // indirect
 	github.com/SENERGY-Platform/mgw-go-service-base/srv-info-hdl/lib v0.0.3 // indirect
-	github.com/SENERGY-Platform/service-commons v0.0.0-20260507090252-155b04bb4c46 // indirect
+	github.com/SENERGY-Platform/service-commons v0.0.0-20260821114734-3e4578ac2358 // indirect
 	github.com/bytedance/gopkg v0.1.4 // indirect
 	github.com/bytedance/sonic v1.15.2 // indirect
 	github.com/bytedance/sonic/loader v0.5.2 // indirect
