@@ -507,6 +507,7 @@ func getModules(
 			continue
 		}
 		mod := getModule(module, deployment)
+		mod.IsDeployed = ok
 		if module.Err != nil {
 			mod.ErrorResult = lib_models.NewErrorResult(module.Err.Error())
 		}
