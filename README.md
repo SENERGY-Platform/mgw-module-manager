@@ -555,3 +555,9 @@ completion, job results) and reuses `lib/clients` for the restricted/shared surf
 (auxiliary deployments, advertisements). Configured by a local `config.json` holding base
 URL, session cookie and URL escape depth — it contains personal session credentials and
 is not meant to be shared.
+
+## Further documentation
+
+`docs/` holds what a client needs beyond this README: the polling signal, the URL escape
+depth through the gateway, and the wire quirks a client has to mirror until they are
+fixed. See [client integration gotchas](docs/client-integration-gotchas.md).
