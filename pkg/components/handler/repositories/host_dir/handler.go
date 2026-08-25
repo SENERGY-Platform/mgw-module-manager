@@ -168,7 +168,7 @@ func (h *Handler) CreateRepository(_ context.Context, _ []byte) error {
 }
 
 func (h *Handler) DeleteRepository(_ context.Context, _ string) error {
-	return errors.New("not supported")
+	return nil
 }
 
 func validateModule(dirFs fs.FS) error {
