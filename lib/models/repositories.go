@@ -67,16 +67,16 @@ type RepoModuleVariantChannel struct {
 
 // Repository is a configured source of modules.
 type Repository struct {
-	Type     string              // type of the repository, determines how it is accessed, values: github.com, host-dir
-	Source   string              // source identifying the repository, must be unique across all repositories
-	Priority int                 // priority of the repository, a higher value takes precedence when a module is offered by several repositories, must be unique across all repositories
-	Channels []RepositoryChannel // channels the repository is split into
+	Type     string              `json:"type"`     // type of the repository, determines how it is accessed, values: github.com, host-dir
+	Source   string              `json:"source"`   // source identifying the repository, must be unique across all repositories
+	Priority int                 `json:"priority"` // priority of the repository, a higher value takes precedence when a module is offered by several repositories, must be unique across all repositories
+	Channels []RepositoryChannel `json:"channels"` // channels the repository is split into
 }
 
 // RepositoryChannel is a channel of a repository, for example a release stage such as stable or testing.
 type RepositoryChannel struct {
-	Name     string // name of the channel, unique per repository
-	Priority int    // priority of the channel, a higher value takes precedence when a module is offered by several channels of the same repository
+	Name     string `json:"name"`     // name of the channel, unique per repository
+	Priority int    `json:"priority"` // priority of the channel, a higher value takes precedence when a module is offered by several channels of the same repository
 }
 
 // RepositoriesRefreshFilter restricts which repositories are refreshed.
@@ -89,7 +89,7 @@ type RepositoriesRefreshFilter struct {
 // RepositoryJobResult is the result of a job created by refreshing repositories.
 type RepositoryJobResult struct {
 	JobResult
-	Results       []RepositoryResult // result per repository the job was started for
+	Results       []RepositoryResult `json:"results"`         // result per repository the job was started for
 	ResultsErrNum int                `json:"results_err_num"` // number of entries in Results that failed
 }
 
