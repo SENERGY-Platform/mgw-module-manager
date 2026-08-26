@@ -65,18 +65,8 @@ accepts names, not only IDs.
 A client cannot be written correctly without these. The first one's fix will be a
 breaking change:
 
-- `RepositoryJobResult.Results` and the whole `Repository` /
-  `RepositoryChannel` structs **lack json tags**, so those fields serialize
-  capitalized: `Results`, `Type`, `Source`, `Channels`.
 - **Empty slices serialize as `null`**, not `[]` — for example `channel_errors`
   and `tags`. Always null-check.
-- `DELETE /repositories/{SOURCE}` **always fails** with `500 "not supported"`:
-  the aggregator calls every repository handler and the host-dir handler
-  unconditionally rejects deletes.
-- `GET /modules` (with and without `ids`) returns **`is_deployed: false` even
-  when the embedded `deployment` is populated** — the list mapper never sets the
-  flag. `GET /modules/{MOD_ID}` and `GET /modules-reduced` are correct. Until
-  fixed, treat a populated `deployment.id` as deployed when reading the list.
 
 ## Two smaller ones
 
