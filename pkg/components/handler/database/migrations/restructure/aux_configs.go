@@ -59,7 +59,7 @@ func migrateAuxConfigsTab(ctx context.Context, db *sql.DB) error {
 	}
 	if ok {
 		logger.InfoContext(ctx, "renaming column", attrColumn, "ref", attrNewName, "name", attrTable, tableName)
-		err = changeColumn(ctx, db, tableName, "ref", "name", "char(256)", "NOT NULL", "AFTER aux_dep_id")
+		err = changeColumn(ctx, db, tableName, "ref", "name", "varchar(256)", "NOT NULL", "AFTER aux_dep_id")
 		if err != nil {
 			return err
 		}
