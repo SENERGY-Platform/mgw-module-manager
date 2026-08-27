@@ -18,6 +18,7 @@ package deployments
 
 import (
 	"context"
+	"errors"
 	"maps"
 	"os"
 	"path"
@@ -379,6 +380,9 @@ func (h *Handler) removeDeploymentDirs(deploymentDirName, deploymentFilesDirName
 }
 
 func removeDeploymentDir(workDirPath, deploymentDirName string) error {
+	if deploymentDirName == "" {
+		return errors.New("empty deployment dir name")
+	}
 	return os.RemoveAll(path.Join(workDirPath, deploymentDirName))
 }
 

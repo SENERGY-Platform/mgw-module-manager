@@ -125,10 +125,16 @@ func getProvidedFileGroups(
 }
 
 func createFilesDir(workDirPath, deploymentFilesDirName string) error {
+	if deploymentFilesDirName == "" {
+		return errors.New("empty files dir name")
+	}
 	return os.Mkdir(path.Join(workDirPath, deploymentFilesDirName), dirPerm)
 }
 
 func removeFilesDir(workDirPath, deploymentFilesDirName string) error {
+	if deploymentFilesDirName == "" {
+		return errors.New("empty files dir name")
+	}
 	return os.RemoveAll(path.Join(workDirPath, deploymentFilesDirName))
 }
 
@@ -137,6 +143,9 @@ func createFileGroups(
 	userDataFileGroups map[string]pkg_models.DeploymentFileGroup,
 	workDirPath string,
 ) (map[string][]fileGroupMount, error) {
+	if deploymentFilesDirName == "" {
+		return nil, errors.New("empty files dir name")
+	}
 	fileNames := make(map[string][]fileGroupMount)
 	var errs []error
 	for reference, fileGroup := range userDataFileGroups {
@@ -165,6 +174,9 @@ func createFiles(
 	files map[string][]byte,
 	workDirPath string,
 ) (map[string]string, error) {
+	if deploymentFilesDirName == "" {
+		return nil, errors.New("empty files dir name")
+	}
 	mounts := make(map[string]string)
 	var errs []error
 	for reference, data := range files {

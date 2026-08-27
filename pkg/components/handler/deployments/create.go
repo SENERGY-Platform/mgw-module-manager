@@ -276,6 +276,9 @@ func (h *Handler) filterSelectedModules(
 }
 
 func createDeploymentDir(moduleFileSystem fs.FS, workDirPath, deploymentDirName string) error {
+	if deploymentDirName == "" {
+		return errors.New("empty deployment dir name")
+	}
 	dirPath := path.Join(workDirPath, deploymentDirName)
 	err := os.Mkdir(dirPath, dirPerm)
 	if err != nil {
