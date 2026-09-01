@@ -383,7 +383,11 @@ func removeDeploymentDir(workDirPath, deploymentDirName string) error {
 	if deploymentDirName == "" {
 		return errors.New("empty deployment dir name")
 	}
-	return os.RemoveAll(path.Join(workDirPath, deploymentDirName))
+	err := os.RemoveAll(path.Join(workDirPath, deploymentDirName))
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	return nil
 }
 
 func updateVolumes(

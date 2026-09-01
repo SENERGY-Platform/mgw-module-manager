@@ -135,7 +135,11 @@ func removeFilesDir(workDirPath, deploymentFilesDirName string) error {
 	if deploymentFilesDirName == "" {
 		return errors.New("empty files dir name")
 	}
-	return os.RemoveAll(path.Join(workDirPath, deploymentFilesDirName))
+	err := os.RemoveAll(path.Join(workDirPath, deploymentFilesDirName))
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	return nil
 }
 
 func createFileGroups(
