@@ -17,11 +17,12 @@
 package naming
 
 import (
-	"bytes"
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"slices"
 	"strconv"
@@ -63,7 +64,7 @@ func GenHash(str ...string) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
-func SetManagerID(pth, val string) error {
+func SetManagerId(pth, val string) error {
 	if val != "" {
 		ManagerId = val
 		return nil
@@ -73,26 +74,32 @@ func SetManagerID(pth, val string) error {
 		return err
 	}
 	defer file.Close()
-	buf := new(bytes.Buffer)
-	n, err := buf.ReadFrom(file)
+	b, err := io.ReadAll(file)
 	if err != nil {
 		return err
 	}
-	var id string
-	if n != 0 {
-		id = buf.String()
-	} else {
+	var data struct {
+		Id string `json:"manager_id"`
+	}
+	if len(b) == 0 {
 		newUUID, err := uuid.NewV7()
 		if err != nil {
 			return err
 		}
-		id = newUUID.String()
-		_, err = file.Write([]byte(id))
+		data.Id = newUUID.String()
+		je := json.NewEncoder(file)
+		je.SetIndent("", "\t")
+		err = je.Encode(data)
+		if err != nil {
+			return err
+		}
+	} else {
+		err = json.Unmarshal(b, &data)
 		if err != nil {
 			return err
 		}
 	}
-	ManagerId = id
+	ManagerId = data.Id
 	return nil
 }
 

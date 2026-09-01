@@ -82,7 +82,7 @@ func main() {
 	helper_naming.CoreId = config.CoreId
 	helper_naming.ModuleContainerNetwork = config.ModuleContainerNetwork
 	helper_naming.SetRuntimeId()
-	err = helper_naming.SetManagerID(config.ManagerIdPath, configuration.ManagerId)
+	err = helper_naming.SetManagerId(config.ManagerIdPath, configuration.ManagerId)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "set manager id: %s\n", err)
 		ec = 1
