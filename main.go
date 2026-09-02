@@ -20,7 +20,6 @@ import (
 	handler_aux_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/aux_deployments"
 	handler_database "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database"
 	migration_db_init "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/db_init"
-	migration_db_restructure "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/database/migrations/restructure"
 	handler_dep_advertisements "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/dep_advertisements"
 	handler_deployments "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/deployments"
 	handler_global_configs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/global_configs"
@@ -74,7 +73,6 @@ func main() {
 	handler_aux_deployments.InitLogger(logger)
 	handler_global_configs.InitLogger(logger)
 	handler_dep_advertisements.InitLogger(logger)
-	migration_db_restructure.InitLogger(logger)
 	service.InitLogger(logger)
 	api.InitLogger(logger)
 
@@ -240,7 +238,7 @@ func main() {
 	logger.DebugContext(ctx, "configuration values", slog_keys.Config, configuration.ToBase64EncodedJson(config))
 
 	// run database migrations
-	err = databaseHandler.Migrate(ctx, migration_db_restructure.Migration, migration_db_init.Migration)
+	err = databaseHandler.Migrate(ctx, migration_db_init.Migration)
 	if err != nil {
 		logger.ErrorContext(ctx, "database migration", slog_keys.Error, err)
 		ec = 1
