@@ -68,45 +68,33 @@ func GetValue(val any, dataType int, isSlice bool) (pkg_models.Value, error) {
 		IsSlice:  isSlice,
 	}
 	if isSlice {
-		anySlice, ok := val.([]any)
-		if !ok {
-			return pkg_models.Value{}, errors.New(fmt.Sprintf("invalid data type: '%T'", val))
-		}
 		switch dataType {
 		case pkg_constants.ValueDataTypeString:
-			for _, item := range anySlice {
-				v, err := toString(item)
-				if err != nil {
-					return pkg_models.Value{}, err
-				}
-				config.StringSlice = append(config.StringSlice, v)
+			v, err := toTypedSlice(val, toString)
+			if err != nil {
+				return pkg_models.Value{}, err
 			}
+			config.StringSlice = v
 		case pkg_constants.ValueDataTypeBool:
-			for _, item := range anySlice {
-				v, err := toBool(item)
-				if err != nil {
-					return pkg_models.Value{}, err
-				}
-				config.BoolSlice = append(config.BoolSlice, v)
+			v, err := toTypedSlice(val, toBool)
+			if err != nil {
+				return pkg_models.Value{}, err
 			}
+			config.BoolSlice = v
 		case pkg_constants.ValueDataTypeInt64:
-			for _, item := range anySlice {
-				v, err := toInt64(item)
-				if err != nil {
-					return pkg_models.Value{}, err
-				}
-				config.Int64Slice = append(config.Int64Slice, v)
+			v, err := toTypedSlice(val, toInt64)
+			if err != nil {
+				return pkg_models.Value{}, err
 			}
+			config.Int64Slice = v
 		case pkg_constants.ValueDataTypeFloat64:
-			for _, item := range anySlice {
-				v, err := toFloat64(item)
-				if err != nil {
-					return pkg_models.Value{}, err
-				}
-				config.Float64Slice = append(config.Float64Slice, v)
+			v, err := toTypedSlice(val, toFloat64)
+			if err != nil {
+				return pkg_models.Value{}, err
 			}
+			config.Float64Slice = v
 		default:
-			return pkg_models.Value{}, errors.New(fmt.Sprintf("unsuported data type: '%d'", dataType))
+			return pkg_models.Value{}, errors.New(fmt.Sprintf("unsupported data type: '%d'", dataType))
 		}
 	} else {
 		switch dataType {
@@ -135,7 +123,7 @@ func GetValue(val any, dataType int, isSlice bool) (pkg_models.Value, error) {
 			}
 			config.Float64 = v
 		default:
-			return pkg_models.Value{}, errors.New(fmt.Sprintf("unsuported data type: '%d'", dataType))
+			return pkg_models.Value{}, errors.New(fmt.Sprintf("unsupported data type: '%d'", dataType))
 		}
 	}
 	return config, nil
@@ -275,6 +263,24 @@ func validateAndCheckValueSlice[T comparable](valSl []T, moduleConfig external_m
 		}
 	}
 	return nil
+}
+
+func toTypedSlice[T any](val any, converter func(any) (T, error)) ([]T, error) {
+	tSlice, ok := val.([]T)
+	if !ok {
+		anySlice, ok := val.([]any)
+		if !ok {
+			return nil, errors.New(fmt.Sprintf("invalid data type: '%T'", val))
+		}
+		for _, item := range anySlice {
+			v, err := converter(item)
+			if err != nil {
+				return nil, err
+			}
+			tSlice = append(tSlice, v)
+		}
+	}
+	return tSlice, nil
 }
 
 func toString(val any) (string, error) {
