@@ -19,6 +19,7 @@ package github
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path"
 	"strings"
@@ -33,8 +34,9 @@ import (
 )
 
 const (
-	reposDir   = "repositories"
-	sourcesDir = "sources"
+	reposDir          = "repositories"
+	defaultSourcesDir = "default_sources"
+	userSourcesDir    = "user_sources"
 )
 
 type Config struct {
@@ -65,34 +67,13 @@ func (h *Handler) RepositoryType() string {
 }
 
 func (h *Handler) Init() error {
-	err := os.MkdirAll(path.Join(h.workdirPath, sourcesDir), 0775)
+	err := h.initRepositories(defaultSourcesDir, true)
 	if err != nil {
 		return err
 	}
-	dirEntries, err := os.ReadDir(path.Join(h.workdirPath, sourcesDir))
+	err = h.initRepositories(userSourcesDir, false)
 	if err != nil {
 		return err
-	}
-	var errs []error
-	h.repositories = make(map[string]*Repository)
-	for _, dirEntry := range dirEntries {
-		if dirEntry.IsDir() {
-			continue
-		}
-		source, err := readSourceFile(path.Join(h.workdirPath, sourcesDir, dirEntry.Name()))
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
-		repo := newRepository(
-			h.gitHubClient,
-			source,
-			path.Join(h.workdirPath, reposDir, getFsName(source)),
-		)
-		h.repositories[getSourceString(source)] = repo
-	}
-	if len(errs) > 0 {
-		return helper_errors.Join(errs...)
 	}
 	return nil
 }
@@ -131,11 +112,11 @@ func (h *Handler) CreateRepository(_ context.Context, data []byte) error {
 		return lib_errors.New[lib_errors.ErrExists]("source already exists")
 	}
 	fsName := getFsName(src)
-	err = writeSourceFile(path.Join(h.workdirPath, sourcesDir, fsName), src)
+	err = writeSourceFile(path.Join(h.workdirPath, userSourcesDir, fsName), src)
 	if err != nil {
 		return err
 	}
-	h.repositories[srcString] = newRepository(h.gitHubClient, src, path.Join(h.workdirPath, reposDir, fsName))
+	h.repositories[srcString] = newRepository(h.gitHubClient, src, path.Join(h.workdirPath, reposDir, fsName), false)
 	return nil
 }
 
@@ -146,16 +127,53 @@ func (h *Handler) DeleteRepository(_ context.Context, source string) error {
 	if !ok {
 		return nil
 	}
+	if repo.sourceReadonly {
+		return errors.New("repository is read-only")
+	}
 	fsName := getFsName(repo.source)
 	err := os.RemoveAll(path.Join(h.workdirPath, reposDir, fsName))
 	if err != nil {
 		return err
 	}
-	err = os.RemoveAll(path.Join(h.workdirPath, sourcesDir, fsName))
+	err = os.RemoveAll(path.Join(h.workdirPath, userSourcesDir, fsName))
 	if err != nil {
 		return err
 	}
 	delete(h.repositories, source)
+	return nil
+}
+
+func (h *Handler) initRepositories(sourcesDir string, sourceReadonly bool) error {
+	err := os.MkdirAll(path.Join(h.workdirPath, sourcesDir), 0775)
+	if err != nil {
+		return err
+	}
+	dirEntries, err := os.ReadDir(path.Join(h.workdirPath, sourcesDir))
+	if err != nil {
+		return err
+	}
+	var errs []error
+	h.repositories = make(map[string]*Repository)
+	for _, dirEntry := range dirEntries {
+		if dirEntry.IsDir() {
+			continue
+		}
+		source, err := readSourceFile(path.Join(h.workdirPath, sourcesDir, dirEntry.Name()))
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+		repo := newRepository(
+			h.gitHubClient,
+			source,
+			path.Join(h.workdirPath, reposDir, getFsName(source)),
+			sourceReadonly,
+		)
+		h.repositories[getSourceString(source)] = repo
+	}
+	if len(errs) > 0 {
+		return helper_errors.Join(errs...)
+	}
 	return nil
 }
 

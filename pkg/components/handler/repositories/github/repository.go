@@ -24,17 +24,19 @@ var commonBlacklist = []string{
 }
 
 type Repository struct {
-	gitHubClt   gitHubClient
-	source      Source
-	workdirPath string
-	mu          sync.RWMutex
+	gitHubClt      gitHubClient
+	source         Source
+	workdirPath    string
+	sourceReadonly bool
+	mu             sync.RWMutex
 }
 
-func newRepository(gitHubClt gitHubClient, source Source, workdirPath string) *Repository {
+func newRepository(gitHubClt gitHubClient, source Source, workdirPath string, sourceReadonly bool) *Repository {
 	return &Repository{
-		gitHubClt:   gitHubClt,
-		source:      source,
-		workdirPath: workdirPath,
+		gitHubClt:      gitHubClt,
+		source:         source,
+		workdirPath:    workdirPath,
+		sourceReadonly: sourceReadonly,
 	}
 }
 
