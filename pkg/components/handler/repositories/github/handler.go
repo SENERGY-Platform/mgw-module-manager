@@ -153,7 +153,9 @@ func (h *Handler) initRepositories(sourcesDir string, sourceReadonly bool) error
 		return err
 	}
 	var errs []error
-	h.repositories = make(map[string]*Repository)
+	if h.repositories == nil {
+		h.repositories = make(map[string]*Repository)
+	}
 	for _, dirEntry := range dirEntries {
 		if dirEntry.IsDir() {
 			continue
