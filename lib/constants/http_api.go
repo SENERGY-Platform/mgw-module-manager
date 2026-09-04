@@ -75,7 +75,6 @@ const (
 )
 
 const (
-	HttpHeaderCoreId    = "X-Core-Id"
 	HttpHeaderManagerId = "X-Manager-Id"
 	HttpHeaderRuntimeId = "X-Runtime-Id"
 	HttpHeaderRequestId = "X-Request-Id"

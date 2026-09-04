@@ -68,7 +68,6 @@ func CreateHandler(srv *service.Service, srvName, srvVersion string, accessLog b
 			lib_constants.HttpHeaderApiVer:    srvVersion,
 			lib_constants.HttpHeaderSrvName:   srvName,
 			lib_constants.HttpHeaderRuntimeId: helper_naming.RuntimeId,
-			lib_constants.HttpHeaderCoreId:    helper_naming.CoreId,
 			lib_constants.HttpHeaderManagerId: helper_naming.ManagerId,
 		}),
 		errorHandler("Err%d: %s"),

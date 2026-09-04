@@ -210,7 +210,7 @@ stop containers accordingly.
 | restricted | `/restricted` | calls coming from module containers: auxiliary deployments and advertisements                                                     |
 | shared | both | read access to auxiliary deployments and advertisements, jobs, health, service info                                               |
 
-Every response carries `X-Core-Id`, `X-Manager-Id`, `X-Runtime-Id`, `X-Version` and `X-Service`
+Every response carries `X-Manager-Id`, `X-Runtime-Id`, `X-Version` and `X-Service`
 headers; `X-Request-Id` is honoured or generated and threaded through the structured logs together
 with the runtime and job ids.
 
@@ -478,7 +478,7 @@ can depend on the API surface without pulling in the service implementation.
 ### pkg/api/ — HTTP layer
 
 Gin-based API. `CreateHandler` builds the middleware chain (optional structured access
-log, runtime-id and request-id context values, static `X-Core-Id`/`X-Manager-Id`/
+log, runtime-id and request-id context values, static `X-Manager-Id`/
 `X-Runtime-Id`/`X-Version`/`X-Service` headers, error handler, panic recovery) and
 registers three handler sets: standard handlers at `/`, restricted handlers at
 `/restricted`, and shared handlers on both. Errors are mapped from the typed `lib/errors`
