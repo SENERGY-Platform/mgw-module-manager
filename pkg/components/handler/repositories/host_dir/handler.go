@@ -167,8 +167,8 @@ func (h *Handler) GetRepository(_ context.Context, source string) (handler_repos
 	return h, nil
 }
 
-func (h *Handler) CreateRepository(_ context.Context, _ []byte) error {
-	return errors.New("not supported")
+func (h *Handler) CreateRepository(ctx context.Context, data []byte) (string, error) {
+	return "", errors.New("not supported")
 }
 
 func (h *Handler) DeleteRepository(_ context.Context, _ string) error {

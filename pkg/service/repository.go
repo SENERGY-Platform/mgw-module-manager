@@ -75,12 +75,12 @@ func (s *Service) GetRepositories(ctx context.Context) ([]lib_models.Repository,
 	return s.repositoriesHandler.GetRepositories(ctx)
 }
 
-func (s *Service) CreateRepository(ctx context.Context, repositoryType string, data []byte) error {
+func (s *Service) CreateRepository(ctx context.Context, repositoryType string, data []byte) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
 	if ok {
-		return lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
+		return "", lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
 	return s.repositoriesHandler.CreateRepository(ctx, repositoryType, data)
 }

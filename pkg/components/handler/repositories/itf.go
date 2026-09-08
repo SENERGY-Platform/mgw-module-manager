@@ -22,6 +22,6 @@ type repositoryHandler interface {
 	RepositoryType() string
 	GetRepositories(ctx context.Context) (map[string]Repository, error)
 	GetRepository(ctx context.Context, source string) (Repository, error)
-	CreateRepository(ctx context.Context, data []byte) error
+	CreateRepository(ctx context.Context, data []byte) (string, error)
 	DeleteRepository(ctx context.Context, source string) error
 }

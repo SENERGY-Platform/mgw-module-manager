@@ -158,21 +158,21 @@ func (h *Handler) GetRepositories(ctx context.Context) ([]lib_models.Repository,
 	return repos, nil
 }
 
-func (h *Handler) CreateRepository(ctx context.Context, repositoryType string, data []byte) error {
+func (h *Handler) CreateRepository(ctx context.Context, repositoryType string, data []byte) (string, error) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	handler, ok := h.repositoryHandlers[repositoryType]
 	if !ok {
 		err := lib_errors.New[lib_errors.ErrNotFound]("repository handler not found")
 		logger.ErrorContext(ctx, "create repository", slog_keys.RepositoryType, repositoryType, slog_keys.Error, err.Error())
-		return err
+		return "", err
 	}
-	err := handler.CreateRepository(ctx, data)
+	srcStr, err := handler.CreateRepository(ctx, data)
 	if err != nil {
 		logger.ErrorContext(ctx, "create repository", slog_keys.RepositoryType, repositoryType, slog_keys.Error, err.Error())
-		return err
+		return "", err
 	}
-	return nil
+	return srcStr, nil
 }
 
 func (h *Handler) DeleteRepository(ctx context.Context, source string) error {

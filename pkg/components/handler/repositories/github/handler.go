@@ -98,26 +98,26 @@ func (h *Handler) GetRepository(_ context.Context, source string) (handler_repos
 	return repo, nil
 }
 
-func (h *Handler) CreateRepository(_ context.Context, data []byte) error {
+func (h *Handler) CreateRepository(ctx context.Context, data []byte) (string, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	var src Source
 	err := json.Unmarshal(data, &src)
 	if err != nil {
-		return err
+		return "", err
 	}
 	srcString := getSourceString(src)
 	_, ok := h.repositories[srcString]
 	if ok {
-		return lib_errors.New[lib_errors.ErrExists]("source already exists")
+		return "", lib_errors.New[lib_errors.ErrExists]("source already exists")
 	}
 	fsName := getFsName(src)
 	err = writeSourceFile(path.Join(h.workdirPath, userSourcesDir, fsName), src)
 	if err != nil {
-		return err
+		return "", err
 	}
 	h.repositories[srcString] = newRepository(h.gitHubClient, src, path.Join(h.workdirPath, reposDir, fsName), false)
-	return nil
+	return srcString, nil
 }
 
 func (h *Handler) DeleteRepository(_ context.Context, source string) error {
