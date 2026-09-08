@@ -72,7 +72,14 @@ func (s *Service) GetRepositories(ctx context.Context) ([]lib_models.Repository,
 	if ok {
 		return nil, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
 	}
-	return s.repositoriesHandler.GetRepositories(ctx)
+	result, err := s.repositoriesHandler.GetRepositories(ctx)
+	if err != nil {
+		return nil, err
+	}
+	slices.SortFunc(result, func(a, b lib_models.Repository) int {
+		return strings.Compare(a.Source, b.Source)
+	})
+	return result, nil
 }
 
 func (s *Service) CreateRepository(ctx context.Context, repositoryType string, data []byte) (string, error) {
@@ -126,7 +133,11 @@ func (s *Service) GetRepositoryModules(ctx context.Context, filter lib_models.Re
 	if err != nil {
 		return nil, err
 	}
-	return handleInstalledMods(mergedRepoModules, installedMods, filter.Installed, filter.UpdateAvailable), nil
+	result := handleInstalledMods(mergedRepoModules, installedMods, filter.Installed, filter.UpdateAvailable)
+	slices.SortFunc(result, func(a, b lib_models.RepoModule) int {
+		return strings.Compare(a.Name+a.Id, b.Name+b.Id)
+	})
+	return result, nil
 }
 
 func (s *Service) mergeRepoModules(ctx context.Context, repos []lib_models.Repository, repoMods []pkg_models.RepositoryModule) ([]lib_models.RepoModule, error) {

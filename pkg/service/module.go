@@ -23,6 +23,7 @@ import (
 	"maps"
 	"reflect"
 	"slices"
+	"strings"
 
 	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
@@ -61,7 +62,11 @@ func (s *Service) GetReducedModules(ctx context.Context, filter lib_models.Modul
 	if err != nil {
 		return nil, err
 	}
-	return getModulesReduced(modules, deployments, filter), nil
+	result := getModulesReduced(modules, deployments, filter)
+	slices.SortFunc(result, func(a, b lib_models.ModuleReduced) int {
+		return strings.Compare(a.Name+a.Id, b.Name+b.Id)
+	})
+	return result, nil
 }
 
 func (s *Service) GetModules(ctx context.Context, filter lib_models.ModulesFilter) ([]lib_models.Module, error) {
@@ -92,7 +97,11 @@ func (s *Service) GetModules(ctx context.Context, filter lib_models.ModulesFilte
 	if err != nil {
 		return nil, err
 	}
-	return getModules(modules, deployments, filter), nil
+	result := getModules(modules, deployments, filter)
+	slices.SortFunc(result, func(a, b lib_models.Module) int {
+		return strings.Compare(a.Name+a.ID, b.Name+b.ID)
+	})
+	return result, nil
 }
 
 func (s *Service) GetModule(ctx context.Context, id string) (lib_models.Module, error) {

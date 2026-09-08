@@ -18,6 +18,8 @@ package service
 
 import (
 	"context"
+	"slices"
+	"strings"
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 )
@@ -40,6 +42,9 @@ func (s *Service) QueryDeploymentAdvertisements(
 			Items:     depAdv.Items,
 		})
 	}
+	slices.SortFunc(depAdvs, func(a, b lib_models.DeploymentAdvertisementReduced) int {
+		return strings.Compare(a.ModuleId+a.Reference, b.ModuleId+b.Reference)
+	})
 	return depAdvs, nil
 }
 
