@@ -117,7 +117,7 @@ func CreateRepository(srv *service.Service) (string, string, gin.HandlerFunc) {
 			_ = gc.Error(err)
 			return
 		}
-		err = srv.CreateRepository(gc, query.Type, data)
+		_, err = srv.CreateRepository(gc, query.Type, data)
 		if err != nil {
 			_ = gc.Error(err)
 			return
