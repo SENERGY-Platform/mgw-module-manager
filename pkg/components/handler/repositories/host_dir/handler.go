@@ -72,6 +72,10 @@ func (h *Handler) Channels() []lib_models.RepositoryChannel {
 	}
 }
 
+func (h *Handler) ReadOnly() bool {
+	return true
+}
+
 func (h *Handler) Refresh(_ context.Context) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()

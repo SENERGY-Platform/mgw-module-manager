@@ -151,6 +151,7 @@ func (h *Handler) GetRepositories(ctx context.Context) ([]lib_models.Repository,
 				Source:   source,
 				Priority: repo.Priority(),
 				Channels: repo.Channels(),
+				ReadOnly: repo.ReadOnly(),
 			})
 		}
 	}

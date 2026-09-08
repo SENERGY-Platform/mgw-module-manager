@@ -67,10 +67,11 @@ type RepoModuleVariantChannel struct {
 
 // Repository is a configured source of modules.
 type Repository struct {
-	Type     string              `json:"type"`     // type of the repository, determines how it is accessed, values: github.com, host-dir
-	Source   string              `json:"source"`   // source identifying the repository, must be unique across all repositories
-	Priority int                 `json:"priority"` // priority of the repository, a higher value takes precedence when a module is offered by several repositories, must be unique across all repositories
-	Channels []RepositoryChannel `json:"channels"` // channels the repository is split into
+	Type     string              `json:"type"`      // type of the repository, determines how it is accessed, values: github.com, host-dir
+	Source   string              `json:"source"`    // source identifying the repository, must be unique across all repositories
+	Priority int                 `json:"priority"`  // priority of the repository, a higher value takes precedence when a module is offered by several repositories, must be unique across all repositories
+	Channels []RepositoryChannel `json:"channels"`  // channels the repository is split into
+	ReadOnly bool                `json:"read_only"` // true if the repository is provided by the platform and can't be deleted by the user
 }
 
 // RepositoryChannel is a channel of a repository, for example a release stage such as stable or testing.

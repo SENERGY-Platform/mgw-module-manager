@@ -60,6 +60,10 @@ func (r *Repository) Channels() []lib_models.RepositoryChannel {
 	return channels
 }
 
+func (r *Repository) ReadOnly() bool {
+	return r.sourceReadonly
+}
+
 func (r *Repository) GetFileSystemsMap(_ context.Context, channelName string) (map[string]fs.FS, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()

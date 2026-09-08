@@ -12,6 +12,7 @@ type Repository interface {
 	Priority() int
 	Source() string
 	Channels() []lib_models.RepositoryChannel
+	ReadOnly() bool
 	Refresh(ctx context.Context) error
 	GetFileSystemsMap(ctx context.Context, channel string) (map[string]fs.FS, error)
 	GetFileSystem(ctx context.Context, channel, fsRef string) (fs.FS, error)
