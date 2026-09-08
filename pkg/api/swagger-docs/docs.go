@@ -6196,7 +6196,7 @@ const docTemplate = `{
         "models.DeploymentAdvertisement": {
             "type": "object",
             "properties": {
-                "deploymentId": {
+                "deployment_id": {
                     "description": "ID of the deployment that published the advertisement",
                     "type": "string"
                 },
@@ -6211,7 +6211,7 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "moduleId": {
+                "module_id": {
                     "description": "ID of the module the publishing deployment is based on",
                     "type": "string"
                 },
@@ -6255,7 +6255,7 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "moduleId": {
+                "module_id": {
                     "description": "ID of the module whose deployment published the advertisement",
                     "type": "string"
                 },
@@ -6904,6 +6904,10 @@ const docTemplate = `{
                     "description": "priority of the repository, a higher value takes precedence when a module is offered by several repositories, must be unique across all repositories",
                     "type": "integer"
                 },
+                "read_only": {
+                    "description": "true if the repository is provided by the platform and can't be deleted by the user",
+                    "type": "boolean"
+                },
                 "source": {
                     "description": "source identifying the repository, must be unique across all repositories",
                     "type": "string"
@@ -7036,7 +7040,11 @@ const docTemplate = `{
                 1000000,
                 1000000000,
                 60000000000,
-                3600000000000
+                3600000000000,
+                1,
+                1000,
+                1000000,
+                1000000000
             ],
             "x-enum-varnames": [
                 "Nanosecond",
@@ -7044,7 +7052,11 @@ const docTemplate = `{
                 "Millisecond",
                 "Second",
                 "Minute",
-                "Hour"
+                "Hour",
+                "Nanosecond",
+                "Microsecond",
+                "Millisecond",
+                "Second"
             ]
         }
     }
