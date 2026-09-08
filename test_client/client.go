@@ -133,6 +133,23 @@ func doErr(client httpClient, req *http.Request) error {
 	return nil
 }
 
+func doString(client httpClient, req *http.Request) (string, error) {
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	err = handleResponseErr(res)
+	if err != nil {
+		return "", err
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
 func handleResponseErr(resp *http.Response) error {
 	if resp.StatusCode >= 400 {
 		b, err := io.ReadAll(resp.Body)

@@ -76,18 +76,18 @@ func (c *Client) GetRepositories(ctx context.Context) ([]lib_models.Repository, 
 	return res, nil
 }
 
-func (c *Client) CreateRepository(ctx context.Context, repositoryType string, data []byte) error {
+func (c *Client) CreateRepository(ctx context.Context, repositoryType string, data []byte) (string, error) {
 	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathRepositoriesCollection))
 	if err != nil {
-		return err
+		return "", err
 	}
 	u += "?type=" + url.QueryEscape(repositoryType)
 	buffer := bytes.NewBuffer(data)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, buffer)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return doErr(c, req)
+	return doString(c, req)
 }
 
 func (c *Client) DeleteRepository(ctx context.Context, source string) error {
