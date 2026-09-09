@@ -244,13 +244,13 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models.C
 		return item.Priority, item.Priority >= lastPrio
 	})
 	deps := make(map[string]modWrapper)
-	// select dependencies from main source and channel
+	// select dependencies from highest prio source and channel
 	for _, wrapper := range mods {
-		if err := s.addRepoModDepsToMap(ctx, wrapper.Mod, highestPrioRepo.Source, highestPrioChannel.Name, deps, true); err != nil {
+		if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, highestPrioRepo.Source, highestPrioChannel.Name, deps, true); err != nil {
 			return nil, err
 		}
 	}
-	// select dependencies only available in origin repo and channels
+	// select dependencies from origin source and its highest prio channel
 	for _, wrapper := range mods {
 		i := slices.IndexFunc(modRepos, func(repo lib_models.Repository) bool {
 			return repo.Source == wrapper.Source
@@ -260,13 +260,16 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models.C
 				return item.Priority, item.Priority >= lastPrio
 			})
 			if highestPrioChannel.Name != wrapper.Channel {
-				if err := s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, highestPrioChannel.Name, deps, true); err != nil {
+				if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, highestPrioChannel.Name, deps, true); err != nil {
 					return nil, err
 				}
 			}
-			if err := s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, wrapper.Channel, deps, false); err != nil {
-				return nil, err
-			}
+		}
+	}
+	// select dependencies from origin source and channel
+	for _, wrapper := range mods {
+		if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, wrapper.Channel, deps, false); err != nil {
+			return nil, err
 		}
 	}
 	// add dependencies to module selection
