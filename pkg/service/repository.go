@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -255,14 +256,15 @@ func (s *Service) selectRepoModules(ctx context.Context, reqItems []lib_models.C
 		i := slices.IndexFunc(modRepos, func(repo lib_models.Repository) bool {
 			return repo.Source == wrapper.Source
 		})
-		if i >= 0 {
-			highestPrioChannel = selectByPriority(modRepos[i].Channels, func(item lib_models.RepositoryChannel, lastPrio int) (int, bool) {
-				return item.Priority, item.Priority >= lastPrio
-			})
-			if highestPrioChannel.Name != wrapper.Channel {
-				if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, highestPrioChannel.Name, deps, true); err != nil {
-					return nil, err
-				}
+		if i < 0 {
+			return nil, errors.New("repository not found")
+		}
+		highestPrioChannel = selectByPriority(modRepos[i].Channels, func(item lib_models.RepositoryChannel, lastPrio int) (int, bool) {
+			return item.Priority, item.Priority >= lastPrio
+		})
+		if highestPrioChannel.Name != wrapper.Channel {
+			if err = s.addRepoModDepsToMap(ctx, wrapper.Mod, wrapper.Source, highestPrioChannel.Name, deps, true); err != nil {
+				return nil, err
 			}
 		}
 	}
