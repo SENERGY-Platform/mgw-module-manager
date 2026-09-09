@@ -51,7 +51,7 @@ func GetDeploymentRequest(srv *service.Service) (string, string, gin.HandlerFunc
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -194,7 +194,7 @@ func EnableDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -222,6 +222,6 @@ func DisableDeployments(srv *service.Service) (string, string, gin.HandlerFunc) 
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }

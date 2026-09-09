@@ -86,7 +86,7 @@ func GetRepositories(srv *service.Service) (string, string, gin.HandlerFunc) {
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -222,6 +222,6 @@ func GetRepositoryModules(srv *service.Service) (string, string, gin.HandlerFunc
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }

@@ -78,7 +78,7 @@ func GetReducedModules(srv *service.Service) (string, string, gin.HandlerFunc) {
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -109,7 +109,7 @@ func GetModules(srv *service.Service) (string, string, gin.HandlerFunc) {
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -130,7 +130,7 @@ func GetModule(srv *service.Service) (string, string, gin.HandlerFunc) {
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -149,7 +149,7 @@ func GetModulesChangeRequest(srv *service.Service) (string, string, gin.HandlerF
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -190,7 +190,7 @@ func CreateModulesChangeRequest(srv *service.Service) (string, string, gin.Handl
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 

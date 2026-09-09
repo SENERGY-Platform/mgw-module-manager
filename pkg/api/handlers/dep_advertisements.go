@@ -66,7 +66,7 @@ func QueryDeploymentAdvertisements(srv *service.Service) (string, string, gin.Ha
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -87,7 +87,7 @@ func QueryDeploymentAdvertisement(srv *service.Service) (string, string, gin.Han
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -108,7 +108,7 @@ func GetDeploymentAdvertisement(srv *service.Service) (string, string, gin.Handl
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -129,7 +129,7 @@ func GetDeploymentAdvertisementById(srv *service.Service) (string, string, gin.H
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -171,7 +171,7 @@ func GetDeploymentAdvertisements(srv *service.Service) (string, string, gin.Hand
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -236,7 +236,7 @@ func PutDeploymentAdvertisements(srv *service.Service) (string, string, gin.Hand
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 

@@ -41,7 +41,7 @@ func GetDeploymentsJobResult(srv *service.Service) (string, string, gin.HandlerF
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -61,7 +61,7 @@ func GetUpdateDeploymentsJobResult(srv *service.Service) (string, string, gin.Ha
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -81,7 +81,7 @@ func GetDeleteDeploymentsJobResult(srv *service.Service) (string, string, gin.Ha
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -101,7 +101,7 @@ func GetModuleChangeJobResult(srv *service.Service) (string, string, gin.Handler
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -121,7 +121,7 @@ func GetRefreshRepositoriesJobResult(srv *service.Service) (string, string, gin.
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -184,6 +184,6 @@ func GetAuxiliaryDeploymentsJobResult(srv *service.Service) (string, string, gin
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }

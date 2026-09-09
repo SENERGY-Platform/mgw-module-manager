@@ -47,7 +47,7 @@ func GetAuxiliaryDeployment(srv *service.Service) (string, string, gin.HandlerFu
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -124,7 +124,7 @@ func GetAuxiliaryDeployments(srv *service.Service) (string, string, gin.HandlerF
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -156,7 +156,7 @@ func GetReducedAuxiliaryDeployments(srv *service.Service) (string, string, gin.H
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -381,7 +381,7 @@ func EnableAuxiliaryDeployments(srv *service.Service) (string, string, gin.Handl
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -409,7 +409,7 @@ func DisableAuxiliaryDeployments(srv *service.Service) (string, string, gin.Hand
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -439,7 +439,7 @@ func GetAuxiliaryDeploymentVolumes(srv *service.Service) (string, string, gin.Ha
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -469,7 +469,7 @@ func GetAuxiliaryDeploymentVolumesWithMounts(srv *service.Service) (string, stri
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
@@ -507,7 +507,7 @@ func DeleteAuxiliaryDeploymentVolumes(srv *service.Service) (string, string, gin
 			_ = gc.Error(err)
 			return
 		}
-		gc.JSON(http.StatusOK, res)
+		gc.JSON(http.StatusOK, guardNil(res))
 	}
 }
 
