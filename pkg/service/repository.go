@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 
@@ -133,16 +134,17 @@ func (s *Service) GetRepositoryModules(ctx context.Context, filter lib_models.Re
 	if err != nil {
 		return nil, err
 	}
-	result := handleInstalledMods(mergedRepoModules, installedMods, filter.Installed, filter.UpdateAvailable)
-	slices.SortFunc(result, func(a, b lib_models.RepoModule) int {
+	addInstalledMods(mergedRepoModules, installedMods, filter.Installed, filter.UpdateAvailable)
+	tmp := slices.Collect(maps.Values(mergedRepoModules))
+	slices.SortFunc(tmp, func(a, b lib_models.RepoModule) int {
 		return strings.Compare(a.Name+a.Id, b.Name+b.Id)
 	})
-	return result, nil
+	return tmp, nil
 }
 
-func (s *Service) mergeRepoModules(ctx context.Context, repos []lib_models.Repository, repoMods []pkg_models.RepositoryModule) ([]lib_models.RepoModule, error) {
+func (s *Service) mergeRepoModules(ctx context.Context, repos []lib_models.Repository, repoMods []pkg_models.RepositoryModule) (map[string]lib_models.RepoModule, error) {
 	reposTree := buildReposTree(repos)
-	var repoModules []lib_models.RepoModule
+	repoModules := make(map[string]lib_models.RepoModule)
 	for id, sources := range buildRepoModsTree(repoMods) {
 		repoModule := lib_models.RepoModule{Id: id}
 		var fErr error
@@ -168,7 +170,7 @@ func (s *Service) mergeRepoModules(ctx context.Context, repos []lib_models.Repos
 					Version:  repoMod.Version,
 				})
 			}
-			slices.SortStableFunc(repoModuleVariant.Channels, func(a, b lib_models.RepoModuleVariantChannel) int {
+			slices.SortFunc(repoModuleVariant.Channels, func(a, b lib_models.RepoModuleVariantChannel) int {
 				return b.Priority - a.Priority
 			})
 			if len(repoModuleVariant.Channels) == 0 {
@@ -185,14 +187,11 @@ func (s *Service) mergeRepoModules(ctx context.Context, repos []lib_models.Repos
 			logger.ErrorContext(ctx, "invalid repository module", slog_keys.ModuleId, id, slog_keys.Error, fErr)
 			continue
 		}
-		slices.SortStableFunc(repoModule.RepositoryVariants, func(a, b lib_models.RepoModuleVariant) int {
+		slices.SortFunc(repoModule.RepositoryVariants, func(a, b lib_models.RepoModuleVariant) int {
 			return b.Priority - a.Priority
 		})
-		repoModules = append(repoModules, repoModule)
+		repoModules[id] = repoModule
 	}
-	slices.SortStableFunc(repoModules, func(a, b lib_models.RepoModule) int {
-		return strings.Compare(a.Name, b.Name)
-	})
 	return repoModules, nil
 }
 
@@ -350,15 +349,14 @@ func buildReposTree(repos []lib_models.Repository) map[string]repoAbbreviated {
 	return reposTree
 }
 
-func handleInstalledMods(mods []lib_models.RepoModule, installedMods map[string]pkg_models.Module, filterInstalled, filterUpdateAvailable bool) []lib_models.RepoModule {
+func addInstalledMods(mods map[string]lib_models.RepoModule, installedMods map[string]pkg_models.Module, filterInstalled, filterUpdateAvailable bool) {
 	if len(installedMods) == 0 {
 		if filterInstalled || filterUpdateAvailable {
-			return nil
+			return
 		}
-		return mods
+		return
 	}
-	var tmp []lib_models.RepoModule
-	for _, mod := range mods {
+	for id, mod := range mods {
 		variant, ok := installedMods[mod.Id]
 		if ok {
 			nextVersion := getNextVersion(variant, mod.RepositoryVariants)
@@ -382,9 +380,8 @@ func handleInstalledMods(mods []lib_models.RepoModule, installedMods map[string]
 				continue
 			}
 		}
-		tmp = append(tmp, mod)
+		mods[id] = mod
 	}
-	return tmp
 }
 
 func getNextVersion(installed pkg_models.Module, repos []lib_models.RepoModuleVariant) string {
