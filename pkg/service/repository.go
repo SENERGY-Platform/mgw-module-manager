@@ -134,8 +134,7 @@ func (s *Service) GetRepositoryModules(ctx context.Context, filter lib_models.Re
 	if err != nil {
 		return nil, err
 	}
-	addInstalledMods(mergedRepoModules, installedMods, filter.Installed, filter.UpdateAvailable)
-	tmp := slices.Collect(maps.Values(mergedRepoModules))
+	tmp := slices.Collect(maps.Values(handleInstalledMods(mergedRepoModules, installedMods, filter.Installed, filter.UpdateAvailable)))
 	slices.SortFunc(tmp, func(a, b lib_models.RepoModule) int {
 		return strings.Compare(a.Name+a.Id, b.Name+b.Id)
 	})
@@ -349,13 +348,14 @@ func buildReposTree(repos []lib_models.Repository) map[string]repoAbbreviated {
 	return reposTree
 }
 
-func addInstalledMods(mods map[string]lib_models.RepoModule, installedMods map[string]pkg_models.Module, filterInstalled, filterUpdateAvailable bool) {
+func handleInstalledMods(mods map[string]lib_models.RepoModule, installedMods map[string]pkg_models.Module, filterInstalled, filterUpdateAvailable bool) map[string]lib_models.RepoModule {
 	if len(installedMods) == 0 {
 		if filterInstalled || filterUpdateAvailable {
-			return
+			return nil
 		}
-		return
+		return mods
 	}
+	tmp := make(map[string]lib_models.RepoModule)
 	for id, mod := range mods {
 		variant, ok := installedMods[mod.Id]
 		if ok {
@@ -373,15 +373,49 @@ func addInstalledMods(mods map[string]lib_models.RepoModule, installedMods map[s
 				NextVersion: nextVersion,
 			}
 		} else {
-			if filterInstalled {
-				continue
-			}
-			if filterUpdateAvailable {
+			if filterInstalled || filterUpdateAvailable {
 				continue
 			}
 		}
-		mods[id] = mod
+		tmp[id] = mod
 	}
+	if filterUpdateAvailable {
+		return tmp
+	}
+	for id, variant := range installedMods {
+		_, ok := mods[id]
+		if ok {
+			continue
+		}
+		tmp[id] = lib_models.RepoModule{
+			Id:      id,
+			Name:    variant.Name,
+			Desc:    variant.Description,
+			Version: variant.Version,
+			RepositoryVariants: []lib_models.RepoModuleVariant{
+				{
+					Source:   variant.Source,
+					Priority: -1,
+					Channels: []lib_models.RepoModuleVariantChannel{
+						{
+							Name:     variant.Channel,
+							Priority: -1,
+							Version:  variant.Version,
+						},
+					},
+				},
+			},
+			IsInstalled: true,
+			InstalledVariant: lib_models.InstalledModuleVariant{
+				ModuleVariant: lib_models.ModuleVariant{
+					Source:  variant.Source,
+					Channel: variant.Channel,
+					Version: variant.Version,
+				},
+			},
+		}
+	}
+	return tmp
 }
 
 func getNextVersion(installed pkg_models.Module, repos []lib_models.RepoModuleVariant) string {
