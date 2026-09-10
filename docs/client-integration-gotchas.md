@@ -52,6 +52,45 @@ There is no such flag. `GET /modules-reduced` carries, per module, the
 `module_version` the deployment was created for; comparing that against the
 installed version is what yields the state.
 
+## An update reads the declarations from `modules`, not from `deployment-request`
+
+`GET /deployment-request` answers with the modules that have **no** deployment
+yet — `GetDeploymentRequest` keeps only those, with no version comparison, and a
+deployment created for an older version is still a deployment. Asked about a
+module whose deployment is to be lifted onto a newer version, it therefore
+returns an empty list. A client that builds its update payload from that answer
+concludes every module needs input for everything, which is indistinguishable
+from a module that genuinely does.
+
+Asked with a mix of IDs it silently answers about a different set than the one
+requested: the undeployed modules and *their* dependencies come back, the
+deployed ones are dropped.
+
+For an update, `GET /modules?ids=<csv>` carries both halves in one response: the
+declarations of the installed version next to the `deployment` created for an
+earlier one. That is the endpoint the README's
+[Update Deployment](../README.md#update-deployment) sequence starts with; the
+`deployment-request` in [Create
+Deployment](../README.md#create-deployment) exists for the other flow, and the
+difference is invisible from the endpoint name.
+
+## An empty stored value is not an answer
+
+Carrying a deployment's values onto a new module version, an empty string or an
+empty list needs a decision rather than a default:
+
+- sent on, it pins emptiness over the default the new version declares;
+- left out, the module default applies from then on, which moves a running
+  configuration onto a value nobody chose;
+- as an empty list it is worse than either, because `CheckValueSliceInOptions`
+  rejects it against declared options while the user inputs are read — and that
+  fails the **whole** batch job, so one module's empty list means none of them
+  is updated.
+
+The same holds for a stored value whose `data_type` or `is_slice` no longer
+matches the declaration, and for one outside declared `options` that the module
+does not extend (`opt_ext`).
+
 ## Container logs need a second service
 
 This service exposes no log endpoint. `DeploymentInfo.containers` (in
