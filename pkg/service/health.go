@@ -18,6 +18,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"slices"
 
 	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
@@ -55,6 +56,12 @@ func (s *Service) DeploymentsHealth(ctx context.Context, filter lib_models.Deplo
 	for _, id := range filter.ExclModuleIds {
 		delete(deployments, id)
 	}
+	for moduleId, deployment := range deployments {
+		// An enabled deployment has a state unless the container engine could not be queried, containers that were not found already make it unhealthy.
+		if deployment.State == 0 && deployment.Err != nil {
+			return lib_models.DeploymentsHealthInfo{}, fmt.Errorf("get container states of module '%s' deployment '%s': %w", moduleId, deployment.Id, deployment.Err)
+		}
+	}
 	var auxDeployments map[string]map[string]lib_models.AuxiliaryDeploymentReduced
 	lenFilterAuxDepsOfIds := len(filter.AuxDeploymentsOfIds)
 	if filter.AuxiliaryDeployments || lenFilterAuxDepsOfIds > 0 {
@@ -75,12 +82,19 @@ func (s *Service) DeploymentsHealth(ctx context.Context, filter lib_models.Deplo
 			auxDeployments[moduleId] = auxDeps
 		}
 	}
-	return getDeploymentsHealthInfo(deployments, auxDeployments, filter.IncludeHealthy), nil
+	deploymentIds := make([]string, 0, len(deployments))
+	for _, deployment := range deployments {
+		deploymentIds = append(deploymentIds, deployment.Id)
+	}
+	restartInfo := s.deploymentsHandler.GetRestartInfo(deploymentIds)
+	return getDeploymentsHealthInfo(deployments, auxDeployments, restartInfo, s.deploymentsHandler.RestartThreshold(), filter.IncludeHealthy), nil
 }
 
 func getDeploymentsHealthInfo(
 	deployments map[string]pkg_models.DeploymentReduced,
 	auxDeployments map[string]map[string]lib_models.AuxiliaryDeploymentReduced,
+	restartInfo map[string]pkg_models.DeploymentRestartInfo,
+	restartThreshold int,
 	includeHealthy bool,
 ) lib_models.DeploymentsHealthInfo {
 	healthInfo := lib_models.DeploymentsHealthInfo{
@@ -113,12 +127,20 @@ func getDeploymentsHealthInfo(
 				auxDepsState = lib_constants.DeploymentUnhealthy
 			}
 		}
-		if !includeHealthy && deployment.State < 2 && auxDepsState < 2 {
+		restarts := restartInfo[deployment.Id]
+		depState := deployment.State
+		if restartThreshold > 0 && restarts.Restarts >= restartThreshold {
+			depState = lib_constants.DeploymentUnhealthy
+		}
+		if !includeHealthy && depState < 2 && auxDepsState < 2 {
 			continue
 		}
 		depHealth := lib_models.DeploymentHealthInfo{
 			ModuleId:                         deployment.ModuleId,
-			State:                            deployment.State,
+			State:                            depState,
+			Restarts:                         restarts.Restarts,
+			LastRestart:                      restarts.LastRestart,
+			LastError:                        restarts.LastError,
 			TotalContainers:                  len(deployment.Containers),
 			AuxiliaryDeployments:             auxDepsHealthInfo,
 			TotalEnabledAuxiliaryDeployments: len(auxDeps),

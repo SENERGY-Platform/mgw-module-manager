@@ -42,6 +42,13 @@ type DeploymentReduced struct {
 	State      lib_constants.DeploymentState // health state determined by container states
 }
 
+// DeploymentRestartInfo summarises the restarts of a deployment by the runtime monitor within the restart window.
+type DeploymentRestartInfo struct {
+	Restarts    int
+	LastRestart *time.Time // nil if there was no restart within the window
+	LastError   string     // error of the last failed start within the window, empty if there was none
+}
+
 type DeploymentContainer struct {
 	DeploymentContainerBase
 	ImageId string                        // docker image id

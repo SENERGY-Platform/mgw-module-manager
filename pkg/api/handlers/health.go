@@ -68,7 +68,7 @@ func getDeploymentsHealthFilter(gc *gin.Context) (lib_models.DeploymentsHealthIn
 }
 
 // @Summary		Get deployments health
-// @Description	Get health information of deployments and their auxiliary deployments.
+// @Description	Get health information of deployments and their auxiliary deployments. A deployment that was restarted by the runtime monitor at least the configured threshold number of times within the restart window is reported as unhealthy. Fails with 500 if the container states cannot be determined.
 // @Tags			health
 // @Produce		json
 // @Param			module_ids	query	[]string	false	"filter by module IDs"	collectionFormat(csv)

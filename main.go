@@ -153,6 +153,8 @@ func main() {
 			HostSecretsPath:            config.HostSecretsPath,
 			RuntimeMonitorStartupDelay: time.Duration(config.DeploymentsHandler.RuntimeMonitorStartupDelay),
 			RuntimeMonitorLoopDelay:    time.Duration(config.DeploymentsHandler.RuntimeMonitorLoopDelay),
+			RestartWindow:              time.Duration(config.DeploymentsHandler.RestartWindow),
+			RestartThreshold:           config.DeploymentsHandler.RestartThreshold,
 		},
 	)
 

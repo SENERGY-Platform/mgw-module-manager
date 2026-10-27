@@ -16,7 +16,11 @@
 
 package models
 
-import "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
+import (
+	"time"
+
+	"github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
+)
 
 // DeploymentsHealthInfo summarises the health of all enabled deployments.
 // By default only unhealthy deployments are listed, which allows detecting problems by checking the length of Deployments.
@@ -28,7 +32,10 @@ type DeploymentsHealthInfo struct {
 // DeploymentHealthInfo provides the health of a single deployment and of the auxiliary deployments it owns.
 type DeploymentHealthInfo struct {
 	ModuleId                         string                          `json:"module_id"`                           // ID of the module the deployment is based on
-	State                            constants.DeploymentState       `json:"state"`                               // health state derived from the states of all containers, values: 1 = healthy, 2 = unhealthy, 0 if it could not be determined
+	State                            constants.DeploymentState       `json:"state"`                               // health state derived from the states of all containers and the restarts within the restart window, values: 1 = healthy, 2 = unhealthy, 0 if it could not be determined
+	Restarts                         int                             `json:"restarts"`                            // number of times the runtime monitor started the deployment within the restart window, a deployment that keeps crashing is restarted repeatedly
+	LastRestart                      *time.Time                      `json:"last_restart"`                        // time of the last start by the runtime monitor within the restart window, null if there was none
+	LastError                        string                          `json:"last_error"`                          // error of the last failed start by the runtime monitor within the restart window, empty if there was none
 	Containers                       []DeploymentContainerHealthInfo `json:"containers"`                          // health information per container, only containers that are not ok unless DeploymentsHealthInfoFilter.IncludeHealthy is set
 	TotalContainers                  int                             `json:"total_containers"`                    // number of containers the deployment consists of
 	AuxiliaryDeployments             []AuxiliaryDeploymentHealthInfo `json:"auxiliary_deployments"`               // health information per auxiliary deployment, only auxiliary deployments that are not ok unless DeploymentsHealthInfoFilter.IncludeHealthy is set

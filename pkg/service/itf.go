@@ -61,6 +61,8 @@ type deploymentsHandler interface {
 	DisableDeployments(ctx context.Context, moduleIds []string) ([]string, error)
 	CheckDeployment(ctx context.Context, id string) error
 	IsDeployed(ctx context.Context, moduleId string) (bool, error)
+	GetRestartInfo(ids []string) map[string]pkg_models.DeploymentRestartInfo
+	RestartThreshold() int
 }
 
 type auxiliaryDeploymentsHandler interface {

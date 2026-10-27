@@ -53,6 +53,8 @@ type DeploymentsHandlerConfig struct {
 	WorkdirPath                string                   `json:"workdir_path" env_var:"DEPLOYMENTS_HANDLER_WORKDIR_PATH"`
 	RuntimeMonitorStartupDelay sb_config_types.Duration `json:"runtime_monitor_startup_delay" env_var:"DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY"`
 	RuntimeMonitorLoopDelay    sb_config_types.Duration `json:"runtime_monitor_loop_delay" env_var:"DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY"`
+	RestartWindow              sb_config_types.Duration `json:"restart_window" env_var:"DEPLOYMENTS_HANDLER_RESTART_WINDOW"`
+	RestartThreshold           int                      `json:"restart_threshold" env_var:"DEPLOYMENTS_HANDLER_RESTART_THRESHOLD"`
 }
 
 type AuxDeploymentsHandlerConfig struct {
@@ -134,6 +136,8 @@ var defaultConfig = Config{
 	DeploymentsHandler: DeploymentsHandlerConfig{
 		WorkdirPath:             "./deployments",
 		RuntimeMonitorLoopDelay: sb_config_types.Duration(time.Second * 5),
+		RestartWindow:           sb_config_types.Duration(time.Minute * 10),
+		RestartThreshold:        3,
 	},
 	AuxDeploymentsHandler: AuxDeploymentsHandlerConfig{
 		RuntimeMonitorLoopDelay: sb_config_types.Duration(time.Second * 5),

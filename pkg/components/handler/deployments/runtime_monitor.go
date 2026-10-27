@@ -60,6 +60,7 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 				continue
 			}
 			h.runtimeMonitorJobsAdd(id)
+			h.recordRestart(id)
 			go h.startDeployment(ctx, id, deploymentContainers, deploymentsMountSecrets[id])
 		} else {
 			if state == containersStateStopped {
@@ -116,6 +117,9 @@ func (h *Handler) startDeployment(
 ) {
 	var err error
 	defer func() {
+		if err != nil {
+			h.recordStartError(deploymentId, err)
+		}
 		if err != nil && len(deploymentMountSecrets) > 0 {
 			e, _ := h.secretManagerClient.CleanPathVariants(context.Background(), deploymentId)
 			if e != nil {

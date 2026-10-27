@@ -111,6 +111,7 @@ func (h *Handler) deleteDeployment(
 		logger.ErrorContext(ctx, "delete deployment, remove from database", slog_keys.DeploymentId, deploymentId, slog_keys.Error, err)
 		return err
 	}
+	h.forgetRestarts(deploymentId)
 	logger.InfoContext(ctx, "delete deployment", slog_keys.DeploymentId, deploymentId)
 	return nil
 }

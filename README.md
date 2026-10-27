@@ -172,6 +172,8 @@ stop containers accordingly.
 | `DEPLOYMENTS_HANDLER_WORKDIR_PATH` | string | `./deployments` | Working directory for deployment data. |
 | `DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_STARTUP_DELAY` | duration (string) | -               | Delay before the runtime monitor starts. |
 | `DEPLOYMENTS_HANDLER_RUNTIME_MONITOR_LOOP_DELAY` | duration (string) | `5s`            | Delay between runtime monitor iterations. |
+| `DEPLOYMENTS_HANDLER_RESTART_WINDOW` | duration (string) | `10m`           | Time window in which restarts by the runtime monitor are counted for the deployments health. |
+| `DEPLOYMENTS_HANDLER_RESTART_THRESHOLD` | int | `3`             | Number of restarts within the window from which the deployments health reports a deployment as unhealthy, `0` disables this. |
 
 ### Aux deployments handler
 

@@ -1186,7 +1186,7 @@ const docTemplate = `{
         },
         "/health/deployments": {
             "get": {
-                "description": "Get health information of deployments and their auxiliary deployments.",
+                "description": "Get health information of deployments and their auxiliary deployments. A deployment that was restarted by the runtime monitor at least the configured threshold number of times within the restart window is reported as unhealthy. Fails with 500 if the container states cannot be determined.",
                 "produces": [
                     "application/json"
                 ],
@@ -3679,7 +3679,7 @@ const docTemplate = `{
         },
         "/restricted/health/deployments": {
             "get": {
-                "description": "Get health information of deployments and their auxiliary deployments.",
+                "description": "Get health information of deployments and their auxiliary deployments. A deployment that was restarted by the runtime monitor at least the configured threshold number of times within the restart window is reported as unhealthy. Fails with 500 if the container states cannot be determined.",
                 "produces": [
                     "application/json"
                 ],
@@ -6376,12 +6376,24 @@ const docTemplate = `{
                         "$ref": "#/definitions/models.DeploymentContainerHealthInfo"
                     }
                 },
+                "last_error": {
+                    "description": "error of the last failed start by the runtime monitor within the restart window, empty if there was none",
+                    "type": "string"
+                },
+                "last_restart": {
+                    "description": "time of the last start by the runtime monitor within the restart window, null if there was none",
+                    "type": "string"
+                },
                 "module_id": {
                     "description": "ID of the module the deployment is based on",
                     "type": "string"
                 },
+                "restarts": {
+                    "description": "number of times the runtime monitor started the deployment within the restart window, a deployment that keeps crashing is restarted repeatedly",
+                    "type": "integer"
+                },
                 "state": {
-                    "description": "health state derived from the states of all containers, values: 1 = healthy, 2 = unhealthy, 0 if it could not be determined",
+                    "description": "health state derived from the states of all containers and the restarts within the restart window, values: 1 = healthy, 2 = unhealthy, 0 if it could not be determined",
                     "allOf": [
                         {
                             "$ref": "#/definitions/constants.DeploymentState"

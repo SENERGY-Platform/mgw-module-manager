@@ -30,6 +30,8 @@ type Config struct {
 	HostSecretsPath            string
 	RuntimeMonitorStartupDelay time.Duration
 	RuntimeMonitorLoopDelay    time.Duration
+	RestartWindow              time.Duration
+	RestartThreshold           int
 }
 
 type Handler struct {
@@ -42,6 +44,9 @@ type Handler struct {
 	mu                           sync.RWMutex
 	runtimeMonitorJobs           map[string]struct{}
 	runtimeMonitorJobsMu         sync.RWMutex
+	restarts                     map[string]*restartRecord
+	restartsMu                   sync.Mutex
+	now                          func() time.Time
 }
 
 func New(
@@ -60,6 +65,8 @@ func New(
 		coreManagerClient:            coreManagerClient,
 		config:                       config,
 		runtimeMonitorJobs:           make(map[string]struct{}),
+		restarts:                     make(map[string]*restartRecord),
+		now:                          time.Now,
 	}
 }
 
