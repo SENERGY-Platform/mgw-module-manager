@@ -43,6 +43,11 @@ import (
 var version string
 var name = "module-manager"
 
+const (
+	repositoriesRefreshStartupDelay = 10 * time.Minute
+	repositoriesRefreshSkipRetry    = time.Hour
+)
+
 func main() {
 
 	// set exit status code
@@ -300,6 +305,15 @@ func main() {
 		jobsHandler.Cleanup(ctx)
 		cf()
 	}()
+
+	// start periodic repositories refresh
+	if config.RepositoriesRefreshInterval > 0 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			srv.RefreshRepositoriesLoop(ctx, repositoriesRefreshStartupDelay, time.Duration(config.RepositoriesRefreshInterval), repositoriesRefreshSkipRetry)
+		}()
+	}
 
 	// start http server
 	go func() {

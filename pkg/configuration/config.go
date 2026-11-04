@@ -84,34 +84,36 @@ type LoggerConfig struct {
 }
 
 type Config struct {
-	ServerPort                uint                            `json:"server_port" env_var:"SERVER_PORT"`
-	ManagerIdPath             string                          `json:"manager_id_path" env_var:"MANAGER_ID_PATH"`
-	CoreId                    string                          `json:"core_id" env_var:"CORE_ID"`
-	ModuleContainerNetwork    string                          `json:"module_container_network" env_var:"MODULE_CONTAINER_NETWORK"`
-	UseUTC                    bool                            `json:"use_utc" env_var:"USE_UTC"`
-	JobPollInterval           sb_config_types.Duration        `json:"job_poll_interval" env_var:"JOB_POLL_INTERVAL"`
-	ImageNameEscapeDepth      int                             `json:"image_name_escape_depth" env_var:"IMAGE_NAME_ESCAPE_DEPTH"`
-	HostDeploymentsPath       string                          `json:"host_deployments_path" env_var:"HOST_DEPLOYMENTS_PATH"`
-	HostSecretsPath           string                          `json:"host_secrets_path" env_var:"HOST_SECRETS_PATH"`
-	Logger                    LoggerConfig                    `json:"logger"`
-	MgwCore                   MgwCoreConfig                   `json:"mgw_core"`
-	Database                  DatabaseConfig                  `json:"database"`
-	ModulesHandler            ModulesHandlerConfig            `json:"modules_handler"`
-	DeploymentsHandler        DeploymentsHandlerConfig        `json:"deployments_handler"`
-	AuxDeploymentsHandler     AuxDeploymentsHandlerConfig     `json:"aux_deployments_handler"`
-	HostDirRepositoryHandler  HostDirRepositoryHandlerConfig  `json:"host_dir_repository_handler"`
-	GitHubRepositoriesHandler GitHubRepositoriesHandlerConfig `json:"github_repositories_handler"`
-	JobsHandler               JobsHandlerConfig               `json:"jobs_handler"`
+	ServerPort                  uint                            `json:"server_port" env_var:"SERVER_PORT"`
+	ManagerIdPath               string                          `json:"manager_id_path" env_var:"MANAGER_ID_PATH"`
+	CoreId                      string                          `json:"core_id" env_var:"CORE_ID"`
+	ModuleContainerNetwork      string                          `json:"module_container_network" env_var:"MODULE_CONTAINER_NETWORK"`
+	UseUTC                      bool                            `json:"use_utc" env_var:"USE_UTC"`
+	JobPollInterval             sb_config_types.Duration        `json:"job_poll_interval" env_var:"JOB_POLL_INTERVAL"`
+	RepositoriesRefreshInterval sb_config_types.Duration        `json:"repositories_refresh_interval" env_var:"REPOSITORIES_REFRESH_INTERVAL"`
+	ImageNameEscapeDepth        int                             `json:"image_name_escape_depth" env_var:"IMAGE_NAME_ESCAPE_DEPTH"`
+	HostDeploymentsPath         string                          `json:"host_deployments_path" env_var:"HOST_DEPLOYMENTS_PATH"`
+	HostSecretsPath             string                          `json:"host_secrets_path" env_var:"HOST_SECRETS_PATH"`
+	Logger                      LoggerConfig                    `json:"logger"`
+	MgwCore                     MgwCoreConfig                   `json:"mgw_core"`
+	Database                    DatabaseConfig                  `json:"database"`
+	ModulesHandler              ModulesHandlerConfig            `json:"modules_handler"`
+	DeploymentsHandler          DeploymentsHandlerConfig        `json:"deployments_handler"`
+	AuxDeploymentsHandler       AuxDeploymentsHandlerConfig     `json:"aux_deployments_handler"`
+	HostDirRepositoryHandler    HostDirRepositoryHandlerConfig  `json:"host_dir_repository_handler"`
+	GitHubRepositoriesHandler   GitHubRepositoriesHandlerConfig `json:"github_repositories_handler"`
+	JobsHandler                 JobsHandlerConfig               `json:"jobs_handler"`
 }
 
 const reposBasePath = "./repositories"
 
 var defaultConfig = Config{
-	ServerPort:           80,
-	ManagerIdPath:        "./service/mid",
-	UseUTC:               true,
-	JobPollInterval:      sb_config_types.Duration(time.Millisecond * 500),
-	ImageNameEscapeDepth: 1,
+	ServerPort:                  80,
+	ManagerIdPath:               "./service/mid",
+	UseUTC:                      true,
+	JobPollInterval:             sb_config_types.Duration(time.Millisecond * 500),
+	RepositoriesRefreshInterval: sb_config_types.Duration(time.Hour * 24),
+	ImageNameEscapeDepth:        1,
 	Logger: LoggerConfig{
 		Config: struct_logger.Config{
 			Handler:    struct_logger.TextHandlerSelector,

@@ -48,6 +48,10 @@ are implemented:
 - **host directory**: a local directory, source `localhost`, channel `default`, for side-loading
   and development.
 
+All repositories are also refreshed periodically (`REPOSITORIES_REFRESH_INTERVAL`). A run is skipped
+while a modules change request is pending or a repository job is active, so a pending change request is never discarded;
+a skipped run is retried after one hour.
+
 ### Modules
 
 A Modfile declares everything a module needs: services (containers), auxiliary services,
@@ -117,6 +121,7 @@ stop containers accordingly.
 | `MODULE_CONTAINER_NETWORK` | string | – | Container network that module containers are attached to. |
 | `USE_UTC` | bool | `true` | Use UTC for timestamps. |
 | `JOB_POLL_INTERVAL` | string | `500ms` | Interval for polling job state. |
+| `REPOSITORIES_REFRESH_INTERVAL` | string | `24h` | Interval for the periodic refresh of all repositories, first run 10 minutes after start. `0` disables it. |
 | `IMAGE_NAME_ESCAPE_DEPTH` | int | `1` | Path-segment depth used when escaping image names. |
 | `HOST_DEPLOYMENTS_PATH` | string | – | Path on the host to the deployments directory (for bind mounts). |
 | `HOST_SECRETS_PATH` | string | – | Path on the host to the secrets directory (for bind mounts). |

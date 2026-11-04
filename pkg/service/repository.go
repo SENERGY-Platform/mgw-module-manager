@@ -7,6 +7,7 @@ import (
 	"maps"
 	"slices"
 	"strings"
+	"time"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
@@ -19,6 +20,53 @@ import (
 func (s *Service) RefreshRepositories(ctx context.Context, filter lib_models.RepositoriesRefreshFilter) (lib_models.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	return s.refreshRepositories(ctx, filter)
+}
+
+// refreshRepositoriesIfIdle starts a refresh of all repositories unless a modules change request is pending or a job
+// is running in the repository slot. In those cases it returns skipped = true and leaves the change request untouched.
+func (s *Service) refreshRepositoriesIfIdle(ctx context.Context) (job lib_models.Job, skipped bool, err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.changeRequest != nil {
+		return lib_models.Job{}, true, nil
+	}
+	job, err = s.refreshRepositories(ctx, lib_models.RepositoriesRefreshFilter{})
+	if lib_errors.IsOf[lib_errors.ErrActiveJob](err) {
+		return lib_models.Job{}, true, nil
+	}
+	return job, false, err
+}
+
+// RefreshRepositoriesLoop refreshes all repositories periodically until ctx is done. The first run happens after
+// startupDelay, subsequent runs after interval. Runs are skipped while a modules change request is pending or a
+// repository job is active; a skipped run is retried after skipRetry if that is shorter than interval.
+func (s *Service) RefreshRepositoriesLoop(ctx context.Context, startupDelay, interval, skipRetry time.Duration) {
+	timer := time.NewTimer(startupDelay)
+	defer timer.Stop()
+	for {
+		select {
+		case <-timer.C:
+			next := interval
+			job, skipped, err := s.refreshRepositoriesIfIdle(ctx)
+			switch {
+			case err != nil:
+				logger.ErrorContext(ctx, "periodic repositories refresh", slog_keys.Error, err)
+			case skipped:
+				logger.InfoContext(ctx, "periodic repositories refresh skipped", slog_keys.Description, "change request pending or repository job active")
+				next = min(interval, skipRetry)
+			default:
+				logger.DebugContext(ctx, "periodic repositories refresh started", slog_keys.JobId, job.Id)
+			}
+			timer.Reset(next)
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+// refreshRepositories requires s.mu to be write-locked by the caller.
+func (s *Service) refreshRepositories(ctx context.Context, filter lib_models.RepositoriesRefreshFilter) (lib_models.Job, error) {
 	currentJob, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
 	if ok {
 		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
