@@ -42,7 +42,6 @@ var standardApiHandlers = []handlerFunc[*service.Service]{
 	handlers.GetRepositories,
 	handlers.CreateRepository,
 	handlers.DeleteRepository,
-	handlers.GetRepositoryModules,
 	handlers.CreateGlobalConfig,
 	handlers.GetGlobalConfig,
 	handlers.GetGlobalConfigs,
@@ -100,6 +99,7 @@ var sharedApiHandlers = []handlerFunc[*service.Service]{
 	handlers.GetJob,
 	handlers.CancelJobs,
 	handlers.CancelJob,
+	handlers.GetRepositoryModules,
 	handlers.DeploymentsHealth,
 	handlers.ServiceInfo,
 }

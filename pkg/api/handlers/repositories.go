@@ -211,6 +211,7 @@ func getRepositoryFilter(sources, sourceChannels []string) ([]lib_models.RepoMod
 // @Failure		500	{string}	string	"error message"
 // @Failure		503	{string}	string	"error message"
 // @Router		/repository-modules [get]
+// @Router		/restricted/repository-modules [get]
 func GetRepositoryModules(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathRepositoryModulesCollection, func(gc *gin.Context) {
 		filter, err := getGetRepositoryModulesFilter(gc)

@@ -210,7 +210,7 @@ stop containers accordingly.
 | --- | --- |-----------------------------------------------------------------------------------------------------------------------------------|
 | standard | `/` | management surface for the UI and external apps: modules, repositories, deployments, global configs, change requests, job results |
 | restricted | `/restricted` | calls coming from module containers: auxiliary deployments and advertisements                                                     |
-| shared | both | read access to auxiliary deployments and advertisements, jobs, health, service info                                               |
+| shared | both | read access to auxiliary deployments and advertisements, repository modules, jobs, health, service info                         |
 
 Every response carries `X-Manager-Id`, `X-Runtime-Id`, `X-Version` and `X-Service`
 headers; `X-Request-Id` is honoured or generated and threaded through the structured logs together

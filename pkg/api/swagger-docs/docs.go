@@ -3971,6 +3971,97 @@ const docTemplate = `{
                 }
             }
         },
+        "/restricted/repository-modules": {
+            "get": {
+                "description": "Get the modules provided by the configured repositories.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "repositories"
+                ],
+                "summary": "Get repository modules",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filter by module IDs",
+                        "name": "ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by module name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filter by repository sources",
+                        "name": "repositories",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filter by repository channels, item format: source|channel",
+                        "name": "repository_channels",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "only return installed modules",
+                        "name": "installed",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "only return modules with an available update",
+                        "name": "update_available",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "repository modules",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.RepoModule"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "503": {
+                        "description": "error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/restricted/results/auxiliary-deployment-create/{JOB_ID}": {
             "get": {
                 "description": "Get the result of a job created by creating an auxiliary deployment.",
@@ -4527,6 +4618,77 @@ const docTemplate = `{
                 "DeploymentUnhealthy"
             ]
         },
+        "fs.FileMode": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                2147483648,
+                1073741824,
+                536870912,
+                268435456,
+                134217728,
+                67108864,
+                33554432,
+                16777216,
+                8388608,
+                4194304,
+                2097152,
+                1048576,
+                524288,
+                2401763328,
+                511
+            ],
+            "x-enum-comments": {
+                "ModeAppend": "a: append-only",
+                "ModeCharDevice": "c: Unix character device, when ModeDevice is set",
+                "ModeDevice": "D: device file",
+                "ModeDir": "d: is a directory",
+                "ModeExclusive": "l: exclusive use",
+                "ModeIrregular": "?: non-regular file; nothing else is known about this file",
+                "ModeNamedPipe": "p: named pipe (FIFO)",
+                "ModePerm": "Unix permission bits",
+                "ModeSetgid": "g: setgid",
+                "ModeSetuid": "u: setuid",
+                "ModeSocket": "S: Unix domain socket",
+                "ModeSticky": "t: sticky",
+                "ModeSymlink": "L: symbolic link",
+                "ModeTemporary": "T: temporary file; Plan 9 only"
+            },
+            "x-enum-descriptions": [
+                "d: is a directory",
+                "a: append-only",
+                "l: exclusive use",
+                "T: temporary file; Plan 9 only",
+                "L: symbolic link",
+                "D: device file",
+                "p: named pipe (FIFO)",
+                "S: Unix domain socket",
+                "u: setuid",
+                "g: setgid",
+                "c: Unix character device, when ModeDevice is set",
+                "t: sticky",
+                "?: non-regular file; nothing else is known about this file",
+                "",
+                "Unix permission bits"
+            ],
+            "x-enum-varnames": [
+                "ModeDir",
+                "ModeAppend",
+                "ModeExclusive",
+                "ModeTemporary",
+                "ModeSymlink",
+                "ModeDevice",
+                "ModeNamedPipe",
+                "ModeSocket",
+                "ModeSetuid",
+                "ModeSetgid",
+                "ModeCharDevice",
+                "ModeSticky",
+                "ModeIrregular",
+                "ModeType",
+                "ModePerm"
+            ]
+        },
         "github_com_SENERGY-Platform_mgw-module-lib_model.AuxService": {
             "type": "object",
             "properties": {
@@ -4991,7 +5153,11 @@ const docTemplate = `{
             "properties": {
                 "mode": {
                     "description": "Linux file mode of the mounted file system. Defaults to 0770 when the\nmodfile omits it.",
-                    "type": "integer"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/fs.FileMode"
+                        }
+                    ]
                 },
                 "size": {
                     "description": "Size of the file system in bytes.",
@@ -7047,6 +7213,8 @@ const docTemplate = `{
             "type": "integer",
             "format": "int64",
             "enum": [
+                -9223372036854775808,
+                9223372036854775807,
                 1,
                 1000,
                 1000000,
@@ -7055,6 +7223,8 @@ const docTemplate = `{
                 3600000000000
             ],
             "x-enum-varnames": [
+                "minDuration",
+                "maxDuration",
                 "Nanosecond",
                 "Microsecond",
                 "Millisecond",
