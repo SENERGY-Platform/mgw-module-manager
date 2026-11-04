@@ -285,8 +285,11 @@ func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modules
 }
 
 func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.ModulesChangeReport {
+	// runs in the job goroutine without s.mu, while the handlers and the periodic refresh read the change request under it
 	defer func() {
+		s.mu.Lock()
 		s.changeRequest = nil
+		s.mu.Unlock()
 	}()
 	var success []lib_models.ChangeReportItem
 	var failed []lib_models.ChangeReportErrItem
