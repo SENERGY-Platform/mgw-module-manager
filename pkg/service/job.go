@@ -19,6 +19,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"maps"
 	"slices"
 
 	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
@@ -85,11 +86,13 @@ func activeJobsErrMsg(jobs map[int]*handler_jobs.Job) string {
 		msg += "s"
 	}
 	msg += ": "
-	for i, j := range jobs {
-		msg += fmt.Sprintf("%s (%s)", j.Description, j.Id)
-		if i < lenJobs-1 {
+	// The keys are slot numbers, not positions.
+	for i, slotNum := range slices.Sorted(maps.Keys(jobs)) {
+		if i > 0 {
 			msg += ", "
 		}
+		j := jobs[slotNum]
+		msg += fmt.Sprintf("%s (%s)", j.Description, j.Id)
 	}
 	return msg
 }
