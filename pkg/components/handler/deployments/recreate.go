@@ -75,33 +75,23 @@ func (h *Handler) RecreateDeployments(
 		logger.ErrorContext(ctx, "recreate deployments, initialize cache", slog_keys.Error, err)
 		return nil, err
 	}
-	var results []lib_models.DeploymentResult
-	for moduleId, module := range selectedModules {
-		result := lib_models.DeploymentResult{ModuleId: moduleId}
-		cacheItem, ok := cache.Deployments[moduleId]
-		if !ok {
-			result.ErrorResult = lib_models.NewErrorResult("module not found")
-			results = append(results, result)
-			continue
-		}
-		result.Id = cacheItem.DeploymentId
-		err = h.recreateDeployment(
-			ctx,
-			module,
-			deploymentsUserData[cacheItem.DeploymentId],
-			cacheItem.DeploymentId,
-			cacheItem.Containers,
-			deployments[cacheItem.DeploymentId],
-			deploymentsContainers[cacheItem.DeploymentId],
-			deploymentsVolumes[cacheItem.DeploymentId],
-			cache,
-		)
-		if err != nil {
-			result.ErrorResult = lib_models.NewErrorResult(err.Error())
-		}
-		results = append(results, result)
-	}
-	return results, nil
+	return applyInDependencyOrder(
+		selectedModules,
+		cache.Deployments,
+		func(moduleId string, module pkg_models.Module, cacheItem deploymentsCacheItem) error {
+			return h.recreateDeployment(
+				ctx,
+				module,
+				deploymentsUserData[cacheItem.DeploymentId],
+				cacheItem.DeploymentId,
+				cacheItem.Containers,
+				deployments[cacheItem.DeploymentId],
+				deploymentsContainers[cacheItem.DeploymentId],
+				deploymentsVolumes[cacheItem.DeploymentId],
+				cache,
+			)
+		},
+	), nil
 }
 
 func (h *Handler) recreateDeployment(

@@ -129,3 +129,24 @@ func stronglyConnected(ids []string, edges map[string][]string) [][]string {
 	}
 	return result
 }
+
+// Nearest returns the id matching match that is nearest to start along deps, start included, ties broken by the order
+// of deps. Dependency cycles are followed, so a match is found from every id of the cycle it belongs to.
+func Nearest(start string, deps map[string][]string, match func(id string) bool) (string, bool) {
+	seen := map[string]bool{start: true}
+	queue := []string{start}
+	for len(queue) > 0 {
+		id := queue[0]
+		queue = queue[1:]
+		if match(id) {
+			return id, true
+		}
+		for _, dep := range deps[id] {
+			if !seen[dep] {
+				seen[dep] = true
+				queue = append(queue, dep)
+			}
+		}
+	}
+	return "", false
+}

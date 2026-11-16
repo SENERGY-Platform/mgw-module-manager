@@ -76,7 +76,7 @@ func updTestResult(moduleId, errMsg string) lib_models.DeploymentResult {
 	return res
 }
 
-func TestUpdateInDependencyOrder(t *testing.T) {
+func TestApplyInDependencyOrder(t *testing.T) {
 	t.Run("dependencies first", func(t *testing.T) {
 		mods, cache := updTestBatch(
 			updTestModule("a", "c", "b"),
@@ -86,7 +86,7 @@ func TestUpdateInDependencyOrder(t *testing.T) {
 			updTestModule("z"),
 		)
 		u := &updTestUpdater{}
-		results := updateInDependencyOrder(mods, cache, u.update)
+		results := applyInDependencyOrder(mods, cache, u.update)
 		wantCalls := []string{"x", "z", "b", "c", "a"}
 		if !reflect.DeepEqual(u.calls, wantCalls) {
 			t.Errorf("calls %v, want %v", u.calls, wantCalls)
@@ -110,7 +110,7 @@ func TestUpdateInDependencyOrder(t *testing.T) {
 			updTestModule("x"),
 		)
 		u := &updTestUpdater{fail: map[string]bool{"l": true}}
-		results := updateInDependencyOrder(mods, cache, u.update)
+		results := applyInDependencyOrder(mods, cache, u.update)
 		if wantCalls := []string{"d", "l", "x"}; !reflect.DeepEqual(u.calls, wantCalls) {
 			t.Errorf("calls %v, want %v", u.calls, wantCalls)
 		}
@@ -127,16 +127,18 @@ func TestUpdateInDependencyOrder(t *testing.T) {
 		}
 	})
 	t.Run("missing deployment blocks its dependents", func(t *testing.T) {
-		mods, cache := updTestBatch(updTestModule("a", "n"), updTestModule("n"))
+		// a depends on n, b on a
+		mods, cache := updTestBatch(updTestModule("a", "n"), updTestModule("b", "a"), updTestModule("n"))
 		delete(cache, "n")
 		u := &updTestUpdater{}
-		results := updateInDependencyOrder(mods, cache, u.update)
+		results := applyInDependencyOrder(mods, cache, u.update)
 		if len(u.calls) != 0 {
 			t.Errorf("expected no updates, got %v", u.calls)
 		}
 		want := []lib_models.DeploymentResult{
 			{ModuleId: "n", ErrorResult: lib_models.NewErrorResult("deployment not found")},
-			updTestResult("a", "dependency 'n' failed"),
+			updTestResult("a", "dependency 'n' not deployed"),
+			updTestResult("b", "dependency 'a' depends on not deployed 'n'"),
 		}
 		if !reflect.DeepEqual(results, want) {
 			t.Errorf("results %+v, want %+v", results, want)
@@ -146,7 +148,7 @@ func TestUpdateInDependencyOrder(t *testing.T) {
 		// p and q depend on each other, p is updated before q fails, r depends on p
 		mods, cache := updTestBatch(updTestModule("p", "q"), updTestModule("q", "p"), updTestModule("r", "p"))
 		u := &updTestUpdater{fail: map[string]bool{"q": true}}
-		results := updateInDependencyOrder(mods, cache, u.update)
+		results := applyInDependencyOrder(mods, cache, u.update)
 		if wantCalls := []string{"p", "q"}; !reflect.DeepEqual(u.calls, wantCalls) {
 			t.Errorf("calls %v, want %v", u.calls, wantCalls)
 		}
@@ -160,7 +162,7 @@ func TestUpdateInDependencyOrder(t *testing.T) {
 		}
 	})
 	t.Run("empty", func(t *testing.T) {
-		if results := updateInDependencyOrder(nil, nil, (&updTestUpdater{}).update); len(results) != 0 {
+		if results := applyInDependencyOrder(nil, nil, (&updTestUpdater{}).update); len(results) != 0 {
 			t.Errorf("expected no results, got %+v", results)
 		}
 	})

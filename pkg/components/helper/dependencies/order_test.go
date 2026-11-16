@@ -18,6 +18,7 @@ package dependencies
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 )
 
@@ -72,6 +73,33 @@ func TestOrder(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			if got := Order(tc.ids, tc.deps); !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("got %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestNearest(t *testing.T) {
+	// a depends on b and c, b on d, c on e, d and e on each other
+	deps := map[string][]string{"a": {"b", "c"}, "b": {"d"}, "c": {"e"}, "d": {"e"}, "e": {"d"}}
+	tests := []struct {
+		name    string
+		start   string
+		matches []string
+		want    string
+		wantOk  bool
+	}{
+		{name: "start itself", start: "a", matches: []string{"a", "b"}, want: "a", wantOk: true},
+		{name: "fewest steps wins", start: "a", matches: []string{"d", "c"}, want: "c", wantOk: true},
+		{name: "same distance in order of deps", start: "a", matches: []string{"e", "d"}, want: "d", wantOk: true},
+		{name: "through a cycle", start: "e", matches: []string{"d"}, want: "d", wantOk: true},
+		{name: "dependents are not followed", start: "c", matches: []string{"a", "b"}},
+		{name: "none", start: "a"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, ok := Nearest(tc.start, deps, func(id string) bool { return slices.Contains(tc.matches, id) })
+			if got != tc.want || ok != tc.wantOk {
+				t.Errorf("got %q %v, want %q %v", got, ok, tc.want, tc.wantOk)
 			}
 		})
 	}

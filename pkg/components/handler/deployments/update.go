@@ -72,7 +72,7 @@ func (h *Handler) UpdateDeployments(
 		logger.ErrorContext(ctx, "update deployments, initialize cache", slog_keys.Error, err)
 		return nil, err
 	}
-	return updateInDependencyOrder(
+	return applyInDependencyOrder(
 		selectedModules,
 		cache.Deployments,
 		func(moduleId string, module pkg_models.Module, cacheItem deploymentsCacheItem) error {
@@ -91,13 +91,13 @@ func (h *Handler) UpdateDeployments(
 	), nil
 }
 
-// updateInDependencyOrder calls update for the deployment of every module after the deployments of the modules it
-// depends on. A deployment that depends on a failed deployment of the batch, directly or through other modules of the
-// batch, is not updated, since its containers would refer to containers that may no longer exist.
-func updateInDependencyOrder(
+// applyInDependencyOrder calls apply for the deployment of every module after the deployments of the modules it
+// depends on. A deployment that depends on a failed or missing deployment of the batch, directly or through other
+// modules of the batch, is left as is, since its containers would refer to containers that may not exist.
+func applyInDependencyOrder(
 	modules map[string]pkg_models.Module,
 	cacheDeployments map[string]deploymentsCacheItem,
-	update func(moduleId string, module pkg_models.Module, cacheItem deploymentsCacheItem) error,
+	apply func(moduleId string, module pkg_models.Module, cacheItem deploymentsCacheItem) error,
 ) []lib_models.DeploymentResult {
 	// module id -> sorted ids of the other modules of the batch it depends on
 	deps := make(map[string][]string)
@@ -108,7 +108,8 @@ func updateInDependencyOrder(
 			}
 		}
 	}
-	failed := make(map[string]bool)
+	// module id -> why its dependents are not applied
+	unusable := make(map[string]string)
 	var results []lib_models.DeploymentResult
 	for _, moduleId := range helper_dependencies.Order(slices.Collect(maps.Keys(modules)), deps) {
 		result := lib_models.DeploymentResult{ModuleId: moduleId}
@@ -116,51 +117,34 @@ func updateInDependencyOrder(
 		result.Id = cacheItem.DeploymentId
 		if !ok {
 			result.ErrorResult = lib_models.NewErrorResult("deployment not found")
-			failed[moduleId] = true
-		} else if msg, blocked := failedDependency(moduleId, deps, failed); blocked {
+			unusable[moduleId] = "not deployed"
+		} else if msg, blocked := unusableDependency(moduleId, deps, unusable); blocked {
 			result.ErrorResult = lib_models.NewErrorResult(msg)
-		} else if err := update(moduleId, modules[moduleId], cacheItem); err != nil {
+		} else if err := apply(moduleId, modules[moduleId], cacheItem); err != nil {
 			result.ErrorResult = lib_models.NewErrorResult(err.Error())
-			failed[moduleId] = true
+			unusable[moduleId] = "failed"
 		}
 		results = append(results, result)
 	}
 	return results
 }
 
-// failedDependency returns the error for a module whose deployment must not be updated because the deployment of a
-// module of the batch it depends on, directly or transitively, failed. Within a dependency cycle a module can be
-// updated before a module it depends on fails, so the failure is searched for along all dependencies.
-func failedDependency(moduleId string, deps map[string][]string, failed map[string]bool) (string, bool) {
+// unusableDependency returns the error for a module whose deployment must not be applied because the deployment of a
+// module of the batch it depends on, directly or transitively, failed or does not exist. Within a dependency cycle a
+// module can be applied before a module it depends on fails, so the cause is searched for along all dependencies.
+func unusableDependency(moduleId string, deps map[string][]string, unusable map[string]string) (string, bool) {
 	for _, dep := range deps[moduleId] {
-		cause, ok := nearestFailed(dep, deps, failed)
+		cause, ok := helper_dependencies.Nearest(dep, deps, func(id string) bool {
+			_, ok := unusable[id]
+			return ok
+		})
 		if !ok {
 			continue
 		}
 		if cause == dep {
-			return fmt.Sprintf("dependency '%s' failed", dep), true
+			return fmt.Sprintf("dependency '%s' %s", dep, unusable[cause]), true
 		}
-		return fmt.Sprintf("dependency '%s' depends on failed '%s'", dep, cause), true
-	}
-	return "", false
-}
-
-// nearestFailed returns the failed module nearest to start along deps, start included.
-func nearestFailed(start string, deps map[string][]string, failed map[string]bool) (string, bool) {
-	seen := map[string]bool{start: true}
-	queue := []string{start}
-	for len(queue) > 0 {
-		id := queue[0]
-		queue = queue[1:]
-		if failed[id] {
-			return id, true
-		}
-		for _, dep := range deps[id] {
-			if !seen[dep] {
-				seen[dep] = true
-				queue = append(queue, dep)
-			}
-		}
+		return fmt.Sprintf("dependency '%s' depends on %s '%s'", dep, unusable[cause], cause), true
 	}
 	return "", false
 }
