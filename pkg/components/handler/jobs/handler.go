@@ -176,8 +176,9 @@ func (h *Handler) cleanup() []string {
 	tmp := make(map[string]*Job)
 	now := helper_time.Now()
 	for id, job := range h.jobMap {
+		// A job that has not ended has a zero end time and is kept regardless of its start.
 		end := job.End()
-		if now.Sub(end) < h.config.MaxJobAge {
+		if end.IsZero() || now.Sub(end) < h.config.MaxJobAge {
 			tmp[id] = job
 		} else {
 			oldJobs = append(oldJobs, id)
