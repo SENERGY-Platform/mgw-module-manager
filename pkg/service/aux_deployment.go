@@ -112,7 +112,7 @@ func (s *Service) CreateAuxiliaryDeployment(
 			logJobDone(ctx, job)
 		}()
 		logJobStart(ctx, job)
-		module, err := s.modulesHandler.GetModule(ctx, activeDeployment.ModuleId)
+		module, err := s.getReadableModule(ctx, activeDeployment.ModuleId)
 		if err != nil {
 			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
 			return
@@ -187,7 +187,7 @@ func (s *Service) UpdateAuxiliaryDeployment(
 			logJobDone(ctx, job)
 		}()
 		logJobStart(ctx, job)
-		module, err := s.modulesHandler.GetModule(ctx, activeDeployment.ModuleId)
+		module, err := s.getReadableModule(ctx, activeDeployment.ModuleId)
 		if err != nil {
 			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
 			return
@@ -262,7 +262,7 @@ func (s *Service) RecreateAuxiliaryDeployments(
 			logJobDone(ctx, job)
 		}()
 		logJobStart(ctx, job)
-		module, err := s.modulesHandler.GetModule(ctx, activeDeployment.ModuleId)
+		module, err := s.getReadableModule(ctx, activeDeployment.ModuleId)
 		if err != nil {
 			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
 			return
@@ -517,4 +517,17 @@ func (s *Service) recreateAuxDeployments(
 			},
 		},
 	)
+}
+
+// getReadableModule returns the installed module with the given id. The modules handler reports an unreadable module
+// on the module itself, which is returned as error here.
+func (s *Service) getReadableModule(ctx context.Context, id string) (pkg_models.Module, error) {
+	module, err := s.modulesHandler.GetModule(ctx, id)
+	if err != nil {
+		return pkg_models.Module{}, err
+	}
+	if module.Err != nil {
+		return pkg_models.Module{}, fmt.Errorf("module: %w", module.Err)
+	}
+	return module, nil
 }
