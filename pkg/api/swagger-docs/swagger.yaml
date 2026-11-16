@@ -1108,6 +1108,136 @@ definitions:
           placeholder (e.g. http://{ref}/api).
         type: string
     type: object
+  models.AutoUpdateFailedModule:
+    properties:
+      error:
+        description: reason the update failed
+        type: string
+      id:
+        description: ID of the module
+        type: string
+    type: object
+  models.AutoUpdateRun:
+    properties:
+      end:
+        description: point in time at which the run ended
+        type: string
+      error_msg:
+        description: error message, empty if HasError is false
+        type: string
+      failed:
+        description: modules whose update or deployment update failed
+        items:
+          $ref: '#/definitions/models.AutoUpdateFailedModule'
+        type: array
+      has_error:
+        description: true if an error occurred, must be checked before relying on
+          the enclosing model
+        type: boolean
+      skipped:
+        description: modules with a newer version and deployments lagging their installed
+          module that were left unchanged
+        items:
+          $ref: '#/definitions/models.AutoUpdateSkippedModule'
+        type: array
+      start:
+        description: point in time at which the run started
+        type: string
+      updated:
+        description: modules that were updated together with their deployment, and
+          deployments that were updated to their installed module
+        items:
+          $ref: '#/definitions/models.AutoUpdateUpdatedModule'
+        type: array
+    type: object
+  models.AutoUpdateSettings:
+    properties:
+      enabled:
+        description: true if modules are updated automatically, off by default
+        type: boolean
+      level:
+        description: 'highest version change that is applied, values: patch, minor,
+          major, default: patch'
+        type: string
+      time_zone:
+        description: 'IANA time zone name the window is evaluated in, e.g. UTC or
+          America/New_York, default: Europe/Berlin'
+        type: string
+      window_end:
+        description: 'end of the daily time window, format HH:MM, exclusive, must
+          differ from WindowStart, default: 05:00'
+        type: string
+      window_start:
+        description: 'start of the daily time window in which an update run may start,
+          format HH:MM, inclusive, default: 02:00'
+        type: string
+    type: object
+  models.AutoUpdateSkippedModule:
+    properties:
+      id:
+        description: ID of the module
+        type: string
+      missing:
+        description: items of the affected deployments that need user input, only
+          set if Reason is needs_input
+        items:
+          $ref: '#/definitions/models.CarryOverMissing'
+        type: array
+      next_version:
+        description: version available in the repository channel the module was installed
+          from, for a lagging deployment the installed version
+        type: string
+      reason:
+        description: 'why the module was not updated, values: level_exceeded, dependency_level_exceeded,
+          new_dependency, needs_input, invalid_version, module_error, deployment_error,
+          dependency_not_deployed, dependent_range_violated, deployment_variant_differs'
+        type: string
+      version:
+        description: installed version, for a lagging deployment the version the deployment
+          was created for
+        type: string
+    type: object
+  models.AutoUpdateStatus:
+    properties:
+      enabled:
+        description: true if modules are updated automatically, off by default
+        type: boolean
+      last_run:
+        allOf:
+        - $ref: '#/definitions/models.AutoUpdateRun'
+        description: outcome of the last update run, null if no run has completed
+          yet
+      level:
+        description: 'highest version change that is applied, values: patch, minor,
+          major, default: patch'
+        type: string
+      time_zone:
+        description: 'IANA time zone name the window is evaluated in, e.g. UTC or
+          America/New_York, default: Europe/Berlin'
+        type: string
+      window_end:
+        description: 'end of the daily time window, format HH:MM, exclusive, must
+          differ from WindowStart, default: 05:00'
+        type: string
+      window_start:
+        description: 'start of the daily time window in which an update run may start,
+          format HH:MM, inclusive, default: 02:00'
+        type: string
+    type: object
+  models.AutoUpdateUpdatedModule:
+    properties:
+      from:
+        description: version installed before the run, for a deployment updated on
+          its own the version the deployment was created for
+        type: string
+      id:
+        description: ID of the module
+        type: string
+      to:
+        description: version installed by the run, for a deployment updated on its
+          own the installed version
+        type: string
+    type: object
   models.AuxiliaryDeploymentBatchResult:
     properties:
       error_msg:
@@ -1412,6 +1542,21 @@ definitions:
           restarting, removing, stopped, dead, empty to not filter by state'
         type: string
     type: object
+  models.CarryOverMissing:
+    properties:
+      kind:
+        description: 'kind of the item, values: config, secret, host_resource, file,
+          file_group'
+        type: string
+      reason:
+        description: 'why the setup does not answer the item, values: not_declared,
+          not_set, empty_value, type_mismatch, invalid_value, missing_path, global_config_not_found,
+          secret_not_found, secret_type_unknown'
+        type: string
+      ref:
+        description: reference of the item in the module
+        type: string
+    type: object
   models.ChangeReportErrItem:
     properties:
       action:
@@ -1552,6 +1697,29 @@ definitions:
       timestamp:
         description: point in time at which the advertisement was created or last
           replaced
+        type: string
+    type: object
+  models.DeploymentCarryOver:
+    properties:
+      error_msg:
+        description: error message, empty if HasError is false
+        type: string
+      has_error:
+        description: true if an error occurred, must be checked before relying on
+          the enclosing model
+        type: boolean
+      input:
+        allOf:
+        - $ref: '#/definitions/github_com_SENERGY-Platform_mgw-module-manager_lib_models.DeploymentUserInput'
+        description: user input built from the current setup that can be passed to
+          the deployment update as is, null if the setup cannot be carried over
+      missing:
+        description: items the current setup does not answer, empty if Input is set
+        items:
+          $ref: '#/definitions/models.CarryOverMissing'
+        type: array
+      module_id:
+        description: ID of the module the check was performed for
         type: string
     type: object
   models.DeploymentContainerHealthInfo:
@@ -2179,6 +2347,70 @@ info:
   title: module-manager API
   version: dev
 paths:
+  /auto-update:
+    get:
+      description: Get the settings for updating installed modules and their deployments
+        automatically. Defaults are returned if the settings were never changed.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: auto-update settings
+          schema:
+            $ref: '#/definitions/models.AutoUpdateSettings'
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get auto-update settings
+      tags:
+      - auto-update
+    put:
+      consumes:
+      - application/json
+      description: Replace the settings for updating installed modules and their deployments
+        automatically.
+      parameters:
+      - description: auto-update settings
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AutoUpdateSettings'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: auto-update settings updated
+        "400":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Update auto-update settings
+      tags:
+      - auto-update
+  /auto-update/status:
+    get:
+      description: Get the auto-update settings together with the outcome of the last
+        update run.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: auto-update settings and last run
+          schema:
+            $ref: '#/definitions/models.AutoUpdateStatus'
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get auto-update status
+      tags:
+      - auto-update
   /deployment-advertisements:
     get:
       description: Query the advertisements of all deployments with a reduced set
@@ -2411,6 +2643,45 @@ paths:
           schema:
             type: string
       summary: Update deployments
+      tags:
+      - deployments
+  /deployments-carry-over:
+    get:
+      description: Check for each of the given deployed modules whether its current
+        setup answers everything the installed module declares, and return the user
+        input for a deployment update if it does. A stored secret is only carried
+        over if the secret manager reports the declared type for it. Modules that
+        are not installed or deployed are reported with an error.
+      parameters:
+      - collectionFormat: csv
+        description: module IDs
+        in: query
+        items:
+          type: string
+        name: module_ids
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: carry over result per module
+          schema:
+            items:
+              $ref: '#/definitions/models.DeploymentCarryOver'
+            type: array
+        "400":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+        "503":
+          description: error message
+          schema:
+            type: string
+      summary: Get deployments carry over
       tags:
       - deployments
   /deployments-disable:

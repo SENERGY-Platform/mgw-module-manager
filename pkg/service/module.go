@@ -186,6 +186,7 @@ func (s *Service) ExecModulesChangeRequest(ctx context.Context) (lib_models.Job,
 	if err != nil {
 		return lib_models.Job{}, err
 	}
+	changeRequest := s.changeRequest
 	go func() {
 		jobResult := lib_models.ModulesChangeJobResult{
 			JobResult: lib_models.JobResult{JobId: job.Id},
@@ -206,7 +207,7 @@ func (s *Service) ExecModulesChangeRequest(ctx context.Context) (lib_models.Job,
 			logJobDone(ctx, job)
 		}()
 		logJobStart(ctx, job)
-		jobResult.ModulesChangeReport = s.execModulesChangeRequest(job.Context())
+		jobResult.ModulesChangeReport = s.execModulesChangeRequest(job.Context(), changeRequest)
 	}()
 	return lib_models.Job{
 		Id:          job.Id,
@@ -238,6 +239,9 @@ func (s *Service) GetModulesAvailableUpdatesCount(ctx context.Context) (int, err
 func (s *Service) CreateModulesUpdateAllChangeRequest(ctx context.Context) (lib_models.ModulesChangeRequest, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if err := s.updateAllIdleErr(); err != nil {
+		return lib_models.ModulesChangeRequest{}, err
+	}
 	changeRequest, err := s.newModulesUpdateAllChangeRequest(ctx)
 	if err != nil {
 		return lib_models.ModulesChangeRequest{}, err
@@ -246,6 +250,17 @@ func (s *Service) CreateModulesUpdateAllChangeRequest(ctx context.Context) (lib_
 		s.changeRequest = &changeRequest
 	}
 	return transformModulesChangeRequest(changeRequest), nil
+}
+
+// updateAllIdleErr requires s.mu to be locked by the caller. A repository job rewrites the repository cache and a
+// module job the installed modules, so an update-all request built meanwhile would mix two states. The read-only
+// update count is not guarded: a stale count during a refresh is preferable to none.
+func (s *Service) updateAllIdleErr() error {
+	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{moduleJobSlotNum, repositoryJobSlotNum})
+	if len(currentJobs) > 0 {
+		return lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
+	}
+	return nil
 }
 
 func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modulesChangeRequest, error) {
@@ -284,19 +299,39 @@ func (s *Service) newModulesUpdateAllChangeRequest(ctx context.Context) (modules
 	return newModulesChangeRequest(selectedRepoMods, installedMods, nil), nil
 }
 
-func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.ModulesChangeReport {
-	// runs in the job goroutine without s.mu, while the handlers and the periodic refresh read the change request under it
+// execModulesChangeRequest runs without s.mu, so it works on the change request captured by the caller under the lock
+// and clears s.changeRequest afterwards only if it still holds that request. Once ctx is done nothing further is applied.
+func (s *Service) execModulesChangeRequest(ctx context.Context, changeRequest *modulesChangeRequest) lib_models.ModulesChangeReport {
+	return s.execModulesChangeRequestUntil(ctx, changeRequest, ctx.Err)
+}
+
+// execModulesChangeRequestUntil works like execModulesChangeRequest but applies nothing further once stopped returns an
+// error, which is checked before every operation; an operation already started is left to finish or fail by itself.
+func (s *Service) execModulesChangeRequestUntil(
+	ctx context.Context,
+	changeRequest *modulesChangeRequest,
+	stopped func() error,
+) lib_models.ModulesChangeReport {
 	defer func() {
 		s.mu.Lock()
-		s.changeRequest = nil
+		if s.changeRequest == changeRequest {
+			s.changeRequest = nil
+		}
 		s.mu.Unlock()
 	}()
 	var success []lib_models.ChangeReportItem
 	var failed []lib_models.ChangeReportErrItem
-	for _, id := range s.changeRequest.Remove {
+	for _, id := range changeRequest.Remove {
 		cri := lib_models.ChangeReportItem{
 			Id:     id,
 			Action: lib_constants.ActionRemove,
+		}
+		if err := stopped(); err != nil {
+			failed = append(failed, lib_models.ChangeReportErrItem{
+				ChangeReportItem: cri,
+				Error:            "not applied: " + err.Error(),
+			})
+			continue
 		}
 		ok, err := s.deploymentsHandler.IsDeployed(ctx, id)
 		if err != nil {
@@ -323,28 +358,38 @@ func (s *Service) execModulesChangeRequest(ctx context.Context) lib_models.Modul
 		}
 		success = append(success, cri)
 	}
-	for _, repoMod := range s.changeRequest.Install {
+	// module id -> module of the request whose failure kept it from being applied, the module itself if it failed
+	failedCause := make(map[string]string)
+	for _, op := range orderChangeOps(changeRequest) {
+		id := op.mod.Mod.ID
 		cri := lib_models.ChangeReportItem{
-			Id:     repoMod.Mod.ID,
-			Action: lib_constants.ActionInstall,
+			Id:     id,
+			Action: op.action,
 		}
-		err := s.modulesHandler.AddModule(ctx, repoMod.Mod.ID, repoMod.Source, repoMod.Channel, repoMod.FS)
-		if err != nil {
+		if err := stopped(); err != nil {
+			failedCause[id] = id
 			failed = append(failed, lib_models.ChangeReportErrItem{
 				ChangeReportItem: cri,
-				Error:            err.Error(),
+				Error:            "not applied: " + err.Error(),
 			})
 			continue
 		}
-		success = append(success, cri)
-	}
-	for _, item := range s.changeRequest.Change {
-		cri := lib_models.ChangeReportItem{
-			Id:     item.Next.Mod.ID,
-			Action: lib_constants.ActionChange,
+		if cause, msg, ok := failedDependency(op.mod, failedCause); ok {
+			failedCause[id] = cause
+			failed = append(failed, lib_models.ChangeReportErrItem{
+				ChangeReportItem: cri,
+				Error:            msg,
+			})
+			continue
 		}
-		err := s.modulesHandler.UpdateModule(ctx, item.Next.Mod.ID, item.Next.Source, item.Next.Channel, item.Next.FS)
+		var err error
+		if op.action == lib_constants.ActionInstall {
+			err = s.modulesHandler.AddModule(ctx, id, op.mod.Source, op.mod.Channel, op.mod.FS)
+		} else {
+			err = s.modulesHandler.UpdateModule(ctx, id, op.mod.Source, op.mod.Channel, op.mod.FS)
+		}
 		if err != nil {
+			failedCause[id] = id
 			failed = append(failed, lib_models.ChangeReportErrItem{
 				ChangeReportItem: cri,
 				Error:            err.Error(),

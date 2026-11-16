@@ -24,7 +24,8 @@ func (s *Service) RefreshRepositories(ctx context.Context, filter lib_models.Rep
 }
 
 // refreshRepositoriesIfIdle starts a refresh of all repositories unless a modules change request is pending or a job
-// is running in the repository slot. In those cases it returns skipped = true and leaves the change request untouched.
+// is running in the repository or module slot. In those cases it returns skipped = true and leaves the change request
+// untouched.
 func (s *Service) refreshRepositoriesIfIdle(ctx context.Context) (job lib_models.Job, skipped bool, err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -40,7 +41,7 @@ func (s *Service) refreshRepositoriesIfIdle(ctx context.Context) (job lib_models
 
 // RefreshRepositoriesLoop refreshes all repositories periodically until ctx is done. The first run happens after
 // startupDelay, subsequent runs after interval. Runs are skipped while a modules change request is pending or a
-// repository job is active; a skipped run is retried after skipRetry if that is shorter than interval.
+// repository or module job is active; a skipped run is retried after skipRetry if that is shorter than interval.
 func (s *Service) RefreshRepositoriesLoop(ctx context.Context, startupDelay, interval, skipRetry time.Duration) {
 	timer := time.NewTimer(startupDelay)
 	defer timer.Stop()
@@ -53,7 +54,7 @@ func (s *Service) RefreshRepositoriesLoop(ctx context.Context, startupDelay, int
 			case err != nil:
 				logger.ErrorContext(ctx, "periodic repositories refresh", slog_keys.Error, err)
 			case skipped:
-				logger.InfoContext(ctx, "periodic repositories refresh skipped", slog_keys.Description, "change request pending or repository job active")
+				logger.InfoContext(ctx, "periodic repositories refresh skipped", slog_keys.Description, "change request pending or repository or module job active")
 				next = min(interval, skipRetry)
 			default:
 				logger.DebugContext(ctx, "periodic repositories refresh started", slog_keys.JobId, job.Id)
@@ -65,11 +66,12 @@ func (s *Service) RefreshRepositoriesLoop(ctx context.Context, startupDelay, int
 	}
 }
 
-// refreshRepositories requires s.mu to be write-locked by the caller.
+// refreshRepositories requires s.mu to be write-locked by the caller. A module job copies module files from the
+// repository cache that a refresh rewrites, so it refuses to run alongside one.
 func (s *Service) refreshRepositories(ctx context.Context, filter lib_models.RepositoriesRefreshFilter) (lib_models.Job, error) {
-	currentJob, ok := s.jobsHandler.CurrentSlotJob(repositoryJobSlotNum)
-	if ok {
-		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobErrMsg(currentJob))
+	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{repositoryJobSlotNum, moduleJobSlotNum})
+	if len(currentJobs) > 0 {
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
 	}
 	s.changeRequest = nil
 	job, err := s.jobsHandler.CreateSlotJob(repositoryJobSlotNum, "refresh repositories")

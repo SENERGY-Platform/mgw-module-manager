@@ -55,6 +55,34 @@ func GetDeploymentRequest(srv *service.Service) (string, string, gin.HandlerFunc
 	}
 }
 
+// @Summary		Get deployments carry over
+// @Description	Check for each of the given deployed modules whether its current setup answers everything the installed module declares, and return the user input for a deployment update if it does. A stored secret is only carried over if the secret manager reports the declared type for it. Modules that are not installed or deployed are reported with an error.
+// @Tags		deployments
+// @Produce		json
+// @Param		module_ids	query	[]string	false	"module IDs"	collectionFormat(csv)
+// @Success		200	{array}	lib_models.DeploymentCarryOver	"carry over result per module"
+// @Failure		400	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/deployments-carry-over [get]
+func GetDeploymentsCarryOver(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodGet, lib_constants.HttpPathDeploymentsCarryOver, func(gc *gin.Context) {
+		var query struct {
+			ModuleIds []string `form:"module_ids" collection_format:"csv"`
+		}
+		err := gc.MustBindWith(&query, binding.Query)
+		if err != nil {
+			return
+		}
+		res, err := srv.GetDeploymentsCarryOver(gc, query.ModuleIds)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, guardNil(res))
+	}
+}
+
 // @Summary		Create deployments
 // @Description	Create deployments for the given modules as a job.
 // @Tags		deployments

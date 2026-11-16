@@ -39,12 +39,16 @@ var depAdvertisements []byte
 //go:embed global_configs.sql
 var globalConfigs []byte
 
+//go:embed auto_update.sql
+var autoUpdate []byte
+
 var Migration = migration{
 	globalConfigs,
 	modules,
 	deployments,
 	auxDeployments,
 	depAdvertisements,
+	autoUpdate,
 }
 
 type migration [][]byte

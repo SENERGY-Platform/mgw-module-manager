@@ -49,8 +49,9 @@ are implemented:
   and development.
 
 All repositories are also refreshed periodically (`REPOSITORIES_REFRESH_INTERVAL`). A run is skipped
-while a modules change request is pending or a repository job is active, so a pending change request is never discarded;
-a skipped run is retried after one hour.
+while a modules change request is pending or a repository or module job is active, so a pending change request is never discarded;
+a skipped run is retried after one hour. A manual refresh is refused with 503 while a module job is active, since that job
+copies module files from the repository cache.
 
 ### Modules
 
@@ -68,6 +69,29 @@ Installs, updates and removals go through a deliberate two-phase flow:
 2. Review the resulting install / change / remove plan, then execute it as a job, or cancel it.
 
 Convenience endpoints exist for updating everything and for counting available updates.
+
+### Auto-update
+
+Off by default, configured via `GET`/`PUT /auto-update`. When enabled, the service checks every
+minute whether it is inside the daily window (`window_start`, `window_end` as `HH:MM` on the wall
+clock of `time_zone`, an IANA name, default `Europe/Berlin`, independent of `USE_UTC`; the window
+may cross midnight) and has not run in this window yet. On a daylight saving change, window times
+that do not exist are skipped and repeated ones do not start a second run. A run refreshes all
+repositories, then updates installed modules to the newest version of their source and channel if
+the SemVer change stays within `level` (`patch`, `minor`, `major`), including dependencies, and
+updates their deployments with the current setup. A module is skipped if a dependency exceeds the
+level, a module would be newly installed, an affected deployment needs new input (a stored secret
+counts only if the secret manager reports the declared type for it), a dependency of an affected
+deployment is not deployed, an affected deployment was created for another source or channel than
+its installed module or for a version not older than the new one, or a module would leave the
+version range another installed module declares for it. Each run also updates deployments that
+were created for an older version of their installed module in the same source and channel, under
+the same checks, so a run that was interrupted or cancelled after updating a module is completed by
+the next one; this includes the deployment of a module whose own update failed in the run.
+Cancelling the module or the deployment job stops further module updates; deployments are only
+updated while the deployment job is not cancelled. A run is postponed while a change request is pending or a job is
+active; if it fails before anything was changed, it is retried within the same window after 30
+minutes. `GET /auto-update/status` reports the last run.
 
 ### Deployment
 
@@ -333,6 +357,9 @@ intent for exactly one module; the service turns the whole array into a single c
    installed yet), a `change` entry (installed, but with a different source, channel or version), or is
    dropped (installed with the identical variant and version). `remove` entries are kept only if the module
    is actually installed and is not also selected for install or change.
+4. **Execution**: removals run first, then installs and changes in dependency order, each module after the
+   modules of the request it depends on (modules in a dependency cycle in id order). If a module fails, the
+   modules of the request that depend on it, directly or transitively, are not applied and reported as failed.
 
 An item can therefore be silently dropped — the preview is the authoritative answer to
 what will actually happen. If all items are dropped, the response contains three empty lists and no

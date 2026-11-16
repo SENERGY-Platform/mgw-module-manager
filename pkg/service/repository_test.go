@@ -18,9 +18,11 @@ package service
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
+	lib_errors "github.com/SENERGY-Platform/mgw-module-manager/lib/errors"
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	handler_jobs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
 )
@@ -74,6 +76,22 @@ func TestService_refreshRepositoriesIfIdle(t *testing.T) {
 		}
 	})
 
+	t.Run("active module job skips", func(t *testing.T) {
+		srv, repoHdl := newRefreshTestService()
+		job, err := srv.jobsHandler.CreateSlotJob(moduleJobSlotNum, "test")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer job.Done()
+		_, skipped, err := srv.refreshRepositoriesIfIdle(context.Background())
+		if err != nil || !skipped {
+			t.Fatalf("expected skip without error, got skipped=%v err=%v", skipped, err)
+		}
+		if len(repoHdl.calls) != 0 {
+			t.Error("repositories handler must not be called")
+		}
+	})
+
 	t.Run("active repository job skips", func(t *testing.T) {
 		srv, repoHdl := newRefreshTestService()
 		job, err := srv.jobsHandler.CreateSlotJob(repositoryJobSlotNum, "test")
@@ -99,6 +117,52 @@ func TestService_RefreshRepositories_DiscardsChangeRequest(t *testing.T) {
 	}
 	if srv.changeRequest != nil {
 		t.Error("public refresh must keep discarding the change request")
+	}
+}
+
+func TestService_RefreshRepositories_RefusedDuringModuleJob(t *testing.T) {
+	srv, repoHdl := newRefreshTestService()
+	job, err := srv.jobsHandler.CreateSlotJob(moduleJobSlotNum, "execute modules change request")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer job.Done()
+	cr := &modulesChangeRequest{Remove: []string{"mod"}}
+	srv.changeRequest = cr
+	_, err = srv.RefreshRepositories(context.Background(), lib_models.RepositoriesRefreshFilter{})
+	if !lib_errors.IsOf[lib_errors.ErrActiveJob](err) {
+		t.Fatalf("expected active job error, got %v", err)
+	}
+	if !strings.Contains(err.Error(), job.Id) {
+		t.Errorf("error does not name the module job: %v", err)
+	}
+	if srv.changeRequest != cr {
+		t.Error("a refused refresh must keep the change request")
+	}
+	if len(repoHdl.calls) != 0 {
+		t.Error("repositories handler must not be called")
+	}
+	if _, ok := srv.jobsHandler.CurrentSlotJob(repositoryJobSlotNum); ok {
+		t.Error("a refused refresh must not occupy the repository slot")
+	}
+}
+
+func TestService_CreateUpdateAllRefusedDuringRepositoryOrModuleJob(t *testing.T) {
+	for _, slot := range []int{repositoryJobSlotNum, moduleJobSlotNum} {
+		srv, _ := newRefreshTestService()
+		job, err := srv.jobsHandler.CreateSlotJob(slot, "busy")
+		if err != nil {
+			t.Fatal(err)
+		}
+		cr := &modulesChangeRequest{Remove: []string{"mod"}}
+		srv.changeRequest = cr
+		if _, err = srv.CreateModulesUpdateAllChangeRequest(context.Background()); !lib_errors.IsOf[lib_errors.ErrActiveJob](err) {
+			t.Errorf("slot %d: create update-all: expected active job error, got %v", slot, err)
+		}
+		if srv.changeRequest != cr {
+			t.Errorf("slot %d: a refused update-all request must keep the pending change request", slot)
+		}
+		job.Done()
 	}
 }
 

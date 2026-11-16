@@ -153,3 +153,9 @@ type ClientDeploymentAdvertisementsItf interface {
 type ClientHealthItf interface {
 	DeploymentsHealth(ctx context.Context, filter models.DeploymentsHealthInfoFilter) (models.DeploymentsHealthInfo, error)
 }
+
+type ClientAutoUpdateItf interface {
+	GetAutoUpdateSettings(ctx context.Context) (models.AutoUpdateSettings, error)
+	UpdateAutoUpdateSettings(ctx context.Context, settings models.AutoUpdateSettings) error
+	GetAutoUpdateStatus(ctx context.Context) (models.AutoUpdateStatus, error)
+}

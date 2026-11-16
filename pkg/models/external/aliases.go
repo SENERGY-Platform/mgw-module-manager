@@ -79,6 +79,7 @@ const (
 	HmHostResourceTypeDevice = hm_model.SerialDevice
 )
 
+type SmSecret = sm_model.Secret
 type SmSecretVariantRequest = sm_model.SecretVariantRequest
 type SmSecretPathVariant = sm_model.SecretPathVariant
 type SmSecretValueVariant = sm_model.SecretValueVariant

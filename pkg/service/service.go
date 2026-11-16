@@ -2,9 +2,11 @@ package service
 
 import (
 	"sync"
+	"time"
 
 	lib_models "github.com/SENERGY-Platform/mgw-module-manager/lib/models"
 	handler_jobs "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/handler/jobs"
+	helper_time "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/time"
 )
 
 type Service struct {
@@ -19,6 +21,8 @@ type Service struct {
 	changeRequest            *modulesChangeRequest
 	jobResults               jobResults
 	mu                       sync.RWMutex
+	now                      func() time.Time
+	autoUpdateBackoff        autoUpdateBackoff
 	infoHandler
 }
 
@@ -43,6 +47,7 @@ func New(
 		databaseHandler:          databaseHandler,
 		jobsHandler:              jobsHandler,
 		infoHandler:              infoHandler,
+		now:                      helper_time.Now,
 		jobResults: jobResults{
 			deployments:         make(map[string]lib_models.DeploymentJobResult),
 			deploymentsUpdate:   make(map[string]lib_models.DeploymentUpdateJobResult),

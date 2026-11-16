@@ -32,6 +32,7 @@ const (
 	HttpPathRecreateDeployments       = "deployments-recreate"
 	HttpPathEnableDeployments         = "deployments-enable"
 	HttpPathDisableDeployments        = "deployments-disable"
+	HttpPathDeploymentsCarryOver      = "deployments-carry-over"
 
 	HttpPathAuxiliaryDeploymentsCollection                 = "deployments/:DEP_ID/auxiliary/deployments"
 	HttpPathAuxiliaryDeploymentResource                    = "deployments/:DEP_ID/auxiliary/deployments/:AUX_DEP_ID"
@@ -51,6 +52,9 @@ const (
 
 	HttpPathGlobalConfigsCollection = "global-configs"
 	HttpPathGlobalConfigResource    = "global-configs/:CFG_ID"
+
+	HttpPathAutoUpdateResource       = "auto-update"
+	HttpPathAutoUpdateStatusResource = "auto-update/status"
 
 	HttpPathJobsCollection = "jobs"
 	HttpPathJobResource    = "jobs/:JOB_ID"

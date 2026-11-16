@@ -175,3 +175,16 @@ func getSecretItems(
 	}
 	return slices.Collect(maps.Values(items))
 }
+
+// GetSecretTypes returns the type of every secret of the secret manager by secret ID.
+func (h *Handler) GetSecretTypes(ctx context.Context) (map[string]string, error) {
+	secrets, err, _ := h.secretManagerClient.GetSecrets(ctx)
+	if err != nil {
+		return nil, err
+	}
+	types := make(map[string]string, len(secrets))
+	for _, secret := range secrets {
+		types[secret.ID] = secret.SecretType
+	}
+	return types, nil
+}

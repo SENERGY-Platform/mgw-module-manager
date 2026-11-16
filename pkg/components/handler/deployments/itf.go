@@ -112,6 +112,7 @@ type hostManagerClient interface {
 }
 
 type secretManagerClient interface {
+	GetSecrets(ctx context.Context) (secrets []external_models.SmSecret, err error, errCode int)
 	InitPathVariant(ctx context.Context, secretRequest external_models.SmSecretVariantRequest) (variant external_models.SmSecretPathVariant, err error, errCode int)
 	LoadPathVariant(ctx context.Context, secretRequest external_models.SmSecretVariantRequest) (err error, errCode int)
 	UnloadPathVariant(ctx context.Context, secretRequest external_models.SmSecretVariantRequest) (err error, errCode int)

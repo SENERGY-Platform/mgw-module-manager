@@ -11,6 +11,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	// The container image has no zoneinfo, the auto-update window is evaluated in a configurable time zone.
+	_ "time/tzdata"
 
 	"github.com/SENERGY-Platform/go-service-base/srv-info-hdl"
 	cew_client "github.com/SENERGY-Platform/mgw-container-engine-wrapper/client"
@@ -46,6 +48,7 @@ var name = "module-manager"
 const (
 	repositoriesRefreshStartupDelay = 10 * time.Minute
 	repositoriesRefreshSkipRetry    = time.Hour
+	autoUpdateCheckInterval         = time.Minute
 )
 
 func main() {
@@ -314,6 +317,13 @@ func main() {
 			srv.RefreshRepositoriesLoop(ctx, repositoriesRefreshStartupDelay, time.Duration(config.RepositoriesRefreshInterval), repositoriesRefreshSkipRetry)
 		}()
 	}
+
+	// start auto-update, the loop reads the settings on every check
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		srv.AutoUpdateLoop(ctx, autoUpdateCheckInterval)
+	}()
 
 	// start http server
 	go func() {

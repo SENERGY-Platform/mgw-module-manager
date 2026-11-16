@@ -51,6 +51,10 @@ const (
 	Volumes            = "volumes"
 	ManagerId          = "manager_id"
 	CoreId             = "core_id"
+	Date               = "date"
+	Updated            = "updated"
+	Skipped            = "skipped"
+	Failed             = "failed"
 	Error              = attributes.ErrorKey
 	Method             = attributes.MethodKey
 	Path               = attributes.PathKey

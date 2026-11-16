@@ -63,6 +63,7 @@ type deploymentsHandler interface {
 	IsDeployed(ctx context.Context, moduleId string) (bool, error)
 	GetRestartInfo(ids []string) map[string]pkg_models.DeploymentRestartInfo
 	RestartThreshold() int
+	GetSecretTypes(ctx context.Context) (map[string]string, error)
 }
 
 type auxiliaryDeploymentsHandler interface {
@@ -190,6 +191,10 @@ type deploymentAdvertisementsHandler interface {
 
 type databaseHandler interface {
 	Ping(ctx context.Context) error
+	ReadAutoUpdate(ctx context.Context) (pkg_models.AutoUpdate, error)
+	WriteAutoUpdateSettings(ctx context.Context, settings lib_models.AutoUpdateSettings) error
+	WriteAutoUpdateRunDate(ctx context.Context, date string) error
+	WriteAutoUpdateLastRun(ctx context.Context, run lib_models.AutoUpdateRun) error
 }
 
 type infoHandler interface {

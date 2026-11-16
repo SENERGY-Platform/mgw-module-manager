@@ -172,70 +172,81 @@ func (s *Service) UpdateDeployments(ctx context.Context, userInputs []lib_models
 			logJobDone(ctx, job)
 		}()
 		logJobStart(ctx, job)
-		if len(userInputs) == 0 {
-			return
-		}
-		handlerModules, err := s.modulesHandler.GetModules(
-			ctx,
-			pkg_models.ModulesFilterWithName{
-				ModulesFilter: pkg_models.ModulesFilter{
-					Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models.DeploymentUserInput) string {
-						return item.ModuleId
-					}),
-				},
-			},
-			false,
-		)
-		if err != nil {
-			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
-			return
-		}
-		userInputMap, err := getUserInputs(userInputs, handlerModules)
-		if err != nil {
-			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
-			return
-		}
-		updateDepResults, err := s.deploymentsHandler.UpdateDeployments(job.Context(), handlerModules, userInputMap)
-		if err != nil {
-			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
-		}
-		for _, updateDepResult := range updateDepResults {
-			if updateDepResult.HasError {
-				jobResult.ResultsErrNum++
-			}
-		}
-		cacheDependencyDeployments := make(map[string]pkg_models.DeploymentReduced)
-		for _, updateDepResult := range updateDepResults {
-			result := lib_models.DeploymentUpdateResult{DeploymentResult: updateDepResult}
-			if !updateDepResult.HasError {
-				module, ok := handlerModules[updateDepResult.ModuleId]
-				if ok {
-					result.AuxiliaryDeployments.Results, err = s.recreateAuxDeployments(
-						ctx,
-						module,
-						updateDepResult.Id,
-						cacheDependencyDeployments,
-					)
-					if err != nil {
-						result.AuxiliaryDeployments.ErrorResult = lib_models.NewErrorResult(err.Error())
-					}
-					for _, res := range result.AuxiliaryDeployments.Results {
-						if res.HasError {
-							result.AuxiliaryDeployments.ResultsErrNum++
-						}
-					}
-				} else {
-					result.AuxiliaryDeployments.ErrorResult = lib_models.NewErrorResult("missing module")
-				}
-			}
-			jobResult.Results = append(jobResult.Results, result)
-		}
+		s.updateDeployments(ctx, job.Context(), userInputs, &jobResult)
 	}()
 	return lib_models.Job{
 		Id:          job.Id,
 		Description: job.Description,
 		Start:       job.Start,
 	}, nil
+}
+
+// updateDeployments is the body of the update deployments job, jobCtx is the context of that job. It fills jobResult
+// as it goes, so a panic leaves the results gathered so far.
+func (s *Service) updateDeployments(
+	ctx context.Context,
+	jobCtx context.Context,
+	userInputs []lib_models.DeploymentUserInput,
+	jobResult *lib_models.DeploymentUpdateJobResult,
+) {
+	if len(userInputs) == 0 {
+		return
+	}
+	handlerModules, err := s.modulesHandler.GetModules(
+		ctx,
+		pkg_models.ModulesFilterWithName{
+			ModulesFilter: pkg_models.ModulesFilter{
+				Ids: helper_slices.CollectFunc(slices.Values(userInputs), func(item lib_models.DeploymentUserInput) string {
+					return item.ModuleId
+				}),
+			},
+		},
+		false,
+	)
+	if err != nil {
+		jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+		return
+	}
+	userInputMap, err := getUserInputs(userInputs, handlerModules)
+	if err != nil {
+		jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+		return
+	}
+	updateDepResults, err := s.deploymentsHandler.UpdateDeployments(jobCtx, handlerModules, userInputMap)
+	if err != nil {
+		jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+	}
+	for _, updateDepResult := range updateDepResults {
+		if updateDepResult.HasError {
+			jobResult.ResultsErrNum++
+		}
+	}
+	cacheDependencyDeployments := make(map[string]pkg_models.DeploymentReduced)
+	for _, updateDepResult := range updateDepResults {
+		result := lib_models.DeploymentUpdateResult{DeploymentResult: updateDepResult}
+		if !updateDepResult.HasError {
+			module, ok := handlerModules[updateDepResult.ModuleId]
+			if ok {
+				result.AuxiliaryDeployments.Results, err = s.recreateAuxDeployments(
+					ctx,
+					module,
+					updateDepResult.Id,
+					cacheDependencyDeployments,
+				)
+				if err != nil {
+					result.AuxiliaryDeployments.ErrorResult = lib_models.NewErrorResult(err.Error())
+				}
+				for _, res := range result.AuxiliaryDeployments.Results {
+					if res.HasError {
+						result.AuxiliaryDeployments.ResultsErrNum++
+					}
+				}
+			} else {
+				result.AuxiliaryDeployments.ErrorResult = lib_models.NewErrorResult("missing module")
+			}
+		}
+		jobResult.Results = append(jobResult.Results, result)
+	}
 }
 
 func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (lib_models.Job, error) {
