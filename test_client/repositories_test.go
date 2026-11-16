@@ -76,7 +76,7 @@ func TestCreateRepository(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = client.CreateRepository(t.Context(), "github.com", b)
+	_, err = client.CreateRepository(t.Context(), "github.com", b)
 	if err != nil {
 		t.Fatal(err)
 	}

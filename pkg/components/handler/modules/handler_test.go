@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/url"
 	"os"
 	"path"
@@ -138,9 +139,16 @@ func TestHandler_Module(t *testing.T) {
 			bk := h.cache
 			h.config.WorkdirPath = ""
 			h.cache = make(map[string]module_lib.Module)
-			_, err = h.GetModule(context.Background(), "github.com/org/repo")
-			if err == nil {
-				t.Error("expected error")
+			// A module whose modfile cannot be read is returned with the error attached, not as a failed call.
+			mod, err = h.GetModule(context.Background(), "github.com/org/repo")
+			if err != nil {
+				t.Errorf("expected no call error, got %v", err)
+			}
+			if !errors.Is(mod.Err, fs.ErrNotExist) {
+				t.Errorf("expected module error wrapping %v, got %v", fs.ErrNotExist, mod.Err)
+			}
+			if mod.ID != "github.com/org/repo" {
+				t.Errorf("expected module id 'github.com/org/repo', got '%s'", mod.ID)
 			}
 			h.cache = bk
 		})

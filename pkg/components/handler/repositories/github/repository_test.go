@@ -40,6 +40,7 @@ func TestHandler_Source(t *testing.T) {
 			Reference:  "test_ref",
 		},
 		"",
+		false,
 	)
 	if r.Source() != "github.com/test_owner/test_repo" {
 		t.Errorf("expect github.com/test_owner/test_repo, got %s", r.Source())
@@ -58,6 +59,7 @@ func TestHandler_Channels(t *testing.T) {
 			},
 		},
 		"",
+		false,
 	)
 	a := []lib_models.RepositoryChannel{{Name: "test_channel", Priority: 1}}
 	b := r.Channels()
@@ -81,6 +83,7 @@ func TestHandler_FileSystemsMap(t *testing.T) {
 			},
 		},
 		"./test/repo_1",
+		false,
 	)
 	a := map[string]fs.FS{
 		"test_mod_1": os.DirFS("test/repo_1/sha_ref/mods/test_channel/test_mod_1"),
@@ -108,6 +111,7 @@ func TestHandler_FileSystemsMap(t *testing.T) {
 				},
 			},
 			"./test/repo_2",
+			false,
 		)
 		fsMap, err := r2.GetFileSystemsMap(context.Background(), "test_channel")
 		if err != nil {
@@ -140,6 +144,7 @@ func TestHandler_FileSystem(t *testing.T) {
 			},
 		},
 		"./test/repo_1",
+		false,
 	)
 	a := os.DirFS("test/repo_1/sha_ref/mods/test_channel/test_mod_1")
 	b, err := r.GetFileSystem(context.Background(), "test_channel", "test_mod_1")
@@ -200,6 +205,7 @@ func TestHandler_Refresh(t *testing.T) {
 			},
 		},
 		path.Join(tempDir, "repo"),
+		false,
 	)
 	err := r.Refresh(context.Background())
 	if err != nil {
