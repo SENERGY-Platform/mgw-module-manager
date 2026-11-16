@@ -358,24 +358,27 @@ func (s *Service) execModulesChangeRequestUntil(
 		}
 		success = append(success, cri)
 	}
-	// module id -> module of the request whose failure kept it from being applied, the module itself if it failed
-	failedCause := make(map[string]string)
-	for _, op := range orderChangeOps(changeRequest) {
+	// ids of the modules of the request that failed and of those kept back by a failed dependency
+	failedIds := make(map[string]bool)
+	notAppliedIds := make(map[string]bool)
+	ops := orderChangeOps(changeRequest)
+	deps := changeOpDependencies(ops)
+	for _, op := range ops {
 		id := op.mod.Mod.ID
 		cri := lib_models.ChangeReportItem{
 			Id:     id,
 			Action: op.action,
 		}
 		if err := stopped(); err != nil {
-			failedCause[id] = id
+			failedIds[id] = true
 			failed = append(failed, lib_models.ChangeReportErrItem{
 				ChangeReportItem: cri,
 				Error:            "not applied: " + err.Error(),
 			})
 			continue
 		}
-		if cause, msg, ok := failedDependency(op.mod, failedCause); ok {
-			failedCause[id] = cause
+		if msg, ok := failedDependency(id, deps, failedIds, notAppliedIds); ok {
+			notAppliedIds[id] = true
 			failed = append(failed, lib_models.ChangeReportErrItem{
 				ChangeReportItem: cri,
 				Error:            msg,
@@ -389,7 +392,7 @@ func (s *Service) execModulesChangeRequestUntil(
 			err = s.modulesHandler.UpdateModule(ctx, id, op.mod.Source, op.mod.Channel, op.mod.FS)
 		}
 		if err != nil {
-			failedCause[id] = id
+			failedIds[id] = true
 			failed = append(failed, lib_models.ChangeReportErrItem{
 				ChangeReportItem: cri,
 				Error:            err.Error(),

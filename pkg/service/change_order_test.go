@@ -218,3 +218,27 @@ func TestService_execModulesChangeRequest_FailedDependencyInCycle(t *testing.T) 
 		t.Errorf("unexpected report %+v", report)
 	}
 }
+
+func TestService_execModulesChangeRequest_FailureInCycleBlocksDependentsOfAppliedMember(t *testing.T) {
+	// p and q depend on each other, p is applied before q fails, r depends on p
+	mods := &coOrderModules{fail: map[string]bool{"q": true}}
+	srv := newChangeOrderTestService(mods)
+	cr := &modulesChangeRequest{}
+	for _, mod := range []modWrapper{coMod("p", "q"), coMod("q", "p"), coMod("r", "p")} {
+		cr.Change = append(cr.Change, coChange(mod))
+	}
+	report := srv.execModulesChangeRequest(context.Background(), cr)
+	if want := []string{"change:p", "change:q"}; !reflect.DeepEqual(mods.calls, want) {
+		t.Errorf("applied %v, want %v", mods.calls, want)
+	}
+	if want := []lib_models.ChangeReportItem{{Id: "p", Action: lib_constants.ActionChange}}; !reflect.DeepEqual(report.Success, want) {
+		t.Errorf("success %+v, want %+v", report.Success, want)
+	}
+	wantFailed := []lib_models.ChangeReportErrItem{
+		{ChangeReportItem: lib_models.ChangeReportItem{Id: "q", Action: lib_constants.ActionChange}, Error: "change q failed"},
+		{ChangeReportItem: lib_models.ChangeReportItem{Id: "r", Action: lib_constants.ActionChange}, Error: "not applied, dependency 'p' depends on failed 'q'"},
+	}
+	if !reflect.DeepEqual(report.Failed, wantFailed) {
+		t.Errorf("failed %+v, want %+v", report.Failed, wantFailed)
+	}
+}

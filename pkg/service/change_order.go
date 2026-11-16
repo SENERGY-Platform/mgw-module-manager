@@ -22,6 +22,7 @@ import (
 	"slices"
 
 	lib_constants "github.com/SENERGY-Platform/mgw-module-manager/lib/constants"
+	helper_dependencies "github.com/SENERGY-Platform/mgw-module-manager/pkg/components/helper/dependencies"
 )
 
 // changeOp is an install or change item of a modules change request.
@@ -41,118 +42,47 @@ func orderChangeOps(changeRequest *modulesChangeRequest) []changeOp {
 	for _, item := range changeRequest.Change {
 		ops[item.Next.Mod.ID] = changeOp{action: lib_constants.ActionChange, mod: item.Next}
 	}
-	deps := make(map[string][]string)
-	for id, op := range ops {
-		for _, dep := range slices.Sorted(maps.Keys(op.mod.Mod.Dependencies)) {
-			if _, ok := ops[dep]; ok && dep != id {
-				deps[id] = append(deps[id], dep)
-			}
-		}
-	}
-	components := dependencyComponents(slices.Sorted(maps.Keys(ops)), deps)
-	componentOf := make(map[string]int)
-	for i, members := range components {
-		for _, id := range members {
-			componentOf[id] = i
-		}
-	}
-	// pending[i] counts the other components component i depends on that are not emitted yet.
-	pending := make([]int, len(components))
-	dependents := make([][]int, len(components))
-	for i, members := range components {
-		seen := make(map[int]bool)
-		for _, id := range members {
-			for _, dep := range deps[id] {
-				c := componentOf[dep]
-				if c != i && !seen[c] {
-					seen[c] = true
-					pending[i]++
-					dependents[c] = append(dependents[c], i)
-				}
-			}
-		}
-	}
-	emitted := make([]bool, len(components))
-	result := make([]changeOp, 0, len(ops))
-	for range components {
-		next := -1
-		for i, members := range components {
-			// Members are sorted, so the first one is the id the component is ordered by.
-			if !emitted[i] && pending[i] == 0 && (next < 0 || members[0] < components[next][0]) {
-				next = i
-			}
-		}
-		emitted[next] = true
-		for _, id := range components[next] {
-			result = append(result, ops[id])
-		}
-		for _, c := range dependents[next] {
-			pending[c]--
-		}
+	deps := changeOpDependencies(slices.Collect(maps.Values(ops)))
+	var result []changeOp
+	for _, id := range helper_dependencies.Order(slices.Collect(maps.Keys(ops)), deps) {
+		result = append(result, ops[id])
 	}
 	return result
 }
 
-// dependencyComponents returns the strongly connected components of the dependency graph, each sorted by id. A module
-// without a cycle forms a component of its own.
-func dependencyComponents(ids []string, deps map[string][]string) [][]string {
-	index := make(map[string]int)
-	lowLink := make(map[string]int)
-	onStack := make(map[string]bool)
-	var stack []string
-	var components [][]string
-	next := 0
-	var visit func(id string)
-	visit = func(id string) {
-		index[id] = next
-		lowLink[id] = next
-		next++
-		stack = append(stack, id)
-		onStack[id] = true
-		for _, dep := range deps[id] {
-			if _, ok := index[dep]; !ok {
-				visit(dep)
-				lowLink[id] = min(lowLink[id], lowLink[dep])
-			} else if onStack[dep] {
-				lowLink[id] = min(lowLink[id], index[dep])
+// changeOpDependencies maps the id of every module of ops to the sorted ids of the other modules of ops it depends on.
+func changeOpDependencies(ops []changeOp) map[string][]string {
+	mods := make(map[string]modWrapper)
+	for _, op := range ops {
+		mods[op.mod.Mod.ID] = op.mod
+	}
+	deps := make(map[string][]string)
+	for id, mod := range mods {
+		for _, dep := range slices.Sorted(maps.Keys(mod.Mod.Dependencies)) {
+			if _, ok := mods[dep]; ok && dep != id {
+				deps[id] = append(deps[id], dep)
 			}
 		}
-		if lowLink[id] != index[id] {
-			return
-		}
-		var members []string
-		for {
-			top := stack[len(stack)-1]
-			stack = stack[:len(stack)-1]
-			onStack[top] = false
-			members = append(members, top)
-			if top == id {
-				break
-			}
-		}
-		slices.Sort(members)
-		components = append(components, members)
 	}
-	for _, id := range ids {
-		if _, ok := index[id]; !ok {
-			visit(id)
-		}
-	}
-	return components
+	return deps
 }
 
 // failedDependency returns the error for a module that must not be applied because a module of the request it depends
-// on failed or was not applied itself. failed maps every such module to the module whose failure caused it.
-func failedDependency(mod modWrapper, failed map[string]string) (cause string, msg string, ok bool) {
-	for _, dep := range slices.Sorted(maps.Keys(mod.Mod.Dependencies)) {
-		cause, ok = failed[dep]
-		if !ok {
+// on, directly or transitively, failed. Within a dependency cycle a module can be applied before a module it depends on
+// fails, so the failure is searched for along all dependencies. notApplied holds the modules kept back by a failure.
+func failedDependency(id string, deps map[string][]string, failed, notApplied map[string]bool) (string, bool) {
+	for _, dep := range deps[id] {
+		cause, ok := helper_dependencies.Nearest(dep, deps, func(id string) bool { return failed[id] })
+		switch {
+		case !ok:
 			continue
+		case cause == dep:
+			return fmt.Sprintf("not applied, dependency '%s' failed", dep), true
+		case notApplied[dep]:
+			return fmt.Sprintf("not applied, dependency '%s' not applied because '%s' failed", dep, cause), true
+		default:
+			return fmt.Sprintf("not applied, dependency '%s' depends on failed '%s'", dep, cause), true
 		}
-		if cause == dep {
-			return cause, fmt.Sprintf("not applied, dependency '%s' failed", dep), true
-		}
-		return cause, fmt.Sprintf("not applied, dependency '%s' not applied because '%s' failed", dep, cause), true
 	}
-	return "", "", false
+	return "", false
 }
