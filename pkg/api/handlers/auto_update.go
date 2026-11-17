@@ -77,6 +77,7 @@ func UpdateAutoUpdateSettings(srv *service.Service) (string, string, gin.Handler
 // @Success		200	{object}	lib_models.AutoUpdateStatus	"auto-update settings and last run"
 // @Failure		500	{string}	string	"error message"
 // @Router		/auto-update/status [get]
+// @Router		/restricted/auto-update/status [get]
 func GetAutoUpdateStatus(srv *service.Service) (string, string, gin.HandlerFunc) {
 	return http.MethodGet, lib_constants.HttpPathAutoUpdateStatusResource, func(gc *gin.Context) {
 		res, err := srv.GetAutoUpdateStatus(gc)

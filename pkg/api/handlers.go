@@ -50,7 +50,6 @@ var standardApiHandlers = []handlerFunc[*service.Service]{
 	handlers.DeleteGlobalConfigs,
 	handlers.GetAutoUpdateSettings,
 	handlers.UpdateAutoUpdateSettings,
-	handlers.GetAutoUpdateStatus,
 	handlers.GetDeploymentRequest,
 	handlers.GetDeploymentsCarryOver,
 	handlers.CreateDeployments,
@@ -104,6 +103,7 @@ var sharedApiHandlers = []handlerFunc[*service.Service]{
 	handlers.CancelJobs,
 	handlers.CancelJob,
 	handlers.GetRepositoryModules,
+	handlers.GetAutoUpdateStatus,
 	handlers.DeploymentsHealth,
 	handlers.ServiceInfo,
 }

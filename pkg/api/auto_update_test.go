@@ -115,3 +115,19 @@ func TestAutoUpdateSettings_InvalidTimeZoneIsBadRequest(t *testing.T) {
 		t.Errorf("valid time zone rejected: status %d, stored %+v", rec.Code, db.row.AutoUpdateSettings)
 	}
 }
+
+func TestAutoUpdateStatus_ReachableFromModules(t *testing.T) {
+	handler := newAutoUpdateTestHandler(t, &autoUpdateTestDB{row: pkg_models.AutoUpdate{
+		AutoUpdateSettings: lib_models.AutoUpdateSettings{Level: "patch", WindowStart: "02:00", WindowEnd: "05:00", TimeZone: "UTC"},
+	}})
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/restricted/auto-update/status", nil))
+	if rec.Code != http.StatusOK {
+		t.Errorf("GET /restricted/auto-update/status: expected 200, got %d", rec.Code)
+	}
+	rec = httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodPut, "/restricted/auto-update", strings.NewReader(`{}`)))
+	if rec.Code == http.StatusOK {
+		t.Errorf("PUT /restricted/auto-update: modules must not change the settings")
+	}
+}

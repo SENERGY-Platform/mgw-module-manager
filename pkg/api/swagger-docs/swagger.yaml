@@ -3916,6 +3916,24 @@ paths:
       summary: Get repository modules
       tags:
       - repositories
+  /restricted/auto-update/status:
+    get:
+      description: Get the auto-update settings together with the outcome of the last
+        update run.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: auto-update settings and last run
+          schema:
+            $ref: '#/definitions/models.AutoUpdateStatus'
+        "500":
+          description: error message
+          schema:
+            type: string
+      summary: Get auto-update status
+      tags:
+      - auto-update
   /restricted/deployment-advertisements:
     get:
       description: Query the advertisements of all deployments with a reduced set
