@@ -18,6 +18,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -530,4 +531,27 @@ func (s *Service) getReadableModule(ctx context.Context, id string) (pkg_models.
 		return pkg_models.Module{}, fmt.Errorf("module: %w", module.Err)
 	}
 	return module, nil
+}
+
+// getReadableModules is GetModules with every unreadable module returned as error, since the deployment paths would
+// otherwise work with an empty declaration.
+func (s *Service) getReadableModules(
+	ctx context.Context,
+	filter pkg_models.ModulesFilterWithName,
+	dependencies bool,
+) (map[string]pkg_models.Module, error) {
+	modules, err := s.modulesHandler.GetModules(ctx, filter, dependencies)
+	if err != nil {
+		return nil, err
+	}
+	var errs []error
+	for _, id := range slices.Sorted(maps.Keys(modules)) {
+		if modules[id].Err != nil {
+			errs = append(errs, fmt.Errorf("module '%s': %w", id, modules[id].Err))
+		}
+	}
+	if len(errs) > 0 {
+		return nil, errors.Join(errs...)
+	}
+	return modules, nil
 }

@@ -43,7 +43,7 @@ func (s *Service) GetDeploymentRequest(ctx context.Context, moduleIds []string) 
 	if len(moduleIds) == 0 {
 		return nil, nil
 	}
-	handlerModules, err := s.modulesHandler.GetModules(
+	handlerModules, err := s.getReadableModules(
 		ctx,
 		pkg_models.ModulesFilterWithName{
 			ModulesFilter: pkg_models.ModulesFilter{
@@ -104,7 +104,7 @@ func (s *Service) CreateDeployments(ctx context.Context, userInputs []lib_models
 		if len(userInputs) == 0 {
 			return
 		}
-		handlerModules, err := s.modulesHandler.GetModules(
+		handlerModules, err := s.getReadableModules(
 			ctx,
 			pkg_models.ModulesFilterWithName{
 				ModulesFilter: pkg_models.ModulesFilter{
@@ -192,7 +192,7 @@ func (s *Service) updateDeployments(
 	if len(userInputs) == 0 {
 		return
 	}
-	handlerModules, err := s.modulesHandler.GetModules(
+	handlerModules, err := s.getReadableModules(
 		ctx,
 		pkg_models.ModulesFilterWithName{
 			ModulesFilter: pkg_models.ModulesFilter{
@@ -280,7 +280,7 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 			logJobDone(ctx, job)
 		}()
 		logJobStart(ctx, job)
-		handlerModules, err := s.modulesHandler.GetModules(
+		handlerModules, err := s.getReadableModules(
 			ctx,
 			pkg_models.ModulesFilterWithName{
 				ModulesFilter: pkg_models.ModulesFilter{

@@ -64,3 +64,40 @@ func TestService_getReadableModule(t *testing.T) {
 		})
 	}
 }
+
+func (m *adModules) GetModules(_ context.Context, _ pkg_models.ModulesFilterWithName, _ bool) (map[string]pkg_models.Module, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return map[string]pkg_models.Module{"a": m.module}, nil
+}
+
+func TestService_getReadableModules(t *testing.T) {
+	readErr := errors.New("read modfile: broken")
+	callErr := errors.New("database down")
+	readable := pkg_models.Module{ModuleLibModule: external_models.ModuleLibModule{ID: "a"}}
+	tests := []struct {
+		name    string
+		mods    *adModules
+		wantErr error
+	}{
+		{name: "readable", mods: &adModules{module: readable}},
+		{name: "unreadable modfile", mods: &adModules{module: pkg_models.Module{Err: readErr}}, wantErr: readErr},
+		{name: "call fails", mods: &adModules{err: callErr}, wantErr: callErr},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			srv := &Service{modulesHandler: tc.mods}
+			modules, err := srv.getReadableModules(context.Background(), pkg_models.ModulesFilterWithName{}, true)
+			if tc.wantErr != nil {
+				if !errors.Is(err, tc.wantErr) || modules != nil {
+					t.Errorf("got %v, %v, want error %v", modules, err, tc.wantErr)
+				}
+				return
+			}
+			if err != nil || modules["a"].ID != "a" {
+				t.Errorf("got %+v, %v", modules, err)
+			}
+		})
+	}
+}
