@@ -55,6 +55,7 @@ var standardApiHandlers = []handlerFunc[*service.Service]{
 	handlers.CreateDeployments,
 	handlers.UpdateDeployments,
 	handlers.RecreateDeployments,
+	handlers.RestartDeployments,
 	handlers.DeleteDeployments,
 	handlers.EnableDeployments,
 	handlers.DisableDeployments,

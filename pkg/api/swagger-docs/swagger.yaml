@@ -2808,6 +2808,47 @@ paths:
       summary: Recreate deployments
       tags:
       - deployments
+  /deployments-restart:
+    post:
+      consumes:
+      - application/json
+      description: Restart the containers of the enabled deployments of the given
+        modules as a job. The containers are not recreated.
+      parameters:
+      - description: module IDs
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: job
+          schema:
+            $ref: '#/definitions/models.Job'
+        "400":
+          description: error message
+          schema:
+            type: string
+        "404":
+          description: error message
+          schema:
+            type: string
+        "500":
+          description: error message
+          schema:
+            type: string
+        "503":
+          description: error message
+          schema:
+            type: string
+      summary: Restart deployments
+      tags:
+      - deployments
   /deployments/{DEP_ID}/auxiliary/deployments:
     get:
       description: Get the auxiliary deployments of a deployment.

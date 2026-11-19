@@ -94,6 +94,26 @@ func TestRecreateDeployments(t *testing.T) {
 	writeToJson(t.Name(), res)
 }
 
+func TestRestartDeployments(t *testing.T) {
+	job, err := client.RestartDeployments(
+		t.Context(),
+		nil,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(job.Id)
+	_, err = client.AwaitJob(t.Context(), job.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := client.GetDeploymentsJobResult(t.Context(), job.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeToJson(t.Name(), res)
+}
+
 func TestDeleteDeployments(t *testing.T) {
 	job, err := client.DeleteDeployments(
 		t.Context(),

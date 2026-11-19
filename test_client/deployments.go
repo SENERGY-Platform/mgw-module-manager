@@ -114,6 +114,28 @@ func (c *Client) RecreateDeployments(ctx context.Context, moduleIds []string) (l
 	return res, nil
 }
 
+func (c *Client) RestartDeployments(ctx context.Context, moduleIds []string) (lib_models.Job, error) {
+	u, err := url.JoinPath(c.BaseUrl, getUrlRelPath(lib_constants.HttpPathRestartDeployments))
+	if err != nil {
+		return lib_models.Job{}, err
+	}
+	buffer := bytes.NewBuffer(nil)
+	err = json.NewEncoder(buffer).Encode(moduleIds)
+	if err != nil {
+		return lib_models.Job{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, buffer)
+	if err != nil {
+		return lib_models.Job{}, err
+	}
+	var res lib_models.Job
+	err = doJson(client, req, &res)
+	if err != nil {
+		return lib_models.Job{}, err
+	}
+	return res, nil
+}
+
 func appendDeleteDeploymentsQuery(u string, moduleIds []string, allowAll bool) string {
 	var items []string
 	if len(moduleIds) > 0 {

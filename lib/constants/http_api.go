@@ -30,6 +30,7 @@ const (
 	HttpPathDeploymentRequestResource = "deployment-request"
 	HttpPathDeploymentsCollection     = "deployments"
 	HttpPathRecreateDeployments       = "deployments-recreate"
+	HttpPathRestartDeployments        = "deployments-restart"
 	HttpPathEnableDeployments         = "deployments-enable"
 	HttpPathDisableDeployments        = "deployments-disable"
 	HttpPathDeploymentsCarryOver      = "deployments-carry-over"

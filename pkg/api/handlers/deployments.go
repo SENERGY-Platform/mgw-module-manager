@@ -167,6 +167,34 @@ func RecreateDeployments(srv *service.Service) (string, string, gin.HandlerFunc)
 	}
 }
 
+// @Summary		Restart deployments
+// @Description	Restart the containers of the enabled deployments of the given modules as a job. The containers are not recreated.
+// @Tags		deployments
+// @Accept		json
+// @Produce		json
+// @Param		request	body	[]string	true	"module IDs"
+// @Success		200	{object}	lib_models.Job	"job"
+// @Failure		400	{string}	string	"error message"
+// @Failure		404	{string}	string	"error message"
+// @Failure		500	{string}	string	"error message"
+// @Failure		503	{string}	string	"error message"
+// @Router		/deployments-restart [post]
+func RestartDeployments(srv *service.Service) (string, string, gin.HandlerFunc) {
+	return http.MethodPost, lib_constants.HttpPathRestartDeployments, func(gc *gin.Context) {
+		var body []string
+		err := gc.MustBindWith(&body, binding.JSON)
+		if err != nil {
+			return
+		}
+		res, err := srv.RestartDeployments(gc, body)
+		if err != nil {
+			_ = gc.Error(err)
+			return
+		}
+		gc.JSON(http.StatusOK, res)
+	}
+}
+
 // @Summary		Delete deployments
 // @Description	Delete the deployments of the given modules as a job. All deployments are deleted if allow_all is set and no module IDs are given.
 // @Tags		deployments

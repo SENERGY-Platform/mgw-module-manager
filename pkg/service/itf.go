@@ -52,6 +52,10 @@ type deploymentsHandler interface {
 		ctx context.Context,
 		selectedModules map[string]pkg_models.Module,
 	) ([]lib_models.DeploymentResult, error)
+	RestartDeployments(
+		ctx context.Context,
+		selectedModules map[string]pkg_models.Module,
+	) ([]lib_models.DeploymentResult, error)
 	DeleteDeployments(
 		ctx context.Context,
 		filter pkg_models.DeploymentsFilterWithState,

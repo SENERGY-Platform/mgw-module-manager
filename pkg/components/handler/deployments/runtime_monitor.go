@@ -59,14 +59,18 @@ func (h *Handler) checkDeployments(ctx context.Context) {
 			if state == containersStateRunning {
 				continue
 			}
-			h.runtimeMonitorJobsAdd(id)
+			if !h.runtimeMonitorJobsTryAdd(id) {
+				continue
+			}
 			h.recordRestart(id)
 			go h.startDeployment(ctx, id, deploymentContainers, deploymentsMountSecrets[id])
 		} else {
 			if state == containersStateStopped {
 				continue
 			}
-			h.runtimeMonitorJobsAdd(id)
+			if !h.runtimeMonitorJobsTryAdd(id) {
+				continue
+			}
 			go h.stopDeployment(ctx, id, deploymentContainers, len(deploymentsMountSecrets[id]) > 0)
 		}
 	}
@@ -230,6 +234,17 @@ func (h *Handler) runtimeMonitorJobsAdd(id string) {
 	h.runtimeMonitorJobsMu.Lock()
 	defer h.runtimeMonitorJobsMu.Unlock()
 	h.runtimeMonitorJobs[id] = struct{}{}
+}
+
+// runtimeMonitorJobsTryAdd adds the id unless it is already present and reports whether it was added.
+func (h *Handler) runtimeMonitorJobsTryAdd(id string) bool {
+	h.runtimeMonitorJobsMu.Lock()
+	defer h.runtimeMonitorJobsMu.Unlock()
+	if _, ok := h.runtimeMonitorJobs[id]; ok {
+		return false
+	}
+	h.runtimeMonitorJobs[id] = struct{}{}
+	return true
 }
 
 func (h *Handler) runtimeMonitorJobsRemove(id string) {

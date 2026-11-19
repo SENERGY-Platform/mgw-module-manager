@@ -310,6 +310,67 @@ func (s *Service) RecreateDeployments(ctx context.Context, moduleIds []string) (
 	}, nil
 }
 
+func (s *Service) RestartDeployments(ctx context.Context, moduleIds []string) (lib_models.Job, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	currentJobs := s.jobsHandler.CurrentSlotJobs([]int{deploymentJobSlotNum, moduleJobSlotNum})
+	if len(currentJobs) > 0 {
+		return lib_models.Job{}, lib_errors.New[lib_errors.ErrActiveJob](activeJobsErrMsg(currentJobs))
+	}
+	job, err := s.jobsHandler.CreateSlotJob(deploymentJobSlotNum, "restart deployments")
+	if err != nil {
+		return lib_models.Job{}, err
+	}
+	go func() {
+		jobResult := lib_models.DeploymentJobResult{
+			JobResult: lib_models.JobResult{JobId: job.Id},
+		}
+		defer func() {
+			if st := recover(); st != nil {
+				jobResult.ErrorResult = lib_models.NewErrorResult(fmt.Sprintf("%v", st))
+				logger.ErrorContext(
+					ctx,
+					"restart deployments",
+					slog_keys.JobId, job.Id,
+					slog_keys.Error, "panic",
+					slog_keys.StackTrace, st,
+				)
+			}
+			s.setDeploymentsJobResult(job.Id, jobResult)
+			job.Done()
+			logJobDone(ctx, job)
+		}()
+		logJobStart(ctx, job)
+		handlerModules, err := s.getReadableModules(
+			ctx,
+			pkg_models.ModulesFilterWithName{
+				ModulesFilter: pkg_models.ModulesFilter{
+					Ids: moduleIds,
+				},
+			},
+			false,
+		)
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+			return
+		}
+		jobResult.Results, err = s.deploymentsHandler.RestartDeployments(job.Context(), handlerModules)
+		if err != nil {
+			jobResult.ErrorResult = lib_models.NewErrorResult(err.Error())
+		}
+		for _, res := range jobResult.Results {
+			if res.HasError {
+				jobResult.ResultsErrNum++
+			}
+		}
+	}()
+	return lib_models.Job{
+		Id:          job.Id,
+		Description: job.Description,
+		Start:       job.Start,
+	}, nil
+}
+
 func (s *Service) DeleteDeployments(ctx context.Context, moduleIds []string, allowAll bool) (lib_models.Job, error) {
 	if !allowAll && len(moduleIds) == 0 {
 		return lib_models.Job{}, nil
