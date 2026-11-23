@@ -18,7 +18,9 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -184,5 +186,49 @@ func TestService_DeploymentsHealth_Restarts(t *testing.T) {
 	dep := info.Deployments[0]
 	if dep.State != lib_constants.DeploymentUnhealthy || dep.Restarts != 4 || dep.LastError != "boom" {
 		t.Errorf("unexpected deployment %+v", dep)
+	}
+}
+
+func TestGetDeploymentsHealthInfo_HealthOutput(t *testing.T) {
+	deployments := map[string]pkg_models.DeploymentReduced{
+		"mod": {
+			DeploymentBase: pkg_models.DeploymentBase{Id: "dep", ModuleId: "mod"},
+			Containers: map[string]pkg_models.DeploymentContainer{
+				"main":  {DeploymentContainerBase: pkg_models.DeploymentContainerBase{Reference: "main"}, State: lib_constants.ContainerRunning, Health: lib_constants.ContainerUnhealthy, HealthOutput: "connection refused"},
+				"plain": {DeploymentContainerBase: pkg_models.DeploymentContainerBase{Reference: "plain"}, State: lib_constants.ContainerStopped},
+			},
+			State: lib_constants.DeploymentUnhealthy,
+		},
+	}
+	auxDeployments := map[string]map[string]lib_models.AuxiliaryDeploymentReduced{
+		"mod": {"ref": {
+			AuxiliaryDeploymentBase: lib_models.AuxiliaryDeploymentBase{Id: "aux"},
+			Container:               lib_models.Container{State: lib_constants.ContainerRunning, Health: lib_constants.ContainerUnhealthy, HealthOutput: "aux failed"},
+		}}}
+	info := getDeploymentsHealthInfo(deployments, auxDeployments, nil, 0, false)
+	if len(info.Deployments) != 1 {
+		t.Fatalf("expected 1 listed deployment, got %d", len(info.Deployments))
+	}
+	dep := info.Deployments[0]
+	outputs := make(map[string]string)
+	for _, c := range dep.Containers {
+		outputs[c.Reference] = c.HealthOutput
+	}
+	if outputs["main"] != "connection refused" || outputs["plain"] != "" {
+		t.Errorf("unexpected container health outputs %v", outputs)
+	}
+	if len(dep.AuxiliaryDeployments) != 1 || dep.AuxiliaryDeployments[0].Container.HealthOutput != "aux failed" {
+		t.Errorf("unexpected auxiliary deployments %+v", dep.AuxiliaryDeployments)
+	}
+	empty, err := json.Marshal(lib_models.ContainerHealthInfo{State: lib_constants.ContainerRunning})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(empty), "health_output") {
+		t.Errorf("empty health output must be omitted, got %s", empty)
+	}
+	full, _ := json.Marshal(lib_models.ContainerHealthInfo{HealthOutput: "x"})
+	if !strings.Contains(string(full), `"health_output":"x"`) {
+		t.Errorf("health output missing in %s", full)
 	}
 }

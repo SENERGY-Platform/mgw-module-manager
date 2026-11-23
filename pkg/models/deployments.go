@@ -51,9 +51,10 @@ type DeploymentRestartInfo struct {
 
 type DeploymentContainer struct {
 	DeploymentContainerBase
-	ImageId string                        // docker image id
-	State   lib_constants.ContainerState  // docker container state
-	Health  lib_constants.ContainerHealth // docker container health
+	ImageId      string                        // docker image id
+	State        lib_constants.ContainerState  // docker container state
+	Health       lib_constants.ContainerHealth // docker container health
+	HealthOutput string                        // output of the newest docker health check run, empty if there is none
 }
 
 type DeploymentsFilterWithState struct {

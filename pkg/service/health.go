@@ -116,8 +116,9 @@ func getDeploymentsHealthInfo(
 					Id:        auxDep.Id,
 					Reference: auxDep.Reference,
 					Container: lib_models.ContainerHealthInfo{
-						State:  auxDep.Container.State,
-						Health: auxDep.Container.Health,
+						State:        auxDep.Container.State,
+						Health:       auxDep.Container.Health,
+						HealthOutput: auxDep.Container.HealthOutput,
 					},
 				})
 			}
@@ -153,8 +154,9 @@ func getDeploymentsHealthInfo(
 			depHealth.Containers = append(depHealth.Containers, lib_models.DeploymentContainerHealthInfo{
 				Reference: container.Reference,
 				ContainerHealthInfo: lib_models.ContainerHealthInfo{
-					State:  container.State,
-					Health: container.Health,
+					State:        container.State,
+					Health:       container.Health,
+					HealthOutput: container.HealthOutput,
 				},
 			})
 		}

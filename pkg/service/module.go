@@ -614,11 +614,12 @@ func getModule(module pkg_models.Module, deployment pkg_models.Deployment) lib_m
 		mod.Deployment.Containers = make(map[string]lib_models.Container)
 		for reference, container := range deployment.Containers {
 			mod.Deployment.Containers[reference] = lib_models.Container{
-				Name:    container.Name,
-				Alias:   container.Alias,
-				ImageId: container.ImageId,
-				State:   container.State,
-				Health:  container.Health,
+				Name:         container.Name,
+				Alias:        container.Alias,
+				ImageId:      container.ImageId,
+				State:        container.State,
+				Health:       container.Health,
+				HealthOutput: container.HealthOutput,
 			}
 		}
 	}

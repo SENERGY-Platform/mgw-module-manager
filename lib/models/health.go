@@ -52,8 +52,9 @@ type DeploymentContainerHealthInfo struct {
 // ContainerHealthInfo provides the state a container is reported to be in by the container engine.
 // A container is considered ok if it is running and not unhealthy.
 type ContainerHealthInfo struct {
-	State  constants.ContainerState  `json:"state"`  // docker container state, values: initialized, running, paused, restarting, removing, stopped, dead
-	Health constants.ContainerHealth `json:"health"` // docker container health, values: healthy, unhealthy, transitioning, empty if the container defines no health check
+	State        constants.ContainerState  `json:"state"`                   // docker container state, values: initialized, running, paused, restarting, removing, stopped, dead
+	Health       constants.ContainerHealth `json:"health"`                  // docker container health, values: healthy, unhealthy, transitioning, empty if the container defines no health check
+	HealthOutput string                    `json:"health_output,omitempty"` // output of the newest docker health check run, empty if there is none
 }
 
 // AuxiliaryDeploymentHealthInfo provides the health of a single auxiliary deployment.

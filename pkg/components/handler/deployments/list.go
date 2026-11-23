@@ -303,6 +303,9 @@ func getContainers(
 			if cewContainer.Health != nil {
 				container.Health = *cewContainer.Health
 			}
+			if cewContainer.HealthOutput != nil {
+				container.HealthOutput = *cewContainer.HealthOutput
+			}
 		} else {
 			logger.WarnContext(
 				ctx,

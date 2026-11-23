@@ -226,6 +226,9 @@ func getContainer(dbContainer pkg_models.AuxiliaryDeploymentContainer, cewContai
 	if cewContainer.Health != nil {
 		ctrInfo.Health = *cewContainer.Health
 	}
+	if cewContainer.HealthOutput != nil {
+		ctrInfo.HealthOutput = *cewContainer.HealthOutput
+	}
 	return ctrInfo
 }
 
